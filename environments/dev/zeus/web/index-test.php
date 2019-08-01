@@ -15,13 +15,13 @@ require __DIR__ . '/../config/bootstrap.php';
 
 $config = yii\helpers\ArrayHelper::merge(
     require __DIR__ . '/../../common/config/main.php',
-    require __DIR__ . '/../../common/config/main-local.php',
+    require __DIR__ . '/../../common/config/main-dev.php',
     require __DIR__ . '/../../common/config/test.php',
-    require __DIR__ . '/../../common/config/test-local.php',
+    require __DIR__ . '/../../common/config/test-dev.php',
     require __DIR__ . '/../config/main.php',
-    require __DIR__ . '/../config/main-local.php',
+    require __DIR__ . '/../config/main-dev.php',
     require __DIR__ . '/../config/test.php',
-    require __DIR__ . '/../config/test-local.php'
+    require __DIR__ . '/../config/test-dev.php'
 );
 
 (new yii\web\Application($config))->run();

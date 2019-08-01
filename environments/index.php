@@ -45,10 +45,10 @@ return [
             'yii_test',
         ],
         'setCookieValidationKey' => [
-            'zeus/config/main-local.php',
-            'common/config/codeception-local.php',
-            'metis/config/main-local.php',
-            'ares/config/main-local.php',
+            'zeus/config/main-dev.php',
+            'common/config/codeception-dev.php',
+            'metis/config/main-dev.php',
+            'ares/config/main-dev.php',
         ],
     ],
     'Production' => [
@@ -66,9 +66,9 @@ return [
             'yii',
         ],
         'setCookieValidationKey' => [
-            'zeus/config/main-local.php',
-            'metis/config/main-local.php',
-            'ares/config/main-local.php',
+            'zeus/config/main-dev.php',
+            'metis/config/main-dev.php',
+            'ares/config/main-dev.php',
         ],
     ],
 ];

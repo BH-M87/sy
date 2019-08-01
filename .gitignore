@@ -45,3 +45,5 @@ phpunit.phar
 /ares/web/index.php
 /ares/web/index-test.php
 /ares/web/robots.txt
+
+.env
