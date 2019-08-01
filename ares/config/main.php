@@ -1,5 +1,5 @@
 <?php
-$paramsEnvFile = 'params-'.$envData['ENV'].'.php';
+$paramsEnvFile = 'params-'.$envData['YII_ENV'].'.php';
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/'.$paramsEnvFile),

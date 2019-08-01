@@ -1,5 +1,5 @@
 <?php
-$paramsEnvFile = 'params-' . $envData['ENV'] . '.php';
+$paramsEnvFile = 'params-' . $envData['YII_ENV'] . '.php';
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
@@ -10,7 +10,7 @@ $params = array_merge(
 return [
     'id' => 'app-zeus',
     'basePath' => dirname(__DIR__),
-    'controllerNamespace' => 'zeus\controllers',
+    'controllerNamespace' => 'alisa\controllers',
     'bootstrap' => ['log'],
     'components' => [
         'request' => [
