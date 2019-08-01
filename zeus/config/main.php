@@ -1,11 +1,12 @@
 <?php
-$paramsEnvFile = 'params-'.$envData['ENV'].'.php';
+$paramsEnvFile = 'params-' . $envData['ENV'] . '.php';
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
-    require(__DIR__ . '/../../common/config/'.$paramsEnvFile),
+    require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
     require(__DIR__ . '/params.php'),
-    require(__DIR__ . '/'.$paramsEnvFile)
+    require(__DIR__ . '/' . $paramsEnvFile)
 );
+
 
 return [
     'id' => 'app-zeus',
