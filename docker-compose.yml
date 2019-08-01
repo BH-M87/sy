@@ -3,7 +3,7 @@ version: '3.2'
 services:
 
   frontend:
-    build: frontend
+    build: metis
     ports:
       - 20080:80
     volumes:
@@ -13,7 +13,7 @@ services:
       - ./:/app
 
   backend:
-    build: backend
+    build: zeus
     ports:
       - 21080:80
     volumes:

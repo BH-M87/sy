@@ -1,4 +1,10 @@
 #### 版本号定义:
+```
+zeus : old api system     物业后台和运营后台(众神之王宙斯)
+metis : old apiweb system   邻易联和智能门禁(智慧女神墨提斯)
+dingding : old dingding system 钉钉系统(现代版女神)
+ares: old open-api system     智能门禁(战神阿瑞斯)
+```
 1.0.0
 
 含义为:
