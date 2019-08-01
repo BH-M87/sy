@@ -23,7 +23,6 @@ class Module extends \yii\base\Module
         //注册版本子模块
         $this->modules = [
             'v1' => ['class' => 'alisa\modules\door\modules\v1\Module'],
-            'v2' => ['class' => 'alisa\modules\door\modules\v2\Module']
         ];
     }
 }
