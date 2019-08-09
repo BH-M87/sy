@@ -4,7 +4,7 @@
 - 3、 apache配置域名指向 app/web
 
 
-app 下模块划分：
+#### app 下模块划分：
 - 1、small(邻易联小程序)
 - 2、small_common (支付宝小程序公共部分，如：授权、小区列表、房屋列表、家人列表等)
 - 3、small_door (智能门禁小程序)
@@ -12,7 +12,7 @@ app 下模块划分：
 - 5、ding_property_app (钉钉物业端应用)
 注意这里的模块只写收据校验的代码逻辑，业务逻辑写到service对应的模块下
 
-service 下模块划分：
+#### service 下模块划分：
 - 1、issue(报事报修)
 - 2、basic_data(基础数据：房屋、住户)
 - 3、bill (账单)
