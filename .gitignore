@@ -36,14 +36,6 @@ phpunit.phar
 /.vagrant
 
 # ignore generated files
-/zeus/web/index.php
-/zeus/web/index-test.php
-/zeus/web/robots.txt
-/metis/web/index.php
-/metis/web/index-test.php
-/metis/web/robots.txt
-/ares/web/index.php
-/ares/web/index-test.php
-/ares/web/robots.txt
+/app/web/index.php
 
 .env
