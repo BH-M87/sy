@@ -1,4 +1,4 @@
-namespace: common\tests
+namespace: metis\tests
 actor_suffix: Tester
 paths:
     tests: tests
