@@ -56,10 +56,23 @@ return [
 
     ],
     'modules' => [
-        //小程序
+        //邻易联小程序
         'small' => [
             'class' => 'app\modules\small\Module'
         ],
+        //智能门禁小程序
+        'door_control' => [
+            'class' => 'app\modules\door_control\Module'
+        ],
+        //物业后台
+        'property' => [
+            'class' => 'app\modules\property\Module'
+        ],
+        //钉钉B端应用
+        'ding_property_app' => [
+            'class' => 'app\modules\ding_property_app\Module'
+        ],
+
     ],
     'params' => $params,
 ];
