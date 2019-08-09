@@ -10,6 +10,7 @@
 - 3、small_door (智能门禁小程序)
 - 4、property (物业后台)
 - 5、ding_property_app (钉钉物业端应用)
+
 注意这里的模块只写收据校验的代码逻辑，业务逻辑写到service对应的模块下
 
 #### service 下模块划分：
@@ -19,6 +20,7 @@
 - 4、patrol (巡更)
 - 5、inspect (巡检)
 - 6、rbac (用户管理权限管理)
+- 7、qiniu (图片处理)
 
 
 #### 版本号定义:
