@@ -1,11 +1,11 @@
 <?php
 
-namespace app\modules\door_control\modules\v1;
+namespace app\modules\small_common\modules\v1;
 
 use Yii;
 class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'app\modules\door_control\modules\v1\controllers';
+    public $controllerNamespace = 'app\modules\small_common\modules\v1\controllers';
     /**
      * @inheritdoc
      */
