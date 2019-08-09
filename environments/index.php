@@ -32,43 +32,37 @@ return [
     'Development' => [
         'path' => 'dev',
         'setWritable' => [
-            'zeus/runtime',
-            'zeus/web/assets',
+            'api/runtime',
+            'api/web/assets',
             'console/runtime',
-            'metis/runtime',
-            'metis/web/assets',
-            'ares/runtime',
-            'ares/web/assets',
+            'app/runtime',
+            'app/web/assets'
         ],
         'setExecutable' => [
             'yii',
             'yii_test',
         ],
         'setCookieValidationKey' => [
-            'zeus/config/main-dev.php',
+            'app/config/main-dev.php',
             'common/config/codeception-dev.php',
-            'metis/config/main-dev.php',
-            'ares/config/main-dev.php',
+            'api/config/main-dev.php',
         ],
     ],
     'Production' => [
         'path' => 'prod',
         'setWritable' => [
-            'zeus/runtime',
-            'zeus/web/assets',
+            'api/runtime',
+            'api/web/assets',
             'console/runtime',
-            'metis/runtime',
-            'metis/web/assets',
-            'ares/runtime',
-            'ares/web/assets',
+            'app/runtime',
+            'app/web/assets'
         ],
         'setExecutable' => [
             'yii',
         ],
         'setCookieValidationKey' => [
-            'zeus/config/main-dev.php',
-            'metis/config/main-dev.php',
-            'ares/config/main-dev.php',
+            'api/config/main-dev.php',
+            'app/config/main-dev.php',
         ],
     ],
 ];
