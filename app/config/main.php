@@ -53,7 +53,8 @@ return [
             'rules' => [
             ],
         ],
-
+        'db' => require(__DIR__ . '/db.php'),
+        'redis' => require (__DIR__.'/redis.php'),
     ],
     'modules' => [
         //邻易联小程序
