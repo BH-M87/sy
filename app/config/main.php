@@ -61,9 +61,13 @@ return [
         'small' => [
             'class' => 'app\modules\small\Module'
         ],
-        //智能门禁小程序
-        'door_control' => [
-            'class' => 'app\modules\door_control\Module'
+        //小程序公共部分，如授权，业主认证流程，小区，房屋选择等接口
+        'small_common' => [
+            'class' => 'app\modules\small_common\Module'
+        ],
+        //门禁小程序
+        'small_door' => [
+            'class' => 'app\modules\small_door\Module'
         ],
         //物业后台
         'property' => [

@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\door_control\controllers;
+namespace app\modules\small_door\controllers;
 
 use yii\web\Controller;
 

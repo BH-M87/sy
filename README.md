@@ -1,9 +1,24 @@
-#### 代码结构含义:
+#### 部署:
 - 1、 代码clone之后本地执行 php init ,选择0，生成本地配置文件
-- 2、 apache配置域名指向 app/web
-- 3、 app下按照应用端分模块，目前分为small(邻易联小程序)、property(物业后台)、door_control(智能门禁小程序)、ding_property_app(钉钉物业端应用)。
+- 2、 复制.env.example 文件，改名为.env，修改本地环境变量
+- 3、 apache配置域名指向 app/web
+
+
+app 下模块划分：
+- 1、small(邻易联小程序)
+- 2、small_common (支付宝小程序公共部分，如：授权、小区列表、房屋列表、家人列表等)
+- 3、small_door (智能门禁小程序)
+- 4、property (物业后台)
+- 5、ding_property_app (钉钉物业端应用)
 注意这里的模块只写收据校验的代码逻辑，业务逻辑写到service对应的模块下
 
+service 下模块划分：
+- 1、issue(报事报修)
+- 2、basic_data(基础数据：房屋、住户)
+- 3、bill (账单)
+- 4、patrol (巡更)
+- 5、inspect (巡检)
+- 6、rbac (用户管理权限管理)
 
 
 #### 版本号定义:
