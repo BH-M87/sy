@@ -77,6 +77,10 @@ return [
         'ding_property_app' => [
             'class' => 'app\modules\ding_property_app\Module'
         ],
+        //运营后台
+        'manage' => [
+            'class' => 'app\modules\manage\Module'
+        ]
 
     ],
     'params' => $params,
