@@ -8,7 +8,7 @@
 
 namespace service\inspect;
 
-use app\common\MyException;
+use common\MyException;
 use app\models\PsDevice;
 use app\models\PsDeviceCategory;
 use app\models\PsInspectPoint;
