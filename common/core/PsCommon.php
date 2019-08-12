@@ -147,6 +147,17 @@ class PsCommon {
     }
 
     /**
+     * 获取model保存时的错误信息
+     * @param $model
+     * @return mixed
+     */
+    public static function getModelError($model)
+    {
+        $errorMsg = array_values($model->errors);
+        return $errorMsg[0][0];
+    }
+
+    /**
      * 通用返回格式，私有方法，不对外提供调用，所有接口对外输出格式化出口，请勿随意修改！！
      * 控制器返回需要调用，responseSuccess, response, responseFailed等
      * @param int $code

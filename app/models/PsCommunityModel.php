@@ -1,9 +1,6 @@
 <?php
-
 namespace app\models;
-
 use common\core\Regular;
-
 /**
  * This is the model class for table "ps_community".
  *
