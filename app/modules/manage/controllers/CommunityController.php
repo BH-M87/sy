@@ -12,8 +12,8 @@ use Yii;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsCommunityForm;
-use app\modules\property\models\PsCommunityModel;
-use app\modules\property\services\CommunityService;
+use app\models\PsCommunityModel;
+use service\manage\CommunityService;
 use app\modules\property\services\OperateService;
 
 Class CommunityController extends BaseController
@@ -32,56 +32,6 @@ Class CommunityController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    //查看小区详情
-    public function actionShow()
-    {
-        $data = $this->request_params;
-
-        if (!$data) {
-            return PsCommon::responseFailed('json串为空,解析出错');
-        }
-
-        $model = new PsCommunityForm;
-        $model->setScenario('show');
-        $model->load($data, ''); // 加载数据
-
-        if ($model->validate()) { // 检验数据
-            $result = CommunityService::service()->communityShow($data['community_id']);
-            if ($result) {
-                return PsCommon::responseSuccess($result);
-            } else {
-                return PsCommon::responseFailed('小区不存在');
-            }
-        } else {
-            $errorMsg = array_values($model->errors);
-            return PsCommon::responseFailed($errorMsg[0][0]);
-        }
-    }
-
-    //小区启用禁用
-    public function actionCheck()
-    {
-        $data = $this->request_params;
-
-        if (!$data) {
-            return PsCommon::responseFailed('json串为空,解析出错');
-        }
-
-        $model = new PsCommunityForm;
-        $model->setScenario('check');
-        $model->load($data, ''); // 加载数据
-
-        if ($model->validate()) { // 检验数据
-            $result = CommunityService::service()->communityCheck($data, $this->user_info);
-            if (!$result['code']) {
-                return PsCommon::responseFailed($result['msg']);
-            }
-            return PsCommon::responseSuccess();
-        } else {
-            $errorMsg = array_values($model->errors);
-            return PsCommon::responseFailed($errorMsg[0][0]);
-        }
-    }
 
     //添加小区
     public function actionCreateComm()
@@ -132,6 +82,58 @@ Class CommunityController extends BaseController
             } else {
                 return PsCommon::responseFailed('小区编辑失败');
             }
+        } else {
+            $errorMsg = array_values($model->errors);
+            return PsCommon::responseFailed($errorMsg[0][0]);
+        }
+    }
+
+
+    //查看小区详情
+    public function actionShow()
+    {
+        $data = $this->request_params;
+
+        if (!$data) {
+            return PsCommon::responseFailed('json串为空,解析出错');
+        }
+
+        $model = new PsCommunityForm;
+        $model->setScenario('show');
+        $model->load($data, ''); // 加载数据
+
+        if ($model->validate()) { // 检验数据
+            $result = CommunityService::service()->communityShow($data['community_id']);
+            if ($result) {
+                return PsCommon::responseSuccess($result);
+            } else {
+                return PsCommon::responseFailed('小区不存在');
+            }
+        } else {
+            $errorMsg = array_values($model->errors);
+            return PsCommon::responseFailed($errorMsg[0][0]);
+        }
+    }
+
+    //小区启用禁用
+    public function actionCheck()
+    {
+        $data = $this->request_params;
+
+        if (!$data) {
+            return PsCommon::responseFailed('json串为空,解析出错');
+        }
+
+        $model = new PsCommunityForm;
+        $model->setScenario('check');
+        $model->load($data, ''); // 加载数据
+
+        if ($model->validate()) { // 检验数据
+            $result = CommunityService::service()->communityCheck($data, $this->user_info);
+            if (!$result['code']) {
+                return PsCommon::responseFailed($result['msg']);
+            }
+            return PsCommon::responseSuccess();
         } else {
             $errorMsg = array_values($model->errors);
             return PsCommon::responseFailed($errorMsg[0][0]);

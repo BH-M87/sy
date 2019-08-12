@@ -5,14 +5,15 @@
  * @date 2017-06-06
  */
 
-namespace app\modules\property\services;
+namespace service\manage;
 
-use app\common\core\F;
+use common\core\F;
 use app\models\PsUser;
 use app\models\PsPropertyCompany;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
+use service\BaseService;
 
 Class CompanyService extends BaseService
 {
