@@ -1,9 +1,9 @@
 <?php
 namespace service\manage;
 
-use app\common\core\PsCommon;
-use app\modules\lylapp\models\PsUser;
-use app\modules\property\models\PsAgent;
+use common\core\PsCommon;
+use app\models\PsUser;
+use app\models\PsAgent;
 use phpDocumentor\Reflection\Types\Self_;
 use Yii;
 use yii\base\Exception;
