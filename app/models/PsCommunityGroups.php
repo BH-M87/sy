@@ -27,7 +27,10 @@ class PsCommunityGroups extends BaseModel
         return [
             [['community_id'], 'integer'],
             [['name'], 'string', 'max' => 50],
-            [['community_id', 'name'], 'required'],
+            [['community_id', 'name'], 'required', 'on' => ['add', 'edit']],
+            [['id'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['edit']],
+            ['name', 'string', 'max' => '15', 'on' => ['add','edit']],
+            [['groups_code'], 'checkCode', 'on' => ['add', 'edit']],
         ];
     }
 
@@ -37,15 +40,28 @@ class PsCommunityGroups extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'community_id' => '',
-            'name' => 'Name',
+            'id' => '区域id',
+            'community_id' => '小区id',
+            'name' => '区域名称',
         ];
     }
 
     //获得小区幢列表
     public function getBuilding(){
         return $this->hasMany(PsCommunityBuilding::className(),['group_id'=>'id']);
+    }
+
+    //校验区域编码
+    public function checkCode($attribute)
+    {
+        $groupCode = $this->$attribute;
+        if(!empty($groupCode)){
+            if(!is_numeric($groupCode)){
+                $this->addError($attribute,'苑/期/区编码2位，只可为数字');
+            }
+
+        }
+
     }
 
 }
