@@ -9,36 +9,30 @@ namespace app\modules\property\modules\v1\controllers;
 
 use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
+use service\basic_data\CommunityGroupService;
 
 class CommunityGroupsController extends BaseController {
 
-    public function actionGroupList()
-    {
-        $data = $this->request_params;
-        if (empty($data)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
-        $result = GroupManageService::service()->getGroupList($data);
-        return PsCommon::responseAppSuccess($result);
-    }
-
+    //区域列表
     public function actionList()
     {
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $result['list'] = GroupManageService::service()->getList($data, $this->page, $this->pageSize);
-        $result['totals'] = GroupManageService::service()->getListCount($data);
-        return PsCommon::responseAppSuccess($result);
+        $result['list'] = CommunityGroupService::service()->getList($data, $this->page, $this->pageSize);
+        $result['totals'] = CommunityGroupService::service()->getListCount($data);
+        return PsCommon::responseSuccess($result);
 
     }
 
+    //区域新增
     public function actionAdd()
     {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+
         $valid = PsCommon::validParamArr(new GroupsForm(), $this->request_params, 'add');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
