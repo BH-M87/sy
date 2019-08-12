@@ -7,13 +7,14 @@
  * Time: 10:02
  */
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
-use yii\base\Exception;
+use app\modules\property\controllers\BaseController;
+use common\core\PsCommon;
+use service\inspect\PointService;
 
-class InspectController
+class InspectController extends BaseController
 {
-
     /**
      * @api 巡检点新增
      * @author wyf
@@ -23,42 +24,42 @@ class InspectController
     {
         $this->request_params['id'] = 0;
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-        $result = PointService::service()->add($this->request_params, $this->user_info);
+        PointService::service()->add($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
-     * @api 巡检点管理
+     * @api 巡检点编辑
      * @author wyf
      * @date 2019/8/12
      */
     public function actionPointEdit()
     {
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-
-        $result = PointService::service()->edit($this->request_params, $this->user_info);
+        PointService::service()->edit($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
-    //  列表 {"page":"1","rows":"10","community_id":"131","device_id":"","need_location":"1","need_photo":"1"}
-
     /**
-     * @api 巡检点管理
+     * @api 巡检点列表
      * @author wyf
      * @date 2019/8/12
      */
     public function actionPointList()
     {
-        $data['list'] = PointService::service()->pointList($this->request_params);
-        $data['totals'] = PointService::service()->pointCount($this->request_params);
+        $result = PointService::service()->pointList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
-     * @api 巡检点管理
+     * @api 巡检点详情
      * @author wyf
      * @date 2019/8/12
      */
     public function actionPointShow()
     {
-        $data = PointService::service()->pointShow($this->request_params);
+        $result = PointService::service()->pointShow($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -68,13 +69,19 @@ class InspectController
      */
     public function actionPointDelete()
     {
-        $data = PointService::service()->del($this->request_params, $this->user_info);
+        PointService::service()->del($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
-    // 巡检点管理 下拉 {"community_id": "131","line_id":"11","checked":"0"}
+    /**
+     * @api 巡检点管理下拉
+     * @author wyf
+     * @date 2019/8/12
+     */
     public function actionPointDropDown()
     {
-        $data = PointService::service()->getPoint($this->request_params);
+        $result = PointService::service()->getPoint($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -84,7 +91,8 @@ class InspectController
      */
     public function actionDownloadCode()
     {
-        $data = PointService::service()->pointShow($this->request_params);
+        PointService::service()->pointShow($this->request_params);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -96,7 +104,8 @@ class InspectController
     {
         $this->request_params['id'] = 0;
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-        $result = LineService::service()->add($this->request_params, $this->user_info);
+        LineService::service()->add($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -108,7 +117,8 @@ class InspectController
     {
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
 
-        $result = LineService::service()->edit($this->request_params, $this->user_info);
+        LineService::service()->edit($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -118,7 +128,8 @@ class InspectController
      */
     public function actionLineList()
     {
-        $data['list'] = LineService::service()->lineList($this->request_params);
+        $result = LineService::service()->lineList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -128,7 +139,8 @@ class InspectController
      */
     public function actionLineShow()
     {
-        $data = LineService::service()->show($this->request_params);
+        $result = LineService::service()->show($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -138,7 +150,8 @@ class InspectController
      */
     public function actionLineDelete()
     {
-        $data = LineService::service()->del($this->request_params, $this->user_info);
+        LineService::service()->del($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -148,12 +161,9 @@ class InspectController
      */
     public function actionLineDropDown()
     {
-        $data = LineService::service()->getlineList($this->request_params);
+        $result = LineService::service()->getlineList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
-
-    // +------------------------------------------------------------------------------------
-    // |----------------------------------     巡检计划管理     ----------------------------
-    // +------------------------------------------------------------------------------------
 
     /**
      * @api 巡检计划新增
@@ -167,7 +177,8 @@ class InspectController
         $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
         $this->request_params['time_list'] = json_encode($this->request_params['time_list']);
 
-        $result = PlanService::service()->add($this->request_params, $this->user_info);
+        PlanService::service()->add($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -181,7 +192,8 @@ class InspectController
         $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
         $this->request_params['time_list'] = json_encode($this->request_params['time_list']);
 
-        $result = PlanService::service()->edit($this->request_params, $this->user_info);
+        PlanService::service()->edit($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -191,9 +203,8 @@ class InspectController
      */
     public function actionPlanList()
     {
-        $data['list'] = PlanService::service()->lists($this->request_params);
-        $data['totals'] = PlanService::service()->count($this->request_params);
-
+        $result = PlanService::service()->lists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -203,7 +214,8 @@ class InspectController
      */
     public function actionPlanShow()
     {
-        $data = PlanService::service()->show($this->request_params);
+        $result = PlanService::service()->show($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -213,8 +225,8 @@ class InspectController
      */
     public function actionPlanDelete()
     {
-        $data = PlanService::service()->del($this->request_params, $this->user_info);
-
+        PlanService::service()->del($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -224,7 +236,8 @@ class InspectController
      */
     public function actionPlanDropDown()
     {
-        $data = PlanService::service()->getPlanList($this->request_params);
+        $result = PlanService::service()->getPlanList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -234,7 +247,8 @@ class InspectController
      */
     public function actionPlanStatus()
     {
-        $data = PlanService::service()->editStatus($this->request_params);
+        PlanService::service()->editStatus($this->request_params);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -244,8 +258,8 @@ class InspectController
      */
     public function actionPlanUserList()
     {
-        $data = UserService::service()->getUserByCommunityId($this->request_params['community_id']);
-
+        UserService::service()->getUserByCommunityId($this->request_params['community_id']);
+        return PsCommon::responseSuccess();
     }
 
     /**
@@ -255,9 +269,8 @@ class InspectController
      */
     public function actionRecordList()
     {
-        $data['list'] = TaskService::service()->lists($this->request_params);
-        $data['totals'] = TaskService::service()->count($this->request_params);
-
+        $result = TaskService::service()->lists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -267,7 +280,8 @@ class InspectController
      */
     public function actionRecordShow()
     {
-        $data = TaskService::service()->show($this->request_params);
+        $result = TaskService::service()->show($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -277,9 +291,8 @@ class InspectController
      */
     public function actionRecordShowList()
     {
-        $data['list'] = TaskService::service()->showLists($this->request_params);
-        $data['totals'] = TaskService::service()->showCount($this->request_params);
-
+        $result = TaskService::service()->showLists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -292,6 +305,7 @@ class InspectController
         $this->request_params['page'] = 1;
         $this->request_params['rows'] = 10000;
         $result = TaskService::service()->lists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -301,8 +315,8 @@ class InspectController
      */
     public function actionRecordIssueList()
     {
-        $data['list'] = TaskService::service()->issueLists($this->request_params);
-        $data['totals'] = TaskService::service()->issueCount($this->request_params);
+        $result = TaskService::service()->issueLists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -312,7 +326,8 @@ class InspectController
      */
     public function actionRecordIssueShow()
     {
-        $data = TaskService::service()->issueShow($this->request_params);
+        $result = TaskService::service()->issueShow($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -324,8 +339,8 @@ class InspectController
     {
         $this->request_params['page'] = 1;
         $this->request_params['rows'] = 10000;
-
         $result = TaskService::service()->issueLists($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -335,7 +350,9 @@ class InspectController
      */
     public function actionUserList()
     {
-        $data = StatisticService::service()->userList($this->request_params);
+        $result = StatisticService::service()->userList($this->request_params);
+
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -345,7 +362,8 @@ class InspectController
      */
     public function actionIssueList()
     {
-        $data = StatisticService::service()->issueList($this->request_params);
+        $result = StatisticService::service()->issueList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -355,7 +373,7 @@ class InspectController
      */
     public function actionDeviceList()
     {
-        $data['device'] = StatisticService::service()->deviceList($this->request_params);
-        $data['issue'] = StatisticService::service()->issue($this->request_params);
+        $result = StatisticService::service()->deviceList($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 }

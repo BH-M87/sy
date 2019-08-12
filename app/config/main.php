@@ -44,9 +44,9 @@ return [
             ],
         ],
         'errorHandler' => [
+            'class' => 'app\common\MyErrorHandler',
             'errorAction' => 'site/error',
         ],
-
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
