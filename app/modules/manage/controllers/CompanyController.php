@@ -62,12 +62,6 @@ Class CompanyController extends BaseController
         return PsCommon::responseSuccess($codeList);
     }
 
-    //代理商下拉列表
-    public function actionGetAgent()
-    {
-        $result = AgentService::service()->getAgent();
-        return PsCommon::responseSuccess($result);
-    }
 
     /**
      * 添加/编辑物业公司

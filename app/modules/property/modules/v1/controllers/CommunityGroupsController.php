@@ -7,12 +7,12 @@
  */
 namespace app\modules\property\modules\v1\controllers;
 
+use app\models\PsCommunityGroups;
 use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
 use service\basic_data\CommunityGroupService;
 
 class CommunityGroupsController extends BaseController {
-
     //区域列表
     public function actionList()
     {
@@ -33,44 +33,60 @@ class CommunityGroupsController extends BaseController {
             return PsCommon::responseFailed("未接受到有效数据");
         }
 
-        $valid = PsCommon::validParamArr(new GroupsForm(), $this->request_params, 'add');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+        $data = [];
+        $data['name'] = PsCommon::get($this->request_params, 'group_name', '');
+        $data['groups_code'] = PsCommon::get($this->request_params, 'group_code', '');
+        $model = new PsCommunityGroups();
+        $model->load($data, '');
+        $model->setScenario('add');
+        if (!$model->validate()) {
+            $error = PsCommon::getModelError($model);
+            return PsCommon::responseFailed($error);
         }
-        $data = $valid['data'];
-        return GroupManageService::service()->add($data,$this->user_info);
 
+        return CommunityGroupService::service()->add($this->request_params, $this->user_info);
     }
 
+    //区域编辑
     public function actionEdit()
     {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $valid = PsCommon::validParamArr(new GroupsForm(), $this->request_params, 'edit');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+
+        $data = [];
+        $data['id'] = PsCommon::get($this->request_params, 'group_id', 0);
+        $data['name'] = PsCommon::get($this->request_params, 'group_name', '');
+        $data['groups_code'] = PsCommon::get($this->request_params, 'group_code', '');
+        $model = new PsCommunityGroups();
+        $model->load($data, '');
+        $model->setScenario('edit');
+
+        if (!$model->validate()) {
+            $error = PsCommon::getModelError($model);
+            return PsCommon::responseFailed($error);
         }
-        $data = $valid['data'];
-        return GroupManageService::service()->edit($data,$this->user_info);
+        return CommunityGroupService::service()->edit($this->request_params, $this->user_info);
     }
 
+    //区域详情
     public function actionDetail()
     {
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        return GroupManageService::service()->detail($data);
+        return CommunityGroupService::service()->detail($data);
     }
 
+    //区域删除
     public function actionDelete()
     {
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        return GroupManageService::service()->delete($data,$this->user_info);
+        return CommunityGroupService::service()->delete($data, $this->user_info);
     }
 }
 
