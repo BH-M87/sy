@@ -130,6 +130,24 @@ Class F
         return json_encode($result, 256);
     }
 
+    //重复请求的
+    public static function _repeatCacheField()
+    {
+        $url = Yii::$app->request->getPathInfo();//路由，不包括get参数
+        $token = self::request('token');
+        return 'lyl:repeat:cache' . md5(json_encode([$url, $token]));
+    }
+
+    //判断是否重复请求
+    public static function repeatRequest()
+    {
+        $cacheKey = self::_repeatCacheField();
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 30, 'NX')) {
+            return false;
+        }
+        return true;
+    }
+
     //七天的时间表示
     public static function sevenDays($day = '')
     {
