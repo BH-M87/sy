@@ -1,6 +1,7 @@
 <?php
 namespace service;
 use Yii;
+use common\core\Api;
 
 class BaseService {
 
@@ -57,5 +58,18 @@ class BaseService {
             Yii::$app->cache->set($cacheKey, $data, $expire);
         }
         return $data;
+    }
+
+
+    //get请求接口
+    public function apiGet($url, $data = [], $log = false, $paramFormat = true, $hasSign = false)
+    {
+        return Api::getInstance()->get($url, $data);
+    }
+
+    //post请求接口
+    public function apiPost($url, $data = [], $log = false, $paramFormat = true, $hasSign = false)
+    {
+        return Api::getInstance()->post($url, $data);
     }
 }

@@ -5,16 +5,17 @@
  * @date 2018-05-02
  */
 
-namespace app\modules\operation\controllers;
+namespace app\modules\manage\controllers;
 
-use app\common\core\F;
 use Yii;
-use app\common\core\PsCommon;
-use app\common\CoreController;
-use app\modules\property\services\GroupService;
-use app\modules\property\services\MenuService;
-use app\modules\property\services\UserService;
-use app\services\BaseService;
+use common\core\F;
+use common\core\PsCommon;
+use common\CoreController;
+use service\manage\GroupService;
+use service\manage\MenuService;
+use service\manage\UserService;
+use service\BaseService;
+
 
 Class BaseController extends CoreController
 {
