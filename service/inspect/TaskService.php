@@ -9,7 +9,7 @@ namespace service\inspect;
 
 use service\BaseService;
 
-class PlanService extends BaseService
+class TaskService extends BaseService
 {
     /**  物业后台接口 start */
     public function add()
