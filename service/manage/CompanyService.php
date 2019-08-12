@@ -8,8 +8,8 @@
 namespace app\modules\property\services;
 
 use app\common\core\F;
-use app\modules\lylapp\models\PsUser;
-use app\modules\property\models\PsPropertyCompany;
+use app\models\PsUser;
+use app\models\PsPropertyCompany;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
