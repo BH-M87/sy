@@ -1,9 +1,6 @@
 <?php
-
 namespace app\models;
 use common\core\Regular;
-
-
 /**
  * This is the model class for table "ps_community".
  *
@@ -12,7 +9,6 @@ use common\core\Regular;
  * @property string $province_code
  * @property string $city_id
  * @property string $district_code
- * @property string $community_code
  * @property integer $pro_company_id
  * @property string $name
  * @property string $group
@@ -73,7 +69,6 @@ class PsCommunityModel extends BaseModel
             'locations' => '地图坐标',
             'address' => '小区地址',
             'phone' => '物业电话',
-            'community_code' => '唯一code',
             'logo_url' => '小区logo',
             'status' => 'Status',
             'create_at' => 'Create At',
@@ -95,27 +90,5 @@ class PsCommunityModel extends BaseModel
     public static function getCommunityName($ids)
     {
         return self::find()->select('id, name')->where(['id' => $ids])->asArray()->all();
-    }
-
-    // 获取单条
-    public static function getOne($param)
-    {
-        return self::find()->where('id = :id', [':id' => $param['id']])->asArray()->one();
-    }
-
-    //根据小区苑期区
-    public function getGroups(){
-        return $this->hasMany(PsCommunityGroups::className(),['community_id'=>'id']);
-    }
-
-    //级联小区
-    public function getCascadeDrop($param){
-        $model = self::find()->select(['id','name'])->where(1);
-        $model->with('groups.building');
-        if(!empty($param['communityIds'])){
-            $model->andWhere(['in','id',$param['communityIds']]);
-        }
-        $model->orderBy(['id'=>SORT_DESC]);
-        return $model->asArray()->all();
     }
 }

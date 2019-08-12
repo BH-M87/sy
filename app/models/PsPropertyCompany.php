@@ -61,15 +61,4 @@ class PsPropertyCompany extends BaseModel
             'nonce' => 'Nonce'
         ];
     }
-
-    // 获取单条
-    public static function getOne($param)
-    {
-        return self::find()->where('id = :id and deleted = :deleted', [':id' => $param['id'], ':deleted' => $param['deleted']])->asArray()->one();
-    }
-
-    public static function getFindPk($param)
-    {
-        return self::find()->where('id = :id', [':id' => $param['id']])->asArray()->one();
-    }
 }
