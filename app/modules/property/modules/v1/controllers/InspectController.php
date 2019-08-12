@@ -11,10 +11,16 @@ namespace app\modules\property\modules\v1\controllers;
 
 use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
+use service\inspect\LineService;
+use service\inspect\PlanService;
 use service\inspect\PointService;
+use service\inspect\StatisticService;
+use service\inspect\TaskService;
 
 class InspectController extends BaseController
 {
+    public $repeatAction = ['point-add'];
+
     /**
      * @api 巡检点新增
      * @author wyf
@@ -58,7 +64,7 @@ class InspectController extends BaseController
      */
     public function actionPointShow()
     {
-        $result = PointService::service()->pointShow($this->request_params);
+        $result = PointService::service()->view($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -285,7 +291,7 @@ class InspectController extends BaseController
     }
 
     /**
-     * @api 巡检记录 详情里的列表
+     * @api 巡检记录详情里的列表
      * @author wyf
      * @date 2019/8/12
      */
@@ -304,7 +310,7 @@ class InspectController extends BaseController
     {
         $this->request_params['page'] = 1;
         $this->request_params['rows'] = 10000;
-        $result = TaskService::service()->lists($this->request_params);
+        $result = TaskService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
