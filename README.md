@@ -10,6 +10,7 @@
 - 3、small_door (智能门禁小程序)
 - 4、property (物业后台)
 - 5、ding_property_app (钉钉物业端应用)
+- 6、manager(运营后台)
 
 注意这里的模块只写收据校验的代码逻辑，业务逻辑写到service对应的模块下
 
