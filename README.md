@@ -1,5 +1,6 @@
 #### 部署:
 - 1、 代码clone之后本地执行 php init ,选择0，生成本地配置文件
+- 2、 本地执行 composer install 安装YII2依赖库
 - 2、 复制.env.example 文件，改名为.env，修改本地环境变量
 - 3、 apache配置域名指向 app/web
 

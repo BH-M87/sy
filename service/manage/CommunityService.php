@@ -6,8 +6,9 @@
  * Time: 19:32
  */
 
-namespace app\services;
+namespace service\manage;
 
+use service\BaseService;
 use common\core\F;
 use common\core\PsCommon;
 use common\core\Pinyin;

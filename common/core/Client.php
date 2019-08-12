@@ -6,7 +6,7 @@
  * Time: 12:03
  */
 
-namespace app\common\core;
+namespace common\core;
 
 
 class Client

@@ -177,6 +177,21 @@ class PsCommon {
         return null;
     }
 
+    /**
+     * 获取不重复的字符串
+     * @param string $pre
+     * @param $cacheKey
+     * @param int $charLength
+     * @return string
+     */
+    public static function getNoRepeatChar($pre = '', $cacheKey, $charLength = 6)
+    {
+        $randStr = $pre . self::getRandomString($charLength);
+        if (\Yii::$app->redis->sismember($cacheKey, $randStr)) {//集合中已经存在，则递归执行
+            return self::getNoRepeatChar($pre, $cacheKey);
+        }
+        return $randStr;
+    }
 
 
 
