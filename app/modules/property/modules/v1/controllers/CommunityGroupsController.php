@@ -33,7 +33,7 @@ class CommunityGroupsController extends BaseController {
             return PsCommon::responseFailed("未接受到有效数据");
         }
 
-        $data = [];
+        $data = $this->request_params;
         $data['name'] = PsCommon::get($this->request_params, 'group_name', '');
         $data['groups_code'] = PsCommon::get($this->request_params, 'group_code', '');
         $model = new PsCommunityGroups();
@@ -54,14 +54,13 @@ class CommunityGroupsController extends BaseController {
             return PsCommon::responseFailed("未接受到有效数据");
         }
 
-        $data = [];
+        $data = $this->request_params;
         $data['id'] = PsCommon::get($this->request_params, 'group_id', 0);
         $data['name'] = PsCommon::get($this->request_params, 'group_name', '');
-        $data['groups_code'] = PsCommon::get($this->request_params, 'group_code', '');
+        $data['code'] = PsCommon::get($this->request_params, 'group_code', '');
         $model = new PsCommunityGroups();
         $model->load($data, '');
         $model->setScenario('edit');
-
         if (!$model->validate()) {
             $error = PsCommon::getModelError($model);
             return PsCommon::responseFailed($error);

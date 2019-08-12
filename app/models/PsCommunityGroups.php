@@ -25,8 +25,10 @@ class PsCommunityGroups extends BaseModel
     public function rules()
     {
         return [
-            [['community_id'], 'integer'],
+            [['id','community_id'], 'integer'],
             [['name'], 'string', 'max' => 50],
+            [['groups_code'], 'string', 'max' => 20],
+            [['code'], 'string', 'max' => 2],
             [['community_id', 'name'], 'required', 'on' => ['add', 'edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['edit']],
             ['name', 'string', 'max' => '15', 'on' => ['add','edit']],
