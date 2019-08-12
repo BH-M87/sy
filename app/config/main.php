@@ -37,14 +37,14 @@ return [
                 [
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['api'],
-                    'logFile' => '@alisa/runtime/logs/api.log',
+                    'logFile' => '@app/runtime/logs/api.log',
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
             ],
         ],
         'errorHandler' => [
-            'class' => 'app\common\MyErrorHandler',
+            'class' => 'common\MyErrorHandler',
             'errorAction' => 'site/error',
         ],
         'urlManager' => [

@@ -4,7 +4,7 @@
  * @author shenyang
  */
 
-namespace app\common;
+namespace common;
 
 use common\core\PsCommon;
 use yii\web\ErrorHandler;
