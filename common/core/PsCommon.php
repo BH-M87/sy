@@ -2,7 +2,7 @@
 
 namespace common\core;
 
-use app\modules\property\models\PsCommunityRoominfo;
+use app\models\PsCommunityRoominfo;
 use Yii;
 use yii\base\Model;
 use yii\helpers\FileHelper;
@@ -282,7 +282,7 @@ class PsCommon
     //老版本的账单状态
     public static function getBillStatus($index = '')
     {
-        $model = ['1' => '线上未缴', '2' => '线上已缴', '3' => '未出账单', '4' => '发布失败', '5' => "线下已缴"];
+        $model = ['1' => '未缴费', '2' => '线上已缴', '3' => '未出账单', '4' => '发布失败', '5' => "线下已缴"];
         if ($index) {
             return $model[$index];
         } else {
@@ -293,7 +293,7 @@ class PsCommon
     //新版本的账单状态，2018-1-29 陈科浪新增
     public static function getPayBillStatus($index = '')
     {
-        $model = ['1' => '线上未缴', '2' => '线上已缴', '3' => '未出账单', '4' => '发布中', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
+        $model = ['1' => '未缴费', '2' => '线上已缴', '3' => '未出账单', '4' => '发布中', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
         if ($index) {
             return $model[$index];
         } else {
@@ -304,7 +304,7 @@ class PsCommon
     //新版本的账单状态，2018-1-29 陈科浪新增给前端查询使用
     public static function getPayBillSearchStatus($index = '')
     {
-        $model = ['1' => '线上未缴', '2' => '线上已缴', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
+        $model = ['1' => '未缴费', '2' => '线上已缴', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
         if ($index) {
             return $model[$index];
         } else {
@@ -865,6 +865,10 @@ class PsCommon
      */
     public static function validSign($systemType)
     {
+
+        if (Yii::$app->request->getHeaders()->get('skip-sign')) {
+            return true;
+        }
         if (YII_ENV != 'master') {//本地/测试环境 测试人员绕开验签
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
@@ -928,5 +932,125 @@ class PsCommon
         } else {
             file_put_contents($savePath . $file_name, $error);
         }
+    }
+
+    /**
+     * 计算两个时间的时间差
+     * @param $begin_time 开始时间
+     * @param $end_time 结束时间
+     * @return array
+     */
+    public static function timediff($begin_time,$end_time)
+    {
+        if($begin_time < $end_time){
+            $starttime = $begin_time;
+            $endtime = $end_time;
+        } else {
+            $starttime = $end_time;
+            $endtime = $begin_time;
+        }
+        //计算天数
+        $timediff = $endtime-$starttime;
+        $days = intval($timediff/86400);
+        //计算小时数
+        $remain = $timediff%86400;
+        $hours = intval($remain/3600);
+        //计算分钟数
+        $remain = $remain%3600;
+        $mins = intval($remain/60);
+        //计算秒数
+        $secs = $remain%60;
+        $timeStr = '';
+        $res = array("天" => $days, "小时" => $hours, "分" => $mins);
+        foreach ($res as $k => $v) {
+            $timeStr .= $v > 0 ? $v.$k : '';
+        }
+        return $timeStr;
+    }
+
+    public static function isCarLicense($license)
+    {
+        if (empty($license)) {
+            return false;
+        }
+        /*匹配民用车牌和使馆车牌
+        　判断标准
+        　1，第一位为汉字省份缩写
+        　2，第二位为大写字母城市编码
+        　3，后面是5位仅含字母和数字的组合
+        */
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新使]{1}[A-Z]{1}[0-9a-zA-Z]{5}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        /*匹配特种车牌(挂,警,学,领,港,澳)
+        　　参考 https://wenku.baidu.com/view/4573909a964bcf84b9d57bc5.html
+        */
+        $regular = '/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[0-9a-zA-Z]{4}[挂警学领港澳]{1}$/u';
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /* #匹配武警车牌
+        　　#参考 https://wenku.baidu.com/view/7fe0b333aaea998fcc220e48.html
+        */
+        $regular = '/^WJ[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]?[0-9a-zA-Z]{5}$/ui';
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /*　#匹配军牌
+        　　#参考 http://auto.sina.com.cn/service/2013-05-03/18111149551.shtml
+        */
+        $regular = "/[A-Z]{2}[0-9]{5}$/";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /* #匹配新能源车辆6位车牌
+        　　#参考 https://baike.baidu.com/item/%E6%96%B0%E8%83%BD%E6%BA%90%E6%B1%BD%E8%BD%A6%E4%B8%93%E7%94%A8%E5%8F%B7%E7%89%8C
+        */
+        //小型新能源车
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[DF]{1}[0-9a-zA-Z]{5}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        //大型新能源车
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[0-9a-zA-Z]{5}[DF]{1}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断用户手机号是否为虚拟手机号
+     * @param $str
+     * @return bool
+     */
+    public static function isVirtualPhone($str)
+    {
+        if (strpos($str, '120') === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 生成随机手机号
+     * @return string
+     */
+    public static function generateVirtualPhone()
+    {
+        $randStr = '120';
+        $incr = Yii::$app->redis->incr('lyl:virtual-phone');//自增数字
+        $randStr .= sprintf("%08d", $incr);
+        return $randStr;
     }
 }
