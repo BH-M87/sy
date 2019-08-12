@@ -6,26 +6,32 @@
  * Time: 19:32
  */
 
-namespace app\modules\property\services;
+namespace app\services;
 
-use app\common\core\F;
-use app\common\core\PsCommon;
-use app\common\core\Client;
-use app\common\core\Pinyin;
-use app\modules\alipay\services\AliCommunityService;
+use common\core\F;
+use common\core\PsCommon;
+use common\core\Pinyin;
+use common\core\Client;
+
 use app\modules\property\services\TemplateService;
 use app\modules\property\models\PsAgent;
+use app\modules\property\models\PsRepairType;
+use app\modules\qiniu\services\UploadService;
+use app\services\QrcodeService;
+use app\services\AreaService;
+
+
+
 use app\modules\property\models\PsAliToken;
 use app\modules\property\models\PsLifeServices;
 use app\modules\property\models\PsLifeServicesMenu;
 use app\modules\property\models\PsPropertyIsvToken;
-use app\modules\property\models\PsRepairType;
-use app\modules\qiniu\services\UploadService;
-use app\services\AreaService;
-use app\services\QrcodeService;
-use Yii;
+
+
+
 use app\modules\property\models\BillFrom;
 use app\modules\property\models\PsBill;
+
 use app\modules\property\models\PsCommunityRoominfo;
 use app\modules\property\models\PsHouseForm;
 use app\modules\property\models\PsUserCommunity;
@@ -33,9 +39,12 @@ use app\modules\alipay\services\AlipayBillService;
 use app\modules\property\models\PsCommunityModel;
 use app\modules\property\models\PsCommunityOpenService;
 use app\modules\property\models\PsPropertyCompany;
+
+
 use yii\db\Exception;
 use yii\db\Query;
 use yii\helpers\FileHelper;
+use Yii;
 
 class CommunityService extends BaseService
 {
