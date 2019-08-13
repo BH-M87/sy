@@ -243,6 +243,55 @@ class PsCommon {
         }
     }
 
+    public static function getPayType($index = '')
+    {
+        $model = ['1' => '一次付清', '2' => '分次付清'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
 
+    public static function getPayChannel($index = '', $type = 'key')
+    {
+        $model = ['1' => '现金', '2' => '支付宝', '3' => '微信', '4' => '刷卡', '5' => "对公", "6" => "支票"];
+        switch ($type) {
+            case "key" :
+                $result = $model[$index];
+                break;
+            case "value" :
+                foreach ($model as $key => $val) {
+                    if ($val == $index) {
+                        $result = $key;
+                    }
+                }
+                break;
+            default:
+                $result = $model;
+        }
+        return $result;
+    }
 
+    //新版本的账单状态，2018-1-29 陈科浪新增给前端查询使用
+    public static function getPayBillSearchStatus($index = '')
+    {
+        $model = ['1' => '未缴费', '2' => '线上已缴', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
+
+    //新版本的账单状态，2018-1-29 陈科浪新增
+    public static function getPayBillStatus($index = '')
+    {
+        $model = ['1' => '未缴费', '2' => '线上已缴', '3' => '未出账单', '4' => '发布中', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
 }
