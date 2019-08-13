@@ -17,12 +17,9 @@ use app\models\PsCommunityRoominfo;
 use app\models\PsOrder;
 use app\models\PsRepair;
 use app\models\PsRepairBill;
-use app\services\BillTractContractService;
-use app\modules\small\models\RepairType;
-use app\modules\small\services\ParkFeeService;
-use app\modules\wisdompark\models\ParkingLkPayCode;
-use app\services\AreaService;
-use app\services\MessageService;
+use app\models\RepairType;
+use service\alipay\ParkFeeService;
+use app\models\ParkingLkPayCode;
 use service\BaseService;
 use Yii;
 use yii\db\Exception;
@@ -1074,34 +1071,6 @@ class BillService extends BaseService
                     throw new Exception('收款失败');
                 }
             }
-            //发送消息
-            $msgtem = [
-                'community_id' => $income['community_id'],
-                'id' => $income['room_id'],
-                'member_id' => 0,
-                'user_name' => '',
-                'create_user_type' => 2,
-
-                'remind_tmpId' => 3,
-                'remind_target_type' => 3,
-                'remind_auth_type' => 3,
-                'msg_type' => 1,
-
-                'msg_tmpId' => 3,
-                'msg_target_type' => 3,
-                'msg_auth_type' => 3,
-                'remind' =>[
-                    0 => ''
-                ],
-                'msg' => [
-                    0 => '',
-                    1 => $income['group'].$income['building'].$income['unit'].$income['room'],
-                    2 => '',
-                    3 => $data['gmt_payment'],
-                    4 => $bill_msg
-                ]
-            ];
-            //MessageService::service()->addMessageTemplate($msgtem);
             $trans->commit();
             return $this->_response($data, 'success');
         } catch (Exception $e) {

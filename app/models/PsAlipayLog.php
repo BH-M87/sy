@@ -19,7 +19,7 @@ use Yii;
  * @property integer $old_data_id
  * @property integer $create_at
  */
-class PsAlipayLog extends \app\modules\property\models\BaseModel
+class PsAlipayLog extends BaseModel
 {
     /**
      * @inheritdoc
