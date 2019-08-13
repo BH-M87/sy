@@ -1,5 +1,5 @@
 <?php
-namespace service\common;
+namespace service\rbac;
 
 use Yii;
 use yii\db\Query;

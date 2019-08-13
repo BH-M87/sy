@@ -17,7 +17,7 @@ use service\TemplateService;
 use app\models\PsAgent;
 use app\models\PsRepairType;
 use service\AreaService;
-use service\common\OperateService;
+use service\rbac\OperateService;
 use app\models\PsCommunityRoominfo;
 use app\models\PsUserCommunity;
 use app\models\PsCommunityModel;
