@@ -242,6 +242,32 @@ class PointService extends BaseService
 
     }
 
+    //下载二维码
+    public function downloadCode($params)
+    {
+        $data = $this->view($params);
+
+        if (empty($data['data']['code_image'])) {
+            return PsCommon::responseFailed("二维码不存在！");
+        }
+
+        $savePath = F::imagePath('inspect'); // 图片保存的位置
+        $img_name = $data['data']['id'] . '.png';
+        $fileName = $data['data']['name'] . '.png';
+
+        if (!file_exists($savePath.$img_name)) { // 文件不存在，去七牛下载
+            F::curlImage($data['data']['code_image'], F::imagePath('inspect'), $img_name);
+        }
+
+        if (!file_exists($savePath.$img_name)) { // 下载未成功
+            return PsCommon::responseFailed('二维码不存在');
+        }
+
+        $downUrl = F::downloadUrl($this->systemType, 'inspect/'.$img_name, 'qrcode', $fileName);
+
+        return $this->success(['down_url' => $downUrl]);
+    }
+
     //获取设备分类
     protected static function deviceCategoryOne($id, $select = '')
     {

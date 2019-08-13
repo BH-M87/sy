@@ -177,4 +177,72 @@ Class F
         }
         return $days;
     }
+
+    //获取物业后台/运营后台下载链接地址
+    //edit by wenchao.feng [add $pathName: 域名对应的目录，对应到 test/release/test2..]
+    public static function downloadUrl($systemType, $fileName, $type, $newName = '', $pathName = '')
+    {
+        $data = ['filename' => $fileName, 'type' => $type, 'newname' => $newName];
+        $token = self::request('token');
+        $module = '';
+        if ($systemType == 1) {
+            $module = 'operation';
+        } elseif ($systemType == 2) {
+            $module = 'property';
+        } elseif ($systemType == 3) {
+            $module = 'street/backend';
+        } elseif ($systemType == 4) {
+            $module = 'petition/backend';
+        }
+        return self::getAbsoluteUrl($pathName) . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
+    }
+
+    //获取完整链接，不带get参数
+    public static function getAbsoluteUrl($pathName = '')
+    {
+        $host = Yii::$app->request->getHostInfo();
+        if (YII_ENV == 'test') {//测试环境
+            $host .= '/test/web';
+        } elseif (YII_ENV == 'release') {//预发环境
+            $host .= '/release/web';
+        } elseif (YII_ENV == 'test2') {//测试环境2，供多个项目同时开发测试环境不够用的情况
+            $host .= '/test2/web';
+        }
+        return $host;
+    }
+
+    /**
+     * 本地存储的文件目录(所有文件的根目录)
+     * @return string
+     */
+    public static function storePath()
+    {
+        return Yii::$app->basePath . '/web/store/';
+    }
+
+    /**
+     * 二维码图片地址
+     */
+    public static function imagePath($dir = '')
+    {
+        return $dir ? self::storePath() . 'image/' . $dir . '/' : self::storePath() . 'image/';
+    }
+
+    /**
+     * 生成订单号统一规则
+     * @param $prefix
+     */
+    public static function generateOrderNo($prefix = '')
+    {
+        $time = date('YmdHis');//14位
+        $incr = Yii::$app->redis->incr('lyl:order_no');//自增数字
+        $incr = str_pad(substr($incr, -3), 3, '0', STR_PAD_LEFT);//取最后三位，前置补0
+        return $prefix . $time . $incr . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);//除prefix外，共20位
+    }
+
+    public static function excelPath($dir = '')
+    {
+        $dir = $dir ? $dir . '/' : '';
+        return self::storePath() . 'excel/' . $dir;
+    }
 }
