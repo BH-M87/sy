@@ -12,7 +12,7 @@ use Yii;
  * @property int $point_id 巡更点id
  * @property int $point_sort
  */
-class PsPatrolLinePoints extends \yii\db\ActiveRecord
+class PsPatrolLinePoints extends BaseModel
 {
     /**
      * {@inheritdoc}

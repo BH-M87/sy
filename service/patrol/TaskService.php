@@ -9,6 +9,16 @@
 namespace service\patrol;
 
 
+use app\models\PsCommunityModel;
+use app\models\PsPatrolLine;
+use app\models\PsPatrolLinePoints;
+use app\models\PsPatrolPlan;
+use app\models\PsPatrolPlanManage;
+use app\models\PsPatrolPoints;
+use app\models\PsPatrolStatistic;
+use app\models\PsPatrolTask;
+use app\models\PsUser;
+use common\core\F;
 use service\BaseService;
 
 class TaskService extends BaseService
@@ -81,9 +91,9 @@ class TaskService extends BaseService
         $offset = ($page - 1) * $pageSize;
         $list = self::_searchDeal($data)
             ->select(['t.id','t.status','t.check_time as patrol_time','u.truename as user_name','p.name as plan_name','l.name as line_name','po.name as point_name'])
-            ->offset($offset)->limit($pageSize)->orderBy('t.range_end_time desc')->asArray()->all();//['t.created_at'=>'desc','t.id'=>'desc']
+            ->offset($offset)->limit($pageSize)->orderBy('t.range_end_time desc')->asArray()->all();
+        $total = self::_searchDeal($data)->count();
         if ($list) {
-            $total = $this->getListCount($data);
             $i = $total - ($page - 1) * $pageSize;
             foreach ($list as $key => $value) {
                 $list[$key]['tid'] = $i;
@@ -91,18 +101,12 @@ class TaskService extends BaseService
                 $list[$key]['patrol_time'] = empty($value['patrol_time']) ? '': date('Y-m-d H:i',$value['patrol_time']);
                 $i--;
             }
+        }else{
+            $list = [];
         }
-        return $list;
-    }
-
-    /**
-     * 巡更记录数量
-     * @param $data
-     * @return int|string
-     */
-    public function getListCount($data)
-    {
-        return self::_searchDeal($data)->count();
+        $result['list'] = $list;
+        $result['totals'] = $total;
+        return $result;
     }
 
     /**
@@ -231,6 +235,7 @@ class TaskService extends BaseService
             return $this->success();
         }
     }
+
     //根据user_id跟point_id判断这个用户是否已经在今天完成巡更任务
     public function checkTaskByUserAndPoint($plan_id,$point_id,$user_id){
         $mod = PsPatrolTask::find()
@@ -248,15 +253,9 @@ class TaskService extends BaseService
         $attributes = [];
         $now = time();
         $exec_users = implode(',', $plan['user_list']);//计划的执行人员
-        $today = date('Y-m-d');
         foreach ($date_list as $key =>$value){
             foreach($points as $ke =>$val){
                 foreach($users as $u){
-                    /*if($today == $value['day']){
-                        if(self::checkTaskByUserAndPoint($plan['id'],$val['id'],$u)){
-                            continue;//如果今天任务已经完成了，就不再生成新的任务了
-                        }
-                    }*/
                     $attributes['community_id'][] = $line['community_id'];
                     $attributes['user_id'][] = $u;
                     $attributes['plan_id'][] = $plan['id'];
@@ -437,7 +436,6 @@ class TaskService extends BaseService
         }
 
         $newArr = array_merge($beginingList, $unbeginList, $finishList);
-        //array_multisort(array_column($tasks,'status'),SORT_ASC,$tasks);
         return $newArr;
     }
 
@@ -543,8 +541,8 @@ class TaskService extends BaseService
         //如果需要定位的话判断距离误差
         if ($pointInfo['need_location'] == 1) {
             $distance = F::getDistance($data['lat'], $data['lon'], $pointInfo['location_lat'], $pointInfo['location_lon']);
-            if ($distance > \Yii::$app->getModule('lylapp')->params['distance']) {
-                return $this->failed("当前定位位置与巡更点设置位置距离相差超过".\Yii::$app->getModule('lylapp')->params['distance']."米！");
+            if ($distance > \Yii::$app->getModule('property')->params['distance']) {
+                return $this->failed("当前定位位置与巡更点设置位置距离相差超过".\Yii::$app->getModule('property')->params['distance']."米！");
             }
         }
 

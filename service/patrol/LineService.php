@@ -9,7 +9,15 @@
 namespace service\patrol;
 
 
+use app\models\PsCommunityModel;
+use app\models\PsPatrolLine;
+use app\models\PsPatrolLinePoints;
+use app\models\PsPatrolPlan;
+use app\models\PsPatrolPoints;
 use service\BaseService;
+use service\rbac\OperateService;
+use yii\base\Exception;
+use Yii;
 
 class LineService extends BaseService
 {
@@ -44,8 +52,8 @@ class LineService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $list = self::_searchDeal($data)->offset($offset)->limit($pageSize)->orderBy('l.created_at desc')->asArray()->all();
+        $total = self::_searchDeal($data)->count();
         if ($list) {
-            $total = $this->getListCount($data);
             $i = $total - ($page - 1) * $pageSize;
             foreach ($list as $key => $value) {
                 $list[$key]['points_list'] = self::getChooseList($value['id']);
@@ -55,8 +63,12 @@ class LineService extends BaseService
                 $i--;
             }
         }
-        return $list;
+        $result['list'] = $list;
+        $result['totals'] = $total;
+        return $result;
+
     }
+
 
     /**
      * 钉钉获取巡更路线列表
@@ -89,15 +101,7 @@ class LineService extends BaseService
     }
 
 
-    /**
-     * 巡更点数量
-     * @param $data
-     * @return int|string
-     */
-    public function getListCount($data)
-    {
-        return self::_searchDeal($data)->count();
-    }
+
 
     /**
      * 判断当前的线路id能否被编辑跟删除
@@ -169,10 +173,11 @@ class LineService extends BaseService
                     }
                     $lp = PsPatrolLinePoints::model()->batchInsert($attributes);//批量插入数据
                     if(!$lp){
+
                         throw new Exception("批量插入数据失败");
                     }
                     //因为存在新增的心路还没有被添加到计划里面，因此这里不做回调处理，不加进事务里面
-                    PatrolTaskService::service()->changeTaskAddByLine($line_id,$points,2,$line);
+                    TaskService::service()->changeTaskAddByLine($line_id,$points,2,$line);
                     $t->commit(); //提交数据
                     return $this->success();
                 } catch (Exception $e) {
@@ -192,7 +197,7 @@ class LineService extends BaseService
                         throw new Exception("新增失败");
                     }
                     //因为存在新增的心路还没有被添加到计划里面，因此这里不做回调处理，不加进事务里面
-                    PatrolTaskService::service()->changeTaskAddByLine($line_id,$points,1,$line);
+                    TaskService::service()->changeTaskAddByLine($line_id,$points,1,$line);
                     $t->commit(); //提交数据
                     return $this->success();
                 } catch (Exception $e) {
@@ -208,7 +213,7 @@ class LineService extends BaseService
                 try {
                     PsPatrolLinePoints::deleteAll(['and','line_id = :line',['in','point_id',$points]],['line'=>$line_id]);
                     //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                    PatrolTaskService::service()->changeTaskDelByLine($line_id,$points,2);
+                    TaskService::service()->changeTaskDelByLine($line_id,$points,2);
                     $t->commit(); //提交数据
                     return $this->success();
                 } catch (Exception $e) {
@@ -223,14 +228,14 @@ class LineService extends BaseService
                     if($points == 'all'){
                         PsPatrolLinePoints::deleteAll('line_id = :line',['line'=>$line_id]);
                         //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                        PatrolTaskService::service()->changeTaskDelByLine($line_id,$points,3);
+                        TaskService::service()->changeTaskDelByLine($line_id,$points,3);
                     } else{
                         $del = PsPatrolLinePoints::find()->where(['point_id'=>$points,'line_id'=>$line_id])->one();
                         if($del && !$del->delete()){
                             throw new Exception("删除失败");
                         }
                         //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                        PatrolTaskService::service()->changeTaskDelByLine($line_id,$points,1);
+                        TaskService::service()->changeTaskDelByLine($line_id,$points,1);
                     }
                     $t->commit(); //提交数据
                     return $this->success();

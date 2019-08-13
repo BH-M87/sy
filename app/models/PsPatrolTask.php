@@ -43,7 +43,7 @@ use Yii;
  * @property string $check_location 巡更提交时所在位置
  * @property int $created_at 添加时间
  */
-class PsPatrolTask extends \yii\db\ActiveRecord
+class PsPatrolTask extends BaseModel
 {
     /**
      * {@inheritdoc}

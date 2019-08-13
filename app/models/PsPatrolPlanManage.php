@@ -11,7 +11,7 @@ use Yii;
  * @property int $plan_id 计划id
  * @property int $user_id 执行人id
  */
-class PsPatrolPlanManage extends \yii\db\ActiveRecord
+class PsPatrolPlanManage extends BaseModel
 {
     /**
      * {@inheritdoc}
