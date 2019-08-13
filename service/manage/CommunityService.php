@@ -13,34 +13,14 @@ use common\core\F;
 use common\core\PsCommon;
 use common\core\Pinyin;
 use common\core\Client;
-
-use app\modules\property\services\TemplateService;
+use service\TemplateService;
 use app\models\PsAgent;
 use app\models\PsRepairType;
-use app\modules\qiniu\services\UploadService;
-use app\services\QrcodeService;
 use app\services\AreaService;
-
-
-
-use app\modules\property\models\PsAliToken;
-use app\modules\property\models\PsLifeServices;
-use app\modules\property\models\PsLifeServicesMenu;
-use app\modules\property\models\PsPropertyIsvToken;
-
-
-
-use app\modules\property\models\BillFrom;
-use app\modules\property\models\PsBill;
-
-use app\modules\property\models\PsCommunityRoominfo;
-use app\modules\property\models\PsHouseForm;
-use app\modules\property\models\PsUserCommunity;
-use app\modules\alipay\services\AlipayBillService;
-use app\modules\property\models\PsCommunityModel;
-use app\modules\property\models\PsCommunityOpenService;
-use app\modules\property\models\PsPropertyCompany;
-
+use app\models\PsCommunityRoominfo;
+use app\models\PsUserCommunity;
+use app\models\PsCommunityModel;
+use app\models\PsPropertyCompany;
 use yii\db\Exception;
 use yii\db\Query;
 use yii\helpers\FileHelper;
@@ -120,92 +100,60 @@ class CommunityService extends BaseService
             return $this->failed('经纬度转换失败，请重新填写小区地址');
         }
 
-        //将小区同步到支付宝
-        if ($data['comm_type'] == 2 || $data['pro_company_id']==321) {//不是南京物业则发布到支付宝:19-4-27陈科浪修改
-            $re['code'] = 10000;
-        } else {
-            //edit by wenchao.feng 测试环境不走支付宝沙箱环境创建小区（总提示经纬度错误）
-            if (YII_ENV == 'master' || YII_ENV == 'release') {
-                $aliCommunityReqData = $this->processCommunityData($data);
-                $re = AliCommunityService::service()->init($data['pro_company_id'])->addCommunity($aliCommunityReqData);
-            } else {
-                $re['code'] = 10000;
-                $re['community_id'] = PsCommon::getNoRepeatChar('', YII_ENV.'communityUniqueList', 13);
-                $re['next_action'] = 'WAIT_SERVICE_PROVISION|INVOKER';
-                $re['status'] = 'PENDING_ONLINE';
-            }
-        }
-        if ($re['code'] == 10000) {
-            //小区同步成功
-            $data['create_at'] = time();
-            $data['is_init_service'] = 0;
-            $pinyin = new Pinyin();
-            $community = new PsCommunityModel();
-            if ($data['comm_type'] == 1) {
-                $communityNo = $re['community_id'];
-            } else {
-                $today = date("Ymd", time());
-                $communityNo = $today . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
-            }
-            $locationArr = explode('|', $data['locations']);
 
-            $community->community_no = $communityNo;
-            $community->province_code = $data['province_code'];
-            $community->city_id = $data['city_id'];
-            $community->district_code = $data['district_code'];
-            $community->pro_company_id = $data['pro_company_id'];
-            $community->name = $data['name'];
-            $community->group = !empty($data['group']) ? $data['group'] : '';
-            $community->locations = $data['locations'];
-            $community->address = $data['address'];
-            $community->phone = $data['phone'];
-            $community->is_init_service = 0;
-            $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
-            $community->status = 1;
-            $community->comm_type = $data['comm_type'];
-            $community->house_type = $data['house_type'];
-            $community->house_id = $data['house_id'] ? $data['house_id'] : '';
-            $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
-            $community->ali_next_action = !empty($re['next_action']) ? $re['next_action'] : 'WAIT_SERVICE_PROVISION|INVOKER';
-            $community->ali_status = !empty($re['status']) ? $re['status'] : 'PENDING_ONLINE';
-            $community->create_at = $data['create_at'];
-            $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
-            $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
+        $locationArr = explode('|', $data['locations']);
+        $community->community_no = PsCommon::getNoRepeatChar('', YII_ENV.'communityUniqueList', 13);
+        $community->province_code = $data['province_code'];
+        $community->city_id = $data['city_id'];
+        $community->district_code = $data['district_code'];
+        $community->pro_company_id = $data['pro_company_id'];
+        $community->name = $data['name'];
+        $community->group = !empty($data['group']) ? $data['group'] : '';
+        $community->locations = $data['locations'];
+        $community->address = $data['address'];
+        $community->phone = $data['phone'];
+        $community->is_init_service = 0;
+        $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
+        $community->status = 1;
+        $community->comm_type = $data['comm_type'];
+        $community->house_type = $data['house_type'];
+        $community->house_id = $data['house_id'] ? $data['house_id'] : '';
+        $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
+        $community->create_at = $data['create_at'];
+        $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
+        $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
 
-            if ($community->save()) {
-                // 新小区生成默认模板
-                TemplateService::service()->templateDefault($community->id);
-                //添加物业公司管理员的小区权限
-                $this->addUserCommunity($psCommany->user_id, $community->id);
-                //添加代理商用户的小区权限
-                $this->addPropertyCommunity($data['pro_company_id'], $community->id);
-                //删除超管帐号缓存
-                Yii::$app->redis->del($this->_userCommunityCacheKey(1));
-                //添加默认报事报修类型
-                $this->addRepairType($community->id);
-                //添加默认社区公约
-                $this->addConvention($community->id);
-                $content = '小区名称：' . $data['name'] . ',';
-                if (!empty($data['group'])) {
-                    $content .= '苑/期/区：' . $data['group'] . ',';
-                }
-                $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
-                $content .= '物业电话：' . $data['phone'] . ',';
-                $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
-                $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
-                $operate = [
-                    "operate_menu" => "小区管理",
-                    "operate_type" => "新增小区",
-                    "operate_content" => $content,
-                ];
-                OperateService::add($userinfo, $operate);
-                return $this->success();
-            } else {
-                $errorArr = array_values($community->getErrors());
-                return $this->failed($errorArr[0][0]);
+        if ($community->save()) {
+            // 新小区生成默认模板
+            TemplateService::service()->templateDefault($community->id);
+            //添加物业公司管理员的小区权限
+            $this->addUserCommunity($psCommany->user_id, $community->id);
+            //添加代理商用户的小区权限
+            $this->addPropertyCommunity($data['pro_company_id'], $community->id);
+            //删除超管帐号缓存
+            Yii::$app->redis->del($this->_userCommunityCacheKey(1));
+            //添加默认报事报修类型
+            $this->addRepairType($community->id);
+            //添加默认社区公约
+            $this->addConvention($community->id);
+            $content = '小区名称：' . $data['name'] . ',';
+            if (!empty($data['group'])) {
+                $content .= '苑/期/区：' . $data['group'] . ',';
             }
+            $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
+            $content .= '物业电话：' . $data['phone'] . ',';
+            $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
+            $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
+            $operate = [
+                "operate_menu" => "小区管理",
+                "operate_type" => "新增小区",
+                "operate_content" => $content,
+            ];
+            OperateService::add($userinfo, $operate);
+            return $this->success();
         } else {
-            return $this->failed($re['sub_msg']);
+            $errorArr = array_values($community->getErrors());
+            return $this->failed($errorArr[0][0]);
         }
     }
 

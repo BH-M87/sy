@@ -341,6 +341,6 @@ Class F
         }
         return md5(uniqid(md5(microtime(true)), true) . $str);
     }
-    
+
 }
 
