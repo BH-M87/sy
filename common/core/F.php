@@ -329,5 +329,18 @@ Class F
         return $prefix . $time . $incr . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);//除prefix外，共20位
     }
 
+    /**
+     * 物业公司随机码(用于授权回调)
+     * @return string
+     */
+    public static function companyCode()
+    {
+        $str = '';
+        for ($i = 0; $i < 8; $i++) {
+            $str .= chr(mt_rand(33, 126));
+        }
+        return md5(uniqid(md5(microtime(true)), true) . $str);
+    }
+    
 }
 
