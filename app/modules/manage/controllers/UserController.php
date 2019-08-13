@@ -8,10 +8,10 @@
 
 namespace app\modules\manage\controllers;
 
-use app\common\core\F;
 use Yii;
-use app\common\core\PsCommon;
-use app\modules\property\services\UserService;
+use common\core\F;
+use common\core\PsCommon;
+use service\rbac\UserService;
 
 Class UserController extends BaseController
 {

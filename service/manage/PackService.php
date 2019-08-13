@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\property\services;
+namespace service\manage;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
