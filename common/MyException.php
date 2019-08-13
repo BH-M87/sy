@@ -5,7 +5,7 @@
  * @date 2019-03-13
  */
 
-namespace app\common;
+namespace common;
 
 use Throwable;
 

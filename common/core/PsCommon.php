@@ -194,5 +194,21 @@ class PsCommon {
     }
 
 
+    /**
+     * 获取带自增的字符串
+     * @param string $pre
+     * @param $cacheKey 自增redis key
+     * @param int $charLength 除去前缀的数字长度
+     * @return string
+     */
+    public static function getIncrStr($pre = '', $cacheKey, $charLength = 8)
+    {
+        $str = $pre;
+        $incr = Yii::$app->redis->incr($cacheKey);//自增数字
+        $str .= sprintf("%0{$charLength}d", $incr);
+        return $str;
+    }
+
+
 
 }
