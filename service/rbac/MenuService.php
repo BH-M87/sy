@@ -1,21 +1,23 @@
 <?php
-
 namespace service\rbac;
 
+use Yii;
+
+use yii\db\Query;
+use yii\base\Exception;
+
 use common\core\PsCommon;
+
+use service\BaseService;
+
 use app\models\PsGroupMenus;
 use app\models\PsGroupPack;
 use app\models\PsMenuPack;
 use app\models\PsMenus;
-use Yii;
-use yii\base\Exception;
-use yii\db\Query;
-use service\BaseService;
 
 class MenuService extends BaseService
 {
-
-    //添加系统菜单或按钮
+    // 添加系统菜单或按钮
     public function menuAdd($reqArr)
     {
         $systemType = $reqArr["system_type"];
@@ -63,7 +65,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //编辑菜单或系统
+    // 编辑菜单或系统
     public function menuEdit($reqArr)
     {
         $parentId = $reqArr["parent_id"];
@@ -125,7 +127,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //获取上级菜单
+    // 获取上级菜单
     public function getLevelMenu($data)
     {
         $level = !empty($data["level"]) ? $data["level"] : 1;
@@ -136,7 +138,7 @@ class MenuService extends BaseService
 
     }
 
-    //查看按钮和系统详情
+    // 查看按钮和系统详情
     public function menuShow($menuId)
     {
         $query = new Query();
@@ -150,7 +152,7 @@ class MenuService extends BaseService
         return $model;
     }
 
-    //系统菜单删除
+    // 系统菜单删除
     public function menuDelete($menuId)
     {
         $model = $this->getMenuInfo($menuId);
@@ -168,7 +170,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //菜单之间交换排序
+    // 菜单之间交换排序
     public function orderSort($menuId, $type)
     {
         $db = Yii::$app->db;
@@ -205,7 +207,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //菜单显示/隐藏
+    // 菜单显示/隐藏
     public function onOff($menuId, $status)
     {
         $model = $this->getMenuInfo($menuId);
@@ -219,7 +221,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //未填key值的时候自动生成key
+    // 未填key值的时候自动生成key
     private function getSortNum($parentId = 0, $systemType)
     {
         $query = new Query();
@@ -233,8 +235,8 @@ class MenuService extends BaseService
         $sortNum = $sortNum->where(["parent_id" => $parentId])->scalar();
         return $sortNum ? $sortNum + 1 : 1;
     }
-
-    //验证统一父级下名称唯一
+ 
+    // 验证统一父级下名称唯一
     private function vaildName($name, $systemType, $parentId, $itemId = 0)
     {
         $query = new Query();
@@ -246,7 +248,7 @@ class MenuService extends BaseService
         return $total > 0 ? false : true;
     }
 
-    //验证key值是否在系统内唯一
+    // 验证key值是否在系统内唯一
     private function vaildKey($parentId, $key, $systemType, $itemId)
     {
         $parentKey = PsMenus::find()->select('key')->where(['id' => $parentId])->scalar();
@@ -260,7 +262,7 @@ class MenuService extends BaseService
         return $total > 0 ? false : true;
     }
 
-    //未填key值的时候自动获取key值
+    // 未填key值的时候自动获取key值
     private function getKey($parentId, $systemType)
     {
         $query = new Query();
@@ -282,27 +284,19 @@ class MenuService extends BaseService
         return $this->success($now_key);
     }
 
-    //获取菜单详情
+    // 获取菜单详情
     public function getMenuInfo($itemId)
     {
         return Yii::$app->db->createCommand("select *  from ps_menus where id=:item_id", [":item_id" => $itemId])->queryOne();
     }
 
-    /**
-     * 菜单缓存key
-     * @param $systemType
-     * @return string
-     */
+    // 菜单缓存key
     private function _menuCacheKey($systemType)
     {
         return "lyl:system:menus:" . YII_ENV . ':' . $systemType;
     }
 
-    /**
-     * 更新菜单缓存值，永久redis key
-     * @param $system_type
-     * @return string
-     */
+    // 更新菜单缓存值，永久redis key
     public function setMenuCache($system_type)
     {
         $models = PsMenus::find()->select('id, action')
@@ -318,7 +312,7 @@ class MenuService extends BaseService
         return $data;
     }
 
-    //获取菜单缓存值
+    // 获取菜单缓存值
     public function getMenuCache($system_type)
     {
         $data = Yii::$app->redis->get($this->_menuCacheKey($system_type));
@@ -328,10 +322,7 @@ class MenuService extends BaseService
         return json_decode($data, true);
     }
 
-    /*
-     * 分系统查询菜单列表
-     * system_type=1 运营系统 =2 物业系统
-     * */
+    // 分系统查询菜单列表 system_type=1 运营系统 =2 物业系统
     public function menuList($reqArr)
     {
         $systemType = !empty($reqArr['system_type']) ? $reqArr['system_type'] : 1;
@@ -373,7 +364,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //新增菜单
+    // 新增菜单
     public function addMenu($data)
     {
         $db = Yii::$app->db;
@@ -425,7 +416,7 @@ class MenuService extends BaseService
         return $this->success();
     }
 
-    //删除菜单
+    // 删除菜单
     public function deleteMenu($menuId)
     {
         $connection = Yii::$app->db;
@@ -455,10 +446,7 @@ class MenuService extends BaseService
         }
     }
 
-    /*
-     * 获取一级菜单
-     * system_type=1 运营系统 =2 物业系统
-     * */
+    // 获取一级菜单 system_type=1 运营系统 =2 物业系统
     public function levelFirstList($systemType)
     {
         $query = new Query();
@@ -513,11 +501,7 @@ class MenuService extends BaseService
         return $models;
     }
 
-
-    /*
-     * $group_id  用户组id
-     * $level =1 获取1级菜单级所有权限 =2 线上所有二级菜单权限
-     * */
+    // $group_id 用户组id $level =1 获取1级菜单级所有权限 =2 线上所有二级菜单权限
     public function menusList($group_id, $level = 1)
     {
         $isPack = PsGroupPack::find()->where(['group_id' => $group_id])->exists();
@@ -545,10 +529,7 @@ class MenuService extends BaseService
         return $result;
     }
 
-    /*
-   * $group_id  用户组id
-   * $level =1 获取1级菜单级所有权限 =2 线上所有二级菜单权限
-   * */
+    // $group_id 用户组id $level =1 获取1级菜单级所有权限 =2 线上所有二级菜单权限
     public function getSystemList($systemType, $level = 1)
     {
         $query = new  Query();
@@ -574,7 +555,6 @@ class MenuService extends BaseService
         return $data;
     }
 
-
     public function getMenuTree($models, $level)
     {
         $result = $items = [];
@@ -599,7 +579,7 @@ class MenuService extends BaseService
         return $models;
     }
 
-    //获取用户左侧菜单
+    // 获取用户左侧菜单
     public function getLeftMenu($groupId, $system_type)
     {
         $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $groupId])->queryScalar();
@@ -643,7 +623,7 @@ class MenuService extends BaseService
 
     }
 
-    //获取展示用的二级菜单
+    // 获取展示用的二级菜单
     public function getSecondMenu($group_id)
     {
         $packId = PsGroupPack::find()->select('pack_id')->where(['group_id' => $group_id])->scalar();
@@ -662,8 +642,7 @@ class MenuService extends BaseService
         }
     }
 
-
-    //获取字节点
+    // 获取字节点
     public function getNextTree($parent_id)
     {
         $param = [":parent_id" => $parent_id];
@@ -671,7 +650,7 @@ class MenuService extends BaseService
         return $models;
     }
 
-    //遍历菜单权限
+    // 遍历菜单权限
     public function getMenuTrees($arrCat, $parent_id)
     {
         $childs = $this->findChild($arrCat, $parent_id);
@@ -700,11 +679,7 @@ class MenuService extends BaseService
         return $childs;
     }
 
-    /**
-     * 获取用户的菜单权限
-     * @param $userInfo
-     * @return array
-     */
+    // 获取用户的菜单权限
     public function getUserPermissions($groupId)
     {
         $query = new Query();
@@ -744,7 +719,6 @@ class MenuService extends BaseService
 
     private function getPermissions()
     {
-
         return [
             "040101" => false,  // 工单列表
             "050101" => false, // 投诉列表
@@ -765,7 +739,7 @@ class MenuService extends BaseService
 
     public function getMenuKey($id, $isParent = true)
     {
-        if ($isParent) {//
+        if ($isParent) {
             return PsMenus::find()->select('key')->where(['id' => $id])->scalar();
         } else {
             $parentId = PsMenus::find()->select('parent_id')->where(['id' => $id])->scalar();

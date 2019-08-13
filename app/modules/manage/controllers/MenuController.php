@@ -5,8 +5,8 @@ use app\models\PsMenus;
 
 use common\core\PsCommon;
 
-use services\manage\PackService;
-use services\rbac\MenuService;
+use service\manage\PackService;
+use service\rbac\MenuService;
 
 Class MenuController extends BaseController
 {
