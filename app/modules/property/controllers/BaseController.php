@@ -49,8 +49,8 @@ class BaseController extends Controller {
         $this->communityId  = F::request('community_id');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['community_id'] = $this->request_params['community_id'] ?? $this->communityId;
-        $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
-        $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+        $this->page = $this->request_params['page'] = PsCommon::get($this->request_params, 'page', 1);
+        $this->pageSize = $this->request_params['rows'] = PsCommon::get($this->request_params, 'rows', $this->pageSize);
 
         //签名验证，物业后台存在下载方法，下载文件不走签名校验
         if ($action->controller->id != 'download') {

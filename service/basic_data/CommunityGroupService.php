@@ -7,7 +7,6 @@
  */
 namespace service\basic_data;
 
-
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;

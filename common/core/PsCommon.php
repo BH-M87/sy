@@ -7,6 +7,7 @@
  */
 namespace common\core;
 use Yii;
+use yii\base\Model;
 
 class PsCommon {
 
@@ -209,6 +210,53 @@ class PsCommon {
         return $str;
     }
 
+    /**
+     * 验证传入参数
+     * @param $model //对象实例
+     * @param $data //验证数据
+     * @param $scenario //验证场景
+     * @return array
+     */
+    public static function validParamArr(Model $model, $data, $scenario)
+    {
+        if (!empty($data)) {
+            $model->setScenario($scenario);
+            $datas["data"] = $data;
+            $model->load($datas, "data");
+            if ($model->validate()) {
+                return [
+                    "status" => true,
+                    "data" => $data
+                ];
+            } else {
+                $errorMsg = array_values($model->errors);
+                return [
+                    "status" => false,
+                    'errorMsg' => $errorMsg[0][0]
+                ];
+            }
+        } else {
+            return [
+                "status" => false,
+                'errorMsg' => "未接受到有效数据"
+            ];
+        }
+    }
 
-
+    /**
+     * 将定义的 $key=>$value 数组当二维数组返回
+     * @param $data
+     * @return array
+     */
+    public static function returnKeyValue($data)
+    {
+        $arr = [];
+        if (empty($data)) {
+            return $arr;
+        }
+        foreach ($data as $key => $value) {
+            $arr[] = ["key" => $key, "value" => $value];
+        }
+        return $arr;
+    }
 }
