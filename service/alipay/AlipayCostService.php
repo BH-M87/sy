@@ -3266,6 +3266,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 ];
                 $orderResult = $this->addOrder($orderData);
                 if ($orderResult["code"]) {
+
                     //更新账单表的订单id字段
                     Yii::$app->db->createCommand("update ps_bill set order_id={$orderResult['data']} where id={$billResult['data']}")->execute();
                     //更新抄表记录的账单id字段

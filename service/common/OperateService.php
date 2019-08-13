@@ -1,9 +1,10 @@
 <?php
-namespace app\modules\property\services;
+namespace service\common;
 
-use app\common\core\PsCommon;
 use Yii;
 use yii\db\Query;
+use common\core\PsCommon;
+use service\BaseService;
 
 class OperateService extends  BaseService {
 
