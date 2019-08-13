@@ -9,7 +9,22 @@
 namespace service\patrol;
 
 
+use app\models\PsCommunityModel;
+use app\models\PsPatrolLine;
+use app\models\PsPatrolLinePoints;
+use app\models\PsPatrolPlan;
+use app\models\PsPatrolPlanManage;
+use app\models\PsPatrolTask;
+use app\models\PsUser;
+use app\models\PsUserCommunity;
+use common\core\F;
 use service\BaseService;
+use service\rbac\GroupService;
+use service\rbac\OperateService;
+use service\rbac\UserService;
+use yii\base\Exception;
+use Yii;
+
 
 class PlanService extends BaseService
 {
@@ -54,16 +69,20 @@ class PlanService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $list = self::_searchDeal($data)->offset($offset)->limit($pageSize)->orderBy('p.created_at desc')->asArray()->all();
+        $total = self::_searchDeal($data)->count();
         if ($list) {
-            $total = $this->getListCount($data);
             $i = $total - ($page - 1) * $pageSize;
             foreach ($list as $key => $value) {
                 $list[$key] = self::_dealDetail($value);
                 $list[$key]['tid'] = $i;
                 $i--;
             }
+        }else{
+            $list = [];
         }
-        return $list;
+        $result['list'] = $list;
+        $result['totals'] = $total;
+        return $result;
     }
 
     /**
@@ -99,7 +118,6 @@ class PlanService extends BaseService
             $plans[$key]['start_date'] = date("Y-m-d", $val['start_date']);
             $plans[$key]['end_date'] = date("Y-m-d", $val['end_date']);
             //查询执行员工
-
             $execUser = PsPatrolPlanManage::find()
                 ->alias('pm')
                 ->leftJoin(['u' => PsUser::tableName()], 'pm.user_id = u.id')
@@ -108,7 +126,6 @@ class PlanService extends BaseService
                 ->asArray()
                 ->column();
             $plans[$key]['exex_users'] = F::arrayFilter($execUser);
-
         }
         $re['totals'] = $totals;
         $re['list']   = $plans;
@@ -214,20 +231,12 @@ class PlanService extends BaseService
         } elseif ($plans['exec_type'] == 3) {
             $plans['exec_type_label'] = "按月执行，每".$plans['interval_x']."月的".$plans['interval_y']."号执行计划";
         }
-        $plans['points'] = PatrolLineService::service()->getPointsByLineId($plans['line_id']);
+        $plans['points'] = LineService::service()->getPointsByLineId($plans['line_id']);
         $plans['users'] = $this->getUserList($plans['id'],$plans['community_id']);
         return $this->success($plans);
     }
 
-    /**
-     * 巡更计划数量
-     * @param $data
-     * @return int|string
-     */
-    public function getListCount($data)
-    {
-        return self::_searchDeal($data)->count();
-    }
+
 
     /**
      * 判断当前计划能否被删除
@@ -276,7 +285,6 @@ class PlanService extends BaseService
                 $user = $task['user_name'];
             }
         }
-        //var_dump($user);die;
         if(!empty($user)){
             return $this->failed('该时间段内员工'.$user.'已存在执行计划');
         }else{
@@ -332,6 +340,7 @@ class PlanService extends BaseService
             return $this->failed("该巡更线路，没有配置巡更点！");
         }
         return $this->success($data);
+
     }
 
     /**
@@ -355,7 +364,7 @@ class PlanService extends BaseService
                     if(!$res){
                         throw new Exception("批量更新失败");
                     }
-                    $res = PatrolTaskService::service()->changeTaskAddByPlan($plan_id,$users,2,$plan);
+                    $res = TaskService::service()->changeTaskAddByPlan($plan_id,$users,2,$plan);
                     if($res['code'] == 0){
                         throw new Exception($res['msg']);
                     }
@@ -375,7 +384,7 @@ class PlanService extends BaseService
                     if(!$mod->save()){
                         throw new Exception("更新失败");
                     }
-                    $res = PatrolTaskService::service()->changeTaskAddByPlan($plan_id,$users,1,$plan);
+                    $res = TaskService::service()->changeTaskAddByPlan($plan_id,$users,1,$plan);
                     if($res['code'] == 0){
                         throw new Exception($res['msg']);
                     }
@@ -397,7 +406,7 @@ class PlanService extends BaseService
                         throw new Exception("批量删除失败");
                     }
                     //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                    PatrolTaskService::service()->changeTaskDelByPlan($plan_id,$users,2);
+                    TaskService::service()->changeTaskDelByPlan($plan_id,$users,2);
                     $t->commit(); //提交数据
                     return $this->success();
                 } catch (Exception $e) {
@@ -415,14 +424,14 @@ class PlanService extends BaseService
                             throw new Exception("删除失败");
                         }
                         //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                        PatrolTaskService::service()->changeTaskDelByPlan($plan_id,$users,3);
+                        TaskService::service()->changeTaskDelByPlan($plan_id,$users,3);
                     }else{
                         $del = PsPatrolPlanManage::find()->where(['user_id'=>$users,'plan_id'=>$plan_id])->one();
                         if(!$del->delete()){
                             throw new Exception("删除失败");
                         }
                         //因为存在任务已过期但是计划仍然可以删除的情况，这里就不加进事务里面
-                        PatrolTaskService::service()->changeTaskDelByPlan($plan_id,$users,1);
+                        TaskService::service()->changeTaskDelByPlan($plan_id,$users,1);
                     }
                     $t->commit(); //提交数据
                     return $this->success();
@@ -454,8 +463,6 @@ class PlanService extends BaseService
         $new_data['operator_id'] = $operator_id;
         $new_data['operator_name'] = $operator_name;
         $mod->setAttributes($new_data, false);
-        //$res = PatrolTaskService::service()->delDateListByPlan($new_data);
-        //var_dump($res);die;
         if($mod->save()){
             $plan_id = $mod->id;
             $new_data['id'] = $plan_id;
@@ -490,7 +497,6 @@ class PlanService extends BaseService
         foreach($check_key as $key){
             if($plan->$key != $data[$key]){
                 $return = false;
-                //$return = [$plan->$key,$data[$key],$key];
                 continue;
             }
         }
@@ -556,13 +562,6 @@ class PlanService extends BaseService
                 if(!empty($add_user)){
                     self::_sendMesByUserId($add_user);//新增
                 }
-                /*
-                if(!empty($del_user)){
-                    $result = self::_dealPlanManage($plan_id,$del_user,2,[]);//删除
-                    if($result['code'] == '0'){
-                        return $this->failed($result['msg']);
-                    }
-                }*/
                 $resArr['record_id'] = $plan_id;
                 if (!empty($userinfo)) {
                     $content = "计划名称:" . $data['name'];
@@ -712,7 +711,6 @@ class PlanService extends BaseService
         $pm = PsPatrolPlanManage::find()
             ->alias('pm')
             ->leftJoin(['u' => PsUser::tableName()], 'pm.user_id=u.id')
-            //->leftJoin(['uc'=>PsUserCommunity::tableName()],'uc.manage_id=u.id and community_id ='.$community_id)
             ->select(['u.id','u.truename as name'])
             ->where(['pm.plan_id'=>$id])->asArray()->all();
         //如果这个人员已经从这个小区删除，则不在详情里面展示
@@ -758,7 +756,7 @@ class PlanService extends BaseService
         //根据community_id查找user信息
         $users = UserService::service()->getUserByCommunityId($communityId);
         //根据计划生成时间日历
-        $date_list = PatrolTaskService::service()->delDateListByPlan($data);
+        $date_list = TaskService::service()->delDateListByPlan($data);
 
         if($date_list && $users){
             foreach ($users as $k =>$v){
@@ -821,7 +819,7 @@ class PlanService extends BaseService
                 ->column();
         }
 
-        $dateList = PatrolTaskService::service()->delDateListByPlan($data);
+        $dateList = TaskService::service()->delDateListByPlan($data);
 
         $taskUsers = [];
         foreach($dateList as $key => $value){

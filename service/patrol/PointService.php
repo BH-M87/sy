@@ -10,7 +10,10 @@ namespace service\patrol;
 use app\models\PsCommunityModel;
 use app\models\PsPatrolPoints;
 use app\models\PsPatrolTask;
+use common\core\F;
 use service\BaseService;
+use service\manage\CommunityService;
+use service\rbac\OperateService;
 use Yii;
 
 class PointService extends BaseService
@@ -29,10 +32,11 @@ class PointService extends BaseService
      */
     const 日常巡更 = "日常巡更";
 
-    private function _searchDeal($data){
+    private function _searchDeal($data)
+    {
         $mod = PsPatrolPoints::find()->where(['community_id' => $data['community_id']]);
-        $mod->andFilterWhere(['need_location'=>$data['need_location'],'need_photo'=>$data['need_photo'],'is_del'=>1]);
-        $mod->andFilterWhere(['like','name',$data['name']]);
+        $mod->andFilterWhere(['need_location' => $data['need_location'], 'need_photo' => $data['need_photo'], 'is_del' => 1]);
+        $mod->andFilterWhere(['like', 'name', $data['name']]);
         return $mod;
     }
 
@@ -47,8 +51,8 @@ class PointService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $list = self::_searchDeal($data)->offset($offset)->limit($pageSize)->orderBy('created_at desc')->asArray()->all();
+        $total = self::_searchDeal($data)->count();
         if ($list) {
-            $total = $this->getListCount($data);
             $i = $total - ($page - 1) * $pageSize;
             foreach ($list as $key => $value) {
                 //是否需要定位
@@ -58,8 +62,13 @@ class PointService extends BaseService
                 $list[$key]['tid'] = $i;
                 $i--;
             }
+        }else{
+            $list = [];
         }
-        return $list;
+        $result['list'] = $list;
+        $result['totals'] = $total;
+        return $result;
+
     }
 
     /**
@@ -96,16 +105,7 @@ class PointService extends BaseService
         $re['totals'] = $totals;
         $re['list'] = $points;
         return $re;
-    }
 
-    /**
-     * 巡更点数量
-     * @param $data
-     * @return int|string
-     */
-    public function getListCount($data)
-    {
-        return self::_searchDeal($data)->count();
     }
 
     /**
@@ -113,16 +113,17 @@ class PointService extends BaseService
      * @param $id
      * @return array
      */
-    private function _checkTaskByPointId($id){
+    private function _checkTaskByPointId($id)
+    {
         $time = time();
         $task = PsPatrolTask::find()
-            ->where(['point_id'=>$id])
-            ->andFilterWhere(['<','range_start_time',$time])
-            ->andFilterWhere(['>','range_end_time',$time])
+            ->where(['point_id' => $id])
+            ->andFilterWhere(['<', 'range_start_time', $time])
+            ->andFilterWhere(['>', 'range_end_time', $time])
             ->asArray()->count();
-        if($task > 0){
+        if ($task > 0) {
             return $this->failed('当前时间段不可编辑/删除');
-        }else{
+        } else {
             return $this->success();
         }
     }
@@ -132,25 +133,37 @@ class PointService extends BaseService
      * @param $data
      * @return array
      */
-    private function _checkDataDeal($data){
-        if($data['need_location'] == '1'){
-            if(empty($data['location_name']) || empty($data['lon']) || empty($data['lat'])){
+    private function _checkDataDeal($data)
+    {
+        if ($data['need_location'] == '1') {
+            if (empty($data['location_name']) || empty($data['lon']) || empty($data['lat'])) {
                 return $this->failed('定位信息不全');
             }
-        }else{
+        } else {
             unset($data['location_name']);
             unset($data['lon']);
             unset($data['lat']);
         }
         $id = $data['id'];
-        if($id){
+        if ($id) {
             $check = self::_checkTaskByPointId($id);
-            if($check['code'] != 1){
+            if ($check['code'] != 1) {
                 return $this->failed($check['msg']);
             }
         }
         return $this->success($data);
     }
+
+    //生成二维码图片
+    private function createQrcode($mod)
+    {
+        $id = $mod->id;
+        $savePath = F::imagePath('patrol');
+        $logo = Yii::$app->basePath . '/web/img/lyllogo.png';//二维码中间的logo
+        $url = Yii::$app->getModule('property')->params['ding_web_host'] . '#/workingAdd?type=scan&id=' . $id;
+        CommunityService::service()->generateCommCodeImage($savePath, $url, $id, $logo, $mod);//生成二维码图片
+    }
+
     /**
      * 巡更点新增
      * @param $data
@@ -158,9 +171,10 @@ class PointService extends BaseService
      * @param $operator_name
      * @return array
      */
-    public function add($data,$operator_id,$operator_name,$userinfo=[]){
+    public function add($data, $operator_id, $operator_name, $userinfo = [])
+    {
         $check = self::_checkDataDeal($data);
-        if($check['code'] != 1){
+        if ($check['code'] != 1) {
             return $this->failed($check['msg']);
         }
         $new_data = $check['data'];
@@ -168,14 +182,11 @@ class PointService extends BaseService
         $new_data['created_at'] = time();
         $new_data['operator_id'] = $operator_id;
         $new_data['operator_name'] = $operator_name;
-        //$data['code_image'] = '';//生成二维码，待完成
         $mod->setAttributes($new_data);
-        if($mod->save()){
+        if ($mod->save()) {
             $id = $mod->id;
-            $savePath = F::imagePath('patrol');
-            $logo = Yii::$app->basePath .'/web/img/lyllogo.png';//二维码中间的logo
-            $url = Yii::$app->getModule('lylapp')->params['ding_web_host'].'#/workingAdd?type=scan&id='.$id;
-            CommunityService::service()->generateCommCodeImage($savePath,$url,$id,$logo,$mod);//生成二维码图片
+            //生成二维码图片
+            $this->createQrcode($mod);
             $res['record_id'] = $id;
             if (!empty($userinfo)) {
                 $content = "巡检点名称:" . $data['name'];
@@ -188,7 +199,7 @@ class PointService extends BaseService
                 OperateService::addComm($userinfo, $operate);
             }
             return $this->success($res);
-        }else{
+        } else {
             return $this->failed('保存失败');
         }
     }
@@ -200,9 +211,10 @@ class PointService extends BaseService
      * @param $operator_name
      * @return array
      */
-    public function edit($data,$operator_id,$operator_name,$userinfo=[]){
+    public function edit($data, $operator_id, $operator_name, $userinfo = [])
+    {
         $check = self::_checkDataDeal($data);
-        if($check['code'] != 1){
+        if ($check['code'] != 1) {
             return $this->failed($check['msg']);
         }
         $new_data = $check['data'];
@@ -216,31 +228,29 @@ class PointService extends BaseService
             if ($mod->is_del != 1) {
                 return $this->failed('此巡更点状态有误，已被删除');
             }
-            if($mod->community_id != $data['community_id']){
+            if ($mod->community_id != $data['community_id']) {
                 return $this->failed("巡更点小区id不能变更！");
             }
             $new_data['operator_id'] = $operator_id;
             $new_data['operator_name'] = $operator_name;
             $mod->setAttributes($new_data, false);
-            if($mod->save()){
+            if ($mod->save()) {
                 $id = $mod->id;
-                $savePath = F::imagePath('patrol');
-                $logo = Yii::$app->basePath .'/web/img/lyllogo.png';//二维码中间的logo
-                $url = Yii::$app->getModule('lylapp')->params['ding_web_host'].'#/workingAdd?type=scan&id='.$id;
-                CommunityService::service()->generateCommCodeImage($savePath,$url,$id,$logo,$mod);//生成二维码图片
+                //生成二维码图片
+                $this->createQrcode($mod);
                 $res['record_id'] = $id;
                 if (!empty($userinfo)) {
                     $content = "巡检点名称:" . $mod->name;
                     $operate = [
                         "community_id" => $data['community_id'],
                         "operate_menu" => "日常巡更",
-                        "operate_type" => "巡更点新增",
+                        "operate_type" => "巡更点编辑",
                         "operate_content" => $content,
                     ];
                     OperateService::addComm($userinfo, $operate);
                 }
                 return $this->success($res);
-            }else{
+            } else {
                 return $this->failed('保存失败');
             }
         } else {
@@ -253,23 +263,24 @@ class PointService extends BaseService
      * @param $id
      * @return array
      */
-    public function deleteData($id,$operator_id,$operator_name,$userinfo=[]){
+    public function deleteData($id, $operator_id, $operator_name, $userinfo = [])
+    {
         $mod = PsPatrolPoints::findOne($id);
-        if($mod){
+        if ($mod) {
             if ($mod->is_del != 1) {
                 return $this->failed('此巡更点已被删除');
             }
             //删除巡更点的时候判断这个巡更点是否正在任务中
             $check = self::_checkTaskByPointId($id);
-            if($check['code'] != 1){
+            if ($check['code'] != 1) {
                 return $this->failed($check['msg']);
             }
             $mod->is_del = 0;
             $mod->operator_id = $operator_id;
             $mod->operator_name = $operator_name;
-            if($mod->save()){
+            if ($mod->save()) {
                 //删除巡更点对应的任务
-                PatrolTaskService::service()->changeTaskDelByPoint($id);
+                TaskService::service()->changeTaskDelByPoint($id);
                 $res['record_id'] = $id;
                 if (!empty($userinfo)) {
                     $content = "巡检点名称:" . $mod->name;
@@ -282,7 +293,7 @@ class PointService extends BaseService
                     OperateService::addComm($userinfo, $operate);
                 }
                 return $this->success($res);
-            }else{
+            } else {
                 return $this->failed('删除失败');
             }
         } else {
@@ -295,7 +306,8 @@ class PointService extends BaseService
      * @param $id
      * @return array|null|\yii\db\ActiveRecord
      */
-    public function getDetail($id){
+    public function getDetail($id)
+    {
         $detail = PsPatrolPoints::find()
             ->alias('p')
             ->leftJoin(['m' => PsCommunityModel::tableName()], 'p.community_id=m.id')
@@ -321,8 +333,9 @@ class PointService extends BaseService
      * @param $id
      * @return mixed
      */
-    public function getQrCode($id){
-        $res = PsPatrolPoints::find()->where(['id'=>$id,'is_del'=>1])->asArray()->one();
+    public function getQrCode($id)
+    {
+        $res = PsPatrolPoints::find()->where(['id' => $id, 'is_del' => 1])->asArray()->one();
         return $res;
     }
 }

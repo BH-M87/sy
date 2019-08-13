@@ -20,9 +20,11 @@ use service\patrol\PlanService;
 use service\patrol\PointService;
 use service\patrol\RecordService;
 use service\patrol\TaskService;
+use service\rbac\OperateService;
 
 class PatrolController extends BaseController
 {
+
     /*         巡更点相关接口                         */
     //巡更点列表
     public function actionPointList()
@@ -35,9 +37,9 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $data = $valid['data'];
-        $result['list'] = PointService::service()->getList($data, $this->page, $this->pageSize);
-        $result['totals'] = PointService::service()->getListCount($data);
+        $result = PointService::service()->getList($data, $this->page, $this->pageSize);
         return PsCommon::responseSuccess($result);
+
     }
 
     //巡更点新增
@@ -52,12 +54,13 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = PointService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $result = PointService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }
+
     }
 
     //巡更点编辑
@@ -72,7 +75,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = PointService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $result = PointService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -87,7 +90,7 @@ class PatrolController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("巡更点id不能为空！");
         }
-        $re = PointService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $re = PointService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if (!$re['code'] && $re['msg']) {
             return PsCommon::responseFailed($re['msg']);
         }
@@ -128,17 +131,16 @@ class PatrolController extends BaseController
         if (empty($res['code_image'])) {
             return PsCommon::responseFailed("二维码不存在！");
         }
-        //return PsCommon::responseSuccess($res);
         $savePath = F::imagePath('patrol');//图片保存的位置
         $img_name = $id . '.png';
         $fileName = $res['name'] . '.png';
-        if (!file_exists($savePath.$img_name)) {//文件不存在，去七牛下载
+        if (!file_exists($savePath . $img_name)) {//文件不存在，去七牛下载
             F::curlImage($res['code_image'], F::imagePath('patrol'), $img_name);
         }
-        if (!file_exists($savePath.$img_name)) {//下载未成功
+        if (!file_exists($savePath . $img_name)) {//下载未成功
             return PsCommon::responseFailed('二维码不存在');
         }
-        $downUrl = F::downloadUrl($this->systemType, 'patrol/'.$img_name, 'qrcode', $fileName);
+        $downUrl = F::downloadUrl($this->systemType, 'patrol/' . $img_name, 'qrcode', $fileName);
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
@@ -177,9 +179,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $data = $valid['data'];
-
-        $result['list'] = LineService::service()->getList($data, $this->page, $this->pageSize);
-        $result['totals'] = LineService::service()->getListCount($data);
+        $result = LineService::service()->getList($data, $this->page, $this->pageSize);
         return PsCommon::responseSuccess($result);
     }
 
@@ -195,7 +195,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = LineService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'],1,$this->user_info);
+        $result = LineService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'], 1, $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -215,7 +215,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = LineService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'],1, $this->user_info);
+        $result = LineService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'], 1, $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -230,7 +230,7 @@ class PatrolController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("巡更线路id不能为空！");
         }
-        $re = LineService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $re = LineService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if (!$re['code'] && $re['msg']) {
             return PsCommon::responseFailed($re['msg']);
         }
@@ -269,8 +269,7 @@ class PatrolController extends BaseController
         if ((!empty($data['start_time']) && empty($data['end_time'])) || (empty($data['start_time']) && !empty($data['end_time']))) {
             return PsCommon::responseFailed("开始时间和结束时间不能只传一个值");
         }
-        $result['list'] = PlanService::service()->getList($data, $this->page, $this->pageSize);
-        $result['totals'] = PlanService::service()->getListCount($data);
+        $result = PlanService::service()->getList($data, $this->page, $this->pageSize);
         return PsCommon::responseSuccess($result);
     }
 
@@ -286,7 +285,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = PlanService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $result = PlanService::service()->add($new_data, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -306,7 +305,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $new_data = $valid["data"];
-        $result = PlanService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $result = PlanService::service()->edit($new_data, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -322,7 +321,7 @@ class PatrolController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("巡更点id不能为空！");
         }
-        $re = PlanService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'],$this->user_info);
+        $re = PlanService::service()->deleteData($id, $this->user_info['id'], $this->user_info['truename'], $this->user_info);
         if (!$re['code'] && $re['msg']) {
             return PsCommon::responseFailed($re['msg']);
         }
@@ -374,8 +373,7 @@ class PatrolController extends BaseController
             return PsCommon::responseFailed("小区id不能为空");
         }
         $data = $this->request_params;
-        $result['list'] = TaskService::service()->getList($data, $this->page, $this->pageSize);
-        $result['totals'] = TaskService::service()->getListCount($data);
+        $result = TaskService::service()->getList($data, $this->page, $this->pageSize);
         return PsCommon::responseSuccess($result);
     }
 
