@@ -14,7 +14,7 @@ use app\models\PsPropertyCompany;
 use service\alipay\AliTokenService;
 use yii\helpers\FileHelper;
 use common\core\F;
-use app\modules\qiniu\services\UploadService;
+use service\qiniu\UploadService;
 use service\common\QrcodeService;
 use common\ali\AopRedirect;
 use Yii;

@@ -26,6 +26,7 @@ use app\models\PsRepairAppraise;
 use app\models\PsShop;
 use app\models\PsShopDiscount;
 use app\models\PsShopOrders;
+use app\services\MessageService;
 use app\models\PsShopTransaction;
 use service\alipay\AlipayCostService;
 use service\alipay\AliTokenService;
@@ -244,6 +245,33 @@ class AppWebService extends BaseService
                             throw new Exception('报事报修更新失败');
                         }
                         $repairType = RepairType::find()->where(['id' => $repair->repair_type_id])->asArray()->one();
+                        $data = [
+                            'community_id' => $repair->community_id,
+                            'id' => $psBill->repair_id,
+                            'member_id' => 0,
+                            'user_name' => '',
+                            'create_user_type' => 2,
+
+                            'remind_tmpId' => 4,
+                            'remind_target_type' => 4,
+                            'remind_auth_type' => 4,
+                            'msg_type' => 1,
+
+                            'msg_tmpId' => 4,
+                            'msg_target_type' => 4,
+                            'msg_auth_type' => 4,
+                            'remind' => [
+                                0 => '123456'
+                            ],
+
+                            'msg' => [
+                                0 => $repair->repair_no,
+                                1 => $repairType['name'],
+                                2 => $psBill->amount,
+                                3 => '线上支付'
+                            ]
+                        ];
+                        MessageService::service()->addMessageTemplate($data);
                     }
                 }
             }

@@ -10,13 +10,13 @@ use service\alipay\AlipayCostService;
 use service\rbac\OperateService;
 use service\alipay\HouseService;
 use service\alipay\BillCostService;
-use app\modules\property\services\BillService;
+use service\alipay\BillService;
 use service\common\ExcelService;
-use app\modules\property\services\ReceiptService;
-use app\modules\property\services\TemplateService;
+use service\alipay\ReceiptService;
+use service\alipay\TemplateService;
 use Yii;
 use service\common\CsvService;
-use app\modules\property\models\PsBillIncome;
+use app\models\PsBillIncome;
 
 Class AlipayCostController extends BaseController
 {
