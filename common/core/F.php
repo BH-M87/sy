@@ -296,6 +296,27 @@ Class F
         return $s;
     }
 
+
+    public static function excelPath($dir = '')
+    {
+        $dir = $dir ? $dir . '/' : '';
+        return self::storePath() . 'excel/' . $dir;
+    }
+
+    /**
+     * 上传到七牛的图片，本地备份目录
+     */
+    public static function qiniuImagePath()
+    {
+        return self::originalImage() . 'front/original/';
+    }
+
+    //上传图片的目录
+    public static function originalImage()
+    {
+        return Yii::$app->basePath . '/web/store/uploadFiles/';
+    }
+
     /**
      * 生成订单号统一规则
      * @param $prefix
@@ -308,10 +329,5 @@ Class F
         return $prefix . $time . $incr . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);//除prefix外，共20位
     }
 
-    public static function excelPath($dir = '')
-    {
-        $dir = $dir ? $dir . '/' : '';
-        return self::storePath() . 'excel/' . $dir;
-    }
-
 }
+
