@@ -179,6 +179,7 @@ Class F
         return $days;
     }
 
+
     /**
      * 本地存储的文件目录(所有文件的根目录)
      * @return string
@@ -244,7 +245,14 @@ Class F
     {
         $host = Yii::$app->request->getHostInfo();
         if (strlen(DOWNLOAD_PATH) > 0) {
-            $host .= '/'.DOWNLOAD_PATH.'/web';
+            $host .= '/' . DOWNLOAD_PATH . '/web';
+        }
+        if (YII_ENV == 'test') {//测试环境
+            $host .= '/test/web';
+        } elseif (YII_ENV == 'release') {//预发环境
+            $host .= '/release/web';
+        } elseif (YII_ENV == 'test2') {//测试环境2，供多个项目同时开发测试环境不够用的情况
+            $host .= '/test2/web';
         }
         return $host;
     }
@@ -286,6 +294,24 @@ Class F
         $b = $radLng1 - $radLng2;
         $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * 6378.137 * 1000;
         return $s;
+    }
+
+    /**
+     * 生成订单号统一规则
+     * @param $prefix
+     */
+    public static function generateOrderNo($prefix = '')
+    {
+        $time = date('YmdHis');//14位
+        $incr = Yii::$app->redis->incr('lyl:order_no');//自增数字
+        $incr = str_pad(substr($incr, -3), 3, '0', STR_PAD_LEFT);//取最后三位，前置补0
+        return $prefix . $time . $incr . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);//除prefix外，共20位
+    }
+
+    public static function excelPath($dir = '')
+    {
+        $dir = $dir ? $dir . '/' : '';
+        return self::storePath() . 'excel/' . $dir;
     }
 
 }

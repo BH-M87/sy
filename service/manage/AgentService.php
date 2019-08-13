@@ -5,6 +5,7 @@ use common\core\PsCommon;
 use app\models\PsUser;
 use app\models\PsAgent;
 use phpDocumentor\Reflection\Types\Self_;
+use service\BaseService;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;

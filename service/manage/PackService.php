@@ -3,7 +3,7 @@ namespace service\manage;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
-
+use service\BaseService;
 class PackService extends  BaseService {
     public static $_Type = [
         "1"=>"运营",

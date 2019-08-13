@@ -74,38 +74,6 @@ class UserService extends BaseService
     }
 
     /**
-     * saas免密码登录
-     * @param $userId
-     */
-    public function loginBySso($userId)
-    {
-        $user = PsUser::findOne(['id' => $userId, 'is_saas' => 1]);
-        if (!$user) {
-            return $this->failed('账户不存在');
-        }
-        if ($user->is_enable != 1) {
-            return $this->failed('账号已禁用，请联系管理员');
-        }
-        if (!$user->checkProCompanyExistCommunity($user['id'])) {
-            return $this->failed('账号没有关联小区');
-        }
-        //是否有token存在
-        $loginToken = PsLoginToken::findOne(['user_id' => $user['id'], 'app_type' => 1]);
-        if ($loginToken && $this->_getCache($loginToken['token'])) {
-            //token存在·切没有过期，继续使用
-            $this->refreshExpired($loginToken['token']);
-            return $this->success(['id' => $user['id'], 'property_company_id' => $user['property_company_id'],
-                'token' => $loginToken['token']]);
-        }
-        //缓存已过期，或第一次生成token
-        if ($token = $this->_saveLoginToken($user, $loginToken)) {
-            return $this->success(['id' => $user['id'], 'property_company_id' => $user['property_company_id'],
-                'token' => $token]);
-        }
-        return $this->failed();
-    }
-
-    /**
      * 登录
      * @param $userName
      * @param $password
