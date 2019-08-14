@@ -15,10 +15,11 @@ use app\models\PsPatrolPoints;
 use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
+use service\common\CsvService;
 use service\patrol\LineService;
 use service\patrol\PlanService;
 use service\patrol\PointService;
-use service\patrol\RecordService;
+use service\patrol\StatisticService;
 use service\patrol\TaskService;
 use service\rbac\OperateService;
 
@@ -483,7 +484,7 @@ class PatrolController extends BaseController
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }
-        $report = RecordService::service()->getReport($community_id, $type, $start_time, $end_time);
+        $report = StatisticService::service()->getReport($community_id, $type, $start_time, $end_time);
         $result['users'] = $report['users'];
         $result['totals'] = $report['totals'];
         return PsCommon::responseSuccess($report);
@@ -512,7 +513,7 @@ class PatrolController extends BaseController
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }
-        $report = RecordService::service()->getReportRank($community_id, $type, $start_time, $end_time);
+        $report = StatisticService::service()->getReportRank($community_id, $type, $start_time, $end_time);
         return PsCommon::responseSuccess($report);
     }
 
