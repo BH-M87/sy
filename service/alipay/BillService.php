@@ -2,6 +2,7 @@
 
 namespace service\alipay;
 
+use app\models\PsMember;
 use common\core\PsCommon;
 use service\alipay\AlipayBillService;
 use app\models\BillFrom;
@@ -22,6 +23,7 @@ use service\alipay\ParkFeeService;
 use app\models\ParkingLkPayCode;
 use service\BaseService;
 use app\services\MessageService;
+use service\manage\CommunityService;
 use Yii;
 use yii\db\Exception;
 use yii\db\Query;
@@ -1258,7 +1260,7 @@ class BillService extends BaseService
             $his['community_name'] = $community_name;
             $his['room_id'] = $incomeInfo['room_id'];
             $his['room_address'] = $incomeInfo['group'].$incomeInfo['building'].$incomeInfo['unit'].$incomeInfo['room'];
-            \app\modules\small\services\BillService::service()->setPayRoomHistory($his);
+            BillService::service()->setPayRoomHistory($his);
             //删除退款过的支付宝账单
             AlipayBillService::service($community_no)->deleteBill($community_no, $del_arr);
             //添加消息
@@ -1430,5 +1432,10 @@ class BillService extends BaseService
         }
     }
 
+    //获取业主名称
+    public function getMemberNameByUser($user_id)
+    {
+        return PsMember::find()->select('name')->where(['id' => $user_id])->scalar();
+    }
 
 }

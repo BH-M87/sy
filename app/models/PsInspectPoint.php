@@ -38,11 +38,11 @@ class PsInspectPoint extends BaseModel
     public function rules()
     {
         return [
-            [['category_id', 'device_id', 'device_name', 'device_no', 'community_id'], 'required'],
             [['category_id', 'device_id', 'community_id', 'need_location', 'need_photo', 'created_at', 'operator_id'], 'integer'],
             [['lon', 'lat'], 'number'],
-            [['name', 'location_name'], 'string', 'max' => 50],
-            [['device_name', 'device_no'], 'string', 'max' => 15],
+            [['community_id', 'name', 'category_id', 'device_id', 'need_location', 'need_photo', 'id', 'device_name'], 'required', 'message' => '{attribute}不能为空!'],
+            [['name', 'location_name'], 'string', 'max' => 50,'tooLong' => '{attribute}长度不能超过50个字'],
+            [['device_name', 'device_no'], 'string', 'max' => 15,'tooLong' => '{attribute}长度不能超过15个字'],
             [['code_image'], 'string', 'max' => 255],
         ];
     }
@@ -53,21 +53,30 @@ class PsInspectPoint extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => 'Name',
-            'category_id' => 'Category ID',
-            'device_id' => 'Device ID',
-            'device_name' => 'Device Name',
-            'device_no' => 'Device No',
-            'community_id' => 'Community ID',
-            'need_location' => 'Need Location',
-            'location_name' => 'Location Name',
-            'lon' => 'Lon',
-            'lat' => 'Lat',
-            'need_photo' => 'Need Photo',
-            'code_image' => 'Code Image',
-            'created_at' => 'Created At',
-            'operator_id' => 'Operator ID',
+            'id' => '巡检点ID',
+            'name' => '巡检点名称',
+            'category_id' => '设备分类',
+            'device_id' => '设备',
+            'device_name' => '设备名称',
+            'device_no' => '设备编号',
+            'community_id' => '小区',
+            'need_location' => '是否需要定位',
+            'location_name' => '地理位置',
+            'lon' => '经度',
+            'lat' => '纬度',
+            'need_photo' => '是否需要拍照',
+            'code_image' => '二维码图片',
+            'created_at' => '创建时间',
+            'operator_id' => '创建人',
         ];
+    }
+
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        //各个场景的活动属性
+        $scenarios['add'] = ['community_id', 'name', 'category_id', 'device_id', 'need_location', 'need_photo', 'name'];//新增
+        $scenarios['update'] = ['id', 'community_id', 'name', 'category_id', 'device_id', 'need_location', 'need_photo'];//编辑
+        return $scenarios;
     }
 }
