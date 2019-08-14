@@ -14,17 +14,6 @@ use service\rbac\RoleService;
 class RoleController extends BaseController
 {
     /**
-     *获取角色id集合
-     * @author yjh
-     * @throws \app\common\MyException
-     */
-    public function actionRoleMenuIds()
-    {
-        RoleService::service()->getRoleIds($this->request_params,1);
-        return PsCommon::responseSuccess();
-    }
-
-    /**
      * 获取角色组以及角色列表列表
      * @author yjh
      * @return string
@@ -32,19 +21,8 @@ class RoleController extends BaseController
      */
     public function actionGetRoleGroupList()
     {
-        $result = RoleService::service()->getGroupRoleList($this->request_params,1);
-        return PsCommon::responseSuccess($result);
-    }
-
-    /**
-     * 获取员工编辑角色列表
-     * @author yjh
-     * @return string
-     * @throws \app\common\MyException
-     */
-    public function actionGetRoleList()
-    {
-        $result = RoleService::service()->getRoleList($this->request_params,1);
+        print_r($this->user_info);die;
+        $result = RoleService::service()->getGroupRoleList($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
@@ -55,8 +33,7 @@ class RoleController extends BaseController
      */
     public function actionCreateRoleGroup()
     {
-
-        RoleService::service()->createGroup($this->request_params,1);
+        RoleService::service()->createGroup($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -82,6 +59,29 @@ class RoleController extends BaseController
     {
         RoleService::service()->deleteGroup($this->request_params,1);
         return PsCommon::responseSuccess();
+    }
+
+    /**
+     *获取角色id集合
+     * @author yjh
+     * @throws \app\common\MyException
+     */
+    public function actionRoleMenuIds()
+    {
+        RoleService::service()->getRoleIds($this->request_params,1);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 获取员工编辑角色列表
+     * @author yjh
+     * @return string
+     * @throws \app\common\MyException
+     */
+    public function actionGetRoleList()
+    {
+        $result = RoleService::service()->getRoleList($this->request_params,1);
+        return PsCommon::responseSuccess($result);
     }
 
     /**

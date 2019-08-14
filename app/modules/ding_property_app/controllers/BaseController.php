@@ -18,7 +18,7 @@ use Yii;
 class BaseController extends Controller
 {
     public $enableCsrfValidation = false;
-    public $params;//请求参数
+    public $request_params;//请求参数
     public $page = 1;
     public $pageSize = 20;
 
@@ -60,7 +60,7 @@ class BaseController extends Controller
 
         $params = F::request();
         //配置基本参数
-        $this->params = $params ? $params : [];
+        $this->request_params = $params ? $params : [];
         $this->page = (integer)F::value($this->params, 'page', $this->page);
         $this->pageSize = (integer)F::value($this->params, 'rows', $this->pageSize);
 
