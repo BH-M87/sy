@@ -1,6 +1,7 @@
 <?php
 namespace service;
 use Yii;
+use yii\base\Model;
 use common\core\Api;
 
 class BaseService {
@@ -58,6 +59,20 @@ class BaseService {
             Yii::$app->cache->set($cacheKey, $data, $expire);
         }
         return $data;
+    }
+
+    /**
+     * 返回model validate错误
+     * @param ActiveRecord $model
+     * @return string
+     */
+    public function getError(Model $model)
+    {
+        $errors = array_values($model->getErrors());
+        if(!empty($errors[0][0])) {
+            return $errors[0][0];
+        }
+        return '系统异常';
     }
 
 

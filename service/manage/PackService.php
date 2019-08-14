@@ -1,17 +1,20 @@
 <?php
-namespace app\modules\property\services;
-use Yii;
-use yii\base\Exception;
-use yii\db\Query;
+namespace service\manage;
 
-class PackService extends  BaseService {
-    public static $_Type = [
-        "1"=>"运营",
-        "2"=>"邻易联",
-    ];
-    /**
-     * 获取套餐包及分类列表*/
-    public function getList($reqArr) {
+use Yii;
+
+use yii\db\Query;
+use yii\base\Exception;
+
+use service\BaseService;
+
+class PackService extends BaseService 
+{
+    public static $_Type = ["1" => "运营", "2" => "邻易联"];
+    
+    // 获取套餐包及分类列表
+    public function getList($reqArr) 
+    {
         $class = $pack = [];
         $query = new Query();
         $query->select(["A.id","A.name","A.described"])->from("ps_pack_classify A");
@@ -76,9 +79,9 @@ class PackService extends  BaseService {
         return $result;
     }
 
-    /**
-     * 获取套餐包及分类列表*/
-    public function getPacks($reqArr) {
+    // 获取套餐包及分类列表
+    public function getPacks($reqArr) 
+    {
         $query = new Query();
         $query->select(["A.id","A.name","A.type","A.class_id","B.name as class_name"])
             ->from("ps_pack A")
@@ -123,10 +126,9 @@ class PackService extends  BaseService {
         return $result;
     }
 
-    /**
-     * 添加套餐包分类*/
-    public function classifyAdd($reqArr) {
-
+    // 添加套餐包分类
+    public function classifyAdd($reqArr) 
+    {
         $db = Yii::$app->db;
         $total =  $db->createCommand("select count(id) from ps_pack_classify where name=:name",[":name"=>$reqArr["name"]])->queryScalar();
         if( $total > 0) {
@@ -140,10 +142,10 @@ class PackService extends  BaseService {
         $db->createCommand()->insert("ps_pack_classify",$arr)->execute();
         return $this->success();
     }
-   /**
-    *套餐包分类编辑
-    **/
-    public function classifyEdit($reqArr) {
+
+    // 套餐包分类编辑
+    public function classifyEdit($reqArr) 
+    {
         $db = Yii::$app->db;
         $total =  $db->createCommand("select count(id) from ps_pack_classify where name=:name and id<>:id",[":name"=>$reqArr["name"],":id"=>$reqArr["class_id"]])->queryScalar();
         if( $total > 0) {
@@ -160,18 +162,18 @@ class PackService extends  BaseService {
         $db->createCommand()->update("ps_pack_classify",$arr,["id"=>$reqArr["class_id"]])->execute();
         return $this->success();
     }
-   /**
-    * 显示套餐包分类详情
-    * */
-    public function classifyShow( $classId) {
+
+    // 显示套餐包分类详情
+    public function classifyShow( $classId) 
+    {
         $db = Yii::$app->db;
         $model =  $db->createCommand( "select name,described from ps_pack_classify where id=:id",[":id"=>$classId])->queryOne();
         return $model ? $model : [];
-
     }
-   /**
-    * 删除套餐包分类*/
-    public function classifyDelete($classId) {
+
+    // 删除套餐包分类
+    public function classifyDelete($classId) 
+    {
         $db = Yii::$app->db;
         $model =  $db->createCommand( "select name,described from ps_pack_classify where id=:id",[":id"=>$classId])->queryOne();
         if( empty( $model)) {
@@ -184,17 +186,17 @@ class PackService extends  BaseService {
         $db->createCommand()->delete('ps_pack_classify',["id"=>$classId])->execute();
         return $this->success();
     }
-   /**
-    * 添加套餐包*/
-    public function packAdd($reqArr) {
 
+    // 添加套餐包
+    public function packAdd($reqArr) 
+    {
         $db = Yii::$app->db;
         $name = $reqArr["name"];
         $classId=  $reqArr["class_id"]  ? $reqArr["class_id"] : 0;
-       $classTotal =  $db->createCommand("select count(id) from ps_pack_classify where id=:id",[":id"=>$classId])->queryScalar();
-       if($classTotal<1) {
+        $classTotal =  $db->createCommand("select count(id) from ps_pack_classify where id=:id",[":id"=>$classId])->queryScalar();
+        if($classTotal<1) {
            return $this->failed("套餐包分类不存在");
-       }
+        }
         $total = $this->vaildName($name,$classId);
         if( $total > 0) {
             return $this->failed("同级名称不能重复");
@@ -209,9 +211,9 @@ class PackService extends  BaseService {
         $db->createCommand()->insert("ps_pack",$arr)->execute();
         $packId =   $db->getLastInsertID();
         $itemArr = [];
-       foreach ($reqArr["menus"] as $menu ) {
+        foreach ($reqArr["menus"] as $menu ) {
            $itemArr[] = ["menu_id"=>$menu,"pack_id"=>$packId];
-       }
+        }
 
         $db->createCommand()->batchInsert('ps_menu_pack',
                 ['menu_id','pack_id'],
@@ -219,9 +221,10 @@ class PackService extends  BaseService {
             )->execute();
         return $this->success();
     }
-    /**
-     * 编辑添加套餐包*/
-    public function packEdit($reqArr) {
+
+    // 编辑添加套餐包
+    public function packEdit($reqArr) 
+    {
         $db = Yii::$app->db;
         $packId = $reqArr["pack_id"];
         $name = $reqArr["name"];
@@ -268,7 +271,9 @@ class PackService extends  BaseService {
         $this->_resetCache($packId);
         return $this->success();
     }
-    private function  _resetCache($packId) {
+
+    private function _resetCache($packId) 
+    {
         $groupIds = Yii::$app->db->createCommand("select group_id from ps_group_pack where pack_id=:pack_id",[":pack_id"=>$packId])->queryColumn();
        if(!empty($groupIds)) {
            foreach ($groupIds as $groupId){
@@ -276,9 +281,10 @@ class PackService extends  BaseService {
            }
         }
     }
-    /**
-     * 查看套餐包*/
-    public function packShow($packId){
+
+    // 查看套餐包
+    public function packShow($packId)
+    {
         $model =  Yii::$app->db->createCommand( "select name,class_id,type,created_at,described from ps_pack where id=:id",[":id"=>$packId])->queryOne();
         if(!empty($model)) {
             $model["menus"] = $this->getPackMenu($packId,0);
@@ -287,9 +293,10 @@ class PackService extends  BaseService {
         }
         return !empty($model) ? $model : [] ;
     }
-   /**
-   *套餐包删除*/
-    public function packDelete($packId) {
+
+    // 套餐包删除
+    public function packDelete($packId) 
+    {
         $db = Yii::$app->db;
         $model =  $db->createCommand( "select name,described from ps_pack where id=:id",[":id"=>$packId])->queryOne();
         if( empty( $model)) {
@@ -303,26 +310,29 @@ class PackService extends  BaseService {
         $db->createCommand()->delete('ps_menu_pack',["pack_id"=>$packId])->execute();
         return $this->success();
     }
-    /*验证套餐包名称，同一级下名称不能重复*/
-    private function vaildName($name,$classId = 0, $packId = 0) {
+
+    // 验证套餐包名称，同一级下名称不能重复
+    private function vaildName($name,$classId = 0, $packId = 0) 
+    {
         $query = new Query();
          return $query->select(["count(id)"])->from("ps_pack")
             ->where(["name"=>$name])->andWhere(["class_id"=>$classId])
             ->andWhere(["<>","id",$packId])
             ->scalar();
     }
-   /**
-   *获取所有套餐包分类*/
-    public function getClassify() {
+
+    // 获取所有套餐包分类
+    public function getClassify() 
+    {
         $query = new Query();
         $models = $query->select(["id","name"])
             ->from("ps_pack_classify")->all();
         return $models;
     }
-    /**
-    * 获取用户组下的所有套餐包
-     */
-    public  function getGroupPack( $groupId) {
+
+    // 获取用户组下的所有套餐包
+    public  function getGroupPack( $groupId) 
+    {
         $query = new Query();
         $models = $query->select(["B.id","B.name"])
             ->from("ps_group_pack A")
@@ -331,7 +341,9 @@ class PackService extends  BaseService {
             ->all();
         return !empty($models) ? $models : [];
     }
-    public function getLevelGroupPack($groupId) {
+
+    public function getLevelGroupPack($groupId) 
+    {
         $query = new Query();
         $models = $query->select(["A.id","A.name","A.type","A.class_id","B.name as class_name"])
             ->from("ps_group_pack C")
@@ -369,9 +381,10 @@ class PackService extends  BaseService {
         $result = array_merge($class,$pack);
         return $result;
     }
-    /**
-     * 获取套餐包下的菜单树状的结构*/
-    public function getPackMenu($packId,$status=0) {
+
+    // 获取套餐包下的菜单树状的结构
+    public function getPackMenu($packId, $status = 0) 
+    {
         $query = new Query();
         $query->select(["A.id","A.parent_id","A.level","A.name"])
             ->from("ps_menu_pack B")
@@ -387,9 +400,9 @@ class PackService extends  BaseService {
         return $result;
     }
 
-    /**
-     * 获取某个系统下菜单树壮结构图*/
-    public function getSystemMenu($systemType) {
+    // 获取某个系统下菜单树壮结构图
+    public function getSystemMenu($systemType) 
+    {
         $query = new Query();
         $query->select(["A.id","A.parent_id","A.level","url","A.name","A.status","A.en_key", 'A.key'])
             ->from("ps_menus A")
@@ -404,10 +417,9 @@ class PackService extends  BaseService {
         return $result;
     }
 
-    /**
-     * 保存用户组和套餐包的关系
-     * */
-    public function _saveGroupPack($groupId,$packs) {
+    // 保存用户组和套餐包的关系
+    public function _saveGroupPack($groupId, $packs) 
+    {
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
         try {

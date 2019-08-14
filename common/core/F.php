@@ -8,6 +8,7 @@
 namespace common\core;
 
 use Yii;
+use yii\web\HttpException;
 
 Class F
 {
@@ -177,4 +178,169 @@ Class F
         }
         return $days;
     }
+
+
+    /**
+     * 本地存储的文件目录(所有文件的根目录)
+     * @return string
+     */
+    public static function storePath()
+    {
+        return Yii::$app->basePath . '/web/store/';
+    }
+
+    /**
+     * 二维码图片地址
+     */
+    public static function imagePath($dir = '')
+    {
+        return $dir ? self::storePath() . 'image/' . $dir . '/' : self::storePath() . 'image/';
+    }
+
+    /**
+     * 下载图片到本地
+     * @param $url
+     * @param string $name
+     */
+    public static function curlImage($url, $dir, $name = '')
+    {
+        $curl = Curl::getInstance(['CURLOPT_FOLLOWLOCATION' => 1]);
+        $content = $curl->get($url);
+        if (!$content) {
+            throw new HttpException(500, '图片无法抓取');
+        }
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $name = $name ? $name : date('YmdHis') . '.png';
+        $fileName = $dir . $name;
+        $fp = fopen($fileName, 'w');
+        fwrite($fp, $content);
+        fclose($fp);
+        chmod($fileName, 0755);
+        return $fileName;
+    }
+
+    //获取物业后台/运营后台下载链接地址
+    //edit by wenchao.feng [add $pathName: 域名对应的目录，对应到 test/release/test2..]
+    public static function downloadUrl($systemType, $fileName, $type, $newName = '', $pathName = '')
+    {
+        $data = ['filename' => $fileName, 'type' => $type, 'newname' => $newName];
+        $token = self::request('token');
+        $module = '';
+        if ($systemType == 1) {
+            $module = 'operation';
+        } elseif ($systemType == 2) {
+            $module = 'property';
+        } elseif ($systemType == 3) {
+            $module = 'street/backend';
+        } elseif ($systemType == 4) {
+            $module = 'petition/backend';
+        }
+        return self::getAbsoluteUrl($pathName) . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
+    }
+
+    //获取完整链接，不带get参数
+    public static function getAbsoluteUrl($pathName = '')
+    {
+        $host = Yii::$app->request->getHostInfo();
+        if (strlen(DOWNLOAD_PATH) > 0) {
+            $host .= '/' . DOWNLOAD_PATH . '/web';
+        }
+        if (YII_ENV == 'test') {//测试环境
+            $host .= '/test/web';
+        } elseif (YII_ENV == 'release') {//预发环境
+            $host .= '/release/web';
+        } elseif (YII_ENV == 'test2') {//测试环境2，供多个项目同时开发测试环境不够用的情况
+            $host .= '/test2/web';
+        }
+        return $host;
+    }
+
+    public static function arrayFilter($arr)
+    {
+        $tmpArr = [];
+        foreach ($arr as $k => $v) {
+            if ($v) {
+                array_push($tmpArr, $arr[$k]);
+            }
+        }
+        return $tmpArr;
+    }
+
+    //翻译为中文的周几
+    public static function getWeekChina($key)
+    {
+        $week = [
+            1 => '周一',
+            2 => '周二',
+            3 => '周三',
+            4 => '周四',
+            5 => '周五',
+            6 => '周六',
+            7 => '周日',
+        ];
+        return $week[$key];
+    }
+
+    //计算两个坐标点之间的距离
+    public static function getDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $radLat1 = deg2rad($lat1); //deg2rad()函数将角度转换为弧度
+        $radLat2 = deg2rad($lat2);
+        $radLng1 = deg2rad($lon1);
+        $radLng2 = deg2rad($lon2);
+        $a = $radLat1 - $radLat2;
+        $b = $radLng1 - $radLng2;
+        $s = 2 * asin(sqrt(pow(sin($a / 2), 2) + cos($radLat1) * cos($radLat2) * pow(sin($b / 2), 2))) * 6378.137 * 1000;
+        return $s;
+    }
+
+
+    public static function excelPath($dir = '')
+    {
+        $dir = $dir ? $dir . '/' : '';
+        return self::storePath() . 'excel/' . $dir;
+    }
+
+    /**
+     * 上传到七牛的图片，本地备份目录
+     */
+    public static function qiniuImagePath()
+    {
+        return self::originalImage() . 'front/original/';
+    }
+
+    //上传图片的目录
+    public static function originalImage()
+    {
+        return Yii::$app->basePath . '/web/store/uploadFiles/';
+    }
+
+    /**
+     * 生成订单号统一规则
+     * @param $prefix
+     */
+    public static function generateOrderNo($prefix = '')
+    {
+        $time = date('YmdHis');//14位
+        $incr = Yii::$app->redis->incr('lyl:order_no');//自增数字
+        $incr = str_pad(substr($incr, -3), 3, '0', STR_PAD_LEFT);//取最后三位，前置补0
+        return $prefix . $time . $incr . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);//除prefix外，共20位
+    }
+
+    /**
+     * 物业公司随机码(用于授权回调)
+     * @return string
+     */
+    public static function companyCode()
+    {
+        $str = '';
+        for ($i = 0; $i < 8; $i++) {
+            $str .= chr(mt_rand(33, 126));
+        }
+        return md5(uniqid(md5(microtime(true)), true) . $str);
+    }
+
 }
+

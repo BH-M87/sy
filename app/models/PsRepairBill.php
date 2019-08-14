@@ -16,6 +16,7 @@ use Yii;
  * @property integer $status
  * @property integer $created_at
  */
+
 class PsRepairBill extends BaseModel
 {
     /**

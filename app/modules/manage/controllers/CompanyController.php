@@ -7,11 +7,11 @@
 
 namespace app\modules\manage\controllers;
 
-use app\common\core\PsCommon;
-use app\modules\property\models\ProCompanyForm;
-use app\modules\property\services\AgentService;
-use app\modules\property\services\CompanyService;
-use app\modules\property\services\PackService;
+use common\core\PsCommon;
+use app\models\ProCompanyForm;
+use service\manage\AgentService;
+use service\manage\CompanyService;
+use service\manage\PackService;
 
 Class CompanyController extends BaseController
 {
@@ -62,6 +62,12 @@ Class CompanyController extends BaseController
         return PsCommon::responseSuccess($codeList);
     }
 
+    //代理商下拉列表
+    public function actionGetAgent()
+    {
+        $result = AgentService::service()->getAgent();
+        return PsCommon::responseSuccess($result);
+    }
 
     /**
      * 添加/编辑物业公司
@@ -192,8 +198,7 @@ Class CompanyController extends BaseController
     }
 
     /**
-     * 2016-12-23
-     * 获取开通物业公司
+     * 获取开通物业公司：小区新增使用
      */
     public function actionCompany()
     {

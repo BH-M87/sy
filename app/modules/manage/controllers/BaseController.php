@@ -11,14 +11,15 @@ use Yii;
 use common\core\F;
 use common\core\PsCommon;
 use common\CoreController;
-use service\manage\GroupService;
-use service\manage\MenuService;
-use service\manage\UserService;
+use service\rbac\GroupService;
+use service\rbac\MenuService;
+use service\rbac\UserService;
 use service\BaseService;
 
 
 Class BaseController extends CoreController
 {
+    public $enableCsrfValidation = false;
     //允许跨域访问的域名
     public static $allowOrigins = [
         'test' => [
@@ -77,7 +78,7 @@ Class BaseController extends CoreController
                 return false;
             }
         }
-
+        return true;
         //验证签名
         if ($action->controller->id != 'download') {//下载文件不走签名
             $checkMsg = PsCommon::validSign($this->systemType);
@@ -86,6 +87,7 @@ Class BaseController extends CoreController
                 return false;
             }
         }
+
         //login等个别无需token验证的接口及download不走权限验证
         if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
             return true;

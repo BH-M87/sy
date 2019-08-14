@@ -13,35 +13,15 @@ use common\core\F;
 use common\core\PsCommon;
 use common\core\Pinyin;
 use common\core\Client;
-
-use app\modules\property\services\TemplateService;
-use app\modules\property\models\PsAgent;
-use app\modules\property\models\PsRepairType;
-use app\modules\qiniu\services\UploadService;
-use app\services\QrcodeService;
-use app\services\AreaService;
-
-
-
-use app\modules\property\models\PsAliToken;
-use app\modules\property\models\PsLifeServices;
-use app\modules\property\models\PsLifeServicesMenu;
-use app\modules\property\models\PsPropertyIsvToken;
-
-
-
-use app\modules\property\models\BillFrom;
-use app\modules\property\models\PsBill;
-
-use app\modules\property\models\PsCommunityRoominfo;
-use app\modules\property\models\PsHouseForm;
-use app\modules\property\models\PsUserCommunity;
-use app\modules\alipay\services\AlipayBillService;
-use app\modules\property\models\PsCommunityModel;
-use app\modules\property\models\PsCommunityOpenService;
-use app\modules\property\models\PsPropertyCompany;
-
-
+use service\TemplateService;
+use app\models\PsAgent;
+use app\models\PsRepairType;
+use service\AreaService;
+use service\rbac\OperateService;
+use app\models\PsCommunityRoominfo;
+use app\models\PsUserCommunity;
+use app\models\PsCommunityModel;
+use app\models\PsPropertyCompany;
 use yii\db\Exception;
 use yii\db\Query;
 use yii\helpers\FileHelper;
@@ -121,92 +101,60 @@ class CommunityService extends BaseService
             return $this->failed('经纬度转换失败，请重新填写小区地址');
         }
 
-        //将小区同步到支付宝
-        if ($data['comm_type'] == 2 || $data['pro_company_id']==321) {//不是南京物业则发布到支付宝:19-4-27陈科浪修改
-            $re['code'] = 10000;
-        } else {
-            //edit by wenchao.feng 测试环境不走支付宝沙箱环境创建小区（总提示经纬度错误）
-            if (YII_ENV == 'master' || YII_ENV == 'release') {
-                $aliCommunityReqData = $this->processCommunityData($data);
-                $re = AliCommunityService::service()->init($data['pro_company_id'])->addCommunity($aliCommunityReqData);
-            } else {
-                $re['code'] = 10000;
-                $re['community_id'] = PsCommon::getNoRepeatChar('', YII_ENV.'communityUniqueList', 13);
-                $re['next_action'] = 'WAIT_SERVICE_PROVISION|INVOKER';
-                $re['status'] = 'PENDING_ONLINE';
-            }
-        }
-        if ($re['code'] == 10000) {
-            //小区同步成功
-            $data['create_at'] = time();
-            $data['is_init_service'] = 0;
-            $pinyin = new Pinyin();
-            $community = new PsCommunityModel();
-            if ($data['comm_type'] == 1) {
-                $communityNo = $re['community_id'];
-            } else {
-                $today = date("Ymd", time());
-                $communityNo = $today . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
-            }
-            $locationArr = explode('|', $data['locations']);
 
-            $community->community_no = $communityNo;
-            $community->province_code = $data['province_code'];
-            $community->city_id = $data['city_id'];
-            $community->district_code = $data['district_code'];
-            $community->pro_company_id = $data['pro_company_id'];
-            $community->name = $data['name'];
-            $community->group = !empty($data['group']) ? $data['group'] : '';
-            $community->locations = $data['locations'];
-            $community->address = $data['address'];
-            $community->phone = $data['phone'];
-            $community->is_init_service = 0;
-            $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
-            $community->status = 1;
-            $community->comm_type = $data['comm_type'];
-            $community->house_type = $data['house_type'];
-            $community->house_id = $data['house_id'] ? $data['house_id'] : '';
-            $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
-            $community->ali_next_action = !empty($re['next_action']) ? $re['next_action'] : 'WAIT_SERVICE_PROVISION|INVOKER';
-            $community->ali_status = !empty($re['status']) ? $re['status'] : 'PENDING_ONLINE';
-            $community->create_at = $data['create_at'];
-            $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
-            $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
+        $locationArr = explode('|', $data['locations']);
+        $community->community_no = PsCommon::getNoRepeatChar('', YII_ENV.'communityUniqueList', 13);
+        $community->province_code = $data['province_code'];
+        $community->city_id = $data['city_id'];
+        $community->district_code = $data['district_code'];
+        $community->pro_company_id = $data['pro_company_id'];
+        $community->name = $data['name'];
+        $community->group = !empty($data['group']) ? $data['group'] : '';
+        $community->locations = $data['locations'];
+        $community->address = $data['address'];
+        $community->phone = $data['phone'];
+        $community->is_init_service = 0;
+        $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
+        $community->status = 1;
+        $community->comm_type = $data['comm_type'];
+        $community->house_type = $data['house_type'];
+        $community->house_id = $data['house_id'] ? $data['house_id'] : '';
+        $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
+        $community->create_at = $data['create_at'];
+        $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
+        $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
 
-            if ($community->save()) {
-                // 新小区生成默认模板
-                TemplateService::service()->templateDefault($community->id);
-                //添加物业公司管理员的小区权限
-                $this->addUserCommunity($psCommany->user_id, $community->id);
-                //添加代理商用户的小区权限
-                $this->addPropertyCommunity($data['pro_company_id'], $community->id);
-                //删除超管帐号缓存
-                Yii::$app->redis->del($this->_userCommunityCacheKey(1));
-                //添加默认报事报修类型
-                $this->addRepairType($community->id);
-                //添加默认社区公约
-                $this->addConvention($community->id);
-                $content = '小区名称：' . $data['name'] . ',';
-                if (!empty($data['group'])) {
-                    $content .= '苑/期/区：' . $data['group'] . ',';
-                }
-                $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
-                $content .= '物业电话：' . $data['phone'] . ',';
-                $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
-                $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
-                $operate = [
-                    "operate_menu" => "小区管理",
-                    "operate_type" => "新增小区",
-                    "operate_content" => $content,
-                ];
-                OperateService::add($userinfo, $operate);
-                return $this->success();
-            } else {
-                $errorArr = array_values($community->getErrors());
-                return $this->failed($errorArr[0][0]);
+        if ($community->save()) {
+            // 新小区生成默认模板
+            TemplateService::service()->templateDefault($community->id);
+            //添加物业公司管理员的小区权限
+            $this->addUserCommunity($psCommany->user_id, $community->id);
+            //添加代理商用户的小区权限
+            $this->addPropertyCommunity($data['pro_company_id'], $community->id);
+            //删除超管帐号缓存
+            Yii::$app->redis->del($this->_userCommunityCacheKey(1));
+            //添加默认报事报修类型
+            $this->addRepairType($community->id);
+            //添加默认社区公约
+            $this->addConvention($community->id);
+            $content = '小区名称：' . $data['name'] . ',';
+            if (!empty($data['group'])) {
+                $content .= '苑/期/区：' . $data['group'] . ',';
             }
+            $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
+            $content .= '物业电话：' . $data['phone'] . ',';
+            $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
+            $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
+            $operate = [
+                "operate_menu" => "小区管理",
+                "operate_type" => "新增小区",
+                "operate_content" => $content,
+            ];
+            OperateService::add($userinfo, $operate);
+            return $this->success();
         } else {
-            return $this->failed($re['sub_msg']);
+            $errorArr = array_values($community->getErrors());
+            return $this->failed($errorArr[0][0]);
         }
     }
 
@@ -358,37 +306,6 @@ class CommunityService extends BaseService
     }
 
     /**
-     * 给小区开通服务
-     * @param $communityId
-     * @param $serviceIds
-     * @return bool
-     */
-    public function openServiceToCommunity($communityId, $serviceIds)
-    {
-        $service_names = "";
-        if ($serviceIds && is_array($serviceIds)) {
-            //删除之前的服务
-            PsCommunityOpenService::deleteAll("community_id = {$communityId}");
-            foreach ($serviceIds as $service) {
-                $service_name = Yii::$app->db->createCommand("SELECT name FROM ps_service where id = :id")
-                    ->bindValue(':id', $service)
-                    ->queryScalar();
-                if (!$service_name) {
-                    continue;
-                }
-                $communityOpenService = new PsCommunityOpenService();
-                $communityOpenService->service_id = $service;
-                $communityOpenService->community_id = $communityId;
-                $communityOpenService->service_name = $service_name;
-                $communityOpenService->create_at = time();
-                $communityOpenService->save();
-                $service_names .= $service_name . ',';
-            }
-        }
-        return $service_names;
-    }
-
-    /**
      * 添加物业与小区的关联关系
      * @param $property_id
      * @param $community_id
@@ -435,388 +352,6 @@ class CommunityService extends BaseService
     }
 
     /**
-     * 小区初始化服务
-     * @param $communityId
-     * @return bool
-     */
-    public function communityInitService($communityId)
-    {
-        //查询小区是否存在
-        $psCommunity = PsCommunityModel::find()->where(['id' => $communityId, 'status' => '1'])
-            ->asArray()
-            ->one();
-        if (!$psCommunity) {
-            echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区不存在']], JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        //如果小区未调用支付宝创建接口，需要先调用创建接口
-        if (!$psCommunity['community_no'] || !$psCommunity['ali_next_action']) {
-            $addToAliPayReq = [
-                'pro_company_id' => $psCommunity['pro_company_id'],
-                'name' => $psCommunity['name'],
-                'address' => $psCommunity['address'],
-                'district_code' => $psCommunity['district_code'],
-                'city_id' => $psCommunity['city_id'],
-                'province_code' => $psCommunity['province_code'],
-                'locations' => $psCommunity['locations'],
-                'phone' => $psCommunity['phone']
-            ];
-
-            $aliCommunityReqData = $this->processCommunityData($addToAliPayReq);
-            $addToAliPayRes = AliCommunityService::service()->init($psCommunity['pro_company_id'])->addCommunity($aliCommunityReqData);
-            if ($addToAliPayRes['code'] == 10000) {
-                $communityNo = $addToAliPayRes['community_id'];
-                $aliNextAction = !empty($addToAliPayRes['next_action']) ? $addToAliPayRes['next_action'] : self::ACTION_WAIT_SERVICE;
-                $aliStatus = !empty($addToAliPayRes['status']) ? $addToAliPayRes['status'] : 'PENDING_ONLINE';
-                $psCommunityModel = PsCommunityModel::findOne($communityId);
-                $psCommunityModel->community_no = $communityNo;
-                $psCommunityModel->ali_next_action = $aliNextAction;
-                $psCommunityModel->ali_status = $aliStatus;
-                $psCommunityModel->save();
-            } else {
-                echo json_encode(['code' => 50001,
-                    'data' => [],
-                    'error' => ['errorMsg' => $addToAliPayRes['sub_msg']]],
-                    JSON_PRETTY_PRINT);
-                exit;
-            }
-        }
-
-        //查询小区是否已经被初始化
-        if ($psCommunity['is_init_service'] == 1) {
-            echo json_encode([
-                'code' => 50001,
-                'data' => [],
-                'error' => ['errorMsg' => '小区已初始化成功']],
-                JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        //查询小区状态
-        if ($psCommunity['ali_next_action'] != self::ACTION_WAIT_SERVICE) {
-            echo json_encode([
-                'code' => 50001,
-                'data' => [],
-                'error' => ['errorMsg' => '小区状态不正确']],
-                JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        //初始化服务
-        $initServiceReq['community_id'] = $psCommunity['community_no'];
-        $initServiceReq['service_type'] = 'PROPERTY_PAY_BILL_MODE';
-        $initServiceReq['external_invoke_address'] = Yii::$app->params['external_invoke_address'];
-        $re = AliCommunityService::service()->init($psCommunity['pro_company_id'])->initBaseService($initServiceReq);
-        if ($re !== false && $re['code'] == '10000') {
-            $psCommunityModel = PsCommunityModel::findOne($communityId);
-            $psCommunityModel->is_init_service = 1;
-            $psCommunityModel->ali_status = $re['status'];
-            $psCommunityModel->ali_next_action = $re['next_action'];
-            $psCommunityModel->bill_pay_auth_url = !empty($re['bill_pay_auth_url']) ? $re['bill_pay_auth_url'] : '';
-            $psCommunityModel->save();
-
-            //查看小区信息
-            $re = AliCommunityService::service()->init($psCommunity['pro_company_id'])->communityInfo(['community_id' => $psCommunity['community_no']]);
-            if ($re !== false && $re['code'] == '10000' && !empty($re['community_services'])) {
-                $commnuityServices = $re['community_services'][0];
-                $psCommunityModel->qr_code_type = !empty($commnuityServices['qr_code_type']) ? $commnuityServices['qr_code_type'] : '';
-                $psCommunityModel->qr_code_image = !empty($commnuityServices['qr_code_image']) ? $commnuityServices['qr_code_image'] : '';
-                $psCommunityModel->qr_code_expires = !empty($commnuityServices['qr_code_type']) ? strtotime($commnuityServices['qr_code_type']) : 0;
-                if ($psCommunityModel->qr_code_image) {
-                    $psCommunityModel->has_ali_code = 1;
-                }
-                $psCommunityModel->save();
-            }
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * 小区申请支付宝上线
-     * @param $communityId
-     * @return bool
-     */
-    public function communityOnlineApply($communityId)
-    {
-        //查询小区是否存在
-        $psCommunity = PsCommunityModel::find()->where(['id' => $communityId, 'status' => '1'])->asArray()->one();
-        if (!$psCommunity) {
-            echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区不存在']], JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        //查询小区状态
-        if ($psCommunity['ali_next_action'] != self::ACTION_WAIT_PRO_VER && $psCommunity['ali_next_action'] != self::ACTION_WAIT_ONLINE) {
-            echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区状态不正确']], JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        //小区上线
-        $aliCommunityReqData['community_id'] = $psCommunity['community_no'];
-        $aliCommunityReqData['service_type'] = 'PROPERTY_PAY_BILL_MODE';
-        $aliCommunityReqData['status'] = 'ONLINE';
-        $aliCommunityReqData['external_invoke_address'] = Yii::$app->params['external_invoke_address'];
-        $re = AliCommunityService::service()->init($psCommunity['pro_company_id'])->baseServiceModify($aliCommunityReqData);
-        //支付宝新的小区不上线
-        if ($re !== false && $re['code'] == '10000') {
-            $psCommunity = PsCommunityModel::findOne($communityId);
-            $psCommunity->is_apply_online = 1;
-            $psCommunity->ali_status = 'ONLINE';
-            $psCommunity->ali_next_action = $re['next_action'];
-            $psCommunity->save();
-
-            //默认开通临停服务
-            $tmpService = PsCommunityOpenService::find()
-                ->where(['service_id' => Yii::$app->params['park_service_id'], 'community_id' => $communityId])
-                ->one();
-            if (!$tmpService) {
-                $communityOpenService = new PsCommunityOpenService();
-                $communityOpenService->service_id = Yii::$app->params['park_service_id'];
-                $communityOpenService->community_id = $communityId;
-                $communityOpenService->service_name = '临时停车';
-                $communityOpenService->create_at = time();
-                $communityOpenService->save();
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * 给小区添加一条房屋信息
-     * @param $communityId
-     * @return array
-     */
-    public function batchRoomInfo($communityId)
-    {
-        //查询小区是否存在
-        $psCommunity = PsCommunityModel::findOne($communityId);
-        if (!$psCommunity) {
-            echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区不存在']], JSON_PRETTY_PRINT);
-            exit;
-        }
-        //测试数据
-        $testData = ['group' => '欢乐颂', 'building' => '999幢', 'unit' => '999单元', 'room' => '999室',
-            'charge_area' => '999', 'status' => '1', 'property_type' => '1',
-            'community_id' => $communityId, 'intro' => ''
-        ];
-
-        $model = new PsHouseForm;
-        $model->setScenario('import');
-        $model->load($testData, '');
-        if (!$model->validate()) {
-            return $this->failed($this->getError($model));
-        }
-        $roomRe = PsCommunityRoominfo::find()
-            ->where(['community_id' => $communityId, 'group' => $testData['group'], 'building' => $testData['building'],
-                'unit' => $testData['unit'], 'room' => $testData['room']])
-            ->asArray()
-            ->one();
-        if ($roomRe) {
-            return $this->success();
-        }
-        $outRoomStr = '';
-        preg_match_all("/[A-Za-z0-9]+/", $outRoomStr, $address_arr);
-        $testData['out_room_id'] = date('YmdHis', time()) . $communityId . implode("", $address_arr[0]) . rand(1000, 9999);
-        $testData['address'] = $testData['group'] . $testData['building'] . $testData['unit'] . $testData['room'];
-        $testData['create_at'] = time();
-
-        //存入房屋信息
-        $psRoominfos = new PsCommunityRoominfo();
-        $psRoominfos->load($testData, '');
-        if ($psRoominfos->save()) {
-            //同步房屋到支付宝
-            $batch_id = date("YmdHis", time()) . '1' . rand(1000, 9000);
-            $data = [
-                'batch_id' => $batch_id,
-                'community_id' => !empty($psCommunity->community_no) ? $psCommunity->community_no : '',
-                'room_info_set' => [[
-                    "out_room_id" => $testData['out_room_id'],
-                    'group' => $testData['group'],
-                    'building' => $testData['building'],
-                    "unit" => $testData['unit'],
-                    'room' => $testData['room'],
-                    'address' => $testData['address'],
-                ]]
-            ];
-            HouseService::service()->uploadRoominfo($data);
-            return $this->success();
-        } else {
-            return $this->failed($this->getError($psRoominfos));
-        }
-    }
-
-    /**
-     * 给小区添加账单测试数据
-     * @param $communityId
-     * @return array
-     */
-    public function addTestBill($communityId)
-    {
-        //查询小区是否存在
-        $community_info = $this->communityShow($communityId);
-        if (!$community_info) {
-            return $this->failed('未找到小区信息');
-        }
-        $testRoom = ['group' => '欢乐颂', 'building' => '999幢', 'unit' => '999单元', 'room' => '999室', 'community_id' => $communityId];
-        $ps_room = RoomService::service()->getRoom($testRoom);
-        if (!$ps_room) {
-            return $this->failed('测试房屋不存在');
-        }
-        //查询测试房屋下是否已经存在账单
-        $flag = PsBill::find()
-            ->where(['community_id' => $communityId, 'out_room_id' => $ps_room["out_room_id"], 'is_del' => '1'])
-            ->andWhere(['bill_entry_amount' => 0.01])
-            ->andWhere(['cost_type' => 1])->exists();
-        if ($flag) {
-            return $this->failed('已有测试账单，无需重复添加');
-        }
-        $trans = Yii::$app->getDb()->beginTransaction();
-        try {
-            $bill_entry_id = date('YmdHis', time()) . '1' . rand(1000, 9999);
-            $billData = [
-                'community_id' => $communityId,
-                'group' => $testRoom['group'],
-                'building' => $testRoom['building'],
-                'unit' => $testRoom['unit'],
-                'room' => $testRoom['room'],
-                'area' => '999',
-                'bill_entry_id' => $bill_entry_id,
-                'community_name' => $community_info['name'],
-                'out_room_id' => $ps_room["out_room_id"],
-                'charge_area' => $ps_room["charge_area"],
-                'property_type' => $ps_room['property_type'],
-                'address' => $ps_room['address'],
-                'release_day' => date('Ymd'),
-                'deadline' => '20991231',
-                'cost_id' => 1,
-                'cost_type' => 1,
-                'cost_name' => '物业管理费',
-                'property_company' => $community_info['company_name'],
-                'property_account' => $community_info['company_account'],
-                'status' => 3,
-                'bill_entry_amount' => 0.01,
-                'create_at' => time(),
-                'acct_period_start' => 1293811200,
-                'acct_period_end' => 1293811200,
-                'task_id' => 0, 'order_id' => 0,
-                'company_id' => $community_info['pro_company_id'],
-                'room_id' => $ps_room["id"]
-            ];
-            //存入房屋信息
-            $psBillinfos = new PsBill();
-            $psBillinfos->load($billData, '');
-            if (!$psBillinfos->save()) {
-                throw new Exception($this->getError($psBillinfos));
-            }
-
-            //新增订单
-            $orderData = [
-                "bill_id" => $psBillinfos->id,
-                "company_id" => $billData["company_id"],
-                "community_id" => $billData["community_id"],
-                "order_no" => F::generateOrderNo(),
-                "product_id" => 1,
-                "product_type" => 1,
-                "product_subject" => '物业管理费',
-                "bill_amount" => 0.01,
-                "pay_amount" => 0.01,
-                "status" => "3",
-                "pay_status" => "0",
-                "create_at" => time(),
-            ];
-            $orderResult = OrderService::service()->addOrder($orderData);
-            if ($orderResult["code"]) {
-                //更新账单表的订单id字段
-                PsBill::updateAll(['order_id' => $orderResult['data']], ['id' => $psBillinfos->id]);
-            } else {
-                throw new Exception($orderResult['msg']);
-            }
-            //发布到支付宝
-            $batch_id = date("YmdHis", time()) . '2' . rand(1000, 9999);
-            $bill_set[0] = [
-                "bill_entry_id" => $billData["bill_entry_id"],
-                "out_room_id" => $billData["out_room_id"],
-                "cost_type" => $billData["cost_name"],
-                "room_address" => $billData["address"],
-                "acct_period" => '20110101-20110101',
-                'bill_entry_amount' => $billData["bill_entry_amount"],
-                "release_day" => $billData["release_day"],
-                "deadline" => $billData["deadline"],
-                "remark_str" => "zjy753",
-            ];
-
-            $data = [
-                "batch_id" => $batch_id,
-                "community_id" => $community_info["community_no"],
-                "bill_set" => $bill_set,
-            ];
-            $token = AliTokenService::service()->getTokenByCompany($community_info["pro_company_id"]);
-            $r = AlipayBillService::service($community_info["community_no"])->batchBill($token, $data);
-            if (!$r['code']) {
-                throw new Exception('上传支付宝错误：' . $r['msg']);
-            }
-            $batchId = !empty($r['data']['batch_id']) ? $r['data']['batch_id'] : '';
-            if ($batchId) {
-                $psBillModel = PsBill::findOne($psBillinfos->id);
-                $psBillModel->batch_id = $batchId;
-                $psBillModel->status = 1;
-                $psBillModel->save();
-            }
-            $trans->commit();
-            return $this->success();
-        } catch (Exception $e) {
-            $trans->rollBack();
-            return $this->failed($e->getMessage());
-        }
-    }
-
-    /**
-     * 生成小区二维码图片，并保存到七牛
-     * @param string $savePath 图片保存路径
-     * @param string $url 二维码对应的URL地址
-     * @param string $commId 小区id
-     * @param string $logoUrl 小区logo图片地址
-     * @return string
-     */
-    public function generateCommCodeImage($savePath, $url, $commId, $logoUrl, $commObject = null)
-    {
-        $imgUrl = "";
-
-        //设置上传路径
-        if (!file_exists($savePath)) {
-            FileHelper::createDirectory($savePath, 0755, true);
-        }
-
-        $img_name = $commId . '.png';
-        if (!$logoUrl) {
-            $logoUrl = Yii::$app->basePath . '/web/img/alilogo.png';
-        }
-        //生成一个二维码图片
-        QrcodeService::service()->png($url, $savePath . $img_name, QR_ECLEVEL_H, '100')->withLogo($logoUrl);
-
-        if (file_exists($savePath . $img_name)) {
-            chmod($savePath . $img_name, 0755);
-            //图片上传到七牛
-            $key_name = md5(uniqid(microtime(true), true)) . '.png';
-            $new_file = $savePath . $img_name;
-            $imgUrl = UploadService::service()->saveQiniu($key_name, $new_file);
-        }
-
-        if ($imgUrl && $commObject) {
-            $commObject->code_image = $imgUrl;
-            $commObject->save();
-        }
-
-        return $imgUrl;
-    }
-
-    /**
      * 根据小区id获取小区详情
      * @param $communityId
      * @return array|bool
@@ -833,7 +368,6 @@ class CommunityService extends BaseService
     }
 
     /**
-     * 2016-12-15
      * @update 2017-12-02 by shenyang: 增加对搜索省，区的支持
      * 获取小区列表 limit $limit, $rows
      */
@@ -954,8 +488,7 @@ class CommunityService extends BaseService
     }
 
     /**
-     * 2016-12-15
-     * 查看小区
+     * 小区详情
      */
     public function communityShow($id)
     {
@@ -980,43 +513,7 @@ class CommunityService extends BaseService
     }
 
     /**
-     * 查询小区详情，包含生活号二维码
-     * @param $id
-     * @return array|false
-     * @throws \yii\db\Exception
-     */
-    public function getShowCommunityInfo($id)
-    {
-        $db = Yii::$app->db;
-        $param = [":community_id" => $id];
-        $sql = "select community_no,name,logo_url,code_image from ps_community where id=:community_id ";
-        $model = $db->createCommand($sql, $param)->queryOne();
-        if (!empty($model)) {
-            $sql = "select code_image from ps_life_services where community_id=:community_id ";
-            $code_img = $db->createCommand($sql, $param)->queryColumn();
-            $model["code_image"] = !empty($code_img) ? $code_img : $model["code_image"];
-        }
-        return $model;
-    }
-
-    /**
-     * 根据小区id查询对应的生活号信息
-     * @param $id
-     * @return array|false
-     * @throws \yii\db\Exception
-     */
-    public function getShowLifeInfo($id)
-    {
-        $db = Yii::$app->db;
-        $param = [":community_id" => $id];
-        $sql = "select logo as logo_url,code_image from ps_life_services where community_id=:community_id ";
-        $model = $db->createCommand($sql, $param)->queryOne();
-        return $model;
-    }
-
-    /**
-     * 2016-12-15
-     * 上线下线小区
+     * 启用禁用小区
      */
     public function communityCheck($data, $userinfo)
     {
@@ -1366,33 +863,6 @@ ORDER BY juli ASC LIMIT 1";
             ->asArray()->one();
     }
 
-    /**
-     * 将小区的数据处理成在支付宝创建小区需要的数据
-     * @param $data
-     * @return array
-     */
-    private function processCommunityData($data)
-    {
-        $reqData = [];
-        $reqData['community_name'] = $data['name'];
-        $reqData['community_address'] = $data['address'];
-
-        //区域传入特殊处理,例如海南省万宁市万城镇数据处理
-        $reqData['district_code'] = $data['district_code'];
-        $area = AreaService::service()->load($data['district_code']);
-        if ($area && $area['areaType'] == 5) {
-            $reqData['district_code'] = $data['city_id'];
-        }
-
-        $reqData['city_code'] = $data['city_id'];
-        $reqData['province_code'] = $data['province_code'];
-
-        $reqData['community_locations'] = explode(",", $data['locations']);
-        $reqData['hotline'] = $data['phone'];
-
-        return $reqData;
-    }
-
     //添加默认的报事报修类型
     private function addRepairType($communityId)
     {
@@ -1416,6 +886,7 @@ ORDER BY juli ASC LIMIT 1";
         $typeModel->created_at = time();
         $typeModel->save();
     }
+
     //添加默认的社区公约
     public function addConvention($communityId)
     {
@@ -1430,13 +901,4 @@ ORDER BY juli ASC LIMIT 1";
 //        $model->save();
     }
 
-
-    //获取生活号基本信息(生活号)
-    public function getInfo($communityId)
-    {
-        return PsCommunityModel::find()
-            ->select('id, name, phone, community_no')
-            ->where(['id' => $communityId])
-            ->asArray()->one();
-    }
 }

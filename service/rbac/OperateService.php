@@ -1,12 +1,12 @@
 <?php
 namespace service\rbac;
 
-use common\core\PsCommon;
-use service\BaseService;
 use Yii;
 use yii\db\Query;
+use common\core\PsCommon;
+use service\BaseService;
 
-class OperateService extends BaseService {
+class OperateService extends  BaseService {
 
     /*
      * 查询操作记录日志
@@ -14,8 +14,8 @@ class OperateService extends BaseService {
      * $page  当前页
      * $rows 显示列数
      * */
-    public static function lists( $data, $page, $rows,$user_info)
-    {
+    public static function lists( $data, $page, $rows,$user_info){
+
         $query = new Query();
         $query->from("ps_operate_log");
         if ( $data['name'] ) {
@@ -52,9 +52,8 @@ class OperateService extends BaseService {
         $re['list']   = $models;
         return $re;
     }
+    public   static  function commlists( $data, $page, $rows,$user_info,$type=''){
 
-    public static function commlists($data, $page, $rows,$user_info, $type='')
-    {
         $where = "  community_id=:community_id";
         $params =[ ":community_id"=>$data["community_id"] ];
         //不是管理员只查看自己的日志
@@ -115,36 +114,38 @@ class OperateService extends BaseService {
     }
 
     //运营的日志表
-    public static function add($userinfo, $operate)
-    {
+    public   static  function  add( $userinfo,$operate ){
         $connection = Yii::$app->db;
         $log_arr = [
-            "operate_id" => $userinfo["id"],
-            "operate_mobile" => $userinfo["mobile"],
-            "operate_name" => $userinfo["truename"],
-            "operate_time" => time(),
-            "operate_menu" => $operate['operate_menu'],
-            "operate_type" => $operate['operate_type'],
-            "operate_content" => $operate['operate_content']
+//            "p_id"=>
+            "operate_id" =>       $userinfo["id"],
+            "operate_mobile" =>   $userinfo["mobile"],
+            "operate_name" =>     $userinfo["truename"],
+            "operate_time" =>     time(),
+            "operate_menu" =>      $operate['operate_menu'],
+            "operate_type" =>       $operate['operate_type'],
+            "operate_content" =>   $operate['operate_content']
         ];
         $connection->createCommand()->insert('ps_operate_log', $log_arr)->execute();
-        return true;
+        $result = ["status" => '20000',];
+        return $result;
     }
-
     //物业的日志表
-    public static function addComm($userinfo, $operate){
+    public   static  function  addComm( $userinfo,$operate ){
         $connection = Yii::$app->db;
         $log_arr = [
-            "operate_id"      => $userinfo["id"] ?? 0,
-            "operate_mobile"  => $userinfo["mobile"] ? $userinfo["mobile"] : '',
-            "operate_name"    => $userinfo["truename"] ?? "",
-            "operate_time"    => time(),
-            "operate_menu"    => $operate['operate_menu'],
-            "community_id"    => PsCommon::get($operate, 'community_id', 0),
-            "operate_type"    => $operate['operate_type'],
-            "operate_content" => $operate['operate_content']
+            "operate_id" =>       $userinfo["id"] ?? 0,
+            "operate_mobile" =>   $userinfo["mobile"] ? (PsCommon::isVirtualPhone($userinfo["mobile"]) ? '' : $userinfo["mobile"]) : '',
+            "operate_name" =>     $userinfo["truename"] ?? "",
+            "operate_time" =>     time(),
+            "operate_menu" =>      $operate['operate_menu'],
+            "community_id" =>      !empty($operate['community_id']) ? $operate['community_id'] : 0,
+            "operate_type" =>      $operate['operate_type'],
+            "operate_content" =>   $operate['operate_content']
         ];
+
         $connection->createCommand()->insert('ps_community_operate_log', $log_arr)->execute();
-        return true;
+        $result = ["status" => '20000',];
+        return $result;
     }
 }

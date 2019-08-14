@@ -80,6 +80,10 @@ return [
         //运营后台
         'manage' => [
             'class' => 'app\modules\manage\Module'
+        ],
+        //七牛上传
+        'qiniu' => [
+            'class' => 'app\modules\qiniu\Qiniu'
         ]
 
     ],

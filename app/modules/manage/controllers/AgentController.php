@@ -7,10 +7,10 @@
 
 namespace app\modules\manage\controllers;
 
-use app\common\core\PsCommon;
-use app\modules\property\models\PsAgent;
-use app\modules\property\services\AgentService;
-use app\modules\property\services\PackService;
+use common\core\PsCommon;
+use app\models\PsAgent;
+use service\manage\AgentService;
+use service\manage\PackService;
 
 Class AgentController extends BaseController
 {
