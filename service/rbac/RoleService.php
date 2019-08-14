@@ -18,12 +18,34 @@ use app\models\ZjyUserRole;
 
 class RoleService extends BaseService
 {
+
+    //用户中心角色路由
+    public $role_route = [
+        'group_role_list' => '/userCenter/roleGroup/getRoleAndRoleGroupList',
+        'create_group' => '/userCenter/roleGroup/createRoleGroup',
+        'update_group' => '/userCenter/roleGroup/updateRoleGroup',
+        'delete_group' => '/userCenter/roleGroup/deleteRoleGroup',
+        'create_role' => '/userCenter/role/createRole',
+        'update_role' => '/userCenter/role/updateRole',
+        'delete_role' => '/userCenter/role/deleteRole',
+        'role_info' => '/userCenter/role/selectRoleById',
+        'last_menu_id' => '/userCenter/roleMenu/selectSubMenu',
+        'group_role_list_page' => '/userCenter/roleGroup/groupList',
+        'group_info' => '/userCenter/roleGroup/groupDetail',
+        'get_role_ids' => '/userCenter/roleMenu/roleMenuIds',
+        'get_group_list' => '/userCenter/roleGroup/getRoleGroupList',
+        'get_role_list' => '/userCenter/roleGroup/getRoleList',
+
+    ];
+
+
+
     public $params = '';
     public function validata($params,$userinfo){
+        $data['user_id'] = $userinfo['id'];
         $data['obj_type'] = $userinfo['system_type'];
         $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
         $data['tenant_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
-
         $this->params = $data;
     }
     /**
@@ -97,6 +119,7 @@ class RoleService extends BaseService
         $this->params['id'] = $params['id'];
         $this->params['role_group_name'] = $params['group_name'];
         $this->params['modify_people'] = $userinfo['truename'];
+        $this->params['modify_time'] = date("Y-m-d H:i",time());
         //新增角色组
         $tran = \Yii::$app->getDb()->beginTransaction();
         try {
@@ -174,12 +197,13 @@ class RoleService extends BaseService
      * @return array
      * @throws MyException
      */
-    public function getRoleList($params, $type)
+    public function getRoleList($params, $userinfo)
     {
         if (empty($params['id'])) {
             throw new MyException('参数错误');
         }
-        $result = $this->userResponse(UserCenterService::service($type)->request($this->role_route['get_role_list'], ['id' => $params['id']]));
+        $this->validata($params,$userinfo);
+        $result = ZjyRole::getList($this->params);
         return $result ?? [];
     }
 
@@ -345,23 +369,6 @@ class RoleService extends BaseService
         return $result ?? [];
     }
 
-    /**
-     * 角色组ID
-     * @author yjh
-     * @param $params
-     * @param $type 1运营 2物业
-     * @return mixed
-     * @throws MyException
-     */
-    public function getRoleIds($params, $type)
-    {
-        if (empty($params['id'])) {
-            throw new MyException('角色ID不能为空');
-        }
-        $send = ['id' => $params['id']];
-        $result = $this->userResponse(UserCenterService::service($type)->request($this->role_route['get_role_ids'], $send));
-        return $result ?? [];
-    }
 
     /**
      * 角色参数新增/修改检查

@@ -71,32 +71,93 @@ class ZjyRole extends BaseModel
         ];
     }
 
+
+    /**
+     * 获取角色列表-編輯員工時使用
+     * @param $params
+     * @return array
+     */
     public static function getList($params)
     {
-        $model = self::find()->where(['deleted'=>'0'])
+        $model = self::find()->where(['deleted' => '0'])
             ->andFilterWhere(['obj_type' => $params['obj_type'] ?? null])
-            ->andFilterWhere(['obj_id' => $params['status'] ?? null])
-            ->andFilterWhere(['role_group_id' => $params['role_group_id'] ?? null]);
+            ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null]);
         $count = $model->count();
         if ($count > 0) {
             $model->orderBy('id desc');
             $data = $model->asArray()->all();
-            self::afterList($data);
+            self::afterList($data, $params);
         }
         return $data ?? [];
     }
 
     /**
      * 列表结果格式化
-     * @author yjh
+     * @author ckl
      * @param $data
      */
-    public static function afterList(&$data)
+    public static function afterList(&$data, $params)
     {
         foreach ($data as &$v) {
             $v['id'] = $v['id'];
-            $v['name'] = $v['role_name'];
+            $v['name'] = $v['role_group_name'];
+            $params['role_group_id'] = $v['id'];
         }
     }
+
+    /**
+     * 验证是否唯一
+     * @param $params
+     */
+    public static function checkInfo($params)
+    {
+        $info = self::find()->where(['role_name' => $params['role_name'],'deleted'=>'0'])
+            ->andFilterWhere(['obj_type' => $params['obj_type'] ?? null])
+            ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null])
+            ->andFilterWhere(['!=', 'id', $params['id'] ?? null])
+            ->one();
+        if (!empty($info)) {
+            throw new MyException('角色组重复!');
+        }
+    }
+
+    /**
+     * 新增编辑角色
+     * @param $params
+     * @return array
+     */
+    public static function AddEditRoleGroup($params)
+    {
+        $model = !empty($params['id']) ? self::model()->findOne($params['id']) : new self();;
+        $model->load($params, '');   # 加载数据
+        if ($model->validate()) {  # 验证数据
+            //查看名称是否重复
+            self::checkInfo($params);
+            if (!$model->save()) {
+                $errors = array_values($model->getErrors());
+                throw new MyException($errors[0][0]);
+            }
+        } else {
+            $errors = array_values($model->getErrors());
+            throw new MyException($errors[0][0]);
+        }
+    }
+
+    /**
+     * 删除角色
+     * @param $params
+     * @return array
+     */
+    public static function DelRoleGroup($params)
+    {
+        $model = self::model()->findOne($params['id']);
+        if(!empty($model)){
+            $model->deleted=1;
+            $model->save();
+        }else{
+            throw new MyException('角色不存在');
+        }
+    }
+
 
 }

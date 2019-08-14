@@ -110,7 +110,7 @@ class ZjyRoleGroup extends BaseModel
      */
     public static function checkInfo($params)
     {
-        $info = self::find()->where(['role_group_name' => $params['role_group_name']])
+        $info = self::find()->where(['role_group_name' => $params['role_group_name'],'deleted'=>'0'])
             ->andFilterWhere(['obj_type' => $params['obj_type'] ?? null])
             ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null])
             ->andFilterWhere(['!=', 'id', $params['id'] ?? null])
@@ -151,7 +151,8 @@ class ZjyRoleGroup extends BaseModel
     {
         $model = self::model()->findOne($params['id']);
         if(!empty($model)){
-            $model->delete();
+            $model->deleted=1;
+            $model->save();
         }else{
             throw new MyException('角色组不存在');
         }
