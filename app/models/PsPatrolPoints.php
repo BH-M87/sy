@@ -22,7 +22,7 @@ use Yii;
  * @property int $operator_id 创建人id
  * @property string $operator_name 创建人名称
  */
-class PsPatrolPoints extends \yii\db\ActiveRecord
+class PsPatrolPoints extends BaseModel
 {
     /**
      * {@inheritdoc}

@@ -19,7 +19,7 @@ use Yii;
  * @property int $error_num 今天的旷巡数
  * @property int $late_num 今天的迟到数
  */
-class PsPatrolStatistic extends \yii\db\ActiveRecord
+class PsPatrolStatistic extends BaseModel
 {
     /**
      * {@inheritdoc}

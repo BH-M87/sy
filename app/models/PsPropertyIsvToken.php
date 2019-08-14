@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use Faker\Provider\Base;
 use Yii;
 
 /**
@@ -16,7 +17,7 @@ use Yii;
  * @property integer $expires_in
  * @property integer $re_expires_in
  */
-class PsPropertyIsvToken extends \yii\db\ActiveRecord
+class PsPropertyIsvToken extends BaseModel
 {
     /**
      * @inheritdoc

@@ -25,7 +25,7 @@ use Yii;
  * @property string $entry_time
  * @property integer $is_enable
  */
-class PsUser extends \yii\db\ActiveRecord
+class PsUser extends BaseModel
 {
     public $old_password;
 
