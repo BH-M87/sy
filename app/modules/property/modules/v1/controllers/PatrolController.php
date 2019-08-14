@@ -128,13 +128,13 @@ class PatrolController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("巡更点id不能为空！");
         }
-        $res = PointService::service()->getQrCode($id);
-        if (empty($res['code_image'])) {
+        $res = PointService::service()->getPatrolPointInfo($id);
+        if (empty($res->code_image)) {
             return PsCommon::responseFailed("二维码不存在！");
         }
         $savePath = F::imagePath('patrol');//图片保存的位置
         $img_name = $id . '.png';
-        $fileName = $res['name'] . '.png';
+        $fileName = $res->name . '.png';
         if (!file_exists($savePath . $img_name)) {//文件不存在，去七牛下载
             F::curlImage($res['code_image'], F::imagePath('patrol'), $img_name);
         }
