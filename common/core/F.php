@@ -10,7 +10,7 @@ namespace common\core;
 use Yii;
 use yii\web\HttpException;
 
-Class F
+class F
 {
     //TODO CDN
     //path: wechat/web/static/sharepark/css/xxx.css
@@ -342,7 +342,6 @@ Class F
         return md5(uniqid(md5(microtime(true)), true) . $str);
     }
 
-
     //时间相减算月差
     public static function  getMonthNum($date1, $date2, $tags='-')
     {
@@ -359,6 +358,16 @@ Class F
         $date1['year'] = $year;
         $date1['month'] = $month;
         return $date1;
+    }
+
+    //判断是否重复请求钉钉专业
+    public static function repeatRequest2()
+    {
+        $cacheKey = self::_repeatCacheField();
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 3, 'NX')) {
+            return false;
+        }
+        return true;
     }
 
 }

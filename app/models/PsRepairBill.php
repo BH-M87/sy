@@ -16,7 +16,8 @@ use Yii;
  * @property integer $status
  * @property integer $created_at
  */
-class PsRepairBill extends \yii\db\ActiveRecord
+
+class PsRepairBill extends BaseModel
 {
     /**
      * @inheritdoc

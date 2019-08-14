@@ -3,7 +3,7 @@ namespace app\models;
 
 use Yii;
 
-class PsGroups extends \yii\db\ActiveRecord
+class PsGroups extends BaseModel
 {
     public static function tableName()
     {

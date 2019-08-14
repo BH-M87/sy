@@ -3,7 +3,7 @@ namespace app\models;
 
 use Yii;
 
-class PsMenuPack extends \yii\db\ActiveRecord
+class PsMenuPack extends BaseModel
 {
     public static function tableName()
     {

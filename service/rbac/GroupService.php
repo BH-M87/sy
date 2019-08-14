@@ -1,21 +1,21 @@
 <?php
-/**
- * 部门管理
- */
-
 namespace service\rbac;
 
+use Yii;
+
+use yii\db\Query;
+use yii\db\Exception;
+
+use service\BaseService;
+use app\modules\street\services\DingdingService;
+
 use common\core\PsCommon;
+
 use app\models\PsUser;
 use app\models\PsGroupMenus;
 use app\models\PsGroupPack;
 use app\models\PsGroups;
 use app\models\PsGroupsRelations;
-use app\modules\street\services\DingdingService;
-use Yii;
-use yii\db\Exception;
-use yii\db\Query;
-use service\BaseService;
 
 class GroupService extends BaseService
 {

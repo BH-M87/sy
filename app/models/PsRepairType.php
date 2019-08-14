@@ -1,7 +1,5 @@
 <?php
-
 namespace app\models;
-
 use Yii;
 
 /**
@@ -16,7 +14,7 @@ use Yii;
  * @property integer $status
  * @property integer $created_at
  */
-class PsRepairType extends \yii\db\ActiveRecord
+class PsRepairType extends BaseModel
 {
     /**
      * @inheritdoc
@@ -39,7 +37,6 @@ class PsRepairType extends \yii\db\ActiveRecord
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
             ['status', 'in', 'range' => [1, 2, 3]],
             [['community_id','name','level'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
-
         ];
     }
 
@@ -49,12 +46,12 @@ class PsRepairType extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'community_id' => '小区I',
-            'name' => 'Name',
-            'level' => 'Level',
-            'parent_id' => 'Parent ID',
-            'is_relate_room' => 'Is Relate Room',
+            'id' => '类别Id',
+            'community_id' => '小区Id',
+            'name' => '类别名称',
+            'level' => '类别属性',
+            'parent_id' => '父级类别',
+            'is_relate_room' => '是否关联房屋信息',
             'status' => '显示/隐藏',
             'created_at' => 'Created At',
         ];

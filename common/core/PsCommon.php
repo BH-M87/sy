@@ -292,6 +292,24 @@ class PsCommon {
         }
     }
 
+
+    /**
+     * 将定义的 $key=>$value 数组当二维数组返回
+     * @param $data
+     * @return array
+     */
+    public static function returnKeyValue($data)
+    {
+        $arr = [];
+        if (empty($data)) {
+            return $arr;
+        }
+        foreach ($data as $key => $value) {
+            $arr[] = ["key" => $key, "value" => $value];
+        }
+        return $arr;
+    }
+
     public static function getPayType($index = '')
     {
         $model = ['1' => '一次付清', '2' => '分次付清'];

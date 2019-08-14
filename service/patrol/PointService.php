@@ -146,7 +146,7 @@ class PointService extends BaseService
         }
         $id = $data['id'];
         if ($id) {
-            $check = self::_checkTaskByPointId($id);
+            $check = $this->_checkTaskByPointId($id);
             if ($check['code'] != 1) {
                 return $this->failed($check['msg']);
             }
@@ -173,7 +173,7 @@ class PointService extends BaseService
      */
     public function add($data, $operator_id, $operator_name, $userinfo = [])
     {
-        $check = self::_checkDataDeal($data);
+        $check = $this->_checkDataDeal($data);
         if ($check['code'] != 1) {
             return $this->failed($check['msg']);
         }
@@ -184,18 +184,14 @@ class PointService extends BaseService
         $new_data['operator_name'] = $operator_name;
         $mod->setAttributes($new_data);
         if ($mod->save()) {
-            $id = $mod->id;
             //生成二维码图片
             $this->createQrcode($mod);
-            $res['record_id'] = $id;
+            $res['record_id'] = $mod->id;
             if (!empty($userinfo)) {
-                $content = "巡检点名称:" . $data['name'];
-                $operate = [
-                    "community_id" => $data['community_id'],
-                    "operate_menu" => "日常巡更",
-                    "operate_type" => "巡更点新增",
-                    "operate_content" => $content,
-                ];
+                $operate['community_id'] = $data['community_id'];
+                $operate['operate_menu'] = '日常巡更';
+                $operate['operate_type'] = '巡更点新增';
+                $operate['operate_content'] = "巡检点名称:" . $data['name'];
                 OperateService::addComm($userinfo, $operate);
             }
             return $this->success($res);
@@ -213,21 +209,19 @@ class PointService extends BaseService
      */
     public function edit($data, $operator_id, $operator_name, $userinfo = [])
     {
-        $check = self::_checkDataDeal($data);
+        $check = $this->_checkDataDeal($data);
         if ($check['code'] != 1) {
             return $this->failed($check['msg']);
         }
         $new_data = $check['data'];
+        //不需要定位的情况下
         if ($new_data['need_location'] == 2) {
             $new_data['location_name'] = '';
             $new_data['lon'] = '';
             $new_data['lat'] = '';
         }
-        $mod = PsPatrolPoints::findOne($data['id']);
+        $mod = $this->getPatrolPointInfo($data['id']);
         if ($mod) {
-            if ($mod->is_del != 1) {
-                return $this->failed('此巡更点状态有误，已被删除');
-            }
             if ($mod->community_id != $data['community_id']) {
                 return $this->failed("巡更点小区id不能变更！");
             }
@@ -235,18 +229,14 @@ class PointService extends BaseService
             $new_data['operator_name'] = $operator_name;
             $mod->setAttributes($new_data, false);
             if ($mod->save()) {
-                $id = $mod->id;
                 //生成二维码图片
                 $this->createQrcode($mod);
-                $res['record_id'] = $id;
+                $res['record_id'] = $mod->id;
                 if (!empty($userinfo)) {
-                    $content = "巡检点名称:" . $mod->name;
-                    $operate = [
-                        "community_id" => $data['community_id'],
-                        "operate_menu" => "日常巡更",
-                        "operate_type" => "巡更点编辑",
-                        "operate_content" => $content,
-                    ];
+                    $operate['community_id'] = $data['community_id'];
+                    $operate['community_id'] = '日常巡更';
+                    $operate['community_id'] = '巡更点编辑';
+                    $operate['community_id'] = "巡检点名称:" . $mod->name;
                     OperateService::addComm($userinfo, $operate);
                 }
                 return $this->success($res);
@@ -265,13 +255,10 @@ class PointService extends BaseService
      */
     public function deleteData($id, $operator_id, $operator_name, $userinfo = [])
     {
-        $mod = PsPatrolPoints::findOne($id);
+        $mod = $this->getPatrolPointInfo($id);
         if ($mod) {
-            if ($mod->is_del != 1) {
-                return $this->failed('此巡更点已被删除');
-            }
             //删除巡更点的时候判断这个巡更点是否正在任务中
-            $check = self::_checkTaskByPointId($id);
+            $check = $this->_checkTaskByPointId($id);
             if ($check['code'] != 1) {
                 return $this->failed($check['msg']);
             }
@@ -283,13 +270,10 @@ class PointService extends BaseService
                 TaskService::service()->changeTaskDelByPoint($id);
                 $res['record_id'] = $id;
                 if (!empty($userinfo)) {
-                    $content = "巡检点名称:" . $mod->name;
-                    $operate = [
-                        "community_id" => $mod->community_id,
-                        "operate_menu" => "日常巡更",
-                        "operate_type" => "巡更点删除",
-                        "operate_content" => $content,
-                    ];
+                    $operate['community_id'] = $mod->community_id;
+                    $operate['community_id'] = '日常巡更';
+                    $operate['community_id'] = '巡更点删除';
+                    $operate['community_id'] = "巡检点名称:" . $mod->name;
                     OperateService::addComm($userinfo, $operate);
                 }
                 return $this->success($res);
@@ -328,14 +312,9 @@ class PointService extends BaseService
         return $detail;
     }
 
-    /**
-     * 下载二维码
-     * @param $id
-     * @return mixed
-     */
-    public function getQrCode($id)
+    public function getPatrolPointInfo($id)
     {
-        $res = PsPatrolPoints::find()->where(['id' => $id, 'is_del' => 1])->asArray()->one();
+        $res = PsPatrolPoints::find()->where(['id' => $id, 'is_del' => 1])->one();
         return $res;
     }
 }

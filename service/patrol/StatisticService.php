@@ -13,7 +13,7 @@ use app\models\PsPatrolStatistic;
 use app\models\PsUser;
 use service\BaseService;
 
-class RecordService extends BaseService
+class StatisticService extends BaseService
 {
     /**
      * 获取巡更记录

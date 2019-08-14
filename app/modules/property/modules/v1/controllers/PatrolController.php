@@ -15,10 +15,11 @@ use app\models\PsPatrolPoints;
 use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
+use service\common\CsvService;
 use service\patrol\LineService;
 use service\patrol\PlanService;
 use service\patrol\PointService;
-use service\patrol\RecordService;
+use service\patrol\StatisticService;
 use service\patrol\TaskService;
 use service\rbac\OperateService;
 
@@ -127,13 +128,13 @@ class PatrolController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("巡更点id不能为空！");
         }
-        $res = PointService::service()->getQrCode($id);
-        if (empty($res['code_image'])) {
+        $res = PointService::service()->getPatrolPointInfo($id);
+        if (empty($res->code_image)) {
             return PsCommon::responseFailed("二维码不存在！");
         }
         $savePath = F::imagePath('patrol');//图片保存的位置
         $img_name = $id . '.png';
-        $fileName = $res['name'] . '.png';
+        $fileName = $res->name . '.png';
         if (!file_exists($savePath . $img_name)) {//文件不存在，去七牛下载
             F::curlImage($res['code_image'], F::imagePath('patrol'), $img_name);
         }
@@ -483,7 +484,7 @@ class PatrolController extends BaseController
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }
-        $report = RecordService::service()->getReport($community_id, $type, $start_time, $end_time);
+        $report = StatisticService::service()->getReport($community_id, $type, $start_time, $end_time);
         $result['users'] = $report['users'];
         $result['totals'] = $report['totals'];
         return PsCommon::responseSuccess($report);
@@ -512,7 +513,7 @@ class PatrolController extends BaseController
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }
-        $report = RecordService::service()->getReportRank($community_id, $type, $start_time, $end_time);
+        $report = StatisticService::service()->getReportRank($community_id, $type, $start_time, $end_time);
         return PsCommon::responseSuccess($report);
     }
 

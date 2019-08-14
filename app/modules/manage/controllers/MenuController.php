@@ -13,7 +13,7 @@ Class MenuController extends BaseController
     // 获取用户所有权限
     public function actionGetAllMenus()
     {
-        $result = MenuService::service()->getParentMenuList($this->user_info["group_id"], 1);
+        $result = MenuService::service()->getParentMenuList($this->user_info["group_id"], 1, $this->user_info["system_type"]);
         return PsCommon::responseSuccess($result);
     }
 
@@ -21,12 +21,12 @@ Class MenuController extends BaseController
     public function actionList()
     {
         $systemType = PsCommon::get($this->request_params, "system_type", 0);
-        
+
         if ($systemType == 0) {
             foreach (PackService::$_Type as $key => $val) {
                 $result[] = [
                     "system_type" => $key,
-                    "name" => $val,
+                    "menuName" => $val,
                     "id" => $key - 3,
                     "level" => 0,
                     "children" => PackService::service()->getSystemMenu($key),
@@ -35,7 +35,7 @@ Class MenuController extends BaseController
         } else {
             $result[] = [
                 "system_type" => $systemType,
-                "name" => PackService::$_Type[$systemType],
+                "menuName" => PackService::$_Type[$systemType],
                 "id" => $systemType - 3,
                 "level" => 0,
                 "children" => PackService::service()->getSystemMenu($systemType),

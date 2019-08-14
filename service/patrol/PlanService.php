@@ -10,6 +10,7 @@ namespace service\patrol;
 
 
 use app\models\PsCommunityModel;
+use app\models\PsGroups;
 use app\models\PsPatrolLine;
 use app\models\PsPatrolLinePoints;
 use app\models\PsPatrolPlan;
@@ -19,6 +20,7 @@ use app\models\PsUser;
 use app\models\PsUserCommunity;
 use common\core\F;
 use service\BaseService;
+use service\common\SmsService;
 use service\rbac\GroupService;
 use service\rbac\OperateService;
 use service\rbac\UserService;
@@ -584,8 +586,7 @@ class PlanService extends BaseService
 
     //发送短信跟ding信息
     private function _sendMesByUserId($users){
-        $mes = '您好，新的巡更任务已分配给您，请及时查收任务计划。
-        '.date("Y-m-d H:i:s");
+        $mes = '您好，新的巡更任务已分配给您，请及时查收任务计划。'.date("Y-m-d H:i:s");
         if(is_array($users)){
             $send_user = UserService::service()->getSendUserByUserId($users[0]);
             $user = implode(',',$users);
