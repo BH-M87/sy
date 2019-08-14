@@ -18,8 +18,10 @@ use app\models\PsPatrolPoints;
 use app\models\PsPatrolStatistic;
 use app\models\PsPatrolTask;
 use app\models\PsUser;
+use app\models\PsUserCommunity;
 use common\core\F;
 use service\BaseService;
+use service\qiniu\UploadService;
 
 class TaskService extends BaseService
 {
@@ -1141,7 +1143,7 @@ class TaskService extends BaseService
     public function dingGetMothLoseStats($data)
     {
         //查询有权限的小区的所有用户id
-        $users = ManageService::service()->getAllUserByCommunitys($data['communitys']);
+        $users = $this->getAllUserByCommunitys($data['communitys']);
         $re['list'] = PsPatrolStatistic::find()
             ->alias('s')
             ->leftJoin(['u' => PsUser::tableName()], 's.user_id=u.id')
@@ -1166,7 +1168,7 @@ class TaskService extends BaseService
      */
     public function dingGetMothStats($data)
     {
-        $users = ManageService::service()->getAllUserByCommunitys($data['communitys']);
+        $users = $this->getAllUserByCommunitys($data['communitys']);
         //查询本月总的应巡,实巡，正常，旷巡次数
         $re = PsPatrolStatistic::find()
             ->select(['sum(task_num) task_num', 'sum(actual_num) actual_num', 'sum(normal_num) normal_num', 'sum(error_num) error_num'])
@@ -1187,5 +1189,20 @@ class TaskService extends BaseService
             ->asArray()
             ->all();
         return $re;
+    }
+
+    /**
+     * 查询小区下所有有权限的用户
+     * @param $communitys
+     * @return array
+     */
+    public function getAllUserByCommunitys($communitys)
+    {
+        $users = PsUserCommunity::find()
+            ->select(['manage_id'])
+            ->where(['community_id' => $communitys])
+            ->asArray()
+            ->column();
+        return $users;
     }
 }
