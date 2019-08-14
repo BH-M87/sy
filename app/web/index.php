@@ -9,6 +9,7 @@ if (empty($envData['YII_ENV']) || !isset($envData['YII_DEBUG']) || !in_array($en
 }
 defined('YII_DEBUG') or define('YII_DEBUG', (!empty($envData['YII_ENV']) ? (bool)$envData['YII_ENV'] : false));
 defined('YII_ENV') or define('YII_ENV', $envData['YII_ENV']);
+defined('YII_OWNER') or define('YII_OWNER', $envData['OWNER']);
 
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../vendor/yiisoft/yii2/Yii.php';

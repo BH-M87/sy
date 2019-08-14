@@ -342,5 +342,15 @@ Class F
         return md5(uniqid(md5(microtime(true)), true) . $str);
     }
 
+    //判断是否重复请求钉钉专业
+    public static function repeatRequest2()
+    {
+        $cacheKey = self::_repeatCacheField();
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 3, 'NX')) {
+            return false;
+        }
+        return true;
+    }
+
 }
 
