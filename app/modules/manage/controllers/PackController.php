@@ -179,7 +179,7 @@ class PackController extends BaseController
 
     public function actionGetComm()
     {
-        $result["type"] = PsCommon::returnKeyValue(PackService::$_Type);
+        $result = PsCommon::returnKeyValue(PackService::$_Type);
 
         return PsCommon::responseSuccess($result);
     }
@@ -204,11 +204,11 @@ class PackController extends BaseController
         $systemType = $this->request_params["type"];
 
         if (!$systemType) {
-            return PsCommon::responseFailed("请选择有效系统");
+            $systemType = 1;
         }
 
         $result = PackService::service()->getSystemMenu($systemType);
-
+        
         return PsCommon::responseSuccess($result);
     }
 }

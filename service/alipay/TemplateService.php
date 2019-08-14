@@ -8,9 +8,9 @@ use app\models\PsTemplateBill;
 use app\models\PsTemplateConfig;
 use app\models\PsPropertyCompany;
 use app\models\PsRoomUser;
-use app\models\PsLifeServices;
 use app\models\PsCommunityModel;
 use service\alipay\BillIncomeService;
+use service\manage\CommunityService;
 
 Class TemplateService extends BaseService
 {
@@ -171,11 +171,6 @@ Class TemplateService extends BaseService
                 case 'title': // 模板标题
                     $list[$k]['value'] = PsTemplateBill::findOne($template_id)->name;
                     break;
-                case 'img': // 生活号二维码
-                    $community_id = $data['room_data']['community_id'];
-                    $code_image = PsLifeServices::findOne(['community_id' => $community_id])->code_image;
-                    $list[$k]['value'] = !empty($code_image) ? $code_image : '';
-                    break;
                 case 'number': // 打印编号
                     $company_id = $data['room_data']['company_id'];
                     $create_at = strtotime(date("Y-m-d"), time());
@@ -242,10 +237,6 @@ Class TemplateService extends BaseService
             
             if ($v['field_name'] == 'note') { // 备注说明
                 $list[$k]['value'] = !empty($v['note']) ? $v['note'] : '';
-            } else if ($v['field_name'] == 'img') { // 生活号二维码 
-                $community_id = $data['room_data']['community_id'];
-                $code_image = PsLifeServices::findOne(['community_id' => $community_id])->code_image;
-                $list[$k]['value'] = !empty($code_image) ? $code_image : '';
             } else if ($v['field_name'] == 'total') { // 合计 就计算当前页的合计 不是所有数据的合计
                 $list[$k]['value'] = $total_amount;
             } else { // 其他字段对应的值 取$data['room_data']里的数据
@@ -313,7 +304,7 @@ Class TemplateService extends BaseService
 
             $trans->commit();
             return $this->success();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
@@ -550,7 +541,7 @@ Class TemplateService extends BaseService
                 }
                 $trans->commit();
                 return $this->success();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $trans->rollBack();
                 return $this->failed($e->getMessage());
             }

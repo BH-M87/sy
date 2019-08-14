@@ -18,6 +18,55 @@ class PsCommon {
         4 => '5H!@Odk3',
     ];
 
+    public static $cycle_days = [
+        ["key" => "1", "name" => "按年"],
+        ["key" => "2", "name" => "按半年"],
+        ["key" => "3", "name" => "按季度"],
+        ["key" => "4", "name" => "按月"],
+    ];
+    //算费年份
+    public static $year = [
+        ["key" => "2015", "name" => "2015"],
+        ["key" => "2016", "name" => "2016"],
+        ["key" => "2017", "name" => "2017"],
+        ["key" => "2018", "name" => "2018"],
+        ["key" => "2019", "name" => "2019"],
+        ["key" => "2020", "name" => "2020"],
+    ];
+    //半年账期
+    public static $half_year = [
+        ["key" => "1", "name" => "上半年"],
+        ["key" => "2", "name" => "下半年"],
+    ];
+    //季度账期
+    public static $quarter = [
+        ["key" => "1", "name" => "一季度"],
+        ["key" => "2", "name" => "二季度"],
+        ["key" => "3", "name" => "三季度"],
+        ["key" => "4", "name" => "四季度"],
+    ];
+    //月度账期
+    public static $month = [
+        ["key" => "1", "name" => "01"],
+        ["key" => "2", "name" => "02"],
+        ["key" => "3", "name" => "03"],
+        ["key" => "4", "name" => "04"],
+        ["key" => "5", "name" => "05"],
+        ["key" => "6", "name" => "06"],
+        ["key" => "7", "name" => "07"],
+        ["key" => "8", "name" => "08"],
+        ["key" => "9", "name" => "09"],
+        ["key" => "10", "name" => "10"],
+        ["key" => "11", "name" => "11"],
+        ["key" => "12", "name" => "12"],
+    ];
+
+    //推送方式
+    public static $push_type = [
+        ["key" => "1", "name" => "一次性推送"],
+        ["key" => "2", "name" => "定期推送"],
+    ];
+
     public static $log;//是否记录日志
 
     /**
@@ -306,6 +355,16 @@ class PsCommon {
     public static function getPayBillStatus($index = '')
     {
         $model = ['1' => '未缴费', '2' => '线上已缴', '3' => '未出账单', '4' => '发布中', '6' => '发布失败', '7' => "线下已缴", '8' => '线下扫码'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
+
+    public static function getFormulaVar($index = '')
+    {
+        $model = ['h' => '房屋面积', 'c' => '车位面积'];
         if ($index) {
             return $model[$index];
         } else {

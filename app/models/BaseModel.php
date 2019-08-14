@@ -7,6 +7,7 @@
  */
 namespace app\models;
 
+use common\MyException;
 use yii\db\ActiveRecord;
 use yii\db\Exception;
 use yii\db\Schema;
@@ -195,5 +196,28 @@ Class BaseModel extends ActiveRecord {
         $where = rtrim(trim($where), 'or');
         $sql .= " WHERE {$where}";
         return static::getDb()->createCommand()->setSql($sql)->execute();
+    }
+
+    /**
+     * @param $data
+     * @param $scenario
+     * @return mixed
+     * @throws MyException
+     */
+    public function validParamArr($data, $scenario)
+    {
+        if (!empty($data)) {
+            $this->setScenario($scenario);
+            $datas["data"] = $data;
+            $this->load($datas, "data");
+            if ($this->validate()) {
+                return $data;
+            } else {
+                $errorMsg = array_values($this->errors);
+                throw new MyException($errorMsg[0][0]);
+            }
+        } else {
+            throw new MyException('未接受到有效数据');
+        }
     }
 }

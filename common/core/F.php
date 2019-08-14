@@ -10,7 +10,7 @@ namespace common\core;
 use Yii;
 use yii\web\HttpException;
 
-Class F
+class F
 {
     //TODO CDN
     //path: wechat/web/static/sharepark/css/xxx.css
@@ -340,6 +340,34 @@ Class F
             $str .= chr(mt_rand(33, 126));
         }
         return md5(uniqid(md5(microtime(true)), true) . $str);
+    }
+
+    //时间相减算月差
+    public static function  getMonthNum($date1, $date2, $tags='-')
+    {
+        $date1 = explode($tags,$date1);
+        $date2 = explode($tags,$date2);
+        return (abs($date1[0] - $date2[0])-1) * 12 + (12-$date1[1]+1)+$date2[1];
+    }
+
+    //获取时间的年月日
+    public static function  getYearMonth($date)
+    {
+        $year = date('Y', $date);
+        $month = date('m', $date);
+        $date1['year'] = $year;
+        $date1['month'] = $month;
+        return $date1;
+    }
+
+    //判断是否重复请求钉钉专业
+    public static function repeatRequest2()
+    {
+        $cacheKey = self::_repeatCacheField();
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 3, 'NX')) {
+            return false;
+        }
+        return true;
     }
 
 }

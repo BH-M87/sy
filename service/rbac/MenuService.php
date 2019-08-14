@@ -9,6 +9,7 @@ use yii\base\Exception;
 use common\core\PsCommon;
 
 use service\BaseService;
+use service\manage\PackService;
 
 use app\models\PsGroupMenus;
 use app\models\PsGroupPack;
@@ -458,11 +459,11 @@ class MenuService extends BaseService
     }
 
     // 获取用户所有权限
-    public function getParentMenuList($groupId, $level)
+    public function getParentMenuList($groupId, $level, $system_type = 0)
     {
         $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $groupId])->queryScalar();
         $query = new  Query();
-        $query->select(["B.id", "B.key", "B.name", "B.parent_id", "B.level", "B.icon", "B.url", "B.en_key"]);
+        $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key as menuCode"]);
         if ($is_pack > 0) {
             $query->from("ps_menu_pack C")
                 ->leftJoin("ps_group_pack A", "C.pack_id=A.pack_id")
@@ -471,11 +472,11 @@ class MenuService extends BaseService
             $query->from("ps_group_menus A")
                 ->leftJoin("ps_menus B", "A.menu_id=B.id");
         }
-        $query->where(["A.group_id" => $groupId])->andWhere(["B.status" => 1]);
+        $query->where(["A.group_id" => $groupId])->andWhere(["B.status" => 1])->andFilterWhere(['=', 'B.system_type', $system_type]);
         if ($level == 2) {
             $query->andWhere([">", "B.level", 1]);
         }
-        $models = $query->groupBy("B.id")->orderBy('B.level asc,B.sort_num asc')->all();
+        $models = $query->groupBy("B.id")->orderBy('B.level asc, B.sort_num asc')->all();
         $result = [];
         if (!empty($models)) {
             $result = $this->getMenuTree($models, $level);
@@ -565,7 +566,7 @@ class MenuService extends BaseService
             if ($item["level"] == $level) {
                 $result[] =  &$items[$key];
             } else {
-                $items[$item['parent_id']]['children'][] = &$items[$key];
+                $items[$item['parentId']]['children'][] = &$items[$key];
             }
         }
         return $result;
