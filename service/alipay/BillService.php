@@ -664,7 +664,7 @@ class BillService extends BaseService
      * 发布账单
      * @param $bills
      */
-    public function pubBill($communityId, $communityNo, $bills, $is_trade=1)
+    public function pubBill($communityNo, $bills, $is_trade=1)
     {
         if (!$bills) {
             return $this->success();
@@ -690,19 +690,11 @@ class BillService extends BaseService
             "community_id" => $communityNo,
             "bill_set" => $billSet,
         ];
-        //验证小区是否发布到支付宝生活服务
-        $aliStatus = PsCommunityModel::find()->where(['id'=>$communityId])->asArray()->one();
-        if($aliStatus['ali_status']=='ONLINE'){
-            $token = AliTokenService::service()->getTokenByCommunityNo($communityNo);
-            $result = AlipayBillService::service($communityNo)->batchBill($token, $data);
-        }else{
-            $result['code'] = '10000';
-            $result['msg'] = 'success';
-        }
+
+        $result['code'] = '10000';
+        $result['msg'] = 'success';
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
-            //保存支付宝发布日志
-            $this->billPubLog($communityId, $communityNo, $data['batch_id'], $result);
             //更新账单状态
             $status = $result['code'] ? self::STATUS_UNPAY : self::STATUS_PUBFAILED;//自检中/发布失败
             PsBill::updateAll(['status' => $status, 'batch_id' => $data['batch_id']], ['id' => $ids, 'status' => self::STATUS_UNPUB]);
@@ -712,8 +704,6 @@ class BillService extends BaseService
                 //新增到拆分的统计明细表，并且新增到账单变动的脚本表
                 BillTractContractService::service()->addContractBill($bills);
             }
-            //新增一条自检日志
-            $this->createCheckLog($data['batch_id'], $communityNo);
             $trans->commit();
             return $this->success();
         } catch (Exception $e) {
@@ -742,16 +732,10 @@ class BillService extends BaseService
             return $this->failed('发布任务不存在');
         }
         $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPUB])->count();
-
-
-        $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPUB])->count();
-
-
-
         $totalPages = ceil($totals / $pageSize);
         for ($page = 1; $page < $totalPages + 1; $page++) {
             $bills = $this->getBillByTask($taskID, $page, $pageSize);
-            $this->pubBill($task['community_id'], $task['community_no'], $bills);
+            $this->pubBill($task['community_no'], $bills);
         }
         return $this->success();
     }
@@ -778,7 +762,7 @@ class BillService extends BaseService
         if (!$communityNo) {
             return $this->failed('小区未上线');
         }
-        return $this->pubBill($communityId, $communityNo, $bills, $is_trade);
+        return $this->pubBill($communityNo, $bills, $is_trade);
     }
 
     /**
@@ -794,7 +778,7 @@ class BillService extends BaseService
         $totalPages = ceil($totals / $pageSize);
         for ($page = 1; $page < $totalPages + 1; $page++) {
             $bills = $this->getBillByCrontab($crontabID, $page, $pageSize);
-            $this->pubBill($communityId, $communityNo, $bills);
+            $this->pubBill( $communityNo, $bills);
         }
         return $this->success();
     }

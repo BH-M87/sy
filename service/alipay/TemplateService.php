@@ -11,6 +11,7 @@ use app\models\PsRoomUser;
 use app\models\PsLifeServices;
 use app\models\PsCommunityModel;
 use service\alipay\BillIncomeService;
+use service\manage\CommunityService;
 
 Class TemplateService extends BaseService
 {
