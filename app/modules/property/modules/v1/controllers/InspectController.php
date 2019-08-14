@@ -19,7 +19,7 @@ use service\inspect\TaskService;
 
 class InspectController extends BaseController
 {
-    public $repeatAction = ['point-add'];
+    //public $repeatAction = ['point-add'];
 
     /**
      * @api 巡检点新增
@@ -97,8 +97,8 @@ class InspectController extends BaseController
      */
     public function actionDownloadCode()
     {
-        PointService::service()->pointShow($this->request_params);
-        return PsCommon::responseSuccess();
+        $result = PointService::service()->downloadCode($this->request_params, $this->systemType);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -145,7 +145,7 @@ class InspectController extends BaseController
      */
     public function actionLineShow()
     {
-        $result = LineService::service()->show($this->request_params);
+        $result = LineService::service()->view($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -181,7 +181,6 @@ class InspectController extends BaseController
         $this->request_params['id'] = 0;
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
-        $this->request_params['time_list'] = json_encode($this->request_params['time_list']);
 
         PlanService::service()->add($this->request_params, $this->user_info);
         return PsCommon::responseSuccess();
@@ -196,7 +195,6 @@ class InspectController extends BaseController
     {
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
-        $this->request_params['time_list'] = json_encode($this->request_params['time_list']);
 
         PlanService::service()->edit($this->request_params, $this->user_info);
         return PsCommon::responseSuccess();
@@ -209,7 +207,7 @@ class InspectController extends BaseController
      */
     public function actionPlanList()
     {
-        $result = PlanService::service()->lists($this->request_params);
+        $result = PlanService::service()->planList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -220,7 +218,7 @@ class InspectController extends BaseController
      */
     public function actionPlanShow()
     {
-        $result = PlanService::service()->show($this->request_params);
+        $result = PlanService::service()->view($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -264,7 +262,7 @@ class InspectController extends BaseController
      */
     public function actionPlanUserList()
     {
-        UserService::service()->getUserByCommunityId($this->request_params['community_id']);
+        PlanService::service()->getPlanUserList($this->request_params['community_id']);
         return PsCommon::responseSuccess();
     }
 

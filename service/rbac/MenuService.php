@@ -9,6 +9,7 @@ use yii\base\Exception;
 use common\core\PsCommon;
 
 use service\BaseService;
+use service\manage\PackService;
 
 use app\models\PsGroupMenus;
 use app\models\PsGroupPack;
@@ -462,7 +463,7 @@ class MenuService extends BaseService
     {
         $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $groupId])->queryScalar();
         $query = new  Query();
-        $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key"]);
+        $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key as menuCode"]);
         if ($is_pack > 0) {
             $query->from("ps_menu_pack C")
                 ->leftJoin("ps_group_pack A", "C.pack_id=A.pack_id")
