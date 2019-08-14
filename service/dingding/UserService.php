@@ -6,7 +6,10 @@
  * Time: 10:37
  */
 namespace services\dingding;
+use app\models\PsCommunityModel;
+use app\models\PsMenus;
 use service\BaseService;
+use service\manage\CommunityService;
 use Yii;
 
 include_once Yii::$app->basePath.'/common/alipush/aliyun-php-sdk-core/Config.php';
