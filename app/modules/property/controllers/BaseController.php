@@ -67,6 +67,7 @@ class BaseController extends Controller {
         $this->user_info = [
             'id' => 1,
             'username' => 'test123',
+            'truename' => 'test123',
             'property_company_id' => 1
         ];
         $this->userId = 1;
