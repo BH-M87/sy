@@ -9,7 +9,7 @@
 namespace service\rbac;
 
 use service\BaseService;
-use app\common\MyException;
+use common\MyException;
 use app\services\UserCenterService;
 use app\models\ZjyRole;
 use app\models\ZjyRoleGroup;
@@ -21,7 +21,9 @@ class RoleService extends BaseService
     public $params = '';
     public function validata($params,$userinfo){
         $data['obj_type'] = $userinfo['system_type'];
-        $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'';
+        $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
+        $data['tenant_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
+
         $this->params = $data;
     }
     /**
@@ -48,16 +50,25 @@ class RoleService extends BaseService
      * @param $type 1运营 2物业
      * @throws MyException
      */
-    public function createGroup($params, $userinfo = [])
+    public  function createGroup($params, $userinfo = [])
     {
         if (empty($params['group_name'])) {
             throw new MyException('参数错误');
         }
         $this->validata($params,$userinfo);
         $this->params['role_group_name'] = $params['group_name'];
+        $this->params['create_people'] = $userinfo['truename'];
         //新增角色组
-        ZjyRoleGroup::AddRoleGroup($this->params,$userinfo);
+        $tran = \Yii::$app->getDb()->beginTransaction();
+        try {
+            ZjyRoleGroup::AddEditRoleGroup($this->params);
+            $tran->commit();
+        } catch (\Exception $e) {
+            $tran->rollBack();
+            throw new MyException($e->getMessage());
+        }
 
+        //物业后台新增日志
         if ($userinfo['system_type'] == 2) {
             $content = "角色管理名称:创建角色组";
             $operate = [
@@ -77,19 +88,25 @@ class RoleService extends BaseService
      * @param $type 1运营 2物业
      * @throws MyException
      */
-    public function updateGroup($params, $type, $userinfo = [])
+    public function updateGroup($params, $userinfo = [])
     {
         if (empty($params['id']) || empty($params['group_name'])) {
             throw new MyException('参数错误');
         }
-        $send = [
-            'id' => $params['id'],
-            'groupName' => $params['group_name'],
-            'groupOrder' => $params['group_order'] ?? '',
-            'desc' => $params['desc'] ?? '',
-        ];
-        $this->userResponse(UserCenterService::service($type)->request($this->role_route['update_group'], $send));
-        if ($type == 2) {
+        $this->validata($params,$userinfo);
+        $this->params['id'] = $params['id'];
+        $this->params['role_group_name'] = $params['group_name'];
+        $this->params['modify_people'] = $userinfo['truename'];
+        //新增角色组
+        $tran = \Yii::$app->getDb()->beginTransaction();
+        try {
+            ZjyRoleGroup::AddEditRoleGroup($this->params);
+            $tran->commit();
+        } catch (\Exception $e) {
+            $tran->rollBack();
+            throw new MyException($e->getMessage());
+        }
+        if ($userinfo['system_type'] == 2) {
             $content = "角色管理名称:修改角色组";
             $operate = [
                 "community_id" => $params['community_id'],
@@ -108,16 +125,23 @@ class RoleService extends BaseService
      * @param $type 1运营 2物业
      * @throws MyException
      */
-    public function deleteGroup($params, $type, $userinfo = [])
+    public function deleteGroup($params, $userinfo = [])
     {
         if (empty($params['id'])) {
             throw new MyException('ID错误');
         }
-        $send = [
-            'id' => $params['id']
-        ];
-        $this->userResponse(UserCenterService::service($type)->request($this->role_route['delete_group'], $send));
-        if ($type == 2) {
+        $this->validata($params,$userinfo);
+        $this->params['id'] = $params['id'];
+        //删除角色组
+        $tran = \Yii::$app->getDb()->beginTransaction();
+        try {
+            ZjyRoleGroup::DelRoleGroup($this->params);
+            $tran->commit();
+        } catch (\Exception $e) {
+            $tran->rollBack();
+            throw new MyException($e->getMessage());
+        }
+        if ($userinfo['system_type'] == 2) {
             $content = "角色管理名称:删除角色组";
             $operate = [
                 "community_id" => $params['community_id'],

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use common\MyException;
 
 /**
  * This is the model class for table "zjy_role_group".
@@ -42,6 +43,7 @@ class ZjyRoleGroup extends BaseModel
             [['role_group_name', 'tenant_id'], 'required'],
             [['role_group_order', 'obj_type', 'obj_id', 'tenant_id', 'deleted'], 'integer'],
             [['create_time', 'modify_time'], 'safe'],
+            [['create_time', 'modify_time'], 'default', 'value' => date("Y-m-d H:i", time())],
             [['role_group_name', 'create_people', 'modify_people'], 'string', 'max' => 45],
             [['role_group_desc'], 'string', 'max' => 100],
         ];
@@ -59,26 +61,12 @@ class ZjyRoleGroup extends BaseModel
             'obj_type' => 'Obj Type',
             'obj_id' => 'Obj ID',
             'role_group_desc' => 'Role Group Desc',
-            'tenant_id' => 'Tenant ID',
+            'tenant_id' => '租户id',
             'deleted' => 'Deleted',
             'create_people' => 'Create People',
             'create_time' => 'Create Time',
             'modify_people' => 'Modify People',
             'modify_time' => 'Modify Time',
-        ];
-    }
-
-    public function behaviors()
-    {
-        return [
-            [
-                'class' => TimestampBehavior::className(),
-                'attributes' => [
-                    ActiveRecord::EVENT_BEFORE_INSERT => ['create_time', 'modify_time'],
-                    ActiveRecord::EVENT_BEFORE_UPDATE => ['modify_time']
-                ],
-                'value' => date('Y-m-d H:i',time())
-            ]
         ];
     }
 
@@ -98,12 +86,12 @@ class ZjyRoleGroup extends BaseModel
             $data = $model->asArray()->all();
             self::afterList($data, $params);
         }
-        return ['totals' => $count, 'list' => $data ?? []];
+        return $data ?? [];
     }
 
     /**
      * 列表结果格式化
-     * @author yjh
+     * @author ckl
      * @param $data
      */
     public static function afterList(&$data, $params)
@@ -116,34 +104,57 @@ class ZjyRoleGroup extends BaseModel
         }
     }
 
-    //验证是否唯一
+    /**
+     * 验证是否唯一
+     * @param $params
+     */
     public static function checkInfo($params)
     {
         $info = self::find()->where(['role_group_name' => $params['role_group_name']])
             ->andFilterWhere(['obj_type' => $params['obj_type'] ?? null])
             ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null])
-            ->andFilterWhere(['!=','id' ,$params['id'] ?? null])
+            ->andFilterWhere(['!=', 'id', $params['id'] ?? null])
             ->one();
         if (!empty($info)) {
-            return self::addError('role_group_name', '角色组重复！');
+            throw new MyException('角色组重复!');
         }
     }
 
     /**
-     * 新增角色组
+     * 新增编辑角色组
      * @param $params
      * @return array
      */
-    public static function AddRoleGroup($params,$userinfo)
+    public static function AddEditRoleGroup($params)
     {
-        $model = new self();
+        $model = !empty($params['id']) ? self::model()->findOne($params['id']) : new self();;
         $model->load($params, '');   # 加载数据
         if ($model->validate()) {  # 验证数据
             //查看名称是否重复
             self::checkInfo($params);
-            $model->save();
-            return self::success();
+            if (!$model->save()) {
+                $errors = array_values($model->getErrors());
+                throw new MyException($errors[0][0]);
+            }
+        } else {
+            $errors = array_values($model->getErrors());
+            throw new MyException($errors[0][0]);
         }
-        return $model->getErrors();
     }
+
+    /**
+     * 删除角色组
+     * @param $params
+     * @return array
+     */
+    public static function DelRoleGroup($params)
+    {
+        $model = self::model()->findOne($params['id']);
+        if(!empty($model)){
+            $model->delete();
+        }else{
+            throw new MyException('角色组不存在');
+        }
+    }
+
 }
