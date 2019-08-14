@@ -8,6 +8,8 @@ use yii\base\Exception;
 
 use service\BaseService;
 
+use service\rbac\MenuService;
+
 class PackService extends BaseService 
 {
     public static $_Type = ["1" => "运营", "2" => "邻易联"];
@@ -404,16 +406,16 @@ class PackService extends BaseService
     public function getSystemMenu($systemType) 
     {
         $query = new Query();
-        $query->select(["A.id","A.parent_id","A.level","url","A.name","A.status","A.en_key", 'A.key'])
-            ->from("ps_menus A")
-            ->where(["status"=>1])
-            ->where(["system_type"=>$systemType])
-            ->orderBy("parent_id asc,sort_num asc");
+        $query->select('id, key, level, url as menuUrl, name as menuName, parent_id as parentId, menu_type as menuType, icon as menuIcon,')
+            ->from("ps_menus")
+            ->where(["status" => 1])
+            ->where(["system_type" => $systemType])
+            ->orderBy("parent_id asc, sort_num asc");
         $models = $query->all();
         if(empty($models)) {
             return [];
         }
-        $result = MenuService::service()->getMenuTree($models,1);
+        $result = MenuService::service()->getMenuTree($models, 1);
         return $result;
     }
 
