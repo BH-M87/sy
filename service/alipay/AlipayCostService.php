@@ -1222,7 +1222,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "community_id" => $communityId,
                 ];
                 //验证方式是否存在
-                $roomInfo = RoomService::service()->getRoom($roomArr);
+                $roomInfo = $this->getRoom($roomArr);
                 if (empty($roomInfo)) {
                     $error_count++;
                     $errorCsv[$defeat_count] = $val;
@@ -1456,7 +1456,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
                 continue;
             }
-            $ps_room = RoomService::service()->getRoom($receiptArr["PsReceiptFrom"]);
+            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"]);
             if (empty($ps_room)) {
                 $error_count++;
                 $errorCsv[$defeat_count] = $val;
@@ -1563,6 +1563,20 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'error_url' => $error_url,
         ];
         return $this->success($result);
+    }
+
+    public function getRoom($data)
+    {
+        $query = new Query();
+        $query->select("*");
+        $query->from("ps_community_roominfo");
+        $query->where('room=:room', [':room' => $data["room"]]);
+        $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
+        $query->andWhere('building=:building', [':building' => $data["building"]]);
+        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
+        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
+        $model = $query->one();
+        return $model;
     }
 
     //修复账单，订单，添加支付成功记录

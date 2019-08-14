@@ -243,7 +243,7 @@ class ReceiptService extends  BaseService {
             return Yii::$app->db->getLastInsertID();
         }
     }
-    public   static  function  getReceiptTask( $task_id ) {
+    public static function  getReceiptTask( $task_id ) {
         $connection = Yii::$app->db;
         $params = [":id" =>$task_id];
         $model  = $connection->createCommand( "select * from ps_receipt_task where task_id=:id",
