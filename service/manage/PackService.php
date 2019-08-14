@@ -77,8 +77,8 @@ class PackService extends BaseService
                 $pack[] = $arr;
             }
         }
-        $result = array_merge($class,$pack);
-        return $result;
+        $result = array_merge($class, $pack);
+        return !empty($result) ? $result : [1];
     }
 
     // 获取套餐包及分类列表

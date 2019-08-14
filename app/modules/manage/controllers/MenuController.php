@@ -210,7 +210,7 @@ Class MenuController extends BaseController
             }
         }
         if ($success) {
-            return PsCommon::responseAppSuccess(["success" => $success, "fail" => $fail]);
+            return PsCommon::responseSuccess(["success" => $success, "fail" => $fail]);
         } else {
             return PsCommon::responseFailed(implode(',', $error)); // 返回最后一个报错的信息
         }
