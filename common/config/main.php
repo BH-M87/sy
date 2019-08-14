@@ -10,5 +10,4 @@ return [
             'class' => 'yii\caching\FileCache',
         ],
     ],
-    'params' => require(__DIR__ . '/ding.php'),
 ];
