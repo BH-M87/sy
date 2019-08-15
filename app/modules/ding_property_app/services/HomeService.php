@@ -5,8 +5,10 @@
  * Date: 2017/6/28
  * Time: 16:15
  */
-namespace services\dingding;
+namespace app\modules\ding_property_app\services;
+use app\models\PsRepair;
 use service\BaseService;
+use service\issue\RepairService;
 use Yii;
 
 class HomeService extends BaseService

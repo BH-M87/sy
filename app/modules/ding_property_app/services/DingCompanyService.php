@@ -6,8 +6,9 @@
  * For: 企业内部应用
  * Time: 16:34
  */
-namespace services\dingding;
+namespace app\modules\ding_property_app\services;
 
+use app\models\PsUser;
 use app\models\StCorp;
 use app\models\StCorpAgent;
 use app\models\StCorpTicket;
@@ -23,7 +24,6 @@ use Yii;
 
 class DingCompanyService extends BaseService  {
     private $ticket;
-
 
     /**
      * 获取企业的授权token
@@ -106,7 +106,6 @@ class DingCompanyService extends BaseService  {
         }
     }
 
-
     /**
      * 保存ticket值
      * @param $corpId
@@ -168,6 +167,14 @@ class DingCompanyService extends BaseService  {
         return $config;
     }
 
+    /**
+     * 获取签名
+     * @param $ticket
+     * @param $nonceStr
+     * @param $timeStamp
+     * @param $url
+     * @return string
+     */
     private function sign($ticket, $nonceStr, $timeStamp, $url)
     {
         $plain = 'jsapi_ticket=' . $ticket .
@@ -176,8 +183,6 @@ class DingCompanyService extends BaseService  {
             '&url=' . $url;
         return sha1($plain);
     }
-
-
 
     /**
      * 获取用户详情信息
@@ -191,18 +196,15 @@ class DingCompanyService extends BaseService  {
         //查询企业
         $corpModel = StCorp::find()->where(['corp_id' => $corpId])->one();
         if (!$corpModel) {
-            //return '企业信息不存在！';
             $result['data']['user_id'] = !empty($userId)?$userId:'';
             $result['data']['user_bind'] = 1;//用户未绑定
             return $result;
         }
-
         //通过 code 获取用户 userid 信息
         $user = new User();
         $accessToken = $this->getAccessToken($corpId,$agentId);
         if (!empty($code)) {
             $userInfo = $user->getUserInfo($accessToken, $code);
-            //Log::i("---get_user_info from dingding---".$userInfo);
             $userInfoArr = json_decode($userInfo, true);
             if ($userInfoArr['errcode'] != 0) {
                 return $userInfoArr['errmsg'];
@@ -212,7 +214,6 @@ class DingCompanyService extends BaseService  {
 
         //根据 userid 获取用户详细信息
         $userInfo = $user->get($accessToken, $userId);
-        //Log::i("---set get_user_info ---".$userInfo);
         $userInfoArr = json_decode($userInfo, true);
         if ($userInfoArr['errcode'] != 0) {
             return $userInfoArr['errmsg'];
@@ -227,22 +228,63 @@ class DingCompanyService extends BaseService  {
         //请求物业后台获取token值
         $params['mobile']       = $userInfoArr['mobile'];
         $params['avatar'] = $addUser->avatar;
-        //Log::i("---save user_info data ---".json_encode($params));
-        $result = $this->apiPost('/v3/user/get-token', $params, false, false, true);
-        //Log::i("---save user_info data back---".json_encode($result));
+        $result = $this->getToken($params);
         //todo 后续需要优化返回的结果
         if(!empty($result['data'])) {
             $user_id = $result['data']['id'];
             $addUser->st_user_id = $user_id;
-            if (!$addUser->save()) {
-                //Log::i("---save st_user_id to st_corp_user table ---".json_encode($addUser->getErrors()));
-            }
+            $addUser->save();
             $result['data']['st_user_id'] = $user_id;
             unset($result['data']['user_id']);
             $result['data']['user_id'] = $addUser->user_id;
             $result['data']['avatar'] = $addUser->avatar;
         }
         return $result;
+    }
+
+    /**
+     * 登录物业后台获取token
+     * @param $request_params
+     * @return mixed
+     */
+    public function getToken($request_params)
+    {
+        $mobile = !empty($request_params['mobile']) ? $request_params['mobile'] : '';
+        $userId = !empty($request_params['user_id']) ? $request_params['user_id'] : '';
+        $ding_icon = !empty($request_params['avatar']) ? $request_params['avatar'] : '';
+        if ($mobile) {
+            $userInfo = PsUser::find()->where(['mobile' => $mobile,'system_type'=>2])->one();
+        } elseif ($userId) {
+            $userInfo = PsUser::find()->where(['id' => $userId])->one();
+        }
+
+        if (empty($userInfo)) {
+            $data['data'] = ['user_bind'=>3,'id'=>0];//此用户不存在，请联系管理员
+            return $data;
+        }
+
+        $moblie = $userInfo->mobile;
+        //登录，并返回用户信息
+        $user = UserService::service()->getUserInfo($moblie);
+        if(!empty($ding_icon)){
+            $userInfo->ding_icon = $ding_icon;
+            $userInfo->save();
+        }
+        $userInfo = $user;
+        $token = '';
+        if(is_array($user)){
+            $user = UserService::service()->generalToken($user['id'],$moblie);
+            $token = $user['token'];
+            $userInfo['token'] = $token;
+        }
+
+        if ($token) {
+            $userInfo['user_bind'] = 2;
+            $data['data'] = $userInfo;
+        } else {
+            $data['data'] = ['user_bind'=>3,'id'=>0];//此用户不存在，请联系管理员
+        }
+        return $data;
     }
 
     /**
@@ -277,10 +319,7 @@ class DingCompanyService extends BaseService  {
         return false;
     }
 
-
-
     ##############################################发送钉钉消息##########################################################
-
     public function getAgentId($corpId)
     {
         $agent = StCorpAgent::find()->where(['corp_id' => $corpId])->asArray()->all();//暂时固定
@@ -304,12 +343,10 @@ class DingCompanyService extends BaseService  {
         if (!in_array($type, $typeList)) {
             return '通知类型错误！';
         }
-
         $agent_id = $this->getAgentId($corpId);
         if (!$agent_id) {
             return '企业应用信息有误，发送失败！';
         }
-
         //查找接收者userid
         $receiver = self::getUsersByIdList($receiveUserId, '|');
         if (!$receiver) {
@@ -326,11 +363,9 @@ class DingCompanyService extends BaseService  {
             $single_url = '?id='.$detailId;//跳转到钉钉详情
             $mes_data['action_card'] = ['title'=>'工作通知','markdown' => $mes,'single_title'=>'查看详情','single_url'=>$single_url];*/
         }
-        Yii::info("ding_send_data: " . json_encode($mes_data), 'company_ding');
         $access_token = self::getAccessToken($corpId,$agent_id);
         $mes = new Message();
         $result = $mes->send($access_token,$mes_data);
-        Yii::info("ding_send_data_result: " . json_encode($result), 'company_ding');
         if ($result->errcode) {
             return $result->errmsg;
         } else {
@@ -357,7 +392,6 @@ class DingCompanyService extends BaseService  {
         if (!$access_token) {
             return '发送失败！';
         }
-
         //查找发送者userid
         $creator = StCorpUser::find()
             ->select(['user_id'])
@@ -367,19 +401,14 @@ class DingCompanyService extends BaseService  {
         if (!$creator) {
             return '发送者不存在！';
         }
-        Yii::info("ding_create_access_token: " . $access_token, 'company_ding');
-        Yii::info("ding_create_corpId: " . $corpId, 'company_ding');
-        Yii::info("ding_create_receiveUserId: " . json_encode($receiveUserId), 'company_ding');
         //查找接收者userid
         $receiver = self::getUsersByIdList($receiveUserId);
-        Yii::info("ding_create_receiver: " . $receiver, 'company_ding');
         if (!$receiver) {
             return '接收者不存在！';
         }
 
         list($t1, $t2) = explode(' ', microtime());
         $time = (float)sprintf('%.0f',(floatval($t1)+floatval($t2))*1000);//获取毫秒级的时间戳
-
         $url = "https://eco.taobao.com/router/rest";
         $public_data = [
             'method'=>'dingtalk.corp.ding.create',
@@ -396,11 +425,9 @@ class DingCompanyService extends BaseService  {
             'remind_time'=>$time,
             'text_content'=>$msg,
         ];
-        Yii::info("ding_create_data: " . json_encode($data), 'company_ding');
         $result = self::getDingSign($url,$data,$public_data);
         $client = new Client();
         $res = $client->fetch($result['url'],$result['new_data'],'POST',["Content-Type: application/x-www-form-urlencoded; charset=utf-8"]);
-        Yii::info("ding_create_res: " . json_encode($res), 'company_ding');
         return $res;
     }
     /**
@@ -418,6 +445,14 @@ class DingCompanyService extends BaseService  {
         }
         return $receiver;
     }
+
+    /**
+     * 获取钉钉签名
+     * @param $url
+     * @param $data
+     * @param $public_data
+     * @return mixed
+     */
     public function getDingSign($url,$data,$public_data){
         ksort($data);
         ksort($public_data);
@@ -448,7 +483,12 @@ class DingCompanyService extends BaseService  {
         $return['data'] = $data;
         return $return;
     }
-    //获取钉钉表里面的User信息
+
+    /**
+     * 获取钉钉表里面的User信息
+     * @param $userId
+     * @return false|null|string
+     */
     public function getCorpIdByUserId($userId){
         if(is_array($userId)){
             $res = StCorpUser::find()->select(['corp_id'])->where(['st_user_id'=>$userId[0]])->asArray()->scalar();

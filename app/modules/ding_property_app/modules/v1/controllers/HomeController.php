@@ -10,10 +10,10 @@ namespace app\modules\ding_property_app\modules\v1\controllers;
 
 
 use app\modules\ding_property_app\controllers\BaseController;
+use app\modules\ding_property_app\services\DingCompanyService;
+use app\modules\ding_property_app\services\HomeService;
 use common\core\F;
 use common\core\PsCommon;
-use services\dingding\DingCompanyService;
-use services\dingding\HomeService;
 
 class HomeController extends BaseController
 {
@@ -49,6 +49,7 @@ class HomeController extends BaseController
         return PsCommon::responseSuccess($resData);
     }
 
+    //获取钉钉的登录token
     public function actionGetUserInfo()
     {
         $corpId = F::value($this->request_params, 'corp_id');
@@ -64,7 +65,6 @@ class HomeController extends BaseController
         if (!$agentId) {
             return F::apiFailed('agent_id不能为空！');
         }
-        //Log::i("---web-get-user-info ---".json_encode(['corp_id' =>$corpId, 'code' => $code, 'user_id' => $userId ]));
         $userIdInfo = DingCompanyService::service()->getUserInfo($corpId,$agentId, $code, $userId);
         if (!empty($userIdInfo['errCode'])) {
             return F::apiFailed($userIdInfo['errMsg'], $userIdInfo['errCode']);
@@ -75,23 +75,16 @@ class HomeController extends BaseController
         return F::apiSuccess($userIdInfo['data']);
     }
 
+    //获取钉钉的授权配置信息
     public function actionConfig()
     {
         $corpId  = F::value($this->request_params, 'corp_id');
         $agentId = F::value($this->request_params, 'agent_id');
         $url    = F::value($this->request_params, 'url');
-        //记录日志
-        if(YII_ENV != "master"){
-            $logData['corp_id'] = $corpId;
-            $logData['agent_id'] = $agentId;
-            //\Yii::info("-----config-from-data-----".json_encode($logData, JSON_UNESCAPED_UNICODE)."\r\n", 'company_ding');
-        }
         if (!$corpId) {
             return F::apiFailed('企业ID不能为空！');
         }
-        //\Yii::info("---get-configs-params ---".json_encode($this->params), 'company_ding');
         $config = DingCompanyService::service()->getConfig($corpId, $agentId, $url);
-        //\Yii::info("---get-configs-config ---".json_encode($config), 'company_ding');
         if (is_array($config)) {
             $re['config'] = $config;
             header('Cache-Control:must-revalidate');
