@@ -43,7 +43,7 @@ class PsRepair extends BaseModel
             [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list']],
             [['repair_id'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['repair_content'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
-            [['community_id'],'required','message'=>'{attribute}不能为空','on'=>['statistic','statistic-type','statistic-score']],
+            [['community_id'],'required','message'=>'{attribute}不能为空','on'=>['statistic-status', 'statistic-channel','statistic-type','statistic-score']],
             ['day', 'safe']
         ];
     }

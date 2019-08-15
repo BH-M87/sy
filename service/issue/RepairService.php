@@ -920,7 +920,4 @@ class RepairService extends BaseService
             ->asArray()
             ->one();
     }
-
-
-
 }
