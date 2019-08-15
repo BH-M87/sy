@@ -7,6 +7,12 @@ $data = [
     'list_rows' => 20,
     'gaode_url'   => 'http://restapi.amap.com/v3/geocode/geo',
     'gaode_key'   => 'd7298ae8e746fbacb6836ba918eedc52',
+
+
+
+
+
+    
     'test_auth_token' => '201803BB9cbd825433974aa0ab44be98fb588X20',
     'service-phone' => '0571-88665807',
     'aliay_batch_token' => '201611BB1a0826c168fe4c0d8b30eca38976cX67',
@@ -25,20 +31,7 @@ $data = [
     'isv_rsa_private_key_file' => $basePath."/config/rsa_file/life_isv/rsa_private_key.txt",
     'platform_alipay_account'  => 'xbr530@qq.com',
     'auth_to_us_url' => 'https://openauth.alipay.com/oauth2/appToAppAuth.htm?app_id=2016120904056631&redirect_uri=https://wuye.zje.com/alipay/cplife/get-auth-token?t=1',
-    //小程序物业缴费每日查询次数
-    'small_sel_bill_num' => 500000,
-    //小程序会员卡配置
-    'small_app_id' => '2017091308707970',
-    'small_alipay_public_key_file' => $basePath."/config/rsa_file/small/alipay_public.txt",
-    'small_rsa_private_key_file' => $basePath."/config/rsa_file/small/rsa_private.txt",
-    // 门禁会员卡配置
-    'door_app_id' => '2018062960478244',
-    'door_alipay_public_key_file' => $basePath."/config/rsa_file/door/alipay_public.txt",
-    'door_rsa_private_key_file' => $basePath."/config/rsa_file/door/rsa_private.txt",
-    // 南京门禁会员卡配置
-    'edoor_app_id' => '2019031663543853',
-    'edoor_alipay_public_key_file' => $basePath."/config/rsa_file/edoor/alipay_public.txt",
-    'edoor_rsa_private_key_file' => $basePath."/config/rsa_file/edoor/rsa_private.txt",
+
 ];
 
 return $data;
