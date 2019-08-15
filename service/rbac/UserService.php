@@ -162,6 +162,7 @@ class UserService extends BaseService
             'level' => $user['level'],
             'creator' => $user['creator'],
             'system_type' => $user['system_type'],
+            'tenant_id' => $user['tenant_id'],
         ];
         Yii::$app->redis->set($this->_cacheKey($token), json_encode($cacheData), 'EX', 7200);
     }
