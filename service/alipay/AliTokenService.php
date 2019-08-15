@@ -17,7 +17,6 @@ use service\BaseService;
 use Yii;
 use app\models\PsAliToken;
 use app\models\PsPropertyCompany;
-use app\models\PsShop;
 use yii\helpers\FileHelper;
 
 Class AliTokenService extends BaseService {
@@ -66,10 +65,6 @@ Class AliTokenService extends BaseService {
         }
         if($type == 1) {
             return PsPropertyCompany::find()->select('id')
-                ->where(['nonce'=>$nonce])
-                ->scalar();
-        } else {
-            return PsShop::find()->select('id')
                 ->where(['nonce'=>$nonce])
                 ->scalar();
         }

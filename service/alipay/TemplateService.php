@@ -9,8 +9,8 @@ use app\models\PsTemplateConfig;
 use app\models\PsPropertyCompany;
 use app\models\PsRoomUser;
 use app\models\PsCommunityModel;
-use service\alipay\BillIncomeService;
 use service\manage\CommunityService;
+use service\basic_data\RoomService;
 
 Class TemplateService extends BaseService
 {
