@@ -106,7 +106,6 @@ class PlanService extends BaseService
             ->alias('p')
             ->leftJoin(['m' => PsCommunityModel::tableName()], 'p.community_id = m.id')
             ->leftJoin(['l' => PsPatrolLine::tableName()], 'p.line_id = l.id')
-
             ->select(['p.id', 'p.name', 'p.start_date', 'p.end_date', 'm.name as community_name', 'l.name as line_name'])
             ->where(['p.community_id' => $data['communitys']])
             ->andWhere(['p.is_del' => 1])
@@ -237,8 +236,6 @@ class PlanService extends BaseService
         $plans['users'] = $this->getUserList($plans['id'],$plans['community_id']);
         return $this->success($plans);
     }
-
-
 
     /**
      * 判断当前计划能否被删除
@@ -590,7 +587,7 @@ class PlanService extends BaseService
         if(is_array($users)){
             $send_user = UserService::service()->getSendUserByUserId($users[0]);
             $user = implode(',',$users);
-            DingdingService::service()->sendMesToding($send_user,$user,$mes);//发送ding信息
+            //DingdingService::service()->sendMesToding($send_user,$user,$mes);//发送ding信息
             foreach ($users as $key=>$value){
                 $mobile = PsUser::find()->select(['mobile'])->where(['id'=>$value])->scalar();
                 if (!empty($mobile)) {
@@ -599,7 +596,7 @@ class PlanService extends BaseService
             }
         }else{
             $send_user = UserService::service()->getSendUserByUserId($users);
-            DingdingService::service()->sendMesToding($send_user,$users,$mes);//发送ding信息
+            //DingdingService::service()->sendMesToding($send_user,$users,$mes);//发送ding信息
             $mobile = PsUser::find()->select(['mobile'])->where(['id'=>$users])->scalar();
             SmsService::service()->init(28, $mobile)->send(['巡更']);//发送短信
         }

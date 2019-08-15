@@ -60,16 +60,6 @@ class RoleController extends BaseController
         return PsCommon::responseSuccess();
     }
 
-    /**
-     *获取角色id集合
-     * @author yjh
-     * @throws \app\common\MyException
-     */
-    public function actionRoleMenuIds()
-    {
-        RoleService::service()->getRoleIds($this->request_params,$this->user_info);
-        return PsCommon::responseSuccess();
-    }
 
     /**
      * 获取员工编辑角色列表

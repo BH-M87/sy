@@ -39,7 +39,7 @@ class Curl
      * CurlUtil constructor.
      * @param $options
      */
-    private function __construct($options)
+    public function __construct($options)
     {
         //初始化
         self::$ch = self::init($options);

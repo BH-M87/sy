@@ -22,7 +22,7 @@ use app\models\RepairType;
 use service\alipay\ParkFeeService;
 use app\models\ParkingLkPayCode;
 use service\BaseService;
-use app\services\MessageService;
+use service\message\MessageService;
 use service\manage\CommunityService;
 use Yii;
 use yii\db\Exception;

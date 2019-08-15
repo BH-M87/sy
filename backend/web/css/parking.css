@@ -1,0 +1,116 @@
+﻿
+.am-card:not([am-version]) .am-card-item{
+    margin-bottom: 0;
+}
+.am-list:not([am-version]){
+    padding: 0;
+}
+.top{
+    position: relative;
+    top: -13px;
+}
+.am-list-control input{
+    text-align: right;
+}
+.right-check{
+    position: relative;
+}
+.right-check .check-bg{
+    position: absolute;
+    width: 0.24rem;
+    height: 0.24rem;
+    top: 0;
+    right: 0;
+    z-index: 0;
+}
+.right-check input + .check-bg{
+    background: url(/img/nochecked.png);
+    background-size:0.24rem;
+}
+.right-check input:checked + .check-bg{
+    background: url(/img/checked.png);
+    background-size:0.24rem;
+}
+.right-check input{
+    width: 0.24rem;
+    height: 0.24rem;
+    position: relative;
+    z-index: 2;
+    opacity: 0;
+}
+.payname{
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 .15rem;
+    font-size: 0.14rem;
+    color: #89909a;
+    padding-bottom: 10px;
+}
+.sure-btn{
+    padding: 0 .15rem;
+    margin-top: 0.68rem;
+}
+.sure-btn button{
+    background-color: #f5a623 !important;
+}
+.position{
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+    color: #89909a;
+    font-size: 0.14rem;
+    line-height: 0.24rem;
+    padding: 6px;
+    box-sizing: border-box;
+}
+.position img{
+    width: 0.11rem;
+    height: 0.14rem;
+    position: relative;
+    top: 0.02rem;
+}
+.am-list-item{
+    /*border-bottom: 1px solid #e7eaef;*/
+}
+
+.detai-item{
+    width: 100%;
+    height: auto;
+    background: #fff;
+    padding: 0rem .1rem 0.1rem 0.1rem;
+    position: relative;
+    top: -1px;
+}
+.detai-item div{
+    line-height: 0.16rem;
+    vertical-align: top;
+    padding: 0.1rem 0 0.1rem 0;
+}
+.item-name{
+    width: 0.8rem;
+    display: -webkit-inline-box;
+    font-size: 0.16rem;
+    color: #646970;
+    margin-right: 50px
+}
+.item-content{
+    clear: both;
+    font-size: 0.16rem;
+    color: #646970;
+}
+.sucess{
+    width: 0.6rem;
+    height: 0.6rem;
+}
+.am-list:not([am-version]) .am-list-item{
+    min-height: .36rem;
+}
+.zjy-item-list .am-list-item:nth-of-type(2){
+    background: #fff !important
+}
+.zjy-item-list .am-list-item:nth-of-type(3){
+    margin-top: 20px;
+}
+.zjy-item-list .am-list-item:nth-of-type(4){
+    background: #fff !important
+}

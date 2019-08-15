@@ -1,6 +1,8 @@
 <?php
 namespace  app\modules\ding_property_app\company_jsk\api;
 
+use app\modules\ding_property_app\company_jsk\util\Http;
+
 class Media
 {
     private $http;

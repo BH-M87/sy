@@ -37,6 +37,7 @@ class ZjyUserRole extends BaseModel
             [['user_id', 'role_id', 'tenant_id', 'deleted'], 'integer'],
             [['create_time', 'modify_time'], 'safe'],
             [['create_people', 'modify_people'], 'string', 'max' => 45],
+            [['create_time', 'modify_time'], 'default', 'value' => date("Y-m-d H:i", time())],
         ];
     }
 
@@ -57,4 +58,49 @@ class ZjyUserRole extends BaseModel
             'modify_people' => 'Modify People',
         ];
     }
+
+
+    /**
+ * 获取角色列表-編輯員工時使用
+ * @param $params
+ * @return array
+ */
+    public static function getList($params)
+    {
+        $model = self::getRoleList($params);
+        self::afterList($model, $params);
+        return $model ?? [];
+    }
+
+    /**
+     * 获取角色列表-編輯員工時使用
+     * @param $params
+     * @return array
+     */
+    public static function getRoleList($params)
+    {
+        if(!empty($params['role_group_id'])){
+            $filed = "role.id,role.role_name as name,1 as type";
+        }else{
+            $filed = "group.id,group.role_group_name as name,0 as type";
+        }
+        $where = " `rala`.`user_id`= {$params['id']}";
+        $sql = " SELECT {$filed} FROM `zjy_user_role` `rala` LEFT JOIN `zjy_role` `role` ON role.id = rala.role_id LEFT JOIN `zjy_role_group` `group` ON group.id = role.role_group_id WHERE `rala`.`deleted`='0' AND {$where} GROUP BY `id` ORDER BY `id` DESC";
+        $data = Yii::$app->db->createCommand($sql)->queryAll();
+        return $data ?? [];
+    }
+
+    /**
+     * 列表结果格式化
+     * @author ckl
+     * @param $data
+     */
+    public static function afterList(&$data, $params)
+    {
+        foreach ($data as &$v) {
+            $params['role_group_id'] = $v['id'];
+            $v['children'] = self::getRoleList($params);
+        }
+    }
+
 }

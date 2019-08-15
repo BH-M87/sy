@@ -9,7 +9,7 @@ use app\models\PsUser;
 use app\models\PsPropertyAlipay;
 use app\models\PsPropertyAlipayInfo;
 use app\models\PsPropertyCompany;
-use app\services\MessageService;
+use service\message\MessageService;
 use service\BaseService;
 use service\common\SmsService;
 use service\rbac\OperateService;
