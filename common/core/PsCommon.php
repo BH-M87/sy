@@ -436,7 +436,12 @@ class PsCommon {
     public static function houseStatus($index = 0)
     {
         $model = ['1' => '已售', '2' => '未售'];
-
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
 
     /**
      * 获取小区类型
@@ -457,6 +462,12 @@ class PsCommon {
     public static function getTradeType($index = '')
     {
         $model = ['1' => '收款', '2' => '退款'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
 
     /**
      * 获取小区归属
