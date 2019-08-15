@@ -130,20 +130,20 @@ class OperateService extends  BaseService {
         $result = ["status" => '20000',];
         return $result;
     }
+
     //物业的日志表
-    public   static  function  addComm( $userinfo,$operate ){
+    public static function addComm($userInfo, $operate){
         $connection = Yii::$app->db;
         $log_arr = [
-            "operate_id" =>       $userinfo["id"] ?? 0,
-            "operate_mobile" =>   $userinfo["mobile"] ? (PsCommon::isVirtualPhone($userinfo["mobile"]) ? '' : $userinfo["mobile"]) : '',
-            "operate_name" =>     $userinfo["truename"] ?? "",
+            "operate_id" =>       $userInfo["id"] ?? 0,
+            "operate_mobile" =>   $userInfo["mobile"] ? $userInfo["mobile"] : '',
+            "operate_name" =>     $userInfo["truename"] ?? "",
             "operate_time" =>     time(),
             "operate_menu" =>      $operate['operate_menu'],
             "community_id" =>      !empty($operate['community_id']) ? $operate['community_id'] : 0,
             "operate_type" =>      $operate['operate_type'],
             "operate_content" =>   $operate['operate_content']
         ];
-
         $connection->createCommand()->insert('ps_community_operate_log', $log_arr)->execute();
         $result = ["status" => '20000',];
         return $result;
