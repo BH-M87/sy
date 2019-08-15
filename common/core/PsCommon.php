@@ -436,7 +436,11 @@ class PsCommon {
     public static function houseStatus($index = 0)
     {
         $model = ['1' => '已售', '2' => '未售'];
-
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
     }
 
     /**

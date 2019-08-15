@@ -9,6 +9,8 @@ use common\core\PsCommon;
 
 use service\BaseService;
 
+use app\models\ZjyRole;
+use app\models\ZjyUserRole;
 use app\models\PsUser;
 use app\models\PsUserCommunity;
 
@@ -39,15 +41,20 @@ class ManageService extends BaseService
             $query->andWhere(["or", ["like", "A.mobile", $name], ["like", "truename", $name]]);
         }
         $totals = $query->count();
-        $query->select(["A.id","A.truename","A.sex","A.level", "A.group_id","B.name as group_name","A.mobile","A.is_enable"])
+        $query->select('A.id, A.truename as userName, A.sex, B.name as deptName, A.mobile as userPhone, A.is_enable')
             ->orderBy("A.create_at desc");
         $offset = ($page-1) * $rows;
         $query->offset($offset)->limit($rows);
         $models = $query->createCommand()->queryAll();
         foreach ( $models as $key => $model) {
             $models[$key]["communitys"] = CommunityService::service()->getUserCommunitys($model["id"]);
-            $models[$key]["menus"] = MenuService::service()->getSecondMenu($model["group_id"]);
-            $models[$key]["is_enable_desc"] = $model["is_enable"]==1 ? "启用" :"禁用";
+            $models[$key]["userStatusName"] = $model["is_enable"] == 1 ? "启用" :"禁用";
+            $models[$key]["sexName"] = $model["sex"] == 1 ? "男" :"女";
+            $role = ZjyRole::find()->alias('A')->leftJoin('zjy_user_role B', 'B.role_id = A.id')->select('A.role_name')
+                ->where(['B.user_id' => $model['id']])->asArray()->all();
+            $models[$key]["roles"] = implode(' ', array_column($role,'role_name'));
+            $models[$key]["isOrdinary"] = true;
+            $models[$key]['userStatus'] = $model['is_enable'];
         }
 
         return ["list" => $models, 'totals' => $totals];
@@ -57,41 +64,46 @@ class ManageService extends BaseService
     {
         $connection = Yii::$app->db;
         // 判断手机号码在表中是否存在
-        $uniqueMobile = $connection->createCommand( "select count(id) from ps_user where system_type=:system_type  and mobile=:mobile",
-            [":mobile" => $data["mobile"],":system_type"=>$data["system_type"] ])->queryScalar();
-        if( $uniqueMobile >= 1 ) {
+        $uniqueMobile = $connection->createCommand("SELECT count(id) from ps_user 
+            where system_type = :system_type and mobile=:mobile",
+            [":mobile" => $data["mobile"], ":system_type" => $data["system_type"] ])->queryScalar();
+        if ($uniqueMobile >= 1) {
             return $this->failed("系统已存在手机号");
         }
 
         $transaction = $connection->beginTransaction();
         try {
-            $password =rand(100000,999999);
+            $password =rand(100000, 999999);
             $user_arr = [
                 "username" => $data["mobile"],
                 "truename" => $data["name"],
                 "mobile" => $data["mobile"],
                 "sex" => $data["sex"],
-                "system_type" =>  $data["system_type"],
+                "system_type" => $data["system_type"],
                 "creator"=> $data["operate_id"],
-                "create_at"=>time(),
-                "group_id"=>$data["group_id"],
-                "level"=>2,
-                "property_company_id"=>$data["property_id"],
-                "is_enable" => $data['is_enable'] ? $data['is_enable'] : 1,//运营后台默认启用
+                "create_at" => time(),
+                "group_id" => $data["group_id"],
+                "level" => 2,
+                "property_company_id" => $data["property_id"],
+                "is_enable" => $data['is_enable'] ? $data['is_enable'] : 1, // 运营后台默认启用
                 "password" => Yii::$app->security->generatePasswordHash($password),
             ];
+
             $connection->createCommand()->insert('ps_user', $user_arr)->execute();
             $user_id =$connection->getLastInsertID();
+
+            self::batchInsertZjyUserRole($user_id, $data);
 
             CommunityService::service()->batchInsertUserCommunity($user_id, $communitys);
             if ($data["system_type"] == 2) {
                 SmsService::service()->init(9, $data['mobile'])->send([$password]);
             } else {
-                SmsService::service()->init(15, $data['mobile'])->send([$password]);
+                //SmsService::service()->init(15, $data['mobile'])->send([$password]);
             }
-            $transaction->commit();
-            return $this->success();
 
+            $transaction->commit();
+
+            return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
             return $this->failed("系统错误:".$e->getMessage());
@@ -136,29 +148,59 @@ class ManageService extends BaseService
         $transaction = $connection->beginTransaction();
         try {
             UserService::service()->changeUser($data['user_id'], $userArr);
-
+            self::batchInsertZjyUserRole($data['user_id'], $data);
             CommunityService::service()->batchInsertUserCommunity($data['user_id'], $communitys);
             $transaction->commit();
+            
             if ( $data["mobile"] != $user["mobile"] ) {
                 SmsService::service()->init(15,$data["mobile"])->send([$password]);
             }
+
             return $this->success();
         } catch (Exception $e) {
             return $this->failed("系统错误".$e->getMessage());
         }
     }
 
+    // 批量插入 zjy_user_role
+    public function batchInsertZjyUserRole($userId, $data, $delete = true)
+    {
+        if ($delete) { // 重新生成
+            ZjyUserRole::deleteAll(['user_id' => $userId]);
+        }
+
+        if (!empty($data['roleIds'])) {
+            foreach ($data['roleIds'] as $v) {
+                $userRole = [
+                    "user_id" => $userId,
+                    "role_id" => $v,
+                    "tenant_id" => !empty($data["tenant_id"]) ? $data["tenant_id"] : 0,
+                    "create_time" => date('Y-m-d H:i:s', time()),
+                    "create_people"=> $data["operate_id"],
+                    "deleted" => 0,
+                ];
+
+                Yii::$app->db->createCommand()->insert('zjy_user_role', $userRole)->execute();
+            }
+        }
+    }
+
     // 查看用户详情
     public function showUser($user_id)
     {
-        $connection = Yii::$app->db;
         $where = [":manage_id" => $user_id];
-        $user = $connection->createCommand( "select pu.id,pu.truename as name,pu.mobile,pu.is_enable,pu.sex,pu.group_id,pg.name as group_name  from ps_user pu left join  ps_groups pg on pg.id=pu.group_id where pu.id=:manage_id",$where)->queryOne();
-        if( !empty($user) ) {
+        $user = Yii::$app->db->createCommand( "SELECT A.id, A.truename, A.mobile, A.is_enable, A.sex, 
+            A.group_id, B.name as group_name  
+            from ps_user A 
+            left join ps_groups B on B.id = A.group_id 
+            where A.id = :manage_id", $where)->queryOne();
+        
+        if (!empty($user)) {
             $user["communitys"]  = CommunityService::service()->getUserCommunitys($user["id"]);
-            $model["menu_list"] =MenuService::service()->menusList($user["group_id"],2);
-            $user["is_enable_desc"] = $user["is_enable"]==1 ? "启用" :"禁用";
+            $user["is_enable_desc"] = $user["is_enable"] == 1 ? "启用" :"禁用";
+            $user['roleIds'] = ZjyUserRole::find()->select('role_id')->where(['user_id' => $user["id"]])->asArray()->column();
         }
+
         return $user;
     }
 
