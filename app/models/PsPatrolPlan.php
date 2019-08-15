@@ -39,11 +39,29 @@ class PsPatrolPlan extends BaseModel
      */
     public function rules()
     {
-        return [
-            [['community_id', 'line_id', 'start_date', 'end_date', 'exec_type', 'interval_x', 'interval_y', 'error_range', 'created_at', 'is_del', 'operator_id'], 'integer'],
+        $rule = [
+            [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list']],
+            [['name','line_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['community_id','start_date', 'end_date', 'start_time',
+                'exec_type','end_time', 'interval_x', 'error_range','interval_y'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit','user-list']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
+            ['exec_type', 'in', 'range' => [1, 2, 3], 'message' => '{attribute}有误，只能输入1,2或3!', 'on' => ['add','edit','user-list']],
+            [['community_id', 'line_id', 'exec_type', 'interval_x', 'interval_y', 'error_range', 'created_at', 'is_del', 'operator_id'], 'integer'],
+            [['name'], 'string', 'max' => 10, 'tooLong' => '{attribute}不能超过10个字!','on' => ['add','edit']],
+            [['start_date', 'end_date'], 'date', 'format'=>'yyyy-MM-dd', 'message' => '{attribute}格式错误!', 'on' => ['add','edit','user-list']],
+            ['start_date', 'compare_time','on'=>['add']],
+            ['end_date', 'compare_time', 'on'=>['add', 'edit','user-list']],
+            ['end_date', 'compare', 'compareAttribute' => 'start_date', 'operator' => '>' , 'message'=>'{attribute}必须大于开始日期','on'=>['add', 'edit','user-list']],
+            ['end_date', 'compareTimeRange', 'on'=>['add', 'edit','user-list']],
+            [['start_time', 'end_time'], 'date', 'format'=>'HH:mm', 'message' => '{attribute}格式错误!', 'on' => ['add','edit','user-list']],
+            ['end_time', 'compare', 'compareAttribute' => 'start_time', 'operator' => '>' , 'message'=>'{attribute}必须大于开始时间','on'=>['add', 'edit','user-list']],
+            ['interval_y', 'checkInterY', 'on'=>['add', 'edit','user-list']],
+            ['interval_x', 'compare', 'compareValue' => 0, 'operator' => '>', 'message'=>'{attribute}必须大于0', 'on'=>['add', 'edit','user-list']],
             [['name'], 'string', 'max' => 50],
-            [['start_time', 'end_time', 'operator_name'], 'string', 'max' => 20],
+            [['operator_name'], 'string', 'max' => 20],
         ];
+
+        return $rule;
     }
 
     /**

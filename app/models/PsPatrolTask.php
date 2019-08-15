@@ -59,15 +59,22 @@ class PsPatrolTask extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'user_id', 'plan_id', 'range_start_time', 'start_time', 'end_time', 'range_end_time', 'error_change', 'line_id', 'point_id', 'status', 'check_time', 'date', 'created_at'], 'integer'],
-            [['plan_start_date', 'plan_end_date', 'day'], 'required'],
+            [['search_date'], 'date', 'format'=>'yyyy-MM-dd', 'message' => '{attribute}格式错误!', 'on' => ['list']],
+            [['check_content'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['commit']],
+            [['year', 'month'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['personal']],
+            [['check_content', 'check_location'], 'string', 'max' => 200, 'tooLong' => '{attribute}不能超过200个字!','on' => ['commit']],
+            [['year'], 'date', 'format'=>'yyyy', 'message' => '查询年份格式错误!', 'on' => ['personal']],
+            [['month'], 'date', 'format'=>'MM', 'message' => '查询月份格式错误!', 'on' => ['personal']],
+            ['month', 'checkMonth', 'on'=>['personal']],
+            [['community_id', 'user_id', 'plan_id', 'start_time', 'end_time', 'range_end_time', 'error_change', 'line_id', 'point_id', 'status', 'check_time', 'date', 'created_at'], 'integer'],
+            [['plan_start_date', 'plan_end_date', 'day'], 'required', 'on' => ['add', 'edit']],
             [['plan_start_date', 'plan_end_date', 'day'], 'safe'],
-            [['check_location_lon', 'check_location_lat'], 'number'],
+            [['check_location_lon', 'check_location_lat'], 'number', 'message' => '{attribute}格式错误!'],
             [['plan_name', 'plan_type_desc', 'plan_start_time', 'plan_end_time', 'line_name', 'point_name'], 'string', 'max' => 100],
             [['exec_users', 'point_location'], 'string', 'max' => 200],
             [['header_man'], 'string', 'max' => 20],
             [['header_mobile'], 'string', 'max' => 15],
-            [['line_note', 'point_note', 'check_content', 'check_location'], 'string', 'max' => 255],
+            [['line_note', 'check_content', 'check_location'], 'string', 'max' => 255],
             [['check_imgs'], 'string', 'max' => 1000],
         ];
     }
