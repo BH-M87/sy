@@ -16,6 +16,7 @@ use app\models\PsGroupMenus;
 use app\models\PsGroupPack;
 use app\models\PsGroups;
 use app\models\PsGroupsRelations;
+use app\models\PsPropertyCompany;
 
 class GroupService extends BaseService
 {
@@ -24,24 +25,57 @@ class GroupService extends BaseService
     public $setRecursive = 0;//设置的递归次数
 
     //运营系统的部门列表(暂时不变)
-    public function operationLists($reqArr)
+    public function operationLists($reqArr, $user)
     {
-        $systemType = !empty($reqArr['system_type']) ? $reqArr['system_type'] : 1;
-        $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
-        $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
-        $query = new Query();
-        $query->from("ps_groups")->where(["system_type" => $systemType]);
-        $totals = $query->count();
-        $query->select(["id", "name"])->orderBy("create_at desc");
-        $offset = ($page - 1) * $rows;
-        $query->offset($offset)->limit($rows);
-        $models = $query->createCommand()->queryAll();
-        foreach ($models as $key => $model) {
-            $users = self::getCommunityUsers($model["id"], 0);
-            $usernames = !empty($users) ? array_column($users, "name") : "";
-            $models[$key]["user_list"] = !empty($usernames) ? implode(',', $usernames) : "";
+        $company = PsPropertyCompany::find()->select('id as companyId, property_name as companyName, property_type as companyType')->where(['id' => $user['property_company_id']])->asArray()->one();
+        
+        $company['checked'] = false;
+        $company['deptList'] = [];
+        $company['totalNo'] = PsUser::find()->where(['property_company_id' => $user['property_company_id']])->count();
+
+        $name = !empty($reqArr['name']) ? $reqArr['name'] : '';
+        $r = $this->getTreeData($user['group_id']);
+
+        if (!empty($r)) {
+            $data = $r['data'];
+            $see = $r['see'];
+            $result = [];
+            $topId = $this->getTopId($groupId);
+            //用户数
+            $users = PsUser::find()->select(['group_id', "count(*) users"])
+                ->where(['group_id' => $see])->groupBy('group_id')
+                ->indexBy('group_id')->asArray()->all();
+            $checkedIds = [];
+            foreach ($data as $v) {
+                if ($name && strpos($v['name'], $name) !== false) {
+                    $tmp = array_filter(explode('-', $v['nodes']));
+                    $tmp[] = $v['id'];
+                    $checkedIds = array_merge($checkedIds, $tmp);
+                }
+            }
+
+            foreach ($data as $v) {//$data 必须严格按照level排序
+                $arr = array_filter(explode('-', $v['nodes']));
+                $arr[] = $v['id'];
+                $data[$v['id']] = [
+                    'id' => $v['id'],
+                    'deptName' => $v['name'],//部门名称
+                    'deptNo' => !empty($users[$v['id']]['users']) ? (int)$users[$v['id']]['users'] : 0,//用户数
+                    'disabled' => false,//($v['id'] != $topId && in_array($v['id'], $see)) ? true : false,//是否可编辑
+                    'checked' => (in_array($v['id'], $checkedIds)) ? true : false,//搜索，颜色是否变红
+                ];
+
+                if (isset($data[$v['parent_id']])) {
+                    $data[$v['parent_id']]['children'][] = &$data[$v['id']];
+                } else {
+                    $result[] = &$data[$v['id']];
+                }
+            }
+            $this->groupUsersSum($result);
+            $company['deptList'] = $result;
         }
-        return ["list" => $models, 'totals' => $totals];
+        
+        return $company;
     }
 
     /*
