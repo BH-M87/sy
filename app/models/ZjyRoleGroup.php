@@ -40,12 +40,13 @@ class ZjyRoleGroup extends BaseModel
     public function rules()
     {
         return [
-            [['role_group_name', 'tenant_id'], 'required'],
+            [['role_group_name'], 'required'],
             [['role_group_order', 'obj_type', 'obj_id', 'tenant_id', 'deleted'], 'integer'],
             [['create_time', 'modify_time'], 'safe'],
             [['create_time', 'modify_time'], 'default', 'value' => date("Y-m-d H:i", time())],
             [['role_group_name', 'create_people', 'modify_people'], 'string', 'max' => 45],
             [['role_group_desc'], 'string', 'max' => 100],
+            [['tenant_id'], 'default', 'value' => '0'],
         ];
     }
 
@@ -79,7 +80,8 @@ class ZjyRoleGroup extends BaseModel
     {
         $model = self::find()->where(['deleted' => '0'])
             ->andFilterWhere(['obj_type' => $params['obj_type'] ?? null])
-            ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null]);
+            ->andFilterWhere(['obj_id' => $params['obj_id'] ?? null])
+            ->select("id,role_group_name as name");
         $count = $model->count();
         if ($count > 0) {
             $model->orderBy('id desc');
@@ -97,8 +99,7 @@ class ZjyRoleGroup extends BaseModel
     public static function afterList(&$data, $params)
     {
         foreach ($data as &$v) {
-            $v['id'] = $v['id'];
-            $v['name'] = $v['role_group_name'];
+            $v['id'] = (int)$v['id'];
             $params['role_group_id'] = $v['id'];
             $v['children'] = ZjyRole::getList($params);
         }
