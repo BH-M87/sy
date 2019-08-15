@@ -8,6 +8,7 @@
  */
 namespace app\modules\ding_property_app\services;
 
+use app\models\PsPropertyCompany;
 use app\models\PsUser;
 use app\models\StCorp;
 use app\models\StCorpAgent;
@@ -319,6 +320,14 @@ class DingCompanyService extends BaseService  {
         return false;
     }
 
+    /**
+     * 获取物业后台注册的企业列表
+     * @return mixed
+     */
+    public function getCompanyList()
+    {
+        return PsPropertyCompany::find()->select(['id','property_name as name'])->where(['property_type'=>1,'status'=>1,'deleted'=>0])->asArray()->all();
+    }
     ##############################################发送钉钉消息##########################################################
     public function getAgentId($corpId)
     {
