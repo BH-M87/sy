@@ -30,6 +30,7 @@ return [
                 ],
             ],
         ],
+        'db' => require Yii::getAlias('@app').'/config/db.php',
     ],
     'params' => $params,
 ];
