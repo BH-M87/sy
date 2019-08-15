@@ -920,64 +920,19 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         throw new Exception($diff_result['msg']);
                     }
                 }
-                if($community_info['ali_status']=='ONLINE'){
-                    //账单添加成功后删除支付宝对应的老账单数据
-                    $result = AlipayBillService::service($community_info['community_no'])->deleteBill($community_info['community_no'], $bill_entry_ids);
-                }else{
-                    $result['code'] = '10000';
-                    $result['msg'] = 'success';
-                }
-                if ($result['code'] == '10000') {
-                    $success_count++;
-                    //判断是否有在锁定状态的账单
-                    if (!empty($result['alive_bill_entry_list'])) {
-                        $success_count--;
-                        foreach ($result['alive_bill_entry_list'] as $alive_bill) {
-                            if ($alive_bill['status'] == 'UNDER_PAYMENT' || $alive_bill['status'] == 'FINISH_PAYMENT') {//说明该账单已锁定，将数据库账单状态还原
-                                $billInfo = PsBill::find()->where(['id' => $bill['bill_id']])->asArray()->one();
-                                //修改账单表
-                                Yii::$app->db->createCommand("update ps_bill set status=1,paid_entry_amount=0,prefer_entry_amount=0 where id=:bill_id", [":bill_id" => $bill['bill_id']])->execute();
-                                //修改订单表
-                                Yii::$app->db->createCommand("update ps_order set status=1,pay_amount=0,pay_status=0 where id=:order_id", [":order_id" => $billInfo['order_id']])->execute();
-                                $lock['id'] = $billInfo['id'];
-                                $lock['cost_type'] = $billInfo['cost_name'];
-                                $lock['acct_period'] = date("Y-m-d", $billInfo['acct_period_start']) . '-' . date("Y-m-d", $billInfo['acct_period_end']);
-                                $lock['status'] = $alive_bill['status'] == 'UNDER_PAYMENT' ? '锁定' : '已支付';
-                                $lock['release_day'] = date("Y-m-d", ($billInfo['create_at']));
-                                $lock['bill_entry_amount'] = $billInfo['bill_entry_amount'];
-                                $lockArr[] = $lock;
-                            }
-                        }
-                        $total_money -= $bill['pay_amount'];//支付总金额
-                        unset($diff_arr[($defeat_count - 1)]);
-                        throw new Exception("账单已锁定");
-                    }
-                    if (!empty($push_arr) && empty($result['alive_bill_entry_list'])) {
-                        //调用批量发布账单功能
-                        $pushResult = BillService::service()->pubByIds($push_arr, $community_id, 2);
-                        if (!$pushResult['code']) {//失败抛出异常
-                            throw new Exception($pushResult['msg']);
-                        }
-                    }
-                    //增加拆分统计表流程
-                    BillTractContractService::service()->payContractBill($split_bill);
-                } else {
-                    $diff_arr = [];
-                    throw new Exception("支付宝同步失败，请稍后再试，错误信息:" . $result['msg'] . ',' . $result['sub_msg']);
-                }
                 //提交事务
                 $trans->commit();
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $trans->rollBack();
                 $err_msg = $this->failed($e->getMessage());
             }
         }
         $success['old_data'] = $diff_arr;
-        $success['success'] = $push_arr;
+//        $success['success'] = $push_arr;
         $success['defeat_count'] = $defeat_count;
         $success['success_count'] = $success_count;
-        $success['lockArr'] = $lockArr;
-        $success['err_msg'] = $err_msg;
+//        $success['lockArr'] = $lockArr;
+        $success['err_msg'] = $err_msg ?? '';
         $params['total_money'] = $total_money;
         if (!empty($diff_arr) && count($diff_arr) > 0) {//确认有收款账单才新增收款记录
             $income_info = BillIncomeService::service()->billIncomeAdd($params, $diff_arr, $userinfo);
@@ -1096,7 +1051,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $billToInfo = $billInfo;
             $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
             $billToInfo['bill_entry_amount'] = $val['partial_amount'];//设置新的账单应收金额
-            $billToInfo['status'] = 3;//账单状态为未发布
+            $billToInfo['status'] = 1;//账单状态为未发布
             $billToInfo['is_del'] = 1;
             $billToInfo['split_bill'] = !empty($billInfo['split_bill']) ? $billInfo['split_bill'] : $val['bill_id'];//分期账单记录原始的账单id
             //新增账单数据
@@ -1105,7 +1060,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $orderToInfo = $orderInfo;
                 $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
                 $orderToInfo['bill_amount'] = $val['partial_amount'];//设置新的订单应收金额
-                $orderToInfo['status'] = 3;//订单状态为未发布
+                $orderToInfo['status'] = 1;//订单状态为未发布
                 $orderToInfo['is_del'] = 1;
                 //新增订单数据
                 $diff_order_result = $this->addOrder($orderToInfo);

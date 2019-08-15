@@ -26,7 +26,7 @@ use app\models\PsRepairAppraise;
 use app\models\PsShop;
 use app\models\PsShopDiscount;
 use app\models\PsShopOrders;
-use app\services\MessageService;
+use service\message\MessageService;
 use app\models\PsShopTransaction;
 use service\alipay\AlipayCostService;
 use service\alipay\AliTokenService;

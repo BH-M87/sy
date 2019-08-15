@@ -1,7 +1,7 @@
 <?php
 namespace service\alipay;
 
-use app\services\MessageService;
+use service\message\MessageService;
 use service\BaseService;
 use Yii;
 use yii\db\Query;

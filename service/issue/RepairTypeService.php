@@ -9,6 +9,7 @@
 namespace service\issue;
 
 
+use app\models\PsRepair;
 use app\models\PsRepairType;
 use common\core\PsCommon;
 use service\BaseService;
@@ -36,7 +37,7 @@ class RepairTypeService extends BaseService
         }
         $res = $model->orderBy('level,created_at desc')->asArray()->all();
         if ($res) {
-            $result = self::getRepairTypeById(array_unique(array_column($res, 'parent_id')));
+            $result = self::getRepairTypesById(array_unique(array_column($res, 'parent_id')));
             $count = count($res);
             foreach ($res as $key => $value) {
                 foreach ($result as $k => $v) {
@@ -160,10 +161,18 @@ class RepairTypeService extends BaseService
         return self::dealRepairType($model);
     }
 
-    private function getRepairTypeById($idList)
+    private function getRepairTypesById($idList)
     {
         $res = PsRepairType::find()->select(['id', 'name'])->where(['in', 'id', $idList])->asArray()->all();
         return $res;
+    }
+
+    public function getRepairTypeById($id)
+    {
+        return PsRepairType::find()
+            ->where(['id' => $id])
+            ->asArray()
+            ->one();
     }
 
     //报修类型是否关联房屋

@@ -14,17 +14,6 @@ use service\rbac\RoleService;
 class RoleController extends BaseController
 {
     /**
-     *获取角色id集合
-     * @author yjh
-     * @throws \app\common\MyException
-     */
-    public function actionRoleMenuIds()
-    {
-        RoleService::service()->getRoleIds($this->request_params,1);
-        return PsCommon::responseSuccess();
-    }
-
-    /**
      * 获取角色组以及角色列表列表
      * @author yjh
      * @return string
@@ -32,19 +21,7 @@ class RoleController extends BaseController
      */
     public function actionGetRoleGroupList()
     {
-        $result = RoleService::service()->getGroupRoleList($this->request_params,1);
-        return PsCommon::responseSuccess($result);
-    }
-
-    /**
-     * 获取员工编辑角色列表
-     * @author yjh
-     * @return string
-     * @throws \app\common\MyException
-     */
-    public function actionGetRoleList()
-    {
-        $result = RoleService::service()->getRoleList($this->request_params,1);
+        $result = RoleService::service()->getGroupRoleList($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
@@ -55,8 +32,7 @@ class RoleController extends BaseController
      */
     public function actionCreateRoleGroup()
     {
-
-        RoleService::service()->createGroup($this->request_params,1);
+        RoleService::service()->createGroup($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -68,7 +44,7 @@ class RoleController extends BaseController
      */
     public function actionUpdateRoleGroup()
     {
-        RoleService::service()->updateGroup($this->request_params,1);
+        RoleService::service()->updateGroup($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -80,8 +56,21 @@ class RoleController extends BaseController
      */
     public function actionDeleteRoleGroup()
     {
-        RoleService::service()->deleteGroup($this->request_params,1);
+        RoleService::service()->deleteGroup($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
+    }
+
+
+    /**
+     * 获取员工编辑角色列表
+     * @author yjh
+     * @return string
+     * @throws \app\common\MyException
+     */
+    public function actionGetRoleList()
+    {
+        $result = RoleService::service()->getRoleList($this->request_params,$this->user_info);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -92,7 +81,7 @@ class RoleController extends BaseController
      */
     public function actionCreateRole()
     {
-        RoleService::service()->createRole($this->request_params,1);
+        RoleService::service()->createRole($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -104,7 +93,7 @@ class RoleController extends BaseController
      */
     public function actionUpdateRole()
     {
-        RoleService::service()->updateRole($this->request_params,1);
+        RoleService::service()->updateRole($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -116,7 +105,7 @@ class RoleController extends BaseController
      */
     public function actionDeleteRole()
     {
-        RoleService::service()->deleteRole($this->request_params,1);
+        RoleService::service()->deleteRole($this->request_params,$this->user_info);
         return PsCommon::responseSuccess();
     }
 
@@ -128,7 +117,7 @@ class RoleController extends BaseController
      */
     public function actionShowRoleInfo()
     {
-        $data = RoleService::service()->getRoleInfoById($this->request_params,1);
+        $data = RoleService::service()->getRoleInfoById($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($data);
     }
 
@@ -140,7 +129,7 @@ class RoleController extends BaseController
      */
     public function actionGetLastMenuId()
     {
-        $data = RoleService::service()->getLastMenuIdById($this->request_params,1);
+        $data = RoleService::service()->getLastMenuIdById($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($data);
     }
 
@@ -152,7 +141,7 @@ class RoleController extends BaseController
      */
     public function actionGetGroupRoleList()
     {
-        $data = RoleService::service()->getGroupRoleListPage($this->request_params,1);
+        $data = RoleService::service()->getGroupRoleListPage($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($data);
     }
 
@@ -164,7 +153,7 @@ class RoleController extends BaseController
      */
     public function actionGetGroupList()
     {
-        $data = RoleService::service()->getGroupList(1);
+        $data = RoleService::service()->getGroupList($this->user_info);
         return PsCommon::responseSuccess($data);
     }
 
@@ -176,7 +165,7 @@ class RoleController extends BaseController
      */
     public function actionShowGroupInfo()
     {
-        $data = RoleService::service()->getGroupInfoById($this->request_params,1);
+        $data = RoleService::service()->getGroupInfoById($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($data);
     }
 

@@ -16,6 +16,8 @@ use service\issue\RepairTypeService;
 
 class RepairController extends BaseController {
 
+    public $repeatAction = ['add'];
+
     //工单列表
     public function actionList()
     {
@@ -52,7 +54,9 @@ class RepairController extends BaseController {
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
-        $result = RepairService::service()->add($valid['data'], $this->user_info);
+        $validData = $valid['data'];
+        $validData['relate_room'] = $repair_type;
+        $result = RepairService::service()->add($validData, $this->user_info);
         if (!is_numeric($result)) {
             return PsCommon::responseFailed($result);
         }
@@ -77,25 +81,69 @@ class RepairController extends BaseController {
     //工单详情
     public function actionShow()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $repairId = PsCommon::get($this->request_params,'repair_id',0);
+        if (!$repairId) {
+            return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        $result = RepairService::service()->show($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     //工单分配
     public function actionAssign()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'assign-repair');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $result = RepairService::service()->assign($valid['data'], $this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
     }
 
     //工单添加操作记录
     public function actionMarkDone()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $data = $this->request_params;
+        $valid = PsCommon::validParamArr(new PsRepair(), $data, 'make-complete');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $result = RepairService::service()->addRecord($data,$this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
     }
 
     //工单标记完成
     public function actionMarkComplete()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $data = $this->request_params;
+        $valid = PsCommon::validParamArr(new PsRepair(), $data, 'make-complete');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $data['is_pay'] = 2;
+        $result = RepairService::service()->makeComplete($data, $this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
     }
 
     //工单标记为疑难
@@ -110,7 +158,9 @@ class RepairController extends BaseController {
 
     }
 
+    //工单复核
+    public function actionReview()
+    {
 
-
-
+    }
 }
