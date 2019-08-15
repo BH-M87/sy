@@ -6,7 +6,7 @@
  * Time: 16:57
  */
 
-namespace app\services;
+namespace service\message;
 
 
 use app\models\PsMessage;

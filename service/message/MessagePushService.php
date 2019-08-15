@@ -6,7 +6,7 @@
  * Time: 16:02
  */
 
-namespace app\services;
+namespace services\message;
 
 
 use service\BaseService;

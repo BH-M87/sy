@@ -16,7 +16,7 @@ use app\models\PsRepairBill;
 use app\models\PsRepairBillMaterial;
 use app\models\PsUser;
 use app\models\RepairType;
-use app\services\MessageService;
+use service\message\MessageService;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\MemberService;
