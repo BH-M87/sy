@@ -5,16 +5,18 @@
  * Date: 2017/6/28
  * Time: 10:37
  */
-namespace services\dingding;
+namespace app\modules\ding_property_app\services;
 use app\models\PsCommunityModel;
+use app\models\PsLoginToken;
 use app\models\PsMenus;
+use app\models\PsRepair;
+use app\models\PsUser;
 use service\BaseService;
 use service\manage\CommunityService;
 use Yii;
 
 include_once Yii::$app->basePath.'/common/alipush/aliyun-php-sdk-core/Config.php';
 include Yii::$app->basePath.'/common/alipush/Push/Request/V20160801/PushRequest.php';
-use \Push\Request\V20160801 as Push;
 
 class UserService extends BaseService
 {
