@@ -370,5 +370,36 @@ class F
         return true;
     }
 
+    /**
+     * 获取不重复的编码
+     * @return string
+     */
+    public static function getCode($top = '', $cacheKey, $randLength = 6)
+    {
+        $randStr = $top.self::getRandomString($randLength);
+        if (\Yii::$app->redis->sismember($cacheKey, $randStr)) {//集合中已经存在，则递归执行
+            return self::getCode($top);
+        }
+        return $randStr;
+    }
+
+    /**
+     * 获取随机数
+     * @param $len
+     * @param null $chars
+     * @return string
+     */
+    public static function getRandomString($len, $chars = null)
+    {
+        if (is_null($chars)) {
+            $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        }
+        mt_srand(10000000 * (double)microtime());
+        for ($i = 0, $str = '', $lc = strlen($chars) - 1; $i < $len; $i++) {
+            $str .= $chars[mt_rand(0, $lc)];
+        }
+        return $str;
+    }
+
 }
 
