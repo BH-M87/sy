@@ -466,23 +466,24 @@ class GroupService extends BaseService
             ->indexBy('id')->asArray()->all();
     }
 
-    /**
-     * 可以查看的部门ids(用于查询)
-     */
+    // 可以查看的部门ids(用于查询)
     public function getCanSeeIds($groupId)
     {
         $group = PsGroups::findOne($groupId);
-        if ($group['see_limit'] == 0) {//没有权限限制，返回空数组
+        if ($group['see_limit'] == 0) { // 没有权限限制，返回空数组
             return [];
         }
-        if ($group['see_limit'] == 2) {//指定部门权限
+
+        if ($group['see_limit'] == 2) { // 指定部门权限
             $r = $this->getSeeIds($groupId);
-            return $r ? $r : [0];//指定部门为空，查询id=0的数据
+            return $r ? $r : [0]; // 指定部门为空，查询id=0的数据
         }
+
         if ($group['see_limit'] == 1) {
             $allGroups = $this->getAll($group['obj_id'], $group['system_type']);
             return $this->getChildIds($groupId, $allGroups);
         }
+
         return [0];
     }
 

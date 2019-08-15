@@ -14,6 +14,7 @@ use app\models\PsUserCommunity;
 
 use service\rbac\UserService;
 use service\rbac\GroupService;
+use service\rbac\MenuService;
 
 use service\common\SmsService;
 
@@ -22,20 +23,20 @@ class ManageService extends BaseService
     // 查看物业公司下用户列表
     public function lists($reqArr, $groupId, $propertyId)
     {
-        $systemType    = !empty($reqArr['system_type']) ? $reqArr['system_type'] : 1;
-        $name   = !empty($reqArr['name']) ? $reqArr['name'] : '';
+        $name = !empty($reqArr['name']) ? $reqArr['name'] : '';
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
-        $seeIds = GroupService::service()->getCanSeeIds($groupId);//当前用户的部门所拥有的权限
+        $seeIds = GroupService::service()->getCanSeeIds($groupId); // 当前用户的部门所拥有的权限
+        $systemType = !empty($reqArr['system_type']) ? $reqArr['system_type'] : 1;
 
         $query = new Query();
         $query->from("ps_user A")
-            ->leftJoin("ps_groups B","A.group_id=B.id")
+            ->leftJoin("ps_groups B", "A.group_id = B.id")
             ->where(["A.system_type" => $systemType, 'obj_id' => $propertyId])
-            ->andFilterWhere(['A.group_id' => $seeIds])//查看的部门权限
-            ->andFilterWhere(['A.group_id' => PsCommon::get($reqArr, 'group_id')]);//指定部门
-        if($name) {
-            $query->andWhere(["or",["like","A.mobile",$name],["like","truename",$name]]);
+            ->andFilterWhere(['A.group_id' => $seeIds]) // 查看的部门权限
+            ->andFilterWhere(['A.group_id' => PsCommon::get($reqArr, 'group_id')]); // 指定部门
+        if ($name) {
+            $query->andWhere(["or", ["like", "A.mobile", $name], ["like", "truename", $name]]);
         }
         $totals = $query->count();
         $query->select(["A.id","A.truename","A.sex","A.level", "A.group_id","B.name as group_name","A.mobile","A.is_enable"])
