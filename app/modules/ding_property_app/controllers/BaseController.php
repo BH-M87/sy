@@ -8,10 +8,8 @@
 
 namespace app\modules\ding_property_app\controllers;
 
-
 use common\core\F;
 use common\core\PsCommon;
-use services\dingding\UserService;
 use yii\base\Controller;
 use Yii;
 
@@ -27,10 +25,12 @@ class BaseController extends Controller
     public $userId;
     public $userPhone;
 
+    //允许访问的域名
     public $allowDomains = [
-        'dev' => ['localhost', 'dev-web.elive99.com','dingdinglyl.vaiwan.com','ddweb-company.elive99.com','live.vaiwan.com'],
-        'yuanyuan' => ['localhost', 'dev-web.elive99.com','dingdinglyl.vaiwan.com','ddweb-company.elive99.com','live.vaiwan.com'],
-        'master' => ['ddweb.elive99.com'],
+        'dev' => [],
+        'test' => [],
+        'release' => [],
+        'prod' => []
     ];
 
     public function beforeAction($action)
@@ -45,24 +45,20 @@ class BaseController extends Controller
         if (!in_array($method, ['GET', 'POST'])) {
             return false;
         }
+
         //判断referer
         $referer = Yii::$app->request->getReferrer();
         if ($referer) {
             $host = parse_url($referer, PHP_URL_HOST);
             $urlArray = explode('.',$host);
-            if($urlArray[1] != 'elive99'){
-                if (!in_array($host, $this->allowDomains[YII_OWNER])) {
-                    echo "非法请求".$host;
-                    return false;
-                }
-            }
+            //TODO 验证请求域名
         }
 
         $params = F::request();
         //配置基本参数
         $this->request_params = $params ? $params : [];
-        $this->page = (integer)F::value($this->params, 'page', $this->page);
-        $this->pageSize = (integer)F::value($this->params, 'rows', $this->pageSize);
+        $this->page = (integer)F::value($params, 'page', $this->page);
+        $this->pageSize = (integer)F::value($params, 'rows', $this->pageSize);
 
         //是否要验证token
         //验证token
@@ -74,6 +70,8 @@ class BaseController extends Controller
         $userPhone = UserService::service()->getUserPhoneById($this->userId);
         $this->userPhone = $userPhone;
         $userInfo = UserService::service()->getUserByPhone($this->userPhone);
+
+
         if (is_array($userInfo)) {
             $userInfo['operator_id'] = $userInfo['id'];
             $this->userInfo = $userInfo;
