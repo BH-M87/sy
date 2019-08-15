@@ -195,7 +195,6 @@ class InspectController extends BaseController
     {
         $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
-
         PlanService::service()->edit($this->request_params, $this->user_info);
         return PsCommon::responseSuccess();
     }
@@ -273,7 +272,7 @@ class InspectController extends BaseController
      */
     public function actionRecordList()
     {
-        $result = TaskService::service()->lists($this->request_params);
+        $result = TaskService::service()->taskList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -284,7 +283,7 @@ class InspectController extends BaseController
      */
     public function actionRecordShow()
     {
-        $result = TaskService::service()->show($this->request_params);
+        $result = TaskService::service()->view($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -308,7 +307,7 @@ class InspectController extends BaseController
     {
         $this->request_params['page'] = 1;
         $this->request_params['rows'] = 10000;
-        $result = TaskService::service()->getList($this->request_params);
+        $result = TaskService::service()->export($this->request_params, $this->systemType, $this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
