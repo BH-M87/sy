@@ -13,6 +13,8 @@ use common\core\PsCommon;
 use yii\web\Controller;
 
 class BaseController extends Controller {
+    
+    public $enableCsrfValidation = false;
     public $communityId = '';//当前请求的小区ID
     public $request_params;//请求参数
     public $page;//当前页
