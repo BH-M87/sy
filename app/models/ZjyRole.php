@@ -45,6 +45,7 @@ class ZjyRole extends BaseModel
             [['role_desc'], 'string', 'max' => 100],
             [['sys_code'], 'string', 'max' => 32],
             [['create_people', 'modify_people'], 'string', 'max' => 45],
+            [['create_time', 'modify_time'], 'default', 'value' => date("Y-m-d H:i", time())],
         ];
     }
 
