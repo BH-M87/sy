@@ -146,7 +146,7 @@ class PointService extends BaseService
             $result['category_name'] = $categoryInfo->name;
             $result['lon'] = $result['lon'] ?? 0.00;
             $result['lat'] = $result['lat'] ?? 0.00;
-            return $this->success($result);
+            return $result;
         }
         throw new MyException('巡检点不存在!');
     }
@@ -167,7 +167,7 @@ class PointService extends BaseService
                 $name = $name ?? "";
                 //self::addLog($userInfo, $name, $params['community_id'], 'del');
             }
-            return $this->success();
+            return true;
         }
         throw new MyException('删除失败，巡检点不存在');
     }
@@ -220,7 +220,7 @@ class PointService extends BaseService
                 }
             }
         }
-        return $this->success(array_values($model));
+        return array_values($model);
     }
 
     //下载二维码
@@ -246,7 +246,7 @@ class PointService extends BaseService
 
         $downUrl = F::downloadUrl($systemType, 'inspect/' . $img_name, 'qrcode', $fileName);
 
-        return $this->success(['down_url' => $downUrl]);
+        return ['down_url' => $downUrl];
     }
 
     //获取设备分类
