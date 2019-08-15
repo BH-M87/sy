@@ -38,11 +38,8 @@ class RoleService extends BaseService
 
     ];
 
-
-
     public $params = '';
     public function validata($params,$userinfo){
-        $data['user_id'] = $userinfo['id'];
         $data['obj_type'] = $userinfo['system_type'];
         $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
         $data['tenant_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
@@ -197,13 +194,12 @@ class RoleService extends BaseService
      * @return array
      * @throws MyException
      */
-    public function getRoleList($params, $userinfo)
+    public function getRoleList($params)
     {
         if (empty($params['id'])) {
             throw new MyException('参数错误');
         }
-        $this->validata($params,$userinfo);
-        $result = ZjyRole::getList($this->params);
+        $result = ZjyUserRole::getList($params);
         return $result ?? [];
     }
 
