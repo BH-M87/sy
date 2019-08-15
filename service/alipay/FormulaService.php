@@ -7,6 +7,7 @@ use Yii;
 use yii\base\Exception;
 use yii\db\Query;
 use service\manage\CommunityService;
+use service\rbac\OperateService;
 
 class FormulaService extends BaseService
 {

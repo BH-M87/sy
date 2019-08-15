@@ -10,13 +10,15 @@ namespace app\modules\property\modules\v1\controllers;
 use app\models\PsRepair;
 use app\models\PsRepairRecord;
 use app\modules\property\controllers\BaseController;
+use common\core\F;
 use common\core\PsCommon;
+use service\common\CsvService;
 use service\issue\RepairService;
 use service\issue\RepairTypeService;
 
 class RepairController extends BaseController {
 
-    public $repeatAction = ['add'];
+    public $repeatAction = ['add', 'mark-done', 'assign'];
 
     //工单列表
     public function actionList()
@@ -75,7 +77,17 @@ class RepairController extends BaseController {
     //工单导出
     public function actionExport()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $this->request_params["hard_type"] = 1;
+        $this->request_params["export"] = true;
+        $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
     //工单详情
@@ -149,18 +161,106 @@ class RepairController extends BaseController {
     //工单标记为疑难
     public function actionMarkHard()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $repairId = !empty($this->request_params['repair_id']) ? $this->request_params['repair_id'] : 0;
+        if (!$repairId) {
+            return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        if (empty($this->request_params['hard_remark'])) {
+            return PsCommon::responseFailed("疑难说明不能为空");
+        }
+        $data = $this->request_params;
+        $result = RepairService::service()->markHard($data,$this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
     }
 
     //工单作废
     public function actionMarkInvalid()
     {
-
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $repairId = !empty($this->request_params['repair_id']) ? $this->request_params['repair_id'] : 0;
+        if (!$repairId) {
+            return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        $result = RepairService::service()->markInvalid($this->request_params,$this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
     }
 
     //工单复核
     public function actionReview()
     {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $repairId = !empty($this->request_params['repair_id']) ? $this->request_params['repair_id'] : 0;
+        if (!$repairId) {
+            return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        if (empty($this->request_params['status'])) {
+            return PsCommon::responseFailed("复核结果不能为空");
+        }
+        if (empty($this->request_params['content'])) {
+            return PsCommon::responseFailed("复核内容不能为空");
+        }
+        $result = RepairService::service()->review($this->request_params,$this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
+    }
 
+    //二次维修
+    public function actionCreateNew()
+    {
+        $repair_id = PsCommon::get($this->request_params, 'repair_id', '');
+        if (empty($repair_id)) {
+            return PsCommon::responseFailed("repair_id不能为空");
+        }
+        $result = RepairService::service()->createNew($this->request_params, $this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
+    }
+
+    //疑难工单列表
+    public function actionHardList()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $this->request_params["hard_type"] = 2;
+        $result = RepairService::service()->getRepairLists($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
+    //疑难工单导出
+    public function actionHardExport()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $this->request_params["hard_type"] = 2;
+        $this->request_params["export"] = true;
+        $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 }

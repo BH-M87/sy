@@ -82,7 +82,7 @@ class BaseController extends Controller {
         }
 
         //物业系统必传小区ID
-        if ($this->systemType == 2 && !in_array($action->id, $this->communityIdNoCheck)) {
+        if ($action->controller->id != 'download' && $this->systemType == 2 && !in_array($action->id, $this->communityIdNoCheck)) {
             if (!$this->communityId) {
                 echo PsCommon::responseFailed('小区ID不能为空');
                 return false;

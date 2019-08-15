@@ -9,6 +9,7 @@ use yii\base\Exception;
 use service\BaseService;
 
 use service\rbac\MenuService;
+use service\rbac\GroupService;
 
 class PackService extends BaseService 
 {
@@ -354,31 +355,7 @@ class PackService extends BaseService
             ->where(["C.group_id"=>$groupId])->orderBy(" class_id desc,A.created_at desc")->all();
         $class = $pack = [];
         foreach ($models as $key=> $model) {
-            $arr = [
-                "key"=> "2"."_".$model["id"],
-                "id"=>$model["id"],
-                "name"=>$model["name"],
-                "item_type"=>2,
-                "type"=>$model['type'],
-                "parent_id"=>$model["class_id"],
-                "parent_name"=>$model["class_name"],
-                "type_desc"=> isset(self::$_Type[$model['type']]) ? self::$_Type[$model['type']] : '未知',
-            ];
-            if($model["class_id"]!=0) {
-                if(isset($class[$model["class_id"]])) {
-                    $class[$model["class_id"]]["children"][]=$arr;
-                } else {
-                    $class[$model["class_id"]]["key"] = "1"."_".$model["class_id"];
-                    $class[$model["class_id"]]["id"] = $model["class_id"];
-                    $class[$model["class_id"]]["name"] = $model["class_name"];
-                    $class[$model["class_id"]]["parent_id"] =0;
-                    $class[$model["class_id"]]["parent_name"] ='';
-                    $class[$model["class_id"]]["item_type"] = 1;
-                    $class[$model["class_id"]]["children"][]=$arr;
-                }
-            } else {
-                $pack[] = $arr;
-            }
+            $pack[] = (int)$model["id"];
         }
         $result = array_merge($class,$pack);
         return $result;

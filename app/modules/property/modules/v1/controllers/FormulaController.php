@@ -12,7 +12,7 @@ namespace app\modules\property\controllers;
 use Yii;
 use common\core\PsCommon;
 use app\models\PsFormulaFrom;
-use app\services\RoomService;
+use service\basic_data\RoomService;
 use service\alipay\FormulaService;
 
 class FormulaController extends BaseController

@@ -1,6 +1,10 @@
 <?php
 
-namespace app\models;;
+namespace app\models;
+
+use yii\behaviors\TimestampBehavior;
+
+;
 
 
 /**
@@ -34,12 +38,14 @@ class PsInspectPlan extends BaseModel
     public function rules()
     {
         return [
-            [['name', 'community_id', 'line_id', 'exec_type', 'user_list', 'status', 'operator_id', 'create_at'], 'required'],
+            [['name', 'community_id', 'line_id', 'exec_type', 'user_list', 'status', 'operator_id'], 'required'],
             [['community_id', 'line_id', 'exec_type', 'status', 'operator_id', 'create_at'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['name'], 'string', 'max' => 15],
             [['user_list'], 'string', 'max' => 500],
-            [['time_list'], 'type', 'array'],
+            ['time_list', 'validateType'],
+            ['status', 'default', 'value' => 1],
+            ['create_at', 'default', 'value' => time()],
             [['id', 'community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id'], 'required', 'message' => '{attribute}不能为空!'],
         ];
     }
@@ -67,8 +73,17 @@ class PsInspectPlan extends BaseModel
     {
         $scenarios = parent::scenarios();
         //各个场景的活动属性
-        $scenarios['add'] = ['community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id', 'exec_type'];//新增
+        $scenarios['add'] = ['community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id', 'exec_type','create_at'];//新增
         $scenarios['update'] = ['id', 'community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id', 'exec_type'];//编辑
         return $scenarios;
+    }
+
+    public function validateType($attribute)
+    {
+        if (!is_array($this->$attribute)) {
+            $this->addError($this->$attribute, $attribute . '类型有误');
+            return false;
+        }
+        return true;
     }
 }
