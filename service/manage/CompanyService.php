@@ -14,7 +14,7 @@ use Yii;
 use yii\base\Exception;
 use yii\db\Query;
 use service\BaseService;
-
+use service\rbac\GroupService;
 Class CompanyService extends BaseService
 {
     CONST COMPANY_TYPE_PROPERTY = 1;

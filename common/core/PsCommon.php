@@ -437,6 +437,14 @@ class PsCommon {
     {
         $model = ['1' => '已售', '2' => '未售'];
 
+
+    /**
+     * 获取小区类型
+     */
+    public static function getCommType($index = '')
+    {
+        $model = ['1' => '物业', '2' => '新房'];
+
         if ($index) {
             return $model[$index];
         } else {
@@ -444,10 +452,18 @@ class PsCommon {
         }
     }
 
+
     //交易类型
     public static function getTradeType($index = '')
     {
         $model = ['1' => '收款', '2' => '退款'];
+
+    /**
+     * 获取小区归属
+     */
+    public static function getHouseType($index = '')
+    {
+        $model = ['1' => '老旧小区', '2' => '商品房', '3'=>'安置小区'];
         if ($index) {
             return $model[$index];
         } else {

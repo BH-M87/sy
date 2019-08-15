@@ -16,7 +16,7 @@ use common\core\Client;
 use service\TemplateService;
 use app\models\PsAgent;
 use app\models\PsRepairType;
-use service\AreaService;
+use service\common\AreaService;
 use service\rbac\OperateService;
 use app\models\PsCommunityRoominfo;
 use app\models\PsUserCommunity;
@@ -78,7 +78,7 @@ class CommunityService extends BaseService
             return $this->failed('此物业公司不存在');
         }
 
-        if (preg_match('/^\d*$/',$data['name'])) {
+        if (preg_match('/^\d*$/', $data['name'])) {
             return $this->failed('小区名称不能为纯数字！');
         }
 
@@ -100,25 +100,21 @@ class CommunityService extends BaseService
         if (!$data['locations']) {
             return $this->failed('经纬度转换失败，请重新填写小区地址');
         }
-
-
+        $pinyin = new Pinyin();
         $locationArr = explode('|', $data['locations']);
-        $community->community_no = PsCommon::getNoRepeatChar('', YII_ENV.'communityUniqueList', 13);
+        $community->community_no = PsCommon::getNoRepeatChar('', YII_ENV . 'communityUniqueList', 13);
         $community->province_code = $data['province_code'];
         $community->city_id = $data['city_id'];
         $community->district_code = $data['district_code'];
         $community->pro_company_id = $data['pro_company_id'];
         $community->name = $data['name'];
-        $community->group = !empty($data['group']) ? $data['group'] : '';
         $community->locations = $data['locations'];
         $community->address = $data['address'];
         $community->phone = $data['phone'];
-        $community->is_init_service = 0;
         $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
         $community->status = 1;
         $community->comm_type = $data['comm_type'];
         $community->house_type = $data['house_type'];
-        $community->house_id = $data['house_id'] ? $data['house_id'] : '';
         $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
         $community->create_at = $data['create_at'];
         $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
@@ -179,17 +175,13 @@ class CommunityService extends BaseService
             exit;
         }
 
-        if (preg_match('/^\d*$/',$data['name'])) {
+        if (preg_match('/^\d*$/', $data['name'])) {
             echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区名称不能为纯数字！']], JSON_PRETTY_PRINT);
             exit;
         }
 
         //判断小区名称是否重复
-        $communityRe = PsCommunityModel::find()
-            ->select(['id'])
-            ->where(['name' => $data['name']])
-            ->andWhere(['!=', 'id', $data['id']])
-            ->one();
+        $communityRe = PsCommunityModel::find()->select(['id'])->where(['name' => $data['name']])->andWhere(['!=', 'id', $data['id']])->one();
         if ($communityRe) {
             echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '小区已经存在，不能重复添加']], JSON_PRETTY_PRINT);
             exit;
@@ -204,67 +196,46 @@ class CommunityService extends BaseService
             echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => '经纬度转换失败，请重新填写小区地址']], JSON_PRETTY_PRINT);
             exit;
         }
+        $pinyin = new Pinyin();
+        //小区同步成功
+        $locationArr = explode('|', $data['locations']);
+        $community->province_code = $data['province_code'];
+        $community->city_id = $data['city_id'];
+        $community->district_code = $data['district_code'];
+        $community->pro_company_id = $data['pro_company_id'];
+        $community->name = $data['name'];
+        $community->locations = $data['locations'];
+        $community->address = $data['address'];
+        $community->phone = $data['phone'];
+        $community->status = $data['status'];
+        $community->comm_type = $data['comm_type'];
+        $community->house_type = $data['house_type'];
+        $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
+        $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
+        $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
+        $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
 
-        //将小区同步到支付宝
-        if ($data['comm_type'] == 2) {
-            $re['code'] = 10000;
-        } else {
-            if (YII_ENV == "master" && $community->community_no) {
-                $aliCommunityReqData = $this->processCommunityData($data);
-                $aliCommunityReqData['community_id'] = $data['community_id'];
-                $re = AliCommunityService::service()->init($data['pro_company_id'])->editCommunity($aliCommunityReqData);
-            } else {
-                $re['code'] = 10000;
+        if ($community->save()) {
+            //添加关联关系 v4.0.0版本，产品沟通后，物业公司不可切换
+            $content = '小区名称：' . $data['name'] . ',';
+            if (!empty($data['group'])) {
+                $content .= '苑/期/区：' . $data['group'] . ',';
             }
+
+            $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
+            $content .= '物业电话：' . $data['phone'] . ',';
+            $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
+            $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
+            $operate = [
+                "operate_menu" => "小区管理",
+                "operate_type" => "编辑小区",
+                "operate_content" => $content,
+            ];
+            OperateService::add($userinfo, $operate);
+
+            return true;
         }
-        if ($re['code'] == 10000) {
-            $oldCompanyId = $community->pro_company_id;
 
-            $pinyin = new Pinyin();
-            //小区同步成功
-            $locationArr = explode('|', $data['locations']);
-            $community->province_code = $data['province_code'];
-            $community->city_id = $data['city_id'];
-            $community->district_code = $data['district_code'];
-            $community->pro_company_id = $data['pro_company_id'];
-            $community->name = $data['name'];
-            $community->group = !empty($data['group']) ? $data['group'] : '';
-            $community->locations = $data['locations'];
-            $community->address = $data['address'];
-            $community->phone = $data['phone'];
-            $community->status = $data['status'];
-            $community->comm_type = $data['comm_type'];
-            $community->house_type = $data['house_type'];
-            $community->house_id = $data['house_id'];
-            $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
-            $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
-            $community->longitude = !empty($locationArr[0]) ? $locationArr[0] : 0;
-            $community->latitude = !empty($locationArr[1]) ? $locationArr[1] : 0;
-
-            if ($community->save()) {
-                //添加关联关系 v4.0.0版本，产品沟通后，物业公司不可切换
-                $content = '小区名称：' . $data['name'] . ',';
-                if (!empty($data['group'])) {
-                    $content .= '苑/期/区：' . $data['group'] . ',';
-                }
-
-                $content .= '状态：' . ($data['status'] == 1 ? "上线" : "下线") . ',';
-                $content .= '物业电话：' . $data['phone'] . ',';
-                $content .= '关联物业公司：' . $data['pro_company_id'] . ',';
-                $content .= '省市区编码：' . $data['province_code'] . "|" . $data['city_id'] . "|" . $data['district_code'] . ',';
-                $operate = [
-                    "operate_menu" => "小区管理",
-                    "operate_type" => "编辑小区",
-                    "operate_content" => $content,
-                ];
-                OperateService::add($userinfo, $operate);
-
-                return true;
-            }
-        } else {
-            echo json_encode(['code' => 50001, 'data' => [], 'error' => ['errorMsg' => $re['sub_msg']]], JSON_PRETTY_PRINT);
-            exit;
-        }
 
     }
 
@@ -473,16 +444,8 @@ class CommunityService extends BaseService
             $list[$key]['province_name'] = PsCommon::get($area, $val['province_code']);
             $list[$key]['city_name'] = PsCommon::get($area, $val['city_id']);
             $list[$key]['comm_type_name'] = PsCommon::getCommType($val['comm_type']);
-            $list[$key]['house_type_name'] = !empty($val['house_type'])?PsCommon::getHouseType($val['house_type']):'';
-            if ($val['status'] == 1) {
-                if ($val['ali_status'] == "PENDING_ONLINE") {
-                    $list[$key]['comm_status_name'] = "待上线";
-                } else if ($val['ali_status'] == "ONLINE") {
-                    $list[$key]['comm_status_name'] = "已上线";
-                }
-            } else {
-                $list[$key]['comm_status_name'] = "已下线";
-            }
+            $list[$key]['house_type_name'] = !empty($val['house_type']) ? PsCommon::getHouseType($val['house_type']) : '';
+            $list[$key]['comm_status_name'] = $val['status'] == 1 ? "启用" : "禁用";
         }
         return ['list' => $list, 'totals' => $totals];
     }
@@ -700,11 +663,13 @@ class CommunityService extends BaseService
     {
         $communitys = $this->getUserCommunitys($userId);
         $cids = array();
-        if (!empty($communitys)) {foreach ($communitys as $k => $v) {
-            if(substr_count($v['name'],$community_name) > 0){
-                array_push($cids, $v['id']);
+        if (!empty($communitys)) {
+            foreach ($communitys as $k => $v) {
+                if (substr_count($v['name'], $community_name) > 0) {
+                    array_push($cids, $v['id']);
+                }
             }
-        }}
+        }
         return $cids;
     }
 

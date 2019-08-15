@@ -221,39 +221,20 @@ class F
         return $fileName;
     }
 
-    //获取物业后台/运营后台下载链接地址
-    //edit by wenchao.feng [add $pathName: 域名对应的目录，对应到 test/release/test2..]
-    public static function downloadUrl($systemType, $fileName, $type, $newName = '', $pathName = '')
+    //获取下载链接地址
+    public static function downloadUrl($fileName, $type, $newName = '')
     {
         $data = ['filename' => $fileName, 'type' => $type, 'newname' => $newName];
         $token = self::request('token');
-        $module = '';
-        if ($systemType == 1) {
-            $module = 'operation';
-        } elseif ($systemType == 2) {
-            $module = 'property';
-        } elseif ($systemType == 3) {
-            $module = 'street/backend';
-        } elseif ($systemType == 4) {
-            $module = 'petition/backend';
-        }
-        return self::getAbsoluteUrl($pathName) . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
+        $module = 'property';
+
+        return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
     }
 
     //获取完整链接，不带get参数
-    public static function getAbsoluteUrl($pathName = '')
+    public static function getAbsoluteUrl()
     {
         $host = Yii::$app->request->getHostInfo();
-        if (strlen(DOWNLOAD_PATH) > 0) {
-            $host .= '/' . DOWNLOAD_PATH . '/web';
-        }
-        if (YII_ENV == 'test') {//测试环境
-            $host .= '/test/web';
-        } elseif (YII_ENV == 'release') {//预发环境
-            $host .= '/release/web';
-        } elseif (YII_ENV == 'test2') {//测试环境2，供多个项目同时开发测试环境不够用的情况
-            $host .= '/test2/web';
-        }
         return $host;
     }
 
@@ -368,6 +349,37 @@ class F
             return false;
         }
         return true;
+    }
+
+    /**
+     * 获取不重复的编码
+     * @return string
+     */
+    public static function getCode($top = '', $cacheKey, $randLength = 6)
+    {
+        $randStr = $top.self::getRandomString($randLength);
+        if (\Yii::$app->redis->sismember($cacheKey, $randStr)) {//集合中已经存在，则递归执行
+            return self::getCode($top);
+        }
+        return $randStr;
+    }
+
+    /**
+     * 获取随机数
+     * @param $len
+     * @param null $chars
+     * @return string
+     */
+    public static function getRandomString($len, $chars = null)
+    {
+        if (is_null($chars)) {
+            $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        }
+        mt_srand(10000000 * (double)microtime());
+        for ($i = 0, $str = '', $lc = strlen($chars) - 1; $i < $len; $i++) {
+            $str .= $chars[mt_rand(0, $lc)];
+        }
+        return $str;
     }
 
 }

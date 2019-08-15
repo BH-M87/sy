@@ -60,6 +60,14 @@ Class AgentController extends BaseController
         }
     }
 
+    //获取代理商的套餐包
+    public function actionGetAgentPacks()
+    {
+        $this->request_params["type"] = 1;
+        $result = PackService::service()->getPacks($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
     //开通帐号
     public function actionBindUser()
     {

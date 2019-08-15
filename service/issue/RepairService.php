@@ -16,11 +16,13 @@ use app\models\PsRepairBill;
 use app\models\PsRepairBillMaterial;
 use app\models\PsUser;
 use app\models\RepairType;
+use common\core\F;
 use service\message\MessageService;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\MemberService;
 use service\basic_data\RoomService;
+use service\common\CsvService;
 use service\common\SmsService;
 use service\rbac\OperateService;
 use yii\base\Exception;
@@ -130,6 +132,8 @@ class RepairService extends BaseService
         $operateName = PsCommon::get($params, 'operator_name', '');
         $createAtStart = PsCommon::get($params, 'create_at_start', '');
         $createAtEnd = PsCommon::get($params, 'create_at_end', '');
+        $checkAtStart = PsCommon::get($params, 'check_at_start', '');
+        $checkAtEnd = PsCommon::get($params, 'check_at_end', '');
         $status = PsCommon::get($params, 'status', '');
         $repairType = PsCommon::get($params, 'repair_type', '');
         $group = PsCommon::get($params, 'group', '');
@@ -137,6 +141,8 @@ class RepairService extends BaseService
         $unit = PsCommon::get($params, 'unit', '');
         $room = PsCommon::get($params, 'room', '');
         $repair_from = PsCommon::get($params, 'repair_from', '');
+        $isExport = PsCommon::get($params, 'export', false);
+
         $query = new Query();
         $query->from('ps_repair A')
             ->leftJoin('ps_community c','c.id = A.community_id')
@@ -199,6 +205,14 @@ class RepairService extends BaseService
             $end = strtotime($createAtEnd . " 23:59:59");
             $query->andWhere(['<=', 'A.create_at', $end]);
         }
+        if ($checkAtStart) {
+            $start = strtotime($checkAtStart . " 00:00:00");
+            $query->andWhere(['>=', 'A.hard_check_at', $start]);
+        }
+        if ($checkAtEnd) {
+            $end = strtotime($checkAtEnd . " 23:59:59");
+            $query->andWhere(['<=', 'A.hard_check_at', $end]);
+        }
         $re['totals'] = $query->count();
         $query->select(['A.id', 'A.community_id', 'c.name as community_name', 'A.is_assign_again', 'A.repair_no',
             'A.created_username', 'A.contact_mobile', 'A.repair_type_id', 'A.room_address',
@@ -206,8 +220,10 @@ class RepairService extends BaseService
             'A.is_pay', 'A.amount', 'A.is_assign', 'A.operator_name', 'A.repair_from',
             'A.operator_id', 'A.create_at', 'A.hard_check_at', 'A.hard_remark', 'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
-        $query->offset($offset)->limit($params['rows']);
+        if (!$isExport) {
+            $offset = ($params['page'] - 1) * $params['page'];
+            $query->offset($offset)->limit($params['rows']);
+        }
         $command = $query->createCommand();
         $models = $command->queryAll();
         foreach ($models as $key => $val) {
@@ -227,9 +243,38 @@ class RepairService extends BaseService
             $models[$key]['expired_repair_type_desc'] =
                 isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '未知';
             $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
+            $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
         }
         $re['list'] = $models;
         return $re;
+    }
+
+    public function export($params, $userInfo = [])
+    {
+        $result = $this->getRepairLists($params);
+        $config = [
+            ['title' => '提交时间', 'field' => 'create_at'],
+            ['title' => '订单号', 'field' => 'repair_no'],
+            ['title' => '提交人', 'field' => 'created_username'],
+            ['title' => '联系电话', 'field' => 'contact_mobile'],
+            ['title' => '报修位置', 'field' => 'export_room_address'],
+            ['title' => '内容', 'field' => 'repair_content'],
+            ['title' => '期望上门时间', 'field' => 'expired_repair_time'],
+            ['title' => '报修来源', 'field' => 'repair_from_desc'],
+            ['title' => '工单金额', 'field' => 'amount'],
+            ['title' => '状态', 'field' => 'status_desc'],
+            ['title' => '处理人', 'field' => 'operator_name'],
+        ];
+        $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
+        $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
+        $operate = [
+            "community_id" => $params["community_id"],
+            "operate_menu" => "报事报修",
+            "operate_type" => $params['hard_type'] == 2 ? "疑难问题" : "普通工单",
+            "operate_content" => "导出",
+        ];
+        OperateService::addComm($userInfo, $operate);
+        return $downUrl;
     }
 
     //报修工单新增
@@ -514,7 +559,7 @@ class RepairService extends BaseService
             return "操作人员未找到";
         }
         $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($model['repair_type_id']);
-        if ($releateRoom && empty($data['amount'])) {
+        if ($releateRoom && empty($params['amount'])) {
             return '请输入使用金额';
         }
         $connection = Yii::$app->db;
@@ -573,14 +618,171 @@ class RepairService extends BaseService
             $transaction->rollBack();
             return '系统错误,标记完成失败';
         }
+    }
 
+    //工单标记为疑难功能
+    public function markHard($params, $userInfo = [])
+    {
+        $model = $this->getRepairInfoById($params['repair_id']);
+        if (!$model) {
+            return "工单不存在";
+        }
+        if (in_array($model['status'],self::$_issue_complete_status)) {
+            return "工单已完成";
+        }
+        if ($model["hard_type"] == 2) {
+            return $this->failed('已是疑难问题');
+        }
+
+        $updateArr = [
+            "hard_type" => 2,
+            "hard_remark" => $params["hard_remark"] ? $params["hard_remark"] : '',
+            "hard_check_at" => time(),
+        ];
+        $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $params["repair_id"]])->execute();
+        if ($re) {
+            //TODO 发送站内消息
+            $operate = [
+                "community_id" => $params["community_id"],
+                "operate_menu" => "报事报修",
+                "operate_type" => "标记疑难",
+                "operate_content" => '订单号：'.$model['repair_no'].'-标记说明'.$updateArr['hard_remark'],
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return true;
+        }
+        return '系统错误,标记为疑难失败';
+    }
+
+    //工单作废
+    public function markInvalid($params, $userInfo = [])
+    {
+        $model = $this->getRepairInfoById($params['repair_id']);
+            if (!$model) {
+            return "工单不存在";
+        }
+        if (in_array($model['status'],self::$_issue_complete_status)) {
+            return "工单已完成";
+        }
+        $re = Yii::$app->db->createCommand()->update('ps_repair',
+            ["status" => 6, 'hard_type' => 1], ["id" => $params['repair_id']])->execute();
+        if ($re) {
+            $operate = [
+                "community_id" =>$model['community_id'],
+                "operate_menu" => "报事报修",
+                "operate_type" => '工单作废',
+                "operate_content" => '工单编号'.$model["repair_no"]
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return true;
+        }
+        return "系统错误,工作作废失败";
+    }
+
+    //工单复核
+    public function review($params, $userInfo = [])
+    {
+        $model = $this->getRepairInfoById($params['repair_id']);
+        if (!$model) {
+            return "工单不存在";
+        }
+        if ($model["status"] == self::STATUS_CHECKED) {
+            return $this->failed('工单已复核');
+        }
+        if ($model["status"] != self::STATUS_DONE && $model["status"] != self::STATUS_COMPLETE) {
+            return $this->failed('工单未完成');
+        }
+        $connection = Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            /*添加 维修 记录*/
+            $connection->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $params["repair_id"],
+                'status' => self::STATUS_CHECKED,
+                'content' => '已复核',
+                'create_at' => time(),
+                'operator_id' => $userInfo["id"],
+                'operator_name' => $userInfo["truename"],
+            ])->execute();
+
+            $repairArr["status"] = self::STATUS_CHECKED;
+            $repairArr["operator_id"] = $userInfo["id"];
+            $repairArr["operator_name"] = $userInfo["truename"];
+            $connection->createCommand()->update('ps_repair',
+                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
+            )->execute();
+
+            $operate = [
+                "community_id" => $model["community_id"],
+                "operate_menu" => "报事报修",
+                "operate_type" => "工单复核",
+                "operate_content" => '订单号：'.$model['repair_no'],
+            ];
+            OperateService::addComm($userInfo, $operate);
+            $transaction->commit();
+            return true;
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            return '系统错误,复核失败';
+        }
+    }
+
+    //二次维修
+    public function createNew($params, $userInfo = [])
+    {
+        $model = PsRepair::find()->where(["id" => $params["repair_id"]])->asArray()->one();
+        if (!$model) {
+            return "工单不存在";
+        }
+        if ($model['status'] != self::STATUS_CHECKED_FALSE) {
+            return "此工单不能发起二次维修";
+        }
+        if ($model['is_assign_again'] == 1) {
+            return "该订单已经发起二次维修";
+        }
+
+        $connection = Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $repairArr["is_assign_again"] = 1;
+            $repairArr["operator_id"] = $userInfo["id"];
+            $repairArr["operator_name"] = $userInfo["truename"];
+            $connection->createCommand()->update('ps_repair',
+                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
+            $repair = $model;
+            unset($repair['id']);
+            $repair['status'] = 1;//订单重新变成待处理
+            $repair['repair_from'] = 6;//来源：二次复核
+            $repair['create_at'] = time();
+            $repair['repair_no'] = $this->generalRepairNo();
+            $repair['is_assign'] = 2; //未分配
+            $repair['created_id'] = $repair['operator_id'] = $userInfo['id'];
+            $repair['created_username'] = $repair['operator_name'] = $userInfo['truename'];
+            $repair['is_assign_again'] = 0;
+            $repair['day'] = date('Y-m-d');
+            Yii::$app->db->createCommand()->insert('ps_repair', $repair)->execute();
+            $operate = [
+                "community_id" => $repair["community_id"],
+                "operate_menu" => "报事报修",
+                "operate_type" => "二次维修",
+                "operate_content" => '订单号:'.$repair['repair_no'],
+            ];
+            OperateService::addComm($userInfo, $operate);
+            $transaction->commit();
+            return true;
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            return '系统错误,发起二次维修失败';
+        }
     }
 
     //查看工单历史操作记录
     private function getRecord($params)
     {
         $query = new Query();
-        $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`', 'A.create_at', 'U.truename as operator_name', 'U.group_id', 'U.mobile as operator_mobile', 'G.name as group_name'])
+        $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`',
+            'A.create_at', 'U.truename as operator_name', 'U.group_id',
+            'U.mobile as operator_mobile', 'G.name as group_name'])
             ->from(' ps_repair_record A')
             ->leftJoin('ps_user U', 'U.id=A.operator_id')
             ->leftJoin('ps_groups G', 'U.group_id=G.id')
@@ -592,6 +794,9 @@ class RepairService extends BaseService
         if (!empty($models)) {
             foreach ($models as $key => $model) {
                 $models[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
+                if ($model['status'] == self::STATUS_DONE) {
+                    $models[$key]['status_desc'] = "已完成";
+                }
                 $models[$key]["group_name"] = $model["group_id"] == 0 ? "管理员" : ($model["group_name"] ? $model["group_name"] : "未知");
                 $models[$key]["create_at"] = date("Y年m月d日", $model["create_at"]);
                 $models[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : "";
@@ -715,7 +920,4 @@ class RepairService extends BaseService
             ->asArray()
             ->one();
     }
-
-
-
 }

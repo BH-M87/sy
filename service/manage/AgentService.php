@@ -9,7 +9,7 @@ use service\BaseService;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
-
+use service\rbac\UserService;
 class AgentService extends  BaseService {
     //机构类型 1 代表代理商
     public static $_Type= [
@@ -140,6 +140,7 @@ class AgentService extends  BaseService {
                 $systemType = 1;break;
         }
 
+
         if(!$this->_validLoginName($data["login_name"])) {
             return $this->failed("用户名重复");
         }
@@ -150,6 +151,7 @@ class AgentService extends  BaseService {
             "is_enable" => $data["status"],
             "property_company_id"=>$data["agent_id"],
         ];
+
         $user =  CompanyService::service()->_saveUser($userArr, $systemType, $model['name']);
         Yii::$app->db->createCommand()->update("ps_agent",["user_id"=>$user["user_id"],"status"=>$data["status"]],["id"=>$data["agent_id"]])->execute();
         PackService::service()->_saveGroupPack($user["group_id"],$data["packs"]);
@@ -194,6 +196,8 @@ class AgentService extends  BaseService {
        $query->select(["A.group_id","A.username  as login_name","B.type","A.is_enable as status"]);
        $model    = $query->createCommand()->queryOne();
        if( !empty($model)) {
+           $model['id']  = (int)$model['group_id'];
+           $model['status']  = (int)$model['status'];
            $model['packs']   = PackService::service()->getLevelGroupPack($model["group_id"]);
             if($model["type"] !=1) {
                 $model['communitys'] = AgentService::service()->getAgentUserCommunity($userId);
