@@ -147,8 +147,7 @@ class MessageService extends BaseService
         }
         if ($type == 8) {
             $data = $this->auth_type[8];
-            $params['action'] = $data[0];
-            $params['route'] = $data[1];
+            $params['action'] = $data;
         } else {
             $data = $this->auth_type[$type];
             $params['route'] = $data;
