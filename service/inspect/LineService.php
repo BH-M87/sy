@@ -11,7 +11,6 @@ namespace service\inspect;
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
-use app\modules\inspect\models\PsInspectPlan;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
@@ -137,7 +136,7 @@ class LineService extends BaseService
                 ->leftJoin("ps_inspect_point point", "point.id=line_point.point_id")
                 ->asArray()->all();
             $result['pointList'] = $line_point;
-            return $this->success($result);
+            return $result;
         }
         throw new MyException('巡检线路不存在');
     }
@@ -150,7 +149,7 @@ class LineService extends BaseService
         $query = self::lineSearch($params);
         $totals = $query->count();
         if ($totals == 0) {
-            return $this->success(['list' => [], 'totals' => $totals]);
+            return ['list' => [], 'totals' => $totals];
         }
         $list = $query
             ->select('A.id, A.community_id, A.name, A.head_name, A.head_mobile')
@@ -167,7 +166,7 @@ class LineService extends BaseService
                     ->asArray()->all();
             }
         }
-        return $this->success(['list' => $list, 'totals' => $totals]);
+        return ['list' => $list, 'totals' => $totals];
     }
 
     //删除
@@ -177,7 +176,7 @@ class LineService extends BaseService
             throw new MyException('巡检线路id不能为空');
         }
         //查询线路是否有配置巡检点
-        $planPoint = PsInspectPlan::find()->where(['line_id' => $params['id']])->all();
+        $planPoint = PlanService::planOne('','','','id',$params['id']);
         if (!empty($planPoint)) {
             throw new MyException('请先修改对应计划！');
         }
@@ -191,7 +190,7 @@ class LineService extends BaseService
                 $head_name = $info['head_name'] ?? "";
                 //self::addLog($userInfo,$name,$head_name,$params['community_id'],'del');
             }
-            return $this->success($result);
+            return true;
         }
         throw new MyException('删除失败，巡检线路不存在');
     }
@@ -209,7 +208,7 @@ class LineService extends BaseService
         return $model;
     }
 
-    public static function lineOne($id, $select = "")
+    public static function lineOne($id, $select = "*")
     {
         $select = $select ?? ['line.id', 'comm.id as community_id', 'comm.name as community_name', 'line.name', 'line.head_name', 'line.head_mobile'];
         return PsInspectLine::find()->alias("line")
