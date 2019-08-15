@@ -24,4 +24,12 @@ class Message
             array("access_token" => $accessToken),json_encode($opt));
         return $response;
     }
+
+    //发送企业消息
+    public static function sendByCode($accessToken,$opt){
+        $http = new Http();
+        $response = $http->post("/message/sendByCode",
+            array("access_token" => $accessToken),json_encode($opt));
+        return $response;
+    }
 }
