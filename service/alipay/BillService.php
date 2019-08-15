@@ -19,8 +19,6 @@ use app\models\PsOrder;
 use app\models\PsRepair;
 use app\models\PsRepairBill;
 use app\models\RepairType;
-use service\alipay\ParkFeeService;
-use app\models\ParkingLkPayCode;
 use service\BaseService;
 use service\message\MessageService;
 use service\manage\CommunityService;
@@ -1304,61 +1302,7 @@ class BillService extends BaseService
         }
     }
 
-    /**
-     * 小程序临停缴费账单缴费回调
-     */
-    public function alipayNotifySmallPark($data)
-    {
-        $checkRe = AliCommonService::service()->notifyVerify($data);
-        if (!$checkRe) {
-            //记录支付宝验签失败
-            \Yii::info("--alipay notify sign verify fail", 'parking-fee');
-            die("fail");
-        }
-        $tradeNo = !empty($data['trade_no']) ? $data['trade_no'] : '';
-        if (!$tradeNo) {
-            die("fail");
-        }
 
-        $order = PsOrder::find()->where(['trade_no' => $tradeNo])->asArray()->one();
-        if (!$order) {
-            die("fail");
-        }
-        $result = OrderService::service()->paySuccess($order['order_no'], OrderService::PAY_ALIPAY, $data);
-        if ($result['code'] == 1){
-            //支付结果上报
-            $lkPayLog = ParkingLkPayCode::find()
-                ->where(['order_id' => $order['id']])
-                ->asArray()
-                ->one();
-            if ($lkPayLog) {
-                //更改总支付金额
-                $tmpModel = ParkingLkPayCode::findOne($lkPayLog['id']);
-                $tmpModel->paid_total = bcadd($tmpModel->paid_total, $data['buyer_pay_amount'], 2);
-                $tmpModel->save();
-
-                if (in_array($lkPayLog['charge_from'], [1,3])) {
-                    //主动查询的支付需要将支付结果上报给蓝卡
-                    ParkFeeService::service()->payResultSend($order['id']);
-                    if ($lkPayLog['charge_from'] == 3) {
-                        //调用api，将订单支付结果同步到支付宝停车平台
-                        $syncAliParams['community_id'] = $order['community_id'];
-                        $syncAliParams['car_across_record_id'] = $lkPayLog['car_accorss_id'];
-                        $syncAliParams['buyer_id'] = $data['buyer_id'];
-                        $syncAliParams['out_trade_no'] = $data['out_trade_no'];
-                        $syncAliParams['gmt_create'] = $data['gmt_create'];
-                        $syncAliParams['trade_no'] = $data['trade_no'];
-                        $syncAliParams['gmt_payment'] = $data['gmt_payment'];
-                        $syncAliParams['buyer_pay_amount'] = $data['buyer_pay_amount'];
-                        ParkFeeService::service()->orderSyncToAli($syncAliParams);
-                    }
-                }
-            }
-            die("success");
-        } else {
-            die("fail");
-        }
-    }
 
     /**
      * 小程序报事报修账单缴费回调

@@ -371,18 +371,92 @@ class PsCommon {
             return $model;
         }
     }
-    /**
-     * 获取小区类型
-     */
-    public static function getCommType($index = '')
+
+    //缴费公式：计算规则
+    public static function getFormulaRule($index = '')
     {
-        $model = ['1' => '物业', '2' => '新房'];
+        $calc = [
+            0 => [
+                'key' => 1,
+                'value' => '整数'
+            ],
+            1 => [
+                'key' => 2,
+                'value' => '小数点后一位'
+            ],
+            2 => [
+                'key' => 3,
+                'value' => '小数点后两位'
+            ]
+        ];
+        if ($index) {
+            return $calc[($index - 1)]['value'];
+        }
+        return $calc;
+    }
+
+    //缴费公式：小数点去尾方式
+    public static function getFormulaWay($index = '')
+    {
+        $way = [
+            0 => [
+                'key' => 1,
+                'value' => '四舍五入'
+            ],
+            1 => [
+                'key' => 2,
+                'value' => '向上取整'
+            ],
+            2 => [
+                'key' => 3,
+                'value' => '向下取整'
+            ]
+        ];
+        if ($index) {
+            return $way[($index - 1)]['value'];
+        }
+        return $way;
+    }
+
+    //交易类型
+    public static function getIncomePayType($index = '')
+    {
+        $model = ['1' => '线上付款', '2' => '线下付款'];
         if ($index) {
             return $model[$index];
         } else {
             return $model;
         }
     }
+
+    /**
+     * 2016-12-16
+     * 获取房屋状态
+     */
+    public static function houseStatus($index = 0)
+    {
+        $model = ['1' => '已售', '2' => '未售'];
+
+
+    /**
+     * 获取小区类型
+     */
+    public static function getCommType($index = '')
+    {
+        $model = ['1' => '物业', '2' => '新房'];
+
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
+
+
+    //交易类型
+    public static function getTradeType($index = '')
+    {
+        $model = ['1' => '收款', '2' => '退款'];
 
     /**
      * 获取小区归属
