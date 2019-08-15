@@ -48,6 +48,7 @@ Class DownloadController extends BaseController
             flush();
         }
         fclose($fp);
+        die();
         //下载完成后删除文件 原代码中，zip文件有删除逻辑。删除文件和目录是有风险的，为什么要删除？
 //        if ($file_count >= $file_size && in_array($type, ['temp', 'zip', 'error'])) {
 //            $this->removeFile($type, $fileName);
