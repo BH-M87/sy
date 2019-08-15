@@ -35,8 +35,8 @@ class PointService extends BaseService
     private function _searchDeal($data)
     {
         $mod = PsPatrolPoints::find()->where(['community_id' => $data['community_id']]);
-        $mod->andFilterWhere(['need_location' => $data['need_location'], 'need_photo' => $data['need_photo'], 'is_del' => 1]);
-        $mod->andFilterWhere(['like', 'name', $data['name']]);
+        $mod->andFilterWhere(['need_location' => F::value($data,'need_location'), 'need_photo' => F::value($data,'need_photo'), 'is_del' => 1]);
+        $mod->andFilterWhere(['like', 'name', F::value($data,'name')]);
         return $mod;
     }
 
