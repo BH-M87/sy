@@ -19,7 +19,7 @@ class PsAgent extends BaseModel
     public function rules()
     {
         return [
-            [['name',"link_man","link_phone","login_phone","alipay_account"], 'required',
+            [['name',"link_man","link_phone","login_phone"], 'required',
                 'message' => '{attribute}不能为空!', 'on' => ['add','edit']],
 
             [["login_name","status","agent_id"], 'required',
