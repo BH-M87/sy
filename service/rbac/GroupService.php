@@ -7,6 +7,7 @@ use yii\db\Query;
 use yii\db\Exception;
 
 use service\BaseService;
+use service\rbac\UserService;
 use app\modules\street\services\DingdingService;
 
 use common\core\PsCommon;
@@ -60,6 +61,7 @@ class GroupService extends BaseService
                 $data[$v['id']] = [
                     'id' => $v['id'],
                     'deptName' => $v['name'],//部门名称
+                    'parentId' => $v['parent_id'],
                     'deptNo' => !empty($users[$v['id']]['users']) ? (int)$users[$v['id']]['users'] : 0,//用户数
                     'disabled' => false,//($v['id'] != $topId && in_array($v['id'], $see)) ? true : false,//是否可编辑
                     'checked' => (in_array($v['id'], $checkedIds)) ? true : false,//搜索，颜色是否变红
@@ -154,14 +156,7 @@ class GroupService extends BaseService
             ->where(['system_type' => $systemType, 'name' => $name, 'obj_id' => $propertyId])->exists();
     }
 
-    /**
-     * 系统自动添加物业公司管理员部门
-     * @param $groupName
-     * @param $systemType
-     * @param $propertyId
-     * @param $propertyName
-     * @return boolean
-     */
+    // 系统自动添加物业公司管理员部门
     public function addBySystem($groupName, $systemType, $propertyId)
     {
         $model = new PsGroups();
@@ -171,21 +166,20 @@ class GroupService extends BaseService
         $model->system_type = $systemType;
         $model->obj_id = $propertyId;
         $model->create_at = time();
+
         if ($model->save()) {
             return $model->id;
         }
+
         return false;
     }
 
-    /* ckl检查
-     * $menuArr 菜单子集id的集合
-     * $system_type 系统类型1 运营系统 2物业系统
-     * group 组信息
-     * */
-    public function add($group, $menuArr, $system_type, $userInfo)
+    // 部门新镇 $system_type 系统类型1 运营系统 2物业系统
+    public function add($group, $system_type, $userInfo)
     {
         $group['property_id'] = $userInfo ? $userInfo['property_company_id'] : PsCommon::get($group, 'property_id', 0);
         $parentId = $group['parent_id'];
+        
         $parent = PsGroups::findOne($parentId);
         if (!$parent) {
             return $this->failed('父级部门不存在');
@@ -193,99 +187,75 @@ class GroupService extends BaseService
         $nodesArr = explode('-', $parent['nodes']);
         array_push($nodesArr, $parentId);
         $nodes = implode('-', array_filter($nodesArr));
+        
         if ($this->groupUnique($system_type, $group['name'], $group['property_id'])) {
             return $this->failed('部门名称不允许重复');
         }
-        $connection = Yii::$app->db;
-
-        $topId = $this->getTopIdByNodes($parent['nodes'], $parentId);
-        $menus = MenuService::service()->getPidList($topId);
-        $menus_result = $this->validMenu($menus, $menuArr);
-        if (!$menus_result["code"]) {
-            return $this->failed($menus_result["msg"]);
-        }
-        $menuArr = $menus_result["data"];
 
         $transaction = Yii::$app->db->beginTransaction();
-        $model = new PsGroups();
-        $model->setScenario('add');
-        $model->parent_id = $parentId;
-        $model->name = $group['name'];
-        $model->system_type = $system_type;
-        $model->level = !empty($parent['level']) ? $parent['level'] + 1 : 1;
-        $model->obj_id = $group['property_id'];
-        $model->nodes = $nodes;
-        $model->see_limit = $group['see_limit'];
-        $model->create_at = time();
-        if (!$model->save()) {
-            return $this->failed($this->getError($model));
-        }
-
-        $group_id = $model->id;
-
-        if ($group['see_limit'] == 2) {
-            if (!$group['see_group_id']) {
-                return $this->failed('部门限制不能为空');
+        
+        try {
+            $model = new PsGroups();
+            $model->setScenario('add');
+            $model->parent_id = $parentId ?? 0;
+            $model->name = $group['name'];
+            $model->system_type = $system_type;
+            $model->level = !empty($parent['level']) ? $parent['level'] + 1 : 1;
+            $model->obj_id = $group['property_id'];
+            $model->nodes = $nodes ?? '';
+            $model->see_limit = $group['see_limit'] ?? 0;
+            $model->create_at = time();
+            if (!$model->save()) {
+                return $this->failed($this->getError($model));
             }
 
-            $see_limitArr = [];
-            foreach ($group['see_group_id'] as $item) {
-                $see_limitArr[] = [$model['id'], $item];
-            }
+            $group_id = $model->id;
 
-            try {
-                $connection->createCommand()->batchInsert('ps_groups_relations',
+            if ($group['see_limit'] == 2) {
+                if (!$group['see_group_id']) {
+                    return $this->failed('部门限制不能为空');
+                }
+
+                $see_limitArr = [];
+                foreach ($group['see_group_id'] as $item) {
+                    $see_limitArr[] = [$model['id'], $item];
+                }
+
+                Yii::$app->db->createCommand()->batchInsert('ps_groups_relations',
                     ['group_id', 'see_group_id'],
                     $see_limitArr
                 )->execute();
-            } catch (Exception $e) {
-                $transaction->rollBack();
-                Yii::error('ps_group_relation新增失败 ' . $e->getMessage());
-                return $this->failed('ps_group_relation新增失败');
             }
-        }
 
-        $menuInsertArr = [];
-        foreach ($menuArr as $value) {
-            $menuInsertArr[] = [$group_id, $value];
-        }
-        try {
-            $connection->createCommand()->batchInsert('ps_group_menus',
-                ['group_id', 'menu_id'],
-                $menuInsertArr
-            )->execute();
             $transaction->commit();
+
+            return $this->success($group_id);
         } catch (Exception $e) {
             $transaction->rollBack();
-            Yii::error('ps_group_menus插入失败' . $e->getMessage());
-            return $this->failed('新增失败3');
-        }
-        $this->delMenuCache($group_id);
 
-        return $this->success($group_id);
+            return $this->failed('新增失败');
+        }
     }
 
-    /* ckl检查
-     * $name用户组id
-     * $name 组名
-     * $menuArr 菜单子集id的集合
-     * */
-    public function edit($requestParams, $menuArr)
+    // 部门编辑
+    public function edit($params)
     {
-        $connection = Yii::$app->db;
-        $group = PsGroups::findOne($requestParams['group_id']);
-        $parentGroup = PsGroups::findOne($requestParams['parent_id']);
+        $group = PsGroups::findOne($params['group_id']);
         if (empty($group)) {
             return $this->failed('部门未找到');
         }
+        
+        $parentGroup = PsGroups::findOne($params['parent_id']);
         if (empty($parentGroup)) {
             return $this->failed('父部门未找到');
         }
+
         if ($group["parent_id"] == 0) {
             return $this->failed('最高级部门无法编辑');
         }
+
         $unique_group = PsGroups::find()
-            ->where(['name' => $requestParams['name'], 'obj_id' => $group['obj_id'], 'system_type' => 2])
+            ->where(['name' => $params['name'], 'obj_id' => $group['obj_id'], 'system_type' => 2])
             ->andWhere('id <> :id')->addParams([':id' => $group['id']])->count();
         if ($unique_group >= 1) {
             return $this->failed('部门名重复！');
@@ -295,76 +265,51 @@ class GroupService extends BaseService
         if (in_array($group->id, $parentNodes)) {
             return $this->failed('不能添加到子部门下');
         }
-        $newNode = $this->getNode($requestParams['parent_id']);
+        $newNode = $this->getNode($params['parent_id']);
 
         $oldSeeLimit = $group['see_limit'];
-        $topId = $this->getTopIdByNodes($group['nodes'], $requestParams['group_id']);
-        $menus = MenuService::service()->getPidList($topId);
-        $menus_result = $this->validMenu($menus, $menuArr);
-        if (!$menus_result["code"]) {
-            return $this->failed($menus_result["msg"]);
-        }
 
         $transaction = Yii::$app->db->beginTransaction();
-        //删除之前绑定的菜单
-        PsGroupMenus::deleteAll(['group_id' => $requestParams['group_id']]);
-        //更新group
-        $group->name = $requestParams['name'];
-        $group->parent_id = $requestParams['parent_id'];
-        $group->nodes = $newNode;
-        $group->see_limit = $requestParams['see_limit'];
-        $group->setScenario('add');
-        if (!$group->save()) {
-            return $this->failed($this->getError($group));
-        }
-
-        if ($requestParams['see_limit'] == 2) {
-            if (!$requestParams['see_group_id']) {
-                return $this->failed('部门限制不能为空');
+        try {
+            $group->name = $params['name'];
+            $group->parent_id = $params['parent_id'];
+            $group->nodes = $newNode;
+            if (!empty($params['see_limit'])) {
+                $group->see_limit = $params['see_limit'];
+            }
+            
+            $group->setScenario('add');
+            if (!$group->save()) {
+                return $this->failed($this->getError($group));
             }
 
-            $see_limitArr = [];
-            foreach ($requestParams['see_group_id'] as $item) {
-                $see_limitArr[] = [$requestParams['group_id'], $item];
-            }
+            if ($params['see_limit'] == 2) {
+                if (!$params['see_group_id']) {
+                    return $this->failed('部门限制不能为空');
+                }
 
-            try {
-                PsGroupsRelations::deleteAll(['group_id' => $requestParams['group_id']]);
-                $connection->createCommand()->batchInsert('ps_groups_relations',
+                $see_limitArr = [];
+                foreach ($params['see_group_id'] as $item) {
+                    $see_limitArr[] = [$params['group_id'], $item];
+                }
+
+                PsGroupsRelations::deleteAll(['group_id' => $params['group_id']]);
+                Yii::$app->db->createCommand()->batchInsert('ps_groups_relations',
                     ['group_id', 'see_group_id'],
                     $see_limitArr
                 )->execute();
-            } catch (Exception $e) {
-                $transaction->rollBack();
-                Yii::error('ps_group_relation插入失败' . $e->getMessage());
-                return $this->failed('更新失败');
+            } else {
+                if ($oldSeeLimit == 2) {//老的查看限制=2，新的不是2的时候，需要删除ps_group_relations数据
+                    PsGroupsRelations::deleteAll(['group_id' => $group['id']]);
+                }
             }
-        } else {
-            if ($oldSeeLimit == 2) {//老的查看限制=2，新的不是2的时候，需要删除ps_group_relations数据
-                PsGroupsRelations::deleteAll(['group_id' => $group['id']]);
-            }
-        }
 
-        $menuArr = $menus_result["data"];
-        $menuInsertArr = [];
-        foreach ($menuArr as $value) {
-            $menuInsertArr[] = [$requestParams['group_id'], $value];
-        }
-        try {
-            $connection->createCommand()->batchInsert('ps_group_menus',
-                ['group_id', 'menu_id'],
-                $menuInsertArr
-            )->execute();
             $transaction->commit();
+            return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
-            Yii::error('ps_group_menus插入失败' . $e->getMessage());
             return $this->failed('更新失败');
         }
-
-        $this->delMenuCache($requestParams['group_id']);
-
-        return $this->success();
     }
 
     //ckl检查 部门详情
@@ -835,38 +780,29 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         return $this->success($model->id);
     }
 
-    /**
-     * 部门唯一性检查
-     */
-    private function _groupUnique($name, $systemType, $parentId, $id)
-    {
-        $flag = PsGroups::find()
-            ->where(['system_type' => $systemType, 'name' => $name, 'parent_id' => $parentId])
-            ->andFilterWhere(['<>', 'id', $id])
-            ->exists();
-        return $flag ? true : false;
-    }
-
-    //ckl检查 删除部门
+    // 删除部门
     public function delGroup($id, $propertyId, $systemType)
     {
         $group = PsGroups::findOne(['id' => $id, 'obj_id' => $propertyId, 'system_type' => $systemType]);
         if (!$group) {
             return $this->failed('部门不存在');
         }
+
         if ($group['parent_id'] == 0 && $group['level'] == 1) {
             return $this->failed('最高级部门无法删除');
         }
+
         if (PsGroups::find()->where(['parent_id' => $id])->exists()) {
             return $this->failed('当前部门下有子部门，无法删除，请先删除子部门');
         }
+
         $from_ding = !empty(UserService::currentUser('from_ding')) ? true : false;//是否来自钉钉的通讯录同步
         //员工
         $count = PsUser::find()->where(['group_id' => $id, 'property_company_id' => $propertyId, 'system_type' => $systemType])->exists();
         if ($count) {
             return $this->failed('部门下有员工，无法删除，请先删除员工');
         }
-        if (!$from_ding) {//先去删除钉钉端的部门，如果成功删除，再删除我们部门表的部门
+        if ($from_ding) {//先去删除钉钉端的部门，如果成功删除，再删除我们部门表的部门
             $res = DingdingService::service()->delDepart($propertyId, $id);
             $result = json_decode($res, true);
             if (!empty($result['errCode'])) {
@@ -878,11 +814,10 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             if (!$group->delete()) {
                 throw new Exception('部门删除失败');
             }
-            PsGroupMenus::deleteAll(['group_id' => $id]);
+
             PsGroupPack::deleteAll(['group_id' => $id]);
             PsGroupsRelations::deleteAll(['group_id' => $id]);
 
-            $this->delMenuCache($id);
             $trans->commit();
             return $this->success($id);
         } catch (Exception $e) {
@@ -917,24 +852,21 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         }
     }
 
-    /**
-     * 递归查看分组下的所有分组
-     * @param $groupId
-     * @param $name
-     * @param $recursive
-     * @return array
-     */
+    // 递归查看分组下的所有分组
     private function _getGroups($groupId, $name = null, $recursive = 0)
     {
         if ($recursive && $this->recursive >= $recursive) {
             return [];
         }
+
         if ($this->recursive > 20) {
             return [];
         }
+
         if (!$groupId) {//避免group_id=0的查询
             return [];
         }
+
         $data = PsGroups::find()->select('id, name, describe')
             ->where(['parent_id' => $groupId])
             ->orderBy('id desc')
@@ -942,15 +874,13 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         if (!$data) {//终止递归
             return [];
         }
+
         $result = [];
         $this->recursive++;
         $groupIds = array_column($data, 'id');
         $users = PsUser::find()->select(['group_id', "count(*) users"])
             ->where(['group_id' => $groupIds])
-            ->groupBy('group_id')
-            ->indexBy('group_id')
-            ->asArray()
-            ->all();
+            ->groupBy('group_id')->indexBy('group_id')->asArray()->all();
         foreach ($data as $r) {
             if ($name && strpos($r['name'], $name) !== false) {
                 $r['checked'] = true;
@@ -972,6 +902,7 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $r['children'] = $child;
             $result[] = $r;
         }
+        
         return $result;
     }
 
@@ -981,9 +912,11 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         if (!$groupId) {//避免group_id=0的查询
             return [];
         }
+
         if ($this->recursive > $this->maxRecursive) {
             return [];
         }
+
         if ($this->setRecursive && $this->recursive >= $this->setRecursive) {
             return [];
         }
@@ -992,7 +925,7 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             ->where(['parent_id' => $groupId])
             ->orderBy('id desc')
             ->asArray()->column();
-        if (!$parentIds) {//终止递归
+        if (!$parentIds) { // 终止递归
             return [];
         }
         $allIds = [];
@@ -1005,19 +938,18 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             }
             $allIds = array_merge($allIds, $childIds);
         }
+
         return $allIds;
     }
 
-    /**
-     * 获取当前部门的子部门
-     * @param $id
-     */
+    // 获取当前部门的子部门
     public function getGroupChild($id)
     {
         $groups = $this->_getGroups($id, '', 1);
         if (!$groups) {
             return [];
         }
+
         $ids = array_column($groups, 'id');
         $userCounts = $this->getGroupUserCount($ids);
         $result = [];
@@ -1026,25 +958,24 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $group['num'] = !empty($userCounts[$group['id']]['num']) ? $userCounts[$group['id']]['num'] : 0;
             $result[] = $group;
         }
+
         return $result;
     }
 
-    /**
-     * 级联部门下拉菜单(固定格式)
-     * @param $groupId
-     * @param $parentIds 父节点
-     */
+    // 级联部门下拉菜单(固定格式)
     private function _getGroupsSelect($groupId, $parentIds = [])
     {
-        if (!$groupId) {//避免group_id=0的查询
+        if (!$groupId) { // 避免group_id=0的查询
             return [];
         }
+
         $data = PsGroups::find()->select('id as value, name as label')
             ->where(['parent_id' => $groupId])
             ->asArray()->all();
         if (!$data) {//终止递归
             return [];
         }
+
         $result = [];
         $this->recursive++;
         $parentIds[] = $groupId;
@@ -1059,35 +990,42 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $r['children'] = $child;
             $result[] = $r;
         }
+
         return $result;
     }
 
-    //ckl检查 部门下拉列表
-    public function getAllGroups($streetId)
+    // 部门下拉列表
+    public function getAllGroups($objId)
     {
-        //顶级部门ID
         $topId = PsGroups::find()->select('id')
-            ->where(['obj_id' => $streetId, 'level' => 1, 'parent_id' => 0])
-            ->scalar();
+            ->where(['obj_id' => $objId, 'level' => 1, 'parent_id' => 0])->scalar();
         if (!$topId) {
             return false;
         }
+
         $r = $this->_getGroupsSelect($topId);
+
         $result['label'] = '顶级部门';
         $result['value'] = $topId;
         $result['children'] = $r;
+
         return $result;
     }
 
-    /**
-     * 获取多个分组的员工人数
-     * @param $ids
-     */
+    // 获取多个分组的员工人数
     public function getGroupUserCount($ids)
     {
         return PsUser::find()->select('group_id, count(0) AS num')
-            ->where(['group_id' => $ids])
-            ->groupBy('group_id')
+            ->where(['group_id' => $ids])->groupBy('group_id')
             ->indexBy('group_id')->asArray()->all();
+    }
+
+    // 部门唯一性检查
+    private function _groupUnique($name, $systemType, $parentId, $id)
+    {
+        $flag = PsGroups::find()
+            ->where(['system_type' => $systemType, 'name' => $name, 'parent_id' => $parentId])
+            ->andFilterWhere(['<>', 'id', $id])->exists();
+        return $flag ? true : false;
     }
 }

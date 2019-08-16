@@ -16,6 +16,7 @@ use app\models\PsInspectPoint;
 use common\core\F;
 use common\core\PsCommon;
 use service\BaseService;
+use service\common\QrcodeService;
 use service\rbac\OperateService;
 use Yii;
 
@@ -84,7 +85,7 @@ class PointService extends BaseService
         if ($model->save()) {  # 保存新增数据
             $id = $model->id;
             //TODO 二维码后续添加
-            //self::createQrcode($id);
+            //self::createQrcode($model,$id);
             if (!empty($userInfo)) {
                 //TODO 日志好了就打开
                 //self::addLog($userInfo, $params['name'], $params['community_id'], $scenario);
@@ -96,12 +97,12 @@ class PointService extends BaseService
     }
 
     //生成二维码图片
-    private static function createQrcode($id)
+    private static function createQrcode($model,$id)
     {
         $savePath = F::imagePath('inspect');
         $logo = Yii::$app->basePath . '/web/img/lyllogo.png';//二维码中间的logo
         $url = Yii::$app->getModule('property')->params['ding_web_host'] . '#/scanList?type=scan&id=' . $id;
-        //CommunityService::service()->generateCommCodeImage($savePath, $url, $id, $logo, $mod);//生成二维码图片
+        QrcodeService::service()->generateCommCodeImage($savePath, $url, $id, $logo, $model);//生成二维码图片
     }
 
     //统一日志新增
@@ -144,8 +145,6 @@ class PointService extends BaseService
         if (!empty($result)) {
             $categoryInfo = PsDeviceCategory::findOne($result['category_id']);
             $result['category_name'] = $categoryInfo->name;
-            $result['lon'] = $result['lon'] ?? 0.00;
-            $result['lat'] = $result['lat'] ?? 0.00;
             return $result;
         }
         throw new MyException('巡检点不存在!');
@@ -281,9 +280,72 @@ class PointService extends BaseService
 
     /**  钉钉接口 start */
 
+    //巡检列表
+    public function getList($params)
+    {
+        $page = !empty($params['page']) ? $params['page'] : 1;
+        $rows = !empty($params['rows']) ? $params['rows'] : 5;
+        //列表
+        $list = PsInspectPoint::find()->alias("point")
+            ->where(['community_id' => $params['communitys']])
+            ->select(['point.id', 'comm.name as community_name', 'point.name', 'point.device_name', 'point.need_location', 'point.need_photo', 'point.code_image'])
+            ->leftJoin("ps_community comm", "comm.id=point.community_id")
+            ->orderBy('point.id desc')
+            ->offset(($page - 1) * $rows)
+            ->limit($rows)->asArray()->all();
+        return $this->success(['list' => $list]);
+    }
+    //设备列表
+    public function getDeviceList($params)
+    {
+        $arrList = [];
+        //获取分类
+        $resultAll = PsDeviceCategory::find()->select(['id', 'name'])->andWhere(['or', ['=', 'community_id', $params['community_id']], ['=', 'community_id', 0]])->asArray()->all();
+        if (!empty($resultAll)) {
+            foreach ($resultAll as $result) {
+                $deviceAll = PsDevice::find()->alias("device")
+                    ->where(['device.community_id' => $params['community_id'], 'category_id' => $result['id']])
+                    ->select(['id', 'name'])
+                    ->asArray()->all();
+                if (!empty($deviceAll)) {
+                    $arr['category_id'] = $result['id'];
+                    $arr['category_name'] = $result['name'];
+                    //说明需要查询巡检点选择的设备
+                    $deviceList = [];
+                    foreach ($deviceAll as $device) {
+                        $device['is_checked'] = 0;
+                        if (!empty($params['point_id'])) {
+                            $point = PsInspectPoint::find()->where(['id' => $params['point_id']])->asArray()->one();
+                            if (!empty($point) && $point['device_id'] == $device['id']) {
+                                $device['is_checked'] = 1;//说明选择了当前设备
+                            }
+                        }
+                        $deviceList[] = $device;
+                    }
+                    $arr['device_list'] = $deviceList;
+                    $arrList[] = $arr;
+                }
+            }
+            return $arrList;
+        }
+        throw new MyException('设备不存在！');
+    }
+
     /**  钉钉接口 end */
 
     /**  公共接口 start */
-
+    //自动验证小区权限
+    public  function validaCommunit($params)
+    {
+        $communitys = $params['communitys'];
+        $communityId = !empty($params['community_id']) ? $params['community_id'] : 0;
+        if (!$communityId) {
+            throw new MyException('小区id不能为空！');
+        }
+        if (!in_array($communityId, $communitys)) {
+            throw new MyException('无此小区权限！');
+        }
+        return true;
+    }
     /**  公共接口 end */
 }

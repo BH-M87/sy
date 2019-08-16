@@ -70,7 +70,8 @@ class BaseController extends Controller {
             'id' => 1,
             'username' => 'test123',
             'truename' => 'test123',
-            'property_company_id' => 1
+            'property_company_id' => 1,
+            'mobile'=>'12345678910'
         ];
         $this->userId = 1;
 
