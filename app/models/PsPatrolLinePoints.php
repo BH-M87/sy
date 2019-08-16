@@ -45,4 +45,5 @@ class PsPatrolLinePoints extends BaseModel
             'point_sort' => 'Point Sort',
         ];
     }
+
 }
