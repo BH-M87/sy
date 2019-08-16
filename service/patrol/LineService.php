@@ -14,6 +14,8 @@ use app\models\PsPatrolLine;
 use app\models\PsPatrolLinePoints;
 use app\models\PsPatrolPlan;
 use app\models\PsPatrolPoints;
+use app\models\PsPatrolTask;
+use common\core\PsCommon;
 use service\BaseService;
 use service\rbac\OperateService;
 use yii\base\Exception;
@@ -25,20 +27,17 @@ class LineService extends BaseService
      * 搜索条件
      */
     private function _searchDeal($data){
-        $mod = PsPatrolLine::find()
+        $model = PsPatrolLine::find()
             ->alias('l')
+            ->distinct(['l.id'])
             ->select(['l.*'])
-            ->distinct('l.id')
-            ->where(['l.community_id' => $data['community_id'],'l.is_del'=>1])
-            ->joinWith(['points_list'=>function($query) use($data){
-                if($data['points_name']){
-                    $query->andFilterWhere(['like',PsPatrolPoints::tableName().'.name',$data['points_name']])
-                        ->andFilterWhere([PsPatrolPoints::tableName().'.is_del'=>1]);//
-                }
-            }],false)
-            ->andFilterWhere(['like','l.name',$data['name']]);
-        $mod->andFilterWhere(['like','l.head_name',$data['head']])->orFilterWhere(['like','l.head_moblie',$data['head']]);
-        return $mod;
+            ->leftJoin(['lp'=>PsPatrolLinePoints::tableName()],'lp.line_id = l.id')
+            ->leftJoin(['p'=>PsPatrolPoints::tableName()],'lp.point_id = p.id')
+            ->where(['l.community_id' => $data['community_id'],'l.is_del'=>1,'p.is_del'=>1])
+            ->andWhere(['like','p.name',PsCommon::get($data,'points_name')])
+            ->andFilterWhere(['like','l.name',PsCommon::get($data,'name')]);
+        $model->andFilterWhere(['like','l.head_name',PsCommon::get($data,'head')])->orFilterWhere(['like','l.head_moblie',PsCommon::get($data,'head')]);
+        return $model;
     }
 
     /**
@@ -56,8 +55,10 @@ class LineService extends BaseService
         if ($list) {
             $i = $total - ($page - 1) * $pageSize;
             foreach ($list as $key => $value) {
+                //查找中这条线路下面所有已选择的巡更点
                 $list[$key]['points_list'] = self::getChooseList($value['id']);
                 $list[$key]['tid'] = $i;
+                //验证这条巡更线路能否被编辑
                 $line = self::_checkTaskByLineId($value['id']);
                 $list[$key]['is_edit'] = $line['code'];
                 $i--;
@@ -144,10 +145,9 @@ class LineService extends BaseService
 
         }
 
-        $id = $data['id'];
         //编辑的时候判断这个线路是否已经开始执行
-        if(!empty($id)){
-            $check = self::_checkTaskByLineId($id);
+        if(!empty($data['id'])){
+            $check = self::_checkTaskByLineId($data['id']);
             if($check['code'] != 1){
                 return $this->failed($check['msg']);
             }
@@ -260,13 +260,17 @@ class LineService extends BaseService
         if($check['code'] != 1){
             return $this->failed($check['msg']);
         }
-        $mod = new PsPatrolLine();
-        $data['is_del'] = 1;
-        $data['created_at'] = time();
-        $data['operator_id'] = $operator_id;
-        $data['operator_name'] = $operator_name;
-        $mod->setAttributes($data);
-        if ($mod->save()) {
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $mod = new PsPatrolLine();
+            $data['is_del'] = 1;
+            $data['created_at'] = time();
+            $data['operator_id'] = $operator_id;
+            $data['operator_name'] = $operator_name;
+            $mod->setAttributes($data);
+            $mod->save();
             $line_id = $mod->id;
             if ($from == 1) {
                 $res = self::_dealLinePoints($line_id,$data['points_list'],1,$data);
@@ -285,10 +289,15 @@ class LineService extends BaseService
                 ];
                 OperateService::addComm($userinfo, $operate);
             }
+
+            $transaction->commit();
             return $this->success($res);
-        } else {
-            return $this->failed('保存失败');
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->failed('保存失败'.$e);
+
         }
+
     }
 
     /**
@@ -359,6 +368,7 @@ class LineService extends BaseService
         } else {
             return $this->failed('此线路不存在！');
         }
+
     }
 
     /**
@@ -441,8 +451,9 @@ class LineService extends BaseService
         } else {
             //线路详情处理
             $detail['created_at'] = $detail['created_at'] ? date("Y-m-d H:i",$detail['created_at']) : '';
-            $detail['choose_list']   = self::getChooseList($id);
-            $detail['unchoose_list'] = self::getUnChooseList($detail['community_id'],$id);
+            $choose_list = self::getChooseList($id);
+            $detail['choose_list'] = $choose_list;
+            $detail['unchoose_list'] = self::getUnChooseList($detail['community_id'],$id,$choose_list);
         }
         return $this->success($detail);
     }
@@ -508,8 +519,14 @@ class LineService extends BaseService
             ->where(['line_id'=>$line_id])
             ->andFilterWhere(['p.is_del'=>1])
             ->asArray()->all();
-        return $list;
+        if($list){
+            return $list;
+        }else{
+            return [];
+        }
+
     }
+
 
     /**
      * 巡更点列表--未选择
@@ -517,13 +534,17 @@ class LineService extends BaseService
      * @param string $line_id
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getUnChooseList($community_id,$line_id = ''){
+    public function getUnChooseList($community_id,$line_id = '',$choose_list = []){
         $list = PsPatrolPoints::find()->select(['id as key','name as title'])->where(['community_id'=>$community_id,'is_del'=>1])->asArray()->all();
         if(empty($line_id)){
             return $list;
         }
-        $res = self::getChooseList($line_id);
-        return array_diff_assoc($list,$res);
+        if(empty($choose_list)){
+            $res = self::getChooseList($line_id);
+        }else{
+            $res = $choose_list;
+        }
+        return $this->get_diff_array_by_key($list,$res);
     }
 
     /**
