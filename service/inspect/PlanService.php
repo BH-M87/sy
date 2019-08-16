@@ -558,4 +558,70 @@ class PlanService extends BaseService
         return ['user_list' => $userList];
     }
     /**  钉钉接口 end */
+
+
+    //获取执行时间-定时脚本专用
+    public function getCrontabTime($exec_type, $plan_id)
+    {
+        $dataList = [];
+        $timeData = PsInspectPlancontab::find()->where(['plan_id' => $plan_id])->asArray()->all();
+        foreach ($timeData as $times) {
+            switch ($exec_type) {
+                case 1://按天
+                    $day = date("Y-m-d", (time() + 86400));
+                    $data['plan_start_at'] = $day . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                    $data['plan_end_at'] = $day . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                    $dataList[] = $data;
+                    break;
+                case 2://按周
+                    //获取当天是周几
+                    $week = date("w");
+                    $week = $week == 0 ? 7 : $week;//因为0代表周日
+                    if (($times['week_start'] - $week) == 1) {//说明相差一天则需要新增当前时间的计划任务。今天新增明天的任务
+                        $start_time = date("Y-m-d", (time() + 86400));
+                        $end_time = date("Y-m-d", (time()+($times['week_end'] - $week) * 86400));
+                        $data['plan_start_at'] = $start_time . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $data['plan_end_at'] = $end_time . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $dataList[] = $data;
+                    }else if($week==7 && $times['week_start']==1){//当前是周日，并且配置了周一的计划则新增任务
+                        $start_time = date("Y-m-d", (time() + 86400));
+                        $end_time = date("Y-m-d", (time()+ 86400));
+                        $data['plan_start_at'] = $start_time . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $data['plan_end_at'] = $end_time . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $dataList[] = $data;
+                    }
+                    break;
+                case 3://按月
+                    $day = date("d");
+                    $end_day_str=date("Y-m-01",time());
+                    $end_day=date('d', strtotime($end_day_str." +1 month -1 day"));//月底最后一天
+                    if (($times['day_start'] - $day) == 1) {
+                        $start_time = date("Y-m-d", (time() + 86400));
+                        $end_time = date("Y-m-d", (time()+($times['day_end'] - $day) * 86400));
+                        $data['plan_start_at'] = $start_time . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $data['plan_end_at'] = $end_time . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $dataList[] = $data;
+                    }else if($day==$end_day && $times['day_start']==1){//或者是月底最后一天,并且设置了1号的任务
+                        $start_time = date("Y-m-d", (time() + 86400));
+                        $end_time = date("Y-m-d", (time() + 86400));
+                        $data['plan_start_at'] = $start_time . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $data['plan_end_at'] = $end_time . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $dataList[] = $data;
+                    }
+                    break;
+                case 4://按年
+                    $month = (int)date("m");
+                    $day = date("d");
+                    if ($month == $times['month_start'] && ($times['day_start'] - $day) == 1) {
+                        $start_time = date("Y", time()) . str_pad($times['month_start'], 2, "0", STR_PAD_LEFT) . str_pad($times['day_start'], 2, "0", STR_PAD_LEFT);
+                        $end_time = date("Y", time()) . str_pad($times['month_end'], 2, "0", STR_PAD_LEFT) . str_pad($times['day_end'], 2, "0", STR_PAD_LEFT);
+                        $data['plan_start_at'] = $start_time . " " . str_pad($times['hours_start'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $data['plan_end_at'] = $end_time . " " . str_pad($times['hours_end'], 2, "0", STR_PAD_LEFT) . ':00';
+                        $dataList[] = $data;
+                    }
+                    break;
+            }
+        }
+        return $dataList;
+    }
 }
