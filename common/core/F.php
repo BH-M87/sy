@@ -341,8 +341,8 @@ class F
         return $date1;
     }
 
-    //判断是否重复请求钉钉专业
-    public static function repeatRequest2()
+    //判断是否重复请求钉钉专用
+    public static function repeatRequestDingApp()
     {
         $cacheKey = self::_repeatCacheField();
         if (Yii::$app->redis->set($cacheKey, 1, 'EX', 3, 'NX')) {
