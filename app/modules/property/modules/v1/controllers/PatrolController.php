@@ -141,7 +141,7 @@ class PatrolController extends BaseController
         if (!file_exists($savePath . $img_name)) {//下载未成功
             return PsCommon::responseFailed('二维码不存在');
         }
-        $downUrl = F::downloadUrl( 'patrol/' . $img_name, 'qrcode', $fileName);
+        $downUrl = F::downloadUrl('patrol/' . $img_name, 'qrcode', $fileName);
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
