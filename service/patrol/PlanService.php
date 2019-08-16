@@ -19,6 +19,7 @@ use app\models\PsPatrolTask;
 use app\models\PsUser;
 use app\models\PsUserCommunity;
 use common\core\F;
+use common\core\PsCommon;
 use service\BaseService;
 use service\common\SmsService;
 use service\rbac\GroupService;
@@ -38,25 +39,25 @@ class PlanService extends BaseService
     /**
      * 搜索条件
      */
-    private function _searchDeal($data){
-        $mod = PsPatrolPlan::find()
-            ->alias('p')
-            ->leftJoin(['l' => PsPatrolLine::tableName()], 'p.line_id=l.id')
-            ->select(['p.*','l.name as line_name'])
-            ->distinct('p.id')
-            ->where(['p.community_id' => $data['community_id'],'p.is_del'=>1,'l.is_del'=>1])
-            ->joinWith(['user_list' => function ($query) use($data) {
-                if($data['user']){
-                    $query->andWhere(['like','ps_user.truename', $data['user']]);
-                }
-            }],false)
-            ->andFilterWhere(['like','p.name',$data['name']])
-            ->andFilterWhere(['like','l.name',$data['line_name']]);
-        if($data['start_time'] && $data['end_time']){
-            $mod->andFilterWhere(['>=','p.end_date',strtotime($data['start_time'])])
-                ->andFilterWhere(['<=','p.start_date',strtotime($data['end_time'])]);
+    private function _searchDeal($data)
+    {
+        $model = PsPatrolPlan::find()
+            ->alias('pp')
+            ->select(['pp.*','l.name as line_name'])
+            ->distinct('pp.id')
+            ->leftJoin(['l'=>PsPatrolLine::tableName()],'pp.line_id = l.id')
+            ->leftJoin(['pm'=>PsPatrolPlanManage::tableName()],'pp.id = pm.plan_id')
+            ->leftJoin(['u'=>PsUser::tableName()],'u.id = pm.user_id')
+            ->where(['pp.community_id' => $data['community_id'],'pp.is_del'=>1,'l.is_del'=>1])
+            ->andWhere(['like','u.truename', PsCommon::get($data,'user')])
+            ->andFilterWhere(['like','pp.name',PsCommon::get($data,'name')])
+            ->andFilterWhere(['like','l.name',PsCommon::get($data,'line_name')]);
+        if(!empty($data['start_time']) && !empty($data['end_time'])){
+            $model->andFilterWhere(['>=','pp.end_date',strtotime($data['start_time'])])
+                ->andFilterWhere(['<=','pp.start_date',strtotime($data['end_time'])]);
         }
-        return $mod;
+
+        return $model;
 
     }
 
@@ -70,7 +71,7 @@ class PlanService extends BaseService
     public function getList($data, $page, $pageSize)
     {
         $offset = ($page - 1) * $pageSize;
-        $list = self::_searchDeal($data)->offset($offset)->limit($pageSize)->orderBy('p.created_at desc')->asArray()->all();
+        $list = self::_searchDeal($data)->offset($offset)->limit($pageSize)->orderBy('pp.created_at desc')->asArray()->all();
         $total = self::_searchDeal($data)->count();
         if ($list) {
             $i = $total - ($page - 1) * $pageSize;
@@ -309,10 +310,9 @@ class PlanService extends BaseService
         $data['start_date'] = $start_date;
         $data['end_date'] = $end_date;
 
-        $id = $data['id'];
-        if($id){
+        if(!empty($data['id'])){
             //因为编辑的信息已经在详情接口控制了能否编辑，因此编辑接口不做验证
-            $plan = PsPatrolPlan::findOne($id);
+            $plan = PsPatrolPlan::findOne($data['id']);
             if($plan){
                 if(!self::checkPlanIsChange($plan,$data)){
                     return $this->failed("该计划正在执行，只能修改执行人！");
@@ -455,18 +455,22 @@ class PlanService extends BaseService
             return $this->failed($check['msg']);
         }
         $new_data = $check['data'];
-        $mod = new PsPatrolPlan();
-        $new_data['is_del'] = 1;
-        $new_data['interval_y'] = $new_data['interval_y'] ? $new_data['interval_y'] : 0;
-        $new_data['created_at'] = time();
-        $new_data['operator_id'] = $operator_id;
-        $new_data['operator_name'] = $operator_name;
-        $mod->setAttributes($new_data, false);
-        if($mod->save()){
+
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $mod = new PsPatrolPlan();
+            $new_data['is_del'] = 1;
+            $new_data['interval_y'] = $new_data['interval_y'] ? $new_data['interval_y'] : 0;
+            $new_data['created_at'] = time();
+            $new_data['operator_id'] = $operator_id;
+            $new_data['operator_name'] = $operator_name;
+            $mod->setAttributes($new_data, false);
+            $mod->save();
             $plan_id = $mod->id;
             $new_data['id'] = $plan_id;
             $res = self::_dealPlanManage($plan_id,$data['user_list'],1,$new_data);
-            self::_sendMesByUserId($data['user_list']);
             if($res['code'] != 1) {
                 $mod->delete();//如果新建任务失败，则删除这个计划
                 return $this->failed($res['msg']);
@@ -482,11 +486,14 @@ class PlanService extends BaseService
                 ];
                 OperateService::addComm($userinfo, $operate);
             }
+            $transaction->commit();
+            //self::_sendMesByUserId($data['user_list']);
             return $this->success($resArr);
-        }else{
-            $msg = $mod->errors;
-            return $this->failed($msg);
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->failed('保存失败'.$e);
         }
+
     }
 
     //判断计划是否发生了改变
@@ -559,7 +566,7 @@ class PlanService extends BaseService
                     }
                 }
                 if(!empty($add_user)){
-                    self::_sendMesByUserId($add_user);//新增
+                    //self::_sendMesByUserId($add_user);//新增
                 }
                 $resArr['record_id'] = $plan_id;
                 if (!empty($userinfo)) {
