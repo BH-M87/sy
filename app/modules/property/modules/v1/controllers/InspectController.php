@@ -19,7 +19,7 @@ use service\inspect\TaskService;
 
 class InspectController extends BaseController
 {
-    //public $repeatAction = ['point-add'];
+    public $repeatAction = ['point-add'];
 
     /**
      * @api 巡检点新增
@@ -342,7 +342,7 @@ class InspectController extends BaseController
     {
         $this->request_params['page'] = 1;
         $this->request_params['rows'] = 10000;
-        $result = TaskService::service()->issueLists($this->request_params);
+        $result = TaskService::service()->issueExport($this->request_params, $this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
