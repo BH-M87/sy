@@ -291,7 +291,7 @@ Class CompanyService extends BaseService
             $user["system_type"] = $systemType;
             $user["level"] = 1;
             $user["group_id"] = $groupId;
-            $user["password"] = Yii::$app->security->generatePasswordHash(123456);
+            $user["password"] = Yii::$app->security->generatePasswordHash('zhujiayi360');
 
             $connection->createCommand()->insert("ps_user", $user)->execute();
             $userId = $connection->getLastInsertID();

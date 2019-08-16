@@ -10,10 +10,9 @@ use app\models\PsGroups;
 use app\models\PsUserCommunity;
 use app\modules\street\services\DingdingService;
 use app\services\SmsService;
-use Yii;
-use app\models\User;
 use app\models\PsLoginToken;
 use yii\db\Exception;
+use Yii;
 
 class UserService extends BaseService
 {
@@ -82,6 +81,8 @@ class UserService extends BaseService
      */
     public function login($userName, $password, $systemType)
     {
+
+
         $user = PsUser::findOne(['username' => $userName, 'system_type' => $systemType]);
         if (!$user) {
             return $this->failed('账户不存在');
