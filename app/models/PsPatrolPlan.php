@@ -54,7 +54,7 @@ class PsPatrolPlan extends BaseModel
             ['end_date', 'compare', 'compareAttribute' => 'start_date', 'operator' => '>' , 'message'=>'{attribute}必须大于开始日期','on'=>['add', 'edit','user-list']],
             ['end_date', 'compareTimeRange', 'on'=>['add', 'edit','user-list']],
             [['start_time', 'end_time'], 'date', 'format'=>'HH:mm', 'message' => '{attribute}格式错误!', 'on' => ['add','edit','user-list']],
-            ['end_time', 'compare', 'compareAttribute' => 'start_time', 'operator' => '>' , 'message'=>'{attribute}必须大于开始时间','on'=>['add', 'edit','user-list']],
+            //['end_time', 'compare', 'compareAttribute' => 'start_time', 'operator' => '>' , 'message'=>'{attribute}必须大于开始时间','on'=>['add', 'edit','user-list']],
             ['interval_y', 'checkInterY', 'on'=>['add', 'edit','user-list']],
             ['interval_x', 'compare', 'compareValue' => 0, 'operator' => '>', 'message'=>'{attribute}必须大于0', 'on'=>['add', 'edit','user-list']],
             [['name'], 'string', 'max' => 50],
@@ -88,4 +88,76 @@ class PsPatrolPlan extends BaseModel
             'operator_name' => 'Operator Name',
         ];
     }
+
+    /**
+     * 校验属性值比当天日期值要大
+     * @param $label
+     */
+    public function compare_time($label) {
+        $time = $this->$label;
+        if(is_int($time)) {
+            if($time < strtotime(date('Y-m-d',time()))) {
+                $this->addError($label, $this->getAttributeLabel($label).'不能小于当天日期');
+            }
+        } else {
+            $r = strtotime($time);
+            if (!$r) {
+                $this->addError($label, '请选择正确的时间');
+            }
+            if (strtotime($time) < strtotime(date('Y-m-d',time()))) {
+                $this->addError($label, $this->getAttributeLabel($label).'不能小于当天日期');
+            }
+        }
+    }
+
+    /**
+     * 校验时间范围
+     * @param $label
+     */
+    public function compareTimeRange($label)
+    {
+        $endDate = $this->end_date;
+        $startDate = $this->start_date;
+        $execType = $this->exec_type;
+        if ($execType == 1) {
+            //每天执行，时间最多90天
+            $dt = date("Y-m-d H:i:s",strtotime($startDate." 00:00:00"));
+            if (strtotime($endDate." 00:00:00") > strtotime("$dt+3month")) {
+                $this->addError($label, "按天执行的计划开始日期与结束日期最多只能相差90天");
+            }
+        } else {
+            //每周或每月执行，可选时间间隔1年
+            $dt = date("Y-m-d H:i:s",strtotime($startDate." 00:00:00"));
+            if (strtotime($endDate." 00:00:00") > strtotime("$dt+1year")) {
+                $this->addError($label, "按周或月执行的计划开始日期与结束日期最多只能相差1年");
+            }
+        }
+    }
+
+    /**
+     * 根据计划类型，校验 interval_y
+     * @param $label
+     */
+    public function checkInterY($label)
+    {
+        $execType = $this->exec_type;
+        $interY   = $this->interval_y;
+        if ($execType == 2) {
+            //按周执行
+            if ($interY == 0) {
+                $this->addError($label, "按周执行的计划".$this->getAttributeLabel($label)."不能为空");
+            }
+            if(!in_array($interY,[1,2,3,4,5,6,7])){
+                $this->addError($label, "按周执行的计划".$this->getAttributeLabel($label)."只能填写数字1-7");
+            }
+        } elseif ($execType == 3) {
+            if ($interY == 0) {
+                $this->addError($label, "按月执行的计划".$this->getAttributeLabel($label)."不能为空");
+            }
+            if($interY > 31 || $interY < 1){
+                $this->addError($label, "按月执行的计划".$this->getAttributeLabel($label)."只能填写数字1-31");
+            }
+        }
+    }
+
 }
