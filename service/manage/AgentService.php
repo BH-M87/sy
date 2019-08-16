@@ -50,6 +50,8 @@ class AgentService extends  BaseService {
             $v['is_bind_user'] = $v['user_id'] > 0 ? 1 : 0;
             $v['create_at'] = $v['create_at'] ? date('Y-m-d H:i:s', $v['create_at']) : '';
             $v['packs'] = PackService::service()->getGroupPack($v["group_id"]);
+            $v['type_desc'] = self::$_Type[$v['type']];
+            $v['status_desc'] = self::$_Status[$v['status']];
             $v['communitys'] = $v['user_id'] ? CommunityService::service()->getUserCommunitys($v['user_id']) : [];
             $result[] = $v;
         }
