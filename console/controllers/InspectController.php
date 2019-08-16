@@ -4,7 +4,7 @@
  * @author shenyang
  * @date 2018-01-31
  */
-namespace app\commands;
+namespace console\controllers;
 
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
@@ -18,7 +18,7 @@ use service\manage\CommunityService;
 use Yii\db\Exception;
 use Yii;
 
-Class InspectController extends BaseController
+Class InspectController extends ConsoleController
 {
     //定时执行任务
     public function actionTask()
