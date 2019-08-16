@@ -12,6 +12,7 @@ use app\models\PsPatrolPoints;
 use app\models\PsPatrolTask;
 use common\core\F;
 use service\BaseService;
+use service\common\QrcodeService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use Yii;
@@ -161,7 +162,7 @@ class PointService extends BaseService
         $savePath = F::imagePath('patrol');
         $logo = Yii::$app->basePath . '/web/img/lyllogo.png';//二维码中间的logo
         $url = Yii::$app->getModule('property')->params['ding_web_host'] . '#/workingAdd?type=scan&id=' . $id;
-        CommunityService::service()->generateCommCodeImage($savePath, $url, $id, $logo, $mod);//生成二维码图片
+        QrcodeService::service()->generateCommCodeImage($savePath, $url, $id, $logo, $mod);//生成二维码图片
     }
 
     /**
@@ -203,7 +204,7 @@ class PointService extends BaseService
         } catch (\Exception $e) {
             $transaction->rollBack();
             return $this->failed('保存失败');
-            throw $e;
+            
         }
 
     }
