@@ -225,11 +225,6 @@ class StatisticService extends BaseService
     }
 
     /**  物业后台接口 end */
-
-    /**  钉钉接口 start */
-
-    /**  钉钉接口 end */
-
     /**  公共接口 start */
     // 根据status状态 取出对应status的总条数
     public static function arrResult($params)

@@ -208,7 +208,7 @@ class LineService extends BaseService
         return $model;
     }
 
-    public static function lineOne($id, $select = "*")
+    public static function lineOne($id, $select = "")
     {
         $select = $select ?? ['line.id', 'comm.id as community_id', 'comm.name as community_name', 'line.name', 'line.head_name', 'line.head_mobile'];
         return PsInspectLine::find()->alias("line")
@@ -229,9 +229,21 @@ class LineService extends BaseService
 
     /**  钉钉接口 start */
 
+    //巡检线路列表
+    public function getList($params)
+    {
+        $page = !empty($params['page']) ? $params['page'] : 1;
+        $rows = !empty($params['rows']) ? $params['rows'] : 5;
+        $arr = PsInspectLine::find()->alias("line")
+            ->where(['community_id' => $params['communitys']])
+            ->select(['line.id', 'comm.name as community_name', 'line.name', 'line.head_name', 'line.head_mobile'])
+            ->leftJoin("ps_community comm", "comm.id=line.community_id")
+            ->orderBy('line.id desc')
+            ->offset(($page - 1) * $rows)
+            ->limit($rows)
+            ->asArray()->all();
+        return $this->success(['list' => $arr]);
+    }
+
     /**  钉钉接口 end */
-
-    /**  公共接口 start */
-
-    /**  公共接口 end */
 }

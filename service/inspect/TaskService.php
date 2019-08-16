@@ -8,6 +8,7 @@
 
 namespace service\inspect;
 
+use app\models\PsDevice;
 use app\models\PsInspectPoint;
 use app\models\PsInspectRecord;
 use app\models\PsInspectRecordPoint;
@@ -17,6 +18,7 @@ use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
 use service\common\CsvService;
+use service\qiniu\UploadService;
 use service\rbac\OperateService;
 
 class TaskService extends BaseService
@@ -311,7 +313,7 @@ class TaskService extends BaseService
         return $model;
     }
 
-    public function issueExport($params, $systemType, $userInfo = [])
+    public function issueExport($params, $userInfo = [])
     {
         $config = [
             ['title' => '计划名称', 'field' => 'plan_name'],
@@ -335,7 +337,7 @@ class TaskService extends BaseService
         }
 
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'yichangshuju');
-        $downUrl = F::downloadUrl($systemType, $filename, 'temp', 'yichangshuju.csv');
+        $downUrl = F::downloadUrl($filename, 'temp', 'yichangshuju.csv');
 
         return ['down_url' => $downUrl];
     }
@@ -343,9 +345,223 @@ class TaskService extends BaseService
 
     /**  钉钉接口 start */
 
+    //列表
+    public function getList($params)
+    {
+        $task_time = !empty($params['task_time']) ? strtotime($params['task_time']) : strtotime(date('Y-m-d', time()));
+        $task_date = !empty($params['task_time']) ? $params['task_time'] : date('Y-m-d', time());
+        $page = !empty($params['page']) ? $params['page'] : 1;
+        $rows = !empty($params['rows']) ? $params['rows'] : 5;
+        $resultAll = PsInspectRecord::find()->alias("record")
+            ->where(['record.user_id' => $params['user_id']])
+            ->select(['record.id', 'comm.name as community_name', 'record.task_name', 'record.status', 'record.line_name', 'record.head_name', 'record.head_mobile',
+                'record.plan_start_at', 'record.plan_end_at', 'record.check_start_at', 'record.check_end_at', 'record.point_count', 'record.finish_count'
+            ])
+            ->leftJoin("ps_community comm", "comm.id=record.community_id")
+            ->andWhere(['or',
+                ['and', ['>=', 'record.plan_start_at', $task_time], ['=', "FROM_UNIXTIME(record.plan_start_at,'%Y-%m-%d')", $task_date]],
+                ['and', ['<=', 'record.plan_start_at', $task_time], ['>=', 'record.plan_end_at', $task_time]],
+            ])
+            ->orderBy('record.id desc')
+            ->offset(($page - 1) * $rows)
+            ->limit($rows)
+            ->asArray()->all();
+        $dataList = [];
+        if (!empty($resultAll)) {
+            foreach ($resultAll as $result) {
+                $arr = $result;
+                $plan_time_start = !empty($result['plan_start_at']) ? date('Y-m-d H:i', $result['plan_start_at']) : '';
+                $plan_time_end = !empty($result['plan_end_at']) ? date('Y-m-d H:i', $result['plan_end_at']) : '';
+                $check_time_start = !empty($result['check_start_at']) ? date('Y-m-d H:i', $result['check_start_at']) : '???';
+                $check_time_end = !empty($result['check_end_at']) ? date('Y-m-d H:i', $result['check_end_at']) : '???';
+                $arr['check_time'] = $check_time_start . '至' . $check_time_end;  //巡检时间
+                $arr['check_start_at'] = !empty($result['check_start_at']) ? date('Y-m-d H:i', $result['check_start_at']) : '???';
+                $arr['check_end_at'] = !empty($result['check_end_at']) ? date('Y-m-d H:i', $result['check_end_at']) : '???';
+                $arr['plan_time'] = $plan_time_start . '至' . $plan_time_end;     //计划时间
+                $arr['plan_start_at'] = !empty($result['plan_start_at']) ? date('Y-m-d H:i', $result['plan_start_at']) : '';
+                $arr['plan_end_at'] = !empty($result['plan_end_at']) ? date('Y-m-d H:i', $result['plan_end_at']) : '';
+                $arr['status'] = !empty($result['status']) ? self::$status[$result['status']] : "未知";
+                $arr['unfinish_count'] = $result['point_count'] - $result['finish_count'];
+                $dataList[] = $arr;
+            }
+        }
+        return ['list' => $dataList];
+    }
+
+    //详情
+    public function getInfo($params)
+    {
+        if (empty($params['id'])) {
+            throw new MyException('id不能为空');
+        }
+        $result = PsInspectRecord::find()->alias("record")
+            ->where(['record.id' => $params['id'], 'record.user_id' => $params['user_id']])
+            ->select(['record.id', 'comm.name as community_name', 'record.task_name', 'record.status', 'record.line_name', 'record.head_name', 'record.head_mobile',
+                'record.plan_start_at', 'record.plan_end_at', 'record.check_start_at', 'record.check_end_at', 'record.point_count', 'record.finish_count'
+            ])
+            ->leftJoin("ps_community comm", "comm.id=record.community_id")
+            ->asArray()->one();
+        if (!empty($result)) {
+            $plan_time_start = !empty($result['plan_start_at']) ? date('Y-m-d H:i', $result['plan_start_at']) : '';
+            $plan_time_end = !empty($result['plan_end_at']) ? date('Y-m-d H:i', $result['plan_end_at']) : '';
+            $check_time_start = !empty($result['check_start_at']) ? date('Y-m-d H:i', $result['check_start_at']) : '???';
+            $check_time_end = !empty($result['check_end_at']) ? date('Y-m-d H:i', $result['check_end_at']) : '???';
+            $result['check_time'] = $check_time_start . '至' . $check_time_end;  //巡检时间
+            $result['check_start_at'] = !empty($result['check_start_at']) ? date('Y-m-d H:i', $result['check_start_at']) : '???';
+            $result['check_end_at'] = !empty($result['check_end_at']) ? date('Y-m-d H:i', $result['check_end_at']) : '???';
+            $result['plan_time'] = $plan_time_start . '至' . $plan_time_end;     //计划时间
+            $result['plan_start_at'] = !empty($result['plan_start_at']) ? date('Y-m-d H:i', $result['plan_start_at']) : '';
+            $result['plan_end_at'] = !empty($result['plan_end_at']) ? date('Y-m-d H:i', $result['plan_end_at']) : '';
+            $result['status'] = !empty($result['status']) ? self::$status[$result['status']] : "未知";
+            $result['unfinish_count'] = $result['finish_count'] > 0 ? ($result['point_count'] - $result['finish_count']) : $result['point_count'];
+            //获取任务下的巡检点
+            $pointList = PsInspectRecordPoint::find()
+                ->where(['record_id' => $params['id']])
+                ->select(['id', 'finish_at', 'device_status', 'status', 'point_name', 'point_location_name', 'need_location', 'point_id'])
+                ->asArray()->all();
+            $pointData = [];
+            if (!empty($pointList)) {
+                foreach ($pointList as $point) {
+                    $pointInfo = PsInspectPoint::findOne($point['point_id']);
+                    $point['device_name'] = $pointInfo->device_name;
+                    $point['finish_at'] = !empty($point['finish_at']) ? date("Y-m-d H:i", $point['finish_at']) : '';
+                    $point['status_lable'] = self::$point_status[$point['status']];
+                    $pointData[] = $point;
+                }
+            }
+            $result['point_list'] = $pointData;
+            return $result;
+        }
+        throw new MyException('任务不存在');
+    }
+
+    //巡检点-详情
+    public function getPointInfo($params)
+    {
+        if (empty($params['id'])) {
+            throw new MyException('id不能为空');
+        }
+        //巡检点详情
+        $pointInfo = PsInspectRecordPoint::find()->alias("task_point")
+            ->where(['task_point.id' => $params['id']])
+            ->select(['task_point.id', 'task_point.device_status', 'task_point.point_name', 'task_point.need_location', 'point.device_name', 'task_point.need_photo', 'task_point.status', 'task_point.imgs', 'task_point.record_note', 'task_point.finish_at', 'task_point.location_name', 'task_point.location_name', 'task_point.point_lat', 'task_point.point_lon', 'point.device_name'])
+            ->leftJoin("ps_inspect_point point", "point.id=task_point.point_id")
+            ->asArray()->one();
+        $pointInfo['error_msg'] = '';
+        if (!empty($pointInfo)) {
+            $pointInfo['finish_at'] = !empty($pointInfo['finish_at']) ? date("Y-m-d H:i", $pointInfo['finish_at']) : '';
+            $pointInfo['imgs'] = !empty($pointInfo['imgs']) ? explode(",", $pointInfo['imgs']) : '';
+            $pointInfo['error_msg'] = '';
+            if ($pointInfo['status'] == 1) {
+                $info = PsInspectRecordPoint::find()->alias("task_point")
+                    ->where(['task_point.id' => $params['id']])
+                    ->select(['task_point.id', 'task_point.device_status', 'task_point.point_name', 'task_point.need_location', 'task_point.need_photo', 'task_point.status'])
+                    ->andWhere(['<=', 'record.plan_start_at', time()])
+                    ->andWhere(['>=', 'record.plan_end_at', time()])
+                    ->leftJoin("ps_inspect_record record", "record.id=task_point.record_id")
+                    ->asArray()->one();
+                if (empty($info)) {
+                    $pointInfo['error_msg'] = "当前时间不可执行任务！";
+                }
+                //如果需要定位的话判断距离误差
+                if ($pointInfo['need_location'] == 1) {
+                    $distance = F::getDistance($params['lat'], $params['lon'], $pointInfo['point_lat'], $pointInfo['point_lon']);
+                    if ($distance > \Yii::$app->getModule('property')->params['distance']) {
+                        $pointInfo['error_msg'] = "当前位置不可巡检！";
+                    }
+                }
+            }
+            return ['point_info' => $pointInfo];
+        }
+        throw new MyException('巡检点不存在');
+    }
+
+    //提交巡检点
+    public function add($reqArr)
+    {
+        if (empty($reqArr['id'])) {
+            return $this->failed('id不能为空');
+        }
+        $trans = \Yii::$app->getDb()->beginTransaction();
+        try {
+            $model = PsInspectRecordPoint::findOne($reqArr['id']);
+            if (empty($model)) {
+                return $this->failed('任务不存在!');
+            }
+            if ($model['status'] != 1) {
+                return $this->failed('任务已巡检!');
+            }
+            //得到对应的巡检点信息
+            $point = PsInspectPoint::findOne($model['point_id']);
+            if ($point->need_location == 1 && (empty($reqArr['lat']) || empty($reqArr['lon']) || empty($reqArr['location_name']))) {
+                return $this->failed('该任务需定位,经纬度不能为空!');
+            }
+            if ($point->need_photo == 1 && empty($reqArr['img'])) {
+                return $this->failed('该任务需拍照,图片不能为空!');
+            }
+            $reqArr['imgs'] = $reqArr['img'];
+            $reqArr['status'] = 2;
+            $reqArr['finish_at'] = time();
+            $info = PsInspectRecordPoint::find()->alias("task_point")
+                ->where(['task_point.id' => $reqArr['id']])
+                ->select(['task_point.id', 'task_point.device_status', 'task_point.point_name', 'task_point.need_location', 'task_point.need_photo', 'task_point.status', 'task_point.point_lat', 'task_point.point_lon'])
+                ->andWhere(['<=', 'record.plan_start_at', time()])
+                ->andWhere(['>=', 'record.plan_end_at', time()])
+                ->leftJoin("ps_inspect_record record", "record.id=task_point.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                return $this->failed('当前时间不可执行任务!');
+            }
+            //如果需要定位的话判断距离误差
+            if ($info['need_location'] == 1) {
+                $distance = F::getDistance($reqArr['lat'], $reqArr['lon'], $info['point_lat'], $info['point_lon']);
+                if ($distance > \Yii::$app->getModule('property')->params['distance']) {
+                    return $this->failed("当前位置不可巡检！");
+                }
+            }
+            $model->scenario = 'edit';  # 设置数据验证场景为 新增
+            $model->load($reqArr, '');   # 加载数据
+            if ($model->validate()) {  # 验证数据
+                if ($model->save()) {  # 保存新增数据
+                    //更新任务完成数,完成率
+                    $record = PsInspectRecord::findOne($model->record_id);              //任务详情
+                    $pointInfo = PsInspectPoint::findOne(['id' => $model->point_id]);    //巡检点详情
+                    $flag = PsDevice::updateAll(['inspect_status' => $reqArr['device_status']], ['id' => $pointInfo->device_id]);   //修改设备状态为正常
+                    if ($record->check_start_at == 0) {
+                        PsInspectRecord::updateAll(['status' => 2, 'check_start_at' => time()], ['id' => $model->record_id]);
+                    }
+                    if ($reqArr['device_status'] == 2) {//设备异常
+                        PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $model->record_id]);
+                    }
+                    $finish_count = $record->finish_count + 1;
+                    $finish_rate = ($record->finish_count / $record->point_count) * 100;
+                    PsInspectRecord::updateAll(['finish_count' => $finish_count, 'finish_rate' => $finish_rate], ['id' => $model->record_id]);
+                    //查询是否还有未完成的巡检点,没有则任务是完成状态
+                    $modelInfo = PsInspectRecordPoint::find()
+                        ->where(['record_id' => $model->record_id, 'status' => 1])
+                        ->andWhere(['!=', 'id', $model->id])->one();
+                    if (empty($modelInfo)) {
+                        PsInspectRecord::updateAll(['status' => 3, 'check_end_at' => time()], ['id' => $model->record_id]);
+                    }
+                    //提交事务
+                    $trans->commit();
+
+                    //TODO 是否需要数据监控
+                    /*if ($flag) {//(事务提交后数据库才能查到)设备状态更新后，推送到监控页面 @shenyang v4.4数据监控版本
+                        WebSocketClient::getInstance()->send(MonitorService::MONITOR_DEVICE, $model->community_id);
+                    }*/
+                    ////将钉钉图片转化为七牛图片
+                    UploadService::service()->pushDing($model->id, 'inspect', $model['imgs']);
+                    return $this->success([]);
+                }
+                throw new MyException($model->getErrors());
+            } else {
+                throw new MyException($model->getErrors());
+            }
+        } catch (\Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
     /**  钉钉接口 end */
-
-    /**  公共接口 start */
-
-    /**  公共接口 end */
 }
