@@ -3,10 +3,10 @@
 namespace app\modules\property\controllers;
 
 use common\core\F;
+use common\core\PsCommon;
 use app\models\PsUser;
 use service\manage\CompanyService;
 use service\common\SmsService;
-use app\common\core\PsCommon;
 use service\rbac\OperateService;
 use service\rbac\UserService;
 use Yii;
