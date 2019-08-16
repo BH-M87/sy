@@ -144,9 +144,9 @@ class PointService extends BaseService
             unset($data['lon']);
             unset($data['lat']);
         }
-        $id = $data['id'];
-        if ($id) {
-            $check = $this->_checkTaskByPointId($id);
+
+        if (!empty($data['id'])) {
+            $check = $this->_checkTaskByPointId($data['id']);
             if ($check['code'] != 1) {
                 return $this->failed($check['msg']);
             }
@@ -178,12 +178,16 @@ class PointService extends BaseService
             return $this->failed($check['msg']);
         }
         $new_data = $check['data'];
-        $mod = new PsPatrolPoints();
-        $new_data['created_at'] = time();
-        $new_data['operator_id'] = $operator_id;
-        $new_data['operator_name'] = $operator_name;
-        $mod->setAttributes($new_data);
-        if ($mod->save()) {
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $mod = new PsPatrolPoints();
+            $new_data['created_at'] = time();
+            $new_data['operator_id'] = $operator_id;
+            $new_data['operator_name'] = $operator_name;
+            $mod->setAttributes($new_data);
+            $mod->save();
             //生成二维码图片
             $this->createQrcode($mod);
             $res['record_id'] = $mod->id;
@@ -194,10 +198,14 @@ class PointService extends BaseService
                 $operate['operate_content'] = "巡检点名称:" . $data['name'];
                 OperateService::addComm($userinfo, $operate);
             }
+            $transaction->commit();
             return $this->success($res);
-        } else {
+        } catch (\Exception $e) {
+            $transaction->rollBack();
             return $this->failed('保存失败');
+            throw $e;
         }
+
     }
 
     /**

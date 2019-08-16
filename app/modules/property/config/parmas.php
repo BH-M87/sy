@@ -13,42 +13,18 @@ $params = [
 ];
 switch (YII_ENV) {
     case  "master":
-        //生活号页面域名
-        $params['web_host'] = 'https://fuwu.zje.com/';
-        //钉钉接口域名
-        $params['ding_host'] = 'https://ddapi.elive99.com/';
-        //钉钉企业内应用钉钉接口
-        $params['ding_host_new'] = 'https://ddapi-company.elive99.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'https://ddweb.elive99.com';
         break;
     case  "test":
-        //生活号页面域名
-        $params['web_host'] = 'https://test-fuwu.zje.com/';
-        //钉钉接口域名
-        $params['ding_host'] = 'https://ddapi-test.elive99.com/';
-        //钉钉企业内应用钉钉接口
-        $params['ding_host_new'] = 'https://ddapi-test-company.elive99.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
         break;
     case  "release":
-        //生活号页面域名
-        $params['web_host'] = 'https://test-fuwu.zje.com/';
-        //钉钉接口域名
-        $params['ding_host'] = 'https://ddapi-test.elive99.com/';
-        //钉钉企业内应用钉钉接口
-        $params['ding_host_new'] = 'https://ddapi-test-company.elive99.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'https://dev-web.elive99.com/test/dingtalk-lyl/';
         break;
     default :
-        //生活号页面域名
-        $params['web_host'] = 'http://wdt888.viphk.ngrok.org/';
-        //钉钉接口域名
-        $params['ding_host'] = 'https://ddapi-test.elive99.com/';
-        //钉钉企业内应用钉钉接口
-        $params['ding_host_new'] = 'http://www.dingding.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
         break;
