@@ -780,18 +780,6 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         return $this->success($model->id);
     }
 
-    /**
-     * 部门唯一性检查
-     */
-    private function _groupUnique($name, $systemType, $parentId, $id)
-    {
-        $flag = PsGroups::find()
-            ->where(['system_type' => $systemType, 'name' => $name, 'parent_id' => $parentId])
-            ->andFilterWhere(['<>', 'id', $id])
-            ->exists();
-        return $flag ? true : false;
-    }
-
     // 删除部门
     public function delGroup($id, $propertyId, $systemType)
     {
@@ -864,24 +852,21 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         }
     }
 
-    /**
-     * 递归查看分组下的所有分组
-     * @param $groupId
-     * @param $name
-     * @param $recursive
-     * @return array
-     */
+    // 递归查看分组下的所有分组
     private function _getGroups($groupId, $name = null, $recursive = 0)
     {
         if ($recursive && $this->recursive >= $recursive) {
             return [];
         }
+
         if ($this->recursive > 20) {
             return [];
         }
+
         if (!$groupId) {//避免group_id=0的查询
             return [];
         }
+
         $data = PsGroups::find()->select('id, name, describe')
             ->where(['parent_id' => $groupId])
             ->orderBy('id desc')
@@ -889,15 +874,13 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         if (!$data) {//终止递归
             return [];
         }
+
         $result = [];
         $this->recursive++;
         $groupIds = array_column($data, 'id');
         $users = PsUser::find()->select(['group_id', "count(*) users"])
             ->where(['group_id' => $groupIds])
-            ->groupBy('group_id')
-            ->indexBy('group_id')
-            ->asArray()
-            ->all();
+            ->groupBy('group_id')->indexBy('group_id')->asArray()->all();
         foreach ($data as $r) {
             if ($name && strpos($r['name'], $name) !== false) {
                 $r['checked'] = true;
@@ -919,6 +902,7 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $r['children'] = $child;
             $result[] = $r;
         }
+        
         return $result;
     }
 
@@ -928,9 +912,11 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
         if (!$groupId) {//避免group_id=0的查询
             return [];
         }
+
         if ($this->recursive > $this->maxRecursive) {
             return [];
         }
+
         if ($this->setRecursive && $this->recursive >= $this->setRecursive) {
             return [];
         }
@@ -939,7 +925,7 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             ->where(['parent_id' => $groupId])
             ->orderBy('id desc')
             ->asArray()->column();
-        if (!$parentIds) {//终止递归
+        if (!$parentIds) { // 终止递归
             return [];
         }
         $allIds = [];
@@ -952,19 +938,18 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             }
             $allIds = array_merge($allIds, $childIds);
         }
+
         return $allIds;
     }
 
-    /**
-     * 获取当前部门的子部门
-     * @param $id
-     */
+    // 获取当前部门的子部门
     public function getGroupChild($id)
     {
         $groups = $this->_getGroups($id, '', 1);
         if (!$groups) {
             return [];
         }
+
         $ids = array_column($groups, 'id');
         $userCounts = $this->getGroupUserCount($ids);
         $result = [];
@@ -973,25 +958,24 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $group['num'] = !empty($userCounts[$group['id']]['num']) ? $userCounts[$group['id']]['num'] : 0;
             $result[] = $group;
         }
+
         return $result;
     }
 
-    /**
-     * 级联部门下拉菜单(固定格式)
-     * @param $groupId
-     * @param $parentIds 父节点
-     */
+    // 级联部门下拉菜单(固定格式)
     private function _getGroupsSelect($groupId, $parentIds = [])
     {
-        if (!$groupId) {//避免group_id=0的查询
+        if (!$groupId) { // 避免group_id=0的查询
             return [];
         }
+
         $data = PsGroups::find()->select('id as value, name as label')
             ->where(['parent_id' => $groupId])
             ->asArray()->all();
         if (!$data) {//终止递归
             return [];
         }
+
         $result = [];
         $this->recursive++;
         $parentIds[] = $groupId;
@@ -1006,35 +990,42 @@ where pu.group_id=:group_id and pc.community_id=:community_id and pu.system_type
             $r['children'] = $child;
             $result[] = $r;
         }
+
         return $result;
     }
 
-    //ckl检查 部门下拉列表
-    public function getAllGroups($streetId)
+    // 部门下拉列表
+    public function getAllGroups($objId)
     {
-        //顶级部门ID
         $topId = PsGroups::find()->select('id')
-            ->where(['obj_id' => $streetId, 'level' => 1, 'parent_id' => 0])
-            ->scalar();
+            ->where(['obj_id' => $objId, 'level' => 1, 'parent_id' => 0])->scalar();
         if (!$topId) {
             return false;
         }
+
         $r = $this->_getGroupsSelect($topId);
+
         $result['label'] = '顶级部门';
         $result['value'] = $topId;
         $result['children'] = $r;
+
         return $result;
     }
 
-    /**
-     * 获取多个分组的员工人数
-     * @param $ids
-     */
+    // 获取多个分组的员工人数
     public function getGroupUserCount($ids)
     {
         return PsUser::find()->select('group_id, count(0) AS num')
-            ->where(['group_id' => $ids])
-            ->groupBy('group_id')
+            ->where(['group_id' => $ids])->groupBy('group_id')
             ->indexBy('group_id')->asArray()->all();
+    }
+
+    // 部门唯一性检查
+    private function _groupUnique($name, $systemType, $parentId, $id)
+    {
+        $flag = PsGroups::find()
+            ->where(['system_type' => $systemType, 'name' => $name, 'parent_id' => $parentId])
+            ->andFilterWhere(['<>', 'id', $id])->exists();
+        return $flag ? true : false;
     }
 }
