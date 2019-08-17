@@ -2,12 +2,14 @@
 
 namespace service\rbac;
 
+use app\models\ZjyUserRole;
 use common\core\PsCommon;
 use service\BaseService;
 use app\models\PsUser;
 use app\models\PsAgent;
 use app\models\PsGroups;
 use app\models\PsUserCommunity;
+use service\manage\CompanyService;
 use app\modules\street\services\DingdingService;
 use app\services\SmsService;
 use app\models\PsLoginToken;
@@ -94,20 +96,32 @@ class UserService extends BaseService
         if ($systemType == 2 && !$user->checkProCompanyExistCommunity($user['id'])) {
             return $this->failed('账号没有关联小区');
         }
+        $companyName = CompanyService::service()->getNameById($user['property_company_id']);
+        $cacheData = [
+            'id' => $user['id'],
+            'mobile' => $user['mobile'],
+            'company_id' => $user['property_company_id'],
+            'property_company_id' => $user['property_company_id'],
+            'property_company_name' => $companyName,
+            'truename' => $user['truename'],
+            'username' => $user['username'],
+            'group_id' => $user['group_id'],
+            'role_id' => ZjyUserRole::getUserRole($user['id']),
+            'level' => $user['user_type'],
+            'system_type' => $user['system_type']
+        ];
         //是否有token存在
         $loginToken = PsLoginToken::findOne(['user_id' => $user['id'], 'app_type' => 1]);
         if ($loginToken && $this->_getCache($loginToken['token'])) {
             //token存在·切没有过期，继续使用
             $this->refreshExpired($loginToken['token']);
-            return $this->success(['id' => $user['id'], 'property_company_id' => $user['property_company_id'],
-                'token' => $loginToken['token']]);
+            $cacheData['token'] = $loginToken['token'];
         }
         //缓存已过期，或第一次生成token
-        if ($token = $this->_saveLoginToken($user, $loginToken)) {
-            return $this->success(['id' => $user['id'], 'property_company_id' => $user['property_company_id'],
-                'token' => $token]);
+        if ($token = $this->_saveLoginToken($cacheData, $loginToken)) {
+            $cacheData['token'] = $token;
         }
-        return $this->failed();
+        return $this->success($cacheData);
     }
 
     /**
@@ -116,7 +130,7 @@ class UserService extends BaseService
      * @param $loginToken
      * @return bool|string
      */
-    private function _saveLoginToken(PsUser $user, $loginToken)
+    private function _saveLoginToken($user, $loginToken)
     {
         $newToken = md5($user['id'] . $user['username'] . time());
         if ($loginToken) {
@@ -148,22 +162,9 @@ class UserService extends BaseService
      * @param PsUser $user
      * @param $token
      */
-    private function _setCache(PsUser $user, $token)
+    private function _setCache($user, $token)
     {
-        $cacheData = [
-            'id' => $user['id'],
-            'is_enable' => $user['is_enable'],
-            'mobile' => $user['mobile'],
-            'property_company_id' => $user['property_company_id'],
-            'truename' => $user['truename'],
-            'username' => $user['username'],
-            'group_id' => $user['group_id'],
-            'level' => $user['level'],
-            'creator' => $user['creator'],
-            'system_type' => $user['system_type'],
-            'tenant_id' => $user['tenant_id'],
-        ];
-        Yii::$app->redis->set($this->_cacheKey($token), json_encode($cacheData), 'EX', 7200);
+        Yii::$app->redis->set($this->_cacheKey($token), json_encode($user), 'EX', 7200);
     }
 
     /**

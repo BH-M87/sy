@@ -103,4 +103,15 @@ class ZjyUserRole extends BaseModel
         }
     }
 
+    /**
+     * 获取登录用户的角色id
+     * @param $params
+     * @return array
+     */
+    public static function getUserRole($user_id)
+    {
+        return  self::model()->find()->select("role_id")->where(['user_id'=>$user_id,'deleted'=>'0'])->asArray()->column();
+    }
+
+
 }
