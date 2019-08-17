@@ -10,6 +10,7 @@ namespace service\issue;
 
 
 use app\models\PsRepairMaterials;
+use app\models\PsRepairMaterialsCate;
 use common\core\PsCommon;
 use service\BaseService;
 use service\rbac\OperateService;
@@ -179,5 +180,35 @@ class MaterialService extends BaseService
         $model["cate_name"] = isset(self::$_fee_type[$model['cate_id']]) ? self::$_fee_type[$model['cate_id']] : '未知';
         $model["created_at"] = $model['created_at'] ? date("Y-m-d H:i", $model['created_at']) : '';
         return $model;
+    }
+
+    //根据小区查询耗材分类
+    public function getListByCommunityId($communityId)
+    {
+        $cates = PsRepairMaterialsCate::find()
+            ->select(['id as material_type_id', 'name as material_type_name'])
+            ->where(['cate_type' => 1])
+            ->orWhere(['community_id' => $communityId])
+            ->asArray()
+            ->all();
+        if ($cates) {
+            foreach ($cates as $k => $v) {
+                //查询耗材列表
+                $materials = PsRepairMaterials::find()
+                    ->select(['id', 'name', 'price', 'price_unit'])
+                    ->where(['cate_id' => $v['material_type_id']])
+                    ->andWhere(['community_id' => $communityId])
+                    ->andWhere(['status' => 1])
+                    ->asArray()
+                    ->all();
+                foreach ($materials as $kk => $vv) {
+                    $materials[$kk]['price_unit'] = self::$_unit_type[$vv['price_unit']];
+                }
+                $cates[$k]['material_detail'] = $materials;
+            }
+        }
+        $re['list'] = $cates;
+        $re['totals'] = count($cates);
+        return $re;
     }
 }
