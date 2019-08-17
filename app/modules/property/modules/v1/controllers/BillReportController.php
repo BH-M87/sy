@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use common\core\F;
 use common\core\PsCommon;
@@ -9,6 +9,7 @@ use service\rbac\OperateService;
 use Yii;
 use service\alipay\BillReportService;
 use service\common\ExcelService;
+use app\modules\property\controllers\BaseController;
 
 
 class BillReportController extends BaseController

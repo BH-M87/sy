@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use common\core\PsCommon;
 use app\models\PsServiceModel;
@@ -8,6 +8,7 @@ use Yii;
 use service\alipay\ServiceService;
 use service\alipay\BillCostService;
 use app\models\PsServiceForm;
+use app\modules\property\controllers\BaseController;
 
 class ServiceController extends BaseController
 {

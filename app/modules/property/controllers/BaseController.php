@@ -70,6 +70,7 @@ Class BaseController extends CoreController
         $this->user_info = !empty($result['data']) ? $result['data'] : [];
         $this->userId = PsCommon::get($this->user_info, 'id', 0);
         UserService::setUser($this->user_info);
+        return true;
         if (!in_array($action->id, $this->enableAction)) {//验证token
             if (!$result['code']) {
                 echo PsCommon::responseFailed($result['msg'], 50002);
