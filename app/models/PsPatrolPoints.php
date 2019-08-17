@@ -38,12 +38,18 @@ class PsPatrolPoints extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'need_location', 'need_photo', 'created_at', 'is_del', 'operator_id'], 'integer'],
+            [['community_id', 'need_location', 'need_photo', 'created_at', 'operator_id','is_del'], 'integer'],
+            [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list','add','edit']],
+            [['name','need_location','need_photo'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
+            [['name', 'location_name'], 'filter', 'filter' => 'trim', 'skipOnArray' => true],
             [['lon', 'lat'], 'number'],
-            [['name', 'location_name'], 'string', 'max' => 50],
-            [['code_image'], 'string', 'max' => 255],
-            [['note'], 'string', 'max' => 200],
+            [['name'], 'string', 'max' => 10, 'tooLong' => '{attribute}不能超过10个字!','on' => ['add','edit']],
+            [['note'], 'string', 'max' => 200, 'tooLong' => '{attribute}不能超过200个字!','on' => ['add','edit']],
+            [['need_location', 'need_photo'], 'in', 'range' => [1, 2], 'message' => '{attribute}值有误，只能输入1或2!', 'on' => ['add','edit']],
+            [['location_name', 'code_image'], 'string', 'max' => 255],
             [['operator_name'], 'string', 'max' => 20],
+            ['note','safe'],
         ];
     }
 

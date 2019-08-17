@@ -5,6 +5,8 @@
 namespace service\common;
 
 use service\BaseService;
+use service\qiniu\UploadService;
+use yii\helpers\FileHelper;
 
 require_once dirname(__DIR__) . '/common/phpqrcode/phpqrcode.php';
 
@@ -57,5 +59,45 @@ Class QrcodeService extends BaseService {
         imagecopyresampled($QR, $logo, $from_width, $from_width, 0, 0, $logo_qr_width, $logo_qr_height, $logo_width, $logo_height);
 
         imagepng($QR, $this->qrFile);
+    }
+
+    /**
+     * 生成小区二维码图片，并保存到七牛
+     * @param string $savePath 图片保存路径
+     * @param string $url 二维码对应的URL地址
+     * @param string $commId 小区id
+     * @param string $logoUrl 小区logo图片地址
+     * @return string
+     */
+    public function generateCommCodeImage($savePath, $url, $commId, $logoUrl, $commObject = null)
+    {
+        $imgUrl = "";
+
+        //设置上传路径
+        if (!file_exists($savePath)) {
+            FileHelper::createDirectory($savePath, 0755, true);
+        }
+
+        $img_name = $commId . '.png';
+        if (!$logoUrl) {
+            $logoUrl = \Yii::$app->basePath . '/web/img/alilogo.png';
+        }
+        //生成一个二维码图片
+        QrcodeService::service()->png($url, $savePath . $img_name, QR_ECLEVEL_H, '100')->withLogo($logoUrl);
+
+        if (file_exists($savePath . $img_name)) {
+            chmod($savePath . $img_name, 0755);
+            //图片上传到七牛
+            $key_name = md5(uniqid(microtime(true), true)) . '.png';
+            $new_file = $savePath . $img_name;
+            $imgUrl = UploadService::service()->saveQiniu($key_name, $new_file);
+        }
+
+        if ($imgUrl && $commObject) {
+            $commObject->code_image = $imgUrl;
+            $commObject->save();
+        }
+
+        return $imgUrl;
     }
 }

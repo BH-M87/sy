@@ -87,4 +87,22 @@ class BaseService {
     {
         return Api::getInstance()->post($url, $data);
     }
+
+    /**
+     * 比较两个二维数组，获取差集
+     * @param $arr1
+     * @param $arr2
+     * @param string $pk
+     * @return array
+     */
+    function get_diff_array_by_key($arr1,$arr2,$pk='key'){
+        try{
+            $res=[];
+            foreach($arr2 as $item) $tmpArr[$item[$pk]] = $item;
+            foreach($arr1 as $v) if(! isset($tmpArr[$v[$pk]])) $res[] = $v;
+            return $res;
+        }catch (\Exception $exception){
+            return $arr1;
+        }
+    }
 }

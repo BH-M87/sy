@@ -47,7 +47,8 @@ class PsCommunityModel extends BaseModel
 
             ['pro_company_id', 'integer', 'on' => ['create', 'edit']],
             ['status', 'number', 'on' => ['create', 'edit']],
-            ['house_type', 'safe']
+            ['house_type', 'safe'],
+            [['create_at'], 'default', 'value' =>time()],
 
         ];
     }

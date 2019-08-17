@@ -15,6 +15,8 @@ use yii\base\Exception;
 use yii\db\Query;
 use service\BaseService;
 use service\rbac\GroupService;
+use service\rbac\UserService;
+
 Class CompanyService extends BaseService
 {
     CONST COMPANY_TYPE_PROPERTY = 1;
@@ -89,7 +91,7 @@ Class CompanyService extends BaseService
             $where .= " AND agent_id =:agent_id";
             $params = array_merge($params, [':agent_id' => $userInfo["property_company_id"]]);
         }
-        $list = Yii::$app->db->createCommand("SELECT id as property_id, property_name, alipay_account FROM ps_property_company where " . $where, $params)->queryAll();
+        $list = Yii::$app->db->createCommand("SELECT id,property_name as companyName FROM ps_property_company where " . $where, $params)->queryAll();
         return $list;
     }
 
@@ -119,7 +121,7 @@ Class CompanyService extends BaseService
             'link_phone' => $data['link_phone'],
             'login_phone' => $data['login_phone'],
             'email' => $data['email'],
-            'status' => !empty($data['status']) ? $data['status'] : 2,
+            'status' => 1,
             'alipay_account' => $data['alipay_account'],
             'nonce' => $nonce
         ];
@@ -289,7 +291,7 @@ Class CompanyService extends BaseService
             $user["system_type"] = $systemType;
             $user["level"] = 1;
             $user["group_id"] = $groupId;
-            $user["password"] = Yii::$app->security->generatePasswordHash(123456);
+            $user["password"] = Yii::$app->security->generatePasswordHash('zhujiayi360');
 
             $connection->createCommand()->insert("ps_user", $user)->execute();
             $userId = $connection->getLastInsertID();

@@ -13,10 +13,7 @@ class GroupController extends BaseController
     // 部门列表查询
     public function actionManages()
     {
-        $this->request_params["group_id"] = $this->user_info["group_id"];
-        $this->request_params["system_type"] = $this->user_info["system_type"];
-
-        $result = GroupService::service()->operationLists($this->request_params);
+        $result = GroupService::service()->operationLists($this->request_params, $this->user_info);
 
         return PsCommon::responseSuccess($result);
     }
@@ -24,14 +21,7 @@ class GroupController extends BaseController
     // 部门新增
     public function actionAddManage()
     {
-        $menuArr = $this->request_params["menus"];
-
-        if (empty($menuArr)) {
-            return PsCommon::responseFailed("菜单权限不能为空");
-        }
-
-        $group["name"] = $this->request_params["name"];
-        $result = GroupService::service()->add($group, $menuArr, $this->user_info["system_type"], $this->user_info);
+        $result = GroupService::service()->add($this->request_params, $this->user_info["system_type"], $this->user_info);
 
         if ($result["code"]) {
             return PsCommon::responseSuccess();
@@ -57,13 +47,8 @@ class GroupController extends BaseController
     // 部门编辑
     public function actionEditManage()
     {
-        $menuArr = $this->request_params["menus"];
         $groupId = PsCommon::get($this->request_params, 'group_id');
         $name = PsCommon::get($this->request_params, 'name');
-
-        if (empty($menuArr)) {
-            return PsCommon::responseFailed("菜单权限不能为空");
-        }
 
         if (!$groupId) {
             return PsCommon::responseFailed('部门id不能为空！');
@@ -73,7 +58,7 @@ class GroupController extends BaseController
             return PsCommon::responseFailed('部门名称不能为空！');
         }
 
-        $result = GroupService::service()->edit($groupId, $name, $menuArr);
+        $result = GroupService::service()->edit($this->request_params);
 
         if ($result["code"]) {
             return PsCommon::responseSuccess();
@@ -85,7 +70,7 @@ class GroupController extends BaseController
     // 删除部门
     public function actionDeleteManage()
     {
-        $groupId = PsCommon::get($this->request_params, 'group_id');
+        $groupId = PsCommon::get($this->request_params, 'deptId');
 
         if (!$groupId) {
             return PsCommon::responseFailed('部门id不能为空！');

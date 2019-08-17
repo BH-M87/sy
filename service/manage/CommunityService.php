@@ -13,7 +13,8 @@ use common\core\F;
 use common\core\PsCommon;
 use common\core\Pinyin;
 use common\core\Client;
-use service\TemplateService;
+use service\template\TemplateService;
+use service\template\CommunityConventionService;
 use app\models\PsAgent;
 use app\models\PsRepairType;
 use service\common\AreaService;
@@ -83,11 +84,8 @@ class CommunityService extends BaseService
         }
 
         //判断小区是否已经存在
-        $community = PsCommunityModel::find()
-            ->select(['id'])
-            ->where(['name' => $data['name']])
-            ->one();
-        if ($community) {
+        $communityInfo = PsCommunityModel::find()->select(['id'])->where(['name' => $data['name']])->one();
+        if ($communityInfo) {
             return $this->failed('小区已经存在，不能重复添加');
         }
 
@@ -102,7 +100,10 @@ class CommunityService extends BaseService
         }
         $pinyin = new Pinyin();
         $locationArr = explode('|', $data['locations']);
-        $community->community_no = PsCommon::getNoRepeatChar('', YII_ENV . 'communityUniqueList', 13);
+        $today = date("Ymd", time());
+        $communityNo = $today . str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+        $community = new PsCommunityModel();
+        $community->community_no = $communityNo;
         $community->province_code = $data['province_code'];
         $community->city_id = $data['city_id'];
         $community->district_code = $data['district_code'];
@@ -149,7 +150,9 @@ class CommunityService extends BaseService
             OperateService::add($userinfo, $operate);
             return $this->success();
         } else {
+            echo 1;die;
             $errorArr = array_values($community->getErrors());
+            print_r($errorArr);die;
             return $this->failed($errorArr[0][0]);
         }
     }

@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use common\core\Regular;
 use Yii;
 
 /**
@@ -34,7 +35,14 @@ class PsPatrolLine extends BaseModel
     public function rules()
     {
         return [
+            [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list','add','edit']],
+            [['name','head_name','head_moblie'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
             [['community_id', 'created_at', 'is_del', 'operator_id'], 'integer'],
+            [['name', 'head_name'], 'filter', 'filter' => 'trim', 'skipOnArray' => true],
+            [['name', 'head_name'], 'string', 'max' => 10, 'tooLong' => '{attribute}不能超过10个字!','on' => ['add','edit']],
+            [['note'], 'string', 'max' => 200, 'tooLong' => '{attribute}不能超过200个字!','on' => ['add','edit']],
+            ['head_moblie', 'match', 'pattern' => Regular::phone(),'message' => '{attribute}格式出错', 'on' => ['add','edit']],
             [['name'], 'string', 'max' => 50],
             [['head_name', 'head_moblie', 'operator_name'], 'string', 'max' => 20],
             [['note'], 'string', 'max' => 200],
@@ -59,4 +67,5 @@ class PsPatrolLine extends BaseModel
             'operator_name' => 'Operator Name',
         ];
     }
+
 }
