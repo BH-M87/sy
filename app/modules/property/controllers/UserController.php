@@ -3,18 +3,15 @@
 namespace app\modules\property\controllers;
 
 use common\core\F;
+use common\core\PsCommon;
 use app\models\PsUser;
-use app\modules\property\services\CompanyService;
-use app\modules\property\services\VersionService;
-use app\services\SaasService;
-use app\services\SmsService;
+use service\manage\CompanyService;
+use service\common\SmsService;
+use service\rbac\OperateService;
+use service\rbac\UserService;
 use Yii;
-use app\common\core\PsCommon;
-use app\modules\property\services\OperateService;
-use app\modules\property\models\User;
-use app\modules\property\services\UserService;
 
-class UserController extends AuthController
+class UserController extends BaseController
 {
     // 允许不带token访问的控制器数组
     public $enableAction = ['login', 'get-sms-code', 'validate-sms-code', 'reset-password', 'saas-sso'];
@@ -27,7 +24,7 @@ class UserController extends AuthController
     {
         $data = $this->request_params;
         if (!empty($data['mobile'])) {
-            if ($isEnable = User::find()->select('is_enable')->where(['mobile' => $data['mobile'], 'system_type' => $this->systemType])->scalar()) {
+            if ($isEnable = PsUser::find()->select('is_enable')->where(['mobile' => $data['mobile'], 'system_type' => $this->systemType])->scalar()) {
                 if ($isEnable == 1) {
                     if (SmsService::service()->init(4, $data['mobile'])->send() === true) {
                         return PsCommon::responseSuccess();
@@ -73,7 +70,7 @@ class UserController extends AuthController
                 return PsCommon::responseFailed('未通过短信验证');
             }
             Yii::$app->redis->hdel('lyl:validate:smscode', $rand);
-            if ($user = User::findOne(['mobile' => $data['mobile'], 'system_type' => $this->systemType])) {
+            if ($user = PsUser::findOne(['mobile' => $data['mobile'], 'system_type' => $this->systemType])) {
                 $user->password = Yii::$app->security->generatePasswordHash($data['password']);
                 if ($user->save()) {
                     return PsCommon::responseSuccess();
@@ -119,8 +116,7 @@ class UserController extends AuthController
         $companyName = CompanyService::service()->getNameById($userInfo['property_company_id']);
         $userInfo['company_name'] = $companyName;
         //返回操作手册
-        $version = VersionService::service()->getNewest();
-        $userInfo['version_file_url'] = $version ? $version['file_name'] : '';
+        $userInfo['version_file_url'] = '';
         return PsCommon::responseSuccess($userInfo);
     }
 
@@ -161,7 +157,7 @@ class UserController extends AuthController
     public function actionLogin()
     {
         $data = $this->request_params;
-        $user = new User();
+        $user = new PsUser();
         $user->scenario = 'login'; // 设置登录场景
         $user->load($data, '');    // 加载数据准备验证
         if ($user->validate()) {
@@ -176,17 +172,4 @@ class UserController extends AuthController
         }
     }
 
-    //阿里云saas云市场免密登录
-    public function actionSaasSso()
-    {
-        $authCode = PsCommon::get($this->request_params, 'auth_code');
-        if (!$authCode) {
-            return PsCommon::responseFailed('auth code不存在', 50002);
-        }
-        $r = SaasService::service()->getToken($authCode);
-        if (!$r['code']) {
-            return PsCommon::responseFailed($r['msg']);
-        }
-        return PsCommon::responseSuccess(['token' => $r['data']]);
-    }
 }

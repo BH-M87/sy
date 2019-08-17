@@ -135,7 +135,7 @@ class PsCommon {
             }
         }
         $data['rand'] = Yii::$app->request->getHeaders()->get('Zj-Custom-Rand');//1000～9999随机四位数字
-        $data['token'] = F::request('token');//token
+        $data['token'] = F::request('token',null);//token
         $params = F::request('data');
         $data['data'] = $params ? json_decode($params) : new \stdClass();//js中默认空对象为{}
         $data['timestamp'] = Yii::$app->request->getHeaders()->get('Zj-Custom-Timestamp');//客户端当前时间戳
