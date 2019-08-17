@@ -60,16 +60,16 @@ return [
     ],
     'modules' => [
         //邻易联小程序
-        'small' => [
-            'class' => 'app\modules\small\Module'
+        'ali_small_lyl' => [
+            'class' => 'app\modules\ali_small_lyl\Module'
         ],
         //小程序公共部分，如授权，业主认证流程，小区，房屋选择等接口
-        'small_common' => [
-            'class' => 'app\modules\small_common\Module'
+        'ali_small_common' => [
+            'class' => 'app\modules\ali_small_common\Module'
         ],
         //门禁小程序
-        'small_door' => [
-            'class' => 'app\modules\small_door\Module'
+        'ali_small_door' => [
+            'class' => 'app\modules\ali_small_door\Module'
         ],
         //物业后台
         'property' => [

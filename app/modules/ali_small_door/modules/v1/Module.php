@@ -1,11 +1,11 @@
 <?php
 
-namespace app\modules\small_door\modules\v1;
+namespace app\modules\ali_small_door\modules\v1;
 
 use Yii;
 class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'app\modules\small_door\modules\v1\controllers';
+    public $controllerNamespace = 'app\modules\ali_small_door\modules\v1\controllers';
     /**
      * @inheritdoc
      */

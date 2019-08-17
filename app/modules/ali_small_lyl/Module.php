@@ -1,11 +1,11 @@
 <?php
 
-namespace app\modules\small_door;
+namespace app\modules\ali_small_lyl;
 
 use Yii;
 class Module extends \yii\base\Module
 {
-    public $controllerNamespace = 'app\modules\small_door\controllers';
+    public $controllerNamespace = 'app\modules\ali_small_lyl\controllers';
     /**
      * @inheritdoc
      */
@@ -14,7 +14,7 @@ class Module extends \yii\base\Module
         parent::init();
         //注册版本子模块
         $this->modules = [
-            'v1' => ['class' => 'app\modules\small_door\modules\v1\Module'],
+            'v1' => ['class' => 'app\modules\ali_small_lyl\modules\v1\Module'],
         ];
     }
 }
