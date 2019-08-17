@@ -196,7 +196,7 @@ Class BillIncomeService extends BaseService
     {
         $entry_at = !empty($params['entry_at']) ? strtotime(PsCommon::get($params, 'entry_at') . '-01 0:0:0') : '';
 
-        switch ($params['type']) {
+        switch ($params['type'] ?? null) {
             case '1': // 当天
                 $income_start = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
                 $income_end = mktime(0, 0, 0, date('m'), date('d') + 1, date('Y')) - 1;
@@ -252,7 +252,6 @@ Class BillIncomeService extends BaseService
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();
-
         if (!empty($model)) {
             foreach ($model as $k => $v) {
                 $model[$k]['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
