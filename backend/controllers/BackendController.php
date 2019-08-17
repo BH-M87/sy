@@ -9,9 +9,9 @@
 
 namespace backend\controllers;
 
-use app\models\StCorp;
-use app\models\StCorpAgent;
-use app\modules\ding_property_app\services\DingCompanyService;
+use backend\models\StCorp;
+use backend\models\StCorpAgent;
+use backend\services\BackendService;
 use yii\web\Controller;
 use yii\data\ActiveDataProvider;
 
@@ -22,12 +22,15 @@ class BackendController extends Controller
     //企业首页列表
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => StCorp::find()->orderBy('id desc'),
+        $m = StCorp::findOne(1);
+        $query = StCorp::find()->orderBy('id desc');
+        $data = [
+            'query' => $query,
             'pagination' => [
                 'pageSize' => 20,
             ],
-        ]);
+        ];
+        $dataProvider = new ActiveDataProvider($data);
         $model = StCorp::findOne(1);
         return $this->render('index',[
             'model' => $model,
@@ -67,7 +70,7 @@ class BackendController extends Controller
                 die("保存失败！");
             }
         } else {
-            $companyList = DingCompanyService::service()->getCompanyList();
+            $companyList = BackendService::service()->getCompanyList();
             return $this->render('add',[
                 "companyList"=>$companyList
             ]);
@@ -102,8 +105,8 @@ class BackendController extends Controller
         $agent_id = !empty($_POST['agent_id']) ? $_POST['agent_id'] : '';
         $company_name = !empty($_POST['company_name']) ? $_POST['company_name'] : '';
         $query = StCorpAgent::find()->alias('ca')
-            ->select('ca.id,ca.corp_id,ca.agent_id,ca.app_key,ca.app_secret,ca.created_at,c.corp_name')
-            ->innerJoin(['c'=>StCorp::tableName()],'c.corp_id = ca.corp_id')->where('1=1');
+            ->innerJoin(['c'=>StCorp::tableName()],'c.corp_id = ca.corp_id')->where('1=1')
+            ->select(['ca.id','ca.corp_id','ca.agent_id','ca.app_key','ca.app_secret','ca.created_at','c.corp_name']);
         if ($company_name) {
             $query->andWhere(['like','c.corp_name',$company_name]);
         }
@@ -117,7 +120,6 @@ class BackendController extends Controller
                 'pageSize' => 20,
             ],
         ]);
-
         //查询所有企业
         $company = StCorp::find()
             ->select(['corp_name as name'])

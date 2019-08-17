@@ -66,7 +66,7 @@ class F
     //empty
     public static function value($params, $name, $default = '')
     {
-        return !empty($params[$name]) ? $params[$name] : $default;
+        return !empty($params[$name]) ? trim($params[$name]) : $default;
     }
 
     //参数验证成功
@@ -100,8 +100,10 @@ class F
             'data' => $data,
             'errMsg' => ""
         ];
-
-        return json_encode($data, JSON_UNESCAPED_SLASHES);
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->content = json_encode($data, JSON_UNESCAPED_SLASHES);
+        Yii::$app->response->send();
+        return null;
     }
 
     //接口请求失败
@@ -112,7 +114,10 @@ class F
             'data' => (object)[],
             'errMsg' => $msg
         ];
-        return json_encode($data, JSON_UNESCAPED_UNICODE);
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->content = json_encode($data, JSON_UNESCAPED_UNICODE);
+        Yii::$app->response->send();
+        return null;
     }
 
     //返回json
