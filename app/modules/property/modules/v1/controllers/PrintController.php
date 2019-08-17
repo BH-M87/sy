@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use common\core\PsCommon;
 use app\models\PsPrintModel;
@@ -10,6 +10,7 @@ use service\rbac\OperateService;
 use service\alipay\PrintService;
 use service\alipay\AlipayCostService;
 use service\alipay\TemplateService;
+use app\modules\property\controllers\BaseController;
 
 class PrintController extends BaseController
 {

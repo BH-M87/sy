@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use common\core\F;
 use common\core\PsCommon;
@@ -8,7 +8,7 @@ use app\models\PsReceiptFrom;
 use service\basic_data\RoomService;
 use service\rbac\OperateService;
 use service\alipay\ReceiptService;
-
+use app\modules\property\controllers\BaseController;
 
 
 class ReceiptController extends BaseController

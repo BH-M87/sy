@@ -1,7 +1,8 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
+use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\BillFrom;

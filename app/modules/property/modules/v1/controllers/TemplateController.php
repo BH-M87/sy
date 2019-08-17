@@ -1,10 +1,11 @@
 <?php
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use service\rbac\OperateService;
 use Yii;
 use common\core\F;
 use common\core\PsCommon;
+use app\modules\property\controllers\BaseController;
 
 use service\alipay\TemplateService;
 
