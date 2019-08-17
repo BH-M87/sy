@@ -100,6 +100,7 @@ class ZjyRoleGroup extends BaseModel
     {
         foreach ($data as &$v) {
             $v['id'] = (int)$v['id'];
+            $v['type'] = 0;
             $params['role_group_id'] = $v['id'];
             $v['children'] = ZjyRole::getList($params);
         }

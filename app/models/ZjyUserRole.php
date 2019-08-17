@@ -86,6 +86,7 @@ class ZjyUserRole extends BaseModel
         }
         $where = " `rala`.`user_id`= {$params['id']}";
         $sql = " SELECT {$filed} FROM `zjy_user_role` `rala` LEFT JOIN `zjy_role` `role` ON role.id = rala.role_id LEFT JOIN `zjy_role_group` `group` ON group.id = role.role_group_id WHERE `rala`.`deleted`='0' AND {$where} GROUP BY `id` ORDER BY `id` DESC";
+        echo $sql;die;
         $data = Yii::$app->db->createCommand($sql)->queryAll();
         return $data ?? [];
     }
