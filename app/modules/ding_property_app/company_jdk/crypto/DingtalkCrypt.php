@@ -1,5 +1,5 @@
 <?php
-namespace  app\modules\ding_property_app\company_jsk\crypto;
+namespace  app\modules\ding_property_app\company_jdk\crypto;
 
 class DingtalkCrypt
 {

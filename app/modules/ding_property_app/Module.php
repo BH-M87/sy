@@ -16,5 +16,6 @@ class Module extends \yii\base\Module
         $this->modules = [
             'v1' => ['class' => 'app\modules\ding_property_app\modules\v1\Module'],
         ];
+        $this->params = require(__DIR__."/config/params.php");
     }
 }
