@@ -141,7 +141,7 @@ class PatrolController extends BaseController
         if (!file_exists($savePath . $img_name)) {//下载未成功
             return PsCommon::responseFailed('二维码不存在');
         }
-        $downUrl = F::downloadUrl( 'patrol/' . $img_name, 'qrcode', $fileName);
+        $downUrl = F::downloadUrl('patrol/' . $img_name, 'qrcode', $fileName);
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
@@ -479,8 +479,8 @@ class PatrolController extends BaseController
         if ($type == '4' && (empty($data['start_time']) || empty($data['end_time']))) {
             return PsCommon::responseFailed("开始时间跟结束时间不能为空");
         }
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
+        $start_time = PsCommon::get($data,'start_time');
+        $end_time = PsCommon::get($data,'end_time');
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }
@@ -508,8 +508,8 @@ class PatrolController extends BaseController
         if ($type == '4' && (empty($data['start_time']) || empty($data['end_time']))) {
             return PsCommon::responseFailed("开始时间跟结束时间不能为空");
         }
-        $start_time = $data['start_time'];
-        $end_time = $data['end_time'];
+        $start_time = PsCommon::get($data,'start_time');
+        $end_time = PsCommon::get($data,'end_time');
         if ($start_time > $end_time) {
             return PsCommon::responseFailed("开始时间不能大于结束时间");
         }

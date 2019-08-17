@@ -10,10 +10,9 @@ use app\models\PsGroups;
 use app\models\PsUserCommunity;
 use app\modules\street\services\DingdingService;
 use app\services\SmsService;
-use Yii;
-use app\models\User;
 use app\models\PsLoginToken;
 use yii\db\Exception;
+use Yii;
 
 class UserService extends BaseService
 {

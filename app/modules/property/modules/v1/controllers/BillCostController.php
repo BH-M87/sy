@@ -1,7 +1,8 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
+use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
 use service\alipay\BillCostService;
 use Yii;

@@ -20,6 +20,7 @@ use app\models\PsPatrolTask;
 use app\models\PsUser;
 use app\models\PsUserCommunity;
 use common\core\F;
+use common\core\PsCommon;
 use service\BaseService;
 use service\qiniu\UploadService;
 
@@ -41,43 +42,46 @@ class TaskService extends BaseService
             ->leftJoin(['l' => PsPatrolLine::tableName()], 't.line_id=l.id')
             ->leftJoin(['po' => PsPatrolPoints::tableName()], 't.point_id=po.id')
             ->where(['t.community_id' => $data['community_id']])
-            ->andFilterWhere(['like', 'po.name', $data['points_name']])
-            ->andFilterWhere(['like', 'u.truename', $data['user_name']]);
+            ->andFilterWhere(['like', 'po.name', PsCommon::get($data,'points_name')])
+            ->andFilterWhere(['like', 'u.truename', PsCommon::get($data,'user_name')]);
         //计划名称模糊匹配
-        if($data['plan_name']){
+        if(!empty($data['plan_name'])){
             $mod->andFilterWhere(['like', 'p.name', $data['plan_name']]);
         }
-        if($data['plan_id']){
+        if(!empty($data['plan_id'])){
             $mod->andFilterWhere(['t.plan_id'=>$data['plan_id']]);
         }
         //线路名称模糊匹配
-        if($data['line_name']){
+        if(!empty($data['line_name'])){
             $mod->andFilterWhere(['like', 'l.name', $data['line_name']]);
         }
-        if($data['line_id']){
+        if(!empty($data['line_id'])){
             $mod->andFilterWhere(['t.line_id'=>$data['line_id']]);
         }
         //时间段内搜索巡更记录
-        if ($data['start_time'] && $data['end_time']) {
+        if (!empty($data['start_time']) && !empty($data['end_time'])) {
             $start_time = strtotime($data['start_time'] . " 00:00:00");
             $end_time = strtotime($data['end_time'] . " 23:59:59");
             $mod->andFilterWhere(['>', 't.check_time', $start_time])->andFilterWhere(['<', 't.check_time', $end_time]);
         }
-        //获取完成状态下的记录
-        if ($data['status'] == '1') {
-            $mod->andFilterWhere(['t.status' => 1]);
-        }
-        //获取旷巡状态下的记录
         $now = time();
-        if ($data['status'] == '2') {
-            $mod->andFilterWhere(['t.status' => 2])
-                ->andFilterWhere(['<', 'range_end_time', $now]);//range_end_time
-        }
-        //获取旷巡跟完成状态下的记录
-        if(empty($data['status']) || $data['status'] == '3'){
+        //获取完成状态下的记录
+        if(!empty($data['status'])){
+            if ($data['status'] == '1') {
+                $mod->andFilterWhere(['t.status' => 1]);
+            }
+            //获取旷巡状态下的记录
+            if ($data['status'] == '2') {
+                $mod->andFilterWhere(['t.status' => 2])->andFilterWhere(['<', 'range_end_time', $now]);//range_end_time
+            }
+            //获取旷巡跟完成状态下的记录
+            if($data['status'] == '3'){
+                $mod->andFilterWhere(['or',['<','t.range_end_time',$now],['t.status' => 1]]);
+            }
+        }else{
             $mod->andFilterWhere(['or',['<','t.range_end_time',$now],['t.status' => 1]]);
-            //$mod->andFilterWhere(['<','t.range_end_time',$now])->orFilterWhere(['t.status' => 1]);
         }
+
         return $mod;
     }
 

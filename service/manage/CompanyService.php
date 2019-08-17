@@ -15,6 +15,8 @@ use yii\base\Exception;
 use yii\db\Query;
 use service\BaseService;
 use service\rbac\GroupService;
+use service\rbac\UserService;
+
 Class CompanyService extends BaseService
 {
     CONST COMPANY_TYPE_PROPERTY = 1;
@@ -289,7 +291,7 @@ Class CompanyService extends BaseService
             $user["system_type"] = $systemType;
             $user["level"] = 1;
             $user["group_id"] = $groupId;
-            $user["password"] = Yii::$app->security->generatePasswordHash(123456);
+            $user["password"] = Yii::$app->security->generatePasswordHash('zhujiayi360');
 
             $connection->createCommand()->insert("ps_user", $user)->execute();
             $userId = $connection->getLastInsertID();

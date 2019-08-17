@@ -88,6 +88,12 @@ class AgentService extends  BaseService {
             "alipay_account" =>  $data["alipay_account"],
             "login_phone" =>  $data["login_phone"],
             "create_at" => time(),
+            "address" => $data["address"],
+            "province_code" => $data["province_code"],
+            "city_code" => $data["city_code"],
+            "area_code" => $data["area_code"],
+            "longitude" => $data["longitude"],
+            "latitude" => $data["latitude"]
         ];
         $agentId=$this->_saveAgent($agentArr);
         return $this->success(["agent_id"=>$agentId]);
@@ -113,7 +119,12 @@ class AgentService extends  BaseService {
            "email" => $data["email"],
            "type" => $data["type"] ?  $data["type"] : $agent["type"],
            "login_phone" =>  $data["login_phone"],
-           "alipay_account" => $data["alipay_account"],
+           "address" => $data["address"],
+           "province_code" => $data["province_code"],
+           "city_code" => $data["city_code"],
+           "area_code" => $data["area_code"],
+           "longitude" => $data["longitude"],
+           "latitude" => $data["latitude"]
        ];
        $this->_saveAgent($agentArr,$data["agent_id"]);
        return $this->success();
@@ -345,10 +356,8 @@ class AgentService extends  BaseService {
     *查看代理商或者详情 */
     private function _showAgent($agentId) {
         $query = new Query();
-        $model = $query->select(["A.user_id","A.name","A.link_man",
-            "A.link_phone","A.link_man","A.email",
-            "A.type","A.alipay_account","A.status",
-            "B.group_id","A.login_phone","B.username as login_name"])
+        $model = $query->select(["A.user_id","A.name","A.link_man","A.link_phone","A.link_man","A.email","A.type","A.alipay_account","A.status",
+            "B.group_id","A.login_phone","A.latitude","A.longitude","A.address","A.area_code","A.city_code","A.province_code","B.username as login_name"])
             ->from("ps_agent A")
             ->leftJoin("ps_user B","A.user_id=B.id")
             ->where(["A.id"=>$agentId])

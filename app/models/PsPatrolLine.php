@@ -67,4 +67,5 @@ class PsPatrolLine extends BaseModel
             'operator_name' => 'Operator Name',
         ];
     }
+
 }

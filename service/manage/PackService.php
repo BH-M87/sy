@@ -13,7 +13,7 @@ use service\rbac\GroupService;
 
 class PackService extends BaseService 
 {
-    public static $_Type = ["1" => "运营", "2" => "邻易联"];
+    public static $_Type = ["1" => "运营", "2" => "邻易联",'3' => '钉钉','4'=>'街道'];
     
     // 获取套餐包及分类列表
     public function getList($reqArr) 
