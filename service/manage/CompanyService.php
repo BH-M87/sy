@@ -228,6 +228,7 @@ Class CompanyService extends BaseService
             "mobile" => $model["login_phone"],
             "creator" => $data["createor"] ? $data["createor"] : 1,
             "is_enable" => $data["status"],
+            "user_type" => 'admin',
             "property_company_id" => $data["property_id"],
         ];
         $user = $this->_saveUser($userArr, 2, $model['property_name']);
@@ -252,6 +253,7 @@ Class CompanyService extends BaseService
             "username" => $data["login_name"],
             "truename" => $data["login_name"],
             "is_enable" => $data["status"],
+            "user_type" => 'admin',
         ];
         UserService::service()->changeUser($data["user_id"], $userArr);
         Yii::$app->db->createCommand()->update("ps_property_company", ["status" => $data["status"]], ["id" => $user["property_company_id"]])->execute();

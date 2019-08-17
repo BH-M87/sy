@@ -13,7 +13,7 @@ Class MenuController extends BaseController
     // 获取用户所有权限
     public function actionGetAllMenus()
     {
-        $result = MenuService::service()->getParentMenuList($this->user_info["group_id"], 1, $this->user_info["system_type"]);
+        $result = MenuService::service()->getParentMenuList($this->user_info, 1);
         return PsCommon::responseSuccess($result);
     }
 

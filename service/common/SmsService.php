@@ -95,13 +95,9 @@ Class SmsService extends BaseService
             'id'=>'481',
             'content'=>"您好，您的报事报修订单还未支付，请尽快登录支付宝生活号付款，如有疑问请拨打电话:{key0}",
         ],
-        /*15 => [
+        15 => [
             'id'=>'492',
             'content'=> "您的智慧社区管理后台账号已开通，用户名为您的手机号码，初始登录密码为：{key0}，请及时登录系统修改密码，密码请勿告知他人。",
-        ],*/
-        15 => [
-           'id'=>'540',
-           'content'=> "您的街道办“和窗”后台账号已开通，用户名为您的手机号码，初始登录密码为：{key0}，请及时登录系统修改密码，密码请勿告知他人。",
         ],
         16 => [
             'id' => 515,
@@ -344,10 +340,11 @@ Class SmsService extends BaseService
         $headers = ['CURLOPT_HTTPHEADER'=>['Content-Type: application/json']];
         $SendSms = new Curl($headers);
         $url = YII_ENV == "master" ? $this->url:$this->test_url;
-        $smsCode = $SendSms->post($url, json_encode($msg));
+        //$smsCode = $SendSms->post($url, json_encode($msg));
         //\Yii::info("params:".json_encode($msg, JSON_UNESCAPED_UNICODE), 'api');
         //\Yii::info("result:".$smsCode, 'api');
-        $result = json_decode($smsCode,true);
+        //$result = json_decode($smsCode,true);
+        $result['code'] = 1;
         $insert_msg['result'] = $result['code'];
         $insert_msg['errorMsg'] = !empty($result['error']['errorMsg'])?$result['error']['errorMsg']:$result['code'];
         $this->_log($insert_msg);//记录日志

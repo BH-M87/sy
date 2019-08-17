@@ -2518,7 +2518,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     {
         $requestArr['company_id'] = $userinfo['property_company_id'];       //物业公司
         $requestArr['manage_id'] = $userinfo['id'];       //用户ID
-        $communitys = implode(",", CommunityService::service()->getUserCommunityIds($userinfo['id']));  //用户关联的小区id
+        $communitys = implode(",", CommunityService::service()->getUserCommunityIds($userinfo['id'] ));  //用户关联的小区id
         $communitys = !empty($communitys) ? $communitys : 0;
         $requestArr['communitys'] = $communitys;//用户关联的小区id
         $requestArr['is_down'] = !empty($data['is_down']) ? $data['is_down'] : '1';       //1正常页面2下载
