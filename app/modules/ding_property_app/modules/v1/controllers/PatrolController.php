@@ -14,6 +14,7 @@ use app\models\PsPatrolPlan;
 use app\models\PsPatrolPoints;
 use app\models\PsPatrolTask;
 use app\modules\ding_property_app\controllers\BaseController;
+use common\core\F;
 use common\core\PsCommon;
 use service\manage\CommunityService;
 use service\patrol\LineService;
@@ -32,9 +33,9 @@ class PatrolController extends BaseController
 
         $result = PointService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("巡更点查询失败！");
+            return F::apiFailed("巡更点查询失败！");
         }
     }
 
@@ -45,7 +46,7 @@ class PatrolController extends BaseController
         unset($reqArr['id']);
         $valid = PsCommon::validParamArr(new PsPatrolPoints(),$reqArr,'add');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
 
@@ -67,7 +68,7 @@ class PatrolController extends BaseController
                 && $cacheData['community_id'] == $newData['community_id'] && $cacheData['lat'] == $newData['lat']
                 && $cacheData['lon'] == $newData['lon'] && $cacheData['need_location'] == $newData['need_location']
                 && $cacheData['need_photo'] == $newData['need_photo'] && $cacheData['note'] == $newData['note']) {
-                return PsCommon::responseFailed("数据不能重复提交！");
+                return F::apiFailed("数据不能重复提交！");
             }
         }
         Yii::$app->cache->set($key, json_encode($newData), 10);
@@ -75,21 +76,21 @@ class PatrolController extends BaseController
         //其他数据验证
         if ($req['need_location'] == 1) {
             if (empty($req['location_name'])) {
-                return PsCommon::responseFailed("地理位置不能为空！");
+                return F::apiFailed("地理位置不能为空！");
             }
             if (empty($req['lat'])) {
-                return PsCommon::responseFailed("纬度值不能为空！");
+                return F::apiFailed("纬度值不能为空！");
             }
             if (empty($req['lon'])) {
-                return PsCommon::responseFailed("经度值不能为空！");
+                return F::apiFailed("经度值不能为空！");
             }
         }
 
         $result = PointService::service()->add($req, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -99,19 +100,19 @@ class PatrolController extends BaseController
         $reqArr  = array_merge($this->userInfo, $this->request_params);
         $valid = PsCommon::validParamArr(new PsPatrolPoints(),$reqArr,'edit');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
         //其他数据验证
         if ($req['need_location'] == 1) {
             if (empty($req['location_name'])) {
-                return PsCommon::responseFailed("地理位置不能为空！");
+                return F::apiFailed("地理位置不能为空！");
             }
             if (empty($req['lat'])) {
-                return PsCommon::responseFailed("纬度值不能为空！");
+                return F::apiFailed("纬度值不能为空！");
             }
             if (empty($req['lon'])) {
-                return PsCommon::responseFailed("经度值不能为空！");
+                return F::apiFailed("经度值不能为空！");
             }
         } else {
             $req['location_name'] = '';
@@ -120,9 +121,9 @@ class PatrolController extends BaseController
         }
         $result = PointService::service()->edit($req, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -132,14 +133,14 @@ class PatrolController extends BaseController
         $reqArr  = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更点id不能为空！");
+            return F::apiFailed("巡更点id不能为空！");
         }
         $result = PointService::service()->getDetail($id);
         if (!empty($result)) {
             unset($result['location']);
             unset($result['photo']);
         }
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     public function actionPointDel()
@@ -148,13 +149,13 @@ class PatrolController extends BaseController
         $reqArr  = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更点id不能为空！");
+            return F::apiFailed("巡更点id不能为空！");
         }
         $result = PointService::service()->deleteData($id, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -165,9 +166,9 @@ class PatrolController extends BaseController
         $data['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
         $result = LineService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("巡更路线查询失败！");
+            return F::apiFailed("巡更路线查询失败！");
         }
     }
 
@@ -178,7 +179,7 @@ class PatrolController extends BaseController
         unset($reqArr['id']);
         $valid = PsCommon::validParamArr(new PsPatrolLine(), $reqArr, 'add');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
 
@@ -196,7 +197,7 @@ class PatrolController extends BaseController
             if ($cacheData['community_id'] == $newData['community_id'] && $cacheData['head_moblie'] == $newData['head_moblie']
                 && $cacheData['head_name'] == $newData['head_name'] && $cacheData['name'] == $newData['name']
                 && $cacheData['note'] == $newData['note']) {
-                return PsCommon::responseFailed("数据不能重复提交！");
+                return F::apiFailed("数据不能重复提交！");
             }
         }
         Yii::$app->cache->set($key, json_encode($newData), 10);
@@ -204,9 +205,9 @@ class PatrolController extends BaseController
         $result = LineService::service()->add($req, $reqArr['operator_id'], $reqArr['truename'], 2);
 
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -217,16 +218,16 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolLine(), $reqArr, 'edit');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
         $req['points_list'] = json_decode($req['points'], true);
         unset($req['points']);
         $result = LineService::service()->edit($req, $reqArr['operator_id'], $reqArr['truename'], 2);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -236,7 +237,7 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更路线id不能为空！");
+            return F::apiFailed("巡更路线id不能为空！");
         }
         $result = LineService::service()->getDetail($id);
 
@@ -248,9 +249,9 @@ class PatrolController extends BaseController
             unset($resArr['operator_id']);
             unset($resArr['operator_name']);
 
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -260,13 +261,13 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更路线id不能为空！");
+            return F::apiFailed("巡更路线id不能为空！");
         }
         $result = LineService::service()->deleteData($id, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -277,14 +278,14 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更路线id不能为空！");
+            return F::apiFailed("巡更路线id不能为空！");
         }
 
         $result = LineService::service()->getPoints($id);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -295,9 +296,9 @@ class PatrolController extends BaseController
         $data['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);;
         $result = PlanService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("巡更计划查询失败！");
+            return F::apiFailed("巡更计划查询失败！");
         }
     }
 
@@ -310,7 +311,7 @@ class PatrolController extends BaseController
         unset($reqArr['user_ids']);
         $valid = PsCommon::validParamArr(new PsPatrolPlan(), $reqArr, 'add');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
 
@@ -338,7 +339,7 @@ class PatrolController extends BaseController
                 && $cacheData['interval_y'] == $newData['interval_y'] && $cacheData['line_id'] == $newData['line_id']
                 && $cacheData['name'] == $newData['name'] && $cacheData['start_date'] == $newData['start_date']
                 && $cacheData['start_time'] == $newData['start_time'] && $cacheData['user_ids'] == $newData['user_ids']) {
-                return PsCommon::responseFailed("数据不能重复提交！");
+                return F::apiFailed("数据不能重复提交！");
             }
         }
         Yii::$app->cache->set($key, json_encode($newData), 10);
@@ -346,9 +347,9 @@ class PatrolController extends BaseController
         $result = PlanService::service()->add($req, $reqArr['operator_id'], $reqArr['truename']);
 
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -361,15 +362,15 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolPlan(), $reqArr, 'edit');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
 
         $result = PlanService::service()->edit($req, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -379,7 +380,7 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更计划id不能为空！");
+            return F::apiFailed("巡更计划id不能为空！");
         }
         $result = PlanService::service()->getDetail($id);
 
@@ -387,9 +388,9 @@ class PatrolController extends BaseController
             $resArr = $result["data"];
             $resArr['users'] = $resArr['user_list'];
             unset($resArr['user_list']);
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -399,13 +400,13 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $id = $reqArr['id'];
         if (!$id) {
-            return PsCommon::responseFailed("巡更计划id不能为空！");
+            return F::apiFailed("巡更计划id不能为空！");
         }
         $result = PlanService::service()->deleteData($id, $reqArr['operator_id'], $reqArr['truename']);
         if ($result["code"]) {
-            return PsCommon::responseSuccess($result["data"]);
+            return F::apiSuccess($result["data"]);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -418,16 +419,16 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolPlan(), $reqArr, 'user-list');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
 
         $req = $valid["data"];
 
         $result = PlanService::service()->dingGetUsers($req, $this->userInfo['group_id']);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("用户获取失败！");
+            return F::apiFailed("用户获取失败！");
         }
     }
 
@@ -438,14 +439,14 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $communityId = $reqArr['community_id'];
         if (!$communityId) {
-            return PsCommon::responseFailed("小区id不能为空！");
+            return F::apiFailed("小区id不能为空！");
         }
 
         $result = PlanService::service()->getLines($communityId);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("查询失败！");
+            return F::apiFailed("查询失败！");
         }
     }
 
@@ -456,9 +457,9 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $result = PlanService::service()->dingGetMines($reqArr, $reqArr['page'], $reqArr['rows']);
         if (is_array($result)) {
-            return PsCommon::responseSuccess($result);
+            return F::apiSuccess($result);
         } else {
-            return PsCommon::responseFailed("巡更计划查询失败！");
+            return F::apiFailed("巡更计划查询失败！");
         }
     }
 
@@ -468,15 +469,15 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
 
         if (!$reqArr['id']) {
-            return PsCommon::responseFailed("巡更计划id不能为空！");
+            return F::apiFailed("巡更计划id不能为空！");
         }
         $result = PlanService::service()->dingGetMineView($reqArr);
 
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
     /* 开始巡更相关 */
@@ -487,10 +488,10 @@ class PatrolController extends BaseController
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'list');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $result = TaskService::service()->dingGetAllPoints($reqArr);
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
     //员工个人统计
     public function actionStartPointPersonal()
@@ -500,14 +501,14 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'personal');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
 
         $req = $valid["data"];
         $req['month'] = str_pad($req['month'], 2, 0, STR_PAD_LEFT);
 
         $result = TaskService::service()->dingPersonalStats($req);
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     //巡更任务提交
@@ -528,7 +529,7 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'commit');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
 
         $req = $valid["data"];
@@ -536,9 +537,9 @@ class PatrolController extends BaseController
         $result = TaskService::service()->dingCommit($req);
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -550,9 +551,9 @@ class PatrolController extends BaseController
         $result = TaskService::service()->dingGetView($reqArr);
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -564,9 +565,9 @@ class PatrolController extends BaseController
         $result = TaskService::service()->dingGetTaskByPoint($reqArr);
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -582,7 +583,7 @@ class PatrolController extends BaseController
         }
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'list');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
 
         $result['list'] = TaskService::service()->dingGetList($reqArr);
@@ -592,7 +593,7 @@ class PatrolController extends BaseController
             'truename' => $reqArr['truename'],
         ];
 
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     /* 巡更记录相关 */
@@ -607,15 +608,15 @@ class PatrolController extends BaseController
         }
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'list');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
 
         $result = TaskService::service()->dingGetPatrolRecord($reqArr);
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -628,9 +629,9 @@ class PatrolController extends BaseController
         $result = TaskService::service()->dingGetPatrolRecordView($reqArr);
         if ($result["code"]) {
             $resArr = $result["data"];
-            return PsCommon::responseSuccess($resArr);
+            return F::apiSuccess($resArr);
         } else {
-            return PsCommon::responseFailed($result["msg"]);
+            return F::apiFailed($result["msg"]);
         }
     }
 
@@ -644,10 +645,10 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'personal');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $result = TaskService::service()->dingGetMothLoseStats($reqArr);
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     //月度统计
@@ -659,10 +660,10 @@ class PatrolController extends BaseController
 
         $valid = PsCommon::validParamArr(new PsPatrolTask(),$reqArr,'personal');
         if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
+            return F::apiFailed($valid["errorMsg"]);
         }
         $result = TaskService::service()->dingGetMothStats($reqArr);
-        return PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
 }
