@@ -63,7 +63,6 @@ Class BillIncomeController extends BaseController
         $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
         $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
         $data['total_money'] = BillIncomeService::service()->totalMoney($this->request_params);
-
         return PsCommon::responseSuccess($data);
     }
 

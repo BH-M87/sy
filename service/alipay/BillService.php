@@ -1382,4 +1382,14 @@ class BillService extends BaseService
         return PsMember::find()->select('name')->where(['id' => $user_id])->scalar();
     }
 
+    /**
+     * 报事报修添加
+     * @author yjh
+     * @param $params
+     * @return bool
+     */
+    public function addRepairBill($params)
+    {
+        return true;
+    }
 }

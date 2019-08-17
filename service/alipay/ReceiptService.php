@@ -1,6 +1,7 @@
 <?php
 namespace service\alipay;
 
+use service\BaseService;
 use service\common\SmsService;
 use Yii;
 
