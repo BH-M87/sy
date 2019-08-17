@@ -98,7 +98,7 @@ class ManageService extends BaseService
             if ($data["system_type"] == 2) {
                 SmsService::service()->init(9, $data['mobile'])->send([$password]);
             } else {
-                //SmsService::service()->init(15, $data['mobile'])->send([$password]);
+                SmsService::service()->init(15, $data['mobile'])->send([$password]);
             }
 
             $transaction->commit();

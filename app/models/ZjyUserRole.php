@@ -86,6 +86,7 @@ class ZjyUserRole extends BaseModel
         }
         $where = " `rala`.`user_id`= {$params['id']}";
         $sql = " SELECT {$filed} FROM `zjy_user_role` `rala` LEFT JOIN `zjy_role` `role` ON role.id = rala.role_id LEFT JOIN `zjy_role_group` `group` ON group.id = role.role_group_id WHERE `rala`.`deleted`='0' AND {$where} GROUP BY `id` ORDER BY `id` DESC";
+        echo $sql;die;
         $data = Yii::$app->db->createCommand($sql)->queryAll();
         return $data ?? [];
     }
@@ -102,5 +103,16 @@ class ZjyUserRole extends BaseModel
             $v['children'] = self::getRoleList($params);
         }
     }
+
+    /**
+     * 获取登录用户的角色id
+     * @param $params
+     * @return array
+     */
+    public static function getUserRole($user_id)
+    {
+        return  self::model()->find()->select("role_id")->where(['user_id'=>$user_id,'deleted'=>'0'])->asArray()->column();
+    }
+
 
 }

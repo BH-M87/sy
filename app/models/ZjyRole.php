@@ -142,6 +142,8 @@ class ZjyRole extends BaseModel
      */
     public static function AddRoleMenu($params)
     {
+        //先清空菜单
+        ZjyRoleMenu::deleteAll(['role_id'=>$params['role_id']]);
         foreach ($params['menu_id'] as $id){
             $data['role_id'] = $params['role_id'];
             $data['menu_id'] = $id;
@@ -176,7 +178,12 @@ class ZjyRole extends BaseModel
      */
     public static function getLastMenuIdById($params)
     {
-        return ZjyRoleMenu::find()->select("menu_id")->where(["role_id"=>$params['role_id'],'deleted'=>'0'])->column();
+        $list = [];
+        $ids = ZjyRoleMenu::find()->select("menu_id")->where(["role_id"=>$params['role_id'],'deleted'=>'0'])->column();
+        foreach ($ids as $id){
+            $list[] = (int)$id;
+        }
+        return $list;
     }
 
     /**

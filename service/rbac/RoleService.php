@@ -195,13 +195,26 @@ class RoleService extends BaseService
      * @return array
      * @throws MyException
      */
-    public function getRoleList($params)
+    public function getRoleList($allRole,$params)
     {
         if (empty($params['id'])) {
             throw new MyException('参数错误');
         }
-        $result = ZjyUserRole::getList($params);
-        return $result ?? [];
+        $allList = [];
+        foreach ($allRole as $all){
+            $list = [];
+            foreach ($all['children'] as $role){
+                $role['type'] = 0;
+                $vali = ZjyUserRole::find()->where(['role_id'=>$role['id'],'user_id'=>$params['id']]);
+                if(!empty($vali)){
+                    $role['type'] = 1;
+                }
+                $list[]=$role;
+            }
+            $all['children'] = $list;
+            $allList[]=$all;
+        }
+        return $allList;
     }
 
 
