@@ -1,6 +1,6 @@
 <?php
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use common\core\F;
 use common\core\PsCommon;

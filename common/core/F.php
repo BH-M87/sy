@@ -382,5 +382,18 @@ class F
         return $str;
     }
 
+    /**
+     * 过滤掉搜索条件为null的值
+     * @param $where 条件参数数组
+     */
+    public static function searchFilter($where)
+    {
+        foreach($where as $key => $value) {
+            if($value == null) {
+                unset($where[$key]);
+            }
+        }
+        return $where;
+    }
 }
 

@@ -7,13 +7,14 @@
  * Time: 11:45
  */
 
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use Yii;
 use common\core\PsCommon;
 use app\models\PsFormulaFrom;
 use service\basic_data\RoomService;
 use service\alipay\FormulaService;
+use app\modules\property\controllers\BaseController;
 
 class FormulaController extends BaseController
 {

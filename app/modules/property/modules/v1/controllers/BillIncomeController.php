@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\property\controllers;
+namespace app\modules\property\modules\v1\controllers;
 
 use Yii;
 use common\core\F;
@@ -14,6 +14,7 @@ use service\alipay\AlipayCostService;
 use service\manage\CommunityService;
 use service\rbac\UserService;
 use service\alipay\TemplateService;
+use app\modules\property\controllers\BaseController;
 
 Class BillIncomeController extends BaseController
 {
