@@ -196,6 +196,23 @@ class RepairController extends BaseController {
         return PsCommon::responseFailed($result);
     }
 
+    //工单标记为支付
+    public function actionMarkPay()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $repairId = !empty($this->request_params['repair_id']) ? $this->request_params['repair_id'] : 0;
+        if (!$repairId) {
+            return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        $result = RepairService::service()->markPay($this->request_params,$this->user_info);
+        if ($result === true) {
+            return PsCommon::responseSuccess($result);
+        }
+        return PsCommon::responseFailed($result);
+    }
+
     //工单复核
     public function actionReview()
     {
@@ -218,6 +235,7 @@ class RepairController extends BaseController {
         }
         return PsCommon::responseFailed($result);
     }
+
 
     //二次维修
     public function actionCreateNew()

@@ -8,9 +8,9 @@ $params = array_merge(
 );
 
 return [
-    'id' => 'app-app',
+    'id' => 'app-backend',
     'basePath' => dirname(__DIR__),
-    'controllerNamespace' => 'app\controllers',
+    'controllerNamespace' => 'backend\controllers',
     'bootstrap' => ['log'],
     'language' => 'zh-CN',
     'timeZone' => 'Asia/Shanghai',
@@ -39,7 +39,7 @@ return [
                 [
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['api'],
-                    'logFile' => '@app/runtime/logs/api.log',
+                    'logFile' => '@backend/runtime/logs/api.log',
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
@@ -59,35 +59,6 @@ return [
         'redis' => require (__DIR__.'/redis.php'),
     ],
     'modules' => [
-        //邻易联小程序
-        'small' => [
-            'class' => 'app\modules\small\Module'
-        ],
-        //小程序公共部分，如授权，业主认证流程，小区，房屋选择等接口
-        'small_common' => [
-            'class' => 'app\modules\small_common\Module'
-        ],
-        //门禁小程序
-        'small_door' => [
-            'class' => 'app\modules\small_door\Module'
-        ],
-        //物业后台
-        'property' => [
-            'class' => 'app\modules\property\Module'
-        ],
-        //钉钉B端应用
-        'ding_property_app' => [
-            'class' => 'app\modules\ding_property_app\Module'
-        ],
-        //运营后台
-        'manage' => [
-            'class' => 'app\modules\manage\Module'
-        ],
-        //七牛上传
-        'qiniu' => [
-            'class' => 'app\modules\qiniu\Qiniu'
-        ]
-
     ],
     'params' => $params,
 ];

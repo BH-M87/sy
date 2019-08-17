@@ -459,20 +459,22 @@ class MenuService extends BaseService
     }
 
     // 获取用户所有权限
-    public function getParentMenuList($groupId, $level, $system_type = 0)
+    public function getParentMenuList($user_info, $level)
     {
-        $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $groupId])->queryScalar();
+
+        $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $user_info['group_id']])->queryScalar();
         $query = new  Query();
         $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key as menuCode","B.menu_type as menuType"]);
-        if ($is_pack > 0) {
+        if ($is_pack > 0) {//总账号根据套菜包获取菜单权限
             $query->from("ps_menu_pack C")
                 ->leftJoin("ps_group_pack A", "C.pack_id=A.pack_id")
                 ->leftJoin("ps_menus B", "B.id=C.menu_id");
-        } else {
-            $query->from("ps_group_menus A")
-                ->leftJoin("ps_menus B", "A.menu_id=B.id");
+            $query->where(["A.group_id" => $user_info['group_id']]);
+        } else {//子账号根据角色获取菜单权限
+            $query->from("zjy_role_menu A")->leftJoin("ps_menus B", "A.menu_id=B.id");
+            $query->where(["A.role_id" => $user_info['role_id']]);
         }
-        $query->where(["A.group_id" => $groupId])->andWhere(["B.status" => 1])->andFilterWhere(['=', 'B.system_type', $system_type]);
+        $query->andWhere(["B.status" => 1])->andFilterWhere(['=', 'B.system_type', $user_info['system_type']]);
         if ($level == 2) {
             $query->andWhere([">", "B.level", 1]);
         }

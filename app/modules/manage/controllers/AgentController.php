@@ -192,7 +192,8 @@ Class AgentController extends BaseController
         if (!$agentId) {
             return PsCommon::responseFailed('id不能为空！');
         }
-        if (empty(PsCommon::get($this->request_params, 'type'))) {
+        $type = PsCommon::get($this->request_params,'type');
+        if (empty($type)) {
             return PsCommon::responseFailed('机构类型不能为空！');
         }
         $valid = PsCommon::validParamArr(new PsAgent(), $this->request_params, 'add');

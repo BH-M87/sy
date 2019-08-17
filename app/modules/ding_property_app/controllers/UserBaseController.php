@@ -26,15 +26,15 @@ class UserBaseController extends BaseController
 
         $this->token = F::value($this->request_params, 'token');
         if (!$this->token) {
-            return F::apiFailed('登录token不能为空！');
+            F::apiFailed('登录token不能为空！');
         }
 
         //根据token获取用户信息
-        $re = UserService::service()->getInfoByToken($this->token);
-        if (!$re['code']) {
-            return F::apiFailed('token不存在或已失效！');
-        }
-        $data = $re['data'];
+//        $re = UserService::service()->getInfoByToken($this->token);
+//        if (!$re['code']) {
+//            return F::apiFailed('token不存在或已失效！');
+//        }
+//        $data = $re['data'];
         //TODO 先写死测试
         $data = PsUser::find()->where(['id' =>1775])->asArray()->one();
         $this->userInfo = $data;
