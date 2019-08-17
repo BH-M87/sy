@@ -6,7 +6,7 @@
  * Time: 12:03
  */
 
-namespace  app\modules\ding_property_app\company_jsk\util;
+namespace  app\modules\ding_property_app\company_jdk\util;
 
 
 class Client

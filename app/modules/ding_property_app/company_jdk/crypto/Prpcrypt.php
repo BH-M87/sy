@@ -5,7 +5,7 @@
  * Date: 2017/12/5
  * Time: 14:21
  */
-namespace  app\modules\ding_property_app\company_jsk\crypto;
+namespace  app\modules\ding_property_app\company_jdk\crypto;
 
 use yii\base\Exception;
 

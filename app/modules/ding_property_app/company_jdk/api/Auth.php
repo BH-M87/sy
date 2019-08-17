@@ -1,8 +1,8 @@
 <?php
-namespace  app\modules\ding_property_app\company_jsk\api;
+namespace  app\modules\ding_property_app\company_jdk\api;
 
-use app\modules\ding_property_app\company_jsk\util\Http;
-use app\modules\ding_property_app\company_jsk\util\Log;
+use app\modules\ding_property_app\company_jdk\util\Http;
+use app\modules\ding_property_app\company_jdk\util\Log;
 use Yii;
 
 class Auth

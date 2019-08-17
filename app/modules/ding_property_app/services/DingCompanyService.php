@@ -15,10 +15,10 @@ use app\models\StCorpAgent;
 use app\models\StCorpTicket;
 use app\models\StCorpToken;
 use app\models\StCorpUser;
-use app\modules\ding_property_app\company_jsk\api\Auth;
-use app\modules\ding_property_app\company_jsk\api\Message;
-use app\modules\ding_property_app\company_jsk\api\User;
-use app\modules\ding_property_app\company_jsk\util\Client;
+use app\modules\ding_property_app\company_jdk\api\Auth;
+use app\modules\ding_property_app\company_jdk\api\Message;
+use app\modules\ding_property_app\company_jdk\api\User;
+use app\modules\ding_property_app\company_jdk\util\Client;
 use service\BaseService;
 use Yii;
 

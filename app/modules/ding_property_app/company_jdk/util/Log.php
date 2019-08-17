@@ -1,5 +1,5 @@
 <?php
-namespace  app\modules\ding_property_app\company_jsk\util;
+namespace  app\modules\ding_property_app\company_jdk\util;
 use Yii;
 
 class Log

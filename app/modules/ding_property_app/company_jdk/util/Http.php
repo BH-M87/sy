@@ -1,5 +1,5 @@
 <?php
-namespace  app\modules\ding_property_app\company_jsk\util;
+namespace  app\modules\ding_property_app\company_jdk\util;
 use Yii;
 
 Class Http
@@ -92,7 +92,7 @@ Class Http
 
     private function joinParams($path, $params)
     {
-        $url = Yii::$app->params['oapi_host'] . $path;
+        $url = Yii::$app->getModule('ding_property_app')->params['oapi_host'] . $path;
         if (count($params) > 0)
         {
             $url = $url . "?";
