@@ -10,14 +10,12 @@ use Yii;
 use yii\base\Model;
 
 class PsCommon {
-
     public static $secrets = [
         1 => 'YHi$rW8N', //运营后台
         2 => 'HU6%12(w', //物业后台
         3 => '5H!@Odk3',
         4 => '5H!@Odk3',
     ];
-
     public static $cycle_days = [
         ["key" => "1", "name" => "按年"],
         ["key" => "2", "name" => "按半年"],
@@ -60,13 +58,16 @@ class PsCommon {
         ["key" => "11", "name" => "11"],
         ["key" => "12", "name" => "12"],
     ];
-
     //推送方式
     public static $push_type = [
         ["key" => "1", "name" => "一次性推送"],
         ["key" => "2", "name" => "定期推送"],
     ];
-
+    public static $sharedType = [
+        '1' => '电梯用电',
+        '2' => '楼道用电',
+        '3' => '整体用水用电'
+    ];
     public static $log;//是否记录日志
 
     /**
