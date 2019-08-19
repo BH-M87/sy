@@ -138,7 +138,7 @@ class PlanService extends BaseService
             //提交事务
             $trans->commit();
             if (!empty($userInfo)) {
-                //self::addLog($userInfo, $params['name'], $params['community_id'], $scenario);
+                self::addLog($userInfo, $params['name'], $params['community_id'], $scenario);
             }
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -500,7 +500,7 @@ class PlanService extends BaseService
     public function getUserList($params, $groupId)
     {
         if (empty($params['community_id'])) {
-            return $this->failed('小区id不能为空');
+            throw new MyException('小区id不能为空');
         }
         //是否传了计划id，传了说明是编辑页面
         $taskUsers = [];
@@ -510,7 +510,7 @@ class PlanService extends BaseService
                 ->select(['id', 'community_id', 'user_list'])
                 ->asArray()->one();
             if (empty($result)) {
-                return $this->failed('巡检计划不存在!');
+                throw new MyException('巡检计划不存在!');
             }
             //已选择的执行人员
             $taskUsers = json_decode($result['user_list'], true);

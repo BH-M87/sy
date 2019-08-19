@@ -24,6 +24,7 @@ class LineService extends BaseService
     //新增
     public function add($params, $userInfo = [])
     {
+        $params['created_at'] = time();
         self::checkCommon($params, $userInfo, 'add');
     }
 
@@ -44,7 +45,6 @@ class LineService extends BaseService
             }
         } else {
             unset($params['id']);
-            $params['created_at'] = time();
         }
         if (!is_array($params['pointList'])) {
             throw new MyException('巡检点格式错误!');
@@ -85,7 +85,7 @@ class LineService extends BaseService
             //提交事务
             $trans->commit();
             if (!empty($userInfo)) {
-                //self::addLog($userInfo, $params['name'], $params['head_name'], $params['community_id'], $scenario);
+                self::addLog($userInfo, $params['name'], $params['head_name'], $params['community_id'], $scenario);
             }
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -188,7 +188,7 @@ class LineService extends BaseService
             if (!empty($userinfo)) {
                 $name = $info['name'] ?? "";
                 $head_name = $info['head_name'] ?? "";
-                //self::addLog($userInfo,$name,$head_name,$params['community_id'],'del');
+                self::addLog($userInfo,$name,$head_name,$params['community_id'],'del');
             }
             return true;
         }
@@ -223,7 +223,7 @@ class LineService extends BaseService
     {
         $arr = PsInspectLine::find()->where(['community_id' => $params['community_id']])
             ->select(['id', 'name'])->orderBy('id desc')->asArray()->all();
-        return $this->success(['list' => $arr]);
+        return ['list' => $arr];
     }
     /**  物业后台接口 end */
 
@@ -242,7 +242,7 @@ class LineService extends BaseService
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();
-        return $this->success(['list' => $arr]);
+        return ['list' => $arr];
     }
 
     /**  钉钉接口 end */
