@@ -9,9 +9,9 @@
 namespace app\modules\ding_property_app\controllers;
 
 
-use app\models\PsUser;
+use app\modules\ding_property_app\services\UserService;
 use common\core\F;
-use service\rbac\UserService;
+//use service\rbac\UserService;
 
 class UserBaseController extends BaseController
 {
@@ -29,17 +29,14 @@ class UserBaseController extends BaseController
             F::apiFailed('登录token不能为空！');
         }
 
-        //根据token获取用户信息
-//        $re = UserService::service()->getInfoByToken($this->token);
-//        if (!$re['code']) {
-//            return F::apiFailed('token不存在或已失效！');
-//        }
-//        $data = $re['data'];
-        //TODO 先写死测试
-        $data = PsUser::find()->where(['id' =>1775])->asArray()->one();
-        $this->userInfo = $data;
-        $this->userId = $data['id'];
-        $this->userMobile = $data['mobile'];
+        $re = UserService::service()->refreshToken($this->token);
+        if($re === false){
+            F::apiFailed('token过期',50002);
+        }
+        $userInfo = UserService::service()->getUserById($re);
+        $this->userInfo = $userInfo;
+        $this->userId = $re;
+        $this->userMobile = $userInfo['mobile'];
         return true;
     }
 }

@@ -288,12 +288,14 @@ class PackService extends BaseService
     // 查看套餐包
     public function packShow($packId)
     {
-        $model =  Yii::$app->db->createCommand( "select name,class_id,type,created_at,described from ps_pack where id=:id",[":id"=>$packId])->queryOne();
+        $model = Yii::$app->db->createCommand("SELECT name, class_id, type, created_at, described 
+            from ps_pack where id = :id", [":id" => $packId])->queryOne();
         if(!empty($model)) {
-            $model["menus"] = $this->getPackMenu($packId,0);
-            $model["type_desc"] = $model["type"]==1 ? "代理商" : "邻易联";
-            $model["created_at"] = date("Y-m-d",$model["created_at"]);
+            $model["menus"] = $this->getPackMenu($packId, 0);
+            $model["type_desc"] = $model["type"] == 1 ? "代理商" : "邻易联";
+            $model["created_at"] = date("Y-m-d", $model["created_at"]);
         }
+
         return !empty($model) ? $model : [] ;
     }
 
@@ -365,17 +367,18 @@ class PackService extends BaseService
     public function getPackMenu($packId, $status = 0) 
     {
         $query = new Query();
-        $query->select(["A.id","A.parent_id","A.level","A.name"])
+        $query->select('A.id, A.parent_id as parentId, A.level, A.name as menuName')
             ->from("ps_menu_pack B")
-            ->leftJoin("ps_menus A","A.id=B.menu_id")->where(["B.pack_id"=>$packId]);
-        if($status==1) {
-            $query->andWhere(["status"=>1]);
+            ->leftJoin("ps_menus A", "A.id = B.menu_id")->where(["B.pack_id" => $packId]);
+        if ($status == 1) {
+            $query->andWhere(["status" => 1]);
         }
-        $models =  $query ->orderBy("parent_id asc,sort_num asc")->all();
+
+        $models = $query ->orderBy("parent_id asc, sort_num asc")->all();
         if(empty($models)) {
             return [];
         }
-        $result = MenuService::service()->getMenuTree($models,1);
+        $result = MenuService::service()->getMenuTree($models, 1);
         return $result;
     }
 

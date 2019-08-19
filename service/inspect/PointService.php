@@ -84,11 +84,9 @@ class PointService extends BaseService
         $model->setAttributes($params, false);
         if ($model->save()) {  # 保存新增数据
             $id = $model->id;
-            //TODO 二维码后续添加
-            //self::createQrcode($model,$id);
+            self::createQrcode($model,$id);
             if (!empty($userInfo)) {
-                //TODO 日志好了就打开
-                //self::addLog($userInfo, $params['name'], $params['community_id'], $scenario);
+                self::addLog($userInfo, $params['name'], $params['community_id'], $scenario);
             }
             return true;
         } else {
@@ -97,7 +95,7 @@ class PointService extends BaseService
     }
 
     //生成二维码图片
-    private static function createQrcode($model,$id)
+    private static function createQrcode($model, $id)
     {
         $savePath = F::imagePath('inspect');
         $logo = Yii::$app->basePath . '/web/img/lyllogo.png';//二维码中间的logo
@@ -164,7 +162,7 @@ class PointService extends BaseService
             if (!empty($userInfo)) {
                 $name = PsInspectPoint::find()->select('name')->where(['id' => $params['id']])->scalar();
                 $name = $name ?? "";
-                //self::addLog($userInfo, $name, $params['community_id'], 'del');
+                self::addLog($userInfo, $name, $params['community_id'], 'del');
             }
             return true;
         }
@@ -174,12 +172,11 @@ class PointService extends BaseService
     //巡检点列表
     public function pointList($params)
     {
-        $totals = self::pointSearch($params)->count();
+        $totals = self::pointSearch($params,'id')->count();
         if ($totals == 0) {
-            return $this->success(['list' => [], 'totals' => 0]);
+            return ['list' => [], 'totals' => 0];
         }
-        $list = self::pointSearch($params)
-            ->select('id, community_id, name, device_name, location_name, need_photo, need_location')
+        $list = self::pointSearch($params,'id, community_id, name, device_name, location_name, need_photo, need_location')
             ->orderBy('id desc')
             ->offset(($params['page'] - 1) * $params['rows'])
             ->limit($params['rows'])
@@ -265,36 +262,30 @@ class PointService extends BaseService
             ->andWhere(['community_id' => $community_id])->one();
     }
 
-    //列表参数过滤
-    private static function pointSearch($params)
-    {
-        $model = PsInspectPoint::find()
-            ->filterWhere(['like', 'name', PsCommon::get($params, 'name')])
-            ->andFilterWhere(['=', 'need_location', PsCommon::get($params, 'need_location')])
-            ->andFilterWhere(['=', 'need_photo', PsCommon::get($params, 'need_photo')])
-            ->andFilterWhere(['=', 'community_id', PsCommon::get($params, 'community_id')])
-            ->andFilterWhere(['=', 'device_id', PsCommon::get($params, 'device_id')]);
-        return $model;
-    }
+
     /**  物业后台接口 end */
 
     /**  钉钉接口 start */
 
-    //巡检列表
+    //巡检点列表
     public function getList($params)
     {
         $page = !empty($params['page']) ? $params['page'] : 1;
         $rows = !empty($params['rows']) ? $params['rows'] : 5;
         //列表
-        $list = PsInspectPoint::find()->alias("point")
-            ->where(['community_id' => $params['communitys']])
-            ->select(['point.id', 'comm.name as community_name', 'point.name', 'point.device_name', 'point.need_location', 'point.need_photo', 'point.code_image'])
+
+        $query = self::pointSearch($params,['point.id', 'comm.name as community_name', 'point.name', 'point.device_name', 'point.need_location', 'point.need_photo', 'point.code_image']);
+
+        $list = $query
+            ->alias('point')
+            ->andwhere(['community_id' => $params['communitys']])
             ->leftJoin("ps_community comm", "comm.id=point.community_id")
             ->orderBy('point.id desc')
             ->offset(($page - 1) * $rows)
             ->limit($rows)->asArray()->all();
-        return $this->success(['list' => $list]);
+        return ['list' => $list];
     }
+
     //设备列表
     public function getDeviceList($params)
     {
@@ -331,11 +322,45 @@ class PointService extends BaseService
         throw new MyException('设备不存在！');
     }
 
+    //巡检列表-线路新增页面使用
+    public function getPointList($reqArr)
+    {
+        $query = self::pointSearch(['community_id' => $reqArr['community_id']],'point.id,point.name');
+        $arr = $query->alias('point')->asArray()->all();
+        //说明需要查询线路对应选择的巡检点
+        if (!empty($reqArr['line_id'])) {
+            $sel_point = PsInspectPoint::find()->alias("point")
+                ->where(['community_id' => $reqArr['community_id'], "line_point.line_id" => $reqArr['line_id']])
+                ->select(['point.id', 'point.name'])
+                ->leftJoin("ps_inspect_line_point line_point", "line_point.point_id=point.id")
+                ->asArray()->all();
+        }else{
+            $sel_point = [];
+        }
+        return ['list' => $arr, 'sel_list' => $sel_point];
+    }
+
     /**  钉钉接口 end */
 
     /**  公共接口 start */
+
+    //列表参数过滤
+    private static function pointSearch($params, $filter = '')
+    {
+        $filter = $filter ?? "*";
+        $model = PsInspectPoint::find()
+            ->select($filter)
+            ->filterWhere(['like', 'name', PsCommon::get($params, 'name')])
+            ->andFilterWhere(['=', 'need_location', PsCommon::get($params, 'need_location')])
+            ->andFilterWhere(['=', 'need_photo', PsCommon::get($params, 'need_photo')])
+            ->andFilterWhere(['=', 'community_id', PsCommon::get($params, 'community_id')])
+            ->andFilterWhere(['=', 'device_id', PsCommon::get($params, 'device_id')]);
+        return $model;
+    }
+
+
     //自动验证小区权限
-    public  function validaCommunit($params)
+    public function validaCommunit($params)
     {
         $communitys = $params['communitys'];
         $communityId = !empty($params['community_id']) ? $params['community_id'] : 0;

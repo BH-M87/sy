@@ -480,24 +480,24 @@ class TaskService extends BaseService
     public function add($reqArr)
     {
         if (empty($reqArr['id'])) {
-            return $this->failed('id不能为空');
+            throw new MyException('id不能为空');
         }
         $trans = \Yii::$app->getDb()->beginTransaction();
         try {
             $model = PsInspectRecordPoint::findOne($reqArr['id']);
             if (empty($model)) {
-                return $this->failed('任务不存在!');
+                throw new MyException('任务不存在!');
             }
             if ($model['status'] != 1) {
-                return $this->failed('任务已巡检!');
+                throw new MyException('任务已巡检!');
             }
             //得到对应的巡检点信息
             $point = PsInspectPoint::findOne($model['point_id']);
             if ($point->need_location == 1 && (empty($reqArr['lat']) || empty($reqArr['lon']) || empty($reqArr['location_name']))) {
-                return $this->failed('该任务需定位,经纬度不能为空!');
+                throw new MyException('该任务需定位,经纬度不能为空!');
             }
             if ($point->need_photo == 1 && empty($reqArr['img'])) {
-                return $this->failed('该任务需拍照,图片不能为空!');
+                throw new MyException('该任务需拍照,图片不能为空!');
             }
             $reqArr['imgs'] = $reqArr['img'];
             $reqArr['status'] = 2;
@@ -510,13 +510,13 @@ class TaskService extends BaseService
                 ->leftJoin("ps_inspect_record record", "record.id=task_point.record_id")
                 ->asArray()->one();
             if (empty($info)) {
-                return $this->failed('当前时间不可执行任务!');
+                throw new MyException('当前时间不可执行任务!');
             }
             //如果需要定位的话判断距离误差
             if ($info['need_location'] == 1) {
                 $distance = F::getDistance($reqArr['lat'], $reqArr['lon'], $info['point_lat'], $info['point_lon']);
                 if ($distance > \Yii::$app->getModule('property')->params['distance']) {
-                    return $this->failed("当前位置不可巡检！");
+                    throw new MyException('当前位置不可巡检！');
                 }
             }
             $model->scenario = 'edit';  # 设置数据验证场景为 新增
