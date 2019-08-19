@@ -13,7 +13,7 @@ use app\models\PsPatrolLine;
 use app\models\PsPatrolPlan;
 use app\models\PsPatrolPoints;
 use app\models\PsPatrolTask;
-use app\modules\ding_property_app\controllers\BaseController;
+use app\modules\ding_property_app\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
 use service\manage\CommunityService;
@@ -23,7 +23,7 @@ use service\patrol\PointService;
 use service\patrol\TaskService;
 use Yii;
 
-class PatrolController extends BaseController
+class PatrolController extends UserBaseController
 {
     /* 巡更点相关*/
     public function actionPointList()
