@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\small\modules\v1\controllers;
+namespace app\modules\ali_small_common\controllers;
 
 use yii\web\Controller;
 
@@ -7,6 +7,6 @@ class TestController extends Controller {
 
     public function actionIndex()
     {
-        die('2222');
+        die('1111');
     }
 }
