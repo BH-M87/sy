@@ -351,9 +351,9 @@ class InspectController extends BaseController
      * @author wyf
      * @date 2019/8/12
      */
-    public function actionUserList()
+    public function actionStatistics()
     {
-        $result = StatisticService::service()->userList($this->request_params);
+        $result = StatisticService::service()->statisticsList($this->request_params);
 
         return PsCommon::responseSuccess($result);
     }

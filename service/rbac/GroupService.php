@@ -312,7 +312,7 @@ class GroupService extends BaseService
         }
     }
 
-    //ckl检查 部门详情
+    // 部门详情
     public function show($groupId, $menu = true)
     {
         $data = PsGroups::find()->select('id, name, describe, parent_id, see_limit')
@@ -320,13 +320,16 @@ class GroupService extends BaseService
         if (!$data) {
             return [];
         }
+        
         if ($data['see_limit']) {
             $data['see_group_id'] = PsGroupsRelations::find()->select('see_group_id')
                 ->where(['group_id' => $data['id']])->asArray()->column();
         }
+
         if ($menu) {
             $data["menu_list"] = MenuService::service()->menusList($groupId, 2);
         }
+
         return $data;
     }
 

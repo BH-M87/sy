@@ -62,7 +62,7 @@ class PsInspectLine extends BaseModel
     {
         $scenarios = parent::scenarios();
         //各个场景的活动属性
-        $scenarios['add'] = ['head_mobile', 'community_id', 'name', 'head_name', 'operator_id', 'pointList'];//新增
+        $scenarios['add'] = ['head_mobile', 'community_id', 'name', 'head_name', 'operator_id', 'pointList','created_at'];//新增
         $scenarios['update'] = ['id', 'community_id', 'name', 'head_name', 'head_mobile', 'pointList', 'operator_id'];//编辑
         return $scenarios;
     }

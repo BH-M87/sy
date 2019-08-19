@@ -43,12 +43,13 @@ class PsInspectRecordPoint extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'record_id', 'point_id', 'point_name', 'create_at'], 'required'],
-            [['community_id', 'record_id', 'point_id', 'device_status', 'status', 'need_location', 'need_photo', 'finish_at', 'create_at'], 'integer'],
-            [['lon', 'lat', 'point_lon', 'point_lat'], 'number'],
-            [['location_name', 'point_name', 'point_location_name'], 'string', 'max' => 50],
+            [['community_id', 'record_id', 'point_id', 'device_status', 'finish_at', 'create_at'], 'integer'],
+            [['lon', 'lat'], 'number'],
+            [['location_name'], 'string', 'max' => 50],
             [['imgs'], 'string', 'max' => 500],
-            [['record_note'], 'string', 'max' => 255],
+            [['record_note'], 'string', 'max' => 200],
+            //钉钉端的编辑
+            [['id','device_status','record_note','status'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
         ];
     }
 
@@ -59,24 +60,18 @@ class PsInspectRecordPoint extends BaseModel
     {
         return [
             'id' => 'ID',
-            'community_id' => 'Community ID',
-            'record_id' => 'Record ID',
-            'point_id' => 'Point ID',
-            'device_status' => 'Device Status',
-            'location_name' => 'Location Name',
-            'lon' => 'Lon',
-            'lat' => 'Lat',
-            'imgs' => 'Imgs',
-            'record_note' => 'Record Note',
-            'status' => 'Status',
-            'point_name' => 'Point Name',
-            'need_location' => 'Need Location',
-            'need_photo' => 'Need Photo',
-            'point_location_name' => 'Point Location Name',
-            'point_lon' => 'Point Lon',
-            'point_lat' => 'Point Lat',
-            'finish_at' => 'Finish At',
-            'create_at' => 'Create At',
+            'community_id' => '小区',
+            'record_id' => '记录',
+            'point_id' => '巡检点',
+            'device_status' => '设备状态',
+            'location_name' => '巡检地理位置',
+            'lon' => '巡检经度',
+            'lat' => '巡检纬度',
+            'imgs' => '巡检图片',
+            'record_note' => '巡检记录',
+            'finish_at' => '巡检提交时间',
+            'status' => '巡检状态',
+            'create_at' => '创建时间',
         ];
     }
 }
