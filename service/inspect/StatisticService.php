@@ -18,7 +18,7 @@ class StatisticService extends BaseService
     /**  物业后台接口 start */
 
     // 巡检数据统计 列表
-    public function userList($params)
+    public function statisticsList($params)
     {
         $page = PsCommon::get($params, 'page');
         $rows = PsCommon::get($params, 'rows');

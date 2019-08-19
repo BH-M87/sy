@@ -9,6 +9,7 @@ use service\manage\CompanyService;
 use service\common\SmsService;
 use service\rbac\OperateService;
 use service\rbac\UserService;
+use app\modules\property\controllers\BaseController;
 use Yii;
 
 class UserController extends BaseController
@@ -113,8 +114,6 @@ class UserController extends BaseController
     public function actionGetUserByToken()
     {
         $userInfo = $this->user_info;
-        $companyName = CompanyService::service()->getNameById($userInfo['property_company_id']);
-        $userInfo['company_name'] = $companyName;
         //返回操作手册
         $userInfo['version_file_url'] = '';
         return PsCommon::responseSuccess($userInfo);
@@ -165,7 +164,7 @@ class UserController extends BaseController
             if (!$r['code']) {
                 return PsCommon::responseFailed($r['msg']);
             }
-            return PsCommon::responseSuccess(['token' => $r['data']['token']]);
+            return PsCommon::responseSuccess($r['data']);
         } else {
             $errorMsg = array_values($user->errors);
             return PsCommon::responseFailed($errorMsg[0][0]);

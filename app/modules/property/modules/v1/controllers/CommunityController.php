@@ -18,7 +18,7 @@ class CommunityController extends BaseController
     public function actionChange()
     {
         $result = CommunityService::service()->getUserCommunitys($this->userId);
-        
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -64,7 +64,7 @@ class CommunityController extends BaseController
     public function actionCircleDelete()
     {
         $result = SmallCommunityService::service()->circleDelete($this->request_params, $this->user_info);
-        
+
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {

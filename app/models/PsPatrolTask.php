@@ -122,4 +122,12 @@ class PsPatrolTask extends BaseModel
             'created_at' => 'Created At',
         ];
     }
+
+    public function checkMonth($label)
+    {
+        $month = $this->month;
+        if(!in_array(intval($month),[1,2,3,4,5,6,7,8,9,10,11,12])){
+            $this->addError($label, "查询月份错误，只能输入1-12");
+        }
+    }
 }

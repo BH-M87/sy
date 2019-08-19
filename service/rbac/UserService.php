@@ -101,15 +101,19 @@ class UserService extends BaseService
             'id' => $user['id'],
             'mobile' => $user['mobile'],
             'company_id' => $user['property_company_id'],
-            'property_company_id' => $user['property_company_id'],
-            'property_company_name' => $companyName,
+            'company_id' => $user['property_company_id'],
+            'company_name' => $companyName,
             'truename' => $user['truename'],
             'username' => $user['username'],
             'group_id' => $user['group_id'],
             'role_id' => ZjyUserRole::getUserRole($user['id']),
             'level' => $user['user_type'],
-            'system_type' => $user['system_type']
+            'system_type' => $user['system_type'],
+            'login_time' => $user->last_login_at?$user->last_login_at:date("Y-m-d H:i",time())
         ];
+        $user->last_login_at = $user->latest_login_at;
+        $user->latest_login_at = date("Y-m-d H:i",time());
+        $user->save();
         //是否有token存在
         $loginToken = PsLoginToken::findOne(['user_id' => $user['id'], 'app_type' => 1]);
         if ($loginToken && $this->_getCache($loginToken['token'])) {
