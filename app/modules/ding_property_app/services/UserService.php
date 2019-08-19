@@ -7,6 +7,7 @@
  */
 namespace app\modules\ding_property_app\services;
 use app\models\PsCommunityModel;
+use app\models\PsGroups;
 use app\models\PsLoginToken;
 use app\models\PsMenus;
 use app\models\PsRepair;
@@ -15,8 +16,8 @@ use service\BaseService;
 use service\manage\CommunityService;
 use Yii;
 
-include_once Yii::$app->basePath.'/common/alipush/aliyun-php-sdk-core/Config.php';
-include Yii::$app->basePath.'/common/alipush/Push/Request/V20160801/PushRequest.php';
+#include_once Yii::$app->basePath.'/common/alipush/aliyun-php-sdk-core/Config.php';
+#include Yii::$app->basePath.'/common/alipush/Push/Request/V20160801/PushRequest.php';
 
 class UserService extends BaseService
 {
@@ -111,12 +112,17 @@ class UserService extends BaseService
      */
     public function getUserByPhone($phone)
     {
-        $command = Yii::$app->get('db')->createCommand('SELECT `id`, `username`, `mobile`, `truename`, `level`, `is_enable`, `group_id`, `property_company_id`, `ding_icon` FROM `ps_user`
+       /* $command = \Yii::$app->get('db')->createCommand('SELECT `id`, `username`,
+ `mobile`, `truename`, `level`, `is_enable`, `group_id`, `property_company_id`, `ding_icon` FROM `ps_user`
     WHERE `mobile` = :mobile AND `system_type` = :system_type AND is_enable=1');
         $command->bindValue(':mobile', $phone);
         $command->bindValue(':system_type', 2);
-        $userInfo = $command->queryOne();
+        $userInfo = $command->queryOne();*/
 
+        $userInfo = PsUser::find()
+            ->select(['id','username','mobile','truename','level','is_enable','group_id','property_company_id','ding_icon'])
+            ->where(['mobile'=>$phone,'system_type'=>2,'is_enable'=>1])
+            ->asArray()->one();
         if (!$userInfo) {
             return "该用户不存在！";
         }
@@ -1134,7 +1140,7 @@ class UserService extends BaseService
             }
         } else {
             $token = md5('linyilianapp'. $phone . microtime());
-            $timeExpired = time() + Yii::$app->getModule('lylapp')->params['api_token_expired_time'] * 86400;
+            $timeExpired = time() + Yii::$app->getModule('ding_property_app')->params['api_token_expired_time'] * 86400;
             $loginToken = new PsLoginToken();
             $loginToken->token     = $token;
             $loginToken->user_id   = $user_id;
