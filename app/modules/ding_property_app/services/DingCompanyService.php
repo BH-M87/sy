@@ -212,10 +212,22 @@ class DingCompanyService extends BaseService  {
             }
             $userId = $userInfoArr['userid'];
         }
-
         //根据 userid 获取用户详细信息
-        $userInfo = $user->get($accessToken, $userId);
-        $userInfoArr = json_decode($userInfo, true);
+        if(YII_ENV == 'dev'){
+            $userInfoArr['userid'] = '014809271080192';
+            $userInfoArr['mobile'] = '18768177608';
+            $userInfoArr['name'] = '张强测试';
+            $userInfoArr['email'] = '';
+            $userInfoArr['openId'] = '';
+            $userInfoArr['isAdmin'] = 1;
+            $userInfoArr['isBoss'] = 1;
+            $userInfoArr['avatar'] = '';
+            $userInfoArr['errcode'] = 0;
+        }else{
+            $userInfo = $user->get($accessToken, $userId);
+            $userInfoArr = json_decode($userInfo, true);
+        }
+
         if ($userInfoArr['errcode'] != 0) {
             return $userInfoArr['errmsg'];
         }
