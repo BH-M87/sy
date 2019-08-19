@@ -214,15 +214,7 @@ class DingCompanyService extends BaseService  {
         }
         //根据 userid 获取用户详细信息
         if(YII_ENV == 'dev'){
-            $userInfoArr['userid'] = '014809271080192';
-            $userInfoArr['mobile'] = '18768177608';
-            $userInfoArr['name'] = '张强测试';
-            $userInfoArr['email'] = '';
-            $userInfoArr['openId'] = '';
-            $userInfoArr['isAdmin'] = 1;
-            $userInfoArr['isBoss'] = 1;
-            $userInfoArr['avatar'] = '';
-            $userInfoArr['errcode'] = 0;
+            $userInfoArr = $this->getTestUserInfo($userId);
         }else{
             $userInfo = $user->get($accessToken, $userId);
             $userInfoArr = json_decode($userInfo, true);
@@ -253,6 +245,40 @@ class DingCompanyService extends BaseService  {
             $result['data']['avatar'] = $addUser->avatar;
         }
         return $result;
+    }
+
+    //测试环境获取钉钉端用户模拟信息
+    private function getTestUserInfo($userid)
+    {
+        $userInfoArr['email'] = '';
+        $userInfoArr['openId'] = '';
+        $userInfoArr['isAdmin'] = 1;
+        $userInfoArr['isBoss'] = 1;
+        $userInfoArr['avatar'] = '';
+        $userInfoArr['errcode'] = 0;
+        switch($userid){
+            case "014809271080192":
+                $userInfoArr['userid'] = '014809271080192';
+                $userInfoArr['mobile'] = '18768177608';
+                $userInfoArr['name'] = '张强测试1';
+                break;
+            case "0366162840779290":
+                $userInfoArr['userid'] = '0366162840779290';
+                $userInfoArr['mobile'] = '18768177608';
+                $userInfoArr['name'] = '张强测试2';
+                break;
+            case "053858545329654302":
+                $userInfoArr['userid'] = '053858545329654302';
+                $userInfoArr['mobile'] = '18603821907';
+                $userInfoArr['name'] = '王闫飞';
+                break;
+            case "072145343720937421":
+                $userInfoArr['userid'] = '072145343720937421';
+                $userInfoArr['mobile'] = '15397041059';
+                $userInfoArr['name'] = '冯文超';
+                break;
+        }
+        return $userInfoArr;
     }
 
     /**
