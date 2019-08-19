@@ -45,6 +45,9 @@ use Yii;
  */
 class PsPatrolTask extends BaseModel
 {
+    public $search_date;
+    public $year;
+    public $month;
     /**
      * {@inheritdoc}
      */
