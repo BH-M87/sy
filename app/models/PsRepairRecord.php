@@ -90,7 +90,6 @@ class PsRepairRecord extends BaseModel
             ['contact_mobile', 'match', 'pattern' => Regular::phone(),
                 'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add-repair2']],
             ['repair_content', 'string', 'length' => [1, 200],'message' => '报修内容最长不超过200个汉字，且不能含特殊字符','on' =>['add-repair1','add-repair2','add-repair3']],
-
         ];
     }
 

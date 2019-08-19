@@ -20,7 +20,7 @@ class UserBaseController extends BaseController
         if(!parent::beforeAction($action)) return false;
         $this->appUserId = F::value($this->params, 'app_user_id');
         if (!$this->appUserId) {
-            F::apiFailed('用户id不能为空！');
+            return F::apiFailed('用户id不能为空！');
         }
         return true;
     }

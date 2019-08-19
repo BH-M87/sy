@@ -9,6 +9,7 @@
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
 
+use app\models\PsRepair;
 use app\models\PsRepairRecord;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
@@ -60,14 +61,34 @@ class RepairController extends UserBaseController
     //报事报修列表
     public function actionList()
     {
+        if (empty($this->params)) {
+            return F::apiFailed("未接受到有效数据");
+        }
 
-
+        $valid = PsCommon::validParamArr(new PsRepair(), $this->params, 'small_list');
+        if (!$valid["status"]) {
+            return F::apiFailed($valid["errorMsg"]);
+        }
+        $result = RepairService::service()->smallRepairList($valid['data']);
+        return F::apiSuccess($result);
     }
 
     //报事报修详情
     public function actionView()
     {
+        if (empty($this->params)) {
+            return F::apiFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepair(), $this->params, 'small_view');
+        if (!$valid["status"]) {
+            return F::apiFailed($valid["errorMsg"]);
+        }
 
+        $result = RepairService::service()->smallView($valid['data']);
+        if (!$result) {
+            return F::apiFailed("工单不存在");
+        }
+        return F::apiSuccess($result);
     }
 
     //报事报修评价
