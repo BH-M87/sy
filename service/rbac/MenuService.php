@@ -587,7 +587,7 @@ class MenuService extends BaseService
     {
         $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $groupId])->queryScalar();
         $query = new  Query();
-        $query->select(["B.id", "B.key", "B.name", "B.parent_id", "B.level", "B.icon", "B.url", "B.en_key"]);
+        $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key as menuCode","B.menu_type as menuType"]);
         if ($is_pack > 0) {
             $query->from("ps_menu_pack C")
                 ->leftJoin("ps_group_pack A", "C.pack_id=A.pack_id")
@@ -598,15 +598,6 @@ class MenuService extends BaseService
         }
         $query->where(["A.group_id" => $groupId])->andWhere(["is_dd" => 1])->andWhere(["B.status" => 1]);
         $models = $query->groupBy("B.id")->orderBy('B.level asc,B.sort_num asc')->all();
-
-        if ($system_type == 2) {
-            foreach ($models as $key => $model) {
-//                if($model["key"]=="0101") {
-//                    $parent=  $this->getMenuByKey('12');
-//                    array_push($models,["id"=>'-1',"key"=>"1200","url"=>"collectsPassword","parent_id"=>$parent["id"],"name"=>"收款密码设置","level"=>2]);
-//                }
-            }
-        }
 
         $result = [];
         if (!empty($models)) {
