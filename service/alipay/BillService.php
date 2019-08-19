@@ -3,6 +3,9 @@
 namespace service\alipay;
 
 use app\models\PsMember;
+use app\models\PsPropertyAlipay;
+use app\models\PsPropertyCompany;
+use common\core\F;
 use common\core\PsCommon;
 use service\alipay\AlipayBillService;
 use app\models\BillFrom;
@@ -20,6 +23,7 @@ use app\models\PsRepair;
 use app\models\PsRepairBill;
 use app\models\RepairType;
 use service\BaseService;
+use service\common\QrcodeService;
 use service\message\MessageService;
 use service\manage\CommunityService;
 use Yii;
@@ -1385,11 +1389,134 @@ class BillService extends BaseService
     /**
      * 报事报修添加
      * @author yjh
-     * @param $params
-     * @return bool
+     * @param $repairId
+     * @param $materialsPrice
+     * @param $totalPrice
+     * @param int $otherCharge
+     * @return bool|mixed
      */
-    public function addRepairBill($params)
+    public function addRepairBill($repairId, $materialsPrice, $totalPrice, $otherCharge = 0)
     {
-        return true;
+        $psRepair = PsRepair::findOne($repairId);
+        if (!$psRepair) {
+            return false;
+        }
+        $community = PsCommunityModel::findOne($psRepair->community_id);
+        if (!$community) {
+            return false;
+        }
+        //查询此小区对应的物业公司信息
+        $preCompany = PsPropertyCompany::findOne($community->pro_company_id);
+        if (!$preCompany) {
+            return false;
+        }
+        $psRepairBill = PsRepairBill::find()
+            ->select(['id'])
+            ->where(['repair_id' => $repairId])
+            ->one();
+        if ($psRepairBill) {
+            return false;
+        }
+        $psRepairBill = new PsRepairBill();
+        $psRepairBill->repair_id = $repairId;
+        $psRepairBill->community_id = $community->id;
+        $psRepairBill->community_name = $community->name;
+        $psRepairBill->property_company_id = $community->pro_company_id;
+        $psRepairBill->order_no = $psRepair->repair_no;
+        $psRepairBill->property_alipay_account = $preCompany->alipay_account;
+        $psRepairBill->materials_price = $materialsPrice;
+        $psRepairBill->other_charge = $otherCharge;
+        $psRepairBill->amount = $totalPrice;
+        $psRepairBill->trade_no = "";
+        $psRepairBill->pay_status = 0;
+        $psRepairBill->create_at = time();
+        if ($psRepairBill->save()) {
+            $re = $this->generalRepair($psRepair,$psRepairBill,$community);
+            return $re;
+        }
+        return false;
+    }
+
+    /**
+     * 生成报事报修订单
+     * @author yjh
+     * @param $psRepair
+     * @param $psRepairBill
+     * @param $community
+     * @return mixed
+     */
+    public function generalRepair($psRepair,$psRepairBill,$community)
+    {
+        $re['issue_id'] = $psRepair->id;
+        $re['bill_id'] = $psRepairBill->id;
+        $re['pay_code_url'] = 'https://static.elive99.com/2019080714324663221.png';
+        //修改报事报修单状态为待支付
+        $psRepair->is_pay = 1;
+        $psRepair->status = 3;
+        //查询物业公司是否签约
+        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community->pro_company_id,'status'=>'2'])->asArray()->one();
+        if(!empty($alipay)){
+            //生成支付二维码
+            $codeUrl = $this->generalCodeImg($psRepair->id, $community->logo_url);
+            $psRepair->pay_code_url = $codeUrl;
+            if ($psRepair->save()) {
+                $re['pay_code_url'] = $codeUrl;
+            }
+        }else{
+            $psRepair->pay_code_url = $re['pay_code_url'];
+            $psRepair->save();
+        }
+        //存入order表记录
+        $order = $this->addRepairOrder($psRepairBill);
+        $re['order_id'] = $order->id;
+        return $re;
+    }
+
+    /**
+     * 生成二维码图片
+     * @param $repairId
+     * @param $communityLogo
+     * @return string
+     */
+    public function generalCodeImg($repairId, $communityLogo)
+    {
+        $savePath = F::imagePath('repair-bill');
+        $url = Yii::$app->getModule('property')->params['web_host'] . "/repair-pay?repair_id=" . $repairId;
+        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $repairId, $communityLogo);
+        return $imgUrl;
+    }
+
+    /**
+     * 添加报事报修订单
+     * @author yjh
+     * @param $psRepairBill
+     * @return PsOrder|bool
+     */
+    public function addRepairOrder($psRepairBill)
+    {
+        $orderData = [
+            "bill_id" => $psRepairBill->id,
+            "company_id" => $psRepairBill->property_company_id,
+            "community_id" => $psRepairBill->community_id,
+            "order_no" => $psRepairBill->order_no,
+            "product_id" => $psRepairBill->id,
+            "product_type" => 10,
+            "product_subject" => '报事报修',
+            "bill_amount" => $psRepairBill->amount,
+            "pay_amount" => $psRepairBill->amount,
+            "remark" => '报事报修',
+            "status" => 1,
+            "pay_status" => 0,
+            "pay_channel" => 0,
+            "create_at" => time(),
+            "pay_id" => 0
+        ];
+        $order = new PsOrder();
+        $order->setAttributes($orderData);
+        if (!$order->save()){
+            file_put_contents("add-order.txt",json_encode($order->getErrors()),FILE_APPEND);
+            return false;
+        }
+        return $order;
     }
 }
