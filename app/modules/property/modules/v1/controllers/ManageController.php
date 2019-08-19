@@ -13,7 +13,6 @@ use service\manage\CommunityService;
 use service\manage\ManageService;
 use service\rbac\UserService;
 
-
 class ManageController extends BaseController
 {
     public $repeatAction = ['add-manage'];
