@@ -305,8 +305,14 @@ class RepairService extends BaseService
         return $downUrl;
     }
 
-    //报修工单新增
-    public function add($params, $userInfo = [])
+    /**
+     * 报事报修创建
+     * @param $params  业务参数
+     * @param array $userInfo 物业后台操作人员用户信息
+     * @param string $useAs 方法调用者   small 小程序，其他为 物业后台及钉钉端
+     * @return int|mixed
+     */
+    public function add($params, $userInfo = [], $useAs = '')
     {
         $model = new PsRepair();
         if ($params['relate_room']) {
@@ -318,20 +324,28 @@ class RepairService extends BaseService
             }
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+
             //查找住户相关信息
-            $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
+            if ($useAs == 'small') {
+                $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
+                $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
+            } else {
+                $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
+                $model->contact_mobile = $params['contact_mobile'];
+                $model->created_id = $userInfo['id'];
+                $model->created_username = $userInfo['truename'];
+            }
             if ($memberInfo) {
                 $model->member_id = $memberInfo['id'];
                 $roomUserInfo = MemberService::service()->getRoomUserByMemberIdRoomId($memberInfo['id'], $roomInfo['id']);
                 if ($roomUserInfo) {
                     $model->room_username = $roomUserInfo['name'] ? $roomUserInfo['name'] : $memberInfo['name'];
-                    $model->appuser_id = $roomUserInfo['id'];
+                    $model->appuser_id = $useAs == 'small' ? $params['app_user_id'] : $roomUserInfo['id'];
                 }
             }
         }
 
         $model->community_id = $params['community_id'];
-        $model->contact_mobile = $params['contact_mobile'];
         $model->repair_no = $this->generalRepairNo();
         $model->repair_type_id = is_array($params["repair_type"]) ? end($params["repair_type"]) : $params["repair_type"];
         $model->repair_content = $params["repair_content"];
@@ -340,8 +354,6 @@ class RepairService extends BaseService
             (is_array($params["repair_imgs"]) ? implode(',', $params["repair_imgs"]) : $params["repair_imgs"] ) : "";
         $model->expired_repair_time = !empty($params["expired_repair_time"]) ? strtotime($params["expired_repair_time"]) : 0;
         $model->repair_from = $params["repair_from"];
-        $model->created_id = $userInfo['id'];
-        $model->created_username = $userInfo['truename'];
         $model->is_assign = 2;
         $model->hard_type = 1;
         $model->status = 1;
@@ -355,14 +367,17 @@ class RepairService extends BaseService
         $typeName = $repairTypeInfo ? $repairTypeInfo['name'] : '';
 
         //发送消息
-        //TODO 发送消息，B端C端通用
-        $operate = [
-            "community_id" =>$params["community_id"],
-            "operate_menu" => "报修管理",
-            "operate_type" => "新增工单",
-            "operate_content" => '工单编号'.$model->repair_no.'-类型：'.$typeName,
-        ];
-        OperateService::addComm($userInfo, $operate);
+        //TODO 发送短信
+        //TODO 发送站内消息
+        if ($useAs != 'small') {
+            $operate = [
+                "community_id" => $params["community_id"],
+                "operate_menu" => "报修管理",
+                "operate_type" => "新增工单",
+                "operate_content" => '工单编号' . $model->repair_no . '-类型：' . $typeName,
+            ];
+            OperateService::addComm($userInfo, $operate);
+        }
         return $model->id;
     }
 

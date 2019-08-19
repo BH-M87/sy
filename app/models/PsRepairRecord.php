@@ -59,7 +59,7 @@ class PsRepairRecord extends BaseModel
             [['repair_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['create','assign-repair']],
             ['content', 'string', 'max' => '200','message' => '{attribute}最多200个字符!', 'on' => 'create'],
 
-            [['community_id'], 'required','message' => '小区不能为空!', 'on' => ['materials','add-repair1','add-repair2','get-group-user']],
+            [['community_id'], 'required','message' => '小区不能为空!', 'on' => ['materials','add-repair1','add-repair2','add-repair3','get-group-user']],
 
             [['name'], 'required','message' => '材料名必填!', 'on' => ['add-material','edit-material']],
             [['cate_id'], 'required','message' => '材料分类必填!', 'on' => ['add-material','edit-material']],
@@ -73,14 +73,14 @@ class PsRepairRecord extends BaseModel
             ['num', 'integer','message' => '材料数量错误!', 'on' =>['add-material','edit-material']],
             ['material_id', 'required','message' => '材料id不能为空!', 'on' =>['show-material','edit-material',"delete-material"]],
 
-            [['expired_repair_time'], 'required','message' => '上门时间必填!', 'on' => ['add-repair1','add-repair2']],
-            [['repair_type'], 'required','message' => '报修类型必填!', 'on' => ['add-repair1','add-repair2']],
-            [['repair_content'], 'required','message' => '报修内容必填!', 'on' => ['add-repair1','add-repair2']],
-            [['repair_from'], 'required','message' => '报修来源不能为空!', 'on' => ['add-repair1','add-repair2']],
+            [['expired_repair_time'], 'required','message' => '上门时间必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
+            [['repair_type'], 'required','message' => '报修类型必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
+            [['repair_content'], 'required','message' => '报修内容必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
+            [['repair_from'], 'required','message' => '报修来源不能为空!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['content','repair_id','status'], 'required','message' => '{attribute}不能为空!', 'on' => ['review']],
 
-
-            [['contact_mobile','group','unit',"building","room"], 'required','message' => '{attribute}必填!', 'on' => ['add-repair2']],
+            [['contact_mobile'], 'required','message' => '{attribute}必填!', 'on' => ['add-repair2']],
+            [['group','unit',"building","room"], 'required','message' => '{attribute}必填!', 'on' => ['add-repair2','add-repair3']],
 
             [['group_id'], 'required','message' => '用户组必填!', 'on' => ['get-group-users']],
             [['user_id'], 'required','message' => '用户必填!', 'on' => ['assign-repair']],
@@ -89,7 +89,7 @@ class PsRepairRecord extends BaseModel
             ['finish_time', 'integer', 'message' => '期望完成時間只能是正数!', 'on' => 'assign-repair'],
             ['contact_mobile', 'match', 'pattern' => Regular::phone(),
                 'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add-repair2']],
-            ['repair_content', 'string', 'length' => [1, 200],'message' => '报修内容最长不超过200个汉字，且不能含特殊字符','on' =>['add-repair1','add-repair2']],
+            ['repair_content', 'string', 'length' => [1, 200],'message' => '报修内容最长不超过200个汉字，且不能含特殊字符','on' =>['add-repair1','add-repair2','add-repair3']],
 
         ];
     }

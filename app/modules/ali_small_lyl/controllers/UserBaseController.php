@@ -9,7 +9,19 @@
 namespace app\modules\ali_small_lyl\controllers;
 
 
+use common\core\F;
+
 class UserBaseController extends BaseController
 {
+    public $appUserId;
 
+    public function beforeAction($action)
+    {
+        if(!parent::beforeAction($action)) return false;
+        $this->appUserId = F::value($this->params, 'app_user_id');
+        if (!$this->appUserId) {
+            F::apiFailed('用户id不能为空！');
+        }
+        return true;
+    }
 }
