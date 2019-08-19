@@ -9,6 +9,7 @@ use service\manage\CompanyService;
 use service\common\SmsService;
 use service\rbac\OperateService;
 use service\rbac\UserService;
+use app\modules\property\controllers\BaseController;
 use Yii;
 
 class UserController extends BaseController
