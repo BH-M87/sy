@@ -13,13 +13,12 @@ use common\core\PsCommon;
 use service\inspect\LineService;
 use service\inspect\PlanService;
 use service\inspect\PointService;
-use service\inspect\StatisticService;
 use service\inspect\TaskService;
 use service\manage\CommunityService;
 
 class InspectController extends UserBaseController
 {
-    public $repeatAction = ['point-add', 'point-edit'];
+    public $repeatAction = ['point-add', 'point-edit', 'line-add', 'line-edit'];
 
     /**
      * @api 巡检点新增
@@ -93,7 +92,7 @@ class InspectController extends UserBaseController
     }
 
     /**
-     * @api 设备列表
+     * @api 设备列表(对应设备下拉接口)
      * @author wyf
      * @date 2019/8/12
      */
@@ -105,6 +104,23 @@ class InspectController extends UserBaseController
         PointService::service()->validaCommunit($reqArr);
         //获取设备
         $result = PointService::service()->getDeviceList($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * @api 巡检列表-线路新增页面使用
+     * @author wyf
+     * @date 2019/8/19
+     */
+    public function actionPointDownList()
+    {
+        $reqArr = $this->request_params;
+        $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
+        //验证小区权限
+        PointService::service()->validaCommunit($reqArr);
+        $reqArr['operator_id'] = $this->userInfo['id'];         //创建人
+        //获取巡检列表
+        $result = PointService::service()->getPointList($reqArr);
         return PsCommon::responseSuccess($result);
     }
 
@@ -127,8 +143,8 @@ class InspectController extends UserBaseController
         return PsCommon::responseSuccess();
     }
 
-    //巡检线路列表-线路新增页面使用
-    public function actionLineLists()
+    //巡检列表-线路新增页面使用
+    public function actionLineDropList()
     {
         $reqArr = $this->request_params;
         $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
@@ -137,12 +153,9 @@ class InspectController extends UserBaseController
         //获取巡检线路列表
         $reqArr['operator_id'] = $this->userInfo['id'];         //创建人
         $result = LineService::service()->getLineList($reqArr);
-        if ($result['code']) {
-            return PsCommon::responseAppSuccess($result['data']);
-        } else {
-            return PsCommon::responseAppFailed($result['msg']);
-        }
+        return PsCommon::responseSuccess($result);
     }
+
     /**
      * @api 巡检线路编辑
      * @author wyf
@@ -207,10 +220,11 @@ class InspectController extends UserBaseController
         $reqArr = $this->request_params;
         $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
         //验证小区权限
-        $valida = PointService::service()->validaCommunit($reqArr);
+        PointService::service()->validaCommunit($reqArr);
         unset($reqArr['communitys']);   //验证完小区权限则去掉该参数
         $reqArr['operator_id'] = $this->userInfo['id'];         //创建人
         //巡检计划新增
+        $reqArr['time_list'] = !empty($reqArr['time_list']) ? json_decode($reqArr['time_list'], true) : '';//选择的时间
         PlanService::service()->add($reqArr, $this->userInfo);
         return PsCommon::responseSuccess();
     }
@@ -228,7 +242,7 @@ class InspectController extends UserBaseController
         PointService::service()->validaCommunit($reqArr);
         unset($reqArr['communitys']);   //验证完小区权限则去掉该参数
         $reqArr['operator_id'] = $this->userInfo['id'];         //创建人
-        $reqArr['user_list'] = json_encode($this->request_params['user_list']);
+        $reqArr['time_list'] = !empty($reqArr['time_list']) ? json_decode($reqArr['time_list'], true) : '';//选择的时间
         PlanService::service()->edit($reqArr, $this->userInfo);
         return PsCommon::responseSuccess();
     }
@@ -258,7 +272,7 @@ class InspectController extends UserBaseController
     }
 
     /**
-     * @api 巡检计划详情-查看页面使用
+     * @api 巡检计划详情-编辑查看页面使用
      * @author wyf
      * @date 2019/8/12
      */
@@ -280,17 +294,6 @@ class InspectController extends UserBaseController
     }
 
     /**
-     * @api 巡检计划下拉
-     * @author wyf
-     * @date 2019/8/12
-     */
-    public function actionPlanDropDown()
-    {
-        $result = PlanService::service()->getPlanList($this->request_params);
-        return PsCommon::responseSuccess($result);
-    }
-
-    /**
      * @api 巡检计划管理启用停用
      * @author wyf
      * @date 2019/8/12
@@ -308,8 +311,8 @@ class InspectController extends UserBaseController
      */
     public function actionPlanUserList()
     {
-        PlanService::service()->getUserList($this->request_params['community_id']);
-        return PsCommon::responseSuccess();
+        $result = PlanService::service()->getUserList($this->request_params, $this->userInfo['group_id']);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -317,13 +320,13 @@ class InspectController extends UserBaseController
      * @author wyf
      * @date 2019/8/16
      */
-    public function actionList()
+    public function actionTaskList()
     {
         $reqArr = $this->request_params;
         $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
         $reqArr['user_id'] = $this->userInfo['id'];
         $result = TaskService::service()->getList($reqArr);
-        return PsCommon::responseAppSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 
     /**
@@ -336,7 +339,7 @@ class InspectController extends UserBaseController
         $reqArr = $this->request_params;
         $reqArr['user_id'] = $this->userInfo['id'];
         $result = TaskService::service()->getInfo($reqArr);
-        return PsCommon::responseAppSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 
     //我的任务详情-巡检点详情
@@ -345,7 +348,7 @@ class InspectController extends UserBaseController
         $reqArr = $this->request_params;
         $reqArr['user_id'] = $this->userInfo['id'];
         $result = TaskService::service()->getPointInfo($reqArr);
-        return PsCommon::responseAppSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 
     //我的任务详情-巡检点提交
@@ -354,7 +357,7 @@ class InspectController extends UserBaseController
         $reqArr = $this->request_params;
         $reqArr['user_id'] = $this->userInfo['id'];
         TaskService::service()->add($reqArr);
-        return PsCommon::responseAppSuccess();
+        return PsCommon::responseSuccess();
     }
 
     //二维码扫码详情
@@ -363,6 +366,6 @@ class InspectController extends UserBaseController
         $reqArr = $this->request_params;
         $reqArr['user_id'] = $this->userInfo['id'];
         $result = TaskService::service()->getQrcodeInfo($reqArr);
-        return PsCommon::responseAppSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 }
