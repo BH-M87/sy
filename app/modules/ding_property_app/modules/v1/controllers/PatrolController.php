@@ -515,7 +515,6 @@ class PatrolController extends UserBaseController
     }
 
     /* 我的计划相关 */
-
     public function actionMyPlanList()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
@@ -581,11 +580,16 @@ class PatrolController extends UserBaseController
         unset($this->userInfo['id']);
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $reqArr['check_content'] = $reqArr['content'];
-        $reqArr['check_location_lon'] = $reqArr['lon'];
-        $reqArr['check_location_lat'] = $reqArr['lat'];
-        $reqArr['check_location'] = $reqArr['location_name'];
-        $imgArr = explode(',', $reqArr['imgs']);
-        $reqArr['imgs'] = $imgArr;
+        $reqArr['check_location_lon'] = PsCommon::get($reqArr,'lon');
+        $reqArr['check_location_lat'] = PsCommon::get($reqArr,'lat');
+        $reqArr['check_location'] = PsCommon::get($reqArr,'location_name');
+        if(PsCommon::get($reqArr,'imgs',[])){
+            $imgArr = explode(',', PsCommon::get($reqArr,'imgs',[]));
+            $reqArr['imgs'] = $imgArr;
+        }else{
+            $reqArr['imgs'] = [];
+        }
+
         unset($reqArr['content']);
         unset($reqArr['lon']);
         unset($reqArr['lat']);
@@ -661,6 +665,7 @@ class PatrolController extends UserBaseController
     }
 
     /* 巡更记录相关 */
+
     public function actionRecordList()
     {
         unset($this->userInfo['id']);

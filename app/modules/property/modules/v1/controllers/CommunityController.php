@@ -1,11 +1,14 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
-use common\core\PsCommon;
-use service\manage\CommunityService;
-use app\models\PsCommunityRoominfo;
 use app\modules\property\controllers\BaseController;
-use app\modules\small\services\CommunityService as SmallCommunityService;
+
+use common\core\PsCommon;
+
+use app\models\PsCommunityRoominfo;
+
+use services\CommunityService as SmallCommunityService;
+use services\manage\CommunityService;
 
 class CommunityController extends BaseController
 {
@@ -15,6 +18,7 @@ class CommunityController extends BaseController
     public function actionChange()
     {
         $result = CommunityService::service()->getUserCommunitys($this->userId);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -60,6 +64,7 @@ class CommunityController extends BaseController
     public function actionCircleDelete()
     {
         $result = SmallCommunityService::service()->circleDelete($this->request_params, $this->user_info);
+
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {
@@ -118,27 +123,30 @@ class CommunityController extends BaseController
             return PsCommon::responseFailed($result['msg']);
         }
     }
+    
+    // -----------------------------------     小区各项配置   ------------------------------
 
-    //=================================小区各项配置-陈科浪==================================
-    //获取配置
+    // 获取配置
     public function actionGetConfig()
     {
         $result = CommunityService::service()->getConfig($this->request_params);
+        
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
-    }
-    //设置配置
+    } 
+
+    // 设置配置
     public function actionSetConfig()
     {
-        $result = CommunityService::service()->setConfig($this->request_params,$this->user_info);
+        $result = CommunityService::service()->setConfig($this->request_params, $this->user_info);
+        
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
     }
-
 }
