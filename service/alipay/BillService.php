@@ -1438,6 +1438,33 @@ class BillService extends BaseService
     }
 
     /**
+     * 获取支付二维码
+     * @author yjh
+     * @param $repair_id
+     * @param $community_id
+     * @return bool|string
+     */
+    public function getRepairPayQrcode($repair_id,$community_id)
+    {
+        $community = PsCommunityModel::findOne($community_id);
+        if (!$community) {
+            return false;
+        }
+        $psRepair = PsRepair::findOne($repair_id);
+        if (!$psRepair) {
+            return false;
+        }
+        $psRepairBill = PsRepairBill::find()
+            ->where(['repair_id' => $repair_id])
+            ->one();
+        if ($psRepairBill) {
+            return false;
+        }
+        $pay_code_url = $this->generalCodeImg($psRepair,$psRepairBill,$community);
+        return $pay_code_url;
+    }
+
+    /**
      * 生成报事报修订单
      * @author yjh
      * @param $psRepair
