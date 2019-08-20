@@ -629,8 +629,8 @@ Class CommunityService extends BaseService
         if (!$model->load($params, '') || !$model->validate()) {
             return $this->failed($this->getError($model));
         }
-        //发送消息
-        //获取业主id
+
+        // 发送消息 获取业主id
         $member_id = $this->getMemberByUser($param['user_id']);
         $member_name = $this->getMemberNameByUser($member_id);
         $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
@@ -800,8 +800,8 @@ Class CommunityService extends BaseService
                     $image->save();
                 }
             }
-            //发送消息
-            //获取业主id
+
+            // 发送消息 获取业主id
             $member_id = $this->getMemberByUser($param['user_id']);
             $member_name = $this->getMemberNameByUser($member_id);
             $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
@@ -986,7 +986,6 @@ Class CommunityService extends BaseService
         }
 
         PsCommunityCircle::updateAll(['is_del' => 2], ['id' => $param['id']]);
-
 
         if (!empty($userinfo)) { // 保存日志
             $content = "发布内容:" . $model->content . ',';

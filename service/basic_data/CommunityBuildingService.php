@@ -97,8 +97,6 @@ class CommunityBuildingService extends BaseService
             return PsCommunityUnits::find()->where(['community_id' => $community_id, 'group_id' => $group_id, 'building_id' => $building,'code' => $unit])
                 ->andFilterWhere(['<>','id',$id])->one();
         }
-
-
         return '';//默认返回空
 
     }
@@ -230,18 +228,6 @@ class CommunityBuildingService extends BaseService
             $model->group_name = $group_name;
             $model->code = $building_code;
             if ($model->save()) {
-                // 同步到楼宇中心
-                $send = [
-                    'buildingName' => $model->name,
-                    'groupCode' => PsCommunityGroups::find()->select('groups_code')->where(['id' => $model->group_id])->asArray()->scalar(),
-                ];
-
-                //调用java接口
-                /*$result = BuildingCenterService::service(2)->request('/housecenter/building/addBuilding', $send);
-                if ($result["code"] == 1) {
-                    $model->building_code = $result['data']['code'];
-                    $model->save();
-                }*/
                 $building_id = $model->id;
             } else {
                 return $this->failed("楼幢保存失败");
@@ -265,19 +251,6 @@ class CommunityBuildingService extends BaseService
             //楼宇推送
             DoorPushService::service()->buildAdd($community_id, $unit->group_name, $unit->building_name,
                 $unit->name, $group_code, $building_code, $unit_code, $unit->unit_no);
-
-            // 同步到楼宇中心
-            $send = [
-                'unitName' => $unit->name,
-                'buildingCode' => PsCommunityBuilding::find()->select('building_code')->where(['id' => $unit->building_id])->asArray()->scalar(),
-            ];
-
-            /*$result = BuildingCenterService::service(2)->request('/housecenter/unit/addUnit', $send);
-            if ($result["code"] == 1) {
-                $unit->unit_code = $result['data']['code'];
-                $unit->save();
-            }*/
-
             return $this->success($unit->id);
         } else {
             return $this->failed("单元新增失败");
@@ -369,43 +342,28 @@ class CommunityBuildingService extends BaseService
         if ($roomInfo) {
             return PsCommon::responseFailed("无挂靠房屋才可删除");
         }
-
-        // 同步到楼宇中心
-        $unitCode = PsCommunityUnits::find()->select('unit_code')->where(['id' => $data['unit_id']])->asArray()->scalar();
-        if (!empty($unitCode)) {
-            $send = ['unitCode' => $unitCode];
-            //$result = BuildingCenterService::service(2)->request('/housecenter/buildingUnit/deleteBuildingUnit', $send);
-        } else {
-            $result["code"] = 1;
+        $building_id = $unit->building_id;
+        //判断这个楼宇下面是否还存在单元
+        $unit_count = PsCommunityUnits::find()->where(['building_id' => $building_id])->count();
+        //如果只存在当前单元了，则删除整个楼幢
+        if ($unit_count == 1) {
+            $building = PsCommunityBuilding::find()->where(['id' => $building_id])->one();
+            $building->delete();
         }
-
-        if ($result["code"] == 1) {
-            $building_id = $unit->building_id;
-            //判断这个楼宇下面是否还存在单元
-            $unit_count = PsCommunityUnits::find()->where(['building_id' => $building_id])->count();
-            //如果只存在当前单元了，则删除整个楼幢
-            if ($unit_count == 1) {
-                $building = PsCommunityBuilding::find()->where(['id' => $building_id])->one();
-                $building->delete();
-            }
-
-            if ($unit->delete()) {
-                //楼宇删除推送
-                DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
-                $content = "单元:" . $unit->name;
-                $operate = [
-                    "community_id" =>$data['community_id'],
-                    "operate_menu" => "楼宇信息",
-                    "operate_type" => "删除楼宇",
-                    "operate_content" => $content,
-                ];
-                OperateService::addComm($userinfo, $operate);
-                return PsCommon::responseSuccess("删除成功");
-            } else {
-                return PsCommon::responseFailed("删除失败");
-            }
+        if ($unit->delete()) {
+            //楼宇删除推送
+            DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
+            $content = "单元:" . $unit->name;
+            $operate = [
+                "community_id" =>$data['community_id'],
+                "operate_menu" => "楼宇信息",
+                "operate_type" => "删除楼宇",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userinfo, $operate);
+            return PsCommon::responseSuccess("删除成功");
         } else {
-            return PsCommon::responseFailed("删除失败！");
+            return PsCommon::responseFailed("删除失败");
         }
     }
 

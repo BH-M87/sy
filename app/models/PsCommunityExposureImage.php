@@ -1,10 +1,9 @@
 <?php
-
-namespace app\modules\small\models;
+namespace app\models;
 
 use Yii;
 
-class PsCommunityExposureImage extends \yii\db\ActiveRecord
+class PsCommunityExposureImage extends BaseModel
 {
     public static function tableName()
     {

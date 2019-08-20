@@ -1,5 +1,8 @@
 <?php
 namespace service;
+use app\models\PsAppMember;
+use app\models\PsAppUser;
+use app\models\PsMember;
 use Yii;
 use yii\base\Model;
 use common\core\Api;
@@ -104,5 +107,23 @@ class BaseService {
         }catch (\Exception $exception){
             return $arr1;
         }
+    }
+
+    //获取业主id
+    public function getMemberByUser($user_id)
+    {
+        return PsAppMember::find()->select('member_id')->where(['app_user_id' => $user_id])->scalar();
+    }
+
+    //获取业主名称
+    public function getMemberNameByUser($user_id)
+    {
+        return PsMember::find()->select('name')->where(['id' => $user_id])->scalar();
+    }
+
+    //获取支付宝id
+    public function getBuyerIdr($user_id)
+    {
+        return PsAppUser::find()->select('channel_user_id')->where(['id' => $user_id])->scalar();
     }
 }

@@ -1,6 +1,5 @@
 <?php
-
-namespace app\modules\wisdompark\models;
+namespace app\models;
 
 use Yii;
 

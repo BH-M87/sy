@@ -1,27 +1,15 @@
 <?php
 namespace app\models;
+
 use Yii;
 
-/**
- * This is the model class for table "ps_app_member".
- *
- * @property integer $id
- * @property integer $app_user_id
- * @property integer $member_id
- */
 class PsAppMember extends BaseModel
 {
-    /**
-     * @inheritdoc
-     */
     public static function tableName()
     {
         return 'ps_app_member';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function rules()
     {
         return [
@@ -30,9 +18,6 @@ class PsAppMember extends BaseModel
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function attributeLabels()
     {
         return [

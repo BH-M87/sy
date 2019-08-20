@@ -1,10 +1,9 @@
 <?php
-
-namespace app\modules\small\models;
+namespace app\models;
 
 use Yii;
 
-class PsCommunityCirclePraise extends \yii\db\ActiveRecord
+class PsCommunityCirclePraise extends BaseModel
 {
     public static function tableName()
     {
