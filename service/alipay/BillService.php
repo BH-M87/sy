@@ -1457,10 +1457,28 @@ class BillService extends BaseService
         $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community->pro_company_id,'status'=>'2'])->asArray()->one();
         if(!empty($alipay)){
             //生成支付二维码
-            $codeUrl = $this->generalCodeImg($psRepair->id, $community->logo_url);
-            $psRepair->pay_code_url = $codeUrl;
-            if ($psRepair->save()) {
-                $re['pay_code_url'] = $codeUrl;
+            $data = [
+                "community_id" => $community->community_no,
+                "out_trade_no" => $this->_generateBatchId(),
+                "total_amount" => $psRepairBill->amount,
+                "subject" => $psRepair->room_address,
+                "timeout_express" => "30m",
+                "qr_code_timeout_express" => "30m",
+            ];
+            $ding_url=Yii::$app->params['external_invoke_small_repair_address'];
+            $result = AlipayBillService::service($community->community_no)->tradeRefund($data,$ding_url);//调用接口
+            if ($result['code'] == 10000) {//二维码生成成功
+                $out_trade_no = !empty($result['out_trade_no']) ? $result['out_trade_no'] : '';
+                $qr_code = !empty($result['qr_code']) ? $result['qr_code'] : '';
+                $codeUrl = AlipayBillService::service()->create_erweima($qr_code, $out_trade_no);//调用七牛方法生成二维码
+                //更新报修的交易流水号
+                $psRepairBill->trade_no=$out_trade_no;
+                $psRepairBill->save();
+                //更新报修的支付二维码
+                $psRepair->pay_code_url = $codeUrl;
+                if ($psRepair->save()) {
+                    $re['pay_code_url'] = $codeUrl;
+                }
             }
         }else{
             $psRepair->pay_code_url = $re['pay_code_url'];
