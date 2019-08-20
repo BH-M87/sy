@@ -18,9 +18,11 @@ use service\BaseService;
 class MemberService extends BaseService
 {
     //根据手机号查找会员
-    public function getMemberByMobile($mobile)
+    public function getMemberByMobile($mobile, $select = '*')
     {
+
         return PsMember::find()
+            ->select($select)
             ->where(['mobile' => $mobile])
             ->asArray()
             ->one();

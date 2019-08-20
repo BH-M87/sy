@@ -13,6 +13,16 @@ use common\core\PsCommon;
 use service\basic_data\CommunityGroupService;
 
 class CommunityGroupsController extends BaseController {
+
+    public function actionGroupList()
+    {
+        $data = $this->request_params;
+        if(empty($data)){
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $result = CommunityGroupService::service()->getGroupList($data);
+        return PsCommon::responseSuccess($result);
+    }
     //区域列表
     public function actionList()
     {
