@@ -3,14 +3,16 @@
  * 吴建阳
  * 2019-4-30 社区评分&邻里互动 
  * 2019-6-5 社区曝光台
- */
-namespace service\small;
+ */ 
+namespace app\small\services;
 
 use Yii;
+
 use yii\db\Exception;
+
 use common\core\PsCommon;
+
 use service\common\AreaService;
-use service\rbac\OperateService;
 use service\message\MessageService;
 
 use app\models\PsAppUser;
@@ -18,6 +20,7 @@ use app\models\PsRoomUser;
 use app\models\PsAppMember;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
+
 use app\models\PsCommunityComment;
 use app\models\PsCommunityCircle;
 use app\models\PsCommunityCircleImage;
@@ -26,7 +29,8 @@ use app\models\PsSensitiveWord;
 use app\models\PsCommunityExposure;
 use app\models\PsCommunityExposureImage;
 use app\models\ParkingCarport;
-use service\BaseService;
+
+use service\rbac\OperateService;
 
 Class CommunityService extends BaseService
 {
@@ -106,8 +110,7 @@ Class CommunityService extends BaseService
                     $image->save();
                 }
             }
-            //新增消息
-            $type_msg = [ 1 => '社区问题', 2 => '消防安全', 3=> '环境卫生', 4 => '外挂堆积'];
+            // 新增消息
             $data = [
                 'community_id' => $roomInfo['community_id'],
                 'id' => 0,
@@ -127,7 +130,7 @@ Class CommunityService extends BaseService
                     0 => '123456'
                 ],
                 'msg' => [
-                    0 => $type_msg[$param['type']],
+                    0 => PsCommunityExposure::type($param['type']),
                     1 => $params['name'].'-'.$params['mobile'],
                     2 => $params['address'],
                     3 => $params['describe'],
@@ -446,10 +449,6 @@ Class CommunityService extends BaseService
 	// 小区评分 首页
     public function commentIndex($param)
     {
-        if (empty($param['community_id'])) {
-            //return $this->failed('小区ID必填！');
-        }
-
         // 查询业主
         $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
             ->select(['A.member_id'])
@@ -630,8 +629,8 @@ Class CommunityService extends BaseService
         if (!$model->load($params, '') || !$model->validate()) {
             return $this->failed($this->getError($model));
         }
-        //发送消息
-        //获取业主id
+
+        // 发送消息 获取业主id
         $member_id = $this->getMemberByUser($param['user_id']);
         $member_name = $this->getMemberNameByUser($member_id);
         $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
@@ -793,8 +792,6 @@ Class CommunityService extends BaseService
                 return $this->failed($this->getError($model));
             }
 
-
-
             if (!empty($param['image_url'])) {
                 foreach ($param['image_url'] as $k => $v) {
                     $image = new PsCommunityCircleImage();
@@ -803,8 +800,8 @@ Class CommunityService extends BaseService
                     $image->save();
                 }
             }
-            //发送消息
-            //获取业主id
+
+            // 发送消息 获取业主id
             $member_id = $this->getMemberByUser($param['user_id']);
             $member_name = $this->getMemberNameByUser($member_id);
             $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
@@ -989,7 +986,6 @@ Class CommunityService extends BaseService
         }
 
         PsCommunityCircle::updateAll(['is_del' => 2], ['id' => $param['id']]);
-
 
         if (!empty($userinfo)) { // 保存日志
             $content = "发布内容:" . $model->content . ',';

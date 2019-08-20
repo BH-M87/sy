@@ -10,6 +10,7 @@ namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
 
 use app\models\PsRepair;
+use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
@@ -94,18 +95,32 @@ class RepairController extends UserBaseController
     //报事报修评价
     public function actionEvaluate()
     {
+        if (empty($this->params)) {
+            return F::apiFailed("未接受到有效数据");
+        }
 
+        $valid = PsCommon::validParamArr(new PsRepairAppraise(), $this->params, 'add');
+        if (!$valid["status"]) {
+            return F::apiFailed($valid["errorMsg"]);
+        }
+        $result = RepairService::service()->evaluate($valid['data']);
+        if ($result === true) {
+            return F::apiSuccess($result);
+        }
+        return F::apiFailed($result);
     }
 
     //获取报修类型
     public function actionType()
     {
-
-    }
-
-    //支付接口
-    public function actionPay()
-    {
-
+        if (empty($this->params)) {
+            return F::apiFailed("未接受到有效数据");
+        }
+        $params['community_id'] = F::value($this->params, 'community_id', 0);
+        if (!$params['community_id']) {
+            return F::apiFailed("小区id不能为空");
+        }
+        $result = RepairTypeService::service()->getRepairTypeTree($params);
+        return F::apiSuccess($result);
     }
 }

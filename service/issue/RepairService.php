@@ -13,6 +13,7 @@ use app\models\PsCommunityModel;
 use app\models\PsOrder;
 use app\models\PsPropertyCompany;
 use app\models\PsRepair;
+use app\models\PsRepairAppraise;
 use app\models\PsRepairAssign;
 use app\models\PsRepairBill;
 use app\models\PsRepairBillMaterial;
@@ -21,6 +22,7 @@ use app\models\PsRepairRecord;
 use app\models\PsUser;
 use app\models\RepairType;
 use common\core\F;
+use service\alipay\BillService;
 use service\manage\CommunityService;
 use service\message\MessageService;
 use common\core\PsCommon;
@@ -642,7 +644,12 @@ class RepairService extends BaseService
             }
             if ($releateRoom && $params['amount']) {
                 //TODO 生成报事报修账单
-                $billId = 1990;
+                $billRe = BillService::service()->addRepairBill($params["repair_id"], $params['material_total_price'],
+                    $params['total_price'], $params['other_charge']);
+                if ($billRe === false) {
+                    throw new Exception('账单生成失败');
+                }
+                $billId = $billRe['bill_id'];
                 if (!empty($params['materials_list'])) {
                     $this->addMaterials($params["repair_id"], $billId, $params['materials_list']);
                 }
@@ -665,7 +672,7 @@ class RepairService extends BaseService
             return true;
         } catch (Exception $e) {
             $transaction->rollBack();
-            return '系统错误,标记完成失败';
+            return $e->getMessage();
         }
     }
 
@@ -1260,7 +1267,7 @@ class RepairService extends BaseService
             if (!empty($params['materials_list'])) {
                 $materialsList = json_decode($params['materials_list'], true);
             }
-
+            $params['material_total_price'] = 0;
             if ($params['need_pay'] == 1) {
                 //计算金额是否准确
                 $materialTotalPrice = 0;
@@ -1276,13 +1283,14 @@ class RepairService extends BaseService
                         }
                     }
                 }
+                $params['material_total_price'] = $materialTotalPrice;
                 $taxTotalPrice = $materialTotalPrice + $params['other_charge'];
                 $taxTotalPrice = number_format($taxTotalPrice, 2, '.', '');
-
                 if (floatval($taxTotalPrice) != floatval($params['total_price'])) {
                     return "价格计算有误！";
                 }
             }
+
             $params['amount'] = $params['total_price'];
             $params['materials_list'] = $materialsList;
             return $this->makeComplete($params, $userInfo);
@@ -1322,7 +1330,8 @@ class RepairService extends BaseService
             $query->andWhere(['A.community_id' => $communityId]);
         }
         if ($status) {
-            $query->andWhere(['A.status' => $status]);
+            $whereCondition = $this->transSearchStatus($status);
+            $query->andWhere($whereCondition);
         }
         if ($appUserId) {
             $query->andWhere(['A.appuser_id' => $appUserId]);
@@ -1363,7 +1372,7 @@ class RepairService extends BaseService
             ->select(['a.repair_content', 'a.repair_no repair_no', 'a.repair_type_id',
                 'a.expired_repair_time', 'a.expired_repair_type', 'a.status', 'a.room_address address',
                 'a.community_id', 'a.is_pay', 'a.repair_imgs as repair_image', 'a.leave_msg',
-                'a.create_at created_at', 'bill.amount', 'type.name as repair_type_desc'])
+                'a.create_at created_at', 'bill.amount', 'bill.trade_no', 'type.name as repair_type_desc'])
             ->leftJoin('ps_repair_bill bill', 'a.id = bill.repair_id')
             ->leftJoin('ps_repair_type type','a.repair_type_id = type.id')
             ->where(['a.id' => $params['repair_id']])
@@ -1379,6 +1388,8 @@ class RepairService extends BaseService
         $repair_info['material_detail'] = [];
         $repair_info['amount'] = "";
         $repair_info['other_charge'] = "";
+        $repair_info['trade_no'] = $repair_info['trade_no'] ? $repair_info['trade_no'] : '';
+
 
         $billMaterialInfo = $this->getMaterials(["repair_id" => $params['repair_id']]);
         if ($billMaterialInfo) {
@@ -1408,7 +1419,73 @@ class RepairService extends BaseService
         return $repair_info;
     }
 
+    //工单评价
+    public function evaluate($params)
+    {
+        $repairInfo = $this->getRepairInfoById($params['repair_id']);
+        if (!$repairInfo) {
+            return "工单不存在";
+        }
+        if ($repairInfo['status'] != self::STATUS_DONE) {
+            return "工单状态有误，无法评价";
+        }
+        $repairAppraise = PsRepairAppraise::find()
+            ->where(['repair_id' => $params['repair_id']])
+            ->asArray()
+            ->one();
+        if ($repairAppraise) {
+            return'已经评价过了';
+        }
+        $params['created_at'] = time();
+        $model = new PsRepairAppraise();
+        $model->setAttributes($params);
+        if (!$model->save()) {
+            return PsCommon::getModelError($model);
+        }
+        /*更新订单状态*/
+        $repair_arr["status"] = self::STATUS_COMPLETE;
+        Yii::$app->db->createCommand()->update('ps_repair',
+            $repair_arr,
+            "id=:id",
+            [":id" => $params["repair_id"]]
+        )->execute();
+        //TODO 发送站内消息
+        return true;
+    }
+
     /**
+     * 小程序列表搜索
+     * @param $status
+     * @return array
+     */
+    protected function transSearchStatus($status)
+    {
+        $searchFilter = [];
+        switch ($status) {
+            case 1:
+                $searchFilter = ['A.status' => 1];
+                break;
+            case 2:
+                $searchFilter = ['A.status' => [2, 7, 8]];
+                break;
+            case 3:
+                $searchFilter = ['A.status' => 3, 'A.is_pay' => 1];
+                break;
+            case 4:
+                $searchFilter = ['AND', 'A.status = 3', ['>', 'A.is_pay', 1]];
+                break;
+            case 5:
+                $searchFilter = ['A.status' => [4, 5, 6, 9]];
+                break;
+            default:
+                $searchFilter = ['A.status' => 1];
+                break;
+        }
+        return $searchFilter;
+    }
+
+    /**
+     * 小程序端转义处理状态值
      * @api 获取状态描述
      * @param $repair
      * @return string
@@ -1464,7 +1541,8 @@ class RepairService extends BaseService
     {
         return PsRepair::find()
             ->alias('pr')
-            ->select('pr.repair_no,pr.id,pr.status,pr.repair_type_id,pr.community_id,pr.contact_mobile,pr.is_pay,pc.name community_name,pc.pro_company_id')
+            ->select('pr.repair_no,pr.id,pr.status,pr.repair_type_id,pr.community_id,pr.contact_mobile,
+            pr.is_pay,pc.name community_name,pc.pro_company_id')
             ->leftJoin('ps_community pc', 'pr.community_id = pc.id')
             ->where(['pr.id' => $id])
             ->asArray()
