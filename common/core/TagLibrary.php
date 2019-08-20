@@ -11,6 +11,13 @@ namespace common\core;
 
 class TagLibrary
 {
+    /**
+     * @param $type
+     * @return mixed
+     * @api 查询用户相关的标签信息
+     * @author wyf
+     * @date 2019/8/20
+     */
     public static function roomUser($type)
     {
         $sexes = [
@@ -64,6 +71,8 @@ class TagLibrary
             '4' => '分居',
             '5' => '丧偶',
         ];
-        return $$type;
+        $identity_status = ['1' => '未认证', '2' => '已认证', '3' => '迁出', '4' => '迁出'];
+
+        return $$type ?? "";
     }
 }
