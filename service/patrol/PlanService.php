@@ -815,7 +815,7 @@ class PlanService extends BaseService
             ->column();
 
         $checkUsers = [];
-        if ($data['plan_id']) {
+        if (!empty($data['plan_id'])) {
             //编辑时已选择的人
             $checkUsers = PsPatrolPlanManage::find()
                 ->select(['user_id'])

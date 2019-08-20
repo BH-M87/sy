@@ -255,7 +255,7 @@ class LineService extends BaseService
      * @param $from 1:来自物业后台，2来自钉钉
      * @return array
      */
-    public function add($data,$operator_id,$operator_name, $from = '1',$userinfo){
+    public function add($data,$operator_id,$operator_name, $from = '1',$userinfo=[]){
         $check = self::_checkDataDeal($data,$from);
         if($check['code'] != 1){
             return $this->failed($check['msg']);

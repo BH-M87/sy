@@ -596,7 +596,7 @@ class TaskService extends BaseService
     public function dingGetView($data)
     {
         //扫码巡更，根据巡更点查询任务
-        if ($data['point_id'] && !$data['id']) {
+        if (!empty($data['point_id']) && empty($data['id'])) {
             //查询巡更点详情
             $pointInfo = PsPatrolPoints::find()
                 ->select(['name as point_name', 'note as point_note'])
@@ -996,7 +996,7 @@ class TaskService extends BaseService
             return $this->failed("只能查询今天和今天之前的统计数据！");
         }
 
-        if (!in_array($data['status'], [1,2,3,4])) {
+        if (!empty($data['status']) && !in_array($data['status'], [1,2,3,4])) {
             return $this->failed("列表的查询状态有误！");
         }
 
@@ -1031,12 +1031,12 @@ class TaskService extends BaseService
                 'po.name as po_point_name', 'p.name as p_plan_name', 'u.truename'])
             ->where(['t.community_id' => $data['communitys']])
             ->andWhere(['t.day' => $data['search_date']]);
-        if ($data['status'] == 2 || $data['status'] == 3) {
-            $taskQuery->andWhere(['t.status' => 1]);
-        } elseif ($data['status'] == 4) {
-            $taskQuery
-                ->andWhere(['<', 'range_end_time', time()])
-                ->andWhere(['status' => 2]);
+        if(!empty($data['status'])){
+            if ($data['status'] == 2 || $data['status'] == 3) {
+                $taskQuery->andWhere(['t.status' => 1]);
+            } elseif ($data['status'] == 4) {
+                $taskQuery->andWhere(['<', 'range_end_time', time()])->andWhere(['status' => 2]);
+            }
         }
 
         $tasks = $taskQuery->asArray()->all();

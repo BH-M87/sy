@@ -277,6 +277,7 @@ class RepairService extends BaseService
         return $re;
     }
 
+    //工单导出
     public function export($params, $userInfo = [])
     {
         $result = $this->getRepairLists($params);
@@ -305,8 +306,14 @@ class RepairService extends BaseService
         return $downUrl;
     }
 
-    //报修工单新增
-    public function add($params, $userInfo = [])
+    /**
+     * 报事报修创建
+     * @param $params  业务参数
+     * @param array $userInfo 物业后台操作人员用户信息
+     * @param string $useAs 方法调用者   small 小程序，其他为 物业后台及钉钉端
+     * @return int|mixed
+     */
+    public function add($params, $userInfo = [], $useAs = '')
     {
         $model = new PsRepair();
         if ($params['relate_room']) {
@@ -318,20 +325,28 @@ class RepairService extends BaseService
             }
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+
             //查找住户相关信息
-            $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
+            if ($useAs == 'small') {
+                $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
+                $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
+            } else {
+                $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
+                $model->contact_mobile = $params['contact_mobile'];
+                $model->created_id = $userInfo['id'];
+                $model->created_username = $userInfo['truename'];
+            }
             if ($memberInfo) {
                 $model->member_id = $memberInfo['id'];
                 $roomUserInfo = MemberService::service()->getRoomUserByMemberIdRoomId($memberInfo['id'], $roomInfo['id']);
                 if ($roomUserInfo) {
                     $model->room_username = $roomUserInfo['name'] ? $roomUserInfo['name'] : $memberInfo['name'];
-                    $model->appuser_id = $roomUserInfo['id'];
+                    $model->appuser_id = $useAs == 'small' ? $params['app_user_id'] : $roomUserInfo['id'];
                 }
             }
         }
 
         $model->community_id = $params['community_id'];
-        $model->contact_mobile = $params['contact_mobile'];
         $model->repair_no = $this->generalRepairNo();
         $model->repair_type_id = is_array($params["repair_type"]) ? end($params["repair_type"]) : $params["repair_type"];
         $model->repair_content = $params["repair_content"];
@@ -340,8 +355,6 @@ class RepairService extends BaseService
             (is_array($params["repair_imgs"]) ? implode(',', $params["repair_imgs"]) : $params["repair_imgs"] ) : "";
         $model->expired_repair_time = !empty($params["expired_repair_time"]) ? strtotime($params["expired_repair_time"]) : 0;
         $model->repair_from = $params["repair_from"];
-        $model->created_id = $userInfo['id'];
-        $model->created_username = $userInfo['truename'];
         $model->is_assign = 2;
         $model->hard_type = 1;
         $model->status = 1;
@@ -355,14 +368,17 @@ class RepairService extends BaseService
         $typeName = $repairTypeInfo ? $repairTypeInfo['name'] : '';
 
         //发送消息
-        //TODO 发送消息，B端C端通用
-        $operate = [
-            "community_id" =>$params["community_id"],
-            "operate_menu" => "报修管理",
-            "operate_type" => "新增工单",
-            "operate_content" => '工单编号'.$model->repair_no.'-类型：'.$typeName,
-        ];
-        OperateService::addComm($userInfo, $operate);
+        //TODO 发送短信
+        //TODO 发送站内消息
+        if ($useAs != 'small') {
+            $operate = [
+                "community_id" => $params["community_id"],
+                "operate_menu" => "报修管理",
+                "operate_type" => "新增工单",
+                "operate_content" => '工单编号' . $model->repair_no . '-类型：' . $typeName,
+            ];
+            OperateService::addComm($userInfo, $operate);
+        }
         return $model->id;
     }
 
@@ -1283,6 +1299,158 @@ class RepairService extends BaseService
             return "工单不存在";
         }
         return MaterialService::service()->getListByCommunityId($model['community_id']);
+    }
+
+    //小程序端获取工单列表
+    public function smallRepairList($params)
+    {
+        $communityId = PsCommon::get($params, 'community_id', '');
+        $status = PsCommon::get($params, 'repair_status', '');
+        $appUserId = PsCommon::get($params, 'app_user_id', '');
+        $roomId = PsCommon::get($params, 'room_id', '');
+
+        //获取小区名称
+        $community = PsCommunityModel::find()->select('id, name')->where(['id' => $params['community_id']])->asArray()->one();
+        $roomInfo = RoomService::service()->getRoomById($roomId);
+
+        $query = new Query();
+        $query->from('ps_repair A')
+            ->leftJoin('ps_repair_bill bill', 'A.id = bill.repair_id')
+            ->leftJoin('ps_repair_type prt', 'A.repair_type_id = prt.id')
+            ->where("1=1");
+        if ($communityId) {
+            $query->andWhere(['A.community_id' => $communityId]);
+        }
+        if ($status) {
+            $query->andWhere(['A.status' => $status]);
+        }
+        if ($appUserId) {
+            $query->andWhere(['A.appuser_id' => $appUserId]);
+        }
+        if ($roomId) {
+            $query->andWhere(['A.room_id' => $roomId]);
+        }
+        $query->orderBy('A.id desc');
+        $re['totals'] = $query->count();
+        $query->select(['A.id', 'A.community_id', 'A.repair_no', 'A.status', 'A.repair_content', 'A.create_at',
+            'A.is_pay', 'bill.id as bill_id',
+            'prt.name repair_type_desc', 'prt.is_relate_room']);
+        $query->orderBy('A.create_at desc');
+        $offset = ($params['page'] - 1) * $params['page'];
+        $query->offset($offset)->limit($params['rows']);
+        $command = $query->createCommand();
+        $models = $command->queryAll();
+        foreach ($models as $key => $val) {
+            $models[$key]['status_desc'] = $this->transStatus($val);
+            $models[$key]['created_date'] = $val['create_at'] ? date('Y-m-d H:i:s', $val['create_at']) : '';
+            if ($val['bill_id']) {
+                $models[$key]['bill_show'] = "1";
+            } else {
+                $models[$key]['bill_show'] = '2';
+            }
+        }
+        $re['list'] = $models;
+        $re['room_info'] = $roomInfo ? $roomInfo['address'] : '';
+        $re['community_name'] = $community ? $community['name'] : '';
+        return $re;
+    }
+
+    //小程序端获取工单详情
+    public function smallView($params)
+    {
+        $repair_info = PsRepair::find()
+            ->alias('a')
+            ->select(['a.repair_content', 'a.repair_no repair_no', 'a.repair_type_id',
+                'a.expired_repair_time', 'a.expired_repair_type', 'a.status', 'a.room_address address',
+                'a.community_id', 'a.is_pay', 'a.repair_imgs as repair_image', 'a.leave_msg',
+                'a.create_at created_at', 'bill.amount', 'type.name as repair_type_desc'])
+            ->leftJoin('ps_repair_bill bill', 'a.id = bill.repair_id')
+            ->leftJoin('ps_repair_type type','a.repair_type_id = type.id')
+            ->where(['a.id' => $params['repair_id']])
+            ->asArray()
+            ->one();
+        if (!$repair_info) {
+            return "获取数据失败";
+        }
+        $repair_info['repair_status'] = $repair_info['status'];
+        $repair_info['created_at'] = $repair_info['created_at'] ? date('Y-m-d H:i', $repair_info['created_at']) : '';
+        $repair_info['handle_content'] = '';
+        //查询账单相关
+        $repair_info['material_detail'] = [];
+        $repair_info['amount'] = "";
+        $repair_info['other_charge'] = "";
+
+        $billMaterialInfo = $this->getMaterials(["repair_id" => $params['repair_id']]);
+        if ($billMaterialInfo) {
+            foreach ($billMaterialInfo['list'] as $v) {
+                $tmp = [
+                    'name' => $v['name'],
+                    'price' => $v['price'],
+                    'price_unit' => $v['price_unit'],
+                    'num' => $v['num'],
+                    'total_price' => $v['price'] * $v['num']
+                ];
+                array_push($repair_info['material_detail'], $tmp);
+            }
+            $repair_info['amount'] = $billMaterialInfo['amount'];
+            $repair_info['other_charge'] = $billMaterialInfo['other_charge'];
+        }
+        if ($repair_info['repair_status'] == self::STATUS_DONE) {
+            $repair_info['repair_status_desc'] = $repair_info['is_pay'] == 1 ? "待付款" : "已付款";
+        } else {
+            $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
+        }
+        $repair_info["appraise_content"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
+        $repair_info['repair_image'] = empty($repair_info['repair_image']) ? [] : explode(',', $repair_info['repair_image']);
+        $repair_info['expired_repair_time'] = $repair_info['expired_repair_time'] ? date('Y-m-d', $repair_info['expired_repair_time']) : '';
+        $repair_info['expired_repair_type_desc'] = self::$_expired_repair_type[$repair_info['expired_repair_type']];
+        $repair_info['handle_info'] = $this->handleInfo($params['repair_id']);
+        return $repair_info;
+    }
+
+    /**
+     * @api 获取状态描述
+     * @param $repair
+     * @return string
+     */
+    protected function transStatus($repair)
+    {
+        if ($repair['status'] == 3) {
+            if ($repair['is_pay'] == 1) {
+                return "待付款";
+            } else {
+                return "待评价";
+            }
+        } elseif ($repair['status'] == 2 || $repair['status'] == 7 || $repair['status'] == 8) {
+            return "处理中";
+        } elseif ($repair['status'] == 4 || $repair['status'] == 5 || $repair['status'] == 6 || $repair['status'] == 9) {
+            return "已结束";
+        } elseif ($repair['status'] == 1) {
+            return "待处理";
+        } else {
+            return "";
+        }
+    }
+
+    //c端处理工单操作日志
+    protected function handleInfo($repair_id)
+    {
+        $info = PsRepairRecord::find()
+            ->alias('r')
+            ->select("r.content as handle_content,r.operator_name,r.status,r.create_at as handle_time,m.mobile as operator_mobile,r.repair_imgs")
+            ->leftJoin('ps_user m', 'm.id = r.operator_id')
+            ->where(['repair_id' => $repair_id])
+            ->orderBy('handle_time desc')
+            ->asArray()
+            ->all();
+        if ($info) {
+            foreach ($info as $key => $value) {
+                $info[$key]['repair_status_desc'] =  $value['status'] == 3 ? '已完成' : self::$_repair_status[$value['status']];
+                $info[$key]['handle_time'] = $value['handle_time'] ? date('Y-m-d H:i', $value['handle_time']) : '';
+                $info[$key]['repair_image'] = empty($value['repair_imgs']) ? [] : explode(',', $value['repair_imgs']);
+            }
+        }
+        return $info;
     }
 
 

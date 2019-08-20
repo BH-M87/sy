@@ -13,7 +13,7 @@ use app\models\PsPatrolLine;
 use app\models\PsPatrolPlan;
 use app\models\PsPatrolPoints;
 use app\models\PsPatrolTask;
-use app\modules\ding_property_app\controllers\BaseController;
+use app\modules\ding_property_app\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
 use service\manage\CommunityService;
@@ -23,15 +23,19 @@ use service\patrol\PointService;
 use service\patrol\TaskService;
 use Yii;
 
-class PatrolController extends BaseController
+class PatrolController extends UserBaseController
 {
     /* 巡更点相关*/
+    /**
+     * 巡更列表
+     * @return |null
+     */
     public function actionPointList()
     {
         $reqArr  = array_merge($this->userInfo, $this->request_params);
         $data['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);;
 
-        $result = PointService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
+        $result = PointService::service()->dingGetList($data, $this->page, $this->pageSize);
         if (is_array($result)) {
             return F::apiSuccess($result);
         } else {
@@ -39,6 +43,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 新增巡更点
+     * @return |null
+     */
     public function actionPointAdd()
     {
         $reqArr  = array_merge($this->userInfo, $this->request_params);
@@ -52,13 +60,13 @@ class PatrolController extends BaseController
 
         $newData = [
             'name' => $req['name'],
-            'location_name' => $req['location_name'],
+            'location_name' => PsCommon::get($req,'location_name'),
             'community_id' => $req['community_id'],
-            'lat' => $req['lat'],
-            'lon' => $req['lon'],
+            'lat' => PsCommon::get($req,'lat'),
+            'lon' => PsCommon::get($req,'lon'),
             'need_location' => $req['need_location'],
             'need_photo' => $req['need_photo'],
-            'note' => $req['note'],
+            'note' => PsCommon::get($req,'note'),
         ];
         $key = "patrolPointAdd".$req['operator_id'];
         $cacheDataJson = Yii::$app->cache->get($key);
@@ -94,6 +102,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 编辑巡更点
+     * @return |null
+     */
     public function actionPointEdit()
     {
         unset($this->userInfo['id']);
@@ -127,6 +139,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更端详情
+     * @return |null
+     */
     public function actionPointDetail()
     {
         unset($this->userInfo['id']);
@@ -143,6 +159,10 @@ class PatrolController extends BaseController
         return F::apiSuccess($result);
     }
 
+    /**
+     * 巡更点删除
+     * @return |null
+     */
     public function actionPointDel()
     {
         unset($this->userInfo['id']);
@@ -160,11 +180,15 @@ class PatrolController extends BaseController
     }
 
     /* 巡更线路相关*/
+    /**
+     * 巡更线路列表
+     * @return |null
+     */
     public function actionLineList()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $data['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
-        $result = LineService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
+        $result = LineService::service()->dingGetList($data, $this->page, $this->pageSize);
         if (is_array($result)) {
             return F::apiSuccess($result);
         } else {
@@ -172,6 +196,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更线路新增
+     * @return |null
+     */
     public function actionLineAdd()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
@@ -188,7 +216,7 @@ class PatrolController extends BaseController
             'head_moblie' => $req['head_moblie'],
             'head_name' => $req['head_name'],
             'name' => $req['name'],
-            'note' => $req['note'],
+            'note' => PsCommon::get($req,'note'),
         ];
         $key = "patrolLineAdd".$req['operator_id'];
         $cacheDataJson = Yii::$app->cache->get($key);
@@ -211,6 +239,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更线路编辑
+     * @return |null
+     */
     public function actionLineEdit()
     {
         unset($this->userInfo['id']);
@@ -221,7 +253,11 @@ class PatrolController extends BaseController
             return F::apiFailed($valid["errorMsg"]);
         }
         $req = $valid["data"];
-        $req['points_list'] = json_decode($req['points'], true);
+        if(!empty($req['points'])){
+            $req['points_list'] = json_decode($req['points'], true);
+        }else{
+            $req['points_list'] = [];
+        }
         unset($req['points']);
         $result = LineService::service()->edit($req, $reqArr['operator_id'], $reqArr['truename'], 2);
         if ($result["code"]) {
@@ -231,6 +267,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更线路详情
+     * @return |null
+     */
     public function actionLineDetail()
     {
         unset($this->userInfo['id']);
@@ -255,6 +295,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更线路删除
+     * @return |null
+     */
     public function actionLineDel()
     {
         unset($this->userInfo['id']);
@@ -290,11 +334,15 @@ class PatrolController extends BaseController
     }
 
     /* 巡更计划相关*/
+    /**
+     * 巡更计划列表
+     * @return |null
+     */
     public function actionPlanList()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $data['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);;
-        $result = PlanService::service()->dingGetList($data, $reqArr['page'], $reqArr['rows']);
+        $result = PlanService::service()->dingGetList($data, $this->page, $this->pageSize);
         if (is_array($result)) {
             return F::apiSuccess($result);
         } else {
@@ -302,13 +350,17 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更计划新增
+     * @return |null
+     */
     public function actionPlanAdd()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $reqArr['operator_id'] = $reqArr['id'];
         $reqArr['user_list'] = json_decode($reqArr['user_ids'], true);
         unset($reqArr['id']);
-        unset($reqArr['user_ids']);
+
         $valid = PsCommon::validParamArr(new PsPatrolPlan(), $reqArr, 'add');
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
@@ -343,7 +395,7 @@ class PatrolController extends BaseController
             }
         }
         Yii::$app->cache->set($key, json_encode($newData), 10);
-
+        unset($reqArr['user_ids']);
         $result = PlanService::service()->add($req, $reqArr['operator_id'], $reqArr['truename']);
 
         if ($result["code"]) {
@@ -353,6 +405,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更计划编辑
+     * @return |null
+     */
     public function actionPlanEdit()
     {
         unset($this->userInfo['id']);
@@ -374,6 +430,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更计划详情
+     * @return |null
+     */
     public function actionPlanDetail()
     {
         unset($this->userInfo['id']);
@@ -394,6 +454,10 @@ class PatrolController extends BaseController
         }
     }
 
+    /**
+     * 巡更计划删除
+     * @return |null
+     */
     public function actionPlanDel()
     {
         unset($this->userInfo['id']);
@@ -451,11 +515,10 @@ class PatrolController extends BaseController
     }
 
     /* 我的计划相关 */
-
     public function actionMyPlanList()
     {
         $reqArr = array_merge($this->userInfo, $this->request_params);
-        $result = PlanService::service()->dingGetMines($reqArr, $reqArr['page'], $reqArr['rows']);
+        $result = PlanService::service()->dingGetMines($reqArr, $this->page, $this->pageSize);
         if (is_array($result)) {
             return F::apiSuccess($result);
         } else {
@@ -517,11 +580,16 @@ class PatrolController extends BaseController
         unset($this->userInfo['id']);
         $reqArr = array_merge($this->userInfo, $this->request_params);
         $reqArr['check_content'] = $reqArr['content'];
-        $reqArr['check_location_lon'] = $reqArr['lon'];
-        $reqArr['check_location_lat'] = $reqArr['lat'];
-        $reqArr['check_location'] = $reqArr['location_name'];
-        $imgArr = explode(',', $reqArr['imgs']);
-        $reqArr['imgs'] = $imgArr;
+        $reqArr['check_location_lon'] = PsCommon::get($reqArr,'lon');
+        $reqArr['check_location_lat'] = PsCommon::get($reqArr,'lat');
+        $reqArr['check_location'] = PsCommon::get($reqArr,'location_name');
+        if(PsCommon::get($reqArr,'imgs',[])){
+            $imgArr = explode(',', PsCommon::get($reqArr,'imgs',[]));
+            $reqArr['imgs'] = $imgArr;
+        }else{
+            $reqArr['imgs'] = [];
+        }
+
         unset($reqArr['content']);
         unset($reqArr['lon']);
         unset($reqArr['lat']);
@@ -597,6 +665,7 @@ class PatrolController extends BaseController
     }
 
     /* 巡更记录相关 */
+
     public function actionRecordList()
     {
         unset($this->userInfo['id']);
