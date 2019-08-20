@@ -1453,20 +1453,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr[$bill["bill_entry_id"]]["order_id"] = $bill["order_id"];
             $arr[$bill["bill_entry_id"]]["data"] = $val;
 
-            if (!empty($result['alive_bill_entry_list'])) {
-                foreach ($result['alive_bill_entry_list'] as $alive_bill) {
-                    if ($alive_bill['status'] == 'UNDER_PAYMENT' || $alive_bill['status'] == 'FINISH_PAYMENT') {//说明该账单已锁定，将数据库账单状态还原
-                        //修改账单表
-                        Yii::$app->db->createCommand("update ps_bill set status=7,paid_entry_amount=0,prefer_entry_amount=0 where id=:bill_id", [":bill_id" => $bill['id']])->execute();
-                        //修改订单表
-                        Yii::$app->db->createCommand("update ps_order set status=7,pay_amount=0,pay_status=1 where id=:order_id", [":order_id" => $bill['order_id']])->execute();
-                        $error_count++;
-                        $errorCsv[$defeat_count] = $val;
-                        $errorCsv[$defeat_count]["error"] = "账单已锁定";
-                    }
-                }
-                continue;
-            }
             //添加日志
             $operate = [
                 "community_id" => $params["community_id"],

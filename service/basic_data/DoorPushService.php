@@ -9,6 +9,7 @@ namespace service\basic_data;
 
 use common\core\Curl;
 use service\BaseService;
+use service\manage\CommunityService;
 use Yii;
 
 Class DoorPushService extends BaseService
@@ -39,7 +40,7 @@ Class DoorPushService extends BaseService
      */
     private function isNeedPush($communityId)
     {
-        $supplierId = CommService::service()->getOpenApiSupplier($communityId, $this->_supplier_type);
+        $supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, $this->_supplier_type);
         if ($supplierId) {
             return $supplierId;
         }
