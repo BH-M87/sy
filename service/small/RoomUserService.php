@@ -542,7 +542,7 @@ class RoomUserService extends BaseService
                 MessageService::service()->addMessageTemplate($data);
             }
         } catch (\Exception $e) {
-            \Yii::info($e->getMessage(), 'messageError');
+            //\Yii::info($e->getMessage(), 'messageError');
         }
     }
 }
