@@ -12,6 +12,7 @@ use app\models\DoorSendRequest;
 use app\models\ParkingSupplierCommunity;
 use service\producer\MqProducerService;
 use yii\base\Exception;
+use yii\db\Query;
 
 class RoomMqService extends \service\basic_data\BaseService
 {
@@ -1047,5 +1048,17 @@ class RoomMqService extends \service\basic_data\BaseService
             }
         }
         return $this->success();
+    }
+
+    //查询小区是否开通硬件模块
+    public function getOpenApiSupplier($communityId, $supplierType){
+        $supplierInfo = ParkingSupplierCommunity::find()
+            ->select(['supplier_id', 'interface_type'])
+            ->where(['community_id' => $communityId, 'supplier_type' => $supplierType])
+            ->asArray()->one();
+        if ($supplierInfo && ($supplierInfo['interface_type'] == 2 || $supplierInfo['interface_type'] == 3)) {
+            return $supplierInfo['supplier_id'];
+        }
+        return false;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use app\common\core\Regular;
+use common\core\Regular;
 use Yii;
 
 /**

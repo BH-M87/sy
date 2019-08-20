@@ -13,6 +13,7 @@ use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
 use app\models\PsRoomUser;
+use common\core\TagLibrary;
 use common\MyException;
 use service\BaseService;
 use service\message\MessageService;
@@ -343,7 +344,7 @@ class RoomUserService extends BaseService
             throw new MyException('用户信息不存在');
         }
         //获取室信息
-        $roomInfo = CommunityService::getCommunityRoominfo($params['room_id']);
+        $roomInfo = CommunityRoomService::getCommunityRoominfo($params['room_id']);
         if (!$roomInfo) {
             throw new MyException('房屋不存在');
         }
@@ -534,14 +535,14 @@ class RoomUserService extends BaseService
                         0 => $community_name,
                         1 => $address,
                         2 => $user_name,
-                        3 => ResidentService::service()->identity_type[$identity_type],
+                        3 => TagLibrary::roomUser('identity_type')[$identity_type],
                         4 => date('Y-m-d H:i:s', time()),
                     ]
                 ];
                 MessageService::service()->addMessageTemplate($data);
             }
         } catch (\Exception $e) {
-            \Yii::info($e->getMessage(), 'messageError');
+            //\Yii::info($e->getMessage(), 'messageError');
         }
     }
 }

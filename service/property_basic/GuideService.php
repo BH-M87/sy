@@ -9,6 +9,7 @@ namespace service\property_basic;
 
 use common\core\PsCommon;
 use app\models\PsGuide;
+use service\rbac\OperateService;
 use service\BaseService;
 
 Class GuideService extends BaseService
