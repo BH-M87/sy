@@ -19,6 +19,8 @@ class BaseController extends Controller
     public $params;//请求参数
     public $user;//当前用户
     public $uid;
+    public $page;
+    public $rows;
 
     public function beforeAction($action)
     {
@@ -34,6 +36,8 @@ class BaseController extends Controller
         }
         $params = F::request();
         $this->params = !empty($params['data']) ? json_decode($params['data'],true) : [];
+        $this->page = !empty($params['page']) ? $params['page'] : 1;
+        $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
         return true;
     }
 }

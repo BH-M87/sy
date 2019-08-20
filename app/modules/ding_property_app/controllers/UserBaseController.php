@@ -26,14 +26,18 @@ class UserBaseController extends BaseController
 
         $this->token = F::value($this->request_params, 'token');
         if (!$this->token) {
-            F::apiFailed('登录token不能为空！');
+            return F::apiFailed('登录token不能为空！');
         }
 
         $re = UserService::service()->refreshToken($this->token);
+        $re = 1775;
         if($re === false){
-            F::apiFailed('token过期',50002);
+            return F::apiFailed('token过期',50002);
         }
+
         $userInfo = UserService::service()->getUserById($re);
+
+
         $this->userInfo = $userInfo;
         $this->userId = $re;
         $this->userMobile = $userInfo['mobile'];
