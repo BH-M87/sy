@@ -1449,10 +1449,26 @@ class BillService extends BaseService
     {
         $re['issue_id'] = $psRepair->id;
         $re['bill_id'] = $psRepairBill->id;
-        $re['pay_code_url'] = 'https://static.elive99.com/2019080714324663221.png';
         //修改报事报修单状态为待支付
         $psRepair->is_pay = 1;
         $psRepair->status = 3;
+        //新增账单后生成二维码图片
+        $re['pay_code_url'] = $this->generalCodeImg($psRepair,$psRepairBill,$community);
+        //存入order表记录
+        $order = $this->addRepairOrder($psRepairBill);
+        $re['order_id'] = $order->id;
+        return $re;
+    }
+
+    /**
+     * 生成二维码图片
+     * @param $repairId
+     * @param $communityLogo
+     * @return string
+     */
+    public function generalCodeImg($psRepair,$psRepairBill,$community)
+    {
+        $pay_code_url = 'https://static.elive99.com/2019080714324663221.png';
         //查询物业公司是否签约
         $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community->pro_company_id,'status'=>'2'])->asArray()->one();
         if(!empty($alipay)){
@@ -1477,31 +1493,11 @@ class BillService extends BaseService
                 //更新报修的支付二维码
                 $psRepair->pay_code_url = $codeUrl;
                 if ($psRepair->save()) {
-                    $re['pay_code_url'] = $codeUrl;
+                    $pay_code_url = $codeUrl;
                 }
             }
-        }else{
-            $psRepair->pay_code_url = $re['pay_code_url'];
-            $psRepair->save();
         }
-        //存入order表记录
-        $order = $this->addRepairOrder($psRepairBill);
-        $re['order_id'] = $order->id;
-        return $re;
-    }
-
-    /**
-     * 生成二维码图片
-     * @param $repairId
-     * @param $communityLogo
-     * @return string
-     */
-    public function generalCodeImg($repairId, $communityLogo)
-    {
-        $savePath = F::imagePath('repair-bill');
-        $url = Yii::$app->getModule('property')->params['web_host'] . "/repair-pay?repair_id=" . $repairId;
-        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $repairId, $communityLogo);
-        return $imgUrl;
+        return $pay_code_url;
     }
 
     /**
