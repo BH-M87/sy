@@ -2,13 +2,10 @@
 namespace app\modules\property\modules\v1\controllers;
 
 use app\modules\property\controllers\BaseController;
-
 use common\core\PsCommon;
-
 use app\models\PsCommunityRoominfo;
-
-use services\CommunityService as SmallCommunityService;
-use services\manage\CommunityService;
+use service\small\CommunityService as SmallCommunityService;
+use service\manage\CommunityService;
 
 class CommunityController extends BaseController
 {
