@@ -1,5 +1,11 @@
 <?php
+<<<<<<< HEAD
+
 namespace app\models;
+
+=======
+namespace app\models;
+>>>>>>> 2f599d095fbcafc2c1aae7f8471a52eb3624805c
 use Yii;
 
 /**

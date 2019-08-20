@@ -814,7 +814,7 @@ Class AlipayCostController extends BaseController
                     ['title' => '报修地址', 'width' => 20, 'data_type' => 'str', 'field' => 'room_msg'],
                     ['title' => '提交人', 'width' => 15, 'data_type' => 'str', 'field' => 'created_username', 'default' => '-'],
                     ['title' => '联系电话', 'width' => 15, 'data_type' => 'str', 'field' => 'created_mobile', 'default' => '-'],
-                    ['title' => '报修类型', 'width' => 15, 'data_type' => 'str', 'field' => 'repair_type_str', 'default' => '-'],
+                    ['title' => '报修类型', 'width' => 15, 'data_type' => 'st -r', 'field' => 'repair_type_str', 'default' => '-'],
                     ['title' => '报修内容', 'width' => 15, 'data_type' => 'str', 'field' => 'repair_content'],
                     ['title' => '支付金额', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_money'],
                     ['title' => '缴费时间', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_time'],

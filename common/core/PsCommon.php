@@ -501,5 +501,31 @@ class PsCommon {
         }
     }
 
+    /**
+     * api调用成功
+     * @author shenyang
+     */
+    public static function responseAppSuccess($data = [])
+    {
+        if (empty($data)) {
+            return self::ajaxReturn(20000, (object)$data, ['errorMsg' => '']);
+        } else {
+            return self::ajaxReturn(20000, $data, ['errorMsg' => '']);
+        }
+    }
+
+    /**
+     * api调用失败
+     * @author shenyang
+     */
+    public static function responseAppFailed($msg, $code = 50001)
+    {
+        //调用失败，记录日志，便于调试查找bug
+        $log['action'] = Yii::$app->controller->action->getUniqueId();
+        $log['msg'] = $msg;
+        $log['data'] = F::request();
+        Yii::info(json_encode($log, 320), 'api');
+        return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
+    }
 
 }

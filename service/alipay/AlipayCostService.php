@@ -1453,60 +1453,28 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr[$bill["bill_entry_id"]]["order_id"] = $bill["order_id"];
             $arr[$bill["bill_entry_id"]]["data"] = $val;
 
-            if (!empty($bill_entry_ids)) {
-                if($community_info['ali_status']=='ONLINE'){
-                    //删除支付宝账单
-                    $result = AlipayBillService::service($community_info['community_no'])->deleteBill($community_info['community_no'], $bill_entry_ids);
-                }else{
-                    $result['code'] = '10000';
-                    $result['msg'] = 'success';
-                }
-                if ($result['code'] == '10000') {
-                    //判断是否有在锁定状态的账单
-                    if (!empty($result['alive_bill_entry_list'])) {
-                        foreach ($result['alive_bill_entry_list'] as $alive_bill) {
-                            if ($alive_bill['status'] == 'UNDER_PAYMENT' || $alive_bill['status'] == 'FINISH_PAYMENT') {//说明该账单已锁定，将数据库账单状态还原
-                                //修改账单表
-                                Yii::$app->db->createCommand("update ps_bill set status=1,paid_entry_amount=0,prefer_entry_amount=0 where id=:bill_id", [":bill_id" => $bill['id']])->execute();
-                                //修改订单表
-                                Yii::$app->db->createCommand("update ps_order set status=1,pay_amount=0,pay_status=1 where id=:order_id", [":order_id" => $bill['order_id']])->execute();
-                                $error_count++;
-                                $errorCsv[$defeat_count] = $val;
-                                $errorCsv[$defeat_count]["error"] = "账单已锁定";
-                            }
-                        }
-                        continue;
-                    }
-                    //添加日志
-                    $operate = [
-                        "community_id" => $params["community_id"],
-                        "operate_menu" => "缴费管理",
-                        "operate_type" => "批量收款",
-                        "operate_content" => "",
-                    ];
-                    OperateService::addComm($userinfo, $operate);
-                    //修复账单表的信息
-                    $this->repairBillData(["bill_list" => array_values($arr), "pay_channel" => $params["pay_channel"]]);
-                    //添加收款记录
-                    $income['room_id'] = $ps_room['id'];//房屋id
-                    $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
-                    $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
-                    $income['content'] = '批量收款';
-                    BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
-                    //添加账单变更统计表中
-                    $split_bill['bill_id'] = $bill['id'];  //账单id
-                    $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
-                    BillTractContractService::service()->payContractBill($split_bill);
-                    unset($arr["data"]);
-                    $success_count++;
-                } else {
-                    foreach ($bill_entry_ids as $bill_entry_id) {
-                        $errorCsv[$defeat_count] = $val;
-                        $errorCsv[$defeat_count]["error"] = "支付宝同步失败，请稍后再试!错误信息：" . $result['msg'] . ':' . $result['sub_msg'];
-                        $error_count++;
-                    }
-                }
-            }
+            //添加日志
+            $operate = [
+                "community_id" => $params["community_id"],
+                "operate_menu" => "缴费管理",
+                "operate_type" => "批量收款",
+                "operate_content" => "",
+            ];
+            OperateService::addComm($userinfo, $operate);
+            //修复账单表的信息
+            $this->repairBillData(["bill_list" => array_values($arr), "pay_channel" => $params["pay_channel"]]);
+            //添加收款记录
+            $income['room_id'] = $ps_room['id'];//房屋id
+            $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
+            $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
+            $income['content'] = '批量收款';
+            BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
+            //添加账单变更统计表中
+            $split_bill['bill_id'] = $bill['id'];  //账单id
+            $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
+            BillTractContractService::service()->payContractBill($split_bill);
+            unset($arr["data"]);
+            $success_count++;
         }
 
         $error_url = "";

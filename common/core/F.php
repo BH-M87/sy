@@ -400,5 +400,15 @@ class F
         }
         return $where;
     }
+
+    //判断是否重复请求-小程序端
+    public static function repeatRequestSmall($time=30)
+    {
+        $cacheKey = self::_repeatCacheField();
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', $time, 'NX')) {
+            return false;
+        }
+        return true;
+    }
 }
 
