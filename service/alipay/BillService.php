@@ -1407,7 +1407,7 @@ class BillService extends BaseService
         }
         //查询此小区对应的物业公司信息
         $preCompany = PsPropertyCompany::findOne($community->pro_company_id);
-        if (!$preCompany) {
+        if (!$preCompany || !$preCompany->alipay_account) {
             return false;
         }
         $psRepairBill = PsRepairBill::find()
