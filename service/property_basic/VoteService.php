@@ -1,5 +1,5 @@
 <?php
-namespace app\modules\property\services;
+namespace service\property_basic;
 
 use Yii;
 use yii\db\Query;
@@ -17,7 +17,7 @@ use app\models\PsVoteProblem;
 use app\models\PsVoteProblemOption;
 use app\models\PsVoteResult;
 
-class VoteService extends  BaseService 
+class VoteService extends BaseService 
 {
     public static $Vote_Type = ['1' => '文字投票', '2'  => '图文投票'];
     public static $Permission_Type = ['1'  => '每户一票', '2'  => '每人一票', '3'  => '指定业主投票'];
