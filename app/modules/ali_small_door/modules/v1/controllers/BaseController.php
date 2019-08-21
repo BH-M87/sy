@@ -31,23 +31,6 @@ class BaseController extends Controller
             echo PsCommon::responseFailed('请勿重复提交');
             return false;
         }
-
         return true;
-    }
-
-    public function dealReturnResult($result, $mode = 1)
-    {
-        if($result['code'] == 1){
-            if ($mode == 1) {
-                return PsCommon::responseAppSuccess($result['data']);
-            } else {
-                return PsCommon::responseSuccess($result['data']);
-            }
-        } else {
-            if (!empty($result['code'])) {
-                return PsCommon::responseAppFailed($result['msg'], $result['code']);
-            }
-            return PsCommon::responseAppFailed($result['msg']);
-        }
     }
 }
