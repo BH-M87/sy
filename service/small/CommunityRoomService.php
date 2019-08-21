@@ -82,14 +82,13 @@ class CommunityRoomService extends BaseService
                 $info['lat_info'] = $result;
                 $info['list'] = $communityInfo;
             } else {
-                //$info['lat_info'] = (new \stdClass());//TODO apiweb项目公共方法响应的对象全部转为了数组，公共方法改的太多，暂时不响应此字段了，与前端约定了
                 $info['list'] = $communityInfo;
             }
         } else {
             $info['list'] = [];
             //$info['lat_info'] = (new \stdClass());
         }
-        return $this->success($info);
+        return $info;
     }
 
     /**
@@ -152,7 +151,7 @@ class CommunityRoomService extends BaseService
             $distance = array_column($info, 'pinyin');
             array_multisort($distance, SORT_ASC, $info);
         }
-        return $this->success($info);
+        return $info;
     }
 
     /**
@@ -194,7 +193,7 @@ class CommunityRoomService extends BaseService
                 ];
             }
         }
-        return $this->success($new_data);
+        return $new_data;
     }
 
     /**
