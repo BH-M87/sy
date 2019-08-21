@@ -528,4 +528,28 @@ class PsCommon {
         return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
     }
 
+    /**
+     * 判断用户手机号是否为虚拟手机号
+     * @param $str
+     * @return bool
+     */
+    public static function isVirtualPhone($str)
+    {
+        if (strpos($str, '120') === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 生成随机手机号
+     * @return string
+     */
+    public static function generateVirtualPhone()
+    {
+        $randStr = '120';
+        $incr = Yii::$app->redis->incr('lyl:virtual-phone');//自增数字
+        $randStr .= sprintf("%08d", $incr);
+        return $randStr;
+    }
 }
