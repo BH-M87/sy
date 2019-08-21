@@ -9,6 +9,11 @@
 namespace app\small\services;
 
 
+use app\models\PsCommunityBuilding;
+use app\models\PsCommunityGroups;
+use app\models\PsCommunityModel;
+use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
@@ -168,11 +173,11 @@ class RoomUserService extends BaseService
                     $model->update_at = time();
                     $model->auth_time = time();
                 } else {
-                    $model = static::_addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
+                    $model = static::addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
                 }
             } else {
                 //数据直接进入待审核
-                $model = static::_addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
+                $model = static::addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
             }
             //旧住户房屋数据删除
             $delModel = $roomUserModel;
@@ -195,7 +200,7 @@ class RoomUserService extends BaseService
                     $model->update_at = time();
                     $model->auth_time = time();
                 } else {
-                    $model = static::_addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
+                    $model = static::addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $expired_time, $images);
                 }
                 $delModel = $redidentAuditModel;
             } else {
@@ -284,7 +289,7 @@ class RoomUserService extends BaseService
      * @throws MyException
      * @return PsResidentAudit
      */
-    private static function _addResidentAudit($roomInfo, $member_id, $memberInfo, $room_id, $identity_type, $expired_time, $images)
+    public static function addResidentAudit($roomInfo, $member_id, $memberInfo, $room_id, $identity_type, $expired_time, $images)
     {
         $data['community_id'] = $roomInfo['community_id'];
         $data['member_id'] = $member_id;
@@ -421,6 +426,128 @@ class RoomUserService extends BaseService
     }
 
     /**
+     * @param $params
+     * @api 房屋列表
+     * @author wyf
+     * @date 2019/8/21
+     */
+    public function houseList($params)
+    {
+        if(empty($params['community_id'])){
+            throw new MyException('小区不能为空');
+        }
+        $community_id = $params['community_id'];
+        $model = PsCommunityRoominfo::find()->alias('r')
+            ->rightJoin(['u'=>PsCommunityUnits::tableName()],'u.id = r.unit_id')
+            ->rightJoin(['b'=>PsCommunityBuilding::tableName()],'b.id = u.building_id')
+            ->rightJoin(['g'=>PsCommunityGroups::tableName()],'g.id = u.group_id')
+            ->where(['r.community_id'=>$community_id])
+            ->select(['r.community_id','r.id as room_id','u.id as unit_id','u.building_id','u.group_id','r.room','u.name as unit','b.name as building','g.name as group'])
+            ->asArray()->all();
+        $list = [];
+        if($model){
+            $units = $building =$group = [];
+            foreach($model as $key=>$value){
+                $room['name'] = $value['room'];
+                $room['subList'] = [];
+
+                $units[$value['unit_id']]['name'] = $value['unit'];
+                $units[$value['unit_id']]['subList'][] = $room;
+
+                $building[$value['building_id']]['name'] = $value['building'];
+                $building[$value['building_id']]['subList'][$value['unit_id']] = $units[$value['unit_id']];
+
+                $list[$value['group_id']]['name'] = $value['group'];
+                $list[$value['group_id']]['subList'][$value['building_id']]= $building[$value['building_id']];
+
+            }
+            $list = array_values($list);
+            foreach($list as $ke=>$ve){
+                foreach($ve['subList'] as $k=>$v){
+                    sort($list[$ke]['subList'][$k]['subList']);
+                }
+                sort($list[$ke]['subList']);
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * @param $params
+     * @return array
+     * @api 已认证/未认证的房屋信息列表
+     * @author wyf
+     * @date 2019/8/21
+     */
+    public function getList($params)
+    {
+        if(empty($params['user_id'])){
+            throw new MyException('用户id不能为空');
+        }
+        $user_id = $params['user_id'];
+        $member_id = $this->getMemberByUser($user_id);
+        $member = PsMember::find()->select('name, mobile')->where(['id' => $member_id])->asArray()->one();
+
+        $rooms = PsResidentAudit::find()->alias('ra')->where(['member_id'=>$member_id,'ra.name'=>$member['name']])
+            ->leftJoin(['cr'=>PsCommunityRoominfo::tableName()],'cr.id = ra.room_id')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = ra.community_id')
+            ->select(['ra.id as audit_record_id','ra.community_id','c.phone as community_mobile','c.name as community_name','ra.time_end','ra.identity_type','ra.room_id as room_id',
+                'cr.group','cr.building','cr.unit','cr.room','ra.status'])
+            ->asArray()->all();
+        $roomData = ['auth' => [], 'unauth' => []];
+        //审核跟失败的数据
+        if($rooms){
+            foreach($rooms as $key=>$value){
+                $value['expired_time'] = !empty($value['time_end']) ? date('Y-m-d',$value['time_end']): '永久';
+                $value['identity_label'] = TagLibrary::roomUser('identity_type')[$value['identity_type']];
+                $value['room_adress'] = $value['group'].'-'.$value['building'].'-'.$value['unit'].'-'.$value['room'];
+                //审核中
+                if($value['status'] == 0){
+                    $value['status'] = 1;
+                    $value['is_auth'] = 2;
+                    $roomData['unauth'][] = $value;
+                }
+                //审核未通过
+                if($value['status'] == 2){
+                    $value['is_auth'] = 2;
+                    $value['status'] = 3;
+                    $roomData['unauth'][] = $value;
+                }
+            }
+        }
+        $rooms2 = PsRoomUser::find()->alias('ru')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = ru.community_id')
+            ->select('ru.community_id,ru.id as rid, c.phone as community_mobile,c.name as community_name,ru.room_id, ru.group, ru.building, ru.unit, ru.room, ru.time_end, ru.identity_type, ru.status, ru.name')
+            ->where(['member_id' => $member_id,'ru.name' => $member['name']])->asArray()->all();
+        if($rooms2){
+            foreach ($rooms2 as $v) {
+                $v['audit_record_id'] = 0;
+                $v['expired_time'] = !empty($v['time_end']) ? date('Y-m-d',$v['time_end']): '永久';
+                $v['identity_label'] = TagLibrary::roomUser('identity_type')[$v['identity_type']];
+                $v['room_adress'] = $v['group'].'-'.$v['building'].'-'.$v['unit'].'-'.$v['room'];
+                if($v['status'] == 1 && $member['name'] == $v['name']){
+                    $v['status'] = 1;
+                    $v['is_auth'] = 2;
+                    $roomData['unauth'][] = $v;
+                }
+                //已认证
+                if($v['status'] == 2){
+                    $v['status'] = 2;
+                    $v['is_auth'] = 1;
+                    $roomData['auth'][] = $v;
+                }
+                //迁出
+                if($v['status'] == 3||$v['status'] == 4){
+                    $v['is_auth'] = 2;
+                    $v['status'] = 4;
+                    $roomData['unauth'][] = $v;
+                }
+            }
+        }
+        return $roomData;
+    }
+
+    /**
      * @api 获取用户房屋详情信息
      * @author wyf
      * @date 2019/5/24
@@ -465,6 +592,84 @@ class RoomUserService extends BaseService
             ->createCommand()
             ->queryOne();
         return $residentAuditInfo;
+    }
+
+    /**
+     * @api 验证住户房屋信息是否存在
+     * @param $room_id
+     * @param $member_id
+     * @param $check_type 验证类型,1验证住户表信息是否存在，2验证审核表信息是否存在，3全部验证
+     * @param $type 是否响应结果,1是,其他直接抛出异常响应
+     * @throws MyException
+     * @return bool/string
+     */
+    public static function checkRoomExist($room_id, $member_id, $check_type, $type = 2)
+    {
+        if (!in_array($check_type, [1, 2, 3])) {
+            throw new MyException('请求有误');
+        }
+        if ($check_type == 1 || $check_type == 3) {
+            $roomUserInfo = static::checkRoomUserExist($room_id, $member_id);
+            if (!$roomUserInfo) {
+                if ($check_type != 3) {
+                    return true;
+                }
+            } else {
+                switch ($roomUserInfo['status']) {
+                    case 1:
+                        $message = "未认证";
+                        break;
+                    case 2:
+                        $message = "已认证";
+                        break;
+                    case 3:
+                        $message = "已迁出";
+                        break;
+                    case 4:
+                        $message = '已迁出';
+                        break;
+                }
+            }
+
+        }
+        if (empty($message)) {
+            if ($check_type == 2 || $check_type == 3) {
+                $residentAuditInfo = static::checkResidentAuditExist($room_id, $member_id);
+                if (!$residentAuditInfo) {
+                    return true;
+                }
+                switch ($residentAuditInfo['status']) {
+                    case 0:
+                        $message = '待审核';
+                        break;
+                    case 2:
+                        $message = '未通过';
+                        break;
+                    default:
+                        return true;
+                }
+            }
+        }
+        $message = empty($message) ? "未知错误" : '住户房屋状态:' . $message;
+        if ($type == 1) {
+            return $message;
+        }
+        throw new MyException($message);
+    }
+
+    public static function checkRoomUserExist($room_id, $member_id)
+    {
+        return PsRoomUser::getOne(['where' => ['room_id' => $room_id, 'member_id' => $member_id]], 'status,id');
+    }
+
+    public static function checkResidentAuditExist($room_id, $member_id)
+    {
+        return PsResidentAudit::find()
+            ->select('status,id')
+            ->where(['room_id' => $room_id, 'member_id' => $member_id])
+            ->andWhere(['!=', 'status', 1])
+            ->asArray()->one();
+        //return PsResidentAudit::getOne(['where' => ['room_id' => $room_id, 'member_id' => $member_id]], 'status,id');
     }
 
     /**

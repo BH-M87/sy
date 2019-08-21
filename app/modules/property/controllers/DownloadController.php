@@ -6,7 +6,6 @@
  */
 
 namespace app\modules\property\controllers;
-
 use common\core\F;
 use common\core\PsCommon;
 use Yii;

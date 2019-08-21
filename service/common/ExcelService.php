@@ -8,7 +8,7 @@ use Yii;
 use yii\base\Exception;
 use yii\helpers\FileHelper;
 
-require_once(dirname(__DIR__) . '/common/PhpExcel/PHPExcel.php');
+require_once(dirname(__DIR__) . '/../common/PhpExcel/PHPExcel.php');
 
 class ExcelService extends BaseService
 {
