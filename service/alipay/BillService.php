@@ -1407,7 +1407,7 @@ class BillService extends BaseService
         }
         //查询此小区对应的物业公司信息
         $preCompany = PsPropertyCompany::findOne($community->pro_company_id);
-        if (!$preCompany) {
+        if (!$preCompany || !$preCompany->alipay_account) {
             return false;
         }
         $psRepairBill = PsRepairBill::find()
@@ -1438,6 +1438,33 @@ class BillService extends BaseService
     }
 
     /**
+     * 获取支付二维码
+     * @author yjh
+     * @param $repair_id
+     * @param $community_id
+     * @return bool|string
+     */
+    public function getRepairPayQrcode($repair_id,$community_id)
+    {
+        $community = PsCommunityModel::findOne($community_id);
+        if (!$community) {
+            return false;
+        }
+        $psRepair = PsRepair::findOne($repair_id);
+        if (!$psRepair) {
+            return false;
+        }
+        $psRepairBill = PsRepairBill::find()
+            ->where(['repair_id' => $repair_id])
+            ->one();
+        if ($psRepairBill) {
+            return false;
+        }
+        $pay_code_url = $this->generalCodeImg($psRepair,$psRepairBill,$community);
+        return $pay_code_url;
+    }
+
+    /**
      * 生成报事报修订单
      * @author yjh
      * @param $psRepair
@@ -1449,23 +1476,11 @@ class BillService extends BaseService
     {
         $re['issue_id'] = $psRepair->id;
         $re['bill_id'] = $psRepairBill->id;
-        $re['pay_code_url'] = 'https://static.elive99.com/2019080714324663221.png';
         //修改报事报修单状态为待支付
         $psRepair->is_pay = 1;
         $psRepair->status = 3;
-        //查询物业公司是否签约
-        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community->pro_company_id,'status'=>'2'])->asArray()->one();
-        if(!empty($alipay)){
-            //生成支付二维码
-            $codeUrl = $this->generalCodeImg($psRepair->id, $community->logo_url);
-            $psRepair->pay_code_url = $codeUrl;
-            if ($psRepair->save()) {
-                $re['pay_code_url'] = $codeUrl;
-            }
-        }else{
-            $psRepair->pay_code_url = $re['pay_code_url'];
-            $psRepair->save();
-        }
+        //新增账单后生成二维码图片
+        $re['pay_code_url'] = $this->generalCodeImg($psRepair,$psRepairBill,$community);
         //存入order表记录
         $order = $this->addRepairOrder($psRepairBill);
         $re['order_id'] = $order->id;
@@ -1478,12 +1493,38 @@ class BillService extends BaseService
      * @param $communityLogo
      * @return string
      */
-    public function generalCodeImg($repairId, $communityLogo)
+    public function generalCodeImg($psRepair,$psRepairBill,$community)
     {
-        $savePath = F::imagePath('repair-bill');
-        $url = Yii::$app->getModule('property')->params['web_host'] . "/repair-pay?repair_id=" . $repairId;
-        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $repairId, $communityLogo);
-        return $imgUrl;
+        $pay_code_url = 'https://static.elive99.com/2019080714324663221.png';
+        //查询物业公司是否签约
+        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community->pro_company_id,'status'=>'2'])->asArray()->one();
+        if(!empty($alipay)){
+            //生成支付二维码
+            $data = [
+                "community_id" => $community->community_no,
+                "out_trade_no" => $this->_generateBatchId(),
+                "total_amount" => $psRepairBill->amount,
+                "subject" => $psRepair->room_address,
+                "timeout_express" => "30m",
+                "qr_code_timeout_express" => "30m",
+            ];
+            $ding_url=Yii::$app->params['external_invoke_small_repair_address'];
+            $result = AlipayBillService::service($community->community_no)->tradeRefund($data,$ding_url);//调用接口
+            if ($result['code'] == 10000) {//二维码生成成功
+                $out_trade_no = !empty($result['out_trade_no']) ? $result['out_trade_no'] : '';
+                $qr_code = !empty($result['qr_code']) ? $result['qr_code'] : '';
+                $codeUrl = AlipayBillService::service()->create_erweima($qr_code, $out_trade_no);//调用七牛方法生成二维码
+                //更新报修的交易流水号
+                $psRepairBill->trade_no=$out_trade_no;
+                $psRepairBill->save();
+                //更新报修的支付二维码
+                $psRepair->pay_code_url = $codeUrl;
+                if ($psRepair->save()) {
+                    $pay_code_url = $codeUrl;
+                }
+            }
+        }
+        return $pay_code_url;
     }
 
     /**

@@ -1,7 +1,5 @@
 <?php
-
 namespace app\models;
-
 use Yii;
 
 /**
@@ -11,11 +9,9 @@ use Yii;
  * @property int $app_user_id
  * @property int $member_id
  */
-class PsAppMember extends \yii\db\ActiveRecord
+
+class PsAppMember extends BaseModel
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'ps_app_member';

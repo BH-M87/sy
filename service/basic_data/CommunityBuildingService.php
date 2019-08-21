@@ -108,8 +108,8 @@ class CommunityBuildingService extends BaseService
         $group_id = $data['group_id'];
         $building_name = $postfix ? $data['building_name'] . "幢" : $data['building_name'];
         $unit_name = $postfix ? $data['unit_name'] . "单元" : $data['unit_name'];
-        $building_code = !empty($data['building_code']) ? $this->fill_zero($data['building_code'],3) : 0;
-        $unit_code = !empty($data['unit_code']) ? $this->fill_zero($data['unit_code']) : 0;
+        $building_code = !empty($data['building_code']) ? $this->fill_zero($data['building_code'],3) : '';
+        $unit_code = !empty($data['unit_code']) ? $this->fill_zero($data['unit_code']) : '';
 
         //如果新增的时候苑期区没填，就默认放到住宅下面，如果住宅不存在就新建
         if (empty($group_id)) {
@@ -227,6 +227,7 @@ class CommunityBuildingService extends BaseService
             $model->group_id = $group_id;
             $model->group_name = $group_name;
             $model->code = $building_code;
+            $model->building_code = PsCommon::getIncrStr('HOUSE_BUILDING',YII_ENV.'lyl:house-building');
             if ($model->save()) {
                 $building_id = $model->id;
             } else {
@@ -246,6 +247,7 @@ class CommunityBuildingService extends BaseService
         $unit->name = ($type == 1) ? $unit_name . "单元" : $unit_name;//单元后面补上中文单元
         $pre = date('Ymd') . str_pad($community_id, 6, '0', STR_PAD_LEFT);
         $unit->unit_no = PsCommon::getNoRepeatChar($pre, YII_ENV . 'roomUnitList');//unit_no生成规则
+        $unit->unit_code = PsCommon::getIncrStr('HOUSE_UNIT',YII_ENV.'lyl:house-unit');
         $unit->code = $unit_code;
         if ($unit->save()) {
             //楼宇推送
@@ -261,8 +263,8 @@ class CommunityBuildingService extends BaseService
     {
         $community_id = $data['community_id'];
         $group_id = $data['group_id'];
-        $building_code = $data['building_code'] ? $this->fill_zero($data['building_code'],3) : 0;
-        $unit_code = $data['unit_code'] ? $this->fill_zero($data['unit_code']) : 0;
+        $building_code = !empty($data['building_code']) ? $this->fill_zero($data['building_code'],3) : '';
+        $unit_code = !empty($data['unit_code']) ? $this->fill_zero($data['unit_code']) : '';
         $unit_id = $data['unit_id'];
 
         $unit = $this->checkBuilding(1, $community_id, $group_id, '', $unit_id);
@@ -301,8 +303,8 @@ class CommunityBuildingService extends BaseService
         //楼宇推送
         DoorPushService::service()->buildEdit($community_id, $unit->group_name, $unit->building_name,
             $unit->name, $group_code, $building_code, $unit_code, $unit->unit_no);
-        $content = "幢号:" . $data['building_name'];
-        $content .= "单元:" . $data['unit_name'];
+        $content = "幢号:" . $unit->building_name;
+        $content .= "单元:" . $unit->name;
         $operate = [
             "community_id" =>$data['community_id'],
             "operate_menu" => "楼宇信息",

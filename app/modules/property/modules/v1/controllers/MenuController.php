@@ -17,16 +17,17 @@ Class MenuController extends BaseController
      * */
     public function actionGetAllMenus()
     {
-        $result = MenuService::service()->getParentMenuList($this->user_info["group_id"], 1);
+        $result = MenuService::service()->getParentMenuList($this->user_info, 1);
         return PsCommon::responseSuccess($result);
     }
 
     /*
-    * 获取用户二级菜单
+    * 获取左侧菜单
     * */
     public function actionGetLeftMenu()
     {
-        $result = MenuService::service()->getLeftMenu($this->user_info["group_id"], $this->user_info["system_type"]);
+        //$result = MenuService::service()->getLeftMenu($this->user_info["group_id"], $this->user_info["system_type"]);
+        $result = MenuService::service()->getParentMenuList($this->user_info, 1);
         return PsCommon::responseSuccess($result);
     }
 

@@ -544,6 +544,7 @@ class PsCommon {
         return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
     }
 
+
     /*
      * 获取业主身份标识
      * */
