@@ -7,7 +7,7 @@
  * Time: 14:26
  */
 
-namespace services\resident;
+namespace service\resident;
 
 
 use app\models\PsMember;

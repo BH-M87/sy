@@ -7,7 +7,7 @@
  * Time: 17:45
  */
 
-namespace services\resident;
+namespace service\resident;
 
 use yii\base\Exception;
 use Yii;

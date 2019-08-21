@@ -6,7 +6,7 @@
  * For: ****
  */
 
-namespace services\resident;
+namespace service\resident;
 
 
 class BaseService extends \service\BaseService

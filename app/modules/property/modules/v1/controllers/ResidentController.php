@@ -8,7 +8,7 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
-
+require dirname(__DIR__,6). '/common/PhpExcel/PHPExcel.php';
 use app\models\PsResidentFrom;
 use app\models\PsRoomUser;
 use app\modules\property\controllers\BaseController;
@@ -18,10 +18,11 @@ use service\basic_data\RoomMqService;
 use service\common\ExcelService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
-use services\resident\MemberService;
-use services\resident\ResidentService;
-use services\resident\RoomUserService;
-use services\room\RoomService;
+use service\label\LabelsService;
+use service\resident\MemberService;
+use service\resident\ResidentService;
+use service\resident\RoomUserService;
+use service\room\RoomService;
 use yii\db\Exception;
 use Yii;
 

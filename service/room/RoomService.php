@@ -4,13 +4,13 @@
  * @author shenyang
  * @date 2017-05-04
  */
-namespace services\room;
+namespace service\room;
 
 use app\models\PsCommunityRoominfo;
 use common\core\PsCommon;
 use service\BaseService;
-use services\resident\MemberService;
-use services\resident\ResidentService;
+use service\resident\MemberService;
+use service\resident\ResidentService;
 use Yii;
 use yii\db\Query;
 

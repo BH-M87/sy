@@ -8,8 +8,7 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
-#require dirname(dirname(__DIR__)) . '/common/PhpExcel/PHPExcel.php';
-#require_once(dirname(__DIR__) . '/common/PhpExcel/PHPExcel.php');
+require dirname(__DIR__, 6) . '/common/PhpExcel/PHPExcel.php';
 use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
@@ -25,14 +24,15 @@ use service\common\CsvService;
 use service\common\ExcelService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
-use services\room\HouseService;
-use services\room\RoomService;
+use service\label\LabelsService;
+use service\room\HouseService;
+use service\room\RoomService;
 use Yii;
 use yii\base\Exception;
 
 class RoomController extends BaseController
 {
-    public $repeatAction = ['import', 'import-repair'];
+    public $repeatAction = [ 'import-repair'];
 
     /**
      * @author wenchao.feng
@@ -52,20 +52,20 @@ class RoomController extends BaseController
         set_time_limit(0);
         //上传文件检测
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
-        if (!$r['code']) {
-            return PsCommon::responseFailed($r['msg']);
+        if (empty($r['code'])) {
+            return PsCommon::responseFailed(PsCommon::get($r,'msg'));
         }
         $communityId = PsCommon::get($this->request_params, "community_id");
-        if (!$communityId) {
+        if (empty($communityId)) {
             return PsCommon::responseFailed("请选择有效小区");
         }
         $communityInfo = CommunityService::service()->getInfoById($communityId);
 
         if (empty($communityInfo)) {
+            //todo 这里调用postman没有数据返回，后续需要处理
             return PsCommon::responseFailed("请选择有效小区");
         }
-
-        $supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, 2);
+        //$supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, 2);
         $operate = [
             "community_id" => $communityId,
             "operate_menu" => "房屋管理",
@@ -174,7 +174,7 @@ class RoomController extends BaseController
                 // 数据库中记录去重
                 if (!empty($room_code)) {
                     $uniqueRoomCode = PsCommunityRoominfo::find()
-                        ->where(['group'=>$group,'community_id'=>$communityId,'building'=>$building,'room_code'=>$room_code])
+                        ->where(['group' => $group, 'community_id' => $communityId, 'building' => $building, 'room_code' => $room_code])
                         ->asArray()->one();
 
                     if (!empty($uniqueRoomCode)) {
@@ -187,7 +187,7 @@ class RoomController extends BaseController
 
                 //数据库中记录去重
                 $uniqueRoom = PsCommunityRoominfo::find()
-                    ->where(['address'=>$address,'community_id'=>$communityId])
+                    ->where(['address' => $address, 'community_id' => $communityId])
                     ->orderBy('id')
                     ->limit(1)
                     ->asArray()->one();
@@ -206,7 +206,7 @@ class RoomController extends BaseController
                     'group' => $group,
                     'building' => $building,
                     'unit' => $unit,
-                    'unit_id' => !empty($unitInfo['data'])?$unitInfo['data']:'0',
+                    'unit_id' => !empty($unitInfo['data']) ? $unitInfo['data'] : '0',
                     'room' => $room,
                     'charge_area' => $charge_area,
                     'status' => $status,
@@ -232,7 +232,7 @@ class RoomController extends BaseController
 
                 //标签处理
                 if (!empty($label_name)) {
-                    $label_name = explode(',',F::sbcDbc($label_name, 1));
+                    $label_name = explode(',', F::sbcDbc($label_name, 1));
                     if (empty($label_name)) {
                         $fail++;
                         $errorCsv[$fail] = $val;
@@ -242,10 +242,10 @@ class RoomController extends BaseController
                 }
 
                 $label_id = null;
-                if(!empty($label_name)) {
+                if (!empty($label_name)) {
                     $label_error = false;
                     foreach ($label_name as $v) {
-                        $labelid = PsLabels::find()->select('id')->where(['community_id'=>$communityId,'label_type'=>1,'name'=>$v])->asArray()->one();
+                        $labelid = PsLabels::find()->select('id')->where(['community_id' => $communityId, 'label_type' => 1, 'name' => $v])->asArray()->one();
                         if (!empty($labelid)) {
                             $label_id[] = $labelid['id'];
                         } else {
@@ -268,7 +268,7 @@ class RoomController extends BaseController
                     'room' => $room,
                     'community_no' => $communityInfo['community_no'],
                     'out_room_id' => $roomInfoArr['out_room_id'],
-                    'charge_area'=>$charge_area,
+                    'charge_area' => $charge_area,
                 ];
                 $cacheName = YII_ENV . 'BuildList';
                 Yii::$app->redis->rpush($cacheName, json_encode($roomPushData));
@@ -279,7 +279,7 @@ class RoomController extends BaseController
 
                 //标签处理
                 if ($label_id !== null) {
-                    if (!LabelsService::service()->addRelation($id,$label_id,1,true)) {
+                    if (!LabelsService::service()->addRelation($id, $label_id, 1, true)) {
                         $fail++;
                         $errorCsv[$fail] = $val;
                         $errorCsv[$fail]["error"] = '标签绑定错误';
@@ -291,7 +291,7 @@ class RoomController extends BaseController
 
             $error_url = "";
             if ($fail > 0) {
-                $error_url = F::downloadUrl($this->systemType, $this->saveError($errorCsv), 'error');
+                $error_url = F::downloadUrl($this->saveError($errorCsv), 'error');
             }
             //提交事务
             $trans->commit();
@@ -300,8 +300,8 @@ class RoomController extends BaseController
             return PsCommon::responseFailed($e->getMessage());
         }
         //发布到支付宝
-        if($communityInfo['company_id']!=321){//不是南京物业则发布到支付宝:19-4-27陈科浪修改
-            $this->alipayRoom($communityInfo['community_no']);
+        if ($communityInfo['company_id'] != 321) {//不是南京物业则发布到支付宝:19-4-27陈科浪修改
+            //$this->alipayRoom($communityInfo['community_no']);
         }
         $result = [
             'totals' => $success + $fail,
@@ -435,7 +435,7 @@ class RoomController extends BaseController
             }
             //数据库中记录去重
             $uniqueRoom = PsCommunityRoominfo::find()
-                ->where(['address'=>$address,'community_id'=>$communityId])
+                ->where(['address' => $address, 'community_id' => $communityId])
                 ->orderBy('id')
                 ->limit(1)
                 ->asArray()->one();
@@ -453,9 +453,9 @@ class RoomController extends BaseController
                     try {
                         $trans = Yii::$app->getDb()->beginTransaction();
                         //标签处理
-                        if ($label_name != null ) {
+                        if ($label_name != null) {
 
-                            $label_name = explode(',',F::sbcDbc($label_name, 1));
+                            $label_name = explode(',', F::sbcDbc($label_name, 1));
                             if (empty($label_name)) {
                                 $fail++;
                                 $errorCsv[$fail] = $val;
@@ -464,7 +464,7 @@ class RoomController extends BaseController
                             }
                             $label_error = false;
                             foreach ($label_name as $v) {
-                                $labelid = PsLabels::find()->select('id')->where(['community_id'=>$communityId,'label_type'=>1,'name'=>$v])->asArray()->one();
+                                $labelid = PsLabels::find()->select('id')->where(['community_id' => $communityId, 'label_type' => 1, 'name' => $v])->asArray()->one();
                                 if (!empty($labelid)) {
                                     $label_id[] = $labelid['id'];
                                 } else {
@@ -478,19 +478,19 @@ class RoomController extends BaseController
                                 continue;
                             }
 
-                            if (!LabelsService::service()->addRelation($uniqueRoom['id'],$label_id,1,true)) {
+                            if (!LabelsService::service()->addRelation($uniqueRoom['id'], $label_id, 1, true)) {
                                 $fail++;
                                 $errorCsv[$fail] = $val;
                                 $errorCsv[$fail]["error"] = '标签绑定错误';
                                 continue;
                             }
                         } else {
-                            LabelsService::service()->deleteList(1,$uniqueRoom['id'],2);
+                            LabelsService::service()->deleteList(1, $uniqueRoom['id'], 2);
                         }
-                        PsCommunityRoominfo::updateAll(['floor_coe'=>$floor_coe,'floor_shared_id'=>$floor_shared_id,'floor'=>$floor,'room_code'=>$room_code,'lift_shared_id'=>$lift_shared_id,'is_elevator'=>$is_elevator],['id'=>$uniqueRoom['id']]);
+                        PsCommunityRoominfo::updateAll(['floor_coe' => $floor_coe, 'floor_shared_id' => $floor_shared_id, 'floor' => $floor, 'room_code' => $room_code, 'lift_shared_id' => $lift_shared_id, 'is_elevator' => $is_elevator], ['id' => $uniqueRoom['id']]);
                         $success++;
                         $trans->commit();
-                        \Yii::$app->redis->lpush('room_edit',json_encode(['id' => $uniqueRoom['id']]));
+                        \Yii::$app->redis->lpush('room_edit', json_encode(['id' => $uniqueRoom['id']]));
                         continue;
                     } catch (Exception $e) {
                         $trans->rollBack();
@@ -597,11 +597,11 @@ class RoomController extends BaseController
         ];
 
         $config["save"] = true;
-        $config['path'] = 'temp/'.date('Y-m-d');
+        $config['path'] = 'temp/' . date('Y-m-d');
         $config['file_name'] = ExcelService::service()->generateFileName('FangWu');
         $url = ExcelService::service()->export($resultData, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
-        $downUrl = F::downloadUrl( date('Y-m-d') . '/' . $fileName, 'temp', 'FangWu.xlsx');
+        $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'FangWu.xlsx');
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
@@ -722,7 +722,7 @@ class RoomController extends BaseController
         $model->load($form);
         if ($model->validate()) { // 检验数据
             $result = HouseService::service()->houseEdit((object)$data, $this->user_info);
-            if($result['code'] == 0) {
+            if ($result['code'] == 0) {
                 return PsCommon::responseFailed($result['msg']);
             }
             return PsCommon::responseSuccess();
@@ -813,9 +813,9 @@ class RoomController extends BaseController
             where (A.room_id = '' or A.room_id is null) and B.community_no =:community_no ", [":community_no" => $communityNo])
             ->queryScalar();*/
         $count = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin([B''=>PsCommunityModel::tableName()],'A.community_id = B.id')
-            ->where(['B.community_no'=>$communityNo])
-            ->andFilterWhere(['or',['A.room_id'=>''],['A.room_id'=>null]])
+            ->leftJoin([B'' => PsCommunityModel::tableName()], 'A.community_id = B.id')
+            ->where(['B.community_no' => $communityNo])
+            ->andFilterWhere(['or', ['A.room_id' => ''], ['A.room_id' => null]])
             ->count();
         $limit = 150;
         $i = ceil($count / $limit); // 向上取整 4.5 = 5
@@ -825,10 +825,10 @@ class RoomController extends BaseController
                 where (A.room_id = '' or A.room_id is null) and B.community_no =:community_no limit $limit", [":community_no" => $communityNo])
                 ->queryAll();*/
             $list = PsCommunityRoominfo::find()->alias('A')
-                ->leftJoin([B''=>PsCommunityModel::tableName()],'A.community_id = B.id')
-                ->select(['A.out_room_id','A.group','A.building','A.unit,','A.room','A.address'])
-                ->where(['B.community_no'=>$communityNo])
-                ->andFilterWhere(['or',['A.room_id'=>''],['A.room_id'=>null]])
+                ->leftJoin([B'' => PsCommunityModel::tableName()], 'A.community_id = B.id')
+                ->select(['A.out_room_id', 'A.group', 'A.building', 'A.unit,', 'A.room', 'A.address'])
+                ->where(['B.community_no' => $communityNo])
+                ->andFilterWhere(['or', ['A.room_id' => ''], ['A.room_id' => null]])
                 ->limit($limit)
                 ->count();
 

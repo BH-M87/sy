@@ -1,6 +1,6 @@
 <?php
 
-namespace services\resident;
+namespace service\resident;
 
 use app\models\PsAppMember;
 use app\models\PsAppUser;
@@ -19,7 +19,7 @@ use service\common\AreaService;
 use service\common\SmsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
-use services\room\RoomService;
+use service\room\RoomService;
 use Yii;
 use yii\db\Exception;
 

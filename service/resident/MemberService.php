@@ -4,7 +4,7 @@
  * @author shenyang
  * @date 2017/08/24
  */
-namespace services\resident;
+namespace service\resident;
 
 use app\models\DoorLastVisit;
 use app\models\PsAppMember;
