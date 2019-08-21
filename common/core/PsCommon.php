@@ -463,6 +463,22 @@ class PsCommon {
     }
 
     /**
+     * 2016-12-16
+     * 获取物业类型
+     */
+    public static function propertyType($index = 0)
+    {
+        $model = ['1' => '住宅', '2' => '商用'];
+
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
+
+
+    /**
      * 获取小区类型
      */
     public static function getCommType($index = '')
@@ -526,6 +542,95 @@ class PsCommon {
         $log['data'] = F::request();
         Yii::info(json_encode($log, 320), 'api');
         return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
+    }
+
+    /*
+     * 获取业主身份标识
+     * */
+    public static function getIdentityType($index = '', $type = '')
+    {
+        $model = ['1' => '业主', '2' => '家人', '3' => '租客','4'=>'访客'];
+        $result = '';
+        switch ($type) {
+            case "key" :
+                $result = $model[$index];
+                break;
+            case "value" :
+                foreach ($model as $key => $val) {
+                    if ($val == $index) {
+                        $result = $key;
+                        break;
+                    }
+                }
+                break;
+            default:
+                $result = $model;
+        }
+        return $result;
+    }
+
+    /*
+    * 获取业主认证状态
+    * */
+    public static function getIdentityStatus($index = '')
+    {
+        $model = ['1' => '未认证', '2' => '已认证', '3' => '迁出', '4' => '迁出'];
+        if ($index) {
+            return $model[$index];
+        } else {
+            return $model;
+        }
+    }
+
+    /**
+     * 生成随机手机号
+     * @return string
+     */
+    public static function generateVirtualPhone()
+    {
+        $randStr = '120';
+        $incr = Yii::$app->redis->incr('lyl:virtual-phone');//自增数字
+        $randStr .= sprintf("%08d", $incr);
+        return $randStr;
+    }
+
+    /**
+     * 判断用户手机号是否为虚拟手机号
+     * @param $str
+     * @return bool
+     */
+    public static function isVirtualPhone($str)
+    {
+        if (strpos($str, '120') === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 获取性别
+     */
+    public static function getFlipKey($data, $index, $default = 0)
+    {
+        $flip = array_flip($data);
+        return isset($flip[$index]) ? $flip[$index] : $default;
+    }
+
+    //隐藏手机号(隐藏中间四位)
+    public static function hideMobile($mobile)
+    {
+        return $mobile ? substr_replace($mobile, '****', 3, 4) : '';
+    }
+
+    /**
+     * 给集合增加元素
+     * @param $cacheKey
+     * @param $str
+     * @return mixed
+     */
+    public static function addNoRepeatChar($cacheKey, $str)
+    {
+        return Yii::$app->redis->sadd($cacheKey, $str);
     }
 
 }

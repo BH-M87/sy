@@ -5,20 +5,19 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "ps_app_member".
+ * This is the model class for table "ps_nation".
  *
  * @property int $id
- * @property int $app_user_id
- * @property int $member_id
+ * @property string $name
  */
-class PsAppMember extends \yii\db\ActiveRecord
+class PsNation extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'ps_app_member';
+        return 'ps_nation';
     }
 
     /**
@@ -27,8 +26,8 @@ class PsAppMember extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['app_user_id', 'member_id'], 'required'],
-            [['app_user_id', 'member_id'], 'integer'],
+            [['name'], 'required'],
+            [['name'], 'string', 'max' => 20],
         ];
     }
 
@@ -39,8 +38,7 @@ class PsAppMember extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'app_user_id' => 'App User ID',
-            'member_id' => 'Member ID',
+            'name' => 'Name',
         ];
     }
 }

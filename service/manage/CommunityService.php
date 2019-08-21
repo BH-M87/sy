@@ -831,6 +831,15 @@ ORDER BY juli ASC LIMIT 1";
             ->asArray()->one();
     }
 
+    //获取生活号基本信息(生活号)
+    public function getInfo($communityId)
+    {
+        return PsCommunityModel::find()
+            ->select('id, name, phone, community_no')
+            ->where(['id' => $communityId])
+            ->asArray()->one();
+    }
+
     //添加默认的报事报修类型
     private function addRepairType($communityId)
     {
