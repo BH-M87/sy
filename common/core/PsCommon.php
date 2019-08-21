@@ -127,9 +127,7 @@ class PsCommon {
      */
     public static function validSign($systemType)
     {
-        if (Yii::$app->request->getHeaders()->get('skip-sign')) {
-            return true;
-        }
+        return true;
         if (YII_ENV != 'master') {//本地/测试环境 测试人员绕开验签
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
@@ -327,6 +325,11 @@ class PsCommon {
             $arr[] = ["key" => $key, "value" => $value];
         }
         return $arr;
+    }
+
+    public static function getKeyValue($key,$data)
+    {
+        return ['key'=>$key,'value'=>$data[$key]];
     }
 
     public static function getPayType($index = '')

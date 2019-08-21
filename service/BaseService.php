@@ -1,5 +1,6 @@
 <?php
 namespace service;
+use app\models\IotSupplierCommunity;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
 use app\models\PsMember;
@@ -125,5 +126,19 @@ class BaseService {
     public function getBuyerIdr($user_id)
     {
         return PsAppUser::find()->select('channel_user_id')->where(['id' => $user_id])->scalar();
+    }
+
+    /**
+     * 根据小区id和接入类型获取供应商id
+     * @param $communityId
+     * @param $type  1 道闸 2门禁
+     * @return false|null|string
+     */
+    public function getSupplierId($communityId, $type)
+    {
+        return IotSupplierCommunity::find()
+            ->select(['supplier_id'])
+            ->where(['community_id'=>$communityId, 'supplier_type' => $type])
+            ->scalar();
     }
 }

@@ -545,4 +545,25 @@ class RoomUserService extends BaseService
             //\Yii::info($e->getMessage(), 'messageError');
         }
     }
+
+    /**
+     * 根据房屋信息查看房屋下所有已认证的业主列表
+     * @param $communityId
+     * @param $group
+     * @param $building
+     * @param $unit
+     * @param $room
+     * @return array
+     */
+    public function getAuthUserByRoomInfo($communityId, $group, $building, $unit, $room)
+    {
+        $query = new Query();
+        $res = $query->select(['ru.member_id', 'ru.name','ru.mobile','ru.identity_type'])
+            ->from('ps_community_roominfo as cr')
+            ->leftJoin('ps_room_user as ru', 'ru.room_id=cr.id')
+            ->where(['cr.community_id' => $communityId, 'cr.group' => $group, 'cr.building' => $building,
+                'cr.unit' => $unit, 'cr.room' => $room, 'ru.status' => 2])
+            ->all();
+        return $res;
+    }
 }

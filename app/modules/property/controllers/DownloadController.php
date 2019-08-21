@@ -5,7 +5,7 @@
  * @date 2018-05-19
  */
 
-namespace app\modules\property\modules\v1\controllers;
+namespace app\modules\property\controllers;
 
 use common\core\F;
 use common\core\PsCommon;

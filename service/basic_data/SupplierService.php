@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
+ * 供应商基础服务
  * User: fengwenchao
  * Date: 2018/6/25
  * Time: 14:22
@@ -9,6 +9,7 @@
 namespace service\basic_data;
 
 use app\models\DoorSendRequest;
+use app\models\IotSupplierCommunity;
 use app\models\ParkingSupplierCommunity;
 use app\models\ParkingSuppliers;
 use common\core\F;
@@ -19,6 +20,27 @@ use Yii;
 
 class SupplierService extends BaseService
 {
+    const SUPPLIER_TYPE_PARKING = 1; //道闸
+    const SUPPLIER_TYPE_DOOR = 2; //门禁
+
+    /**
+     * 获取跟小区合作的门禁的供应商
+     * @param $communityId
+     * @param $type 供应商接入类型 1道闸 2门禁
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getSupplierList($communityId, $type)
+    {
+        $res = IotSupplierCommunity::find()
+            ->alias('isc')
+            ->leftJoin('iot_suppliers is','isc.supplier_id = is.id')
+            ->select(['is.id','is.name'])
+            ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
+            ->asArray()
+            ->all();
+        return $res;
+    }
+
     //发送间隔时间，分钟为单位
     private $sendSpace = [
         '1' => '1',
