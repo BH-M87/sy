@@ -42,8 +42,8 @@ class RoleService extends BaseService
     public function validata($params,$userinfo){
         $data = $params;
         $data['obj_type'] = $userinfo['system_type'];
-        $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
-        $data['tenant_id'] = $userinfo['system_type']!=1?$userinfo['property_company_id']:'0';
+        $data['obj_id'] = $userinfo['system_type']!=1?$userinfo['company_id']:'0';
+        $data['tenant_id'] = $userinfo['system_type']!=1?$userinfo['company_id']:'0';
         $this->params = $data;
     }
     /**
@@ -57,7 +57,6 @@ class RoleService extends BaseService
     public function getGroupRoleList($params, $userinfo)
     {
         $this->validata($params,$userinfo);
-
         $result = ZjyRoleGroup::getList($this->params);
         return $result ?? [];
     }

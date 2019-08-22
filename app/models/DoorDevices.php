@@ -24,8 +24,10 @@ use Yii;
  * @property int $update_time 更新时间
  * @property int $create_at 添加时间
  */
-class DoorDevices extends \yii\db\ActiveRecord
+class DoorDevices extends BaseModel
 {
+    public $permissions;
+
     /**
      * {@inheritdoc}
      */
@@ -41,11 +43,17 @@ class DoorDevices extends \yii\db\ActiveRecord
     {
         return [
             [['community_id'], 'required'],
-            [['community_id', 'supplier_id', 'type', 'device_type', 'status', 'online_status', 'open_type', 'is_set_admin', 'update_time', 'create_at'], 'integer'],
+            [['community_id', 'supplier_id', 'type', 'device_type', 'status', 'online_status', 'update_time', 'create_at'], 'integer'],
             [['note'], 'string'],
             [['name'], 'string', 'max' => 50],
-            [['device_id', 'permissions'], 'string', 'max' => 100],
-            [['open_door_type'], 'string', 'max' => 10],
+            [['device_id'], 'string', 'max' => 100],
+            [['community_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['common','list']],
+            [['name','type','device_id','supplier_id','permissions','community_id'], 'required','message'=>'{attribute}不能为空!','on'=>['add','edit']],
+            [['type'], 'in', 'range' => [1, 2, 3], 'message'=>'{attribute}只能是1或者2或者3!'],
+            [['status'], 'in', 'range' => [1, 2], 'message'=>'{attribute}只能是1或者2!'],
+            [['id'], 'required', 'message'=>'{attribute}不能为空!','on'=>['edit', 'detail', 'change-status', 'delete']],
+            [['status'], 'required', 'message'=>'{attribute}不能为空!','on'=>['change-status']],
+            [['note'], 'safe'],
         ];
     }
 
@@ -56,19 +64,17 @@ class DoorDevices extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'community_id' => 'Community ID',
-            'supplier_id' => 'Supplier ID',
-            'name' => 'Name',
-            'type' => 'Type',
-            'device_type' => 'Device Type',
-            'device_id' => 'Device ID',
-            'permissions' => 'Permissions',
-            'note' => 'Note',
-            'status' => 'Status',
+            'community_id' => '小区id',
+            'supplier_id' => '供应商id',
+            'name' => '门禁名称',
+            'type' => '设备类型',
+            'device_type' => '出入类型',
+            'device_id' => '设备序列号',
+            'permissions' => '门禁权限',
+            'note' => '备注',
+            'status' => '设备状态',
             'online_status' => 'Online Status',
-            'open_type' => 'Open Type',
-            'open_door_type' => 'Open Door Type',
-            'is_set_admin' => 'Is Set Admin',
+            'open_door_type' => '开门类型',
             'update_time' => 'Update Time',
             'create_at' => 'Create At',
         ];

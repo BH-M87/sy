@@ -6,14 +6,18 @@
  * Time: 13:35
  */
 
-namespace app\small\services;
+namespace service\small;
 
 
 use app\models\PsAliToken;
 use app\models\PsAppMember;
+<<<<<<< HEAD
 use app\models\PsCommunityModel;
 use app\models\PsOrder;
 use app\models\PsPropertyIsvToken;
+=======
+use app\models\PsMember;
+>>>>>>> 3e7b39651d3c0dbac656f30d8d325749db56e62b
 use app\models\PsRoomUser;
 use app\modules\small\services\BillSmallService;
 use service\alipay\AlipayBillService;
@@ -59,6 +63,7 @@ class MemberService extends BaseService
         return $re;
     }
 
+<<<<<<< HEAD
     // 停车缴费 判断小区状态 添加ps_order表记录 创建支付宝订单 更新ps_order表相关信息 配置前端唤起支付成功异步回调地址
     public function pay($params)
     {
@@ -237,3 +242,15 @@ class MemberService extends BaseService
     }
 }
 
+=======
+    /**
+     * 获取用户基本信息
+     * @param $memberId
+     */
+    public function getInfo($memberId, $withCard=false)
+    {
+        $columns = $withCard ? ['id', 'name', 'sex', 'mobile', 'member_card', 'face_url'] : ['id', 'name', 'sex', 'mobile', 'face_url', 'is_real'];
+        return PsMember::find()->select($columns)->where(['id' => $memberId])->asArray()->one();
+    }
+}
+>>>>>>> 3e7b39651d3c0dbac656f30d8d325749db56e62b

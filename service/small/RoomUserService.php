@@ -6,9 +6,13 @@
  * Time: 17:36
  */
 
-namespace app\small\services;
+namespace service\small;
 
-
+use app\models\PsCommunityBuilding;
+use app\models\PsCommunityGroups;
+use app\models\PsCommunityModel;
+use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
@@ -121,7 +125,7 @@ class RoomUserService extends BaseService
         } catch (\Exception $e) {
             \Yii::info($e->getMessage(), 'messageError');
         }
-        return $this->success($info);
+        return $info;
 
     }
 
@@ -199,6 +203,9 @@ class RoomUserService extends BaseService
                 }
                 $delModel = $redidentAuditModel;
             } else {
+                if ($redidentAuditModel->status == 0){
+                    throw new MyException('房屋信息待审核');
+                }
                 $model = $redidentAuditModel;
                 $model->time_end = empty($expired_time) ? 0 : strtotime(date('Y-m-d 23:59:59', strtotime($expired_time)));
                 $model->status = 0;
@@ -221,7 +228,7 @@ class RoomUserService extends BaseService
             throw new MyException($e->getMessage());
         }
         $info['community_mobile'] = $roomInfo['community_mobile'];
-        return $this->success($info);
+        return $info;
     }
 
     /**
@@ -418,6 +425,128 @@ class RoomUserService extends BaseService
             throw new MyException('房屋信息:' . $error_msg);
         }
         throw new MyException('房屋信息异常');
+    }
+
+    /**
+     * @param $params
+     * @api 房屋列表
+     * @author wyf
+     * @date 2019/8/21
+     */
+    public function houseList($params)
+    {
+        if(empty($params['community_id'])){
+            throw new MyException('小区不能为空');
+        }
+        $community_id = $params['community_id'];
+        $model = PsCommunityRoominfo::find()->alias('r')
+            ->rightJoin(['u'=>PsCommunityUnits::tableName()],'u.id = r.unit_id')
+            ->rightJoin(['b'=>PsCommunityBuilding::tableName()],'b.id = u.building_id')
+            ->rightJoin(['g'=>PsCommunityGroups::tableName()],'g.id = u.group_id')
+            ->where(['r.community_id'=>$community_id])
+            ->select(['r.community_id','r.id as room_id','u.id as unit_id','u.building_id','u.group_id','r.room','u.name as unit','b.name as building','g.name as group'])
+            ->asArray()->all();
+        $list = [];
+        if($model){
+            $units = $building =$group = [];
+            foreach($model as $key=>$value){
+                $room['name'] = $value['room'];
+                $room['subList'] = [];
+
+                $units[$value['unit_id']]['name'] = $value['unit'];
+                $units[$value['unit_id']]['subList'][] = $room;
+
+                $building[$value['building_id']]['name'] = $value['building'];
+                $building[$value['building_id']]['subList'][$value['unit_id']] = $units[$value['unit_id']];
+
+                $list[$value['group_id']]['name'] = $value['group'];
+                $list[$value['group_id']]['subList'][$value['building_id']]= $building[$value['building_id']];
+
+            }
+            $list = array_values($list);
+            foreach($list as $ke=>$ve){
+                foreach($ve['subList'] as $k=>$v){
+                    sort($list[$ke]['subList'][$k]['subList']);
+                }
+                sort($list[$ke]['subList']);
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * @param $params
+     * @return array
+     * @api 已认证/未认证的房屋信息列表
+     * @author wyf
+     * @date 2019/8/21
+     */
+    public function getList($params)
+    {
+        if(empty($params['user_id'])){
+            throw new MyException('用户id不能为空');
+        }
+        $user_id = $params['user_id'];
+        $member_id = $this->getMemberByUser($user_id);
+        $member = PsMember::find()->select('name, mobile')->where(['id' => $member_id])->asArray()->one();
+
+        $rooms = PsResidentAudit::find()->alias('ra')->where(['member_id'=>$member_id,'ra.name'=>$member['name']])
+            ->leftJoin(['cr'=>PsCommunityRoominfo::tableName()],'cr.id = ra.room_id')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = ra.community_id')
+            ->select(['ra.id as audit_record_id','ra.community_id','c.phone as community_mobile','c.name as community_name','ra.time_end','ra.identity_type','ra.room_id as room_id',
+                'cr.group','cr.building','cr.unit','cr.room','ra.status'])
+            ->asArray()->all();
+        $roomData = ['auth' => [], 'unauth' => []];
+        //审核跟失败的数据
+        if($rooms){
+            foreach($rooms as $key=>$value){
+                $value['expired_time'] = !empty($value['time_end']) ? date('Y-m-d',$value['time_end']): '永久';
+                $value['identity_label'] = TagLibrary::roomUser('identity_type')[$value['identity_type']];
+                $value['room_adress'] = $value['group'].'-'.$value['building'].'-'.$value['unit'].'-'.$value['room'];
+                //审核中
+                if($value['status'] == 0){
+                    $value['status'] = 1;
+                    $value['is_auth'] = 2;
+                    $roomData['unauth'][] = $value;
+                }
+                //审核未通过
+                if($value['status'] == 2){
+                    $value['is_auth'] = 2;
+                    $value['status'] = 3;
+                    $roomData['unauth'][] = $value;
+                }
+            }
+        }
+        $rooms2 = PsRoomUser::find()->alias('ru')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = ru.community_id')
+            ->select('ru.community_id,ru.id as rid, c.phone as community_mobile,c.name as community_name,ru.room_id, ru.group, ru.building, ru.unit, ru.room, ru.time_end, ru.identity_type, ru.status, ru.name')
+            ->where(['member_id' => $member_id,'ru.name' => $member['name']])->asArray()->all();
+        if($rooms2){
+            foreach ($rooms2 as $v) {
+                $v['audit_record_id'] = 0;
+                $v['expired_time'] = !empty($v['time_end']) ? date('Y-m-d',$v['time_end']): '永久';
+                $v['identity_label'] = TagLibrary::roomUser('identity_type')[$v['identity_type']];
+                $v['room_adress'] = $v['group'].'-'.$v['building'].'-'.$v['unit'].'-'.$v['room'];
+                if($v['status'] == 1 && $member['name'] == $v['name']){
+                    $v['status'] = 1;
+                    $v['is_auth'] = 2;
+                    $roomData['unauth'][] = $v;
+                }
+                //已认证
+                if($v['status'] == 2){
+                    $v['status'] = 2;
+                    $v['is_auth'] = 1;
+                    $roomData['auth'][] = $v;
+                }
+                //迁出
+                if($v['status'] == 3||$v['status'] == 4){
+                    $v['is_auth'] = 2;
+                    $v['status'] = 4;
+                    $roomData['unauth'][] = $v;
+                }
+            }
+        }
+        return $roomData;
     }
 
     /**
@@ -622,5 +751,26 @@ class RoomUserService extends BaseService
         } catch (\Exception $e) {
             //\Yii::info($e->getMessage(), 'messageError');
         }
+    }
+
+    /**
+     * 根据房屋信息查看房屋下所有已认证的业主列表
+     * @param $communityId
+     * @param $group
+     * @param $building
+     * @param $unit
+     * @param $room
+     * @return array
+     */
+    public function getAuthUserByRoomInfo($communityId, $group, $building, $unit, $room)
+    {
+        $query = new Query();
+        $res = $query->select(['ru.member_id', 'ru.name','ru.mobile','ru.identity_type'])
+            ->from('ps_community_roominfo as cr')
+            ->leftJoin('ps_room_user as ru', 'ru.room_id=cr.id')
+            ->where(['cr.community_id' => $communityId, 'cr.group' => $group, 'cr.building' => $building,
+                'cr.unit' => $unit, 'cr.room' => $room, 'ru.status' => 2])
+            ->all();
+        return $res;
     }
 }
