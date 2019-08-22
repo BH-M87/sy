@@ -26,6 +26,7 @@ class RoomInfoService extends BaseService
     //查找详情
     public function getRoomInfoById($id)
     {
+        return PsCommunityRoominfo::find()->where(['id'=>$id])->asArray()->one();
 
     }
 

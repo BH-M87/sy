@@ -539,9 +539,7 @@ Class HouseService extends BaseService
      */
     public function houseDelete($out_room_id, $user_info)
     {
-        $list = Yii::$app->db->createCommand("SELECT id, roominfo_code,community_id,address,unit_id,out_room_id,room FROM ps_community_roominfo where out_room_id = :id")
-            ->bindValue(':id', $out_room_id)
-            ->queryOne();
+        $list = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
         if (!empty($list)) {
             $exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
                 ->bindValue(':out_room_id', $out_room_id)
@@ -581,7 +579,7 @@ Class HouseService extends BaseService
             OperateService::addComm($user_info, $operate);
             if ($model) {
                 //同步更新删除到楼宇中心
-                $this->postDeleteRoomApi($list['roominfo_code']);
+                //$this->postDeleteRoomApi($list['roominfo_code']);
 
                 //删除房屋数据推送
                 DoorPushService::service()->roomDelete($list["community_id"], $out_room_id);
@@ -593,7 +591,7 @@ Class HouseService extends BaseService
                     'out_room_id_set' => [$out_room_id]
                 ];
                 /***edit by wencho.feng token值更新 ***/
-                AlipayBillService::service($community_no)->deleteRoominfo($data);
+                //AlipayBillService::service($community_no)->deleteRoominfo($data);
                 //删除房屋下的水表跟电表，还有对应的抄表记录
                 $room_id = $list["id"];
                 Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();

@@ -8,7 +8,8 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
-require dirname(__DIR__,6). '/common/PhpExcel/PHPExcel.php';
+require dirname(__DIR__, 6) . '/common/PhpExcel/PHPExcel.php';
+use app\models\PsLabels;
 use app\models\PsResidentFrom;
 use app\models\PsRoomUser;
 use app\modules\property\controllers\BaseController;
@@ -25,6 +26,7 @@ use service\resident\RoomUserService;
 use service\room\RoomService;
 use yii\db\Exception;
 use Yii;
+use yii\rest\ViewAction;
 
 class ResidentController extends BaseController
 {
@@ -37,21 +39,29 @@ class ResidentController extends BaseController
         return true;
     }
 
-    /*
+    /*******已完成测试的方法********/
+    /**
      * 获取小区下的所有住户列表
-     * */
+     */
     public function actionList()
     {
         $result = ResidentService::service()->lists($this->request_params, $this->page, $this->pageSize);
         return PsCommon::responseAppSuccess($result);
     }
 
+    /**
+     * 详情
+     */
     public function actionShow()
     {
         $result = ResidentService::service($this->communityId)->show($this->request_params['id']);
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 新增
+     * @return null|string
+     */
     public function actionAdd()
     {
         $result = ResidentService::service()->add($this->request_params, $this->user_info);
@@ -61,6 +71,10 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
+    /**
+     * 编辑
+     * @return null|string
+     */
     public function actionEdit()
     {
         $result = ResidentService::service()->edit($this->request_params, $this->user_info);
@@ -70,6 +84,10 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
+    /**
+     * 删除住户
+     * @return null|string
+     */
     public function actionDelete()
     {
         $result = ResidentService::service($this->communityId)->delete($this->request_params['id'], $this->user_info);
@@ -79,95 +97,9 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /*
-     * 详情相关房屋
-     */
-    public function actionRelatedHouse()
-    {
-        $result = ResidentService::service($this->communityId)->relatedHouse(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
-        return PsCommon::responseSuccess($result);
-    }
-
-    /*
-     * 相关房屋编辑
-     */
-    public function actionRelatedHouseEdit()
-    {
-        $result = ResidentService::service($this->communityId)->relatedHouseEdit(
-            $this->request_params['id'],
-            $this->request_params['identity_type'],
-            $this->request_params['end_time']
-        );
-        if (!$result['code']) {
-            return PsCommon::responseFailed($result['msg']);
-        }
-        return PsCommon::responseSuccess($result['data']);
-    }
-
-    /*
-     * 相关住户
-     */
-    public function actionRelatedResident()
-    {
-        $result = ResidentService::service($this->communityId)->relatedResident(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
-        return PsCommon::responseSuccess($result);
-    }
-
-    /*
-     * 住户审核列表
-     */
-    public function actionAuditList()
-    {
-        $result = ResidentService::service()->auditLists($this->request_params, $this->page, $this->pageSize);
-        return PsCommon::responseSuccess($result);
-    }
-
-    /*
-     * 住户审核详情
-     */
-    public function actionAuditShow()
-    {
-        $result = ResidentService::service()->auditShow($this->request_params['id'], $this->communityId);
-        if (!$result) {
-            return PsCommon::responseFailed('数据不存在');
-        }
-        return PsCommon::responseSuccess($result);
-    }
-
-    /*
-     * 审核不通过
-     */
-    public function actionAuditNopass()
-    {
-        $result = ResidentService::service($this->communityId)->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
-        if (!$result['code']) {
-            return PsCommon::responseFailed($result['msg']);
-        }
-        return PsCommon::responseSuccess($result['data']);
-    }
-
-    /*
-     * 审核bu通过删除
-     */
-    public function actionAuditDelete()
-    {
-        $result = ResidentService::service()->auditDel($this->request_params['id'],$this->user_info);
-        if (!$result['code']) {
-            return PsCommon::responseFailed($result['msg']);
-        }
-        return PsCommon::responseSuccess($result['data']);
-    }
-
-    /*
+    /**
      * 迁入
+     * @return null|string
      */
     public function actionMoveIn()
     {
@@ -185,8 +117,9 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /*
+    /**
      * 迁出
+     * @return null|string
      */
     public function actionMoveOut()
     {
@@ -197,9 +130,10 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /*
-    * 住户导出
-    * */
+    /**
+     * 住户导出
+     * @return null|string
+     */
     public function actionExport()
     {
         $valid = PsCommon::validParamArr(new PsResidentFrom(), $this->request_params, 'list');
@@ -249,6 +183,10 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
+    /**
+     * 下载模版链接
+     * @return string
+     */
     public function actionGetDown()
     {
         $downUrl = F::downloadUrl('import_resident_templates.xlsx', 'template', 'MoBan.xlsx');
@@ -288,7 +226,7 @@ class ResidentController extends BaseController
             $val = $sheetData[$i];
 
             $residentDatas[] = [
-                "name" => !empty($val['A'])?$val['A']:'',
+                "name" => !empty($val['A']) ? $val['A'] : '',
                 "mobile" => !empty($val['B']) ? $val['B'] : PsCommon::generateVirtualPhone(),
                 "sex" => $val["C"],
                 "card_no" => $val["D"] ? $val["D"] : "",
@@ -357,10 +295,10 @@ class ResidentController extends BaseController
 
 
             // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-            if (!empty($memberId)){
-                $checkRoomResult = RoomUserService::checkRoomExist($roomId, $memberId,3, 1);
-                if ($checkRoomResult !== true){
-                    ExcelService::service()->setError($residentData, "住户房屋信息已存在,".$checkRoomResult);
+            if (!empty($memberId)) {
+                $checkRoomResult = RoomUserService::checkRoomExist($roomId, $memberId, 3, 1);
+                if ($checkRoomResult !== true) {
+                    ExcelService::service()->setError($residentData, "住户房屋信息已存在," . $checkRoomResult);
                     continue;
                 }
             }
@@ -412,7 +350,7 @@ class ResidentController extends BaseController
                 $sex = $successArr['sex'];
                 $card_no = $successArr['card_no'];
                 $label_name = !empty($residentData['label_name']) ? $residentData['label_name'] : [];
-                ResidentService::service()->syncRoomUserListToOpenApi($communityId,$community_no,$memberId,$identity_type,$time_end,$room_id,$user_name,$user_phone,$sex,$card_no,$label_name);
+                ResidentService::service()->syncRoomUserListToOpenApi($communityId, $community_no, $memberId, $identity_type, $time_end, $room_id, $user_name, $user_phone, $sex, $card_no, $label_name);
             }
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
@@ -699,9 +637,13 @@ class ResidentController extends BaseController
         $config['sheet_config'] = $sheetConfig;
         $url = ExcelService::service()->saveErrorExcel($config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
-        return F::downloadUrl( date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhuError.xlsx');
+        return F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhuError.xlsx');
     }
 
+    /**
+     * 获取业主类型
+     * @return string
+     */
     public function actionResidentType()
     {
         $model = PsCommon::getIdentityType();
@@ -714,6 +656,105 @@ class ResidentController extends BaseController
         }
         return PsCommon::responseSuccess($result);
     }
+
+    /**
+     * 详情相关房屋
+     * @return string
+     */
+    public function actionRelatedHouse()
+    {
+        $result = ResidentService::service($this->communityId)->relatedHouse(
+            $this->request_params['id'],
+            $this->page,
+            $this->pageSize
+        );
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * 相关房屋编辑
+     * @return null|string
+     */
+    public function actionRelatedHouseEdit()
+    {
+        $result = ResidentService::service($this->communityId)->relatedHouseEdit(
+            $this->request_params['id'],
+            $this->request_params['identity_type'],
+            $this->request_params['end_time']
+        );
+        if (!$result['code']) {
+            return PsCommon::responseFailed($result['msg']);
+        }
+        return PsCommon::responseSuccess($result['data']);
+    }
+
+    /**
+     * 相关住户
+     * @return string
+     */
+    public function actionRelatedResident()
+    {
+        $result = ResidentService::service($this->communityId)->relatedResident(
+            $this->request_params['id'],
+            $this->page,
+            $this->pageSize
+        );
+        return PsCommon::responseSuccess($result);
+    }
+
+
+
+    /**********todo 待审核数据还没，后期测试************/
+    /**
+     * 住户审核列表
+     * @return string
+     */
+    public function actionAuditList()
+    {
+        $result = ResidentService::service()->auditLists($this->request_params, $this->page, $this->pageSize);
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * 住户审核详情
+     * @return null|string
+     */
+    public function actionAuditShow()
+    {
+        $result = ResidentService::service()->auditShow($this->request_params['id'], $this->communityId);
+        if (!$result) {
+            return PsCommon::responseFailed('数据不存在');
+        }
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * 审核不通过
+     * @return null|string
+     */
+    public function actionAuditNopass()
+    {
+        $result = ResidentService::service($this->communityId)->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
+        if (!$result['code']) {
+            return PsCommon::responseFailed($result['msg']);
+        }
+        return PsCommon::responseSuccess($result['data']);
+    }
+
+    /**
+     * 审核bu通过删除
+     * @return null|string
+     */
+    public function actionAuditDelete()
+    {
+        $result = ResidentService::service()->auditDel($this->request_params['id'], $this->user_info);
+        if (!$result['code']) {
+            return PsCommon::responseFailed($result['msg']);
+        }
+        return PsCommon::responseSuccess($result['data']);
+    }
+
+    /****todo 还未调试接口***/
 
     //新增投票-选择业主
     public function actionGetResident()

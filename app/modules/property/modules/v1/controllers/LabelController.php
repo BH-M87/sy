@@ -14,7 +14,7 @@ use common\core\PsCommon;
 use service\label\LabelsService;
 use Yii;
 
-class LableController extends BaseController
+class LabelController extends BaseController
 {
     public $request;
     private $method_array;
@@ -25,8 +25,8 @@ class LableController extends BaseController
         parent::init();
         $this->request = Yii::$app->request;
         $this->method_array = [
-            'get'=>['list','label-type','difference-list'],
-            'post'=>['add','edit','delete']
+            'get' => ['list', 'label-type', 'difference-list'],
+            'post' => ['add', 'edit', 'delete']
         ];
 
     }
@@ -42,7 +42,6 @@ class LableController extends BaseController
 
     }
 
-
     //标签添加
     public function actionAdd()
     {
@@ -53,7 +52,7 @@ class LableController extends BaseController
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
-        $result = $this->service->LabelAddUpdate($this->request_params,1);
+        $result = $this->service->LabelAddUpdate($this->request_params, 1);
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -72,7 +71,7 @@ class LableController extends BaseController
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
-        $result = $this->service->labelAddUpdate($this->request_params,2);
+        $result = $this->service->labelAddUpdate($this->request_params, 2);
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -85,7 +84,7 @@ class LableController extends BaseController
     public function actionList()
     {
         $params = $this->request_params;
-        if(empty($params['community_id']) || !is_numeric($params['community_id'])) {
+        if (empty($params['community_id']) || !is_numeric($params['community_id'])) {
             return PsCommon::responseFailed("参数错误");
         }
         $result = $this->service->labelList($this->request_params);
@@ -112,9 +111,9 @@ class LableController extends BaseController
     public function actionLabelType()
     {
         foreach (PsLabels::$type as $k => $v) {
-            $data[]= ['id'=>$k,'name'=>$v];
+            $data[] = ['id' => $k, 'name' => $v];
         }
-        return PsCommon::responseSuccess(['list'=>$data]);
+        return PsCommon::responseSuccess(['list' => $data]);
     }
 
     //获取分类下拉数据
@@ -125,6 +124,6 @@ class LableController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result = $this->service->getTypeList($this->request_params);
-        return PsCommon::responseSuccess(['list'=>$result]);
+        return PsCommon::responseSuccess(['list' => $result]);
     }
 }

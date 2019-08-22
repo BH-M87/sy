@@ -10,10 +10,10 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 
 
 use app\modules\ali_small_common\controllers\UserBaseController;
-use app\small\services\CommunityRoomService;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
+use service\small\CommunityRoomService;
 
 class CommunityController extends UserBaseController
 {

@@ -5,11 +5,13 @@ namespace service\resident;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
 use app\models\PsCommunityRoominfo;
+use app\models\PsLabels;
 use app\models\PsMember;
 use app\models\PsNation;
 use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
 use app\models\PsRoomUser;
+use app\models\PsRoomUserLabel;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -17,6 +19,7 @@ use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
 use service\common\SmsService;
+use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\room\RoomService;
@@ -160,7 +163,7 @@ class ResidentService extends BaseService
             $model['household_city_desc'] = PsCommon::get($psAreas, $model['household_city']);
             $model['household_area_desc'] = PsCommon::get($psAreas, $model['household_area']);
             $model['identity_type_desc'] = $model['identity_type'] ? PsCommon::getIdentityType($model['identity_type'], 'key') : "-";
-            $face = PsMember::find()->select('face_url')->where(['id'=>$model['member_id']])->scalar();
+            $face = PsMember::find()->select('face_url')->where(['id' => $model['member_id']])->scalar();
             $model['face_url'] = $face ?? "";
         }
         return $model;
@@ -214,10 +217,10 @@ class ResidentService extends BaseService
         $name = PsCommon::get($data, 'name');
         $label_id = PsCommon::get($data, 'user_label_id');
         $isEditMobile = 0;
-        $oldRoomUser = PsRoomUser::find() ->where(['id' => $id, 'community_id' => $this->communityId])->asArray()->one();
+        $oldRoomUser = PsRoomUser::find()->where(['id' => $id, 'community_id' => $this->communityId])->asArray()->one();
 
         //edit by wenchao.feng 虚拟手机号
-        if ($roomUser['status'] != 2){
+        if ($roomUser['status'] != 2) {
             //已认证的不可编辑手机号，不做处理
             if (PsCommon::isVirtualPhone($roomUser['mobile']) && empty($mobile)) {
                 //虚拟手机号继续编辑为空的情况，保留原虚拟手机号
@@ -237,7 +240,6 @@ class ResidentService extends BaseService
         if ($memberModel->face_url && empty($data['face_url'])) {
             return $this->failed('人脸照片不能为空');
         }
-        
         //验证标签
         if (!empty($label_id)) {
             $relation = LabelsService::service()->addRelation($roomUser->id, $label_id, 2);
@@ -245,12 +247,13 @@ class ResidentService extends BaseService
                 return $this->failed('标签错误');
             } else {
                 $label = PsLabels::find()->select('name')->where(['id' => $label_id])->asArray()->all();
-                $street_data = ['mobile' => $mobile,'community_id' => $communityId,'name' => $name,'label' => array_column($label,'name'),'type' => 1];
+                $street_data = ['mobile' => $mobile, 'community_id' => $communityId, 'name' => $name, 'label' => array_column($label, 'name'), 'type' => 1];
                 CommunistService::service()->synchro($street_data);
             }
         } else if (empty($label_id)) {
-            $street_data = ['mobile' => $mobile,'community_id' => $communityId,'name' => $name,'label' => '','type' =>  2];
-            CommunistService::service()->synchro($street_data);
+            //同步标签到街道办
+            /*$street_data = ['mobile' => $mobile,'community_id' => $communityId,'name' => $name,'label' => '','type' =>  2];
+            CommunistService::service()->synchro($street_data);*/
             LabelsService::service()->deleteList(2, $roomUser->id, 2);
         }
 
@@ -281,6 +284,8 @@ class ResidentService extends BaseService
                 $memberId = $member["data"];
                 $roomUser->member_id = $memberId;
             }
+
+            //todo 待完成，业主修改身份证以后，ps_member表没做操作
 
             $et = PsCommon::get($data, 'enter_time');
             $data['enter_time'] = $et ? strtotime($et) : 0;
@@ -316,7 +321,7 @@ class ResidentService extends BaseService
 
             //同步人脸
             $member = PsMember::findOne($roomUser->member_id);
-            if(!empty($member) && !empty($data['face_url'])){
+            if (!empty($member) && !empty($data['face_url'])) {
                 $member->face_url = $data['face_url'];
                 $member->save();
             }
@@ -335,10 +340,10 @@ class ResidentService extends BaseService
                     //$this->residentFaceSync($roomUser, 'add');
                 } else {
                     //编辑住户的时候，如果这个住户是未认证的，并且修改了住户类型，那先调用删除，再新增
-                    if($roomUser['identity_type'] != $oldRoomUser['identity_type']){
+                    if ($roomUser['identity_type'] != $oldRoomUser['identity_type']) {
                         $this->residentSync($oldRoomUser, 'delete');
                         $this->residentSync($roomUser, 'add');
-                    }else{
+                    } else {
                         $this->residentSync($roomUser, 'edit');
                     }
                     //$this->residentFaceSync($roomUser, 'edit');
@@ -350,7 +355,7 @@ class ResidentService extends BaseService
                 "community_id" => $data["community_id"],
                 "operate_menu" => "住户管理",
                 "operate_type" => "编辑住户",
-                "operate_content" => $name . " " .(PsCommon::isVirtualPhone($mobile) ? '' : $mobile),
+                "operate_content" => $name . " " . (PsCommon::isVirtualPhone($mobile) ? '' : $mobile),
             ];
             OperateService::addComm($user_info, $operate);
             $trans->commit();
@@ -424,8 +429,8 @@ class ResidentService extends BaseService
             ->select('id, room_id, member_id, identity_type, status, group, building, unit, room, time_end')
             ->asArray()->all();
         foreach ($data as &$datum) {
-            $datum['time_end'] = $datum['time_end'] ? date('Y-m-d', $datum['time_end']) : 0;
-            $datum['create_at'] = $datum['create_at'] ? date('Y-m-d', $datum['create_at']) : '';
+            $datum['time_end'] = !empty($datum['time_end']) ? date('Y-m-d', $datum['time_end']) : 0;
+            $datum['create_at'] = !empty($datum['create_at']) ? date('Y-m-d', $datum['create_at']) : '';
             $datum['identity_type_des'] = PsCommon::getIdentityType($datum['identity_type'], 'key');
             if (!empty($datum['roomInfo'])) {
                 $datum['roomInfo']['property_type_desc'] = PsCommon::propertyType($datum['roomInfo']['property_type']);
@@ -488,8 +493,8 @@ class ResidentService extends BaseService
         $data = $query->orderBy('id desc')
             ->asArray()->all();
         foreach ($data as &$model) {
-            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
-            $model['create_at'] = $model['create_at'] ? date('Y-m-d', $model['create_at']) : '';
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
             $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
             $model['status_desc'] = PsCommon::getIdentityStatus($model['status']);
             $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
@@ -516,8 +521,8 @@ class ResidentService extends BaseService
             ->asArray()->all();
         foreach ($models as &$model) {
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
-            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
-            $model['create_at'] = $model['create_at'] ? date('Y-m-d', $model['create_at']) : '';
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
             $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
         }
         return ["list" => $models, 'totals' => $count];
@@ -586,9 +591,12 @@ class ResidentService extends BaseService
     /**
      * 审核bu通过删除
      */
-    public function auditDel($id,$userinfo='')
+    public function auditDel($id, $userinfo = '')
     {
         $model = PsResidentAudit::findOne(['id' => $id, 'community_id' => $this->communityId]);
+        if (empty($model)) {
+            return $this->failed('删除失败，数据不存在');
+        }
         $name = $model->name;
         $mobile = $model->mobile;
         if (!$model || !$model->delete()) {
@@ -621,8 +629,8 @@ class ResidentService extends BaseService
         }
 
         // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-        if (!empty($psResidentAudit->member_id)){
-            RoomUserService::checkRoomExist($roomId, $psResidentAudit->member_id,1);
+        if (!empty($psResidentAudit->member_id)) {
+            RoomUserService::checkRoomExist($roomId, $psResidentAudit->member_id, 1);
         }
 
         $psResidentAudit->status = PsResidentAudit::AUDIT_PASS;
@@ -643,7 +651,7 @@ class ResidentService extends BaseService
 
         $psRoomUser = new PsRoomUser;
         $room = PsCommunityRoominfo::findOne($roomId);
-        $auth_status=RoomUserService::getMemberStatus($psResidentAudit->member_id,$psResidentAudit->name,$psResidentAudit->mobile);
+        $auth_status = RoomUserService::getMemberStatus($psResidentAudit->member_id, $psResidentAudit->name, $psResidentAudit->mobile);
         $value = [
             'community_id' => $this->communityId,
             'room_id' => $psResidentAudit->room_id,
@@ -658,7 +666,7 @@ class ResidentService extends BaseService
             'unit' => $room->unit,
             'identity_type' => $psResidentAudit->identity_type,
             'status' => $auth_status,
-            'auth_time' => $auth_status==2?time():'0',
+            'auth_time' => $auth_status == 2 ? time() : '0',
             'time_end' => $psResidentAudit->time_end,
             'operator_id' => $operator['id'],
             'operator_name' => $operator['username'],
@@ -708,23 +716,23 @@ class ResidentService extends BaseService
         }
 
         // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-        if (!empty($model->member_id)){
+        if (!empty($model->member_id)) {
             $checkRoomUserInfo = RoomUserService::checkRoomUserExist($param['room_id'], $model->member_id);
-            if ($checkRoomUserInfo){
-                if ($checkRoomUserInfo['id'] != $id){
+            if ($checkRoomUserInfo) {
+                if ($checkRoomUserInfo['id'] != $id) {
                     throw new MyException('房屋信息已存在');
-                }else{
+                } else {
                     //查询审核表中的信息是否存在
-                    RoomUserService::checkRoomExist($param['room_id'], $model->member_id,2);
+                    RoomUserService::checkRoomExist($param['room_id'], $model->member_id, 2);
                 }
             }
-            if ($model->room_id != $param['room_id']){
-                RoomUserService::checkRoomExist($param['room_id'], $model->member_id,2);
+            if ($model->room_id != $param['room_id']) {
+                RoomUserService::checkRoomExist($param['room_id'], $model->member_id, 2);
             }
         }
 
         //查看此用户是否已经认证过房屋，已认证过，直接改为认证
-        $isAuth = $this->isAuthByNameMobile($model->community_id, $model->name,$model->mobile);
+        $isAuth = $this->isAuthByNameMobile($model->community_id, $model->name, $model->mobile);
         $value = [
             'room_id' => $param['room_id'],
             'group' => $param['group'],
@@ -737,7 +745,7 @@ class ResidentService extends BaseService
             'auth_time' => $isAuth ? time() : 0,
             'time_end' => $time_end,
             'operator_id' => $operator['id'],
-            'operator_name' => $operator['name'],
+            'operator_name' => $operator['truename'],
         ];
 
         $model->attributes = $value;
@@ -766,7 +774,7 @@ class ResidentService extends BaseService
      * @param $userInfo
      * @return array
      */
-    public function moveOut($id, $userInfo,$communityId = '')
+    public function moveOut($id, $userInfo, $communityId = '')
     {
         $communityId = $this->communityId ? $this->communityId : $communityId;
         $model = PsRoomUser::findOne(['id' => $id, 'community_id' => $communityId]);
@@ -774,7 +782,7 @@ class ResidentService extends BaseService
             return $this->failed('数据不存在');
         }
         //$model->status = $model->status == PsRoomUser::UN_AUTH ? PsRoomUser::UNAUTH_OUT : PsRoomUser::AUTH_OUT;
-        $model->status =  PsRoomUser::UNAUTH_OUT;
+        $model->status = PsRoomUser::UNAUTH_OUT;
         if (!$model->save()) {
             return $this->failed($this->getError($model));
         }
@@ -786,7 +794,7 @@ class ResidentService extends BaseService
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
 
             $all = PsRoomUser::find()->where(['room_id' => $model['room_id'], 'identity_type' => [2, 3]])->asArray()->all();
-            if(!empty($all)){
+            if (!empty($all)) {
                 foreach ($all as $v) {
                     $this->residentSync($v, 'delete');
                 }
@@ -950,8 +958,8 @@ class ResidentService extends BaseService
         //当前是否已有认证的房屋，如有，新住户直接变成已认证状态 | 或是否有已提审核的房屋
 
         // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-        if (!empty($memberId)){
-            RoomUserService::checkRoomExist($roomId, $memberId,3);
+        if (!empty($memberId)) {
+            RoomUserService::checkRoomExist($roomId, $memberId, 3);
         }
 
         $isAuth = $this->isAuthByNameMobile($communityId, $name, $mobile);
@@ -964,7 +972,7 @@ class ResidentService extends BaseService
         $data['operator_name'] = PsCommon::get($userInfo, 'truename');//
         $data['status'] = $isAuth ? 2 : 1;//新增默认未认证状态
         $data['auth_time'] = $isAuth ? time() : 0;
-        if ($data['identity_type'] == 1 || $data['identity_type'] == 2) {
+        if (!empty($data['identity_type']) && ($data['identity_type'] == 1 || $data['identity_type'] == 2)) {
             $data['time_end'] = 0;
         } else {
             $time_end = PsCommon::get($data, 'time_end');
@@ -987,7 +995,7 @@ class ResidentService extends BaseService
                     return $this->failed('标签错误');
                 } else {
                     $label = PsLabels::find()->select('name')->where(['id' => $label_id])->asArray()->all();
-                    $street_data = ['mobile' => $mobile,'community_id' => $communityId,'name' => $name,'label' => array_column($label,'name'),'type' => 1];
+                    $street_data = ['mobile' => $mobile, 'community_id' => $communityId, 'name' => $name, 'label' => array_column($label, 'name'), 'type' => 1];
                     CommunistService::service()->synchro($street_data);
                 }
             }
@@ -1022,23 +1030,23 @@ class ResidentService extends BaseService
         if ($type == 'add') {//新增
             //查找这个住户的所有标签，同步到富阳公安内网,add bu zq 2019-5-29
             $label = PsLabels::find()->alias('l')
-                ->leftJoin(['ul'=>PsRoomUserLabel::tableName()],'l.id=ul.label_id')
+                ->leftJoin(['ul' => PsRoomUserLabel::tableName()], 'l.id=ul.label_id')
                 ->select(['l.name'])
-                ->where(['ul.room_user_id'=>$roomUser['id']])
+                ->where(['ul.room_user_id' => $roomUser['id']])
                 ->column();
             DoorPushService::service()->userAdd($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
-                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd,$face,
-                $roomUser['card_no'],$roomUser['status'],$roomUser['time_end'],$label);
+                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd, $face,
+                $roomUser['card_no'], $roomUser['status'], $roomUser['time_end'], $label);
         } elseif ($type == 'edit') {//编辑
             //查找这个住户的所有标签，同步到富阳公安内网,add bu zq 2019-5-29
             $label = PsLabels::find()->alias('l')
-                ->leftJoin(['ul'=>PsRoomUserLabel::tableName()],'l.id=ul.label_id')
+                ->leftJoin(['ul' => PsRoomUserLabel::tableName()], 'l.id=ul.label_id')
                 ->select(['l.name'])
-                ->where(['ul.room_user_id'=>$roomUser['id']])
+                ->where(['ul.room_user_id' => $roomUser['id']])
                 ->column();
             DoorPushService::service()->userEdit($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
-                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd,$face,
-                $roomUser['card_no'],$roomUser['status'],$roomUser['time_end'],'','',$label,1);
+                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd, $face,
+                $roomUser['card_no'], $roomUser['status'], $roomUser['time_end'], '', '', $label, 1);
         } elseif ($type == 'delete') {//删除
             DoorPushService::service()->userDelete($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
                 $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id']);
@@ -1162,7 +1170,7 @@ class ResidentService extends BaseService
             $model->andWhere(['community_id' => $communityId]);
         }
         $re = $model->andWhere(['OR', ['time_end' => 0], ['>', 'time_end', time()]])
-        ->exists();
+            ->exists();
         return $re;
     }
 
@@ -1171,7 +1179,7 @@ class ResidentService extends BaseService
     {
         //5.1 edit by wenchao.feng 认证状态不区分小区，只有有认证过的房屋，默认为认证状态
         $memberModel = PsRoomUser::find()
-            ->where(['name' => $name,'mobile' => $mobile, 'status' => PsRoomUser::AUTH])
+            ->where(['name' => $name, 'mobile' => $mobile, 'status' => PsRoomUser::AUTH])
             ->asArray()
             ->one();
         //$member = PsMember::find()->where(['name' => $name,'mobile'=>$mobile])->asArray()->one();
@@ -1188,12 +1196,12 @@ class ResidentService extends BaseService
                 'mobile' => $mobile,
                 'status' => PsRoomUser::AUTH,
             ])->andWhere(['OR', ['time_end' => 0], ['<=', 'time_end', time()]])
-                ->exists() || PsResidentAudit::find()->where([
-                'community_id' => $communityId,
-                'name' => $name,
-                'mobile' => $mobile,
-                'status' => PsResidentAudit::AUDIT_WAIT,
-            ])->exists();
+            ->exists() || PsResidentAudit::find()->where([
+            'community_id' => $communityId,
+            'name' => $name,
+            'mobile' => $mobile,
+            'status' => PsResidentAudit::AUDIT_WAIT,
+        ])->exists();
     }
 
     //导入检查
@@ -1475,7 +1483,7 @@ class ResidentService extends BaseService
 
         $time_end = 0;
         //租客的时候才会必填有效期，其余默认填0，即永久
-        if($params['identity_type'] == 3){
+        if ($params['identity_type'] == 3) {
             $time_end = !empty($params['time_end']) ? strtotime($params['time_end'] . ' 23:59:59') : 0;
         }
         $params['time_end'] = $time_end;
@@ -1494,7 +1502,7 @@ class ResidentService extends BaseService
             return $this->failed($this->getError($model));
         }
         //设置默认选择的房屋
-        PsMember::updateAll(['room_id' => $params['room_id']], ['id' => $member['id'],'room_id'=>'0']);
+        PsMember::updateAll(['room_id' => $params['room_id']], ['id' => $member['id'], 'room_id' => '0']);
         //添加历史提交记录
         PsResidentHistory::model()->addHistory($model, $member);
         //新增消息
@@ -1514,15 +1522,15 @@ class ResidentService extends BaseService
             'msg_tmpId' => 6,
             'msg_target_type' => 6,
             'msg_auth_type' => 6,
-            'remind' =>[
+            'remind' => [
                 0 => '123456'
             ],
             'msg' => [
                 0 => CommunityService::service()->getCommunityName($communityId)['name'],
-                1 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
+                1 => $room_info['group'] . '' . $room_info['building'] . '' . $room_info['unit'] . $room_info['room'],
                 2 => $member['name'],
                 3 => PsCommon::getIdentityType($params['identity_type'], 'key'),
-                4 => date("Y-m-d H:i:s",time())
+                4 => date("Y-m-d H:i:s", time())
             ]
         ];
 
@@ -1604,7 +1612,7 @@ class ResidentService extends BaseService
                 $identityTypeLabel = '';
             }
             $communityName = CommunityService::service()->getCommunityName($communityId);
-            if (!PsCommon::isVirtualPhone($params['mobile'])){
+            if (!PsCommon::isVirtualPhone($params['mobile'])) {
                 SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $parent['name'], $identityTypeLabel]);
             }
             return $this->success();
@@ -1626,33 +1634,33 @@ class ResidentService extends BaseService
             'identity_type' => [2, 3],
             'status' => [PsRoomUser::UN_AUTH, PsRoomUser::UNAUTH_OUT, PsRoomUser::AUTH_OUT]])->one();
         $name = PsCommon::get($params, 'name');
-        $identity_type =  $model['identity_type'];
+        $identity_type = $model['identity_type'];
         if (!$model) return $this->failed('住户不存在');
         $old_mobile = $model->mobile;
         $checkMobile = PsCommon::isVirtualPhone($old_mobile);
-        if (empty($mobile)){
+        if (empty($mobile)) {
 
-            if (!$checkMobile){
+            if (!$checkMobile) {
                 return $this->failed("手机号不能为空");
-            }else{
+            } else {
                 $mobile = $old_mobile;
             }
-        }else{
-            if(!preg_match(Regular::phone(), $mobile)){
+        } else {
+            if (!preg_match(Regular::phone(), $mobile)) {
                 return $this->failed("手机号格式错误");
             }
             $need_del = 1;
-            if ($checkMobile){
+            if ($checkMobile) {
                 /** 20190805 wyf start 要删除的旧手机号的member用户信息 */
                 $oldModel = [
-                    'community_id'=> $communityId,
-                    'identity_type'=> $model->identity_type,
-                    'member_id'=> $model->member_id,
-                    'time_end'=> $model->time_end,
-                    'room_id'=> $model->room_id,
-                    'name'=> $model->name,
-                    'mobile'=> $old_mobile,
-                    'sex'=> $model->sex,
+                    'community_id' => $communityId,
+                    'identity_type' => $model->identity_type,
+                    'member_id' => $model->member_id,
+                    'time_end' => $model->time_end,
+                    'room_id' => $model->room_id,
+                    'name' => $model->name,
+                    'mobile' => $old_mobile,
+                    'sex' => $model->sex,
                 ];
                 /** 20190805 wyf end 要删除的旧手机号的member用户信息 */
             }
@@ -1715,28 +1723,28 @@ class ResidentService extends BaseService
                     $identityTypeLabel = '';
                 }
                 $communityName = CommunityService::service()->getCommunityName($communityId);
-                if (!PsCommon::isVirtualPhone($mobile)){
+                if (!PsCommon::isVirtualPhone($mobile)) {
                     SmsService::service()->init(32, $mobile)->send([$params['name'], $communityName['name'], $parent['name'], $identityTypeLabel]);
                 }
             }
             //$new_identity_type = $model['identity_type'];
-            \Yii::info('oldModel:'.$identity_type,'console');
-            \Yii::info('newModel:'.$model['identity_type'],'console');
+            \Yii::info('oldModel:' . $identity_type, 'console');
+            \Yii::info('newModel:' . $model['identity_type'], 'console');
             //编辑住户类型的时候，身份类型发生变动，调用java接口的时候，就做一次删除老数据，新增住户 add by zq 20190807
-            if($identity_type != $model['identity_type']){
+            if ($identity_type != $model['identity_type']) {
                 $old_model = $model;
                 $old_model->identity_type = $identity_type;
-                \Yii::info('oldModel:'.$identity_type,'console');
+                \Yii::info('oldModel:' . $identity_type, 'console');
                 $this->residentSync($old_model, 'delete');
-                \Yii::info('newModel2:'.$model['identity_type'],'console');
+                \Yii::info('newModel2:' . $model['identity_type'], 'console');
                 $model->identity_type = $params['identity_type'];
                 $this->residentSync($model, 'add');
 
-            }else{
+            } else {
                 $this->residentSync($model, 'edit');
 
                 /** 20190805 wyf start 要删除的旧手机号的member用户信息 */
-                if (!empty($need_del) && !empty($oldModel)){
+                if (!empty($need_del) && !empty($oldModel)) {
                     $this->residentSync($oldModel, 'delete');
                 }
             }
@@ -1788,9 +1796,10 @@ class ResidentService extends BaseService
     }
 
     //===========================================判断小区是否需要查询审核表的家人与租客=================================
-    public function getCommunityConfig($community_id){
+    public function getCommunityConfig($community_id)
+    {
         $config = Yii::$app->db->createCommand("SELECT * FROM ps_community_config where community_id = :community_id")->bindValue(':community_id', $community_id)->queryOne();
-        return !empty($config)?$config['is_family']:1;
+        return !empty($config) ? $config['is_family'] : 1;
     }
 
     //审核表的子住户列表(家人，租客)
@@ -1798,15 +1807,15 @@ class ResidentService extends BaseService
     {
         $data = PsResidentAudit::find()
             ->select('id, identity_type, status, name, mobile, time_end')
-            ->where(['room_id' => $roomId, 'identity_type' => [2, 3],'status' => [0,2]])
+            ->where(['room_id' => $roomId, 'identity_type' => [2, 3], 'status' => [0, 2]])
             ->orderBy('identity_type asc, status asc, id desc')
             ->asArray()->all();
 
         $result = [];
         foreach ($data as $v) {
             $v['identity_type_desc'] = PsCommon::getIdentityType($v['identity_type'], 'key');
-            $v['status'] = $v['status']==0?5:6;
-            $v['status_desc'] = $v['status']==5?'待审核':'审核不通过';
+            $v['status'] = $v['status'] == 0 ? 5 : 6;
+            $v['status_desc'] = $v['status'] == 5 ? '待审核' : '审核不通过';
             $v['time_end'] = $v['time_end'] ? date('Y-m-d', $v['time_end']) : '';
             $result[] = $v;
         }
@@ -1974,8 +1983,8 @@ class ResidentService extends BaseService
             $model = PsResidentAudit::find()->where(['id' => $id, 'community_id' => $communityId, 'member_id' => $member['id']])->one();
             if (empty($model)) {
                 // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-                if (!empty($memberId)){
-                    RoomUserService::checkRoomExist($roomId, $memberId,3);
+                if (!empty($memberId)) {
+                    RoomUserService::checkRoomExist($roomId, $memberId, 3);
                 }
                 $model = PsResidentAudit::find()->where(['id' => $id, 'community_id' => $communityId])->one();
             }
@@ -1992,8 +2001,8 @@ class ResidentService extends BaseService
                 return $this->failed('已提交过审核，审核结果将以短信形式通知，请耐心等待');
             }
             // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
-            if (!empty($memberId)){
-                RoomUserService::checkRoomExist($roomId, $memberId,3);
+            if (!empty($memberId)) {
+                RoomUserService::checkRoomExist($roomId, $memberId, 3);
             }
             $model = new PsResidentAudit();
             $model->member_id = $member['id'];
@@ -2002,7 +2011,7 @@ class ResidentService extends BaseService
 
         $time_end = 0;
         //租客的时候才会必填有效期，其余默认填0，即永久
-        if($data['identity_type'] == 3){
+        if ($data['identity_type'] == 3) {
             $time_end = !empty($data['time_end']) ? strtotime($data['time_end'] . ' 23:59:59') : 0;
         }
         $data['time_end'] = $time_end;
@@ -2020,7 +2029,7 @@ class ResidentService extends BaseService
     }
 
     //同步房屋数据到open-api
-    public function syncRoomUserListToOpenApi($communityId,$community_no,$memberId,$identity_type,$time_end,$room_id,$user_name,$user_phone,$sex,$card_no,$label_name)
+    public function syncRoomUserListToOpenApi($communityId, $community_no, $memberId, $identity_type, $time_end, $room_id, $user_name, $user_phone, $sex, $card_no, $label_name)
     {
         //计算有效期
         $timeEnd = time() + 100 * 365 * 86400;
@@ -2044,10 +2053,10 @@ class ResidentService extends BaseService
             'user_sex' => $sex,
             'user_id' => $memberId,
             'user_expired' => $timeEnd,
-            'card_no'=>$card_no,
+            'card_no' => $card_no,
             'time_end' => $time_end,
-            'face_url'=>$faceUrl,
-            'label'=> !empty($label_name) ? $label_name : [],//住户标签，add bu zq 2019-5-29
+            'face_url' => $faceUrl,
+            'label' => !empty($label_name) ? $label_name : [],//住户标签，add bu zq 2019-5-29
         ];
         $cacheName = YII_ENV . 'RoomUserList';
         Yii::$app->redis->rpush($cacheName, json_encode($userPushData));

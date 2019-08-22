@@ -9,6 +9,8 @@
 
 namespace service\resident;
 
+use app\models\PsUser;
+use app\models\PsUserCommunity;
 use yii\base\Exception;
 use Yii;
 class CommunistService extends BaseService  {
