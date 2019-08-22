@@ -32,9 +32,13 @@ class PsLabels extends BaseModel
     public function rules()
     {
         return [
-            [['name', 'label_type', 'community_id', 'created_at', 'updated_at'], 'required'],
-            [['label_type', 'community_id', 'created_at', 'updated_at'], 'integer'],
-            [['name'], 'string', 'max' => 50],
+            [['name', 'label_type', 'community_id'], 'required','on'=>['add']],
+            [['name', 'label_type', 'community_id','id'], 'required','on'=>['edit']],
+            [['community_id'], 'required','on'=>['typelist']],
+            [['label_type', 'community_id', 'created_at', 'updated_at','id'], 'integer'],
+            [['name'], 'string', 'max' => 15],
+            ['label_type','in','range'=>[1,2]],
+            [['updated_at','updated_at'],'safe'],
         ];
     }
 

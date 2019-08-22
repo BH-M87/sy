@@ -232,9 +232,9 @@ class PsRoomUser extends BaseModel
             ]);
         if (!empty($params['name'])) {
             $model->andFilterWhere(['or', ['like', 'name', $params['name']], ['like', 'mobile', $params['name']]]);
-        }
-        if (PsCommon::isVirtualPhone($params['name']) === true) {
-            $model->andWhere("mobile not like '120%'");
+            if (PsCommon::isVirtualPhone($params['name']) === true) {
+                $model->andWhere("mobile not like '120%'");
+            }
         }
 
         if (empty($params['status'])) {

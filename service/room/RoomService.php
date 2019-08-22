@@ -14,7 +14,8 @@ use service\resident\ResidentService;
 use Yii;
 use yii\db\Query;
 
-Class RoomService extends BaseService  {
+Class RoomService extends BaseService
+{
 
     /*获取房屋得信息*/
     public function getRoomInfo($out_room_id)
@@ -22,19 +23,20 @@ Class RoomService extends BaseService  {
         $query = new Query();
         $query->select("pr.id,pr.community_id,pr.out_room_id,pr.group,pr.building,pr.unit,pr.room,pr.address,pr.charge_area,pr.status,pr.property_type,pc.name,pc.community_no");
         $query->from("ps_community_roominfo pr");
-        $query->leftJoin("ps_community pc","pr.community_id=pc.id");
-        $query-> where('pr.out_room_id=:out_room_id', [':out_room_id' => $out_room_id]);
+        $query->leftJoin("ps_community pc", "pr.community_id=pc.id");
+        $query->where('pr.out_room_id=:out_room_id', [':out_room_id' => $out_room_id]);
         $model = $query->one();
 
         return $model;
     }
+
     /*获取房屋得信息*/
     public function getRoomById($id)
     {
         $query = new Query();
         $query->select("id,community_id,out_room_id,group,building,unit,room,address,charge_area,status,property_type");
         $query->from("ps_community_roominfo ");
-        $query-> where('id=:id', [':id' => $id]);
+        $query->where('id=:id', [':id' => $id]);
         $model = $query->one();
         return $model;
     }
@@ -47,8 +49,8 @@ Class RoomService extends BaseService  {
         $query->where('room=:room', [':room' => $data["room"]]);
         $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
         $query->andWhere('building=:building', [':building' => $data["building"]]);
-        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
-        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
+        $query->andWhere('`group`=:group', [':group' => $data["group"]]);
+        $query->andWhere('community_id=:community_id', [':community_id' => $data["community_id"]]);
         $model = $query->one();
         return $model;
     }
@@ -61,11 +63,11 @@ Class RoomService extends BaseService  {
     {
         $query = new Query();
 
-        $query->select("`group` as name" );
+        $query->select("`group` as name");
         $query->from("ps_community_roominfo");
         /*
                 if ($data['community_id']) {*/
-        $query->where('community_id=:community_id',[':community_id' => $data['community_id']]);
+        $query->where('community_id=:community_id', [':community_id' => $data['community_id']]);
         /*       }*/
 
         if (!empty($data['has_member_info'])) {
@@ -87,13 +89,13 @@ Class RoomService extends BaseService  {
     public function getBuildings($data)
     {
         $query = new Query();
-        $query->select("building as name" );
+        $query->select("building as name");
         $query->from("ps_community_roominfo");
         if (!empty($data['group'])) {
-            $query->where('`group`=:group', [':group' =>$data['group']]);
+            $query->where('`group`=:group', [':group' => $data['group']]);
         }
         if (!empty($data['community_id'])) {
-            $query->andWhere('community_id=:community_id',[':community_id' =>$data['community_id']]);
+            $query->andWhere('community_id=:community_id', [':community_id' => $data['community_id']]);
         }
         if (!empty($data['has_member_info'])) {
             //查询所有有业主信息的房屋id
@@ -115,10 +117,10 @@ Class RoomService extends BaseService  {
             $query->where('building=:building', [':building' => $data['building']]);
         }
         if (!empty($data['group'])) {
-            $query-> andWhere('`group`=:group', [':group' =>$data['group']]);
+            $query->andWhere('`group`=:group', [':group' => $data['group']]);
         }
         if (!empty($data['community_id'])) {
-            $query->andWhere('community_id=:community_id',[':community_id' =>$data['community_id']]);
+            $query->andWhere('community_id=:community_id', [':community_id' => $data['community_id']]);
         }
         if (!empty($data['has_member_info'])) {
             //查询所有有业主信息的房屋id
@@ -146,11 +148,11 @@ Class RoomService extends BaseService  {
         }
 
         if (!empty($data['group'])) {
-            $query->andWhere('`group`=:group', [':group' =>$data['group']]);
+            $query->andWhere('`group`=:group', [':group' => $data['group']]);
         }
 
         if (!empty($data['community_id'])) {
-            $query->andWhere('community_id=:community_id',[':community_id' =>$data['community_id']]);
+            $query->andWhere('community_id=:community_id', [':community_id' => $data['community_id']]);
         }
 
         if (!empty($data['has_member_info'])) {
@@ -171,14 +173,14 @@ Class RoomService extends BaseService  {
     */
     public function serachGroups($data)
     {
-        $params = [":community_id"=>$data["community_id"]];
-        $where  = " where community_id=:community_id ";
-        if ( $data['group'] ) {
-            $arr = [':group'=>'%'. $data["group"].'%'];
-            $params = array_merge ($params,$arr);
+        $params = [":community_id" => $data["community_id"]];
+        $where = " where community_id=:community_id ";
+        if ($data['group']) {
+            $arr = [':group' => '%' . $data["group"] . '%'];
+            $params = array_merge($params, $arr);
             $where .= " AND `group` like :group";
         }
-        $models = Yii::$app->db->createCommand("select `group` as name from ps_community_roominfo ".$where." group by `name` order by `name`",$params)->queryAll();
+        $models = Yii::$app->db->createCommand("select `group` as name from ps_community_roominfo " . $where . " group by `name` order by `name`", $params)->queryAll();
         return $models;
     }
 
@@ -186,43 +188,43 @@ Class RoomService extends BaseService  {
      * 获取组下面得所有栋座所有得幢
      * $group 小区组名
      */
-    public function  serachBuildings($data)
+    public function serachBuildings($data)
     {
-        $params = [":community_id"=>$data["community_id"],':group'=> $data["group"]];
-        $where  = " where community_id=:community_id AND `group` = :group  ";
-        if ( $data['building'] ) {
-            $arr = [':building'=>'%'. $data["building"].'%'];
-            $params = array_merge ($params,$arr);
+        $params = [":community_id" => $data["community_id"], ':group' => $data["group"]];
+        $where = " where community_id=:community_id AND `group` = :group  ";
+        if ($data['building']) {
+            $arr = [':building' => '%' . $data["building"] . '%'];
+            $params = array_merge($params, $arr);
             $where .= " AND `building` like :building";
         }
-        $models = Yii::$app->db->createCommand("select `building` as name from ps_community_roominfo ".$where." group by `name` order by `name`",$params)->queryAll();
+        $models = Yii::$app->db->createCommand("select `building` as name from ps_community_roominfo " . $where . " group by `name` order by `name`", $params)->queryAll();
         return $models;
 
     }
 
-    public function  serachUnits($data)
+    public function serachUnits($data)
     {
-        $params = [":community_id"=>$data["community_id"],':group'=> $data["group"],':building'=> $data["building"],];
-        $where  = " where community_id=:community_id AND `group` = :group  AND building=:building";
-        if ( $data['unit'] ) {
-            $arr = [':unit'=>'%'. $data["unit"].'%'];
-            $params = array_merge ($params,$arr);
+        $params = [":community_id" => $data["community_id"], ':group' => $data["group"], ':building' => $data["building"],];
+        $where = " where community_id=:community_id AND `group` = :group  AND building=:building";
+        if ($data['unit']) {
+            $arr = [':unit' => '%' . $data["unit"] . '%'];
+            $params = array_merge($params, $arr);
             $where .= " AND `unit` like :unit";
         }
-        $models = Yii::$app->db->createCommand("select `unit` as name from ps_community_roominfo ".$where." group by `name` order by `name`",$params)->queryAll();
+        $models = Yii::$app->db->createCommand("select `unit` as name from ps_community_roominfo " . $where . " group by `name` order by `name`", $params)->queryAll();
         return $models;
     }
 
-    public function  serachRooms($data)
+    public function serachRooms($data)
     {
-        $params = [":community_id"=>$data["community_id"],':group'=> $data["group"],':building'=> $data["building"],':unit'=> $data["unit"]];
-        $where  = " where community_id=:community_id AND `group` = :group  AND building=:building AND unit=:unit  ";
-        if ( $data['room'] ) {
-            $arr = [':room'=>'%'. $data["room"].'%'];
-            $params = array_merge ($params,$arr);
+        $params = [":community_id" => $data["community_id"], ':group' => $data["group"], ':building' => $data["building"], ':unit' => $data["unit"]];
+        $where = " where community_id=:community_id AND `group` = :group  AND building=:building AND unit=:unit  ";
+        if ($data['room']) {
+            $arr = [':room' => '%' . $data["room"] . '%'];
+            $params = array_merge($params, $arr);
             $where .= " AND `room` like :room";
         }
-        $models = Yii::$app->db->createCommand("select `room` as name from ps_community_roominfo ".$where." group by `name` order by `name`",$params)->queryAll();
+        $models = Yii::$app->db->createCommand("select `room` as name from ps_community_roominfo " . $where . " group by `name` order by `name`", $params)->queryAll();
         return $models;
 
     }
@@ -232,13 +234,14 @@ Class RoomService extends BaseService  {
      * @param $communityId
      * @return array
      */
-    public function getRoomsRelated($communityId, $memberId = 0) {
+    public function getRoomsRelated($communityId, $memberId = 0)
+    {
         if ($memberId) {
             //查询此用户此小区下的已认证的房屋信息
             $data = \service\basic_data\RoomService::service()->getAuthRomms($memberId, $communityId);
         } else {
             $data = PsCommunityRoominfo::find()->select('id, group, building, unit, room')
-                ->where(['community_id'=>$communityId])
+                ->where(['community_id' => $communityId])
                 ->asArray()
                 ->all();
         }
@@ -256,44 +259,44 @@ Class RoomService extends BaseService  {
     private function roomJilian($data)
     {
         $tmp = $result = [];
-        foreach($data as $v) {
+        foreach ($data as $v) {
             $group = ($v['group'] == '-' || !$v['group']) ? '住宅' : $v['group'];
             $tmp[$group][$v['building']][$v['unit']][$v['room']] = $v['id'];
         }
         $i = 0;
-        foreach($tmp as $group=>$buildings) {
+        foreach ($tmp as $group => $buildings) {
             $buildingArr = [];
             $j = 0;
-            foreach($buildings as $building=>$units) {
+            foreach ($buildings as $building => $units) {
                 $unitArr = [];
                 $k = 0;
-                foreach($units as $unit=>$rooms) {
+                foreach ($units as $unit => $rooms) {
                     $roomArr = [];
-                    foreach($rooms as $room=>$id) {
+                    foreach ($rooms as $room => $id) {
                         $roomArr[] = [
-                            'id'=>$id,
-                            'name'=>$room
+                            'id' => $id,
+                            'name' => $room
                         ];
                     }
                     $k++;
                     $unitArr[] = [
-                        'id'=>$k,
-                        'name'=>$unit,
-                        'child'=>$roomArr,
+                        'id' => $k,
+                        'name' => $unit,
+                        'child' => $roomArr,
                     ];
                 }
                 $j++;
                 $buildingArr[] = [
-                    'id'=>$j,
-                    'name'=>$building,
-                    'child'=>$unitArr
+                    'id' => $j,
+                    'name' => $building,
+                    'child' => $unitArr
                 ];
             }
             $i++;
             $result[] = [
-                'id'=>$i,
-                'name'=>$group,
-                'child'=>$buildingArr
+                'id' => $i,
+                'name' => $group,
+                'child' => $buildingArr
             ];
         }
         return $result;
@@ -304,7 +307,7 @@ Class RoomService extends BaseService  {
     {
         return PsCommunityRoominfo::find()
             ->select('community_id, group, building, unit')
-            ->where(['community_id'=>$communityId])
+            ->where(['community_id' => $communityId])
             ->groupBy('group, building, unit')
             ->orderBy('(`unit`+0) asc, unit asc')
             ->asArray()->all();
@@ -314,11 +317,11 @@ Class RoomService extends BaseService  {
     {
         return PsCommunityRoominfo::find()
             ->filterWhere([
-                'community_id'=>PsCommon::get($data, 'community_id'),
-                'group'=>PsCommon::get($data, 'group'),
-                'building'=>PsCommon::get($data, 'building'),
-                'unit'=>PsCommon::get($data, 'unit'),
-                'room'=>PsCommon::get($data, 'room'),
+                'community_id' => PsCommon::get($data, 'community_id'),
+                'group' => PsCommon::get($data, 'group'),
+                'building' => PsCommon::get($data, 'building'),
+                'unit' => PsCommon::get($data, 'unit'),
+                'room' => PsCommon::get($data, 'room'),
             ])->count();
     }
 
@@ -327,12 +330,12 @@ Class RoomService extends BaseService  {
     {
         return PsCommunityRoominfo::find()->select('id')
             ->where([
-            'community_id'=>$communityId,
-            'group'=>$group,
-            'building'=>$building,
-            'unit'=>$unit,
-            'room'=>$room,
-        ])->asArray()->one();
+                'community_id' => $communityId,
+                'group' => $group,
+                'building' => $building,
+                'unit' => $unit,
+                'room' => $room,
+            ])->asArray()->one();
     }
 
     //获取小区所有房屋，并按照层级分组表示(['苑期区']['1栋']['2单元']['201室'])
@@ -362,7 +365,8 @@ Class RoomService extends BaseService  {
     }
 
     //房屋基本信息
-    public function getInfo($roomId) {
+    public function getInfo($roomId)
+    {
         return PsCommunityRoominfo::find()->select('id, group, building, unit, room')
             ->where(['id' => $roomId])->asArray()->one();
     }
