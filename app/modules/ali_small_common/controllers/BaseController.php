@@ -5,12 +5,15 @@
  * Date: 2018/3/22
  * Time: 11:14
  */
+
 namespace app\modules\ali_small_common\controllers;
+
 use Yii;
 use yii\web\Controller;
 use common\core\F;
 
-class BaseController extends Controller {
+class BaseController extends Controller
+{
     public $enableCsrfValidation = false;
     public $params;//请求参数
     public $user;//当前用户
@@ -18,7 +21,7 @@ class BaseController extends Controller {
 
     public function beforeAction($action)
     {
-        if(!parent::beforeAction($action)) return false;
+        if (!parent::beforeAction($action)) return false;
         //允许跨域
         header('Access-Control-Allow-Origin: *');
         header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
@@ -30,27 +33,9 @@ class BaseController extends Controller {
         }
         $params = F::request();
         if (Yii::$app->controller->id == "blue-tooth" || Yii::$app->controller->id == "home") {
-            file_put_contents("smallInfo.txt","request-url:".Yii::$app->controller->id.Yii::$app->controller->action->id."params:".$params['data']."\r\n",FILE_APPEND);
+            file_put_contents("smallInfo.txt", "request-url:" . Yii::$app->controller->id . Yii::$app->controller->action->id . "params:" . $params['data'] . "\r\n", FILE_APPEND);
         }
-        $this->params = !empty($params['data']) ? json_decode($params['data'],true) : [];
+        $this->params = !empty($params['data']) ? json_decode($params['data'], true) : [];
         return true;
-    }
-
-    public function dealResult($result)
-    {
-        if(is_array($result)){
-            if($result['errCode'] == 0){
-                return F::apiSuccess($result['data']);
-            } else {
-                return F::apiFailed($result['errMsg'], $result['errCode']);
-            }
-        }else{
-            $res = json_decode($result,true);
-            if($res['errCode'] == 0){
-                return F::apiSuccess($res['data']);
-            } else {
-                return F::apiFailed($res['errMsg'], $res['errCode']);
-            }
-        }
     }
 }

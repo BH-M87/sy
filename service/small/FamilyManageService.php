@@ -9,17 +9,20 @@
 namespace app\small\services;
 
 
-use app\models\PsAppMember;
+use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
 use common\core\PsCommon;
+use common\core\Regular;
 use common\core\TagLibrary;
 use common\MyException;
 use service\BaseService;
 use service\basic_data\ResidentService;
 use service\basic_data\MemberService as BasicMemberService;
+use service\basic_data\RoomService;
+use service\common\SmsService;
 use Yii;
 
 class FamilyManageService extends BaseService
@@ -115,7 +118,7 @@ class FamilyManageService extends BaseService
                     foreach ($familyList as $k => $v) {
                         $data['resident_list'][] = [
                             'community_mobile' => $roomInfo['community_mobile'],
-                            'id' => $v['id'],
+                            'rid' => $v['id'],
                             'identity_type' => $v['identity_type'],
                             'identity_type_desc' => $v['identity_type_desc'],
                             'mobile' => $v['mobile'],
@@ -140,7 +143,6 @@ class FamilyManageService extends BaseService
      */
     public function addResident($params)
     {
-        //TODO 统一验证
         if (empty($params['mobile'])) {
             $mobile = PsCommon::generateVirtualPhone();
         } else {
@@ -152,27 +154,119 @@ class FamilyManageService extends BaseService
             $params['time_end'] = 0;
         }
         $params['mobile'] = $mobile;
+
+        $userInfoArray = self::checkUserInfo($params['app_user_id'], $params['room_id'], $params);
+
+        $member_id = $userInfoArray['member_id'];
+        //验证房屋信息是否存在
+        if (!empty($member_id)) {
+            RoomUserService::checkRoomExist($params['room_id'], $member_id, 3);
+        }
         //判断小区是否需要查询审核表的家人与租客
         $is_family = ResidentService::service()->getCommunityConfig($params['community_id']);
         if ($is_family == 2) {//说明需要查询审核表的家人与租客
-            $result = self::packageResident($params['app_user_id'], $params);
+            $result = self::packageResident($params, $userInfoArray);
         } else {
-            $result = self::packageResident($params['app_user_id'], $params);
+            $result = self::packageRoomUser($params, $userInfoArray);
         }
         return $result;
     }
 
+    /**
+     * @param $params
+     * @return array
+     * @throws MyException
+     * @api 家人管理编辑
+     * @author wyf
+     * @date 2019/8/21
+     */
     public function editResident($params)
     {
-        $re = ResidentService::service()->editResident($params['resident_id'], $params['app_user_id'], $params['community_id'], $params['room_id'], $otherParams);
+        $mobile = $params['mobile'];
+        $model = PsRoomUser::find()->where([
+            'id' => $params['id'],
+            'identity_type' => [2, 3],
+            'status' => [PsRoomUser::UN_AUTH, PsRoomUser::UNAUTH_OUT, PsRoomUser::AUTH_OUT]])->one();
+        if (!$model){
+            throw new MyException('住户不存在');
+        }
+        $old_mobile = $model->mobile;
+        $checkMobile = PsCommon::isVirtualPhone($old_mobile);
+        if (empty($mobile)){
+            if (!$checkMobile){
+                throw new MyException('手机号不能为空');
+            }else{
+                $mobile = $old_mobile;
+            }
+        }else{
+            if(!preg_match(Regular::phone(), $mobile)){
+                throw new MyException('手机号格式错误');
+            }
+        }
+        $params['mobile'] = $mobile;
+        $userInfoArray = self::checkUserInfo($params['app_user_id'], $params['room_id'], $params);
+
+        $member_id = $userInfoArray['member_id'];
+        $userModel = $userInfoArray['userModel'];
+        $userInfo = $userInfoArray['userInfo'];
+
+        if ($model->identity_type == 1 || $model->identity_type == 2) {//业主或者家人，有效期变更为长期
+            $model->time_end = 0;
+        } else {
+            $timeEnd = PsCommon::get($params, 'time_end');
+            $timeEnd = $timeEnd ? strtotime($timeEnd . " 23:59:59") : 0;
+            $model->time_end = (integer)$timeEnd;
+        }
+        $model->update_at = time();
+        if ($model->room_id != $params['room_id']) {
+            $model->room_id = $params['room_id'];
+            $roomInfo = RoomService::service()->getInfo($params['room_id']);
+            $model->group = $roomInfo['group'];
+            $model->building = $roomInfo['building'];
+            $model->unit = $roomInfo['unit'];
+            $model->room = $roomInfo['room'];
+        }
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+            //新增当前家人/租户到member表当中
+            if (!empty($userModel)) {
+                $userModel->save();
+                $member_id = $userModel->id;
+            }
+            //更新已经实名认证的用户到member表当中
+            if (!empty($userInfo)) {
+                $memberModel = new PsMember();
+                $memberModel->setAttributes($userInfo);
+                $memberModel->save();
+            }
+            $data['member_id'] = $member_id;
+            $model->setAttributes($data);
+            $model->save();
+            $trans->commit();
+        } catch (\Exception $e) {
+            $trans->rollback();
+            throw new MyException($e->getMessage());
+        }
+        if ($old_mobile != $mobile) {//手机号有变更，给新的手机号发送短信
+            if ($params['identity_type'] == 2) {
+                $identityTypeLabel = '家人';
+            } elseif ($params['identity_type'] == 3) {
+                $identityTypeLabel = '租客';
+            } else {
+                $identityTypeLabel = '';
+            }
+            $communityName = PsCommunityModel::find()->select('name')
+                ->where(['id' => $params['community_id']])->scalar();
+            if (!PsCommon::isVirtualPhone($mobile)){
+                SmsService::service()->init(32, $mobile)->send([$params['name'], $communityName['name'], $params['name'], $identityTypeLabel]);
+            }
+        }
+        return true;
     }
 
-    //新增审核表数据
-    private static function packageResident($app_user_id, $params)
+    //统一的用户验证(当作操作用户验证和新增的家人手机号验证)
+    private static function checkUserInfo($app_user_id, $room_id, $params)
     {
-        $community_id = $params['community_id'];
-        $room_id = $params['room_id'];
-
         //获取用户的member_id
         $member_id = MemberService::service()->getMemberId($app_user_id);
         $member_id = $member_id ?? 0;
@@ -185,7 +279,6 @@ class FamilyManageService extends BaseService
         if ($roomUserInfo['status'] != 2) {
             throw new MyException('当前房屋未认证');
         }
-
         //验证当前用户是否存在
         $memberInfo = BasicMemberService::service()->getMemberByMobile($params['mobile'], 'id,is_real,name,mobile,sex');
         if (!$memberInfo) {
@@ -199,6 +292,7 @@ class FamilyManageService extends BaseService
                 'mobile' => $params['mobile'],
                 'sex' => $params['sex'],
             ];
+            $member_id = 0;//新用户member_id
         } else {
             //如果有数据,则进行更新绑定
             if ($memberInfo['is_real']) {
@@ -207,24 +301,86 @@ class FamilyManageService extends BaseService
             }
             $member_id = $memberInfo['id'];
         }
-        //验证房屋信息是否存在
-        if (!empty($member_id)) {
-            RoomUserService::checkRoomExist($room_id, $member_id, 3);
-        }
+        return ['member_id' => $member_id, 'memberInfo' => $memberInfo, 'userModel' => $userModel ?? "", 'userInfo' => $userInfo ?? ""];
+    }
+
+
+    //新增审核表数据
+    private static function packageResident($params, $userInfoArray)
+    {
+        $community_id = $params['community_id'];
+        $memberInfo = $userInfoArray['memberInfo'];
+        $member_id = $userInfoArray['member_id'];
+        $userModel = $userInfoArray['userModel'];
+        $userInfo = $userInfoArray['userInfo'];
         //新增到待审核表中
         $trans = Yii::$app->getDb()->beginTransaction();
         $roomInfo['community_id'] = $community_id;
         try {
+            //新增当前家人/租户到member表当中
             if (!empty($userModel)) {
                 $userModel->save();
                 $member_id = $userModel->id;
             }
+            //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
                 $memberModel = new PsMember();
                 $memberModel->setAttributes($userInfo);
                 $memberModel->save();
             }
             RoomUserService::addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $params['time_end'], '');
+            $trans->commit();
+        } catch (\Exception $e) {
+            $trans->rollback();
+            throw new MyException($e->getMessage());
+        }
+        return true;
+    }
+
+    private static function packageRoomUser($params, $userInfoArray, $operator_id, $operator_name)
+    {
+        $community_id = $params['community_id'];
+        //$memberInfo = $userInfoArray['memberInfo'];
+        $member_id = $userInfoArray['member_id'];
+        $userModel = $userInfoArray['userModel'];
+        $userInfo = $userInfoArray['userInfo'];
+
+        $isAuth = ResidentService::service()->isAuthByNameMobile($community_id, $params['name'], $params['mobile']);
+
+        $model = new PsRoomUser();
+        $et = PsCommon::get($params, 'enter_time');
+        $data['enter_time'] = $et ? strtotime($et) : 0;
+        $data['sex'] = !empty($params['sex']) ? $params['sex'] : 1;
+        $data['operator_id'] = $operator_id;//
+        $data['operator_name'] = $operator_name;//
+        $data['status'] = $isAuth ? 2 : 1;//新增默认未认证状态
+        $data['auth_time'] = $isAuth ? time() : 0;
+        if ($data['identity_type'] == 1 || $data['identity_type'] == 2) {
+            $data['time_end'] = 0;
+        } else {
+            $time_end = PsCommon::get($params, 'time_end');
+            $time_end = $time_end ? strtotime($time_end . ' 23:59:59') : 0;
+            $data['time_end'] = (integer)$time_end;
+        }
+
+        //新增到待审核表中
+        $trans = Yii::$app->getDb()->beginTransaction();
+        $roomInfo['community_id'] = $community_id;
+        try {
+            //新增当前家人/租户到member表当中
+            if (!empty($userModel)) {
+                $userModel->save();
+                $member_id = $userModel->id;
+            }
+            //更新已经实名认证的用户到member表当中
+            if (!empty($userInfo)) {
+                $memberModel = new PsMember();
+                $memberModel->setAttributes($userInfo);
+                $memberModel->save();
+            }
+            $data['member_id'] = $member_id;
+            $model->setAttributes($data);
+            $model->save();
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();
@@ -242,11 +398,58 @@ class FamilyManageService extends BaseService
      */
     public function delResidentList($params)
     {
-        if (!empty($params['resident_id'])) {
-            return ResidentService::service()->removeChild($params['resident_id'], $params['app_user_id']);
-        } else {
-            return ResidentService::service()->removeResiden($params['rid'], $params['app_user_id']);
+        $memberId = MemberService::service()->getMemberId($params['app_user_id']);
+        if (!$memberId) {
+            throw new MyException('用户不存在');
         }
+        if (!empty($params['resident_id'])) {
+            return ResidentService::service()->removeChild($params['resident_id'], $memberId);
+        } else {
+            return ResidentService::service()->removeResiden($params['rid'], $memberId);
+        }
+    }
+
+    //删除子用户
+    public function removeChild($id, $memberId)
+    {
+
+        $roomUser = PsRoomUser::find()->where(['id' => $id])->one();
+        if (!$roomUser) {
+            throw new MyException('数据不存在');
+        }
+        $roomId = $roomUser['room_id'];
+        $flag = PsRoomUser::find()
+            ->where(['room_id' => $roomId, 'member_id' => $memberId,
+                'identity_type' => 1, 'status' => PsRoomUser::AUTH])
+            ->exists();
+        if (!$flag) {//当前用户不是该房屋的认证业主
+            throw new MyException('没有权限无法删除');
+        }
+        if ($roomUser->delete()) {
+            return true;
+        }
+        throw new MyException('删除失败');
+    }
+
+    //删除子用户
+    public function removeResiden($id, $memberId)
+    {
+        $roomUser = PsResidentAudit::find()->where(['id' => $id])->one();
+        if (!$roomUser) {
+            throw new MyException('数据不存在');
+        }
+        $roomId = $roomUser['room_id'];
+        $flag = PsRoomUser::find()
+            ->where(['room_id' => $roomId, 'member_id' => $memberId,
+                'identity_type' => 1, 'status' => PsRoomUser::AUTH])
+            ->exists();
+        if (!$flag) {//当前用户不是该房屋的认证业主
+            throw new MyException('没有权限无法删除');
+        }
+        if ($roomUser->delete()) {
+            return true;
+        }
+        throw new MyException('删除失败');
     }
 
     /**
@@ -261,11 +464,11 @@ class FamilyManageService extends BaseService
         $data = [];
         $memberId = MemberService::service()->getMemberId($params['app_user_id']);
         if (!$memberId) {
-            return $this->failed('用户不存在');
+            throw new MyException('用户不存在');
         }
         $roomUser = PsRoomUser::find()->where(['id' => $params['resident_id']])->one();
         if (!$roomUser) {
-            return $this->failed('住户数据不存在');
+            throw new MyException('住户数据不存在');
         }
         $roomId = $roomUser['room_id'];
         $flag = PsRoomUser::find()
@@ -273,9 +476,8 @@ class FamilyManageService extends BaseService
                 'identity_type' => 1, 'status' => PsRoomUser::AUTH])
             ->exists();
         if (!$flag) {//当前用户不是该房屋的认证业主
-            return $this->failed('没有权限查看');
+            throw new MyException('没有权限查看');
         }
-
         $data['auth_status'] = $roomUser['status'];
         $data['auth_status_label'] = TagLibrary::roomUser($roomUser['status']);
         $data['card_no'] = $roomUser['card_no'];
@@ -288,29 +490,39 @@ class FamilyManageService extends BaseService
         return $this->success($data);
     }
 
-    //验证当前用户状态
-    private static function validateUser($appUserId, $roomId)
+    // 审核表房屋住户 详情
+    public function getFamilyResidentDetail($params)
     {
-        //查询业主
-        $member_id = PsAppMember::find()
-            ->alias('a')
-            ->leftJoin('ps_member member', 'member.id=a.member_id')
-            ->select('a.member_id')
-            ->where(['a.app_user_id' => $appUserId])
-            ->asArray()
-            ->scalar();
-        if (!$member_id) {
+        $data = [];
+        $memberId = MemberService::service()->getMemberId($params['app_user_id']);
+
+        if (!$memberId) {
             throw new MyException('用户不存在');
         }
-        $roomUser = PsRoomUser::find()
-            ->select('id, identity_type, status, name, mobile, time_end')
-            ->where(['member_id' => $member_id, 'room_id' => $roomId, 'status' => 2])
-            ->asArray()
-            ->one();
+        $roomUser = PsResidentAudit::find()->where(['id' => $params['rid']])->one();
         if (!$roomUser) {
-            throw new MyException('房屋信息不存在');
+            throw new MyException('住户数据不存在');
         }
-        return $roomUser;
+        $roomId = $roomUser['room_id'];
+        $flag = PsRoomUser::find()
+            ->where(['room_id' => $roomId, 'member_id' => $memberId, 'identity_type' => 1, 'status' => PsRoomUser::AUTH])
+            ->exists();
+
+        if (!$flag) { // 当前用户不是该房屋的认证业主
+            throw new MyException('没有权限查看');
+        }
+        $data['auth_type'] = $roomUser['status']==0?5:6;
+        $data['auth_type_desc'] = $roomUser['status']==0?'待审核':'审核不通过';
+        $data['card_no'] = $roomUser['card_no'];
+        $data['expired_time'] = $roomUser['time_end'] ? date('Y-m-d', $roomUser['time_end']) : '永久';
+        $data['identity_type'] = $roomUser['identity_type'];
+        $data['identity_type_desc'] = TagLibrary::roomUser('identity_type')[$roomUser['identity_type']];
+        $data['mobile'] = PsCommon::isVirtualPhone($roomUser['mobile']) === true ? "" : $roomUser['mobile'];
+        $data['name'] = $roomUser['name'];
+        $data['sex'] = $roomUser['sex'];
+        $data['reason'] = $roomUser['reason'];
+
+        return $data;
     }
 
     /**

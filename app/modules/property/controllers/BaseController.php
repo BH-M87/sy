@@ -63,6 +63,7 @@ Class BaseController extends CoreController
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+
         //token验证
         $token = !empty($_REQUEST['token']) ? $_REQUEST['token'] : '';
         $token = substr($token, 0, 32);
@@ -70,7 +71,6 @@ Class BaseController extends CoreController
         $this->user_info = !empty($result['data']) ? $result['data'] : [];
         $this->userId = PsCommon::get($this->user_info, 'id', 0);
         UserService::setUser($this->user_info);
-        return true;
         if (!in_array($action->id, $this->enableAction)) {//验证token
             if (!$result['code']) {
                 echo PsCommon::responseFailed($result['msg'], 50002);
@@ -131,17 +131,17 @@ Class BaseController extends CoreController
 
     public function afterAction($action, $result)
     {
-        if (in_array($action->id, $this->repeatAction)) {
-            F::delRepeatCache();
-        }
-        if (in_array($action->id, $this->addLogAction)) {
-            //说明需要记录日志
-            $html  = "Request time:" . date('YmdHis') . "\r\n";
-            $html .= "Request url:" . $action->id . "\r\n";
-            $html .= "Request params:" . var_export($this->request_params, true) . "\r\n";
-            $html .= "Response content:". var_export($result, true)."\r\n";
-            F::addLog("import-batch.txt",$html);
-        }
+//        if (in_array($action->id, $this->repeatAction)) {
+//            F::delRepeatCache();
+//        }
+//        if (in_array($action->id, $this->addLogAction)) {
+//            //说明需要记录日志
+//            $html  = "Request time:" . date('YmdHis') . "\r\n";
+//            $html .= "Request url:" . $action->id . "\r\n";
+//            $html .= "Request params:" . var_export($this->request_params, true) . "\r\n";
+//            $html .= "Response content:". var_export($result, true)."\r\n";
+//            F::addLog("import-batch.txt",$html);
+//        }
         return parent::afterAction($action, $result);
     }
 }

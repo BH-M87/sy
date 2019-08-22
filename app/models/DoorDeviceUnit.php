@@ -15,7 +15,7 @@ use Yii;
  * @property int $unit_id 单元Id
  * @property int $created_at 创建时间
  */
-class DoorDeviceUnit extends \yii\db\ActiveRecord
+class DoorDeviceUnit extends BaseModel
 {
     /**
      * {@inheritdoc}

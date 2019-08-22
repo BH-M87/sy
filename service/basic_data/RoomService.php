@@ -116,7 +116,11 @@ class RoomService extends BaseService
         return $result;
     }
 
-
+    //房屋基本信息
+    public function getInfo($roomId) {
+        return PsCommunityRoominfo::find()->select('id, group, building, unit, room')
+            ->where(['id' => $roomId])->asArray()->one();
+    }
 
 
 }
