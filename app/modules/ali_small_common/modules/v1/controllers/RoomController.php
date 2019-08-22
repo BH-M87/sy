@@ -10,10 +10,10 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 
 
 use app\modules\ali_small_common\controllers\UserBaseController;
-use app\small\services\RoomUserService;
 use common\core\F;
+use service\small\RoomUserService;
 
-class RoomUserController extends UserBaseController
+class RoomController extends UserBaseController
 {
     //已认证和未认证的房屋信息
     public function actionList()
@@ -23,14 +23,14 @@ class RoomUserController extends UserBaseController
     }
 
     // 住户房屋新增
-    public function actionRoomAdd()
+    public function actionAddRoom()
     {
         $result = RoomUserService::service()->add($this->params);
         return F::apiSuccess($result);
     }
 
     // 住户房屋编辑
-    public function actionRoomEdit()
+    public function actionEditRoom()
     {
         $result = RoomUserService::service()->update($this->params);
         return F::apiSuccess($result);

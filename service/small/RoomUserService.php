@@ -6,8 +6,7 @@
  * Time: 17:36
  */
 
-namespace app\small\services;
-
+namespace service\small;
 
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
@@ -126,7 +125,7 @@ class RoomUserService extends BaseService
         } catch (\Exception $e) {
             \Yii::info($e->getMessage(), 'messageError');
         }
-        return $this->success($info);
+        return $info;
 
     }
 
@@ -204,6 +203,9 @@ class RoomUserService extends BaseService
                 }
                 $delModel = $redidentAuditModel;
             } else {
+                if ($redidentAuditModel->status == 0){
+                    throw new MyException('房屋信息待审核');
+                }
                 $model = $redidentAuditModel;
                 $model->time_end = empty($expired_time) ? 0 : strtotime(date('Y-m-d 23:59:59', strtotime($expired_time)));
                 $model->status = 0;
@@ -226,7 +228,7 @@ class RoomUserService extends BaseService
             throw new MyException($e->getMessage());
         }
         $info['community_mobile'] = $roomInfo['community_mobile'];
-        return $this->success($info);
+        return $info;
     }
 
     /**

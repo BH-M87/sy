@@ -6,10 +6,11 @@
  * Time: 13:35
  */
 
-namespace app\small\services;
+namespace service\small;
 
 
 use app\models\PsAppMember;
+use app\models\PsMember;
 use app\models\PsRoomUser;
 use service\BaseService;
 
@@ -50,5 +51,15 @@ class MemberService extends BaseService
         $re = $model->andWhere(['OR', ['time_end' => 0], ['>', 'time_end', time()]])
             ->exists();
         return $re;
+    }
+
+    /**
+     * 获取用户基本信息
+     * @param $memberId
+     */
+    public function getInfo($memberId, $withCard=false)
+    {
+        $columns = $withCard ? ['id', 'name', 'sex', 'mobile', 'member_card', 'face_url'] : ['id', 'name', 'sex', 'mobile', 'face_url', 'is_real'];
+        return PsMember::find()->select($columns)->where(['id' => $memberId])->asArray()->one();
     }
 }
