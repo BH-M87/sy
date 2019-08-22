@@ -1,6 +1,8 @@
 <?php
 namespace service\rbac;
 
+use app\models\PsUser;
+use app\models\ZjyUserRole;
 use Yii;
 
 use yii\db\Query;
@@ -742,5 +744,45 @@ class MenuService extends BaseService
             }
             return PsMenus::find()->select('key')->where(['id' => $parentId])->scalar();
         }
+    }
+
+
+
+    /**
+     * 获取用户置顶菜单或路由的权限
+     * @param $user_id      用户id
+     * @param $actionRoute  置顶路由或菜单
+     * @param $type         1：菜单，2路由
+     * @return int          1：有权限，2没有权限
+     * @throws \yii\db\Exception
+     */
+    public function getValidatePermission($user_id, $actionRoute,$type)
+    {
+        $user_info = PsUser::findOne($user_id);
+        $user_info['role_id'] = ZjyUserRole::getUserRole($user_info);
+        $is_pack = Yii::$app->db->createCommand("select count(id) from ps_group_pack where group_id=:group_id", [":group_id" => $user_info['group_id']])->queryScalar();
+        $query = new  Query();
+        $query->select(["B.id", "B.key", "B.name as menuName", "B.parent_id as parentId", "B.level", "B.icon as menuIcon", "B.url as menuUrl", "B.en_key as menuCode","B.menu_type as menuType"]);
+        if ($is_pack > 0) {//总账号根据套菜包获取菜单权限
+            $query->from("ps_menu_pack C")
+                ->leftJoin("ps_group_pack A", "C.pack_id=A.pack_id")
+                ->leftJoin("ps_menus B", "B.id=C.menu_id");
+            $query->where(["A.group_id" => $user_info['group_id']]);
+        } else {//子账号根据角色获取菜单权限
+            $query->from("zjy_role_menu A")->leftJoin("ps_menus B", "A.menu_id=B.id");
+            $query->where(["A.role_id" => $user_info['role_id']]);
+        }
+        $query->andWhere(["B.status" => 1])->andFilterWhere(['=', 'B.system_type', $user_info['system_type']]);
+        if ($type == 1) {
+            $query->andWhere(["=", "B.url", $actionRoute]);
+        }else{
+            $query->andWhere(["=", "B.action", $actionRoute]);
+        }
+        $models = $query->one();
+        $status = 2;
+        if (!empty($models)) {
+            $status=1;
+        }
+        return $status;
     }
 }
