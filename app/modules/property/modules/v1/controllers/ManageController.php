@@ -142,7 +142,7 @@ class ManageController extends BaseController
     // 物业公司所在分组的小区权限
     public function actionGetCommunitys()
     {
-        $result = CommunityService::service()->getParnetCommunitys($this->user_info["property_company_id"], $this->systemType);
+        $result = CommunityService::service()->getParnetCommunitys($this->user_info['property_company_id'], $this->systemType);
         
         return PsCommon::responseSuccess($result);
     }

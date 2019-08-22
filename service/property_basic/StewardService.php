@@ -4,6 +4,8 @@ namespace service\property_basic;
 use common\core\PsCommon;
 use common\MyException;
 
+use service\BaseService;
+
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityRoominfo;
 use app\models\PsSteWard;

@@ -4,6 +4,8 @@ namespace service\property_basic;
 use Yii;
 use yii\base\Exception;
 
+use service\BaseService;
+
 use common\core\PsCommon;
 
 use app\models\PsProclaim;
