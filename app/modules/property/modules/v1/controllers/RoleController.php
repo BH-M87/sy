@@ -46,7 +46,10 @@ class RoleController extends BaseController
      */
     public function actionGetRoleList()
     {
-        $result = RoleService::service()->getRoleList($this->request_params, $this->user_info);
+        //获取系统所有角色
+        $allRole = RoleService::service()->getGroupRoleList($this->request_params,$this->user_info);
+        //根据所有角色还有用户验证当前用户是否有该角色
+        $result = RoleService::service()->getRoleList($allRole,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
