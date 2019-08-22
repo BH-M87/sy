@@ -4,7 +4,7 @@
  * 2019-4-30 社区评分&邻里互动 
  * 2019-6-5 社区曝光台
  */ 
-namespace app\small\services;
+namespace service\small;
 
 use Yii;
 
@@ -12,6 +12,8 @@ use yii\db\Exception;
 
 use common\core\PsCommon;
 
+use service\BaseService;
+use service\rbac\OperateService;
 use service\common\AreaService;
 use service\message\MessageService;
 
@@ -29,8 +31,6 @@ use app\models\PsSensitiveWord;
 use app\models\PsCommunityExposure;
 use app\models\PsCommunityExposureImage;
 use app\models\ParkingCarport;
-
-use service\rbac\OperateService;
 
 Class CommunityService extends BaseService
 {
