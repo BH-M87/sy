@@ -101,7 +101,7 @@ class UserService extends BaseService
             'id' => $user['id'],
             'mobile' => $user['mobile'],
             'company_id' => $user['property_company_id'],
-            'company_id' => $user['property_company_id'],
+            'property_company_id' => $user['property_company_id'],
             'company_name' => $companyName,
             'truename' => $user['truename'],
             'username' => $user['username'],

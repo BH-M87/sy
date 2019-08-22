@@ -22,7 +22,7 @@ class ManageController extends BaseController
     {
         $this->request_params["system_type"] = $this->user_info["system_type"];
 
-        $result = ManageService::service()->lists($this->request_params, $this->user_info['group_id'], $this->user_info['property_company_id']);
+        $result = ManageService::service()->lists($this->request_params, $this->user_info);
 
         $result['manager_id'] = $this->user_info['id'];
 
@@ -62,7 +62,7 @@ class ManageController extends BaseController
         }
 
         $ids = CommunityService::service()->getParnetCommunitys($this->user_info["property_company_id"], $this->systemType);
-        $communityIds = array_column($p_communitys, 'id');
+        $communityIds = array_column($ids, 'id');
         foreach ($communitys as $val) {
             if (!in_array($val, $communityIds)) {
                 return PsCommon::responseFailed("不是合法的小区数据");
@@ -142,7 +142,7 @@ class ManageController extends BaseController
     // 物业公司所在分组的小区权限
     public function actionGetCommunitys()
     {
-        $result = CommunityService::service()->getParnetCommunitys($this->user_info["property_company_id"], $this->systemType);
+        $result = CommunityService::service()->getParnetCommunitys($this->user_info['property_company_id'], $this->systemType);
         
         return PsCommon::responseSuccess($result);
     }

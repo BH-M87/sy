@@ -1,6 +1,9 @@
 <?php
 namespace service\property_basic;
 
+use service\BaseService;
+use service\rbac\OperateService;
+
 use app\models\PsCommunityConvention;
 use app\models\PsCommunityModel;
 

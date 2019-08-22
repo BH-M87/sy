@@ -9,7 +9,7 @@ use common\core\PsCommon;
 
 use app\models\PsProclaim;
 
-use services\property_basic\ProclaimService;
+use service\property_basic\ProclaimService;
 
 class ProclaimController extends BaseController
 {

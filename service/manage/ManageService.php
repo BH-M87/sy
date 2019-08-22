@@ -23,38 +23,42 @@ use service\common\SmsService;
 class ManageService extends BaseService 
 {
     // 查看物业公司下用户列表
-    public function lists($reqArr, $groupId, $propertyId)
+    public function lists($reqArr, $userInfo)
     {
         $name = !empty($reqArr['name']) ? $reqArr['name'] : '';
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
-        $seeIds = GroupService::service()->getCanSeeIds($groupId); // 当前用户的部门所拥有的权限
+        $seeIds = GroupService::service()->getCanSeeIds($userInfo['group_id']); // 当前用户的部门所拥有的权限
         $systemType = !empty($reqArr['system_type']) ? $reqArr['system_type'] : 1;
 
         $query = new Query();
         $query->from("ps_user A")
             ->leftJoin("ps_groups B", "A.group_id = B.id")
-            ->where(["A.system_type" => $systemType, 'obj_id' => $propertyId])
+            ->where(["A.system_type" => $systemType, 'obj_id' => $userInfo['property_company_id']])
             ->andFilterWhere(['A.group_id' => $seeIds]) // 查看的部门权限
             ->andFilterWhere(['A.group_id' => PsCommon::get($reqArr, 'group_id')]); // 指定部门
         if ($name) {
             $query->andWhere(["or", ["like", "A.mobile", $name], ["like", "truename", $name]]);
         }
         $totals = $query->count();
-        $query->select('A.id, A.truename as userName, A.sex, B.name as deptName, A.mobile as userPhone, A.is_enable')
+        $query->select('A.id, A.truename, A.sex, B.name as deptName, A.mobile, A.is_enable')
             ->orderBy("A.create_at desc");
         $offset = ($page-1) * $rows;
         $query->offset($offset)->limit($rows);
         $models = $query->createCommand()->queryAll();
-        foreach ( $models as $key => $model) {
-            $models[$key]["communitys"] = CommunityService::service()->getUserCommunitys($model["id"]);
-            $models[$key]["userStatusName"] = $model["is_enable"] == 1 ? "启用" :"禁用";
-            $models[$key]["sexName"] = $model["sex"] == 1 ? "男" :"女";
+        foreach ( $models as $k => $v) {
+            $models[$k]["communitys"] = CommunityService::service()->getUserCommunitys($v["id"]);
+            $models[$k]["userStatusName"] = $v["is_enable"] == 1 ? "启用" :"禁用";
+            $models[$k]["sexName"] = $v["sex"] == 1 ? "男" :"女";
             $role = ZjyRole::find()->alias('A')->leftJoin('zjy_user_role B', 'B.role_id = A.id')->select('A.role_name')
-                ->where(['B.user_id' => $model['id']])->asArray()->all();
-            $models[$key]["roles"] = implode(' ', array_column($role,'role_name'));
-            $models[$key]["isOrdinary"] = true;
-            $models[$key]['userStatus'] = $model['is_enable'];
+                ->where(['B.user_id' => $v['id']])->asArray()->all();
+            $models[$k]["roles"] = implode(' ', array_column($role,'role_name'));
+            $models[$k]["isMe"] = $v['id'] == $userInfo['id'] ? true : false;
+            $models[$k]["isOrdinary"] = true;
+            $models[$k]['userStatus'] = $v['is_enable'];
+            $models[$k]['userName'] = $v['truename'];
+            $models[$k]['group_name'] = $v['deptName'];
+            $models[$k]['userPhone'] = $v['mobile'];
         }
 
         return ["list" => $models, 'totals' => $totals];
@@ -196,6 +200,7 @@ class ManageService extends BaseService
             where A.id = :manage_id", $where)->queryOne();
         
         if (!empty($user)) {
+            $user['name'] = $user['truename'];
             $user["communitys"]  = CommunityService::service()->getUserCommunitys($user["id"]);
             $user["is_enable_desc"] = $user["is_enable"] == 1 ? "启用" :"禁用";
             $user['roleIds'] = ZjyUserRole::find()->select('role_id')->where(['user_id' => $user["id"]])->asArray()->column();
