@@ -3,7 +3,7 @@
  * User: ZQ
  * Date: 2019/8/21
  * Time: 10:11
- * For: ****
+ * For: 房屋管理
  */
 
 namespace app\modules\property\modules\v1\controllers;
@@ -32,7 +32,7 @@ use yii\base\Exception;
 
 class RoomController extends BaseController
 {
-    public $repeatAction = ['import-repair'];
+    //public $repeatAction = ['import-repair'];
 
     /****调试完毕的接口****/
     /**
