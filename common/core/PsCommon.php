@@ -547,6 +547,66 @@ class PsCommon {
         return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
     }
 
+    public static function isCarLicense($license)
+    {
+        if (empty($license)) {
+            return false;
+        }
+        /*匹配民用车牌和使馆车牌
+        　判断标准
+        　1，第一位为汉字省份缩写
+        　2，第二位为大写字母城市编码
+        　3，后面是5位仅含字母和数字的组合
+        */
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新使]{1}[A-Z]{1}[0-9a-zA-Z]{5}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        /*匹配特种车牌(挂,警,学,领,港,澳)
+        　　参考 https://wenku.baidu.com/view/4573909a964bcf84b9d57bc5.html
+        */
+        $regular = '/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[0-9a-zA-Z]{4}[挂警学领港澳]{1}$/u';
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /* #匹配武警车牌
+        　　#参考 https://wenku.baidu.com/view/7fe0b333aaea998fcc220e48.html
+        */
+        $regular = '/^WJ[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]?[0-9a-zA-Z]{5}$/ui';
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /*　#匹配军牌
+        　　#参考 http://auto.sina.com.cn/service/2013-05-03/18111149551.shtml
+        */
+        $regular = "/[A-Z]{2}[0-9]{5}$/";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+
+        /* #匹配新能源车辆6位车牌
+        　　#参考 https://baike.baidu.com/item/%E6%96%B0%E8%83%BD%E6%BA%90%E6%B1%BD%E8%BD%A6%E4%B8%93%E7%94%A8%E5%8F%B7%E7%89%8C
+        */
+        //小型新能源车
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[DF]{1}[0-9a-zA-Z]{5}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        //大型新能源车
+        $regular = "/[京津冀晋蒙辽吉黑沪苏浙皖闽赣鲁豫鄂湘粤桂琼川贵云渝藏陕甘青宁新]{1}[A-Z]{1}[0-9a-zA-Z]{5}[DF]{1}$/u";
+        preg_match($regular, $license, $match);
+        if (isset($match[0])) {
+            return true;
+        }
+        return false;
+    }
 
     /*
      * 获取业主身份标识
@@ -612,6 +672,41 @@ class PsCommon {
     }
 
     /**
+     * 计算两个时间的时间差
+     * @author yjh
+     * @param $begin_time
+     * @param $end_time
+     * @return string
+     */
+    public static function timediff($begin_time,$end_time)
+    {
+        if($begin_time < $end_time){
+            $starttime = $begin_time;
+            $endtime = $end_time;
+        } else {
+            $starttime = $end_time;
+            $endtime = $begin_time;
+        }
+        //计算天数
+        $timediff = $endtime-$starttime;
+        $days = intval($timediff/86400);
+        //计算小时数
+        $remain = $timediff%86400;
+        $hours = intval($remain/3600);
+        //计算分钟数
+        $remain = $remain%3600;
+        $mins = intval($remain/60);
+        //计算秒数
+        $secs = $remain%60;
+        $timeStr = '';
+        $res = array("天" => $days, "小时" => $hours, "分" => $mins);
+        foreach ($res as $k => $v) {
+            $timeStr .= $v > 0 ? $v.$k : '';
+        }
+        return $timeStr;
+    }
+
+    /*
      * 获取性别
      */
     public static function getFlipKey($data, $index, $default = 0)
@@ -636,5 +731,4 @@ class PsCommon {
     {
         return Yii::$app->redis->sadd($cacheKey, $str);
     }
-
 }

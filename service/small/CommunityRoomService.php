@@ -6,7 +6,7 @@
  * Time: 11:28
  */
 
-namespace app\small\services;
+namespace service\small;
 
 
 use common\core\Helpers;

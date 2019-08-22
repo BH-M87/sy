@@ -12,5 +12,8 @@ class Module extends \yii\base\Module
     public function init()
     {
         parent::init();
+        $this->modules = [
+            'v1' => ['class' => 'app\modules\ali_small_common\modules\v1\Module'],
+        ];
     }
 }

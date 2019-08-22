@@ -24,4 +24,18 @@ class UserBaseController extends BaseController
         }
         return true;
     }
+
+    public function dealReturnResult($result)
+    {
+        if($result['code'] == 1){
+            return F::apiSuccess($result['data']);
+        } else {
+            if (!empty($result['code'])) {
+                return F::apiFailed($result['msg'], $result['code']);
+
+            }
+            return F::apiFailed($result['msg']);
+        }
+    }
+
 }
