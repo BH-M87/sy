@@ -173,9 +173,7 @@ class PsCommon {
             $log['data'] = F::request();
             Yii::info(json_encode($log, 320), 'api-success');
         }
-        if (empty($data)) {
-            $data = (object)$data;
-        }
+
         return self::ajaxReturn(20000, $data, ['errorMsg' => '']);
     }
 
@@ -192,7 +190,7 @@ class PsCommon {
             $log['data'] = F::request();
             Yii::info(json_encode($log, 320), 'api-failed');
         }
-        return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
+        return self::ajaxReturn($code, [], ['errorMsg' => $msg]);
     }
 
     /**
