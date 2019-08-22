@@ -40,4 +40,5 @@ class BaseController extends Controller
         $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
         return true;
     }
+
 }

@@ -8,9 +8,15 @@
 
 namespace app\modules\small\services;
 
+use app\models\ParkingPayCode;
+use app\models\PsBillCost;
+use app\models\PsLifeServiceBill;
+use app\models\PsPropertyCompany;
+use common\core\F;
 use common\core\PsCommon;
 use app\models\PsOrder;
 use app\models\PsPropertyAlipay;
+use service\alipay\OrderService;
 use service\manage\CommunityService;
 use app\models\PsBill;
 use app\models\PsBillIncome;
@@ -432,6 +438,110 @@ class BillSmallService extends BaseService
             return $this->success($model['num']);
         }
         return $this->failed('用户不存在！');
+    }
+
+    /**
+     * 生成扫码支付订单
+     * @param $req
+     * @return array|string
+     */
+    public static function generalBill($req)
+    {
+        $community = PsCommunityModel::findOne($req['community_id']);
+        if (!$community) {
+            return "小区不存在";
+        }
+
+        //查询此小区对应的物业公司信息
+        $preCompany = PsPropertyCompany::findOne($community->pro_company_id);
+        if (!$preCompany) {
+            return "物业公司不存在";
+        }
+
+        $communityName = $community->name;
+
+        $orderData = [];
+        if ($req['pay_type'] == 'life') {
+
+            //查询服务名称
+            $psService = PsBillCost::findOne($req['pay_option']);
+            if (!$psService) {
+                return "此缴费服务不存在";
+            }
+            $psBill = new PsLifeServiceBill();
+            $psBill->cost_type = $psService->id;
+            $psBill->cost_name = $psService->name;
+
+            //房屋信息
+            $roomArr = explode(',', $req['room_id']);
+            $roomId = '';
+            if (count($roomArr) == 4) {
+                $roomId = end($roomArr);
+            }
+            $roomId = $roomId ? $roomId : '';
+            if ($roomId) {
+                $roomInfo = PsCommunityRoominfo::find()->select('group, building, unit, room, address')
+                    ->where(['id' => $roomId])->asArray()->one();
+                if ($roomInfo) {
+                    $psBill->room_id = $roomId;
+                    $psBill->group = $roomInfo['group'];
+                    $psBill->building = $roomInfo['building'];
+                    $psBill->unit = $roomInfo['unit'];
+                    $psBill->room = $roomInfo['room'];
+                    $psBill->address = $roomInfo['address'];
+                }
+            }
+            $orderNo = F::generateOrderNo('SL');
+            $psBill->order_no = $orderNo;
+            $psBill->community_id = $req['community_id'];
+            $psBill->community_name = $communityName;
+            $psBill->property_company_id = $community->pro_company_id;
+            $psBill->property_alipay_account = $preCompany->alipay_account;
+            $psBill->amount = $req['amount'];
+            $psBill->seller_id = $preCompany->seller_id;
+            $psBill->note = $req['remark'];
+            $psBill->create_at = time();
+            if (!$psBill->save()) {//扫码支付存ps_life_service_bill
+                return "账单保存失败";
+            }
+            //order表数据
+            $orderData['order_no'] = $orderNo;
+            $orderData['product_type'] = $psBill->cost_type;
+            $orderData['product_subject'] = $psBill->cost_name;
+            $orderData['bill_id'] = $orderData['product_id'] = $psBill->id;
+        } elseif ($req['pay_type'] == 'park') {
+            $orderData['order_no'] = F::generateOrderNo('PK');
+            $orderData['product_type'] = OrderService::TYPE_PARK;
+            $orderData['product_subject'] = "临时停车";
+            $orderData['product_id'] = !empty($req['car_across_id']) ? $req['car_across_id'] : 0;
+        } else {
+            return '未知错误';
+        }
+        $orderData['company_id'] = $community->pro_company_id;
+        $orderData['community_id'] = $community->id;
+        $orderData['bill_amount'] = $orderData['pay_amount'] = $req['amount'];
+        $orderData = array_merge($orderData, [
+            "remark" => $req['remark'],
+            "status" => "8",
+            "pay_status" => "0",
+        ]);
+        //存入ps_order 表一条记录
+        $r = OrderService::service()->addOrder($orderData);
+        if (!$r['code']) {
+            return $r['msg'];
+        }
+        //edit by wenchao.feng 如果是扫动态二维码支付停车费，存入关联关系
+        if ($req['pay_type'] == 'park' && $req['out_id']) {
+            $outPayLog = ParkingPayCode::findOne($req['out_id']);
+            $outPayLog->order_id = $r['data'];
+            $outPayLog->save();
+        }
+        return [
+            'order_no' => $orderData['order_no'],
+            'cost_type' => $orderData['product_type'],
+            'cost_name' => $orderData['product_subject'],
+            'amount' => $orderData['bill_amount'],
+        ];
     }
 
 }

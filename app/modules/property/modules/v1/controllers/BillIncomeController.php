@@ -19,7 +19,7 @@ use app\modules\property\controllers\BaseController;
 Class BillIncomeController extends BaseController
 {
     //重复请求过滤方法
-    public $repeatAction = ['refund-add','refund-add-offline'];
+    public $repeatAction = ['refund-add','refund-add-offline','check-list'];
 
     // 收款记录 批量 复核/撤销核销
     public function actionBillIncomeCheck()

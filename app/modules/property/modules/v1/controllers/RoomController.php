@@ -3,7 +3,7 @@
  * User: ZQ
  * Date: 2019/8/21
  * Time: 10:11
- * For: ****
+ * For: 房屋管理
  */
 
 namespace app\modules\property\modules\v1\controllers;
@@ -32,15 +32,108 @@ use yii\base\Exception;
 
 class RoomController extends BaseController
 {
-    public $repeatAction = [ 'import-repair'];
+    //public $repeatAction = ['import-repair'];
+
+    /****调试完毕的接口****/
+    /**
+     * 2016-12-16
+     * 获取房屋列表 {"group":"红"}
+     */
+    public function actionList()
+    {
+        $valid = PsCommon::validParamArr(new PsHouseForm(), $this->request_params, 'list');
+        if (!$valid["status"]) {
+            unset($valid["status"]);
+            return PsCommon::responseFailed($valid['errorMsg']);
+        }
+        $data = $valid["data"];
+        $page = isset($data['page']) ? $data['page'] : 1;
+        $rows = isset($data['rows']) ? $data['rows'] : Yii::$app->params['list_rows'];
+        $houses = HouseService::service()->houseLists($data, $page, $rows, '');
+        foreach ($houses["list"] as $key => $val) {
+            $houses["list"] [$key]['floor_shared_id'] = $val['floor_shared_id'] ? SharedService::service()->getNameById($val['floor_shared_id']) : '';//楼层号
+            $houses["list"] [$key]['lift_shared_id'] = $val['lift_shared_id'] ? SharedService::service()->getNameById($val['lift_shared_id']) : 'X';//电梯编号
+            $houses["list"] [$key]['property_type'] = PsCommon::propertyType($val['property_type']); // 房屋类型
+            $houses["list"] [$key]['status'] = PsCommon::houseStatus($val['status']);         // 物业状态
+            $houses["list"] [$key]['group'] = $val['group'] == '0' ? '' : $val['group'];     // 期区
+        }
+        return PsCommon::responseSuccess($houses);
+    }
 
     /**
-     * @author wenchao.feng
-     * 获取省市区所有数据
+     * 2016-12-16
+     * 新增或者修改房屋 {"building":"2","charge_area":"89.111","community_id":"1","group":"南区","property_type":"1","room":"101","status":1,"unit":"2","id":309}
      */
-    public function actionArea()
+    public function actionEdit()
     {
-        return AreaService::service()->getCacheArea();
+        $data = $this->request_params;
+        if (!$data) {
+            return PsCommon::responseFailed('json串为空,解析出错');
+        }
+
+        foreach ($data as $key => $val) {
+            $form['PsHouseForm'][$key] = $val;
+        }
+
+        $model = new PsHouseForm;
+        $model->setScenario('create');
+        $model->load($form);
+        if ($model->validate()) { // 检验数据
+            $result = HouseService::service()->houseEdit((object)$data, $this->user_info);
+            if ($result['code'] == 0) {
+                return PsCommon::responseFailed($result['msg']);
+            }
+            return PsCommon::responseSuccess();
+        } else {
+            $errorMsg = array_values($model->errors);
+            return PsCommon::responseFailed($errorMsg[0][0]);
+        }
+    }
+
+    /**
+     * 2016-12-16
+     * 删除房屋 {"out_room_id":"20161221043257151110888657"}
+     */
+    public function actionDelete()
+    {
+        $outRoomId = $this->request_params["out_room_id"];
+        if (!$outRoomId) {
+            return PsCommon::responseFailed("房屋未找到");
+        }
+        $result = HouseService::service()->houseDelete($outRoomId, $this->user_info);
+        if ($result["code"]) {
+            return PsCommon::responseSuccess();
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
+
+    /**
+     * 2016-12-16
+     * 查看房屋 {"out_room_id":"1481871333677"}
+     */
+    public function actionShow()
+    {
+        $data = $this->request_params;
+        if (!$data) {
+            return PsCommon::responseFailed('json串为空,解析出错');
+        }
+
+        $model = new PsHouseForm;
+        $model->setScenario('show');
+        $model->load($data, ''); // 加载数据
+
+        if ($model->validate()) { // 检验数据
+            $result = HouseService::service()->houseShow($data['out_room_id']);
+            if ($result) {
+                return PsCommon::responseSuccess($result);
+            } else {
+                return PsCommon::responseFailed('房屋不存在');
+            }
+        } else {
+            $errorMsg = array_values($model->errors);
+            return PsCommon::responseFailed($errorMsg[0][0]);
+        }
     }
 
     /**
@@ -53,7 +146,7 @@ class RoomController extends BaseController
         //上传文件检测
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
         if (empty($r['code'])) {
-            return PsCommon::responseFailed(PsCommon::get($r,'msg'));
+            return PsCommon::responseFailed(PsCommon::get($r, 'msg'));
         }
         $communityId = PsCommon::get($this->request_params, "community_id");
         if (empty($communityId)) {
@@ -553,7 +646,6 @@ class RoomController extends BaseController
     }
 
     /**
-     *
      * 下载模板
      */
     public function actionGetExcel()
@@ -605,6 +697,17 @@ class RoomController extends BaseController
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
+    /****todo 还未调试接口***/
+
+    /**
+     * @author wenchao.feng
+     * 获取省市区所有数据
+     */
+    public function actionArea()
+    {
+        return AreaService::service()->getCacheArea();
+    }
+
     /**
      * 2016-12-15
      * 我的小区列表 {"pro_company_id":1,"page":"1","rows":"20"}
@@ -614,34 +717,6 @@ class RoomController extends BaseController
         $this->request_params["user_id"] = $this->user_info["id"];
         $result = HouseService::service()->houseOwn($this->request_params);
         return PsCommon::responseSuccess($result);
-    }
-
-    /**
-     * 2016-12-16
-     * 查看房屋 {"out_room_id":"1481871333677"}
-     */
-    public function actionShow()
-    {
-        $data = $this->request_params;
-        if (!$data) {
-            return PsCommon::responseFailed('json串为空,解析出错');
-        }
-
-        $model = new PsHouseForm;
-        $model->setScenario('show');
-        $model->load($data, ''); // 加载数据
-
-        if ($model->validate()) { // 检验数据
-            $result = HouseService::service()->houseShow($data['out_room_id']);
-            if ($result) {
-                return PsCommon::responseSuccess($result);
-            } else {
-                return PsCommon::responseFailed('房屋不存在');
-            }
-        } else {
-            $errorMsg = array_values($model->errors);
-            return PsCommon::responseFailed($errorMsg[0][0]);
-        }
     }
 
     /**
@@ -674,79 +749,6 @@ class RoomController extends BaseController
         } else {
             $errorMsg = array_values($model->errors);
             return PsCommon::responseFailed($errorMsg[0][0]);
-        }
-    }
-
-    /**
-     * 2016-12-16
-     * 获取房屋列表 {"group":"红"}
-     */
-    public function actionList()
-    {
-        $valid = PsCommon::validParamArr(new PsHouseForm(), $this->request_params, 'list');
-        if (!$valid["status"]) {
-            unset($valid["status"]);
-            return PsCommon::responseFailed($valid['errorMsg']);
-        }
-        $data = $valid["data"];
-        $page = isset($data['page']) ? $data['page'] : 1;
-        $rows = isset($data['rows']) ? $data['rows'] : Yii::$app->params['list_rows'];
-        $houses = HouseService::service()->houseLists($data, $page, $rows, '');
-        foreach ($houses["list"] as $key => $val) {
-            $houses["list"] [$key]['floor_shared_id'] = $val['floor_shared_id'] ? SharedService::service()->getNameById($val['floor_shared_id']) : '';//楼层号
-            $houses["list"] [$key]['lift_shared_id'] = $val['lift_shared_id'] ? SharedService::service()->getNameById($val['lift_shared_id']) : 'X';//电梯编号
-            $houses["list"] [$key]['property_type'] = PsCommon::propertyType($val['property_type']); // 房屋类型
-            $houses["list"] [$key]['status'] = PsCommon::houseStatus($val['status']);         // 物业状态
-            $houses["list"] [$key]['group'] = $val['group'] == '0' ? '' : $val['group'];     // 期区
-        }
-        return PsCommon::responseSuccess($houses);
-    }
-
-    /**
-     * 2016-12-16
-     * 新增或者修改房屋 {"building":"2","charge_area":"89.111","community_id":"1","group":"南区","property_type":"1","room":"101","status":1,"unit":"2","id":309}
-     */
-    public function actionEdit()
-    {
-        $data = $this->request_params;
-        if (!$data) {
-            return PsCommon::responseFailed('json串为空,解析出错');
-        }
-
-        foreach ($data as $key => $val) {
-            $form['PsHouseForm'][$key] = $val;
-        }
-
-        $model = new PsHouseForm;
-        $model->setScenario('create');
-        $model->load($form);
-        if ($model->validate()) { // 检验数据
-            $result = HouseService::service()->houseEdit((object)$data, $this->user_info);
-            if ($result['code'] == 0) {
-                return PsCommon::responseFailed($result['msg']);
-            }
-            return PsCommon::responseSuccess();
-        } else {
-            $errorMsg = array_values($model->errors);
-            return PsCommon::responseFailed($errorMsg[0][0]);
-        }
-    }
-
-    /**
-     * 2016-12-16
-     * 删除房屋 {"out_room_id":"20161221043257151110888657"}
-     */
-    public function actionDelete()
-    {
-        $outRoomId = $this->request_params["out_room_id"];
-        if (!$outRoomId) {
-            return PsCommon::responseFailed("房屋未找到");
-        }
-        $result = HouseService::service()->houseDelete($outRoomId, $this->user_info);
-        if ($result["code"]) {
-            return PsCommon::responseSuccess();
-        } else {
-            return PsCommon::responseFailed($result["msg"]);
         }
     }
 
@@ -838,4 +840,5 @@ class RoomController extends BaseController
             $i--;
         }
     }
+
 }
