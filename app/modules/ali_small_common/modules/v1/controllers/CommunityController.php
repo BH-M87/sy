@@ -3,17 +3,19 @@
  * Created by PhpStorm
  * User: wyf
  * Date: 2019/8/21
- * Time: 16:11
+ * Time: 16:06
  */
 
-namespace app\modules\ali_small_door\modules\v1\controllers;
+namespace app\modules\ali_small_common\modules\v1\controllers;
 
+
+use app\modules\ali_small_common\controllers\UserBaseController;
 use app\small\services\CommunityRoomService;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 
-class CommunityController extends BaseController
+class CommunityController extends UserBaseController
 {
     /**
      * @api 获取小区列表-包含定位信息
@@ -24,9 +26,9 @@ class CommunityController extends BaseController
      */
     public function actionList()
     {
-        $name = PsCommon::get($this->request_params, 'name');
-        $lat = PsCommon::get($this->request_params, 'lat', '');
-        $lon = PsCommon::get($this->request_params, 'lon', '');
+        $name = PsCommon::get($this->params, 'name');
+        $lat = PsCommon::get($this->params, 'lat', '');
+        $lon = PsCommon::get($this->params, 'lon', '');
         //无定位信息直接响应空数据
         if (($lat && $lon) || !empty($name)){
             $data = CommunityRoomService::getCommunityList($name, $lon, $lat);
@@ -47,7 +49,7 @@ class CommunityController extends BaseController
      */
     public function actionHouseList()
     {
-        $community_id = PsCommon::get($this->request_params, 'community_id');
+        $community_id = PsCommon::get($this->params, 'community_id');
         if (empty($community_id)){
             throw new MyException('小区编号不能为空');
         }
@@ -66,7 +68,7 @@ class CommunityController extends BaseController
      */
     public function actionRoomList()
     {
-        $building_id = PsCommon::get($this->request_params, 'building_id');
+        $building_id = PsCommon::get($this->params, 'building_id');
         if (empty($building_id)){
             throw new MyException('楼幢编号不能为空');
         }

@@ -3,25 +3,18 @@
  * Created by PhpStorm
  * User: wyf
  * Date: 2019/8/21
- * Time: 16:28
+ * Time: 16:13
  */
 
-namespace app\modules\small\controllers;
+namespace app\modules\ali_small_common\modules\v1\controllers;
 
 
-use app\modules\ali_small_lyl\controllers\UserBaseController;
+use app\modules\ali_small_common\controllers\UserBaseController;
 use app\small\services\RoomUserService;
 use common\core\F;
 
 class RoomUserController extends UserBaseController
 {
-//住户房屋列表
-    public function actionHouseList()
-    {
-        $result = RoomUserService::service()->houseList($this->params);
-        return F::apiSuccess($result);
-    }
-
     //已认证和未认证的房屋信息
     public function actionList()
     {

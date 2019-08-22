@@ -11,6 +11,7 @@ namespace service\message;
 
 use app\models\PsMessage;
 use service\BaseService;
+use service\rbac\UserService;
 use yii\db\Query;
 
 class MessageService extends BaseService
@@ -153,20 +154,15 @@ class MessageService extends BaseService
             $params['route'] = $data;
         }
         $params['userIds'] = $userInfo;
-        $result = UserCenterService::service(2)->request('/userCenter/user/validatePermission', $params);
-        if ($result['code'] == 1) {
-            if (!empty($result['data']['list'])) {
-                //ArrayHelper::getColumn($result['data']['list'], 'id');//无法提取数据
-                $uidArray = [];
-                foreach ($result['data']['list'] as $item) {
-                    if ($item['authorised'] === true) {
-                        $uidArray[] = $item['userId'];
-                    }
+        $result = UserService::service()->validatePermission($params);
+        if (!$result) {
+            $uidArray = [];
+            foreach ($result as $item) {
+                if ($item['authorised'] === 1) {
+                    $uidArray[] = $item['userId'];
                 }
-                return $uidArray;
-            } else {
-                return [];
             }
+            return $uidArray;
         } else {
             return [];
         }

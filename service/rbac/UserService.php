@@ -621,4 +621,29 @@ class UserService extends BaseService
         }
         return PsUser::updateAll($data, ['id' => $userId]);
     }
+
+    /**
+     * 指定用户业务操作权限校验
+     * @param $params
+     * @return bool|int
+     */
+    public function validatePermission($params)
+    {
+        $list = [];
+        if (!empty($params['userIds'])) return false;
+        foreach ($params['userIds'] as $userid){
+            if (!empty($data['action'])) {//说明查询的是用户的操作权限
+                $actionRoute = $data['action'];
+                $type=1;
+            }else{
+                $actionRoute = $data['route'];
+                $type=2;
+            }
+            $data['userId'] = $userid;
+            $data['authorised'] = MenuService::service()->getValidatePermission($userid,$actionRoute,$type);
+            $list[]=$data;
+        }
+        return $list;
+    }
+
 }
