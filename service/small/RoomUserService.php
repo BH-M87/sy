@@ -600,8 +600,8 @@ class RoomUserService extends BaseService
      * @api 验证住户房屋信息是否存在
      * @param $room_id
      * @param $member_id
-     * @param $check_type 验证类型,1验证住户表信息是否存在，2验证审核表信息是否存在，3全部验证
-     * @param $type 是否响应结果,1是,其他直接抛出异常响应
+     * @param int $check_type 验证类型,1验证住户表信息是否存在，2验证审核表信息是否存在，3全部验证
+     * @param int $type 是否响应结果,1是,其他直接抛出异常响应
      * @throws MyException
      * @return bool/string
      */
