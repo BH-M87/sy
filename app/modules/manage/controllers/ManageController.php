@@ -15,7 +15,7 @@ class ManageController extends BaseController
     {
         $this->request_params["system_type"] = $this->user_info["system_type"];
 
-        $result = ManageService::service()->lists($this->request_params, $this->user_info['group_id'], $this->user_info['property_company_id']);
+        $result = ManageService::service()->lists($this->request_params, $this->user_info);
 
         $result['manager_id'] = $this->user_info['id'];
 

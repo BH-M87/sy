@@ -4,6 +4,9 @@ namespace service\property_basic;
 use common\core\PsCommon;
 use common\MyException;
 
+use service\BaseService;
+use service\rbac\OperateService;
+
 use app\models\PsActivity;
 use app\models\PsActivityEnroll;
 use app\models\PsCommunityRoominfo;

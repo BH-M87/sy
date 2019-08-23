@@ -3,7 +3,7 @@
  * User: ZQ
  * Date: 2019/8/21
  * Time: 10:11
- * For: ****
+ * For: 房屋管理
  */
 
 namespace app\modules\property\modules\v1\controllers;
@@ -32,7 +32,7 @@ use yii\base\Exception;
 
 class RoomController extends BaseController
 {
-    public $repeatAction = ['import-repair'];
+    //public $repeatAction = ['import-repair'];
 
     /****调试完毕的接口****/
     /**
@@ -697,7 +697,6 @@ class RoomController extends BaseController
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
-    /****todo 还未调试接口***/
 
     /**
      * @author wenchao.feng
@@ -706,50 +705,6 @@ class RoomController extends BaseController
     public function actionArea()
     {
         return AreaService::service()->getCacheArea();
-    }
-
-    /**
-     * 2016-12-15
-     * 我的小区列表 {"pro_company_id":1,"page":"1","rows":"20"}
-     */
-    public function actionOwn()
-    {
-        $this->request_params["user_id"] = $this->user_info["id"];
-        $result = HouseService::service()->houseOwn($this->request_params);
-        return PsCommon::responseSuccess($result);
-    }
-
-    /**
-     * 2016-12-16
-     * 查看房屋 {"room_id":"1481871333677"}
-     */
-    public function actionShowRoom()
-    {
-        $data = $this->request_params;
-
-        if (!$data) {
-            return PsCommon::responseFailed('json串为空,解析出错');
-        }
-
-        foreach ($data as $key => $val) {
-            $form['PsHouseForm'][$key] = $val;
-        }
-
-        $model = new PsHouseForm;
-        $model->setScenario('room_show');
-        $model->load($form); // 加载数据
-
-        if ($model->validate()) { // 检验数据
-            $result = HouseService::service()->houseRoomShow($data['room_id']);
-            if ($result) {
-                return PsCommon::responseSuccess($result);
-            } else {
-                return PsCommon::responseFailed('房屋不存在');
-            }
-        } else {
-            $errorMsg = array_values($model->errors);
-            return PsCommon::responseFailed($errorMsg[0][0]);
-        }
     }
 
     /**
@@ -806,6 +761,52 @@ class RoomController extends BaseController
         }
         $result = RoomService::service()->getRooms($this->request_params);
         return PsCommon::responseSuccess($result);
+    }
+
+    /****todo 还未调试接口***/
+
+    /**
+     * 2016-12-15
+     * 我的小区列表 {"pro_company_id":1,"page":"1","rows":"20"}
+     */
+    public function actionOwn()
+    {
+        $this->request_params["user_id"] = $this->user_info["id"];
+        $result = HouseService::service()->houseOwn($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * 2016-12-16
+     * 查看房屋 {"room_id":"1481871333677"}
+     */
+    public function actionShowRoom()
+    {
+        $data = $this->request_params;
+
+        if (!$data) {
+            return PsCommon::responseFailed('json串为空,解析出错');
+        }
+
+        foreach ($data as $key => $val) {
+            $form['PsHouseForm'][$key] = $val;
+        }
+
+        $model = new PsHouseForm;
+        $model->setScenario('room_show');
+        $model->load($form); // 加载数据
+
+        if ($model->validate()) { // 检验数据
+            $result = HouseService::service()->houseRoomShow($data['room_id']);
+            if ($result) {
+                return PsCommon::responseSuccess($result);
+            } else {
+                return PsCommon::responseFailed('房屋不存在');
+            }
+        } else {
+            $errorMsg = array_values($model->errors);
+            return PsCommon::responseFailed($errorMsg[0][0]);
+        }
     }
 
     public function alipayRoom($communityNo)

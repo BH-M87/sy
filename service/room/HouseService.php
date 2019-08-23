@@ -43,7 +43,7 @@ Class HouseService extends BaseService
             ->where(["B.manage_id" => $userId]);
 
         $totals = $query->count();
-        $query->select(["A.id", "A.name", "A.address", "A.create_at", "A.phone as link_phone", "C.alipay_account"])->orderBy("A.create_at desc");
+        $query->select(["A.id", "A.name", "A.address", "A.create_at", "A.phone as link_phone", "C.alipay_account",'A.pro_company_id'])->orderBy("A.create_at desc");
         $offset = ($page - 1) * $rows;
         $query->offset($offset)->limit($rows);
         $models = $query->createCommand()->queryAll();
