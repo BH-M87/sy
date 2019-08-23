@@ -11,13 +11,10 @@ namespace service\small;
 
 use app\models\PsAliToken;
 use app\models\PsAppMember;
-<<<<<<< HEAD
 use app\models\PsCommunityModel;
 use app\models\PsOrder;
 use app\models\PsPropertyIsvToken;
-=======
 use app\models\PsMember;
->>>>>>> 3e7b39651d3c0dbac656f30d8d325749db56e62b
 use app\models\PsRoomUser;
 use app\modules\small\services\BillSmallService;
 use service\alipay\AlipayBillService;
@@ -63,7 +60,7 @@ class MemberService extends BaseService
         return $re;
     }
 
-<<<<<<< HEAD
+
     // 停车缴费 判断小区状态 添加ps_order表记录 创建支付宝订单 更新ps_order表相关信息 配置前端唤起支付成功异步回调地址
     public function pay($params)
     {
@@ -240,9 +237,7 @@ class MemberService extends BaseService
         $incr = \Yii::$app->redis->incr('ps_bill_batch_id');
         return date("YmdHis") . '2' . rand(100, 999) . str_pad(substr($incr, -3), 3, '0', STR_PAD_LEFT);
     }
-}
 
-=======
     /**
      * 获取用户基本信息
      * @param $memberId
@@ -253,4 +248,4 @@ class MemberService extends BaseService
         return PsMember::find()->select($columns)->where(['id' => $memberId])->asArray()->one();
     }
 }
->>>>>>> 3e7b39651d3c0dbac656f30d8d325749db56e62b
+
