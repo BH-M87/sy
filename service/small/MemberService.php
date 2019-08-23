@@ -240,7 +240,7 @@ class MemberService extends BaseService
 
     /**
      * 获取用户基本信息
-     * @param $memberId
+     * @param $memberId;
      */
     public function getInfo($memberId, $withCard=false)
     {

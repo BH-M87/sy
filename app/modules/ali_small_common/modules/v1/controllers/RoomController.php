@@ -23,16 +23,23 @@ class RoomController extends UserBaseController
     }
 
     // 住户房屋新增
-    public function actionAddRoom()
+    public function actionAdd()
     {
         $result = RoomUserService::service()->add($this->params);
         return F::apiSuccess($result);
     }
 
     // 住户房屋编辑
-    public function actionEditRoom()
+    public function actionEdit()
     {
         $result = RoomUserService::service()->update($this->params);
+        return F::apiSuccess($result);
+    }
+
+    // 住户房屋详情
+    public function actionView()
+    {
+        $result = RoomUserService::service()->view($this->params);
         return F::apiSuccess($result);
     }
 }
