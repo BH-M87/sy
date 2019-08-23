@@ -24,7 +24,7 @@ class FamilyManageController extends UserBaseController
     }
 
     //住户删除
-    public function actionDel()
+    public function actionDelete()
     {
         $data['resident_id'] = PsCommon::get($this->params, 'resident_id');
         $data['rid'] = PsCommon::get($this->params, 'rid');
@@ -54,7 +54,7 @@ class FamilyManageController extends UserBaseController
         return F::apiSuccess();
     }
 
-    //住户新增
+    //住户编辑
     public function actionEdit()
     {
         FamilyManageService::service()->editResident($this->params);

@@ -10,7 +10,12 @@ namespace service\message;
 
 
 use app\models\PsMessage;
+use app\models\PsMessageUser;
+use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
+use service\manage\CommunityService;
+use service\rbac\OperateService;
 use service\rbac\UserService;
 use yii\db\Query;
 
@@ -40,14 +45,14 @@ class MessageService extends BaseService
     ];
 
     /**
-     * @api 创建消息模板
-     * @author wyf
-     * @date 2019/8/13
      * @param $params
      * @param bool $type
      * @throws \yii\db\Exception
+     * @author wyf
+     * @date 2019/8/13
+     * @api 创建消息模板
      */
-    public function addMessageTemplate($params,$type = true)
+    public function addMessageTemplate($params, $type = true)
     {
         $data = [
             'community_id' => $params['community_id'] ?? 0,
@@ -76,13 +81,10 @@ class MessageService extends BaseService
             'tmpType' => 2,
             'data' => $params['msg']
         ];
-        $this->addMessage($info, $params['msg_type'], $params['msg_target_type'], $params['msg_auth_type'],$params['user_list'] ?? []);
+        $this->addMessage($info, $params['msg_type'], $params['msg_target_type'], $params['msg_auth_type'], $params['user_list'] ?? []);
     }
 
     /**
-     * @api 新增消息内容 TODO Mq
-     * @author wyf
-     * @date 2019/6/12
      * @param array $params
      * @param int $type 消息类型:1.系统通知,2.服务提醒,3.互动提醒,4.工作提醒
      * @param int $target_type 跳转方式:1.默认跳转,2.住户详情页,3.对应房屋下账单详情,4.工单详情页,5.投票详情页,6.住户管理页面7.报修列表,8.疑难问题列表,
@@ -92,6 +94,9 @@ class MessageService extends BaseService
      * @param array $appointUserArray 需要推送的指定人数组
      * @return bool|string
      * @throws \yii\db\Exception
+     * @author wyf
+     * @date 2019/6/12
+     * @api 新增消息内容 TODO Mq
      */
     public function addMessage($params, $type, $target_type, $auth_type, $appointUserArray = array())
     {
@@ -127,14 +132,14 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 获取有权限的B端用户id
-     * @author wyf
-     * @date 2019/6/12
      * @param $community_id
      * @param $type :权限类型:1.住户管理权限,2.账单管理权限,3.报修管理权限,4.投票权限的用户,5.复核权限,6.报修管理权限且对应为指派人,
      * 7.有疑难问题权限,8.有报修管理且有按钮,9.投诉建议权限,10.小区活动权限,11.管家管理权限,12.服务评分权限,13.有邻里互动权限,14.核销权限，15曝光台
      * @return array
      * @throws \yii\db\Exception
+     * @api 获取有权限的B端用户id
+     * @author wyf
+     * @date 2019/6/12
      */
     public function handleUserInfo($community_id, $type)
     {
@@ -169,22 +174,22 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 获取消息列表
-     * @author wyf
-     * @date 2019/6/13
      * @param $params
      * @param $uid
      * @return array
+     * @author wyf
+     * @date 2019/6/13
+     * @api 获取消息列表
      */
     public function getList($params, $uid)
     {
         $communityId = PsCommon::get($params, "community_id");  //小区id
         if (!$communityId) {
-            return $this->failed("请选择小区");
+            throw new MyException('请选择小区');
         }
         $communityInfo = CommunityService::service()->getInfoById($communityId);
         if (empty($communityInfo)) {
-            return $this->failed("请选择有效小区");
+            throw new MyException('请选择有效小区');
         }
         if (empty($params['message_type'])) {
             $type = "";
@@ -253,13 +258,13 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 获取消息详情
-     * @author wyf
-     * @date 2019/6/14
      * @param $id
      * @param array $userInfo
      * @return array
      * @throws MyException
+     * @api 获取消息详情
+     * @author wyf
+     * @date 2019/6/14
      */
     public function view($id, $userInfo = [])
     {
@@ -277,22 +282,22 @@ class MessageService extends BaseService
         $messageInfo['target_id'] = (int)$messageInfo['target_id'];
         $messageInfo['target_type'] = (int)$messageInfo['target_type'];
         $messageInfo['create_date'] = date('Y-m-d H:i:s', $messageInfo['created_at']);
-        if (!empty($userInfo['id']) && $messageInfo['is_read']!=1) {
+        if (!empty($userInfo['id']) && $messageInfo['is_read'] != 1) {
             PsMessageUser::updateAll(['is_read' => 1, 'read_time' => time(), 'updated_at' => time()], ['message_id' => $messageInfo['id'], 'user_id' => $userInfo['id']]);
-            $content = "操作的ID有:".$messageInfo['id'];
+            $content = "操作的ID有:" . $messageInfo['id'];
             self::addLog($userInfo, $messageInfo['community_id'], 1, $content);
         }
         return $this->success($messageInfo);
     }
 
     /**
-     * @api 消息操作
-     * @author wyf
-     * @date 2019/6/21
      * @param $params
      * @param $userInfo
      * @return array
      * @throws MyException
+     * @api 消息操作
+     * @author wyf
+     * @date 2019/6/21
      */
     public function operation($params, $userInfo)
     {
@@ -374,13 +379,13 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 添加日志
-     * @author wyf
-     * @date 2019/6/21
      * @param array $userInfo
      * @param $community_id
      * @param $type
      * @param $content
+     * @api 添加日志
+     * @author wyf
+     * @date 2019/6/21
      */
     private static function addLog($userInfo = [], $community_id, $type, $content = "")
     {
@@ -403,11 +408,11 @@ class MessageService extends BaseService
     }
 
     /**
+     * @param $params
+     * @return array
      * @api 获取工作提醒
      * @author wyf
      * @date 2019/6/13
-     * @param $params
-     * @return array
      */
     public function getWorkerRemind($params)
     {
@@ -441,14 +446,14 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 获取消息
-     * @author wyf
-     * @date 2019/6/11
      * @param $communityId
      * @param $uid
      * @param int $is_read
      * @param string $type
      * @return \yii\db\ActiveQuery
+     * @author wyf
+     * @date 2019/6/11
+     * @api 获取消息
      */
     public static function getContent($communityId, $uid, $is_read = 2, $type = "")
     {
@@ -464,13 +469,13 @@ class MessageService extends BaseService
     }
 
     /**
-     * @api 获取未读数量
-     * @author wyf
-     * @date 2019/6/13
      * @param $communityId
      * @param $uid
      * @param int $type
      * @return int|string
+     * @api 获取未读数量
+     * @author wyf
+     * @date 2019/6/13
      */
     public static function unRead($communityId, $uid, $type = 0)
     {

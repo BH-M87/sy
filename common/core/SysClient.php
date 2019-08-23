@@ -24,7 +24,7 @@ class SysClient
     //获取websocket服务端的ip+端口号
     private function getUrl()
     {
-        $port = YII_ENV == 'master' ? 9800 : 9801;
+        $port = YII_ENV == 'prod' ? 9800 : 9801;
         return 'http://127.0.0.1:' . $port;
     }
 
