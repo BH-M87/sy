@@ -5,6 +5,7 @@ use Yii;
 use yii\base\Exception;
 
 use service\BaseService;
+use service\rbac\OperateService;
 
 use common\core\PsCommon;
 

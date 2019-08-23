@@ -11,7 +11,7 @@ class PsProclaim extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','title','proclaim_type','proclaim_cate','is_top'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
+            [['community_id','title','proclaim_type','proclaim_cate','is_top','operator_id','operator_name'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
             [['id','community_id','title','proclaim_type','proclaim_cate','is_top'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit','del','edit_show','edit_top']],
             [['is_show'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit_show']],
