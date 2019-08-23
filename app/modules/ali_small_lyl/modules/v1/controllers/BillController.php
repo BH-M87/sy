@@ -6,7 +6,7 @@
  * Time: 10:35
  */
 
-namespace app\modules\small\controllers;
+namespace app\modules\ali_small_lyl\modules\v1\controllers;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use app\modules\small\services\BillSmallService;
 use common\core\F;

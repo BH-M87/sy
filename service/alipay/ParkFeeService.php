@@ -8,7 +8,9 @@
 namespace service\alipay;
 
 use app\modules\small\services\BillSmallService;
-use app\small\services\MemberService;
+use common\core\ali\AopEncrypt;
+use common\core\F;
+use service\small\MemberService;
 use common\core\Curl;
 use common\core\PsCommon;
 use app\models\PsAlipayLog;
@@ -20,6 +22,7 @@ use app\models\ParkingAcrossRecord;
 use app\models\ParkingPayCode;
 use app\models\PsCommunityModel;
 use service\BaseService;
+use yii\db\Query;
 
 class ParkFeeService extends BaseService
 {
@@ -233,15 +236,12 @@ class ParkFeeService extends BaseService
      */
     private function getfeeByPlateNumber($plateNumber)
     {
-        $url = \Yii::$app->getModule('wisdompark')->params['open_api_url'];
-        $url_send = $url.'inner/v2/iot/apply-calculation-fee';
         $data_send['plate_number'] = $plateNumber;
-        $res = Curl::getInstance()->post($url_send,$data_send);
-        $resArr = json_decode($res, true);
-        if ($resArr['code'] == 20000) {
-            return $resArr['data'];
+        $res = CarService::service()->freeInfo($data_send);
+        if ($res['code'] == 1) {
+            return $res['data'];
         } else {
-            return $resArr['error']['errorMsg'];
+            return $res['msg'];
         }
     }
 
@@ -252,15 +252,12 @@ class ParkFeeService extends BaseService
      */
     public function payResultSend($orderId)
     {
-        $url = \Yii::$app->getModule('wisdompark')->params['open_api_url'];
-        $url_send = $url.'inner/v2/iot/send-pay-result';
         $data_send['order_id'] = $orderId;
-        $res = Curl::getInstance()->post($url_send,$data_send);
-        $resArr = json_decode($res, true);
-        if ($resArr['code'] == 1) {
-            return $resArr['data'];
+        $res = CarService::service()->paySuccess($data_send);
+        if ($res['code'] == 1) {
+            return $res['data'];
         } else {
-            return $resArr['error']['errorMsg'];
+            return $res['msg'];
         }
     }
 
@@ -281,23 +278,41 @@ class ParkFeeService extends BaseService
         return $record;
     }
 
+
     /**
-     * 支付订单同步到支付宝平台
-     * @param $orderId
-     * @return mixed
+     * 根据小区id获取物业公司id
+     * @param $communityId
+     * @return int
      */
-    public function orderSyncToAli($params)
+    public function getPropertyIdByCommunityId($communityId)
     {
-        $url = \Yii::$app->getModule('wisdompark')->params['open_api_url'];
-        $url_send = $url.'inner/v2/iot/order-sync-to-ali';
-        $data_send = $params;
-        $res = Curl::getInstance()->post($url_send,$data_send);
-        $resArr = json_decode($res, true);
-        if ($resArr['code'] == 1) {
-            return $resArr['data'];
-        } else {
-            return $resArr['error']['errorMsg'];
+        $communityInfo = (new Query())
+            ->select(['id', 'pro_company_id', 'name', 'phone'])
+            ->from('ps_community')
+            ->where(['id' => $communityId])
+            ->one();
+        if ($communityInfo) {
+            return $communityInfo['pro_company_id'];
         }
+        return 0;
+    }
+
+    /**
+     * 根据出入场记录查询车场相关信息
+     * @param $recordId
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getLotInfoByAcrossRecordId($recordId)
+    {
+        $lotInfo = ParkingAcrossRecord::find()
+            ->alias('record')
+            ->leftJoin('parking_lot lot', 'record.lot_code = lot.park_code')
+            ->select(['record.amount', 'record.car_num', 'record.in_time',  'lot.name',
+                'lot.overtime', 'lot.park_code', 'lot.alipay_park_id', 'lot.supplier_id', 'lot.community_id'])
+            ->where(['record.id' => $recordId])
+            ->asArray()
+            ->one();
+        return $lotInfo;
     }
 
     public function markPay($reqArr)
@@ -343,9 +358,9 @@ class ParkFeeService extends BaseService
         $psOrder->pay_time = time();
         if ($psOrder->save()) {
             //上报给蓝卡
-            if (in_array($reqArr['pay_from'], [1,3])) {
-                ParkFeeService::service()->payResultSend($payCodeLk['order_id']);
-            }
+//            if (in_array($reqArr['pay_from'], [1,3])) {
+//                ParkFeeService::service()->payResultSend($payCodeLk['order_id']);
+//            }
             return true;
         } else {
             return false;

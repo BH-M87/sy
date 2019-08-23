@@ -5,7 +5,7 @@
  * Date: 2019/7/3
  * Time: 11:31
  */
-namespace app\modules\small\controllers;
+namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;

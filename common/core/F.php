@@ -8,6 +8,7 @@
 namespace common\core;
 
 use Yii;
+use yii\helpers\FileHelper;
 use yii\web\HttpException;
 
 class F
@@ -463,6 +464,22 @@ class F
         } else {
             return false;
         }
+    }
+
+    public static function writeLog($path, $file, $content, $type = FILE_APPEND)
+    {
+        $today    = date("Y-m-d", time());
+        $savePath = \Yii::$app->basePath . DIRECTORY_SEPARATOR. 'runtime'. DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . $today . DIRECTORY_SEPARATOR;
+        if (FileHelper::createDirectory($savePath, 0777)) {
+            if (!file_exists($savePath.$file)) {
+                file_put_contents($savePath.$file, $content, $type);
+                chmod($savePath.$file, 0777);//第一次创建文件，设置777权限
+            } else {
+                file_put_contents($savePath.$file, $content, $type);
+            }
+            return true;
+        }
+        return false;
     }
 }
 
