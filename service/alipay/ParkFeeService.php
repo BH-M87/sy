@@ -156,7 +156,8 @@ class ParkFeeService extends BaseService
     {
         $resArr['totals'] = 0;
         $resArr['list'] = [];
-
+        $reqArr['page'] = !empty($reqArr['page']) ? $reqArr['page'] : 1;
+        $reqArr['rows'] = !empty($reqArr['rows']) ? $reqArr['rows'] : 10;
         $alipayUserId = PsAppUser::find()->select('channel_user_id')->where(['id' => $reqArr['user_id']])->scalar();
         if (!$alipayUserId) {
             return $resArr;
@@ -166,7 +167,7 @@ class ParkFeeService extends BaseService
             ->select('paylog.id, comm.id as community_id, comm.name as community_name, 
             ordera.pay_amount as pay_charge, lkpay.plate_number as plate_number, record.in_time, record.out_time, paylog.gmt_payment')
             ->leftJoin('ps_order ordera', 'ordera.pay_id = paylog.id')
-            ->leftJoin('parking_lk_pay_code lkpay', 'ordera.id = lkpay.order_id')
+            ->leftJoin('parking_pay_code lkpay', 'ordera.id = lkpay.order_id')
             ->leftJoin('parking_across_record record', 'ordera.product_id = record.id')
             ->leftJoin('ps_community comm', 'ordera.community_id = comm.id')
             ->where(['paylog.buyer_id' => $alipayUserId, 'ordera.product_type' => OrderService::TYPE_PARK])

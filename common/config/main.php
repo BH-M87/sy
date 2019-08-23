@@ -9,6 +9,6 @@ return [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
-        'params' => require __DIR__ . '/params.php',
+//        'params' => require __DIR__ . '/params.php',
     ],
 ];
