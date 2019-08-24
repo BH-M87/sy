@@ -36,9 +36,9 @@ switch (YII_ENV) {
     case "dev":
         return [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=192.168.1.112;dbname=property_basic',
-            'username' => 'root',
-            'password' => 'zhujia360!@#',
+            'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=community_brain_test',
+            'username' => 'communitybrain',
+            'password' => 'communitybrain123!@#',
             'charset' => 'utf8',
             'attributes' => [
                 PDO::ATTR_EMULATE_PREPARES => true,
