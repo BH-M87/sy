@@ -47,7 +47,9 @@ class LotService extends BaseService
     public function getList($params)
     {
         $model = ParkingLot::find()
-            ->select('id, name, type, created_at')
+            ->alias('lot')
+            ->select('lot.id, lot.name,lot.lon, lot.lat, lot.location,lot.iot_park_name, lot.created_at,s.name supplier_name')
+            ->leftJoin('iot_suppliers s','s.id = lot.supplier_id')
             ->where("1=1");
         if (!empty($params['community_id'])) {
             $model->andWhere(['community_id' => $params['community_id']]);
@@ -58,6 +60,11 @@ class LotService extends BaseService
         $lots = $model->orderBy('id desc')
             ->asArray()
             ->all();
+        foreach ($lots as $k => $v) {
+            $lots[$k]['created_at'] = $v['created_at']  ? date("Y-m-d H:i", $v['created_at']) : '';
+            //查询车位数量
+            $lots[$k]['carport_num'] = ParkingCarport::find()->select('count(id)')->where(['lot_id' => $v['id']])->scalar();
+        }
         $re['totals'] = count($lots);
         $re['list'] = $lots;
         return $re;
@@ -70,28 +77,27 @@ class LotService extends BaseService
         if ($model) {
             return $this->failed('车场名重复');
         }
-        $model = $this->checkParkCode($params['parkCode']);
-        if ($model) {
-            return $this->failed('该车场已经被绑定');
+        if (!empty($params['parkCode'])) {
+            $model = $this->checkParkCode($params['parkCode']);
+            if ($model) {
+                return $this->failed('该车场已经被绑定');
+            }
         }
+
         //新增车场
         $model = new ParkingLot();
         $model->supplier_id = $params['supplier_id'];
         $model->community_id = $params['community_id'];
         $model->name = $params['name'];
+        $model->lon = $params['lon'];
+        $model->lat = $params['lat'];
+        $model->location = $params['location'];
         $model->park_code = $params['parkCode'];
+        $model->iot_park_name = $params['parkName'];
         $model->parkId = $params['parkId'];
         $model->created_at = time();
         if($model->save()){
-            //TODO 数据推送
-            $operate = [
-                "community_id" => $params['community_id'],
-                "operate_menu" => "车场管理",
-                "operate_type" => "新增车场",
-                "operate_content" => '名称:' . $params['name'],
-            ];
-            OperateService::addComm($userInfo, $operate);
-            return $this->success('车场名重复');
+            return $this->success();
         }
         return $this->failed(PsCommon::getModelError($model));
     }
@@ -110,16 +116,19 @@ class LotService extends BaseService
         if ($reParkInfo) {
             return $this->failed('车场名重复');
         }
+
+        if (!empty($params['supplier_id']) && $model->supplier_id != $params['supplier_id']) {
+            return $this->failed('供应商不可编辑');
+        }
+        if (!empty($params['parkCode']) && $model->park_code != $params['parkCode']) {
+            return $this->failed('设备对应车场不可编辑');
+        }
+
         $model->name = $params['name'];
+        $model->lon = $params['lon'];
+        $model->lat = $params['lat'];
+        $model->location = $params['location'];
         if ($model->save()) {
-            //TODO 数据推送
-            $operate = [
-                "community_id" => $params['community_id'],
-                "operate_menu" => "车场管理",
-                "operate_type" => "编辑车场",
-                "operate_content" => '名称:' . $params['name'],
-            ];
-            OperateService::addComm($userInfo, $operate);
             return $this->success();
         }
         return $this->failed(PsCommon::getModelError($model));
@@ -132,20 +141,16 @@ class LotService extends BaseService
         if (!$model) {
             return $this->failed('车场不存在！');
         }
+        if ($model->supplier_id) {
+            return $this->failed('车场已关联设备厂商，不可删除');
+        }
+
         //查看车场是否绑定了车位，如果有就不能删除
         $res = ParkingCarport::find()->where(['lot_id' => $params['id']])->orderBy('id desc')->limit(1)->asArray()->one();
         if($res){
             return $this->failed('车场已绑定车位信息，请先删除车位相关信息');
         }
         if ($model->delete()) {
-            //TODO 数据推送
-            $operate = [
-                "community_id" => $params['community_id'],
-                "operate_menu" => "车场管理",
-                "operate_type" => "删除车场",
-                "operate_content" => '名称:' . $model->name,
-            ];
-            OperateService::addComm($userInfo, $operate);
             return $this->success();
         }
         return $this->failed(PsCommon::getModelError($model));
@@ -158,6 +163,7 @@ class LotService extends BaseService
             return $this->failed('车场不存在！');
         }
         $lotInfo = $model->toArray();
+        $lotInfo['created_at'] = $lotInfo['created_at'] ? date("Y-m-d H:i", $lotInfo['created_at']) : '';
         return $this->success($lotInfo);
     }
 
@@ -170,25 +176,21 @@ class LotService extends BaseService
     //iot车场列表
     public function getIotLostList($supplier_id,$type)
     {
-        $paramData['productSn'] = $this->getSupplierProductSn($supplier_id);
-        if($type == 1) {
-            $paramData['isUsed'] = 1;
-        }
-        $res = IotParkingService::service()->getParkInfo($paramData);
-        $list = [];
-        if($res['code'] == 1){
-            if($res['data']){
-                foreach($res['data'] as $key=>$value){
-                    $data['productSn'] = $value['parkInfo']['brand'];
-                    $data['parkName'] = $value['parkInfo']['parkName'];
-                    $data['parkCode'] = $value['parkInfo']['parkCode'];
-                    $data['parkId'] = $value['parkInfo']['parkId'];
-                    $list[] = $data;
-                }
-            }
-            return $this->success($list);
-        }
-        return $res;
+        $list = [
+            0 => [
+                'productSn' => 'dnk',
+                'parkName' => '春江花园地面停车场',
+                'parkCode' => 'PK0001',
+                'parkId' => 1
+            ],
+            1 => [
+                'productSn' => 'dnk',
+                'parkName' => '华庭地面停车场',
+                'parkCode' => 'PK0002',
+                'parkId' => 2
+            ],
+        ];
+        return $this->success($list);
     }
 
     //获取停车区列表

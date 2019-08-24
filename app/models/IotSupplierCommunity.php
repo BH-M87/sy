@@ -27,7 +27,7 @@ class IotSupplierCommunity extends BaseModel
      */
     public static function tableName()
     {
-        return 'parking_supplier_community';
+        return 'iot_supplier_community';
     }
 
     /**
