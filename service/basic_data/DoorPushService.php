@@ -68,7 +68,10 @@ Class DoorPushService extends BaseService
             return true;
         }
         $name = $groupName . $buildingName . $unitName;
-        $code = $groupCode . "#" . $buildingCode . "#" . $unitCode;
+        $code = '';
+        if($groupCode && $buildingCode && $unitCode){
+            $code = $groupCode . "#" . $buildingCode . "#" . $unitCode;
+        }
         $buildData = [
             'community_id' => $communityId,
             'building_name' => $name,
