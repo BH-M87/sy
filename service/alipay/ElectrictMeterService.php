@@ -137,7 +137,7 @@ class ElectrictMeterService extends  BaseService {
             "address"=>   $room["address"],
             "start_ton" => $data["start_ton"],
             "latest_record_time" => strtotime($data["latest_record_time"]),
-            "remark"=>$data["remark"],
+            "remark"=>PsCommon::get($data,'remark'),
             "create_at" =>time(),
         ];
         $result = $this->addElectric($meter_arr);
@@ -213,7 +213,7 @@ class ElectrictMeterService extends  BaseService {
             "meter_status" => $data["meter_status"],
             "start_ton" => $data["start_ton"],
             "latest_record_time" => strtotime($data["latest_record_time"]),
-            "remark"=>$data["remark"],
+            "remark"=>PsCommon::get($data,'remark'),
         ];
         $where['id'] = $data["meter_id"];
         PsElectricMeter::editData($meter_arr,$where);

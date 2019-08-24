@@ -437,7 +437,6 @@ class SharedService extends BaseService
             return $this->failed("未接受到有效数据");
         }
 
-
         $defeat_count = $success_count = $error_count = 0;
         $receiptArr = [];
         $batchInfo = [];

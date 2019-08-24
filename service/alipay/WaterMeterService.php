@@ -137,7 +137,7 @@ class WaterMeterService extends  BaseService {
             "address"=>   $room["address"],
             "start_ton" => $data["start_ton"],
             "latest_record_time" => strtotime($data["latest_record_time"]),
-            "remark"=>$data["remark"],
+            "remark"=>!empty($data["remark"]) ? $data["remark"] : '',
             "create_at" =>time(),
         ];
         $result = $this->addWater($meter_arr);
@@ -195,7 +195,7 @@ class WaterMeterService extends  BaseService {
             "meter_status" => $data["meter_status"],
             "start_ton" => $data["start_ton"],
             "latest_record_time" => strtotime($data["latest_record_time"]),
-            "remark"=>$data["remark"],
+            "remark"=>PsCommon::get($data,'remark'),
         ];
         $where['id'] = $data["water_meter_id"];
         PsWaterMeter::editData($meter_arr,$where);

@@ -8,6 +8,7 @@
 
 namespace service\manage;
 
+use service\alipay\AliTokenService;
 use service\BaseService;
 use common\core\F;
 use common\core\PsCommon;
