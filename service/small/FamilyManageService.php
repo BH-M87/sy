@@ -241,7 +241,13 @@ class FamilyManageService extends BaseService
                 $memberModel->save();
             }
             $model->member_id = $member_id;
-            $model->save();
+            if (empty($model->member_id)){
+                throw new MyException('编辑住户失败');
+            }
+            $result = $model->save();
+            if (!$result){
+                throw new MyException('编辑住户失败,数据未成功');
+            }
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();
@@ -263,7 +269,6 @@ class FamilyManageService extends BaseService
         }
         return true;
     }
-
 
     private static function checkParams($params)
     {
@@ -357,7 +362,10 @@ class FamilyManageService extends BaseService
                 $memberModel->save();
             }
             $model = RoomUserService::addResidentAudit($roomInfo, $member_id, $memberInfo, $params['room_id'], $params['identity_type'], $params['time_end'], '');
-            $model->save();
+            $result = $model->save();
+            if (!$result){
+                throw new MyException('新增住户失败,数据未提交');
+            }
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();
@@ -422,11 +430,10 @@ class FamilyManageService extends BaseService
             $data['member_id'] = $member_id;
             $model->setAttributes($data);
             $result = $model->save();
-            $trans->commit();
             if (!$result) {
-                $trans->rollback();
                 throw new MyException('新增住户失败');
             }
+            $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();
             throw new MyException($e->getMessage());
@@ -566,7 +573,6 @@ class FamilyManageService extends BaseService
         $data['name'] = $roomUser['name'];
         $data['sex'] = $roomUser['sex'];
         $data['reason'] = $roomUser['reason'];
-
         return $data;
     }
 
@@ -619,6 +625,4 @@ class FamilyManageService extends BaseService
         }
         return $result;
     }
-
-
 }

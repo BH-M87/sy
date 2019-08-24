@@ -214,7 +214,7 @@ Class ActivityService extends BaseService
             if ($activity['type'] == 1) {//只有物业端的消息才推送
                 //获取业主id
                 $member_name = $this->getMemberNameByUser($member_id);
-                $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
+                $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
                 $data = [
                     'community_id' => $activity['community_id'],
                     'id' => $activity['id'],
@@ -539,7 +539,7 @@ Class ActivityService extends BaseService
                 //获取业主id
                 $member_id = $this->getMemberByUser($param['user_id']);
                 $member_name = $this->getMemberNameByUser($member_id);
-                $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
+                $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
                 $data = [
                     'community_id' => $modelInfo['community_id'],
                     'id' => $modelInfo['id'],

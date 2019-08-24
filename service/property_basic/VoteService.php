@@ -8,6 +8,7 @@ use yii\base\Exception;
 use common\core\PsCommon;
 
 use service\BaseService;
+use service\rbac\OperateService;
 use service\message\MessageService;
 
 use app\models\PsCommunityModel;

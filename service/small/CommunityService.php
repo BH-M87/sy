@@ -633,7 +633,7 @@ Class CommunityService extends BaseService
         // 发送消息 获取业主id
         $member_id = $this->getMemberByUser($param['user_id']);
         $member_name = $this->getMemberNameByUser($member_id);
-        $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
+        $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
         $data = [
             'community_id' => $roomInfo['community_id'],
             'id' => 0,
@@ -804,7 +804,7 @@ Class CommunityService extends BaseService
             // 发送消息 获取业主id
             $member_id = $this->getMemberByUser($param['user_id']);
             $member_name = $this->getMemberNameByUser($member_id);
-            $room_info = \app\services\CommunityService::getCommunityRoominfo($param['room_id']);
+            $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
             $data = [
                 'community_id' => $roomInfo['community_id'],
                 'id' => 0,

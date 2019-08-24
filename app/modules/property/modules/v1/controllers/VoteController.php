@@ -17,7 +17,7 @@ use app\models\PsVote;
 use app\models\PsVoteProblem;
 use app\models\PsVoteProblemOption;
 
-require dirname(dirname(__DIR__)) . '/../common/PhpExcel/PHPExcel.php';
+//require dirname(dirname(__DIR__)) . '/../common/PhpExcel/PHPExcel.php';
 
 class VoteController extends BaseController
 {
@@ -95,16 +95,6 @@ class VoteController extends BaseController
             if (empty($problem["options"]) || count($problem["options"]) > 30 || count($problem["options"]) < 2) {
                 return PsCommon::responseFailed('选项个数最少2个最多30个');
             }
-            foreach ($problem["options"] as $option) {
-                if ($data["vote_type"] == 1) {
-                    $valid = PsCommon::validParamArr(new PsVoteProblemOption(), $option, 'add1');
-                } else {
-                    $valid = PsCommon::validParamArr(new PsVoteProblemOption(), $option, 'add2');
-                }
-                if (!$valid["status"]) {
-                    return PsCommon::responseFailed($valid["errorMsg"]);
-                }
-            }
         }
 
         if ($data["permission_type"] == 3) {
@@ -125,7 +115,7 @@ class VoteController extends BaseController
                 }
             }
         }
-        $result = VoteService::service()->addVote($data,$this->user_info);
+        $result = VoteService::service()->addVote($data, $this->user_info);
         if ($result["code"]) {
             // 添加到redis中，处理发送消息
             $voteId = $result['data']['vote_id'];

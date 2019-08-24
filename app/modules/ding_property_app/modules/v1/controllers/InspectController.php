@@ -112,7 +112,7 @@ class InspectController extends UserBaseController
      * @author wyf
      * @date 2019/8/19
      */
-    public function actionPointDownList()
+    public function actionPointDropList()
     {
         $reqArr = $this->request_params;
         $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
@@ -334,7 +334,7 @@ class InspectController extends UserBaseController
      * @author wyf
      * @date 2019/8/16
      */
-    public function actionInfo()
+    public function actionTaskInfo()
     {
         $reqArr = $this->request_params;
         $reqArr['user_id'] = $this->userInfo['id'];

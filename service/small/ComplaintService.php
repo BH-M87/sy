@@ -365,7 +365,7 @@ class ComplaintService extends BaseService
             //获取业主id
             $member_id = $this->getMemberByUser($app_user_id);
             $member_name = $this->getMemberNameByUser($member_id);
-            $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
+            $room_info = CommunityRoomService::getCommunityRoominfo($room_id);
             $data = [
                 'community_id' => $community_id,
                 'id' => $id,

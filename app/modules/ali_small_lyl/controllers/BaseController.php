@@ -1,17 +1,12 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: fengwenchao
- * Date: 2019/8/19
- * Time: 13:57
- */
-
 namespace app\modules\ali_small_lyl\controllers;
 
+use Yii;
+
+use yii\web\Controller;
 
 use common\core\F;
-use yii\web\Controller;
-use Yii;
+use common\core\PsCommon;
 
 class BaseController extends Controller
 {
@@ -40,5 +35,16 @@ class BaseController extends Controller
         $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
         return true;
     }
-
+    
+    public function dealReturnResult($result)
+    {
+        if($result['code'] == 1){
+            return PsCommon::responseAppSuccess($result['data']);
+        } else {
+            if (!empty($result['code'])) {
+                return PsCommon::responseAppFailed($result['msg'], $result['code']);
+            }
+            return PsCommon::responseAppFailed($result['msg']);
+        }
+    }
 }
