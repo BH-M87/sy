@@ -1,32 +1,46 @@
 <?php
+
 namespace app\models;
+
+use Yii;
 
 /**
  * This is the model class for table "parking_across_record".
  *
- * @property integer $id
- * @property string $orderId
- * @property integer $supplier_id
- * @property integer $community_id
- * @property string $car_num
- * @property integer $car_type
- * @property integer $user_id
- * @property integer $in_gate_id
- * @property string $in_address
- * @property integer $in_time
- * @property integer $out_gate_id
- * @property string $out_address
- * @property integer $out_time
- * @property string $amount
- * @property integer $park_time
- * @property integer $created_at
- * @property integer $out_capture_photo
- * @property integer $in_capture_photo
+ * @property int $id
+ * @property int $supplier_id 供应商id
+ * @property int $community_id 小区id
+ * @property string $orderId 车场订单编号
+ * @property string $car_num 车牌号
+ * @property int $car_type 车辆属性 1会员 2访客
+ * @property int $user_id 车主id
+ * @property int $in_gate_id 入口道闸id
+ * @property string $in_address 入口道闸名称
+ * @property int $in_time 入场时间
+ * @property string $in_capture_photo 入场抓拍图片
+ * @property int $out_gate_id 出口道闸id
+ * @property string $out_address 出口道闸
+ * @property int $out_time 出场时间
+ * @property string $out_capture_photo 出场抓拍图片
+ * @property string $amount 需缴纳的停车费用
+ * @property string $discount_amount 优惠金额
+ * @property string $pay_amount 实际支付的金额
+ * @property int $park_time 停车时长，单位分钟
+ * @property string $lot_code 车场编号
+ * @property string $plate_type 车牌类型
+ * @property string $plate_type_str 车牌类型描述
+ * @property string $plate_color 车牌颜色
+ * @property string $plate_color_str 车牌颜色描述
+ * @property string $car_color 车身颜色
+ * @property string $car_color_str 车身颜色描述
+ * @property string $car_sub_type 车型
+ * @property string $car_logo 车标
+ * @property int $created_at 添加时间
  */
-class ParkingAcrossRecord extends \yii\db\ActiveRecord
+class ParkingAcrossRecord extends BaseModel 
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public static function tableName()
     {
@@ -34,7 +48,7 @@ class ParkingAcrossRecord extends \yii\db\ActiveRecord
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function rules()
     {
@@ -60,6 +74,7 @@ class ParkingAcrossRecord extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
+
             'supplier_id' => '供应商',
             'community_id' => '小区',
             'orderId'=>'订单编号',

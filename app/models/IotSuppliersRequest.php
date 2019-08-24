@@ -17,7 +17,7 @@ use Yii;
  * @property int $expired_at 令牌过期时间
  * @property int $created_at 创建时间
  */
-class IotSuppliersRequest extends \app\models\BaseModel
+class IotSuppliersRequest extends BaseModel
 {
     /**
      * {@inheritdoc}
