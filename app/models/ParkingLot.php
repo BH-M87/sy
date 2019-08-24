@@ -45,7 +45,7 @@ class ParkingLot extends BaseModel
             [['park_code', 'parkId'], 'string', 'max' => 30],
             [['third_code'], 'string', 'max' => 10],
             [['alipay_park_id'], 'string', 'max' => 50],
-            [['supplier_id', 'community_id', 'name', 'parkId', 'parkCode'], 'required', 'message' => '{attribute}不能为空', 'on' => ['add']],
+            [['community_id', 'name'], 'required', 'message' => '{attribute}不能为空', 'on' => ['add']],
             [['name', 'id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['delete', 'view']],
             [['community_id'], 'required', 'message'=>'{attribute}不能为空!','on'=>['simpleList']],

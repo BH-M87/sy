@@ -1,6 +1,7 @@
 <?php
 namespace service;
 use app\models\IotSupplierCommunity;
+use app\models\IotSuppliers;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
 use app\models\PsMember;
@@ -140,5 +141,15 @@ class BaseService {
             ->select(['supplier_id'])
             ->where(['community_id'=>$communityId, 'supplier_type' => $type])
             ->scalar();
+    }
+
+    /**
+     * 查询供应商sn
+     * @param $supplier_id
+     * @return false|null|string
+     */
+    public function getSupplierProductSn($supplier_id)
+    {
+        return IotSuppliers::find()->select(['productSn'])->where(['id'=>$supplier_id])->asArray()->scalar();
     }
 }

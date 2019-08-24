@@ -563,7 +563,7 @@ class CommunityBuildingService extends BaseService
                     if($unit_id <= 0){
                         return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
                     }
-                    $content = "幢号:" . $building_name;
+                    /*$content = "幢号:" . $building_name;
                     $content .= "单元:" . $unit_name;
                     $operate = [
                         "community_id" =>$data['community_id'],
@@ -571,7 +571,7 @@ class CommunityBuildingService extends BaseService
                         "operate_type" => "新增楼幢",
                         "operate_content" => $content,
                     ];
-                    OperateService::addComm($userInfo, $operate);
+                    OperateService::addComm($userInfo, $operate);*/
                 }
             }
             $transaction->commit();
@@ -665,14 +665,14 @@ class CommunityBuildingService extends BaseService
             $buildingModel->longitude = $longitude;
             $buildingModel->latitude = $latitude;
             $buildingModel->save();
-            $content = "幢号:" . $buildingModel->name;
+            /*$content = "幢号:" . $buildingModel->name;
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "楼幢信息",
                 "operate_type" => "编辑楼幢",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess();
         } catch (\Exception $e) {
@@ -711,14 +711,14 @@ class CommunityBuildingService extends BaseService
             }
             $building_name = $buildingModel->name;
             $buildingModel->delete();
-            $content = "幢号:" .$building_name;
+            /*$content = "幢号:" .$building_name;
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "楼幢信息",
                 "operate_type" => "删除楼幢",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {
@@ -779,7 +779,7 @@ class CommunityBuildingService extends BaseService
             if($unit_id <= 0){
                 return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
             }
-            $content = "幢号:" . $building_name;
+            /*$content = "幢号:" . $building_name;
             $content .= "单元:" . $unit_name;
             $operate = [
                 "community_id" =>$data['community_id'],
@@ -787,7 +787,7 @@ class CommunityBuildingService extends BaseService
                 "operate_type" => "新增单元",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess();
         } catch (\Exception $e) {
@@ -826,7 +826,7 @@ class CommunityBuildingService extends BaseService
             $unit_name = $unitModel->name;
             $building_name = $unitModel->building_name;
             $unitModel->delete();
-            $content = "幢号:" .$building_name;
+            /*$content = "幢号:" .$building_name;
             $content .= "单元号:" .$unit_name;
             $operate = [
                 "community_id" =>$data['community_id'],
@@ -834,7 +834,7 @@ class CommunityBuildingService extends BaseService
                 "operate_type" => "删除单元",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {
