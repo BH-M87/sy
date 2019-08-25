@@ -392,7 +392,7 @@ class DeviceService extends BaseService
     // 设备 搜索
     private function _deviceSearch($params)
     {
-        $model = PsDevice::find()
+        $model = PsDevice::find() 
             ->filterWhere(['like', 'name', PsCommon::get($params, 'name')])
             ->andFilterWhere(['=', 'id', PsCommon::get($params, 'device_id')])
             ->andFilterWhere(['like', 'device_no', PsCommon::get($params, 'device_no')])
