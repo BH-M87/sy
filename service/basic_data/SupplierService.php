@@ -38,7 +38,8 @@ class SupplierService extends BaseService
             ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
             ->asArray()
             ->all();
-        return $res;
+        $supplierInfo['list'] = $res;
+        return $supplierInfo;
     }
 
     //发送间隔时间，分钟为单位

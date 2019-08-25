@@ -191,7 +191,8 @@ class LotService extends BaseService
                 'parkId' => 2
             ],
         ];
-        return $this->success($list);
+        $reList['list'] = $list;
+        return $this->success($reList);
     }
 
     //获取停车区列表
