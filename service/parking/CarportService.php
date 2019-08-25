@@ -21,14 +21,18 @@ use yii\db\Query;
 class CarportService extends BaseService
 {
     public $types = [
-        1 => ['id' => 1, 'name' => '固定车位'],
-        2 => ['id' => 2, 'name' => '临时车位'],
+        1 => ['id' => 1, 'name' => '人防车位'],
+        2 => ['id' => 2, 'name' => '公共车位'],
+        3 => ['id' => 3, 'name' => '产权车位'],
     ];
 
     public $status = [
-        0 => ['id' => 0, 'name' => '空闲'],
+        0 => ['id' => 0, 'name' => '空置'],
         1 => ['id' => 1, 'name' => '已售'],
         2 => ['id' => 2, 'name' => '已租'],
+        3 => ['id' => 3, 'name' => '自用'],
+        4 => ['id' => 4, 'name' => '代售'],
+        5 => ['id' => 5, 'name' => '待租'],
     ];
 
     //筛选房屋信息用

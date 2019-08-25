@@ -20,6 +20,9 @@ class BuildForm extends Model
     public $unit_code;
     public $unit;
 
+    public $unit_num;
+    public $building_id;
+
 
     public function rules()
     {
@@ -30,6 +33,10 @@ class BuildForm extends Model
             [['building_name', 'unit_name'], 'match', 'pattern' => Regular::string(1,20), 'message' => '{attribute}格式出错，填写正确的{attribute}', 'on' => ['add']],
             [['building_code'], 'checkBuildCode'],
             [['unit_code'], 'checkUnitCode'],
+            [['community_id', 'group_id','building_name','unit_num'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['building-add']],
+            [['building_id'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['building-edit']],
+            [['community_id','building_id','unit_name'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['unit-add']],
+
         ];
     }
 
