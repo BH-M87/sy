@@ -4,10 +4,10 @@ namespace app\models;
 use Yii;
 
 class PsLabels extends BaseModel
-{
-    public static $type = [1 => '房屋标签', 2 => '住户标签', 3 => '车辆标签'];
-    public static $attribute = [1 => '人员标签', 2 => '车辆标签'];
-
+{   
+    public static $attribute = [1 => '房屋标签', 2 => '住户标签', 3 => '车辆标签'];
+    public static $type = [1 => '日常画像', 2 => '重点关注', 3 => '关怀对象'];
+    
     public static function tableName()
     {
         return 'ps_labels';
