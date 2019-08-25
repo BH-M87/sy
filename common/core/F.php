@@ -67,7 +67,13 @@ class F
     //empty
     public static function value($params, $name, $default = '')
     {
-        return !empty($params[$name]) ? trim($params[$name]) : $default;
+        if (!empty($params[$name])) {
+            if (is_array($params[$name])) {
+                return $params[$name];
+            }
+            return trim($params[$name]);
+        }
+        return $default;
     }
 
     //参数验证成功
