@@ -22,7 +22,7 @@ class BuildForm extends Model
 
     public $unit_num;
     public $building_id;
-
+    public $community_id;
 
     public function rules()
     {

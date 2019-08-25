@@ -528,8 +528,8 @@ class CommunityBuildingService extends BaseService
         $floor_num = PsCommon::get($data,'floor_num',0);
         $orientation = PsCommon::get($data,'orientation');
         $locations = PsCommon::get($data,'locations');
-        $longitude = PsCommon::get($data,'longitude');
-        $latitude = PsCommon::get($data,'latitude');
+        $longitude = PsCommon::get($data,'longitude','0.000000');
+        $latitude = PsCommon::get($data,'latitude','0.000000');
 
         //如果新增的时候苑期区没填，就默认放到住宅下面，如果住宅不存在就新建
         if (empty($group_id)) {
@@ -540,10 +540,13 @@ class CommunityBuildingService extends BaseService
                 return PsCommon::responseFailed($res['msg']);
             }
         }
+        if($building_name){
+            $building_name .= '幢';
+        }
 
         $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
         if($building){
-            return PsCommon::responseFailed('该单元已经存在');
+            return PsCommon::responseFailed('该楼幢已经存在');
         }
 
         //苑期区名称
@@ -593,7 +596,7 @@ class CommunityBuildingService extends BaseService
             $model->name = $building_name;
             $model->group_id = $group_id;
             $model->group_name = $group_name;
-            $model->code = '';
+            $model->code = '0';
             $model->building_code = PsCommon::getIncrStr('HOUSE_BUILDING',YII_ENV.'lyl:house-building');
             $model->unit_num = $unit_num;
             $model->floor_num = $floor_num;
@@ -689,7 +692,7 @@ class CommunityBuildingService extends BaseService
         if(empty($res)){
             return PsCommon::responseFailed('楼幢不存在');
         }
-        return PsCommon::responseSuccess();
+        return PsCommon::responseSuccess($res);
     }
 
     public function deleteBuilding($data,$userInfo=[])
@@ -804,7 +807,7 @@ class CommunityBuildingService extends BaseService
         if(empty($res)){
             return PsCommon::responseFailed('楼幢不存在');
         }
-        return PsCommon::responseSuccess();
+        return PsCommon::responseSuccess($res);
     }
 
     public function deleteUnit($data,$userInfo = [])

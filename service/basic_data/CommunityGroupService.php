@@ -89,7 +89,7 @@ class CommunityGroupService extends BaseService {
         }
         $res = $this->saveGroup($data);
         if ($res['code']) {
-            $content = "区域名称:" . $data['group_name'];
+            /*$content = "区域名称:" . $data['group_name'];
             $content .= "区域code:" . $data['group_code'];
             $operate = [
                 "community_id" =>$data['community_id'],
@@ -97,7 +97,7 @@ class CommunityGroupService extends BaseService {
                 "operate_type" => "新增区域",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             return PsCommon::responseSuccess($res['data']);
         } else {
             return PsCommon::responseFailed($res['msg']);
@@ -154,14 +154,14 @@ class CommunityGroupService extends BaseService {
         $model->community_id = $data['community_id'];
         $model->code = $data['group_code'];
         if ($model->save()) {
-            $content = "区域code:" . $data['group_code'];
+            /*$content = "区域code:" . $data['group_code'];
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "区域信息",
                 "operate_type" => "编辑区域",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
 
             return PsCommon::responseSuccess($model->id);
         } else {
@@ -198,14 +198,14 @@ class CommunityGroupService extends BaseService {
         // 删除 楼宇中心数据
         //TODO
         if ($group->delete()) {
-            $content = "区域名称:" . $group_name;
+            /*$content = "区域名称:" . $group_name;
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "区域信息",
                 "operate_type" => "删除区域",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             return PsCommon::responseSuccess("删除成功");
         } else {
             return PsCommon::responseFailed("删除失败");
