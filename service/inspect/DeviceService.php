@@ -408,7 +408,8 @@ class DeviceService extends BaseService
     {
         $page = PsCommon::get($params, 'page');
         $rows = PsCommon::get($params, 'rows');
-
+        $page = !empty($page) ? $page : 1;
+        $rows = !empty($rows) ? $rows : 10;
         $model = $this->_deviceSearch($params)
             ->select('id, community_id, name, category_id, device_no, install_place, status, supplier, leader, plan_scrap_at')
             ->orderBy('id desc')

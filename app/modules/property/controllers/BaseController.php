@@ -71,16 +71,16 @@ Class BaseController extends CoreController
         $this->user_info = !empty($result['data']) ? $result['data'] : [];
         $this->userId = PsCommon::get($this->user_info, 'id', 0);
         UserService::setUser($this->user_info);
-        if (!in_array($action->id, $this->enableAction)) {//验证token
-            if (!$result['code']) {
-                echo PsCommon::responseFailed($result['msg'], 50002);
-                return false;
-            }
-            if ($this->user_info['system_type'] != UserService::SYSTEM_PROPERTY) {//判断系统
-                echo PsCommon::responseFailed('token错误', 50002);
-                return false;
-            }
-        }
+//        if (!in_array($action->id, $this->enableAction)) {//验证token
+//            if (!$result['code']) {
+//                echo PsCommon::responseFailed($result['msg'], 50002);
+//                return false;
+//            }
+//            if ($this->user_info['system_type'] != UserService::SYSTEM_PROPERTY) {//判断系统
+//                echo PsCommon::responseFailed('token错误', 50002);
+//                return false;
+//            }
+//        }
 
         //验证签名
         if ($action->controller->id != 'download') {//下载文件不走签名
@@ -96,16 +96,16 @@ Class BaseController extends CoreController
             return true;
         }
         //菜单权限验证
-        $verifyAction = $action->getUniqueId();
-        $systemMenus = MenuService::service()->getMenuCache(!empty($this->user_info["system_type"]) ? $this->user_info["system_type"] : '');
-        $menu_ids = !empty($systemMenus[$verifyAction]) ? $systemMenus[$verifyAction] : [];
-        if (!empty($this->user_info) && $menu_ids) {
-            //分组是否有路由权限
-            if (!GroupService::service()->menuCheck($menu_ids, $this->user_info['group_id'])) {
-                echo PsCommon::responseFailed('权限不足');
-                return false;
-            }
-        }
+//        $verifyAction = $action->getUniqueId();
+//        $systemMenus = MenuService::service()->getMenuCache(!empty($this->user_info["system_type"]) ? $this->user_info["system_type"] : '');
+//        $menu_ids = !empty($systemMenus[$verifyAction]) ? $systemMenus[$verifyAction] : [];
+//        if (!empty($this->user_info) && $menu_ids) {
+//            //分组是否有路由权限
+//            if (!GroupService::service()->menuCheck($menu_ids, $this->user_info['group_id'])) {
+//                echo PsCommon::responseFailed('权限不足');
+//                return false;
+//            }
+//        }
 
         //物业系统必传小区ID
         if (!in_array($action->id, $this->communityNoCheck)) {
@@ -114,10 +114,10 @@ Class BaseController extends CoreController
                 return false;
             }
             //小区权限判断
-            if (!CommunityService::service()->communityAuth($this->userId, $this->communityId)) {
-                echo PsCommon::responseFailed('没有小区权限');
-                return false;
-            }
+//            if (!CommunityService::service()->communityAuth($this->userId, $this->communityId)) {
+//                echo PsCommon::responseFailed('没有小区权限');
+//                return false;
+//            }
         }
 
         //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
