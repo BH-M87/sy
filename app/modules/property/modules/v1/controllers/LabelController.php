@@ -1,18 +1,16 @@
 <?php
-/**
- * User: ZQ
- * Date: 2019/8/21
- * Time: 13:55
- * For: 标签管理
- */
-
+// 标签管理
 namespace app\modules\property\modules\v1\controllers;
 
-use app\models\PsLabels;
-use app\modules\property\controllers\BaseController;
-use common\core\PsCommon;
-use service\label\LabelsService;
 use Yii;
+
+use app\models\PsLabels;
+
+use common\core\PsCommon;
+
+use service\label\LabelsService;
+
+use app\modules\property\controllers\BaseController;
 
 class LabelController extends BaseController
 {
@@ -42,17 +40,16 @@ class LabelController extends BaseController
 
     }
 
-    //标签添加
+    // 标签添加
     public function actionAdd()
     {
-        if (empty($this->request_params)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
         $valid = PsCommon::validParamArr(new PsLabels(), $this->request_params, 'add');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
+
         $result = $this->service->LabelAddUpdate($this->request_params, 1);
+
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -61,12 +58,9 @@ class LabelController extends BaseController
 
     }
 
-    //标签修改
+    // 标签修改
     public function actionEdit()
     {
-        if (empty($this->request_params)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
         $valid = PsCommon::validParamArr(new PsLabels(), $this->request_params, 'edit');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);

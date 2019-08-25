@@ -1,63 +1,48 @@
 <?php
-
 namespace app\models;
 
 use Yii;
 
-/**
- * This is the model class for table "ps_labels".
- *
- * @property string $id
- * @property string $name 标签名称
- * @property int $label_type 1:房屋标签 2:住户标签
- * @property int $community_id 小区id
- * @property int $created_at
- * @property int $updated_at
- */
 class PsLabels extends BaseModel
 {
-    public static $type = [1=>'房屋标签',2=>'住户标签'];
+    public static $type = [1 => '房屋标签', 2 => '住户标签', 3 => '车辆标签'];
+    public static $attribute = [1 => '人员标签', 2 => '车辆标签'];
 
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'ps_labels';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
-            [['name', 'label_type', 'community_id'], 'required','on'=>['add']],
-            [['name', 'label_type', 'community_id','id'], 'required','on'=>['edit']],
-            [['community_id'], 'required','on'=>['typelist']],
-            [['label_type', 'community_id', 'created_at', 'updated_at','id'], 'integer'],
+            [['name', 'label_type', 'community_id', 'label_attribute'], 'required', 'on' => ['add', 'edit']],
+            [['id'], 'required', 'on' => ['edit']],
+            [['community_id'], 'required', 'on' => ['typelist']],
+            [['label_type', 'community_id', 'created_at', 'updated_at', 'id'], 'integer'],
             [['name'], 'string', 'max' => 15],
-            ['label_type','in','range'=>[1,2]],
-            [['updated_at','updated_at'],'safe'],
+            [['content'], 'string', 'max' => 100],
+            ['label_type', 'in', 'range' => [1,2,3]],
+            ['label_attribute', 'in', 'range' => [1,2]],
+            [['updated_at', 'updated_at'], 'safe'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'label_type' => 'Label Type',
-            'community_id' => 'Community ID',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'name' => '标签名称',
+            'label_type' => '标签分类',
+            'label_attribute' => '标签属性',
+            'community_id' => '小区ID',
+            'content' => '标签描述',
+            'created_at' => '新曾时间',
+            'updated_at' => '修改时间',
         ];
     }
 
-    //数据处理
+    // 数据处理
     public static function handleData($data)
     {
         foreach($data as $k => $v) {
@@ -70,22 +55,37 @@ class PsLabels extends BaseModel
                         case 2:
                             $type = self::$type[2];
                             break;
+                        case 3:
+                            $type = self::$type[3];
+                            break;
                         default:
                             $type = '未知';
                     }
                     $data[$k]['label_type_name'] = $type;
-
                 }
+
+                if($kk == 'label_attribute') {
+                    switch ($vv) {
+                        case 1:
+                            $attribute = self::$attribute[1];
+                            break;
+                        case 2:
+                            $attribute = self::$attribute[2];
+                            break;
+                        default:
+                            $attribute = '未知';
+                    }
+                    $data[$k]['label_attribute_name'] = $attribute;
+                }
+
+                $data[$k]['content'] = $v['content'] ?? '';
             }
         }
         return $data;
     }
 
-    /***
-     * @param $param
-     * @return array
-     */
-    public function getLabelsList($param){
+    public function getLabelsList($param)
+    {
         $fields = [
             '*'
         ];

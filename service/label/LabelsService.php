@@ -39,41 +39,29 @@ Class LabelsService extends BaseService
         if (empty($data['community_id']) || !PsCommunityModel::find()->where(['id' => $data['community_id']])->select('id')->one()) {
             return $this->failed('小区ID错误');
         }
-        $label = $this->selectLabel($data['name'], $data['label_type'], $data['community_id']);
-        if (empty($label)) {
-            //判断操作
-            if ($type == 1) {
-                $id = null;
-                $error = '系统错误，添加失败';
-                $action = '添加标签';
-            } else {
-                $id = $data['id'];
-                $error = 'ID不存在，修改失败';
-                $action = '修改标签';
-            }
-            if ($this->addUpdate($data, $id)) {
-                $this->writeLog($data['community_id'], $action, '标签名:' . $data['name'] . ' 类型:' . $data['label_type']);
-                return $this->success();
-            } else {
-                return $this->failed($error);
-            }
-        } else {
-            if (!empty($data['id']) && $data['id'] == $label->id) {
-                return $this->success();
-            }
+        $label = $this->selectLabel($data);
+        
+        if (!empty($label)) {
             return $this->failed('该标签已存在');
         }
 
+        // 判断操作
+        if ($type == 1) {
+            $id = null;
+        } else {
+            $id = $data['id'];
+        }
+
+        if ($this->addUpdate($data, $id)) {
+            return $this->success();
+        } else {
+            return $this->failed($error);
+        }
     }
 
-    /**
-     * 获取标签列表
-     * @author yjg
-     * @date 2018-07-05
-     */
+    // 获取标签列表
     public function labelList($data)
     {
-        //条件处理
         $page = !empty($data['page']) ? $data['page'] : 1;
         $row = !empty($data['row']) ? $data['row'] : 10;
         $page = ($page - 1) * $row;
@@ -81,7 +69,7 @@ Class LabelsService extends BaseService
         $where['label_type'] = !empty($data['label_type']) ? $data['label_type'] : null;
         $where = F::searchFilter($where);
         $like = !empty($data['name']) ? ['like', 'name', $data['name']] : '1=1';
-        //查询
+
         $query = PsLabels::find()->where($where)->andWhere($like)->orderBy(['id' => SORT_DESC]);
         $countQuery = clone $query;
         $count = $countQuery->count();
@@ -108,7 +96,6 @@ Class LabelsService extends BaseService
         try {
             $label->delete();
             $this->deleteList($label->label_type, $label->id);
-            $this->writeLog($label->community_id, '删除标签', '标签名:' . $label->name . ' 类型:' . $label->label_type);
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -156,7 +143,6 @@ Class LabelsService extends BaseService
         }
     }
 
-
     //获取分类数据
     public function getTypeList($data)
     {
@@ -166,7 +152,6 @@ Class LabelsService extends BaseService
         $arr['community_id'] = $data['community_id'];
         return PsLabels::find()->select(['id', 'name'])->where($arr)->asArray()->all();
     }
-
 
     //删除关联标签 $label_type 1是住户表 2是用户表  $type 1 使用label_id删除  2使用mid中间id删除 3使用code删除
     public function deleteList($label_type, $condition, $type = 1)
@@ -199,23 +184,10 @@ Class LabelsService extends BaseService
         return $result;
     }
 
-    //记录日志表操作
-    public function writeLog($communityId, $operate_type, $content)
+    // 查询标签是否存在
+    public function selectLabel($param)
     {
-        //保存日志
-        $operate = [
-            "community_id" => $communityId,
-            "operate_menu" => "标签管理",
-            "operate_type" => $operate_type,
-            "operate_content" => $content,
-        ];
-        OperateService::addComm($this->user_info, $operate);
-    }
-
-    //查询标签是否存在
-    public function selectLabel($name, $type, $community_id)
-    {
-        return PsLabels::find()->where(['name' => $name, 'label_type' => $type, 'community_id' => $community_id])->one();
+        return PsLabels::find()->where(['name' => $param['name'], 'label_type' => $param['label_type'], 'community_id' => $param['community_id']])->andFilterWhere(['!=', 'id', $param['id']])->one();
     }
 
     //添加或者修改标签
@@ -240,7 +212,9 @@ Class LabelsService extends BaseService
             }
             $label->name = $data['name'];
             $label->label_type = $data['label_type'];
+            $label->label_attribute = $data['label_attribute'];
             $label->community_id = $data['community_id'];
+            $label->content = $data['content'];
             $label->updated_at = time();
             $label->save();
             $trans->commit();
