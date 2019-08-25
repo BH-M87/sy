@@ -489,14 +489,13 @@ class CarportService extends BaseService
         $config['sheet_config'] = [
             'tid' => ['title' => '编号'],
             'lot_name' => ['title' => '停车场'],
-            'lot_area_name' => ['title' => '停车场区域'],
             'car_port_num' => ['title' => '车位号'],
             'type' => ['title' => '车位类型'],
             'car_port_area' => ['title' => '车位面积'],
             'status' => ['title' => '车位状态'],
-            'room_address' => ['title' => '对应房屋'],
             'room_name' => ['title' => '产权人'],
             'room_mobile' => ['title' => '联系电话'],
+            'room_id_card' => ['title' => '身份证号码'],
         ];
         $config["save"] = true;
         $config['path'] = 'temp/'.date('Y-m-d');
