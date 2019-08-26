@@ -1102,7 +1102,7 @@ class ResidentService extends BaseService
         ])->exists();
     }
 
-    //导入检查
+    // 导入检查
     public function importCheck($residentData, $allRooms, $nationNames, $labelNames)
     {
         if (empty($allRooms[$residentData['group']][$residentData['building']][$residentData['unit']][$residentData['room']])) {

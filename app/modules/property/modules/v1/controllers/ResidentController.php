@@ -175,33 +175,30 @@ class ResidentController extends BaseController
         $url = ExcelService::service()->export($result, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
         $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhu.xlsx');
-        
+
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
-    /**
-     * 下载模版链接
-     * @return string
-     */
+    // 下载模版链接
     public function actionGetDown()
     {
         $downUrl = F::downloadUrl('import_resident_templates.xlsx', 'template', 'MoBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
-    /**
-     * 导入小区住户
-     */
+    // 导入住户
     public function actionImport()
     {
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
         if (!$r['code']) {
             return PsCommon::responseFailed($r['msg']);
         }
+
         $communityId = PsCommon::get($this->request_params, 'community_id');
         if (!$communityId) {
             return PsCommon::responseFailed('小区ID不能为空');
@@ -212,15 +209,13 @@ class ResidentController extends BaseController
             return PsCommon::responseFailed('小区不存在');
         }
 
-        $supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, 2);
         $PHPExcel = $r['data'];
         $currentSheet = $PHPExcel->getActiveSheet();
 
         $sheetData = $currentSheet->toArray(null, false, false, true);
-        $residentDatas = $authMemberIds = [];//已认证的会员ID
+        $residentDatas = $authMemberIds = []; // 已认证的会员ID
         for ($i = 3; $i <= count($sheetData); $i++) {
             $val = $sheetData[$i];
-
             $residentDatas[] = [
                 "name" => !empty($val['A']) ? $val['A'] : '',
                 "mobile" => !empty($val['B']) ? $val['B'] : PsCommon::generateVirtualPhone(),
@@ -250,16 +245,16 @@ class ResidentController extends BaseController
             $nationNames[$na['name']] = $na['id'];
         }
         //标签
-        $labels = PsLabels::find()->select('id, name')->where(['community_id' => $communityId, 'label_type' => 2])
-            ->asArray()->all();
+        $labels = PsLabels::find()->select('id, name')->where(['community_id' => $communityId])
+            ->orWhere(['is_sys' => 2])->andWhere(['label_attribute' => 2])->asArray()->all();
         $labels = $labels ? $labels : [];
         $labelNames = [];
         foreach ($labels as $label) {
             $labelNames[$label['name']] = $label['id'];
         }
 
-        $allRooms = RoomService::service()->getAllRooms($communityId);//该小区所有的房屋
-        $allResidents = ResidentService::service()->getMobileNames($communityId);//该小区下已认证的住户手机号
+        $allRooms = RoomService::service()->getAllRooms($communityId); // 该小区所有的房屋
+        $allResidents = ResidentService::service()->getMobileNames($communityId); // 该小区下已认证的住户手机号
         foreach ($residentDatas as $residentData) {
             $r = ResidentService::service()->importCheck($residentData, $allRooms, $nationNames, $labelNames);
             if (!$r['code']) {
@@ -267,15 +262,16 @@ class ResidentController extends BaseController
                 continue;
             }
             $checkResult = $r['data'];
-            //房屋ID
+            // 房屋ID
             $roomId = $checkResult['room_id'];
-            //判断数据重复
+            // 判断数据重复
             if (!empty($allResidents[$roomId])) {
                 if (isset($allResidents[$roomId][$residentData['mobile']][$residentData['name']])) {
                     ExcelService::service()->setError($residentData, '手机号码已经在房屋下出现');
                     continue;
                 }
             }
+
             $memberArr = [
                 'name' => $residentData['name'],
                 "mobile" => $residentData["mobile"],
@@ -288,7 +284,6 @@ class ResidentController extends BaseController
                 continue;
             }
             $memberId = $member['data'];
-
 
             // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
             if (!empty($memberId)) {
@@ -335,26 +330,14 @@ class ResidentController extends BaseController
                 ExcelService::service()->setError($residentData, $resident_valid["errorMsg"]);
                 continue;
             }
-            //住户信息推送
-            if ($supplierId) {
-                $community_no = $community['community_no'];
-                $identity_type = $successArr['identity_type'];
-                $time_end = $successArr['time_end'];
-                $room_id = $successArr['room_id'];
-                $user_name = $successArr['name'];
-                $user_phone = $successArr['mobile'];
-                $sex = $successArr['sex'];
-                $card_no = $successArr['card_no'];
-                $label_name = !empty($residentData['label_name']) ? $residentData['label_name'] : [];
-                ResidentService::service()->syncRoomUserListToOpenApi($communityId, $community_no, $memberId, $identity_type, $time_end, $room_id, $user_name, $user_phone, $sex, $card_no, $label_name);
-            }
+
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
                 Yii::$app->db->createCommand()->insert('ps_room_user', $successArr)->execute();
                 $id = Yii::$app->db->getLastInsertID();
                 //标签处理
                 if (!empty($checkResult['label_id'])) {
-                    if (!LabelsService::service()->addRelation($id, $checkResult['label_id'], 2, true)) {
+                    if (!LabelsService::service()->addRelation($id, $checkResult['label_id'], 2)) {
                         throw new Exception('标签绑定错误');
                     }
                 }
@@ -373,21 +356,25 @@ class ResidentController extends BaseController
         if ($defeat_count > 0) {
             $error_url = $this->saveError();
         }
+        
         $operate = [
             "community_id" => $data["community_id"],
             "operate_menu" => "住户管理",
             "operate_type" => "住户导入",
             "operate_content" => '',
         ];
+        OperateService::addComm($this->user_info, $operate);
+
         if ($authMemberIds) {
             MemberService::service()->turnReal($authMemberIds);
         }
-        OperateService::addComm($this->user_info, $operate);
+        
         $result = [
             'totals' => $success_count + $defeat_count,
             'success' => $success_count,
             'error_url' => $error_url
         ];
+
         return PsCommon::responseSuccess($result);
     }
 
