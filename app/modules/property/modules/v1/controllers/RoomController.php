@@ -14,6 +14,7 @@ use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsHouseForm;
 use app\models\PsLabels;
+use app\models\PsLabelsRela;
 use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
@@ -61,8 +62,7 @@ class RoomController extends BaseController
             //todo 小区名称
             $houses["list"][$key]['community_name'] = $community_name;
             //todo 房屋标签
-            $labels =[];
-            $houses["list"][$key]['labels'] = $labels;
+            $houses["list"][$key]['labels'] = LabelsService::service()->getLabelByRoomId($val['id']);
 
         }
         return PsCommon::responseSuccess($houses);
