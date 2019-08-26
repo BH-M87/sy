@@ -1,22 +1,19 @@
-<?php
-/**
- * 标签service
- * @author yjh
- * @date 2018-07-05
- */
+<?php // 标签service
 namespace service\label;
+
+use Yii;
+
+use common\core\F;
+
+use service\BaseService;
 
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsLabels;
+use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
 use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
-use common\core\F;
-use service\BaseService;
-use service\rbac\OperateService;
-use Yii;
-use yii\db\Query;
 
 Class LabelsService extends BaseService
 {
@@ -155,5 +152,33 @@ Class LabelsService extends BaseService
         }
 
         return ['list' => $list];
+    }
+
+    // 添加表关联数据
+    public function addRelation($data_id, $labels_id, $data_type)
+    {
+        if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
+            $trans = Yii::$app->getDb()->beginTransaction();
+            try {
+                if (is_array($labels_id)) {
+                    foreach ($labels_id as $v) {
+                        $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
+                    }
+                } else {
+                    $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
+                }
+
+                Yii::$app->db->createCommand()
+                    ->batchInsert('ps_labels_rela', ['labels_id', 'data_id', 'data_type', 'created_at'], $insert)->execute();
+
+                $trans->commit();
+            } catch (\Exception $e) {
+                $trans->rollBack();
+                return $this->failed($e->getMessage());
+            }
+
+            return true;
+        }
+        return false;
     }
 }
