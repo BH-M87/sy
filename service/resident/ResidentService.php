@@ -1,6 +1,12 @@
 <?php
-
 namespace service\resident;
+
+use Yii;
+use yii\db\Exception;
+
+use common\core\F;
+use common\core\PsCommon;
+use common\MyException;
 
 use app\models\PsAppMember;
 use app\models\PsAppUser;
@@ -12,9 +18,7 @@ use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
 use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
-use common\core\F;
-use common\core\PsCommon;
-use common\MyException;
+
 use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
@@ -23,17 +27,15 @@ use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\room\RoomService;
-use Yii;
-use yii\db\Exception;
 
 class ResidentService extends BaseService
 {
-
     public $sexes = [
         0 => ['id' => 0, 'name' => '未设置'],
         1 => ['id' => 1, 'name' => '男'],
         2 => ['id' => 2, 'name' => '女'],
     ];
+
     public $change_detail = [
         '1' => '迁入',
         '2' => '迁出',
@@ -43,26 +45,31 @@ class ResidentService extends BaseService
         '6' => '出生',
         '7' => '其他',
     ];
+
     public $face = [
         '1' => '党员',
         '2' => '团员',
         '3' => '群众',
     ];
+
     public $household_type = [
         '1' => '非农业户口',
         '2' => '农业户口',
     ];
+
     public $identity_type = [
         '1' => '业主',
         '2' => '家人',
         '3' => '租客',
     ];
+
     public $live_detail = [
         '1' => '空巢老人',
         '2' => '独居',
         '3' => '孤寡',
         '4' => '其他',
     ];
+
     public $live_type = [
         '1' => '户在人在',
         '2' => '户在人不在',
@@ -73,6 +80,7 @@ class ResidentService extends BaseService
         '7' => '其他',
         '8' => '人在户不在',
     ];
+    
     public $marry_status = [
         '1' => '已婚',
         '2' => '未婚',
