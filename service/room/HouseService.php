@@ -580,12 +580,12 @@ Class HouseService extends BaseService
     {
         $list = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
         if (!empty($list)) {
-            $exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
+            /*$exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
                 ->bindValue(':out_room_id', $out_room_id)
                 ->queryScalar();
             if ($exist) {
                 return $this->failed('该房屋有账单，不能直接删除！');
-            }
+            }*/
             $user_exist = Yii::$app->db->createCommand("SELECT id FROM ps_room_user where room_id = :room_id")
                 ->bindValue(':room_id', $list["id"])
                 ->queryScalar();
@@ -633,9 +633,9 @@ Class HouseService extends BaseService
                 //AlipayBillService::service($community_no)->deleteRoominfo($data);
                 //删除房屋下的水表跟电表，还有对应的抄表记录
                 $room_id = $list["id"];
-                Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
+                /*Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
                 Yii::$app->db->createCommand()->delete('ps_electric_meter', "room_id = {$room_id} ")->execute();
-                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();
+                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();*/
             }
 
         }
