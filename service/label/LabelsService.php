@@ -115,8 +115,6 @@ Class LabelsService extends BaseService
     // 标签 下拉列表
     public function differenceList($param)
     {
-        $param['system_type'] = UserService::currentUser('system_type');
-
         $result['list'] = PsLabels::getDropDown($param);
 
         return $result;
@@ -160,6 +158,7 @@ Class LabelsService extends BaseService
         if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
+                PsLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
                 if (is_array($labels_id)) {
                     foreach ($labels_id as $v) {
                         $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];

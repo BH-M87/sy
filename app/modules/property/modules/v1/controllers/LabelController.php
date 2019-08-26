@@ -94,4 +94,16 @@ class LabelController extends BaseController
 
         return PsCommon::responseSuccess($result);
     }
+
+    // 标签下拉
+    public function actionAddRelation()
+    {
+        $data_id = $this->request_params['data_id'];
+        $labels_id = $this->request_params['labels_id'];
+        $data_type = $this->request_params['data_type'];
+
+        $result = LabelsService::service()->addRelation($data_id, $labels_id, $data_type);
+
+        return PsCommon::responseSuccess($result);
+    }
 }
