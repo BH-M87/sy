@@ -110,9 +110,7 @@ class PsLabels extends BaseModel
         return self::find()->select('id, name')
             ->where(['community_id' => $param['community_id']])
             ->orWhere(['is_sys' => 2])
-            ->andFilterWhere(['like', 'name', $param['name']])
-            ->andFilterWhere(['=', 'label_attribute', $param['label_attribute']])
-            ->andFilterWhere(['=', 'label_type', $param['label_type']])
+            ->andFilterWhere(['=', 'label_attribute', !empty($param['label_attribute']) ? $param['label_attribute'] : ''])
             ->andWhere(['is_delete' => 1])
             ->orderBy('id desc')
             ->asArray()->all();
