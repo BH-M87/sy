@@ -87,6 +87,8 @@ class CarportService extends BaseService
         $total = $this->getCarportListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['room_mobile'] = $v['room_mobile'] ? F::processMobile($v['room_mobile']) : '';
+            $v['room_id_card'] = $v['room_id_card'] ? F::processIdCard($v['room_id_card']) : '';
             $v = array_map(function ($x) {
                 return (string)$x;
             }, $v);
@@ -110,10 +112,13 @@ class CarportService extends BaseService
 
     //获取车位列表
     public function getCarportLists($params){
-        $list = ParkingCarport::find()
+        $query = ParkingCarport::find()
             ->select(['id','car_port_num','car_port_status'])
-            ->where(['community_id'=>$params['community_id']])
-            ->asArray()
+            ->where(['community_id'=>$params['community_id']]);
+        if (!empty($params['lot_id'])) {
+            $query->andWhere(['lot_id' => $params['lot_id']]);
+        }
+        $list = $query->asArray()
             ->all();
         array_walk($list, function(&$v, $k, $p) {
             $v['status'] = $p[$v['car_port_status']]['name'];
