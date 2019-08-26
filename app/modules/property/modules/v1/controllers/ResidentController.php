@@ -649,21 +649,15 @@ class ResidentController extends BaseController
                 'value' => $val
             ];
         }
-        
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * 详情相关房屋
-     * @return string
-     */
+    // 详情相关房屋
     public function actionRelatedHouse()
     {
-        $result = ResidentService::service($this->communityId)->relatedHouse(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)->relatedHouse($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -684,17 +678,12 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 相关住户
-     * @return string
-     */
+    // 相关住户
     public function actionRelatedResident()
     {
-        $result = ResidentService::service($this->communityId)->relatedResident(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)
+            ->relatedResident($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -741,14 +730,14 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    //获取下拉信息
+    // 获取基本下拉信息
     public function actionCommonOptionInfo()
     {
         $result = ResidentService::service()->getOption();
         return PsCommon::responseSuccess($result);
     }
 
-    //获取民族信息
+    // 获取民族信息
     public function actionGetNation()
     {
         $result['list'] = ResidentService::service()->getNation();

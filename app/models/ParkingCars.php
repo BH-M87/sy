@@ -13,8 +13,14 @@ use Yii;
  * @property string $car_num 车牌号
  * @property int $created_at 车辆添加时间
  */
-class ParkingCars extends \app\models\BaseModel
+class ParkingCars extends BaseModel
 {
+    public $user_name;
+    public $user_mobile;
+    public $carport_rent_start;
+    public $carport_rent_end;
+    public $lot_id;
+
     /**
      * {@inheritdoc}
      */
@@ -29,8 +35,21 @@ class ParkingCars extends \app\models\BaseModel
     public function rules()
     {
         return [
-            [['supplier_id', 'community_id', 'created_at'], 'integer'],
-            [['car_num'], 'string', 'max' => 20],
+            [['community_id', 'created_at'], 'integer'],
+            [['car_delivery'], 'number'],
+            [['car_num', 'car_model'], 'string', 'max' => 20],
+            [['car_color'], 'string', 'max' => 10],
+            [['images'], 'string', 'max' => 500],
+            [['community_id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['list']],
+            [['community_id', 'car_num', 'lot_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            ['user_mobile', 'match', 'pattern' => '/^1[0-9]{10}$/',
+                'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add', 'edit']],
+            [['carport_rent_start', 'carport_rent_end'],
+                'date', 'format'=>'yyyy-MM-dd', 'message'=>'{attribute}格式有误!', 'on' => ['add', 'edit']],
+            ['carport_rent_start', 'compare_time','on'=>['add']],
+            ['carport_rent_end', 'compare', 'compareAttribute' => 'carport_rent_start', 'operator' => '>' , 'message'=>'{attribute}必须大于开始时间','on'=>['add', 'edit']],
+            [['id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['edit', 'detail', 'delete']],
+
         ];
     }
 
@@ -41,10 +60,39 @@ class ParkingCars extends \app\models\BaseModel
     {
         return [
             'id' => 'ID',
-            'supplier_id' => 'Supplier ID',
-            'community_id' => 'Community ID',
-            'car_num' => 'Car Num',
+            'community_id' => '小区id',
+            'car_num' => '车牌号',
+            'car_model' => '车型',
+            'car_color' => '车辆颜色',
+            'car_delivery' => '车辆排量',
+            'images' => '图片',
+            'user_name' => '车主姓名',
+            'user_mobile' => '手机号',
             'created_at' => 'Created At',
+            'carport_rent_start' => '租赁开始时间',
+            'carport_rent_end' => '租赁结束时间',
+            'lot_id' => '车场id'
         ];
+    }
+
+    /**
+     * 校验属性值比当天日期值要大
+     * @param $label
+     */
+    public function compare_time($label) {
+        $time = $this->$label;
+        if(is_int($time)) {
+            if($time < strtotime(date('Y-m-d',time()))) {
+                $this->addError($label, $this->getAttributeLabel($label).'不能小于当天日期');
+            }
+        } else {
+            $r = strtotime($time);
+            if (!$r) {
+                $this->addError($label, '请选择正确的时间');
+            }
+            if (strtotime($time) < strtotime(date('Y-m-d',time()))) {
+                $this->addError($label, $this->getAttributeLabel($label).'不能小于当天日期');
+            }
+        }
     }
 }
