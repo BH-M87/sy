@@ -107,6 +107,7 @@ Class HouseService extends BaseService
             $list['house_type_hall'] = $house_type[1];
             $list['house_type_kitchen'] = $house_type[2];
             $list['house_type_toilet'] = $house_type[3];
+            $list['delivery_time'] = !empty($list['delivery_time']) ? date('Y-m-d H:i:s',$list['delivery_time']) : '';
             return ['list' => $list];
         }
 
