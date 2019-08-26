@@ -113,7 +113,7 @@ class PsDevice extends BaseModel
             $param['create_at'] = time();
             Yii::$app->db->createCommand()->update("ps_device_accident", ["category_id" => $param["category_id"]], ["device_id" => $param['id']])->execute();
             Yii::$app->db->createCommand()->update("ps_device_repair", ["device_name" => $param["name"], "device_no" => $param["device_no"], "category_id" => $param["category_id"]], ["device_id" => $param['id']])->execute();
-            Yii::$app->db->createCommand()->update("ps_inspect_point", ["device_name" => $param["name"], "device_no" => $param["device_no"], "category_id" => $param["category_id"]], ["device_id" => $param['id']])->execute();
+//            Yii::$app->db->createCommand()->update("ps_inspect_point", ["device_name" => $param["name"], "device_no" => $param["device_no"], "category_id" => $param["category_id"]], ["device_id" => $param['id']])->execute();
             return self::updateAll($param, ['id' => $param['id']]);
         }
         return $this->save();
