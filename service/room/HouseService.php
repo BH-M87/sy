@@ -580,12 +580,12 @@ Class HouseService extends BaseService
     {
         $list = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
         if (!empty($list)) {
-            $exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
+            /*$exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
                 ->bindValue(':out_room_id', $out_room_id)
                 ->queryScalar();
             if ($exist) {
                 return $this->failed('该房屋有账单，不能直接删除！');
-            }
+            }*/
             $user_exist = Yii::$app->db->createCommand("SELECT id FROM ps_room_user where room_id = :room_id")
                 ->bindValue(':room_id', $list["id"])
                 ->queryScalar();
