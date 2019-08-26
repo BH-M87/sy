@@ -633,9 +633,9 @@ Class HouseService extends BaseService
                 //AlipayBillService::service($community_no)->deleteRoominfo($data);
                 //删除房屋下的水表跟电表，还有对应的抄表记录
                 $room_id = $list["id"];
-                Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
+                /*Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
                 Yii::$app->db->createCommand()->delete('ps_electric_meter', "room_id = {$room_id} ")->execute();
-                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();
+                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();*/
             }
 
         }
