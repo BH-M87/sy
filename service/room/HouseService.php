@@ -80,7 +80,7 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
         if ($list) {
@@ -343,6 +343,9 @@ Class HouseService extends BaseService
         $room_label_id = !empty($data->room_label_id) ? $data->room_label_id : '';        // 是否有标签
         $floor = !empty($data->floor) ? $data->floor : '';                     // 楼层
         $room_code = !empty($data->room_code) ? str_pad($data->room_code, 4, "0", STR_PAD_LEFT) : '';    // 室号code,前面补0，补齐4位
+        $delivery_time = !empty($data->delivery_time) ? $data->delivery_time : '';//交房时间
+        $own_age_limit = !empty($data->own_age_limit) ? $data->own_age_limit : '';//产权年限
+        $orientation = !empty($data->orientation) ? $data->orientation : '';//房屋朝向
         $create_at = time();
         $coun = $this->_getFloatLength($floor_coe);
         if ($coun > 2) {
@@ -391,12 +394,15 @@ Class HouseService extends BaseService
                 }
 
                 $updateData = [
-                    'floor_coe' => $floor_coe,
-                    'floor_shared_id' => $floor_shared_id,
-                    'lift_shared_id' => $is_elevator ? $lift_shared_id : 0,
-                    'is_elevator' => $is_elevator,
+                    'status' => $status,
+                    'property_type' => $property_type,
+                    'charge_area' => $charge_area,
+                    'orientation' => $orientation,
                     'floor' => $floor,
                     'room_code' => $room_code,
+                    'house_type'=>$house_type,
+                    'delivery_time'=>$delivery_time,
+                    'own_age_limit'=>$own_age_limit
                 ];
                 PsCommunityRoominfo::updateAll($updateData,['id'=>$id]);
                 //编辑数据推送
@@ -461,6 +467,9 @@ Class HouseService extends BaseService
                 $roominfo->create_at = $create_at;
                 $roominfo->roominfo_code = PsCommon::getIncrStr('HOUSE_ROOMINFO',YII_ENV.'lyl:house-roominfo');
                 $roominfo->house_type = $house_type;
+                $roominfo->delivery_time = $delivery_time;
+                $roominfo->own_age_limit = $own_age_limit;
+                $roominfo->orientation = $orientation;
                 $roominfo->insert();
                 if (!empty($room_label_id)) {
                     if (!LabelsService::service()->addRelation($roominfo->id, $room_label_id, 1)) {

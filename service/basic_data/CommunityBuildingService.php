@@ -501,7 +501,7 @@ class CommunityBuildingService extends BaseService
             ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = cb.community_id')
             ->where(['cb.community_id' => $community_id]);
         if (!empty($data['building_name'])) {
-            $model = $model->andFilterWhere(['cb.building_name' => $data['building_name']]);
+            $model = $model->andFilterWhere(['like','cb.name',$data['building_name']]);
         }
         return $model;
     }
