@@ -115,8 +115,6 @@ Class LabelsService extends BaseService
     // 标签 下拉列表
     public function differenceList($param)
     {
-        $param['system_type'] = UserService::currentUser('system_type');
-
         $result['list'] = PsLabels::getDropDown($param);
 
         return $result;

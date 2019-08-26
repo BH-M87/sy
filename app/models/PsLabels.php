@@ -105,6 +105,19 @@ class PsLabels extends BaseModel
             ->count();
     }
 
+    public static function getDropDown($param)
+    {
+        return self::find()->select('id, name')
+            ->where(['community_id' => $param['community_id']])
+            ->orWhere(['is_sys' => 2])
+            ->andFilterWhere(['like', 'name', $param['name']])
+            ->andFilterWhere(['=', 'label_attribute', $param['label_attribute']])
+            ->andFilterWhere(['=', 'label_type', $param['label_type']])
+            ->andWhere(['is_delete' => 1])
+            ->orderBy('id desc')
+            ->asArray()->all();
+    }
+
     // 标签属性
     public static function attribute($index = 0)
     {
