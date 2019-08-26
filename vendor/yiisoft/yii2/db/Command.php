@@ -1097,10 +1097,7 @@ class Command extends Component
 
             return $n;
         } catch (Exception $e) {
-<<<<<<< HEAD
-=======
             print_r($e);exit;
->>>>>>> ca3b3492334103023628d0d9ee11616bb5d05117
             $profile and Yii::endProfile($rawSql, __METHOD__);
             throw $e;
         }

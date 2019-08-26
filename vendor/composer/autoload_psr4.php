@@ -46,9 +46,5 @@ return array(
     'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
     'Codeception\\PHPUnit\\' => array($vendorDir . '/codeception/phpunit-wrapper/src'),
     'Codeception\\Extension\\' => array($vendorDir . '/codeception/base/ext'),
-<<<<<<< HEAD
-    'Codeception\\' => array($vendorDir . '/codeception/stub/src', $vendorDir . '/codeception/base/src/Codeception', $vendorDir . '/codeception/verify/src/Codeception'),
-=======
     'Codeception\\' => array($vendorDir . '/codeception/verify/src/Codeception', $vendorDir . '/codeception/stub/src', $vendorDir . '/codeception/base/src/Codeception'),
->>>>>>> ca3b3492334103023628d0d9ee11616bb5d05117
 );
