@@ -115,8 +115,6 @@ Class LabelsService extends BaseService
     // 标签 下拉列表
     public function differenceList($param)
     {
-        $param['system_type'] = UserService::currentUser('system_type');
-
         $result['list'] = PsLabels::getDropDown($param);
 
         return $result;
@@ -160,6 +158,7 @@ Class LabelsService extends BaseService
         if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
+                PsLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
                 if (is_array($labels_id)) {
                     foreach ($labels_id as $v) {
                         $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
@@ -186,11 +185,20 @@ Class LabelsService extends BaseService
     //根据房屋id获取这个房屋下的所有标签
     public function getLabelByRoomId($room_id)
     {
-
         $list = PsLabelsRela::find()->alias('lr')
             ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
             ->select(['l.name'])
             ->where(['lr.data_id'=>$room_id,'lr.data_type'=>1,'l.is_delete'=>1])->asArray()->column();
+        return $list ? $list : [];
+    }
+
+    //根据房屋id获取这个房屋下的所有标签id和名称
+    public function getLabelInfoByRoomId($room_id)
+    {
+        $list = PsLabelsRela::find()->alias('lr')
+            ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
+            ->select(['l.id','l.name'])
+            ->where(['lr.data_id'=>$room_id,'lr.data_type'=>1,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }
 }

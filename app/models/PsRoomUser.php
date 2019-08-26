@@ -65,17 +65,11 @@ class PsRoomUser extends BaseModel
     const MOVE_IN = 1;//迁入
     const MOVE_OUT = 2;//迁出
 
-    /**
-     * @inheritdoc
-     */
     public static function tableName()
     {
         return 'ps_room_user';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function rules()
     {
         return [
@@ -101,9 +95,6 @@ class PsRoomUser extends BaseModel
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function attributeLabels()
     {
         return [

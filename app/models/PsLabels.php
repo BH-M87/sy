@@ -3,6 +3,8 @@ namespace app\models;
 
 use Yii;
 
+use common\core\PsCommon;
+
 class PsLabels extends BaseModel
 {     
     public static function tableName()
@@ -83,9 +85,9 @@ class PsLabels extends BaseModel
         return self::find()->select('id, community_id, name, label_attribute, label_type, content, is_sys')
             ->where(['community_id' => $param['community_id']])
             ->orWhere(['is_sys' => 2])
-            ->andFilterWhere(['like', 'name', $param['name']])
-            ->andFilterWhere(['=', 'label_attribute', $param['label_attribute']])
-            ->andFilterWhere(['=', 'label_type', $param['label_type']])
+            ->andFilterWhere(['like', 'name', PsCommon::get($param, 'name')])
+            ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
+            ->andFilterWhere(['=', 'label_type', PsCommon::get($param, 'label_type')])
             ->andWhere(['is_delete' => 1])
             ->orderBy('id desc')
             ->offset(($page - 1) * $rows)->limit($rows)
@@ -98,11 +100,22 @@ class PsLabels extends BaseModel
         return self::find()
             ->where(['community_id' => $param['community_id']])
             ->orWhere(['is_sys' => 2])
-            ->andFilterWhere(['like', 'name', $param['name']])
-            ->andFilterWhere(['=', 'label_attribute', $param['label_attribute']])
-            ->andFilterWhere(['=', 'label_type', $param['label_type']])
+            ->andFilterWhere(['like', 'name', PsCommon::get($param, 'name')])
+            ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
+            ->andFilterWhere(['=', 'label_type', PsCommon::get($param, 'label_type')])
             ->andWhere(['is_delete' => 1])
             ->count();
+    }
+
+    public static function getDropDown($param)
+    {
+        return self::find()->select('id, name')
+            ->where(['community_id' => $param['community_id']])
+            ->orWhere(['is_sys' => 2])
+            ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
+            ->andWhere(['is_delete' => 1])
+            ->orderBy('id desc')
+            ->asArray()->all();
     }
 
     // 标签属性
