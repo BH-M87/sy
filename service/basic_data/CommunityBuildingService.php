@@ -798,7 +798,14 @@ class CommunityBuildingService extends BaseService
             ->offset($offset)->limit($pageSize)
             ->orderBy('cu.id desc')
             ->asArray()->all();
-        $result['list'] = !empty($list) ? $list : [];
+        if(!empty($list)){
+            foreach($list as $key=>$value) {
+                $list[$key]['room_num'] =  PsCommunityRoominfo::find()->where(['unit_id'=>$value['id']])->count();
+            }
+        }else{
+            $list = [];
+        }
+        $result['list'] = $list;
         $result['totals'] = $this->buildingSearchDeal($data)->count();
         return $result;
     }
