@@ -1,20 +1,20 @@
 <?php
-/**
- * User: ZQ
- * Date: 2019/8/21
- * Time: 11:05
- * For: 住户管理
- */
-
+// 住户管理
 namespace app\modules\property\modules\v1\controllers;
 
 require dirname(__DIR__, 6) . '/common/PhpExcel/PHPExcel.php';
+
+use Yii;
+use yii\db\Exception;
+use yii\rest\ViewAction;
+
+use common\core\F;
+use common\core\PsCommon;
+
 use app\models\PsLabels;
 use app\models\PsResidentFrom;
 use app\models\PsRoomUser;
-use app\modules\property\controllers\BaseController;
-use common\core\F;
-use common\core\PsCommon;
+
 use service\basic_data\RoomMqService;
 use service\common\ExcelService;
 use service\manage\CommunityService;
@@ -24,9 +24,8 @@ use service\resident\MemberService;
 use service\resident\ResidentService;
 use service\resident\RoomUserService;
 use service\room\RoomService;
-use yii\db\Exception;
-use Yii;
-use yii\rest\ViewAction;
+
+use app\modules\property\controllers\BaseController;
 
 class ResidentController extends BaseController
 {

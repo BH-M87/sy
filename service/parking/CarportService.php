@@ -10,8 +10,11 @@ namespace service\parking;
 
 
 use app\models\ParkingCarport;
+use app\models\ParkingCars;
 use app\models\ParkingLot;
+use app\models\ParkingUserCarport;
 use common\core\F;
+use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\RoomService;
 use service\common\ExcelService;
@@ -27,41 +30,26 @@ class CarportService extends BaseService
     ];
 
     public $status = [
-        0 => ['id' => 0, 'name' => '空置'],
-        1 => ['id' => 1, 'name' => '已售'],
-        2 => ['id' => 2, 'name' => '已租'],
-        3 => ['id' => 3, 'name' => '自用'],
-        4 => ['id' => 4, 'name' => '代售'],
-        5 => ['id' => 5, 'name' => '待租'],
+        1 => ['id' => 1, 'name' => '空置'],
+        2 => ['id' => 2, 'name' => '已售'],
+        3 => ['id' => 3, 'name' => '已租'],
+        4 => ['id' => 4, 'name' => '自用'],
+        5 => ['id' => 5, 'name' => '代售'],
+        6 => ['id' => 6, 'name' => '代租'],
     ];
 
-    //筛选房屋信息用
-    private function getRoomId($communityId,$params)
+    public function getCommon($params)
     {
-        $where = ['community_id'=>$communityId];
-        $flag = 0;
-        if($params['group']){
-            $where['group'] = $params['group'];
-            $flag = 1;
-        }
-        if($params['building']){
-            $where['building'] = $params['building'];
-            $flag = 1;
-        }
-        if($params['unit']){
-            $where['unit'] = $params['unit'];
-            $flag = 1;
-        }
-        if($params['room']){
-            $where['room'] = $params['room'];
-            $flag = 1;
-        }
-        $query = new Query();
-        $query->select("id");
-        $query->from("ps_community_roominfo");
-        $query->where($where);
-        $model = ($flag == 1) ? $query->column() : [];
-        return $model;
+        $lotList = ParkingLot::find()
+            ->select('id,name')
+            ->where(['community_id' => $params['community_id'], 'status' => 1])
+            ->orderBy('id desc')
+            ->asArray()
+            ->all();
+        $commData['lot_list'] = $lotList;
+        $commData['carport_type'] = $this->returnKeyValue($this->types);
+        $commData['carport_status'] = $this->returnKeyValue($this->status);
+        return $commData;
     }
 
     private function _searchParkPlace($params)
@@ -69,31 +57,25 @@ class CarportService extends BaseService
         $community_id = F::value($params, 'community_id');
         $model =  ParkingCarport::find()->alias('c')
             ->leftJoin('parking_lot as l','c.lot_id = l.id')
-            ->leftJoin('parking_lot as cl','c.lot_area_id = cl.id')
+            ->leftJoin('ps_community pc', 'pc.id = c.community_id')
             ->andFilterWhere([
                 'c.car_port_type' => F::value($params, 'car_port_type'),
                 'c.car_port_status' => F::value($params, 'car_port_status'),
                 'c.community_id' => $community_id,
-                'c.lot_id'=>F::value($params,'lot_id'),
-                'c.lot_area_id'=>F::value($params,'lot_area_id')
+                'c.lot_id'=>F::value($params,'lot_id')
             ])
-            ->andFilterWhere(['like', 'c.room_name', F::value($params, 'room_name')])        //产权人
-            ->andFilterWhere(['like', 'c.room_mobile', F::value($params, 'room_mobile')])    //联系电话
             ->andFilterWhere(['like', 'c.car_port_num', F::value($params, 'car_port_num')]); //车位号
-        $res = $model;
-        $roomIdList = $this->getRoomId($community_id,$params);
-        if(!empty($roomIdList)){
-            $res = $model->andFilterWhere([
-                'c.room_id' => $roomIdList         //房屋id
-            ]);
+        if (!empty($params['room_name'])) {
+            $model->andFilterWhere(['or', ['like', 'room_name', $params['room_name']], ['like', 'room_mobile', $params['room_name']]]);
         }
+        $res = $model;
         return $res;
     }
 
     //获取车位列表
     public function getCarportList($params, $page, $pageSize){
         $data = $this->_searchParkPlace($params)
-            ->select(['c.*','l.name as lot_name','cl.name as lot_area_name'])
+            ->select(['c.*','l.name as lot_name','pc.name as community_name'])
             ->orderBy('id desc')
             ->offset((($page - 1) * $pageSize))
             ->limit($pageSize)
@@ -108,9 +90,8 @@ class CarportService extends BaseService
             $v = array_map(function ($x) {
                 return (string)$x;
             }, $v);
-            $v['lot_area_id'] = !empty($v['lot_area_id']) ? $v['lot_area_id'] : '';//车场区域不存在的时候，默认改为空字符串
-            $v['type'] = F::value($types, $v['car_port_type'], []);
-            $v['status'] = F::value($status, $v['car_port_status'], []);
+            $v['type'] = F::value($types, $v['car_port_type'], (object)[]);
+            $v['status'] = F::value($status, $v['car_port_status'], (object)[]);
             $v['tid'] = $i--;//编号
             $result[] = $v;
         }
@@ -141,11 +122,11 @@ class CarportService extends BaseService
     }
 
     //是否车位重复
-    public function checkCarport($communityId, $supplier_id, $name, $lot_id, $lot_area_id,$id = '')
+    public function checkCarport($communityId, $supplier_id, $name, $lot_id,$id = '')
     {
         $model = ParkingCarport::find()
             ->where(['community_id' => $communityId, 'supplier_id'=>$supplier_id,
-                'car_port_num' => $name,'lot_id'=>$lot_id,'lot_area_id'=>$lot_area_id])
+                'car_port_num' => $name,'lot_id'=>$lot_id])
             ->one();
         if($model){
             if($id && $model->id != $id){
@@ -220,19 +201,12 @@ class CarportService extends BaseService
         $requestArr['supplier_id'] = $supplier_id = $lot['supplier_id'];
 
         //检测车位名称
-        $requestArr['lot_area_id'] = !empty($requestArr['lot_area_id']) ? $requestArr['lot_area_id'] : 0;
-        $lot_area_id = $requestArr['lot_area_id'];
         $id = !empty($requestArr['id']) ? $requestArr['id'] : '';
-        $carport = $this->checkCarport($requestArr['community_id'], $supplier_id,$requestArr['car_port_num'],$requestArr['lot_id'],$lot_area_id,$id);
+        $carport = $this->checkCarport($requestArr['community_id'], $supplier_id,$requestArr['car_port_num'],$requestArr['lot_id'],$id);
         if ( !is_array($carport) ) {
             return $carport;
         }
 
-        //检测停车场区域是否存在
-        $lot_area = self::checkLot($lot_area_id,$requestArr['community_id'],1);
-        if(!is_array($lot_area)){
-            return $lot_area;
-        }
         //判断房屋信息是否完整
         $requestArr = self::checkRoom($requestArr['community_id'],$requestArr);
         if(!is_array($requestArr)){
@@ -318,7 +292,6 @@ class CarportService extends BaseService
         $carport->load($check, '');
         if ($carport->validate()) {
             if ($carport->save()) {
-                //TODO 数据推送
                 return true;
             } else {
                 return false;
@@ -344,14 +317,8 @@ class CarportService extends BaseService
         $detail['type'] = F::value($this->types, $detail['car_port_type'], []);
         $detail['status'] = F::value($this->status, $detail['car_port_status'], []);
         $detail['lot_name'] = ParkingLot::find()->select(['name'])->where(['id'=>$detail['lot_id'],'status'=>1])->scalar();//车场名称
-        $detail['lot_area_name'] = ParkingLot::find()->select(['name'])->where(['id'=>$detail['lot_area_id'],'status'=>1])->scalar();//车场区域名称
-        $roomInfo = RoomService::service()->getRoomById(['room_id'=>$detail['room_id']]);
-        $detail['group'] = $roomInfo ? $roomInfo['group'] : '';
-        $detail['building'] = $roomInfo ? $roomInfo['building'] : '';
-        $detail['unit'] = $roomInfo ? $roomInfo['unit'] : '';
-        $detail['room'] = $roomInfo ? $roomInfo['room'] : '';
-        $detail['lot_area_id'] = !empty($detail['lot_area_id']) ? $detail['lot_area_id'] : '';
         $detail['car_port_area'] = !empty($detail['car_port_area']) ? $detail['car_port_area'] : '';
+        $detail['created_at'] = $detail['created_at'] ? date("Y-m-d H:i", $detail['created_at']) : '';
         return $this->success($detail);
     }
 
@@ -368,8 +335,22 @@ class CarportService extends BaseService
         }
 
         $detail = $model->toArray();
-        if ($detail['car_port_status'] == 1 || $detail['car_port_status'] == 2) {
-            return $this->failed('该车位' . $this->status[$detail['car_port_status']]['name'] . '，不可删除。');
+        //查询是否已有车辆
+        $carIdList = ParkingUserCarport::find()
+            ->select('car_id')
+            ->where(['carport_id' => $id])
+            ->asArray()
+            ->column();
+        if ($carIdList) {
+            //查询车辆信息
+            $carList = ParkingCars::find()
+                ->select('id')
+                ->where(['id' => $carIdList])
+                ->asArray()
+                ->all();
+            if (!empty($carList)) {
+                return $this->failed('该车位已经绑定车辆，不可删除。');
+            }
         }
         if ($model->delete()) {
             //TODO 数据推送
@@ -508,14 +489,13 @@ class CarportService extends BaseService
         $config['sheet_config'] = [
             'tid' => ['title' => '编号'],
             'lot_name' => ['title' => '停车场'],
-            'lot_area_name' => ['title' => '停车场区域'],
             'car_port_num' => ['title' => '车位号'],
             'type' => ['title' => '车位类型'],
             'car_port_area' => ['title' => '车位面积'],
             'status' => ['title' => '车位状态'],
-            'room_address' => ['title' => '对应房屋'],
             'room_name' => ['title' => '产权人'],
             'room_mobile' => ['title' => '联系电话'],
+            'room_id_card' => ['title' => '身份证号码'],
         ];
         $config["save"] = true;
         $config['path'] = 'temp/'.date('Y-m-d');
@@ -539,17 +519,14 @@ class CarportService extends BaseService
         $types = array_column($this->types, 'name');
         $status = array_column($this->status, 'name');
         return [
-            'lot_id' => ['title' => '车场/区域id', 'rules' => ['required' => true]],
+            'lot_id' => ['title' => '车场id', 'rules' => ['required' => true]],
             'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
             'type' => ['title' => '车位类型', 'items' => $types, 'rules' => ['required' => true]],
-            'car_port_area' => ['title' => '车位面积(M2)'],
+            'car_port_area' => ['title' => '车位面积(M2)','rules' => ['required' => true]],
             'status' => ['title' => '使用状态','items' => $status, 'rules' => ['required' => true]],
-            'group' => ['title' => '关联房产(苑期区)'],
-            'building' => ['title' => '关联房产(幢)'],
-            'unit' => ['title' => '关联房产(单元)'],
-            'room' => ['title' => '关联房产(室)'],
             'room_name' => ['title' => '产权人姓名'],
             'room_mobile' => ['title' => '电话'],
+            'room_id_card' => ['title' => '身份证号码'],
         ];
     }
 
@@ -565,22 +542,16 @@ class CarportService extends BaseService
             //检测停车场是否存在
             $code = ParkingLot::find()->where(['id'=>$v['lot_id'],'status'=>1])->asArray()->one();
             if (!$code) {
-                $v['error_mes'] = "停车场ID不存在";
+                $v['error_mes'] = "停车场不存在";
                 $return[] = $v;
                 continue;
             }
-            if($code['parent_id'] == 0){
-                //车场
-                $v['lot_id'] = $code['id'];
-                $v['lot_area_id'] = 0;
-            }else{
-                //车场区域
-                $v['lot_id'] = $code['parent_id'];
-                $v['lot_area_id'] = $code['id'];
-            }
+            $v['lot_id'] = $code['id'];
+            $v['lot_area_id'] = 0;
+
             //车位号是否重复
             $supplier_id = $code['supplier_id'];
-            $res = $this->checkCarport($communityId, $supplier_id,$v['car_port_num'],$v['lot_id'],$v['lot_area_id']);
+            $res = $this->checkCarport($communityId, $supplier_id,$v['car_port_num'],$v['lot_id']);
             if (!is_array($res)) {
                 $v['error_mes'] = $res;
                 $return[] = $v;
@@ -591,15 +562,6 @@ class CarportService extends BaseService
             if(!in_array($lot,$lot_list)){
                 $lot_list[] = $lot;
             }
-            //房屋信息是否正确
-            $res = $this->checkRoom($communityId,$v);
-            if (!is_array($res)) {
-                $v['error_mes'] = $res;
-                $return[] = $v;
-                continue;
-            }
-            $v['room_id'] = $res['room_id'];
-            $v['room_address'] = $res['room_address'];
 
             $insert['community_id'][] = $communityId;
             $insert['supplier_id'][] = $supplier_id;
@@ -609,10 +571,11 @@ class CarportService extends BaseService
             $insert['car_port_type'][] = $this->searchIdByName($this->types, $v['type']);
             $insert['car_port_area'][] = $v['car_port_area'];
             $insert['car_port_status'][] = $this->searchIdByName($this->status, $v['status']);
-            $insert['room_id'][] = $v['room_id'];
-            $insert['room_address'][] = $v['room_address'];
+            $insert['room_id'][] = 0;
+            $insert['room_address'][] = '';
             $insert['room_name'][] = $v['room_name'];
             $insert['room_mobile'][] = $v['room_mobile'];
+            $insert['room_id_card'][] = $v['room_id_card'];
             $insert['created_at'][] = time();
             $success_num += 1;
             $return[] = $v;
@@ -652,5 +615,16 @@ class CarportService extends BaseService
             }
         }
         return false;
+    }
+
+    private function returnKeyValue($data)
+    {
+        $reData = [];
+        foreach ($data as $k => $v) {
+            $tmp['key'] = $v['id'];
+            $tmp['value'] = $v['name'];
+            array_push($reData, $tmp);
+        }
+        return $reData;
     }
 }

@@ -22,5 +22,4 @@ $config = yii\helpers\ArrayHelper::merge(
     require __DIR__ . '/../config/main.php',
     require __DIR__ . '/../config/main-dev.php'
 );
-
 (new yii\web\Application($config))->run();

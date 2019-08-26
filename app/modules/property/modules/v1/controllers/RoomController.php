@@ -61,7 +61,7 @@ class RoomController extends BaseController
             //todo 小区名称
             $houses["list"][$key]['community_name'] = $community_name;
             //todo 房屋标签
-            $labels = 
+            $labels =[];
             $houses["list"][$key]['labels'] = $labels;
 
         }

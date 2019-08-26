@@ -10,6 +10,7 @@ namespace service\parking;
 use app\models\ParkingCarport;
 use app\models\ParkingLot;
 use app\models\ParkingReportDaily;
+use common\core\F;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\IotParkingService;
@@ -86,15 +87,15 @@ class LotService extends BaseService
 
         //新增车场
         $model = new ParkingLot();
-        $model->supplier_id = $params['supplier_id'];
+        $model->supplier_id = F::value($params, 'supplier_id', 0);
         $model->community_id = $params['community_id'];
-        $model->name = $params['name'];
-        $model->lon = $params['lon'];
-        $model->lat = $params['lat'];
-        $model->location = $params['location'];
-        $model->park_code = $params['parkCode'];
-        $model->iot_park_name = $params['parkName'];
-        $model->parkId = $params['parkId'];
+        $model->name = F::value($params,'name', '');
+        $model->lon = F::value($params,'lon', 0);
+        $model->lat = F::value($params,'lat', 0);
+        $model->location = F::value($params,'location', '');
+        $model->park_code = F::value($params,'parkCode', '');
+        $model->iot_park_name = F::value($params,'parkName', '');
+        $model->parkId = F::value($params,'parkId', '');
         $model->created_at = time();
         if($model->save()){
             return $this->success();
@@ -124,10 +125,10 @@ class LotService extends BaseService
             return $this->failed('设备对应车场不可编辑');
         }
 
-        $model->name = $params['name'];
-        $model->lon = $params['lon'];
-        $model->lat = $params['lat'];
-        $model->location = $params['location'];
+        $model->name = F::value($params,'name', '');
+        $model->lon = F::value($params,'lon', 0);
+        $model->lat = F::value($params,'lat', 0);
+        $model->location = F::value($params,'location', '');
         if ($model->save()) {
             return $this->success();
         }
@@ -190,7 +191,8 @@ class LotService extends BaseService
                 'parkId' => 2
             ],
         ];
-        return $this->success($list);
+        $reList['list'] = $list;
+        return $this->success($reList);
     }
 
     //获取停车区列表

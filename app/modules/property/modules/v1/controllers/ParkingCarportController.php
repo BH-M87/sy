@@ -17,6 +17,17 @@ use service\parking\CarportService;
 
 class ParkingCarportController extends BaseController
 {
+    //车位公共接口
+    public function actionCommon()
+    {
+        $communityId = PsCommon::get($this->request_params, 'community_id', 0);
+        if (!$communityId) {
+            return PsCommon::responseFailed("小区id不能为空");
+        }
+        $data = CarportService::service()->getCommon($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
+
     /**
      * 车位管理--列表
      * @return string
@@ -111,41 +122,6 @@ class ParkingCarportController extends BaseController
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }
-    }
-
-    /**
-     * 车位管理--批量删除
-     * @return string
-     */
-    public function actionDeleteAll()
-    {
-        $result = CarportService::service()->deleteAll($this->request_params);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
-        } else {
-            return PsCommon::responseFailed($result["msg"]);
-        }
-    }
-
-
-    /**
-     * 车位管理--车位类型
-     * @return string
-     */
-    public function actionTypes()
-    {
-        $data['types'] = array_values(CarportService::service()->types);
-        return PsCommon::responseSuccess($data);
-    }
-
-    /**
-     * 车位管理--车位状态
-     * @return string
-     */
-    public function actionStatus()
-    {
-        $data['types'] = array_values(CarportService::service()->status);
-        return PsCommon::responseSuccess($data);
     }
 
     /**
