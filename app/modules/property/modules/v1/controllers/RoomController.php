@@ -30,6 +30,7 @@ use service\common\ExcelService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\label\LabelsService;
+use service\resident\ResidentService;
 use service\room\HouseService;
 use service\room\RoomService;
 use Yii;
@@ -146,6 +147,7 @@ class RoomController extends BaseController
             return PsCommon::responseFailed($errorMsg[0][0]);
         }
     }
+
 
     /**
      * 2016-12-17
@@ -1129,5 +1131,28 @@ class RoomController extends BaseController
             $i--;
         }
     }
+
+    //相关住户
+    public function actionPeopleList()
+    {
+        $room_id = PsCommon::get($this->request_params,'room_id');
+        if(empty($room_id)){
+            return PsCommon::responseFailed('房屋id不能为空');
+        }
+        $houses = HouseService::service()->relatedResidentForRoom($room_id);
+        return PsCommon::responseSuccess($houses);
+    }
+
+    //相关车辆
+    public function actionCarList()
+    {
+        $room_id = PsCommon::get($this->request_params,'room_id');
+        if(empty($room_id)){
+            return PsCommon::responseFailed('房屋id不能为空');
+        }
+        $cars = HouseService::service()->relatedCar($room_id);
+        return PsCommon::responseSuccess($cars);
+    }
+
 
 }

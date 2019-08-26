@@ -6,14 +6,21 @@
  */
 namespace service\room;
 
+use app\models\ParkingCarport;
+use app\models\ParkingCars;
+use app\models\ParkingUserCarport;
+use app\models\ParkingUsers;
 use app\models\PsBillCost;
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsCommunityUnits;
+use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
+use app\models\PsRoomUser;
 use common\core\PsCommon;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
 use service\alipay\SharedService;
@@ -80,7 +87,7 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
         if ($list) {
@@ -346,6 +353,7 @@ Class HouseService extends BaseService
         $delivery_time = !empty($data->delivery_time) ? $data->delivery_time : '';//交房时间
         $own_age_limit = !empty($data->own_age_limit) ? $data->own_age_limit : '';//产权年限
         $orientation = !empty($data->orientation) ? $data->orientation : '';//房屋朝向
+        $room_image = !empty($data->room_image) ? $data->room_image : '';//房屋图片
         $create_at = time();
         $coun = $this->_getFloatLength($floor_coe);
         if ($coun > 2) {
@@ -390,7 +398,7 @@ Class HouseService extends BaseService
                         throw new Exception("标签错误");
                     }
                 } else {
-                    LabelsService::service()->deleteList(1, $id, 2);
+                    PsLabelsRela::deleteAll(['data_type'=>1,'data_id'=>$id]);
                 }
 
                 $updateData = [
@@ -402,11 +410,12 @@ Class HouseService extends BaseService
                     'room_code' => $room_code,
                     'house_type'=>$house_type,
                     'delivery_time'=>$delivery_time,
-                    'own_age_limit'=>$own_age_limit
+                    'own_age_limit'=>$own_age_limit,
+                    'room_image'=>$room_image
                 ];
                 PsCommunityRoominfo::updateAll($updateData,['id'=>$id]);
                 //编辑数据推送
-                DoorPushService::service()->roomEdit($community_id, $roomInfo['unit_no'], $roomInfo['out_room_id'], $id, $roomInfo['room'], $room_code, $charge_area);
+                //DoorPushService::service()->roomEdit($community_id, $roomInfo['unit_no'], $roomInfo['out_room_id'], $id, $roomInfo['room'], $room_code, $charge_area);
                 /*$operate = [
                     "community_id" => $community_id,
                     "operate_menu" => "房屋管理",
@@ -415,10 +424,10 @@ Class HouseService extends BaseService
                 ];
                 OperateService::addComm($user_info, $operate);*/
                 $trans->commit();
-                //同步房屋数据到楼宇中心
+                /*//同步房屋数据到楼宇中心
                 if (!empty($roomInfo['roominfo_code'])) {
                     $this->postEditRoomApi(['roominfo_code' => $roomInfo['roominfo_code'], 'room' => $roomInfo['room'], 'floor' => $floor]);
-                }
+                }*/
             } catch (Exception $e) {
                 $trans->rollBack();
                 return $this->failed($e->getMessage());
@@ -470,6 +479,7 @@ Class HouseService extends BaseService
                 $roominfo->delivery_time = $delivery_time;
                 $roominfo->own_age_limit = $own_age_limit;
                 $roominfo->orientation = $orientation;
+                $roominfo->room_image = $room_image;
                 $roominfo->insert();
                 if (!empty($room_label_id)) {
                     if (!LabelsService::service()->addRelation($roominfo->id, $room_label_id, 1)) {
@@ -596,19 +606,19 @@ Class HouseService extends BaseService
                 ->queryScalar();
 
             $model = Yii::$app->db->createCommand()->delete('ps_community_roominfo', "out_room_id = '$out_room_id'")->execute();
-            $operate = [
+            /*$operate = [
                 "community_id" => $list["community_id"],
                 "operate_menu" => "房屋管理",
                 "operate_type" => "删除房屋",
                 "operate_content" => $list["address"],
             ];
-            OperateService::addComm($user_info, $operate);
+            OperateService::addComm($user_info, $operate);*/
             if ($model) {
                 //同步更新删除到楼宇中心
                 //$this->postDeleteRoomApi($list['roominfo_code']);
 
                 //删除房屋数据推送
-                DoorPushService::service()->roomDelete($list["community_id"], $out_room_id);
+                //DoorPushService::service()->roomDelete($list["community_id"], $out_room_id);
 
                 $batch_id = date("YmdHis", time()) . '2' . rand(1000, 9000);
                 $data = [
@@ -960,6 +970,42 @@ Class HouseService extends BaseService
                 $room->save();
             }
         }
+    }
+
+    // 关联住户--房屋详情用
+    public function relatedResidentForRoom($room_id)
+    {
+        $models = PsRoomUser::find()->where(['room_id' => $room_id, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
+        $list = $models->asArray()->all();
+        $total = $models->count();
+        foreach ($list as &$model) {
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
+            $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['status_desc'] = PsCommon::getIdentityStatus($model['status']);
+            $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
+            $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : $model['mobile'];
+        }
+        return ['list' => $list, 'total' => $total];
+    }
+
+    // 关联车辆--房屋详情用
+    public function relatedCar($room_id)
+    {
+        $mobile = PsRoomUser::find()->select(['mobile'])->where(['room_id'=>$room_id])->asArray()->column();
+        $models = ParkingUsers::find()->alias('A')
+            ->select('C.id, C.community_id, B.room_address, D.car_port_num, A.user_name, A.user_mobile, C.car_num, C.car_model')
+            ->leftJoin(['B'=>ParkingUserCarport::tableName()],'A.id = B.user_id')
+            ->leftJoin(['C'=>ParkingCars::tableName()],'C.id = B.car_id')
+            ->leftJoin(['D'=>ParkingCarport::tableName()],'D.id = B.carport_id')
+            ->where(['A.user_mobile'=>$mobile]);
+        $total = $models->count();
+        $model = $models->orderBy('id desc')->asArray()->all();
+        foreach ($model as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+        }
+
+        return ['list' => $model, 'total' => $total];
     }
 
 }

@@ -453,6 +453,7 @@ class ResidentService extends BaseService
         return ['list' => $data, 'total' => $total];
     }
 
+
     // 关联车辆
     public function relatedCar($param, $page = 0, $rows = 0)
     {
