@@ -687,27 +687,26 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    // 相关车辆
+    public function actionRelatedCar()
+    {
+        $result = ResidentService::service()->relatedCar($this->request_params, $this->page, $this->pageSize);
 
+        return PsCommon::responseSuccess($result);
+    }
 
-    /**********todo 待审核数据还没，后期测试************/
-
-    /**
-     * 审核不通过
-     * @return null|string
-     */
+    // 审核不通过
     public function actionAuditNopass()
     {
-        $result = ResidentService::service($this->communityId)->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
+        $result = ResidentService::service($this->communityId)
+            ->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 审核bu通过删除
-     * @return null|string
-     */
+    // 审核不通过 删除
     public function actionAuditDelete()
     {
         $result = ResidentService::service()->auditDel($this->request_params['id'], $this->user_info);
@@ -716,8 +715,6 @@ class ResidentController extends BaseController
         }
         return PsCommon::responseSuccess($result['data']);
     }
-
-    /****todo 还未调试接口***/
 
     //新增投票-选择业主
     public function actionGetResident()

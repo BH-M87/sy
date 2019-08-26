@@ -19,6 +19,8 @@ use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
 use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
+use app\models\ParkingUsers;
+use app\models\PsCommunityModel;
 
 use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
@@ -451,6 +453,32 @@ class ResidentService extends BaseService
         return ['list' => $data, 'total' => $total];
     }
 
+    // 关联车辆
+    public function relatedCar($param, $page = 0, $rows = 0)
+    {
+        $roomUser = PsRoomUser::findOne($param['id']);
+
+        $query = ParkingUsers::find()->alias('A')
+            ->select('C.id, C.community_id, B.room_address, D.car_port_num, A.user_name, A.user_mobile, C.car_num, C.car_model')
+            ->leftJoin('parking_user_carport B', 'A.id = B.user_id')
+            ->leftJoin('parking_cars C', 'C.id = B.car_id')
+            ->leftJoin('parking_carport D', 'D.id = B.carport_id')
+            ->where(['=', 'user_mobile', $roomUser->mobile]);
+
+        $total = $query->count();
+        if ($page && $rows) {
+            $query->offset(($page - 1) * $rows)->limit($rows);
+        }
+
+        $model = $query->orderBy('id desc')->asArray()->all();
+
+        foreach ($model as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+        }
+
+        return ['list' => $model, 'total' => $total];
+    }
+
     // 住户列表 审核 待审核
     public function auditLists($params, $page, $rows)
     {
@@ -496,19 +524,19 @@ class ResidentService extends BaseService
         return $data;
     }
 
-    /*
-     * 审核不通过
-     */
+    // 审核不通过
     public function nopass($id, $message, $operator)
     {
         $model = PsResidentAudit::findOne(['id' => $id, 'community_id' => $this->communityId]);
         if (!$model) {
             return $this->failed('数据不存在');
         }
+
         $message = trim($message);
         if (!$message) {
             return $this->failed('不通过原因不能为空');
         }
+
         $model->status = PsResidentAudit::AUDIT_NO_PASS;
         $model->reason = $message;
         $model->operator = $operator['id'];
@@ -521,9 +549,8 @@ class ResidentService extends BaseService
         SmsService::service()->init(34, $model['mobile'])->send([$communityName['name']]);
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
-        //发送生活号模版消息
-        $this->sendAlipayTempMsg($model->community_id, $model->member_id, '已驳回', $model->reason);
-        //保存日志
+
+        // 保存日志
         $log = [
             "community_id" => $model['community_id'],
             "operate_menu" => "住户管理",
@@ -531,24 +558,24 @@ class ResidentService extends BaseService
             "operate_content" => $model->name . " " . (PsCommon::isVirtualPhone($model->mobile) === true ? '' : $model->mobile),
         ];
         OperateService::addComm($operator, $log);
+
         return $this->success();
     }
 
-    /**
-     * 审核bu通过删除
-     */
+    // 审核bu通过删除
     public function auditDel($id, $userinfo = '')
     {
         $model = PsResidentAudit::findOne(['id' => $id, 'community_id' => $this->communityId]);
         if (empty($model)) {
             return $this->failed('删除失败，数据不存在');
         }
+
         $name = $model->name;
         $mobile = $model->mobile;
         if (!$model || !$model->delete()) {
             return $this->failed('删除失败');
         }
-        //保存日志
+        // 保存日志
         $log = [
             "community_id" => $model['community_id'],
             "operate_menu" => "住户管理",
@@ -556,6 +583,7 @@ class ResidentService extends BaseService
             "operate_content" => $name . " " . (PsCommon::isVirtualPhone($mobile) === true ? '' : $mobile),
         ];
         OperateService::addComm($userinfo, $log);
+
         return $this->success();
     }
 
