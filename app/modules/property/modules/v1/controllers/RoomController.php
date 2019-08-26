@@ -13,6 +13,7 @@ use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsHouseForm;
+use app\models\PsLabels;
 use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
@@ -50,12 +51,19 @@ class RoomController extends BaseController
         $page = isset($data['page']) ? $data['page'] : 1;
         $rows = isset($data['rows']) ? $data['rows'] : Yii::$app->params['list_rows'];
         $houses = HouseService::service()->houseLists($data, $page, $rows, '');
+        $community_name = PsCommunityModel::find()->select(['name'])->where(['id' => $data['community_id']])->asArray()->scalar();
         foreach ($houses["list"] as $key => $val) {
-            $houses["list"] [$key]['floor_shared_id'] = $val['floor_shared_id'] ? SharedService::service()->getNameById($val['floor_shared_id']) : '';//楼层号
-            $houses["list"] [$key]['lift_shared_id'] = $val['lift_shared_id'] ? SharedService::service()->getNameById($val['lift_shared_id']) : 'X';//电梯编号
-            $houses["list"] [$key]['property_type'] = PsCommon::propertyType($val['property_type']); // 房屋类型
-            $houses["list"] [$key]['status'] = PsCommon::houseStatus($val['status']);         // 物业状态
-            $houses["list"] [$key]['group'] = $val['group'] == '0' ? '' : $val['group'];     // 期区
+            $houses["list"][$key]['floor_shared_id'] = $val['floor_shared_id'] ? SharedService::service()->getNameById($val['floor_shared_id']) : '';//楼层号
+            $houses["list"][$key]['lift_shared_id'] = $val['lift_shared_id'] ? SharedService::service()->getNameById($val['lift_shared_id']) : 'X';//电梯编号
+            $houses["list"][$key]['property_type'] = PsCommon::propertyType($val['property_type']); // 房屋类型
+            $houses["list"][$key]['status'] = PsCommon::houseStatus($val['status']);         // 物业状态
+            $houses["list"][$key]['group'] = $val['group'] == '0' ? '' : $val['group'];     // 期区
+            //todo 小区名称
+            $houses["list"][$key]['community_name'] = $community_name;
+            //todo 房屋标签
+            $labels = 
+            $houses["list"][$key]['labels'] = $labels;
+
         }
         return PsCommon::responseSuccess($houses);
     }

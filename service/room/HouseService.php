@@ -460,14 +460,14 @@ Class HouseService extends BaseService
             //房屋新增数据推送
             $roomModel = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
             DoorPushService::service()->roomAdd($community_id, $bulidAddRe['unit_no'], $out_room_id, $roomModel['id'], $room, $room_code, $bulidAddRe['build_push'], $charge_area);
-            $operate = [
+            /*$operate = [
                 "community_id" => $community_id,
                 "operate_menu" => "房屋管理",
                 "operate_type" => "新增房屋",
                 "operate_content" => $address,
             ];
 
-            OperateService::addComm($user_info, $operate);
+            OperateService::addComm($user_info, $operate);*/
             $batch_id = date("YmdHis", time()) . '1' . rand(1000, 9000);
             $data = [
                 'batch_id' => $batch_id,
