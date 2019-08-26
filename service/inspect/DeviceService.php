@@ -392,7 +392,7 @@ class DeviceService extends BaseService
     // 设备 搜索
     private function _deviceSearch($params)
     {
-        $model = PsDevice::find() 
+        $model = PsDevice::find()
             ->filterWhere(['like', 'name', PsCommon::get($params, 'name')])
             ->andFilterWhere(['=', 'id', PsCommon::get($params, 'device_id')])
             ->andFilterWhere(['like', 'device_no', PsCommon::get($params, 'device_no')])
@@ -475,9 +475,9 @@ class DeviceService extends BaseService
             return $this->failed('没有权限删除此数据');
         }
 
-        if (PsInspectPoint::find()->where(['device_id' => $model->id])->exists()) {
-            return $this->failed('请先删除巡检点');
-        }
+//        if (PsInspectPoint::find()->where(['device_id' => $model->id])->exists()) {
+//            return $this->failed('请先删除巡检点');
+//        }
 
         if (PsDevice::deleteAll('id = :id', [':id' => $model->id])) {
 //            //设备删除成功后，推送到监控页面 @shenyang v4.4数据监控版本
