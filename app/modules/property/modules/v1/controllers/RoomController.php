@@ -9,9 +9,11 @@
 namespace app\modules\property\modules\v1\controllers;
 
 require dirname(__DIR__, 6) . '/common/PhpExcel/PHPExcel.php';
+use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityUnits;
 use app\models\PsHouseForm;
 use app\models\PsLabels;
 use app\models\PsLabelsRela;
@@ -20,6 +22,7 @@ use common\core\F;
 use common\core\PsCommon;
 use service\alipay\SharedService;
 use service\basic_data\CommunityBuildingService;
+use service\basic_data\CommunityGroupService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
 use service\common\CsvService;
@@ -423,12 +426,11 @@ class RoomController extends BaseController
         if (empty($communityId)) {
             return PsCommon::responseFailed("请选择有效小区");
         }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-
+        /*$communityInfo = CommunityService::service()->getInfoById($communityId);
         if (empty($communityInfo)) {
             //todo 这里调用postman没有数据返回，后续需要处理
             return PsCommon::responseFailed("请选择有效小区");
-        }
+        }*/
         $objPHPExcel = $r['data'];
         $fail = 0;
         $success = 0;
@@ -486,18 +488,40 @@ class RoomController extends BaseController
                 $buildingData['building_name'] = $building;
                 $buildingData['unit_name'] = $unit;
                 $group_id = PsCommunityGroups::find()->select('id')->where(['community_id' => $communityId, 'name' => $group])->asArray()->scalar();
-                // 没有苑期区就新增一个
-                if (empty($group_id)) {
-                    Yii::$app->db->createCommand()->insert('ps_community_groups', [
-                        'community_id' => $communityId,
-                        'name' => $group,
-                    ])->execute();
-                    $group_id = Yii::$app->db->getLastInsertID();
+                //todo 跟产品确认，如果苑期区，楼幢，单元不存在，就不能导入房屋
+                if(empty($group_id)){
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "这个苑期区不存在，请先去新增".$group;
+                    continue;
                 }
-
+                $building_id = PsCommunityBuilding::find()->select('id')->where(['group_id' => $group_id, 'name' => $building])->asArray()->scalar();
+                if(empty($building_id)){
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "这个楼幢不存在，请先去新增".$building;
+                    continue;
+                }
+                $unitId = PsCommunityUnits::find()->select('id')->where(['group_id' => $group_id, 'building_id'=>$building_id,'name' => $unit])->asArray()->scalar();
+                if(empty($unitId)){
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "这个单元不存在，请先去新增".$unit;
+                    continue;
+                }
+                /*// 没有苑期区就新增一个
+                if (empty($group_id)) {
+                    $groupData['community_id'] = $communityId;
+                    $groupData['group_name'] = $group;
+                    $groupData['group_code'] = '';
+                    $groupInfo = CommunityGroupService::service()->saveGroup($groupData);
+                    $group_id = $groupInfo['data'];//获取新创建的苑期区的id
+                }
                 $buildingData['group_id'] = $group_id;
-                //todo
-                $unitInfo = CommunityBuildingService::service()->addImport($buildingData, false);
+                //获取楼幢id
+                $building_id = CommunityBuildingService::service()->getBuildingIdByName($communityId,$group_id,$group,$building);
+                //获取单元id
+                $unitId = CommunityBuildingService::service()->getUnitId($communityId,$group_id,$group,$building_id,$building,$unit);*/
 
                 //excel表数据去重
                 if (in_array($address, $uniqueRoomInfo)) {
@@ -530,7 +554,7 @@ class RoomController extends BaseController
                     'group' => $group,
                     'building' => $building,
                     'unit' => $unit,
-                    'unit_id' => !empty($unitInfo['data']) ? $unitInfo['data'] : '0',
+                    'unit_id' => !empty($unitId) ? $unitId : '0',
                     'room' => $room,
                     'charge_area' => $charge_area,
                     'status' => $status,
@@ -622,10 +646,10 @@ class RoomController extends BaseController
             $trans->rollBack();
             return PsCommon::responseFailed($e->getMessage());
         }
-        //发布到支付宝
+        /*//发布到支付宝
         if ($communityInfo['company_id'] != 321) {//不是南京物业则发布到支付宝:19-4-27陈科浪修改
             //$this->alipayRoom($communityInfo['community_no']);
-        }
+        }*/
         $result = [
             'totals' => $success + $fail,
             'success' => $success,
