@@ -563,7 +563,7 @@ class RoomController extends BaseController
                     'property_type' => $property_type,
                     'house_type' => $house_type,
                     'orientation' => $orientation,
-                    'delivery_time' => $delivery_time,
+                    'delivery_time' => strtotime($delivery_time),
                     'own_age_limit' => $own_age_limit,
                     'sync_rent_manage'=>0,
                     'out_room_id' => $outRoomId,

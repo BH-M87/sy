@@ -411,7 +411,7 @@ Class HouseService extends BaseService
                     'floor' => $floor,
                     'room_code' => $room_code,
                     'house_type'=>$house_type,
-                    'delivery_time'=>$delivery_time,
+                    'delivery_time'=>strtotime($delivery_time),
                     'own_age_limit'=>$own_age_limit,
                     'room_image'=>$room_image
                 ];
@@ -478,7 +478,7 @@ Class HouseService extends BaseService
                 $roominfo->create_at = $create_at;
                 $roominfo->roominfo_code = PsCommon::getIncrStr('HOUSE_ROOMINFO',YII_ENV.'lyl:house-roominfo');
                 $roominfo->house_type = $house_type;
-                $roominfo->delivery_time = $delivery_time;
+                $roominfo->delivery_time = strtotime($delivery_time);
                 $roominfo->own_age_limit = $own_age_limit;
                 $roominfo->orientation = $orientation;
                 $roominfo->room_image = $room_image;
