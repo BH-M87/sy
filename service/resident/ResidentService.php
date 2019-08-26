@@ -366,26 +366,19 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /*
-     * 关联房屋
-     */
-    /**
-     * @param $id
-     * @param int $page
-     * @param $rows
-     * @return array
-     */
+    // 关联房屋
     public function relatedHouse($id, $page = 0, $rows = 0)
     {
-        $query = PsRoomUser::model()
-            ->get(['community_id' => $this->communityId, 'member_id' => $id, 'move_status' => 1]);
+        $query = PsRoomUser::model()->get(['community_id' => $this->communityId, 'member_id' => $id, 'move_status' => 1]);
         $total = $query->count();
         if (!$total) {
             return ['list' => [], 'total' => $total];
         }
+
         if ($page && $rows) {
             $query->offset(($page - 1) * $rows)->limit($rows);
         }
+
         $data = $query->with('roomInfo')->orderBy('id desc')
             ->select('id, room_id, member_id, identity_type, status, group, building, unit, room, time_end')
             ->asArray()->all();
@@ -398,10 +391,8 @@ class ResidentService extends BaseService
                 $datum['roomInfo']['status_desc'] = PsCommon::houseStatus($datum['roomInfo']['status']);
             }
         }
-        return [
-            'list' => $data,
-            'total' => $total
-        ];
+
+        return ['list' => $data, 'total' => $total];
     }
 
     /*
@@ -434,25 +425,20 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /**
-     * 关联住户
-     * @param $id //住户ID
-     * @param int $page
-     * @param int $rows
-     * @return array
-     */
+    // 关联住户
     public function relatedResident($id, $page = 0, $rows = 0)
     {
         $houses = $this->relatedHouse($id);
         $housesIds = array_column($houses['list'], 'room_id');
 
-        $query = PsRoomUser::find()->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
+        $query = PsRoomUser::find()->select('id, name, mobile, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
+            ->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
         $total = $query->count();
         if ($page && $rows) {
             $query->offset(($page - 1) * $rows)->limit($rows);
         }
-        $data = $query->orderBy('id desc')
-            ->asArray()->all();
+
+        $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
             $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
@@ -461,10 +447,8 @@ class ResidentService extends BaseService
             $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : $model['mobile'];
         }
-        return [
-            'list' => $data,
-            'total' => $total
-        ];
+
+        return ['list' => $data, 'total' => $total];
     }
 
     // 住户列表 审核 待审核
@@ -996,7 +980,8 @@ class ResidentService extends BaseService
         }
         return $result;
     }
-
+    
+    // 获取基本下拉信息
     public function getOption()
     {
         $data['change_detail'] = $this->getForeach($this->change_detail);
@@ -1006,6 +991,7 @@ class ResidentService extends BaseService
         $data['live_detail'] = $this->getForeach($this->live_detail);
         $data['live_type'] = $this->getForeach($this->live_type);
         $data['marry_status'] = $this->getForeach($this->marry_status);
+
         return $data;
     }
 
