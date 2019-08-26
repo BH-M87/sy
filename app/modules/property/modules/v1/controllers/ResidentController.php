@@ -39,9 +39,7 @@ class ResidentController extends BaseController
     }
 
     /*******已完成测试的方法********/
-    /**
-     * 获取小区下的所有住户列表
-     */
+    // 住户列表
     public function actionList()
     {
         $result = ResidentService::service()->lists($this->request_params, $this->page, $this->pageSize);
@@ -67,10 +65,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 编辑
-     * @return null|string
-     */
+    // 编辑
     public function actionEdit()
     {
         $result = ResidentService::service()->edit($this->request_params, $this->user_info);
