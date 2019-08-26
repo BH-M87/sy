@@ -530,6 +530,7 @@ class CommunityBuildingService extends BaseService
         $locations = PsCommon::get($data,'locations');
         $longitude = PsCommon::get($data,'longitude','0.000000');
         $latitude = PsCommon::get($data,'latitude','0.000000');
+        $nature = PsCommon::get($data,'nature',1);
 
         //如果新增的时候苑期区没填，就默认放到住宅下面，如果住宅不存在就新建
         if (empty($group_id)) {
@@ -552,7 +553,7 @@ class CommunityBuildingService extends BaseService
         //苑期区名称
         $group_info = PsCommunityGroups::find()->select(['name', 'code'])->where(['id' => $group_id])->asArray()->one();
         $group_name = $group_info['name'];
-        $building_id = $this->getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude);
+        $building_id = $this->getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude,$nature);
 
         //yii2事物
         $connection = \Yii::$app->db;
@@ -587,7 +588,7 @@ class CommunityBuildingService extends BaseService
 
     }
 
-    public function getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude)
+    public function getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude,$nature)
     {
         $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
         if (!$building) {
@@ -604,6 +605,7 @@ class CommunityBuildingService extends BaseService
             $model->locations = $locations;
             $model->longitude = $longitude;
             $model->latitude = $latitude;
+            $model->nature = $nature;
             if ($model->save()) {
                 $building_id = $model->id;
             } else {
@@ -653,6 +655,7 @@ class CommunityBuildingService extends BaseService
         $locations = PsCommon::get($data,'locations');
         $longitude = PsCommon::get($data,'longitude');
         $latitude = PsCommon::get($data,'latitude');
+        $nature = PsCommon::get($data,'nature',1);
 
         //yii2事物
         $connection = \Yii::$app->db;
@@ -667,6 +670,7 @@ class CommunityBuildingService extends BaseService
             $buildingModel->locations = $locations;
             $buildingModel->longitude = $longitude;
             $buildingModel->latitude = $latitude;
+            $buildingModel->nature = $nature;
             $buildingModel->save();
             /*$content = "幢号:" . $buildingModel->name;
             $operate = [

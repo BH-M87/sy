@@ -163,6 +163,26 @@ class CommunityBuildingController extends BaseController
         return CommunityBuildingService::service()->deleteBuilding($data,$this->user_info);
     }
 
+    //楼幢性质
+    public function actionBuildingNature()
+    {
+        $list = [
+            [
+                'key'=>1,
+                'value'=>'商用'
+            ],
+            [
+                'key'=>2,
+                'value'=>'住宅'
+            ],
+            [
+                'key'=>3,
+                'value'=>'商住两用'
+            ]
+        ];
+        return PsCommon::responseSuccess($list);
+    }
+
     /******************社区微脑定制的单元相关接口********************/
     public function actionUnitList()
     {

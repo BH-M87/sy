@@ -186,11 +186,20 @@ Class LabelsService extends BaseService
     //根据房屋id获取这个房屋下的所有标签
     public function getLabelByRoomId($room_id)
     {
-
         $list = PsLabelsRela::find()->alias('lr')
             ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
             ->select(['l.name'])
             ->where(['lr.data_id'=>$room_id,'lr.data_type'=>1,'l.is_delete'=>1])->asArray()->column();
+        return $list ? $list : [];
+    }
+
+    //根据房屋id获取这个房屋下的所有标签id和名称
+    public function getLabelInfoByRoomId($room_id)
+    {
+        $list = PsLabelsRela::find()->alias('lr')
+            ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
+            ->select(['l.id','l.name'])
+            ->where(['lr.data_id'=>$room_id,'lr.data_type'=>1,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }
 }

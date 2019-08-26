@@ -80,18 +80,24 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
         if ($list) {
             $list['floor_shared_id'] = $list['floor_shared_id'] ? SharedService::service()->getNameById($list['floor_shared_id']) : '';//楼层号
             $list['lift_shared_id'] = $list['lift_shared_id'] ? SharedService::service()->getNameById($list['lift_shared_id']) : 'X';//电梯编号
-            $label = PsRoomLabel::find()->select('label_id')->where(['room_id' => $list['id']])->asArray()->all();//标签id
+            //$label = PsRoomLabel::find()->select('label_id')->where(['room_id' => $list['id']])->asArray()->all();//标签id
+            $label = LabelsService::service()->getLabelInfoByRoomId($list['id']);
             if (!empty($label)) {
                 foreach ($label as $v) {
-                    $list['room_label_id'][] = $v['label_id'];
+                    $list['room_label_id'][] = $v['id'];
                 }
             }
+            $house_type = explode("|",$list['house_type']);
+            $list['house_type_room'] = $house_type[0];
+            $list['house_type_hall'] = $house_type[1];
+            $list['house_type_kitchen'] = $house_type[2];
+            $list['house_type_toilet'] = $house_type[3];
             return ['list' => $list];
         }
 
@@ -188,7 +194,7 @@ Class HouseService extends BaseService
         $unit_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = "  (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
-        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address 
+        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor 
             FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)->queryAll();
         return ['list' => $list, 'totals' => $count["total"], "all_area" => $count["all_area"]];
     }
@@ -347,6 +353,9 @@ Class HouseService extends BaseService
                 return $this->failed("请选择电梯编号");
             }
         }
+        if(empty($floor)){
+            return $this->failed("楼层不能为空");
+        }
         $group = $data->group ? (preg_match("/^[0-9\#]*$/", $data->group) ? $group . '期' : $group) : '住宅'; // 房屋所在的组团名称
         $building = preg_match("/^[0-9\#]*$/", $data->building) ? $building . '幢' : $building;  // 房屋所在楼栋名称
         $unit = preg_match("/^[0-9\#]*$/", $data->unit) ? $unit . '单元' : $unit;       // 房屋所在单元名称
@@ -356,6 +365,13 @@ Class HouseService extends BaseService
         $communityInfo = PsCommunityModel::find()->select(['community_no','pro_company_id'])->where(['id'=>$community_id])->asArray()->one();
         $community_no = PsCommon::get($communityInfo,'community_no');
         $property_id = PsCommon::get($communityInfo,'pro_company_id');
+
+        //获取房屋户型
+        $house_type_room = !empty($data->house_type_room) ? $data->house_type_room : 0;
+        $house_type_hall = !empty($data->house_type_hall) ? $data->house_type_hall : 0;
+        $house_type_kitchen = !empty($data->house_type_kitchen) ? $data->house_type_kitchen : 0;
+        $house_type_toilet = !empty($data->house_type_toilet) ? $data->house_type_toilet : 0;
+        $house_type = $house_type_room.'|'.$house_type_hall.'|'.$house_type_kitchen.'|'.$house_type_toilet;
 
         if ($id) { // 修改房屋
             //查询房屋
@@ -385,13 +401,13 @@ Class HouseService extends BaseService
                 PsCommunityRoominfo::updateAll($updateData,['id'=>$id]);
                 //编辑数据推送
                 DoorPushService::service()->roomEdit($community_id, $roomInfo['unit_no'], $roomInfo['out_room_id'], $id, $roomInfo['room'], $room_code, $charge_area);
-                $operate = [
+                /*$operate = [
                     "community_id" => $community_id,
                     "operate_menu" => "房屋管理",
                     "operate_type" => "编辑房屋",
                     "operate_content" => $address,
                 ];
-                OperateService::addComm($user_info, $operate);
+                OperateService::addComm($user_info, $operate);*/
                 $trans->commit();
                 //同步房屋数据到楼宇中心
                 if (!empty($roomInfo['roominfo_code'])) {
@@ -444,6 +460,7 @@ Class HouseService extends BaseService
                 $roominfo->room_code = $room_code;
                 $roominfo->create_at = $create_at;
                 $roominfo->roominfo_code = PsCommon::getIncrStr('HOUSE_ROOMINFO',YII_ENV.'lyl:house-roominfo');
+                $roominfo->house_type = $house_type;
                 $roominfo->insert();
                 if (!empty($room_label_id)) {
                     if (!LabelsService::service()->addRelation($roominfo->id, $room_label_id, 1)) {
