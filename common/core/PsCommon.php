@@ -473,7 +473,7 @@ class PsCommon {
      */
     public static function propertyType($index = 0)
     {
-        $model = ['1' => '住宅', '2' => '商用'];
+        $model = ['1' => '居住物业', '2' => '商业物业','3'=>'工业物业'];
 
         if ($index) {
             return $model[$index];
