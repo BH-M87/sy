@@ -487,5 +487,25 @@ class F
         }
         return false;
     }
+
+    /**
+     * 手机号脱敏
+     * @param $mobile
+     * @return string
+     */
+    public static function processMobile($mobile)
+    {
+        return substr($mobile, 0, 3).'****'.substr($mobile, -4);
+    }
+
+    /**
+     * 身份证号脱敏
+     * @param $mobile
+     * @return string
+     */
+    public static function processIdCard($idCard)
+    {
+        return substr($idCard, 0, 6).'********'.substr($idCard, -4);
+    }
 }
 

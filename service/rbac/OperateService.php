@@ -133,7 +133,7 @@ class OperateService extends  BaseService {
 
     //物业的日志表
     public static function addComm($userInfo, $operate){
-        if ($userInfo["id"]) {
+        if (!empty($userInfo["id"])) {
             $connection = Yii::$app->db;
             $log_arr = [
                 "operate_id" => $userInfo["id"] ?? 0,
