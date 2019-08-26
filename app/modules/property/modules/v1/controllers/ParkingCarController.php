@@ -99,17 +99,6 @@ class ParkingCarController extends BaseController
         }
     }
 
-    //车辆批量删除
-    public function actionBatchDel()
-    {
-        $result = CarService::service()->userCarportBatchDel($this->request_params);
-        if($result["code"]) {
-            return PsCommon::responseSuccess();
-        } else {
-            return PsCommon::responseFailed($result["msg"]);
-        }
-    }
-
     //导入模板下载
     public function actionGetDown()
     {
@@ -139,12 +128,23 @@ class ParkingCarController extends BaseController
     //导出
     public function actionExport()
     {
-        $valid = PsCommon::validParamArr(new ParkingUserCarport(),$this->request_params,'list');
+        $valid = PsCommon::validParamArr(new ParkingCars(),$this->request_params,'list');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $res = CarService::service()->export($this->request_params, $this->user_info);
         return PsCommon::responseSuccess($res['data']);
+    }
+
+    //获取业主
+    public function actionGetUsers()
+    {
+        $valid = PsCommon::validParamArr(new ParkingCars(),$this->request_params,'users');
+        if(!$valid["status"] ) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $res = CarService::service()->getUsers($this->request_params);
+        return PsCommon::responseSuccess($res);
     }
 
     //在库车辆

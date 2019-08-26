@@ -20,6 +20,11 @@ class ParkingCars extends BaseModel
     public $carport_rent_start;
     public $carport_rent_end;
     public $lot_id;
+    public $carport_id;
+    public $group;
+    public $building;
+    public $unit;
+    public $room;
 
     /**
      * {@inheritdoc}
@@ -41,7 +46,7 @@ class ParkingCars extends BaseModel
             [['car_color'], 'string', 'max' => 10],
             [['images'], 'string', 'max' => 500],
             [['community_id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['list']],
-            [['community_id', 'car_num', 'lot_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['community_id', 'car_num', 'lot_id', 'carport_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             ['user_mobile', 'match', 'pattern' => '/^1[0-9]{10}$/',
                 'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add', 'edit']],
             [['carport_rent_start', 'carport_rent_end'],
@@ -49,6 +54,7 @@ class ParkingCars extends BaseModel
             ['carport_rent_start', 'compare_time','on'=>['add']],
             ['carport_rent_end', 'compare', 'compareAttribute' => 'carport_rent_start', 'operator' => '>' , 'message'=>'{attribute}必须大于开始时间','on'=>['add', 'edit']],
             [['id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['edit', 'detail', 'delete']],
+            [['community_id', 'group', 'building', 'unit', 'room'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['users']],
 
         ];
     }
@@ -71,7 +77,12 @@ class ParkingCars extends BaseModel
             'created_at' => 'Created At',
             'carport_rent_start' => '租赁开始时间',
             'carport_rent_end' => '租赁结束时间',
-            'lot_id' => '车场id'
+            'lot_id' => '车场id',
+            'carport_id' => '车位id',
+            'group' => '苑期区',
+            'building'=>'楼幢',
+            'unit' => '单元',
+            'room' => '房屋'
         ];
     }
 

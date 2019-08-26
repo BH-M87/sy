@@ -89,6 +89,8 @@ class CarportService extends BaseService
         foreach ($data as $v) {
             $v['room_mobile'] = $v['room_mobile'] ? F::processMobile($v['room_mobile']) : '';
             $v['room_id_card'] = $v['room_id_card'] ? F::processIdCard($v['room_id_card']) : '';
+            $v['room_mobile_export'] = $v['room_mobile'] ? F::processMobile($v['room_mobile']) : '';
+            $v['room_id_card_export'] = $v['room_id_card'] ? F::processIdCard($v['room_id_card']) : '';
             $v = array_map(function ($x) {
                 return (string)$x;
             }, $v);
@@ -500,8 +502,8 @@ class CarportService extends BaseService
             'car_port_area' => ['title' => '车位面积'],
             'status' => ['title' => '车位状态'],
             'room_name' => ['title' => '产权人'],
-            'room_mobile' => ['title' => '联系电话'],
-            'room_id_card' => ['title' => '身份证号码'],
+            'room_mobile_export' => ['title' => '联系电话'],
+            'room_id_card_export' => ['title' => '身份证号码'],
         ];
         $config["save"] = true;
         $config['path'] = 'temp/'.date('Y-m-d');
