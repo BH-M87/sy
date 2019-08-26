@@ -24,6 +24,7 @@ class PsHouseForm extends Model
     public $floor_shared_id;
     public $lift_shared_id;
     public $is_elevator;
+    public $floor;
 
     public function rules()
     {
@@ -83,7 +84,8 @@ class PsHouseForm extends Model
             'page'           => '页码',
             'rows'           => '每页记录数',
             'out_room_id'    => '房屋编号',
-            'room_id'    => '房屋id',
+            'room_id'       => '房屋id',
+            'floor'         =>'楼层'
         ];
     }
 
