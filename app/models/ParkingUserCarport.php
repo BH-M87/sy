@@ -27,7 +27,6 @@ use Yii;
 class ParkingUserCarport extends BaseModel
 {
     public $car_num;
-    public $is_owner; //是否是住户 1住户 2非住户
     public $lot_id;
     public $port_type; //车位类型
     public $community_id;
@@ -53,12 +52,10 @@ class ParkingUserCarport extends BaseModel
             ['carport_rent_price', 'compare', 'compareValue' => 0, 'operator' => '>=', 'message'=>'{attribute}不能小于0!'],
             [['room_address'], 'string', 'max' => 80],
             [['community_id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['list']],
-            [['community_id', 'car_num', 'is_owner', 'lot_id', 'carport_id', 'user_name', 'user_mobile'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['community_id', 'car_num', 'lot_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             ['user_mobile', 'match', 'pattern' => '/^1[0-9]{10}$/',
                 'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add', 'edit']],
             [['id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['edit', 'detail']],
-            ['port_type', 'in', 'range' => [1, 2], 'message' => '{attribute}有误，只能输入1,2!', 'on' => ['add', 'edit']],
-            ['is_owner', 'in', 'range' => [1, 2], 'message' => '{attribute}有误，只能输入1,2!', 'on' => ['add', 'edit']],
             [['carport_rent_start', 'carport_rent_end'],
                 'date', 'format'=>'yyyy-MM-dd', 'message'=>'{attribute}格式有误!', 'on' => ['add', 'edit']],
             ['carport_rent_start', 'compare_time','on'=>['add']],

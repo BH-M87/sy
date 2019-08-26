@@ -87,6 +87,8 @@ class CarportService extends BaseService
         $total = $this->getCarportListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['room_mobile'] = $v['room_mobile'] ? F::processMobile($v['room_mobile']) : '';
+            $v['room_id_card'] = $v['room_id_card'] ? F::processIdCard($v['room_id_card']) : '';
             $v = array_map(function ($x) {
                 return (string)$x;
             }, $v);
