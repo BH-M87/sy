@@ -3,6 +3,8 @@ namespace app\models;
 
 use Yii;
 
+use common\core\PsCommon;
+
 class PsLabels extends BaseModel
 {     
     public static function tableName()
@@ -110,7 +112,7 @@ class PsLabels extends BaseModel
         return self::find()->select('id, name')
             ->where(['community_id' => $param['community_id']])
             ->orWhere(['is_sys' => 2])
-            ->andFilterWhere(['=', 'label_attribute', !empty($param['label_attribute']) ? $param['label_attribute'] : ''])
+            ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
             ->andWhere(['is_delete' => 1])
             ->orderBy('id desc')
             ->asArray()->all();
