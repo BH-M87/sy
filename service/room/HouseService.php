@@ -87,9 +87,10 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image','cr.orientation'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
+
         if ($list) {
             $list['floor_shared_id'] = $list['floor_shared_id'] ? SharedService::service()->getNameById($list['floor_shared_id']) : '';//楼层号
             $list['lift_shared_id'] = $list['lift_shared_id'] ? SharedService::service()->getNameById($list['lift_shared_id']) : 'X';//电梯编号
@@ -97,9 +98,10 @@ Class HouseService extends BaseService
             $label = LabelsService::service()->getLabelInfoByRoomId($list['id']);
             if (!empty($label)) {
                 foreach ($label as $v) {
-                    $list['room_label_id'][] = $v['id'];
+                    $list['room_label_id'][] = $v['name'];
                 }
             }
+            $list['community_name'] =  PsCommunityModel::findOne($list['community_id'])->name;
             $house_type = explode("|",$list['house_type']);
             $list['house_type_room'] = $house_type[0];
             $list['house_type_hall'] = $house_type[1];
