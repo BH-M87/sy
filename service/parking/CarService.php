@@ -102,31 +102,241 @@ class CarService extends BaseService
     //车辆记录新增
     public function add($req, $userInfo = [])
     {
+        $req['lot_id'] = F::value($req,'lot_id',0);
+        $req['carport_id'] = F::value($req,'carport_id',0);
+        $req['room_id'] = F::value($req,'room_id',0);
+        $req['car_model'] = F::value($req,'car_model','');
+        $req['car_color'] = F::value($req,'car_color','');
+        $req['car_delivery'] = F::value($req,'car_delivery',0);
+        $req['images'] = F::value($req,'images','');
+        $req['user_name'] = F::value($req,'user_name','');
+        $req['user_mobile'] = F::value($req,'user_mobile','');
+        $req['room_address'] = '';
+        //校验数据
+        $lotInfo = ParkingLot::find()
+            ->where(['id' => $req['lot_id']])
+            ->asArray()
+            ->one();
+        if (!$lotInfo) {
+            return $this->failed('车场不存在！');
+        }
+        $portInfo = ParkingCarport::find()
+            ->where(['id' => $req['carport_id']])
+            ->asArray()
+            ->one();
+        if (!$portInfo) {
+            return $this->failed('车位不存在！');
+        }
+        //查看车位是否已绑定其他车辆
+//        $carportCarInfo = ParkingUserCarport::find()
+//            ->where(['carport_id' => $req['carport_id']])
+//            ->asArray()
+//            ->one();
+//        if ($carportCarInfo) {
+//            return $this->failed('此车位已经绑定了其他车辆！');
+//        }
+        if ($req['room_id']) {
+            $roomInfo = RoomService::service()->getRoomById($req['room_id']);
+            if (!$roomInfo) {
+                return $this->failed('您选择的房屋不存在！');
+            }
+            $req['room_address'] = $roomInfo['address'];
+        }
 
+        //车辆是否已存在
+        $carInfo = ParkingCars::find()
+            ->where(['car_num' => $req['car_num'], 'community_id' => $req['community_id']])
+            ->one();
+        if ($carInfo) {
+            return $this->failed('车辆已经存在！');
+        }
+        //新增
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            //添加车辆信息
+            list($carId, $error) = $this->_saveCarData($req);
+            if (!$carId && $error) {
+                throw new \Exception($error);
+            }
+            $req['car_id'] = $carId;
+
+            //添加车主
+            list($userId, $error) = $this->_saveCarUserData($req);
+            if (!$userId && $error) {
+                throw new \Exception($error);
+            }
+            $req['user_id'] = $userId;
+
+            //数据重复判断
+            $tmpModel = ParkingUserCarport::find()
+                ->where(['car_id' => $carId, 'carport_id' => $req['carport_id']])
+                ->asArray()
+                ->one();
+            if ($tmpModel) {
+                throw new \Exception("此车位已经添加过此车辆信息");
+            }
+
+            list($carPortId, $error) = $this->_saveUserCarport($req);
+            if (!$carPortId && $error) {
+                throw new \Exception($error);
+            }
+            $transaction->commit();
+            return $this->success();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 
     //车辆及记录编辑
     public function edit($req, $userInfo = [])
     {
+        $req['lot_id'] = F::value($req,'lot_id',0);
+        $req['carport_id'] = F::value($req,'carport_id',0);
+        $req['room_id'] = F::value($req,'room_id',0);
+        $req['car_model'] = F::value($req,'car_model','');
+        $req['car_color'] = F::value($req,'car_color','');
+        $req['car_delivery'] = F::value($req,'car_delivery',0);
+        $req['images'] = F::value($req,'images','');
+        $req['user_name'] = F::value($req,'user_name','');
+        $req['user_mobile'] = F::value($req,'user_mobile','');
+        $req['member_id'] = F::value($req,'member_id',0);
+        $req['room_address'] = '';
 
+        //校验数据
+        $carInfo = ParkingCars::findOne($req['id']);
+        if (!$carInfo) {
+            return $this->failed('车辆信息不存在！');
+        }
+        $lotInfo = ParkingLot::find()
+            ->where(['id' => $req['lot_id']])
+            ->asArray()
+            ->one();
+        if (!$lotInfo) {
+            return $this->failed('车场不存在！');
+        }
+        $portInfo = ParkingCarport::find()
+            ->where(['id' => $req['carport_id']])
+            ->asArray()
+            ->one();
+        if (!$portInfo) {
+            return $this->failed('车位不存在！');
+        }
+        //查看车位是否已绑定其他车辆
+//        $carportCarInfo = ParkingUserCarport::find()
+//            ->where(['carport_id' => $req['carport_id']])
+//            ->asArray()
+//            ->one();
+//        if ($carportCarInfo) {
+//            return $this->failed('此车位已经绑定了其他车辆！');
+//        }
+        if ($req['room_id']) {
+            $roomInfo = RoomService::service()->getRoomById($req['room_id']);
+            if (!$roomInfo) {
+                return $this->failed('您选择的房屋不存在！');
+            }
+            $req['room_address'] = $roomInfo['address'];
+        }
+
+        //车辆是否已存在
+        $carInfo = ParkingCars::find()
+            ->where(['car_num' => $req['car_num'], 'community_id' => $req['community_id']])
+            ->andWhere(['!=', 'id', $req['id']])
+            ->one();
+        if ($carInfo) {
+            return $this->failed('车辆已经存在！');
+        }
+        //新增
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            //添加车辆信息
+            list($carId, $error) = $this->_saveCarData($req);
+            if (!$carId && $error) {
+                throw new \Exception($error);
+            }
+            $req['car_id'] = $carId;
+
+            //添加车主
+            list($userId, $error) = $this->_saveCarUserData($req);
+            if (!$userId && $error) {
+                throw new \Exception($error);
+            }
+            $req['user_id'] = $userId;
+
+            $tmpModel = ParkingUserCarport::find()
+                ->where(['car_id' => $carId, 'carport_id' => $req['carport_id']])
+                ->asArray()
+                ->one();
+
+            list($carPortId, $error) = $this->_saveUserCarport($req,$tmpModel['id']);
+            if (!$carPortId && $error) {
+                throw new \Exception($error);
+            }
+            $transaction->commit();
+            return $this->success();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 
-    //查看停车位列表
-    public function getParkingPorts($req)
+    //查看停车场
+    public function getParkingLots($req)
     {
         $communityId = $req['community_id'];
-        $lotId = $req['lot_id'];
-        $lotAreaId = $req['lot_area_id'];
-        $query = ParkingCarport::find()
-            ->select(['id', 'car_port_num'])
-            ->where(['community_id' => $communityId]);
-        if ($lotId) {
-            $query->andWhere(['lot_id' => $lotId]);
+        $lots = ParkingLot::find()
+            ->select(['id', 'name'])
+            ->where(['community_id' => $communityId, 'status' => 1])
+            ->orderBy('id asc')
+            ->asArray()
+            ->all();
+        $res['list'] = $lots;
+        return $res;
+    }
+
+    //车辆详情
+    public function detail($req)
+    {
+        $carInfo = ParkingCars::find()
+            ->alias('car')
+            ->select('car.*,puc.member_id,puc.room_id,puc.room_address,pu.user_name,pu.user_mobile,room.group,room.building,room.unit,room.room')
+            ->leftJoin('parking_user_carport puc','puc.car_id = car.id')
+            ->leftJoin('parking_carport pc','pc.id = puc.carport_id')
+            ->leftJoin('parking_users pu','pu.id = puc.user_id')
+            ->leftJoin('ps_community_roominfo room', 'room.id = puc.room_id')
+            ->where(['car.id' => $req['id']])
+            ->asArray()
+            ->one();
+        if ($carInfo) {
+            $carInfo['created_at'] = $carInfo['created_at'] ? date("Y-m-d H:i", $carInfo['created_at']) : '';
+            $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
         }
-        if ($lotAreaId) {
-            $query->andWhere(['lot_area_id' => $lotAreaId]);
+        return $carInfo;
+    }
+
+    //车辆删除
+    public function delete($req)
+    {
+        $carInfo = ParkingCars::findOne($req['id']);
+        if (!$carInfo) {
+            return $this->failed('车辆信息不存在！');
         }
-        return $query->asArray()->all();
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (!$carInfo->delete()) {
+                throw new \Exception("车辆信息删除失败");
+            }
+            //删除与车位的绑定关系
+            $re = ParkingUserCarport::deleteAll(['car_id' => $req['id']]);
+            if (!$re) {
+                throw new \Exception("车辆信息删除失败");
+            }
+            $transaction->commit();
+            return $this->success();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 
     //根据数组元素查询数组键值
@@ -461,15 +671,14 @@ class CarService extends BaseService
         $model->user_id = $req['user_id'];
         $model->car_id = $req['car_id'];
         $model->carport_id = $req['carport_id'];
-        $model->carport_pay_type = $req['carport_pay_type'];
         $model->carport_rent_start = $req['carport_rent_start'] ? strtotime($req['carport_rent_start']. " 00:00:00") : 0;
         $model->carport_rent_end = $req['carport_rent_end'] ? strtotime($req['carport_rent_end']. " 23:59:59") : 0;
         $model->carport_rent_price = !empty($req['carport_rent_price']) ? $req['carport_rent_price'] : 0;
-        $model->room_type = $req['is_owner'];
+        $model->room_type = 0;
         $model->room_id = !empty($req['room_id']) ? $req['room_id'] : 0;
         $model->room_address = $req['room_address'];
         $model->caruser_name = $req['user_name'];
-        $model->park_card_no = $req['park_card_no'];
+        $model->park_card_no = '';
         $model->member_id = !empty($req['member_id']) ? $req['member_id'] :0;
         if (!$model->save()) {
             $errors = array_values($model->getFirstErrors());
@@ -483,25 +692,26 @@ class CarService extends BaseService
     //保存车辆
     private function _saveCarData($req)
     {
-        $model = ParkingCars::find()
-            ->select(['id'])
-            ->where(['community_id' => $req['community_id'], 'car_num' => $req['car_num']])
-            ->one();
-        if ($model) {
-            return [$model->id, ''];
+        if (!empty($req['id'])) {
+            //编辑
+            $model = ParkingCars::findOne($req['id']);
         } else {
             $model = new ParkingCars();
-            $model->supplier_id = $req['supplier_id'];
             $model->community_id = $req['community_id'];
-            $model->car_num = $req['car_num'];
             $model->created_at = time();
-            if (!$model->save()) {
-                $errors = array_values($model->getFirstErrors());
-                $error = !empty($errors[0]) ? $errors[0] : '系统错误';
-                return [0, $error];
-            } else {
-                return [$model->id, ''];
-            }
+        }
+        $model->car_num = $req['car_num'];
+        $model->car_model = $req['car_model'];
+        $model->car_color = $req['car_color'];
+        $model->car_delivery = $req['car_delivery'];
+        $model->images = $req['images'];
+
+        if (!$model->save()) {
+            $errors = array_values($model->getFirstErrors());
+            $error = !empty($errors[0]) ? $errors[0] : '系统错误';
+            return [0, $error];
+        } else {
+            return [$model->id, ''];
         }
     }
 
@@ -520,7 +730,6 @@ class CarService extends BaseService
             return [$user->id, ''];
         } else {
             $user = new ParkingUsers();
-            $user->suppler_id = $req['supplier_id'];
             $user->community_id = $req['community_id'];
             $user->user_name = $req['user_name'];
             $user->user_mobile = $req['user_mobile'];

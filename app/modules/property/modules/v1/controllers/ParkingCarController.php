@@ -10,6 +10,7 @@ namespace app\modules\property\modules\v1\controllers;
 
 
 use app\models\ParkingCarportRenew;
+use app\models\ParkingCars;
 use app\models\ParkingLot;
 use app\models\ParkingUserCarport;
 use app\modules\property\controllers\BaseController;
@@ -23,7 +24,7 @@ class ParkingCarController extends BaseController
     //车辆列表
     public function actionList()
     {
-        $valid = PsCommon::validParamArr(new ParkingUserCarport(),$this->request_params,'list');
+        $valid = PsCommon::validParamArr(new ParkingCars(),$this->request_params,'list');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
@@ -36,7 +37,7 @@ class ParkingCarController extends BaseController
     //车辆新增
     public function actionAdd()
     {
-        $valid = PsCommon::validParamArr(new ParkingUserCarport(), $this->request_params, 'add');
+        $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'add');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
@@ -51,16 +52,12 @@ class ParkingCarController extends BaseController
     //车辆详情
     public function actionDetail()
     {
-        $valid = PsCommon::validParamArr(new ParkingUserCarport(), $this->request_params, 'detail');
+        $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'detail');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
-        $result = CarService::service()->userCarportDetail($this->request_params);
-        if($result["code"]) {
-            return PsCommon::responseSuccess($result['data']);
-        } else {
-            return PsCommon::responseFailed($result["msg"]);
-        }
+        $result = CarService::service()->detail($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     //查看车场
@@ -73,7 +70,7 @@ class ParkingCarController extends BaseController
     //车辆编辑
     public function actionEdit()
     {
-        $valid = PsCommon::validParamArr(new ParkingUserCarport(), $this->request_params, 'edit');
+        $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'edit');
         if(!$valid["status"] ) {
             echo PsCommon::responseFailed($valid["errorMsg"]);exit;
         }
@@ -86,36 +83,15 @@ class ParkingCarController extends BaseController
         }
     }
 
-    //车辆续费
-    public function actionRenew()
-    {
-        $valid = PsCommon::validParamArr(new ParkingCarportRenew(), $this->request_params, 'add');
-        if(!$valid["status"] ) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = CarService::service()->renew($this->request_params);
-        if($result["code"]) {
-            return PsCommon::responseSuccess();
-        } else {
-            return PsCommon::responseFailed($result["msg"]);
-        }
-    }
-
-    //查看续费记录
-    public function actionRenewList()
-    {
-        $valid = PsCommon::validParamArr(new ParkingCarportRenew(), $this->request_params, 'list');
-        if(!$valid["status"] ) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = CarService::service()->renewList($this->request_params);
-        return PsCommon::responseSuccess($result);
-    }
 
     //车辆删除
-    public function actionDel()
+    public function actionDelete()
     {
-        $result = CarService::service()->userCarportDel($this->request_params);
+        $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'delete');
+        if(!$valid["status"] ) {
+            echo PsCommon::responseFailed($valid["errorMsg"]);exit;
+        }
+        $result = CarService::service()->delete($this->request_params);
         if($result["code"]) {
             return PsCommon::responseSuccess();
         } else {

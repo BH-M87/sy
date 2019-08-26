@@ -148,7 +148,7 @@ class RoomController extends BaseController
      * 2016-12-17
      * 导入房屋列表 {"community_id":15,"file":"house_201612221257229449.xlsx"}
      */
-    public function actionImport()
+    public function actionImportOld()
     {
         set_time_limit(0);
         //上传文件检测
@@ -167,13 +167,13 @@ class RoomController extends BaseController
             return PsCommon::responseFailed("请选择有效小区");
         }
         //$supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, 2);
-        $operate = [
+        /*$operate = [
             "community_id" => $communityId,
             "operate_menu" => "房屋管理",
             "operate_type" => "批量导入",
             "operate_content" => "",
         ];
-        OperateService::addComm($this->user_info, $operate);
+        OperateService::addComm($this->user_info, $operate);*/
         $objPHPExcel = $r['data'];
         $fail = 0;
         $success = 0;
@@ -381,6 +381,228 @@ class RoomController extends BaseController
                 //标签处理
                 if ($label_id !== null) {
                     if (!LabelsService::service()->addRelation($id, $label_id, 1, true)) {
+                        $fail++;
+                        $errorCsv[$fail] = $val;
+                        $errorCsv[$fail]["error"] = '标签绑定错误';
+                        continue;
+                    }
+                }
+                $success++;
+            }
+
+            $error_url = "";
+            if ($fail > 0) {
+                $error_url = F::downloadUrl($this->saveError($errorCsv), 'error');
+            }
+            //提交事务
+            $trans->commit();
+        } catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
+        }
+        //发布到支付宝
+        if ($communityInfo['company_id'] != 321) {//不是南京物业则发布到支付宝:19-4-27陈科浪修改
+            //$this->alipayRoom($communityInfo['community_no']);
+        }
+        $result = [
+            'totals' => $success + $fail,
+            'success' => $success,
+            'error_url' => $error_url
+        ];
+        return PsCommon::responseSuccess($result);
+    }
+    public function actionImport()
+    {
+        set_time_limit(0);
+        //上传文件检测
+        $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
+        if (empty($r['code'])) {
+            return PsCommon::responseFailed(PsCommon::get($r, 'msg'));
+        }
+        $communityId = PsCommon::get($this->request_params, "community_id");
+        if (empty($communityId)) {
+            return PsCommon::responseFailed("请选择有效小区");
+        }
+        $communityInfo = CommunityService::service()->getInfoById($communityId);
+
+        if (empty($communityInfo)) {
+            //todo 这里调用postman没有数据返回，后续需要处理
+            return PsCommon::responseFailed("请选择有效小区");
+        }
+        $objPHPExcel = $r['data'];
+        $fail = 0;
+        $success = 0;
+        $uniqueRoomInfo = [];
+        $sheetData = $objPHPExcel->getActiveSheet()->toArray(null, true, true, true);
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+            for ($j = 3; $j <= count($sheetData); $j++) {
+                $val = $sheetData[$j];
+                $val['N'] = !empty($val['N']) ? sprintf("%04d", (string)$val['N']) : '';
+                $group = $val['A'] ? trim((string)$val['A']) : '住宅';    // 房屋所在的组团名称
+                $building = trim((string)$val['B']);                     // 房屋所在楼栋名称
+                $unit = trim((string)$val['C']);                     // 房屋所在单元名称
+                $room = trim((string)$val['D']);                     // 房屋所在房号
+                $charge_area = (string)$val['E'];                     // 收费面积
+                $orientation = (string)$val['F'];                     // 房屋朝向
+                $delivery_time = (string)$val['G'];                     // 交房时间
+                $own_age_limit = (string)$val['H'];                     // 产权年限
+                $floor = (string)$val['I'];                     // 楼层
+                $status = (string)$val['J'];                     // 房屋状态 1已售 2未售
+                $property_type = (string)$val['K'];                     // 物业类型 1住宅 2商用
+                $house_type = (string)$val['L'];                     // 备注
+                $label_name = (string)$val['M'];                  //标签处理
+                $label_id = null;
+
+                if (!in_array($status, ["已售", "未售"])) {
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "房屋状态不正确";
+                    continue;
+                }
+                $status = $status == '已售' ? 1 : 2;
+                if (!in_array($property_type, ["居住物业", "商业物业",'工业物业'])) {
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "房屋类型不正确";
+                    continue;
+                }
+                if($property_type == '居住物业'){
+                    $property_type = 1;
+                }elseif ($property_type == '商业物业'){
+                    $property_type = 2;
+                }else{
+                    $property_type = 3;
+                }
+                //是否需要电梯
+                $group = $group ? (preg_match("/^[0-9\#]*$/", $group) ? $group . '期' : $group) : '住宅'; // 房屋所在的组团名称
+                $building = preg_match("/^[0-9\#]*$/", $building) ? $building . '幢' : $building;  // 房屋所在楼栋名称
+                $unit = preg_match("/^[0-9\#]*$/", $unit) ? $unit . '单元' : $unit;       // 房屋所在单元名称
+                $room = preg_match("/^[0-9\#]*$/", $room) ? $room . '室' : $room;;       // 房屋所在房号
+                $address = $group . $building . $unit . $room;
+
+                // 新增楼宇
+                $buildingData['community_id'] = $communityId;
+                $buildingData['building_name'] = $building;
+                $buildingData['unit_name'] = $unit;
+                $group_id = PsCommunityGroups::find()->select('id')->where(['community_id' => $communityId, 'name' => $group])->asArray()->scalar();
+                // 没有苑期区就新增一个
+                if (empty($group_id)) {
+                    Yii::$app->db->createCommand()->insert('ps_community_groups', [
+                        'community_id' => $communityId,
+                        'name' => $group,
+                    ])->execute();
+                    $group_id = Yii::$app->db->getLastInsertID();
+                }
+
+                $buildingData['group_id'] = $group_id;
+                //todo
+                $unitInfo = CommunityBuildingService::service()->addImport($buildingData, false);
+
+                //excel表数据去重
+                if (in_array($address, $uniqueRoomInfo)) {
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "excel表中此条记录重复";
+                    continue;
+                } else {
+                    array_push($uniqueRoomInfo, $address);
+                }
+
+                //数据库中记录去重
+                $uniqueRoom = PsCommunityRoominfo::find()
+                    ->where(['address' => $address, 'community_id' => $communityId])
+                    ->orderBy('id')
+                    ->limit(1)
+                    ->asArray()->one();
+
+                if (!empty($uniqueRoom)) {
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = "房屋已存在";
+                    continue;
+                }
+                preg_match_all("/[0-9]+/", $address, $address_arr);
+                $outRoomId = date('YmdHis', time()) . $communityId . implode("", $address_arr[0]) . rand(1000, 9999);
+
+                $roomInfoArr = [
+                    'community_id' => $communityId,
+                    'group' => $group,
+                    'building' => $building,
+                    'unit' => $unit,
+                    'unit_id' => !empty($unitInfo['data']) ? $unitInfo['data'] : '0',
+                    'room' => $room,
+                    'charge_area' => $charge_area,
+                    'status' => $status,
+                    'property_type' => $property_type,
+                    'house_type' => $house_type,
+                    'orientation' => $orientation,
+                    'delivery_time' => $delivery_time,
+                    'own_age_limit' => $own_age_limit,
+                    'sync_rent_manage'=>0,
+                    'out_room_id' => $outRoomId,
+                    'address' => $address,
+                    'floor' => $floor,
+                    'create_at' => time(),
+                ];
+                $valid = PsCommon::validParamArr(new PsHouseForm(), $roomInfoArr, 'import');
+                if (!$valid["status"]) {
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = $valid["errorMsg"];
+                    continue;
+                }
+
+                //标签处理
+                if (!empty($label_name)) {
+                    $label_name = explode(',', F::sbcDbc($label_name, 1));
+                    if (empty($label_name)) {
+                        $fail++;
+                        $errorCsv[$fail] = $val;
+                        $errorCsv[$fail]["error"] = '标签错误';
+                        continue;
+                    }
+                }
+
+                $label_id = null;
+                if (!empty($label_name)) {
+                    $label_error = false;
+                    foreach ($label_name as $v) {
+                        $labelid = PsLabels::find()->select('id')->where(['community_id' => $communityId, 'label_type' => 1, 'name' => $v])->asArray()->one();
+                        if (!empty($labelid)) {
+                            $label_id[] = $labelid['id'];
+                        } else {
+                            $label_error = true;
+                        }
+                    }
+                    if ($label_error) {
+                        $fail++;
+                        $errorCsv[$fail] = $val;
+                        $errorCsv[$fail]["error"] = '标签错误';
+                        continue;
+                    }
+                }
+                //房屋信息推送
+                /*$roomPushData = [
+                    'community_id' => $communityId,
+                    'group' => $group,
+                    'building' => $building,
+                    'unit' => $unit,
+                    'room' => $room,
+                    'community_no' => $communityInfo['community_no'],
+                    'out_room_id' => $roomInfoArr['out_room_id'],
+                    'charge_area' => $charge_area,
+                ];
+                $cacheName = YII_ENV . 'BuildList';
+                Yii::$app->redis->rpush($cacheName, json_encode($roomPushData));*/
+
+                //房屋处理
+                Yii::$app->db->createCommand()->insert('ps_community_roominfo', $roomInfoArr)->execute();
+                $id = Yii::$app->db->getLastInsertID();
+
+                //标签处理
+                if ($label_id !== null) {
+                    if (!LabelsService::service()->addRelation($id, $label_id, 1)) {
                         $fail++;
                         $errorCsv[$fail] = $val;
                         $errorCsv[$fail]["error"] = '标签绑定错误';
@@ -658,7 +880,7 @@ class RoomController extends BaseController
      */
     public function actionGetExcel()
     {
-        $downUrl = F::downloadUrl('import_housing_templates.xlsx', 'template', 'MuBan.xlsx');
+        $downUrl = F::downloadUrl('import_housing_templates2.xlsx', 'template', 'MuBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
