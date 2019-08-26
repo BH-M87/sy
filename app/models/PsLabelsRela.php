@@ -13,8 +13,8 @@ class PsLabelsRela extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'labels_id', 'data_id', 'data_type'], 'required', 'on' => ['add', 'edit']],
-            [['community_id', 'labels_id', 'data_id', 'data_type'], 'integer'],
+            [['labels_id', 'data_id', 'data_type'], 'required', 'on' => ['add', 'edit']],
+            [['labels_id', 'data_id', 'data_type'], 'integer'],
             ['data_type', 'in', 'range' => [1,2,3]],
             ['created_at', 'default', 'value' => time(), 'on' => 'add'],
         ];

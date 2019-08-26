@@ -495,7 +495,7 @@ Class HouseService extends BaseService
 
             //房屋新增数据推送
             $roomModel = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
-            DoorPushService::service()->roomAdd($community_id, $bulidAddRe['unit_no'], $out_room_id, $roomModel['id'], $room, $room_code, $bulidAddRe['build_push'], $charge_area);
+           // DoorPushService::service()->roomAdd($community_id, $bulidAddRe['unit_no'], $out_room_id, $roomModel['id'], $room, $room_code, $bulidAddRe['build_push'], $charge_area);
             /*$operate = [
                 "community_id" => $community_id,
                 "operate_menu" => "房屋管理",
@@ -1007,5 +1007,33 @@ Class HouseService extends BaseService
 
         return ['list' => $model, 'total' => $total];
     }
+
+    public function label_add($room_id,$label_id)
+    {
+        $model = PsLabelsRela::find()->where(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1])->asArray()->one();
+        if($model){
+            return PsCommon::responseFailed('该房屋下已存在该标签');
+        }
+        $model = new PsLabelsRela();
+        $model->labels_id = $label_id;
+        $model->data_id = $room_id;
+        $model->data_type = 1;
+        $model->created_at = time();
+        $model->save();
+        return PsCommon::responseSuccess('新增成功');
+    }
+
+    public function label_delete($room_id,$label_id)
+    {
+        $model = PsLabelsRela::find()->where(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1])->asArray()->one();
+        if(empty($model)){
+            return PsCommon::responseFailed('该房屋下不存在该标签');
+        }
+
+        PsLabelsRela::deleteAll(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1]);
+        return PsCommon::responseSuccess('删除成功');
+
+    }
+
 
 }
