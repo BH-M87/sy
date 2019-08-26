@@ -123,7 +123,8 @@ class CarportService extends BaseService
         array_walk($list, function(&$v, $k, $p) {
             $v['status'] = $p[$v['car_port_status']]['name'];
         },$this->status);
-        return $list;
+        $res['list'] = $list;
+        return $res;
     }
 
     //是否车位重复

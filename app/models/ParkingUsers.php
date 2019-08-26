@@ -14,7 +14,7 @@ use Yii;
  * @property string $user_mobile 车主手机号
  * @property int $created_at 添加时间
  */
-class ParkingUsers extends \app\models\BaseModel
+class ParkingUsers extends BaseModel
 {
     /**
      * {@inheritdoc}
@@ -30,7 +30,7 @@ class ParkingUsers extends \app\models\BaseModel
     public function rules()
     {
         return [
-            [['suppler_id', 'community_id', 'created_at'], 'integer'],
+            [['community_id', 'created_at'], 'integer'],
             [['user_name'], 'string', 'max' => 20],
             [['user_mobile'], 'string', 'max' => 15],
         ];
@@ -43,7 +43,6 @@ class ParkingUsers extends \app\models\BaseModel
     {
         return [
             'id' => 'ID',
-            'suppler_id' => 'Suppler ID',
             'community_id' => 'Community ID',
             'user_name' => 'User Name',
             'user_mobile' => 'User Mobile',
