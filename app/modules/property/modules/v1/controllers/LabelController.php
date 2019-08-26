@@ -1,58 +1,21 @@
-<?php
-/**
- * User: ZQ
- * Date: 2019/8/21
- * Time: 13:55
- * For: 标签管理
- */
-
+<?php // 标签管理
 namespace app\modules\property\modules\v1\controllers;
 
-use app\models\PsLabels;
-use app\modules\property\controllers\BaseController;
-use common\core\PsCommon;
-use service\label\LabelsService;
 use Yii;
+
+use common\core\PsCommon;
+
+use service\label\LabelsService;
+
+use app\modules\property\controllers\BaseController;
 
 class LabelController extends BaseController
 {
-    public $request;
-    private $method_array;
-    protected $service;
-
-    public function init()
-    {
-        parent::init();
-        $this->request = Yii::$app->request;
-        $this->method_array = [
-            'get' => ['list', 'label-type', 'difference-list'],
-            'post' => ['add', 'edit', 'delete']
-        ];
-
-    }
-
-    public function beforeAction($action)
-    {
-
-        if (!parent::beforeAction($action)) {
-            return false;
-        }
-        $this->service = LabelsService::service($this->user_info);
-        return true;
-
-    }
-
-    //标签添加
+    // 标签添加
     public function actionAdd()
     {
-        if (empty($this->request_params)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
-        $valid = PsCommon::validParamArr(new PsLabels(), $this->request_params, 'add');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = $this->service->LabelAddUpdate($this->request_params, 1);
+        $result = LabelsService::service()->add($this->request_params);
+
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -61,17 +24,11 @@ class LabelController extends BaseController
 
     }
 
-    //标签修改
+    // 标签修改
     public function actionEdit()
     {
-        if (empty($this->request_params)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
-        $valid = PsCommon::validParamArr(new PsLabels(), $this->request_params, 'edit');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = $this->service->labelAddUpdate($this->request_params, 2);
+        $result = LabelsService::service()->edit($this->request_params);
+
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -80,25 +37,32 @@ class LabelController extends BaseController
 
     }
 
-    //获取标签列表
+    // 获取标签列表
     public function actionList()
     {
-        $params = $this->request_params;
-        if (empty($params['community_id']) || !is_numeric($params['community_id'])) {
-            return PsCommon::responseFailed("参数错误");
-        }
-        $result = $this->service->labelList($this->request_params);
+        $result = LabelsService::service()->list($this->request_params);
+
         return PsCommon::responseSuccess($result);
     }
 
-    //标签删除
+    // 标签详情
+    public function actionShow()
+    {
+        $result = LabelsService::service()->show($this->request_params);
+
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+
+    }
+
+    // 标签删除
     public function actionDelete()
     {
-        $params = $this->request_params;
-        if (empty($params['id']) || !is_numeric($params['id'])) {
-            return PsCommon::responseFailed("参数错误");
-        }
-        $result = $this->service->labelDelete($params['id']);
+        $result = LabelsService::service()->delete($this->request_params);
+
         if ($result['code']) {
             return PsCommon::responseSuccess();
         } else {
@@ -107,23 +71,27 @@ class LabelController extends BaseController
 
     }
 
-    //获取标签类型
-    public function actionLabelType()
+    // 获取标签属性
+    public function actionLabelAttribute()
     {
-        foreach (PsLabels::$type as $k => $v) {
-            $data[] = ['id' => $k, 'name' => $v];
-        }
-        return PsCommon::responseSuccess(['list' => $data]);
+        $result = LabelsService::service()->labelAttribute($this->request_params);
+
+        return PsCommon::responseSuccess($result);
     }
 
-    //获取分类下拉数据
+    // 获取标签分类
+    public function actionLabelType()
+    {
+        $result = LabelsService::service()->labelType($this->request_params);
+
+        return PsCommon::responseSuccess($result);
+    }
+
+    // 标签下拉
     public function actionDifferenceList()
     {
-        $valid = PsCommon::validParamArr(new PsLabels(), $this->request_params, 'typelist');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = $this->service->getTypeList($this->request_params);
-        return PsCommon::responseSuccess(['list' => $result]);
+        $result = LabelsService::service()->differenceList($this->request_params);
+
+        return PsCommon::responseSuccess($result);
     }
 }

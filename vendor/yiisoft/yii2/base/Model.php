@@ -737,7 +737,10 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
     {
         if (is_array($values)) {
             $attributes = array_flip($safeOnly ? $this->safeAttributes() : $this->attributes());
+<<<<<<< HEAD
+=======
 
+>>>>>>> ca3b3492334103023628d0d9ee11616bb5d05117
             foreach ($values as $name => $value) {
                 if (isset($attributes[$name])) {
                     $this->$name = $value;

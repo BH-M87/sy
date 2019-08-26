@@ -1,5 +1,14 @@
 #!/usr/bin/env sh
 
+<<<<<<< HEAD
+dir=$(cd "${0%[/\\]*}" > /dev/null; cd "../cebe/markdown/bin" && pwd)
+
+if [ -d /proc/cygdrive ] && [[ $(which php) == $(readlink -n /proc/cygdrive)/* ]]; then
+   # We are in Cgywin using Windows php, so the path must be translated
+   dir=$(cygpath -m "$dir");
+fi
+
+=======
 dir=$(d=${0%[/\\]*}; cd "$d" > /dev/null; cd "../cebe/markdown/bin" && pwd)
 
 # See if we are running in Cygwin by checking for cygpath program
@@ -14,4 +23,5 @@ if command -v 'cygpath' >/dev/null 2>&1; then
 fi
 
 dir=$(echo $dir | sed 's/ /\ /g')
+>>>>>>> ca3b3492334103023628d0d9ee11616bb5d05117
 "${dir}/markdown" "$@"
