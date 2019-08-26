@@ -457,7 +457,7 @@ class CarportService extends BaseService
         $fail =  ExcelService::service()->getErrorCount();
         $error_url = '';
         if($fail > 0 ){
-            $error_url = F::downloadUrl($filename, 'error', 'carportImportError');
+            $error_url = F::downloadUrl($filename, 'error', 'carportImportError.csv');
         }
         $result = [
             'success' => $res['data']['success_count'],

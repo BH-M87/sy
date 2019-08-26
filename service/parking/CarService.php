@@ -397,9 +397,8 @@ class CarService extends BaseService
         if($totals > 1002) {
             return $this->failed('表格数量太多，建议分批上传，单个文件最多1000条');
         }
-
         $importDatas = $sheet->toArray(null, false, false, true);
-        if (empty($sheetData) || $totals < 3) {
+        if (empty($importDatas) || $totals < 3) {
             return $this->failed('内容为空');
         }
         //去掉非数据栏
@@ -436,16 +435,14 @@ class CarService extends BaseService
                 ExcelService::service()->setError($row, '车场不存在');
                 continue;
             }
-            $supplierId = $lotInfo['supplier_id'];
-            $tmpCarData['park_code'] = $lotInfo['park_code'];
 
+            $tmpCarData['park_code'] = $lotInfo['park_code'];
             $tmpCarData['lot_id'] = $lotInfo['id'];
             $tmpCarData['lot_area_id'] = 0;
-
             //查询车位
             $carportInfo = ParkingCarport::find()
                 ->select(['id', 'car_port_status'])
-                ->where(['car_port_num' => $tmpCarData['car_port_num'], 'lot_id' => $tmpCarData['lot_id']])
+                ->where(['car_port_num' => $row['car_port_num'], 'lot_id' => $row['lot_id']])
                 ->andWhere(['community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
@@ -455,15 +452,14 @@ class CarService extends BaseService
             }
 
             if (!in_array($carportInfo['car_port_status'], [2,4])) {
-                if (!$row['carport_rent_start'] || !$row['carport_rent_end'] || !isset($row['carport_rent_price'])) {
-                    ExcelService::service()->setError($row, '租赁有效期或租金不能为空');
+                if (!$row['carport_rent_start'] || !$row['carport_rent_end']) {
+                    ExcelService::service()->setError($row, '租赁有效期不能为空');
                     continue;
                 }
             }
 
             $tmpCarData['carport_id'] = $carportInfo['id'];
             $tmpCarData['community_id'] = $params['community_id'];
-            $tmpCarData['supplier_id'] = $supplierId;
             $tmpCarData['room_address'] = '';
             if ($tmpCarData['room_id']) {
                 $tmpCarData['room_address'] = $row['group'].$row['building'].$row['unit'].$row['room'];
@@ -498,11 +494,16 @@ class CarService extends BaseService
         }
 
         $this->saveImport($success, $params['community_id']);
+        $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
+        $fail =  ExcelService::service()->getErrorCount();
+        $error_url = '';
+        if($fail > 0 ){
+            $error_url = F::downloadUrl($filename, 'error', 'carportImportError.csv');
+        }
         $result = [
+            'success' => count($success),
             'totals' => count($success) + ExcelService::service()->getErrorCount(),
-            'success_totals' => count($success),
-            'error_totals' => ExcelService::service()->getErrorCount(),
-            'error_list' => ExcelService::service()->getErrors(),
+            'error_url' => $error_url
         ];
 
         return $this->success($result);
