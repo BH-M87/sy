@@ -128,10 +128,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 住户导出
-     * @return null|string
-     */
+    // 住户导出
     public function actionExport()
     {
         $valid = PsCommon::validParamArr(new PsResidentFrom(), $this->request_params, 'list');
@@ -171,13 +168,14 @@ class ResidentController extends BaseController
             'live_type' => ['title' => '居住类型', 'width' => 19, 'items' => ResidentService::service()->live_type],
             'id' => ['title' => 'ID(切勿修改)', 'width' => 19],
         ];
-        // $filename = CsvService::service()->saveTempFile(1, $config, $result, 'YeZhu');
+
         $config["save"] = true;
         $config['path'] = 'temp/' . date('Y-m-d');
         $config['file_name'] = ExcelService::service()->generateFileName('YeZhu');
         $url = ExcelService::service()->export($result, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
         $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhu.xlsx');
+        
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 

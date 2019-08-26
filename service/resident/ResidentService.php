@@ -796,33 +796,29 @@ class ResidentService extends BaseService
         return ["totals" => $totals, 'list' => $data];
     }
 
-    //导出数据
+    // 导出数据
     public function exportList($params)
     {
-        //标签处理
+        // 标签处理
         if (!empty($params['user_label_id']) && is_array($params['user_label_id'])) {
-            $label = LabelsService::service()->checkLabel($params['user_label_id'], 2);
-            if ($label) {
-                $label_room_user = PsRoomUserLabel::find()->where(['in', 'label_id', $params['user_label_id']])->asArray()->all();
-                $room_user_id = array_unique(array_column($label_room_user, 'room_user_id'));
-                if (empty($room_user_id)) {
-                    return [];
-                }
-                $params['id'] = $room_user_id;
-            } else {
+            $labelRela = PsLabelsRela::find()->where(['in', 'labels_id', $params['user_label_id']])
+                ->andWhere(['data_type' => 2])->asArray()->all();
+            $room_user_id = array_unique(array_column($labelRela, 'data_id'));
+            if (empty($room_user_id)) {
                 return [];
             }
+            $params['id'] = $room_user_id;
         }
+
         $models = PsRoomUser::model()->get($params)
-            ->select('id,name,enter_time,face,marry_status,household_type,nation,live_type,mobile,
-            sex,status, card_no,`group`,building,unit,room,identity_type,auth_time, time_end')
-            ->orderBy('id desc')
-            ->asArray()->all();
+            ->select('id, name, enter_time, face, marry_status, household_type, nation, live_type, mobile,
+            sex, status, card_no, group, building, unit, room, identity_type, auth_time, time_end')
+            ->orderBy('id desc')->asArray()->all();
         $arr = [];
         foreach ($models as $k => $v) {
-            $label_user = PsRoomUserLabel::find()->select('name')
-                ->innerJoin('ps_labels AS pl', 'pl.id = ps_room_user_label.label_id')
-                ->where(['room_user_id' => $v['id']])->asArray()->all();
+            $label_user = PsLabelsRela::find()->alias('A')->select('name')
+                ->innerJoin('ps_labels B', 'B.id = A.labels_id')
+                ->where(['data_id' => $v['id'], 'data_type' => 2])->asArray()->all();
             if (!empty($label_user)) {
                 $label_name = implode(array_unique(array_column($label_user, 'name')), ',');
                 $v['label_name'] = $label_name;
@@ -843,6 +839,7 @@ class ResidentService extends BaseService
             $v['mobile'] = PsCommon::isVirtualPhone($v['mobile']) ? '' : $v['mobile'];
             $arr[] = $v;
         }
+
         return $arr;
     }
 
