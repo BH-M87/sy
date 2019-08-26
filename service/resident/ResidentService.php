@@ -19,6 +19,8 @@ use app\models\PsResidentAudit;
 use app\models\PsResidentHistory;
 use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
+use app\models\ParkingUsers;
+use app\models\PsCommunityModel;
 
 use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
@@ -366,26 +368,19 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /*
-     * 关联房屋
-     */
-    /**
-     * @param $id
-     * @param int $page
-     * @param $rows
-     * @return array
-     */
+    // 关联房屋
     public function relatedHouse($id, $page = 0, $rows = 0)
     {
-        $query = PsRoomUser::model()
-            ->get(['community_id' => $this->communityId, 'member_id' => $id, 'move_status' => 1]);
+        $query = PsRoomUser::model()->get(['community_id' => $this->communityId, 'member_id' => $id, 'move_status' => 1]);
         $total = $query->count();
         if (!$total) {
             return ['list' => [], 'total' => $total];
         }
+
         if ($page && $rows) {
             $query->offset(($page - 1) * $rows)->limit($rows);
         }
+
         $data = $query->with('roomInfo')->orderBy('id desc')
             ->select('id, room_id, member_id, identity_type, status, group, building, unit, room, time_end')
             ->asArray()->all();
@@ -398,10 +393,8 @@ class ResidentService extends BaseService
                 $datum['roomInfo']['status_desc'] = PsCommon::houseStatus($datum['roomInfo']['status']);
             }
         }
-        return [
-            'list' => $data,
-            'total' => $total
-        ];
+
+        return ['list' => $data, 'total' => $total];
     }
 
     /*
@@ -434,25 +427,20 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /**
-     * 关联住户
-     * @param $id //住户ID
-     * @param int $page
-     * @param int $rows
-     * @return array
-     */
+    // 关联住户
     public function relatedResident($id, $page = 0, $rows = 0)
     {
         $houses = $this->relatedHouse($id);
         $housesIds = array_column($houses['list'], 'room_id');
 
-        $query = PsRoomUser::find()->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
+        $query = PsRoomUser::find()->select('id, name, mobile, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
+            ->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
         $total = $query->count();
         if ($page && $rows) {
             $query->offset(($page - 1) * $rows)->limit($rows);
         }
-        $data = $query->orderBy('id desc')
-            ->asArray()->all();
+
+        $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
             $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
@@ -461,10 +449,34 @@ class ResidentService extends BaseService
             $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : $model['mobile'];
         }
-        return [
-            'list' => $data,
-            'total' => $total
-        ];
+
+        return ['list' => $data, 'total' => $total];
+    }
+
+    // 关联车辆
+    public function relatedCar($param, $page = 0, $rows = 0)
+    {
+        $roomUser = PsRoomUser::findOne($param['id']);
+
+        $query = ParkingUsers::find()->alias('A')
+            ->select('C.id, C.community_id, B.room_address, D.car_port_num, A.user_name, A.user_mobile, C.car_num, C.car_model')
+            ->leftJoin('parking_user_carport B', 'A.id = B.user_id')
+            ->leftJoin('parking_cars C', 'C.id = B.car_id')
+            ->leftJoin('parking_carport D', 'D.id = B.carport_id')
+            ->where(['=', 'user_mobile', $roomUser->mobile]);
+
+        $total = $query->count();
+        if ($page && $rows) {
+            $query->offset(($page - 1) * $rows)->limit($rows);
+        }
+
+        $model = $query->orderBy('id desc')->asArray()->all();
+
+        foreach ($model as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+        }
+
+        return ['list' => $model, 'total' => $total];
     }
 
     // 住户列表 审核 待审核
@@ -512,19 +524,19 @@ class ResidentService extends BaseService
         return $data;
     }
 
-    /*
-     * 审核不通过
-     */
+    // 审核不通过
     public function nopass($id, $message, $operator)
     {
         $model = PsResidentAudit::findOne(['id' => $id, 'community_id' => $this->communityId]);
         if (!$model) {
             return $this->failed('数据不存在');
         }
+
         $message = trim($message);
         if (!$message) {
             return $this->failed('不通过原因不能为空');
         }
+
         $model->status = PsResidentAudit::AUDIT_NO_PASS;
         $model->reason = $message;
         $model->operator = $operator['id'];
@@ -537,9 +549,8 @@ class ResidentService extends BaseService
         SmsService::service()->init(34, $model['mobile'])->send([$communityName['name']]);
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
-        //发送生活号模版消息
-        $this->sendAlipayTempMsg($model->community_id, $model->member_id, '已驳回', $model->reason);
-        //保存日志
+
+        // 保存日志
         $log = [
             "community_id" => $model['community_id'],
             "operate_menu" => "住户管理",
@@ -547,24 +558,24 @@ class ResidentService extends BaseService
             "operate_content" => $model->name . " " . (PsCommon::isVirtualPhone($model->mobile) === true ? '' : $model->mobile),
         ];
         OperateService::addComm($operator, $log);
+
         return $this->success();
     }
 
-    /**
-     * 审核bu通过删除
-     */
+    // 审核bu通过删除
     public function auditDel($id, $userinfo = '')
     {
         $model = PsResidentAudit::findOne(['id' => $id, 'community_id' => $this->communityId]);
         if (empty($model)) {
             return $this->failed('删除失败，数据不存在');
         }
+
         $name = $model->name;
         $mobile = $model->mobile;
         if (!$model || !$model->delete()) {
             return $this->failed('删除失败');
         }
-        //保存日志
+        // 保存日志
         $log = [
             "community_id" => $model['community_id'],
             "operate_menu" => "住户管理",
@@ -572,6 +583,7 @@ class ResidentService extends BaseService
             "operate_content" => $name . " " . (PsCommon::isVirtualPhone($mobile) === true ? '' : $mobile),
         ];
         OperateService::addComm($userinfo, $log);
+
         return $this->success();
     }
 
@@ -783,33 +795,29 @@ class ResidentService extends BaseService
         return ["totals" => $totals, 'list' => $data];
     }
 
-    //导出数据
+    // 导出数据
     public function exportList($params)
     {
-        //标签处理
+        // 标签处理
         if (!empty($params['user_label_id']) && is_array($params['user_label_id'])) {
-            $label = LabelsService::service()->checkLabel($params['user_label_id'], 2);
-            if ($label) {
-                $label_room_user = PsRoomUserLabel::find()->where(['in', 'label_id', $params['user_label_id']])->asArray()->all();
-                $room_user_id = array_unique(array_column($label_room_user, 'room_user_id'));
-                if (empty($room_user_id)) {
-                    return [];
-                }
-                $params['id'] = $room_user_id;
-            } else {
+            $labelRela = PsLabelsRela::find()->where(['in', 'labels_id', $params['user_label_id']])
+                ->andWhere(['data_type' => 2])->asArray()->all();
+            $room_user_id = array_unique(array_column($labelRela, 'data_id'));
+            if (empty($room_user_id)) {
                 return [];
             }
+            $params['id'] = $room_user_id;
         }
+
         $models = PsRoomUser::model()->get($params)
-            ->select('id,name,enter_time,face,marry_status,household_type,nation,live_type,mobile,
-            sex,status, card_no,`group`,building,unit,room,identity_type,auth_time, time_end')
-            ->orderBy('id desc')
-            ->asArray()->all();
+            ->select('id, name, enter_time, face, marry_status, household_type, nation, live_type, mobile,
+            sex, status, card_no, group, building, unit, room, identity_type, auth_time, time_end')
+            ->orderBy('id desc')->asArray()->all();
         $arr = [];
         foreach ($models as $k => $v) {
-            $label_user = PsRoomUserLabel::find()->select('name')
-                ->innerJoin('ps_labels AS pl', 'pl.id = ps_room_user_label.label_id')
-                ->where(['room_user_id' => $v['id']])->asArray()->all();
+            $label_user = PsLabelsRela::find()->alias('A')->select('name')
+                ->innerJoin('ps_labels B', 'B.id = A.labels_id')
+                ->where(['data_id' => $v['id'], 'data_type' => 2])->asArray()->all();
             if (!empty($label_user)) {
                 $label_name = implode(array_unique(array_column($label_user, 'name')), ',');
                 $v['label_name'] = $label_name;
@@ -830,6 +838,7 @@ class ResidentService extends BaseService
             $v['mobile'] = PsCommon::isVirtualPhone($v['mobile']) ? '' : $v['mobile'];
             $arr[] = $v;
         }
+
         return $arr;
     }
 
@@ -996,7 +1005,8 @@ class ResidentService extends BaseService
         }
         return $result;
     }
-
+    
+    // 获取基本下拉信息
     public function getOption()
     {
         $data['change_detail'] = $this->getForeach($this->change_detail);
@@ -1006,6 +1016,7 @@ class ResidentService extends BaseService
         $data['live_detail'] = $this->getForeach($this->live_detail);
         $data['live_type'] = $this->getForeach($this->live_type);
         $data['marry_status'] = $this->getForeach($this->marry_status);
+
         return $data;
     }
 

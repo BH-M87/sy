@@ -588,6 +588,7 @@ class CommunityBuildingService extends BaseService
 
     }
 
+    //获取楼幢id
     public function getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude,$nature)
     {
         $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
@@ -617,6 +618,37 @@ class CommunityBuildingService extends BaseService
         return $building_id;
     }
 
+    //获取楼幢id
+    public function getBuildingIdByName($community_id, $group_id, $group_name, $building_name)
+    {
+        $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
+        if (!$building) {
+            $model = new PsCommunityBuilding();
+            $model->community_id = $community_id;
+            $model->name = $building_name;
+            $model->group_id = $group_id;
+            $model->group_name = $group_name;
+            $model->code = '0';
+            $model->building_code = PsCommon::getIncrStr('HOUSE_BUILDING',YII_ENV.'lyl:house-building');
+            $model->unit_num = 0;
+            $model->floor_num = 0;
+            $model->orientation = '';
+            $model->locations = '';
+            $model->longitude = '0.000000';
+            $model->latitude = '0.000000';
+            $model->nature = '1';
+            if ($model->save()) {
+                $building_id = $model->id;
+            } else {
+                return 0;
+            }
+        } else {
+            $building_id = $building['id'];
+        }
+        return $building_id;
+    }
+
+    //保存单元信息
     public function saveUnit($community_id, $group_id, $group_name, $building_id, $building_name,$unit_name)
     {
         $unit = PsCommunityUnits::find()->where(['building_id'=>$building_id,'name'=>$unit_name])->asArray()->one();
@@ -637,8 +669,7 @@ class CommunityBuildingService extends BaseService
             $unit->code = '';
             if ($unit->save()) {
                 //楼宇推送
-                DoorPushService::service()->buildAdd($community_id, $unit->group_name, $unit->building_name,
-                    $unit->name, '', '', '', $unit->unit_no);
+                //DoorPushService::service()->buildAdd($community_id, $unit->group_name, $unit->building_name, $unit->name, '', '', '', $unit->unit_no);
                 return $unit->id;
             } else {
                 return 0;
@@ -647,6 +678,19 @@ class CommunityBuildingService extends BaseService
 
     }
 
+    //获取单元id
+    public function getUnitId($communityId,$group_id,$group,$building_id,$building,$unit)
+    {
+        $unitInfoByName = PsCommunityUnits::find()->where(['building_id'=>$building_id,'name'=>$unit])->asArray()->one();
+        if(empty($unitInfoByName)){
+            $unitId = $this->saveUnit($communityId,$group_id,$group,$building_id,$building,$unit);
+            //楼幢表的单元数量+1
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>1],['id'=>$building_id]);
+            $unitInfo['data'] = $unitId;
+        }else{
+            $unitInfo['data'] = $unitInfoByName['id'];
+        }
+    }
     public function editBuilding($data,$userInfo = [])
     {
         $building_id = $data['building_id'];
@@ -754,7 +798,14 @@ class CommunityBuildingService extends BaseService
             ->offset($offset)->limit($pageSize)
             ->orderBy('cu.id desc')
             ->asArray()->all();
-        $result['list'] = !empty($list) ? $list : [];
+        if(!empty($list)){
+            foreach($list as $key=>$value) {
+                $list[$key]['room_num'] =  PsCommunityRoominfo::find()->where(['unit_id'=>$value['id']])->count();
+            }
+        }else{
+            $list = [];
+        }
+        $result['list'] = $list;
         $result['totals'] = $this->buildingSearchDeal($data)->count();
         return $result;
     }

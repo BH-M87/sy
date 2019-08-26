@@ -128,10 +128,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 住户导出
-     * @return null|string
-     */
+    // 住户导出
     public function actionExport()
     {
         $valid = PsCommon::validParamArr(new PsResidentFrom(), $this->request_params, 'list');
@@ -171,13 +168,14 @@ class ResidentController extends BaseController
             'live_type' => ['title' => '居住类型', 'width' => 19, 'items' => ResidentService::service()->live_type],
             'id' => ['title' => 'ID(切勿修改)', 'width' => 19],
         ];
-        // $filename = CsvService::service()->saveTempFile(1, $config, $result, 'YeZhu');
+
         $config["save"] = true;
         $config['path'] = 'temp/' . date('Y-m-d');
         $config['file_name'] = ExcelService::service()->generateFileName('YeZhu');
         $url = ExcelService::service()->export($result, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
         $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhu.xlsx');
+        
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
@@ -649,21 +647,15 @@ class ResidentController extends BaseController
                 'value' => $val
             ];
         }
-        
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * 详情相关房屋
-     * @return string
-     */
+    // 详情相关房屋
     public function actionRelatedHouse()
     {
-        $result = ResidentService::service($this->communityId)->relatedHouse(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)->relatedHouse($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -684,41 +676,35 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 相关住户
-     * @return string
-     */
+    // 相关住户
     public function actionRelatedResident()
     {
-        $result = ResidentService::service($this->communityId)->relatedResident(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)
+            ->relatedResident($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
+    // 相关车辆
+    public function actionRelatedCar()
+    {
+        $result = ResidentService::service()->relatedCar($this->request_params, $this->page, $this->pageSize);
 
+        return PsCommon::responseSuccess($result);
+    }
 
-    /**********todo 待审核数据还没，后期测试************/
-
-    /**
-     * 审核不通过
-     * @return null|string
-     */
+    // 审核不通过
     public function actionAuditNopass()
     {
-        $result = ResidentService::service($this->communityId)->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
+        $result = ResidentService::service($this->communityId)
+            ->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 审核bu通过删除
-     * @return null|string
-     */
+    // 审核不通过 删除
     public function actionAuditDelete()
     {
         $result = ResidentService::service()->auditDel($this->request_params['id'], $this->user_info);
@@ -727,8 +713,6 @@ class ResidentController extends BaseController
         }
         return PsCommon::responseSuccess($result['data']);
     }
-
-    /****todo 还未调试接口***/
 
     //新增投票-选择业主
     public function actionGetResident()
@@ -741,14 +725,14 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    //获取下拉信息
+    // 获取基本下拉信息
     public function actionCommonOptionInfo()
     {
         $result = ResidentService::service()->getOption();
         return PsCommon::responseSuccess($result);
     }
 
-    //获取民族信息
+    // 获取民族信息
     public function actionGetNation()
     {
         $result['list'] = ResidentService::service()->getNation();
