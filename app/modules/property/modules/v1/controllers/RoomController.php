@@ -918,13 +918,13 @@ class RoomController extends BaseController
     {
         $data = $this->request_params;
         $resultData = HouseService::service()->exportHouse($data);
-        $operate = [
+        /*$operate = [
             "community_id" => $data["community_id"],
             "operate_menu" => "房屋管理",
             "operate_type" => "导出房屋",
             "operate_content" => "",
         ];
-        OperateService::addComm($this->user_info, $operate);
+        OperateService::addComm($this->user_info, $operate);*/
 
         $config["sheet_config"] = [
             'group' => ['title' => '苑/期/区', 'width' => 26],

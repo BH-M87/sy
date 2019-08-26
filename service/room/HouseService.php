@@ -689,7 +689,7 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            $label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
+            /*$label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
             if ($label) {
                 $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
                 $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
@@ -698,6 +698,11 @@ Class HouseService extends BaseService
                 }
                 $where .= " AND id in ($room_id)";
 
+            }
+            $room_id = LabelsService::service()->getRoomIdByLabelId($data['room_label_id']);*/
+            $room_id = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
+            if($room_id){
+                $where .= " AND id in ($room_id)";
             }
         }
         $order_arr = ["asc", "desc"];
@@ -711,9 +716,10 @@ Class HouseService extends BaseService
             FROM ps_community_roominfo WHERE $where order by $order_by", $params)->queryAll();
         if ($models) {
             foreach ($models as $house) {
-                $label_room = PsRoomLabel::find()->select('name')
+                /*$label_room = PsRoomLabel::find()->select('name')
                     ->innerJoin('ps_labels AS pl', 'pl.id = ps_room_label.label_id')->where(['ps_room_label.room_id' => $house['id']])
-                    ->asArray()->all();
+                    ->asArray()->all();*/
+                $label_room = LabelsService::service()->getLabelByRoomId($house['id']);
                 if (!empty($label_room)) {
                     $label_name = implode(array_unique(array_column($label_room, 'name')), ',');
                     $house['label_name'] = $label_name;
