@@ -771,6 +771,40 @@ class RoomController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    public function actionGetRoomStatus()
+    {
+        $list = [
+            [
+                'key'=>1,
+                'value'=>'已售'
+            ],
+            [
+                'key'=>2,
+                'value'=>'未售'
+            ]
+        ];
+        return PsCommon::responseSuccess($list);
+    }
+
+    public function actionGetRoomType()
+    {
+        $list = [
+            [
+                'key'=>1,
+                'value'=>'居住物业'
+            ],
+            [
+                'key'=>2,
+                'value'=>'商业物业'
+            ],
+            [
+                'key'=>3,
+                'value'=>'工业物业'
+            ]
+        ];
+        return PsCommon::responseSuccess($list);
+    }
+
     /****todo 还未调试接口***/
 
     /**
