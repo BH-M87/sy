@@ -352,6 +352,11 @@ class CarService extends BaseService
 
             //查询标签
             $carInfo['labels'] = LabelsService::service()->getLabelInfoByCarId($req['id']);
+            //查询车场
+            $carInfo['lot_name'] = ParkingLot::find()
+                ->select('name')
+                ->where(['id' => $carInfo['lot_id']])
+                ->scalar();
         }
         return $carInfo;
     }
