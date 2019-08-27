@@ -112,6 +112,8 @@ class CarService extends BaseService
         $req['images'] = F::value($req,'images','');
         $req['user_name'] = F::value($req,'user_name','');
         $req['user_mobile'] = F::value($req,'user_mobile','');
+        $req['carport_rent_start'] = F::value($req,'carport_rent_start','');
+        $req['carport_rent_end'] = F::value($req,'carport_rent_end','');
         $req['room_address'] = '';
         //校验数据
         $lotInfo = ParkingLot::find()
@@ -331,12 +333,13 @@ class CarService extends BaseService
         $carInfo = ParkingCars::find()
             ->alias('car')
             ->select('car.*,puc.member_id,puc.room_id,puc.room_address,
-            puc.carport_rent_start,puc.carport_rent_end,pu.user_name,
-            pu.user_mobile,room.group,room.building,room.unit,room.room')
+            puc.carport_rent_start,puc.carport_rent_end,puc.carport_id,pu.user_name,
+            pu.user_mobile,room.group,room.building,room.unit,room.room,pc.lot_id,pc.car_port_num,pc.car_port_status,comm.name as community_name')
             ->leftJoin('parking_user_carport puc','puc.car_id = car.id')
             ->leftJoin('parking_carport pc','pc.id = puc.carport_id')
             ->leftJoin('parking_users pu','pu.id = puc.user_id')
             ->leftJoin('ps_community_roominfo room', 'room.id = puc.room_id')
+            ->leftJoin('ps_community comm', 'comm.id = car.community_id')
             ->where(['car.id' => $req['id']])
             ->asArray()
             ->one();
