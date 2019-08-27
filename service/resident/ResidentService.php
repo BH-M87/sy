@@ -502,10 +502,13 @@ class ResidentService extends BaseService
             ->asArray()->all();
 
         foreach ($models as &$model) {
+            $model['sex'] = $model['sex'] == 1 ? '男' : '女';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
-            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
-            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
-            $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '永久';
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d H:i:s', $model['create_at']) : '';
+            $model['unaccept_at'] = !empty($model['unaccept_at']) ? date('Y-m-d H:i:s', $model['unaccept_at']) : '';
+            $model['identity_type_desc'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['images'] = explode(',', $model['images']);
         }
 
         return ["list" => $models, 'totals' => $count];
@@ -550,12 +553,11 @@ class ResidentService extends BaseService
         $model->reason = $message;
         $model->operator = $operator['id'];
         $model->operator_name = $operator['username'];
+        $model->unaccept_at = time();
+
         if (!$model->save()) {
             return $this->failed($model->errors);
         }
-
-        $communityName = CommunityService::service()->getCommunityName($model['community_id']);
-        SmsService::service()->init(34, $model['mobile'])->send([$communityName['name']]);
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
 
