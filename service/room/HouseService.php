@@ -100,6 +100,7 @@ Class HouseService extends BaseService
                 foreach ($label as $v) {
                     $list['room_label_id'][] = $v['name'];
                 }
+                $list['labels'] = $label;
             }
             $list['community_name'] =  PsCommunityModel::findOne($list['community_id'])->name;
             $house_type = explode("|",$list['house_type']);
@@ -353,8 +354,8 @@ Class HouseService extends BaseService
         $room_label_id = !empty($data->room_label_id) ? $data->room_label_id : '';        // 是否有标签
         $floor = !empty($data->floor) ? $data->floor : '';                     // 楼层
         $room_code = !empty($data->room_code) ? str_pad($data->room_code, 4, "0", STR_PAD_LEFT) : '';    // 室号code,前面补0，补齐4位
-        $delivery_time = !empty($data->delivery_time) ? $data->delivery_time : '';//交房时间
-        $own_age_limit = !empty($data->own_age_limit) ? $data->own_age_limit : '';//产权年限
+        $delivery_time = !empty($data->delivery_time) ? $data->delivery_time : '0';//交房时间
+        $own_age_limit = !empty($data->own_age_limit) ? $data->own_age_limit : '0';//产权年限
         $orientation = !empty($data->orientation) ? $data->orientation : '';//房屋朝向
         $room_image = !empty($data->room_image) ? $data->room_image : '';//房屋图片
         $create_at = time();

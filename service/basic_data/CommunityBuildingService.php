@@ -807,7 +807,7 @@ class CommunityBuildingService extends BaseService
             $list = [];
         }
         $result['list'] = $list;
-        $result['totals'] = $this->buildingSearchDeal($data)->count();
+        $result['totals'] = $this->unitSearchDeal($data)->count();
         return $result;
     }
 
