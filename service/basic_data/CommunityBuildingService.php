@@ -200,15 +200,6 @@ class CommunityBuildingService extends BaseService
     public function addReturn($data,$userinfo=''){
         $res = $this->add($data);
         if ($res['code']) {
-            $content = "幢号:" . $data['building_name']."幢";
-            $content .= "单元:" . $data['unit_name'].'单元';
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼宇信息",
-                "operate_type" => "新增楼宇",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userinfo, $operate);
             return PsCommon::responseSuccess($res['data']);
         } else {
             return PsCommon::responseFailed($res['msg']);
@@ -303,15 +294,6 @@ class CommunityBuildingService extends BaseService
         //楼宇推送
         DoorPushService::service()->buildEdit($community_id, $unit->group_name, $unit->building_name,
             $unit->name, $group_code, $building_code, $unit_code, $unit->unit_no);
-        $content = "幢号:" . $unit->building_name;
-        $content .= "单元:" . $unit->name;
-        $operate = [
-            "community_id" =>$data['community_id'],
-            "operate_menu" => "楼宇信息",
-            "operate_type" => "编辑楼宇",
-            "operate_content" => $content,
-        ];
-        OperateService::addComm($userinfo, $operate);
         return PsCommon::responseSuccess($model->id);
     }
 
@@ -354,15 +336,7 @@ class CommunityBuildingService extends BaseService
         }
         if ($unit->delete()) {
             //楼宇删除推送
-            DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
-            $content = "单元:" . $unit->name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼宇信息",
-                "operate_type" => "删除楼宇",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userinfo, $operate);
+            //DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
             return PsCommon::responseSuccess("删除成功");
         } else {
             return PsCommon::responseFailed("删除失败");
@@ -479,14 +453,7 @@ class CommunityBuildingService extends BaseService
             if ($unitData) {
                 PsCommunityUnits::model()->batchInsert($unitData);
                 //数据推送
-                DoorPushService::service()->buildBatchAdd($community_id, $pushUnitData,$pushBuildInfo);
-                $operate = [
-                    "community_id" =>$data['community_id'],
-                    "operate_menu" => "楼宇信息",
-                    "operate_type" => "批量新增楼宇",
-                    "operate_content" => '',
-                ];
-                OperateService::addComm($userinfo, $operate);
+                //DoorPushService::service()->buildBatchAdd($community_id, $pushUnitData,$pushBuildInfo);
             }
             return PsCommon::responseSuccess("新增成功");
         }
@@ -567,15 +534,6 @@ class CommunityBuildingService extends BaseService
                     if($unit_id <= 0){
                         return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
                     }
-                    /*$content = "幢号:" . $building_name;
-                    $content .= "单元:" . $unit_name;
-                    $operate = [
-                        "community_id" =>$data['community_id'],
-                        "operate_menu" => "楼幢信息",
-                        "operate_type" => "新增楼幢",
-                        "operate_content" => $content,
-                    ];
-                    OperateService::addComm($userInfo, $operate);*/
                 }
             }
             $transaction->commit();
@@ -716,14 +674,6 @@ class CommunityBuildingService extends BaseService
             $buildingModel->latitude = $latitude;
             $buildingModel->nature = $nature;
             $buildingModel->save();
-            /*$content = "幢号:" . $buildingModel->name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼幢信息",
-                "operate_type" => "编辑楼幢",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess();
         } catch (\Exception $e) {
@@ -763,14 +713,6 @@ class CommunityBuildingService extends BaseService
             }
             $building_name = $buildingModel->name;
             $buildingModel->delete();
-            /*$content = "幢号:" .$building_name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼幢信息",
-                "operate_type" => "删除楼幢",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {
@@ -778,6 +720,22 @@ class CommunityBuildingService extends BaseService
             return PsCommon::responseFailed("删除失败");
 
         }
+    }
+
+    public function exportBuilding($data)
+    {
+        $list = $this->buildingSearchDeal($data)
+            ->select(['c.name as community_name', 'cb.*','cb.id as building_id','cb.name as building_name'])
+            ->orderBy('cb.id desc')
+            ->asArray()->all();
+        if($list){
+            $arr = [];
+            foreach($list as $key => $value){
+                $arr[] = $value;
+            }
+            return $arr;
+        }
+        return [];
     }
 
     /***************社区微脑用的单元管理**********************/
@@ -838,15 +796,6 @@ class CommunityBuildingService extends BaseService
             if($unit_id <= 0){
                 return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
             }
-            /*$content = "幢号:" . $building_name;
-            $content .= "单元:" . $unit_name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "单元信息",
-                "operate_type" => "新增单元",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess();
         } catch (\Exception $e) {
@@ -885,15 +834,6 @@ class CommunityBuildingService extends BaseService
             $unit_name = $unitModel->name;
             $building_name = $unitModel->building_name;
             $unitModel->delete();
-            /*$content = "幢号:" .$building_name;
-            $content .= "单元号:" .$unit_name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "单元信息",
-                "operate_type" => "删除单元",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);*/
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {
