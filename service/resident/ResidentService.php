@@ -119,6 +119,7 @@ class ResidentService extends BaseService
         foreach ($models as $key => $model) {
             $models[$key]['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
             $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
+            $models[$key]['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $models[$key]['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $models[$key]['identity_type_desc'] = $model['identity_type'] ? PsCommon::getIdentityType($model['identity_type'], 'key') : "-";
             $models[$key]['status_desc'] = $model['status'] ? PsCommon::getIdentityStatus($model['status']) : "-";
