@@ -1083,6 +1083,60 @@ class RoomController extends BaseController
 
     }
 
+    //获取苑期区列表--无分页
+    public function actionGetGroup()
+    {
+        $community_id = PsCommon::get($this->request_params,'community_id');
+        $list = PsCommunityGroups::find()
+            ->select(['name as group_name'])
+            ->where(['community_id' => $community_id])
+            ->orderBy('id desc')
+            ->asArray()->all();
+        return PsCommon::responseSuccess($list);
+    }
+
+    //获取苑期区列表--无分页
+    public function actionGetBuilding()
+    {
+        $community_id = PsCommon::get($this->request_params,'community_id');
+        $group_name = PsCommon::get($this->request_params,'group_name');
+        $list = PsCommunityBuilding::find()
+            ->select(['name as building_name'])
+            ->where(['community_id' => $community_id,'group_name'=>$group_name])
+            ->orderBy('id desc')
+            ->asArray()->all();
+        return PsCommon::responseSuccess($list);
+    }
+
+    //获取苑期区列表--无分页
+    public function actionGetUnit()
+    {
+        $community_id = PsCommon::get($this->request_params,'community_id');
+        $group_name = PsCommon::get($this->request_params,'group_name');
+        $building_name = PsCommon::get($this->request_params,'building_name');
+        $list = PsCommunityUnits::find()
+            ->select(['name as unit_name'])
+            ->where(['community_id' => $community_id,'group_name'=>$group_name,'building_name'=>$building_name])
+            ->orderBy('id desc')
+            ->asArray()->all();
+        return PsCommon::responseSuccess($list);
+    }
+
+    //获取房屋列表--无分页
+    public function actionGetRoom()
+    {
+        $community_id = PsCommon::get($this->request_params,'community_id');
+        $group_name = PsCommon::get($this->request_params,'group_name');
+        $building_name = PsCommon::get($this->request_params,'building_name');
+        $unit_name = PsCommon::get($this->request_params,'unit_name');
+        $list = PsCommunityRoominfo::find()
+            ->select(['room as room_name'])
+            ->where(['community_id' => $community_id,'group'=>$group_name,'building'=>$building_name,'unit'=>$unit_name])
+            ->orderBy('id desc')
+            ->asArray()->all();
+        return PsCommon::responseSuccess($list);
+    }
+
     /****todo 还未调试接口***/
 
     /**
