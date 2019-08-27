@@ -195,6 +195,7 @@ class ResidentController extends BaseController
         }
 
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
+
         if (!$r['code']) {
             return PsCommon::responseFailed($r['msg']);
         }
@@ -356,14 +357,6 @@ class ResidentController extends BaseController
         if ($defeat_count > 0) {
             $error_url = $this->saveError();
         }
-        
-        $operate = [
-            "community_id" => $data["community_id"],
-            "operate_menu" => "住户管理",
-            "operate_type" => "住户导入",
-            "operate_content" => '',
-        ];
-        OperateService::addComm($this->user_info, $operate);
 
         if ($authMemberIds) {
             MemberService::service()->turnReal($authMemberIds);
