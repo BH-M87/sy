@@ -112,7 +112,7 @@ class ResidentService extends BaseService
         }
 
         $models = PsRoomUser::model()->get($params)
-            ->select('id, name, mobile, sex, card_no, group, building, unit, room, identity_type, status, auth_time, time_end')
+            ->select('id, name, mobile, sex, card_no, group, building, unit, room, identity_type, status, auth_time, time_end, out_time')
             ->orderBy('id desc')
             ->offset(($page - 1) * $rows)->limit($rows)
             ->asArray()->all();
