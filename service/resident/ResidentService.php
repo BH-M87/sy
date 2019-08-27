@@ -141,8 +141,9 @@ class ResidentService extends BaseService
         if ($model) {
             $label = PsLabelsRela::find()->select('labels_id')->where(['data_id' => $model['id'], 'data_type' => 2])->asArray()->all();//标签id
             if (!empty($label)) {
-                foreach ($label as $v) {
-                    $model['user_label_id'][] = $v['labels_id'];
+                foreach ($label as $k => $v) {
+                    $model['user_label'][$k]['id'] = $v['labels_id'];
+                    $model['user_label'][$k]['name'] = PsLabels::findOne($v['labels_id'])->name;
                 }
             }
             //edit by wenchao.feng 虚拟手机号处理
