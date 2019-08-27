@@ -348,6 +348,9 @@ class CarService extends BaseService
             $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
             $carInfo['carport_rent_start'] = $carInfo['carport_rent_start'] ? date("Y-m-d", $carInfo['carport_rent_start']) : '';
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
+
+            //查询标签
+            
         }
         return $carInfo;
     }
