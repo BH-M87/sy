@@ -740,6 +740,7 @@ class CommunityBuildingService extends BaseService
         if(empty($res)){
             return PsCommon::responseFailed('楼幢不存在');
         }
+        $res['building_name'] = $res['name'];
         return PsCommon::responseSuccess($res);
     }
 

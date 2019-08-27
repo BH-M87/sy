@@ -563,7 +563,7 @@ class RoomController extends BaseController
                     'property_type' => $property_type,
                     'house_type' => $house_type,
                     'orientation' => $orientation,
-                    'delivery_time' => $delivery_time,
+                    'delivery_time' => strtotime($delivery_time),
                     'own_age_limit' => $own_age_limit,
                     'sync_rent_manage'=>0,
                     'out_room_id' => $outRoomId,
@@ -918,13 +918,13 @@ class RoomController extends BaseController
     {
         $data = $this->request_params;
         $resultData = HouseService::service()->exportHouse($data);
-        $operate = [
+        /*$operate = [
             "community_id" => $data["community_id"],
             "operate_menu" => "房屋管理",
             "operate_type" => "导出房屋",
             "operate_content" => "",
         ];
-        OperateService::addComm($this->user_info, $operate);
+        OperateService::addComm($this->user_info, $operate);*/
 
         $config["sheet_config"] = [
             'group' => ['title' => '苑/期/区', 'width' => 26],
@@ -1019,6 +1019,7 @@ class RoomController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //获取房屋状态
     public function actionGetRoomStatus()
     {
         $list = [
@@ -1034,6 +1035,7 @@ class RoomController extends BaseController
         return PsCommon::responseSuccess($list);
     }
 
+    //获取房屋类型
     public function actionGetRoomType()
     {
         $list = [
@@ -1051,6 +1053,34 @@ class RoomController extends BaseController
             ]
         ];
         return PsCommon::responseSuccess($list);
+    }
+
+    public function actionLabelAdd()
+    {
+        $room_id = PsCommon::get($this->request_params,'room_id');
+        if(empty($room_id)){
+            return PsCommon::responseFailed('房屋id不能为空');
+        }
+        $label_id = PsCommon::get($this->request_params,'label_id');
+        if(empty($label_id)){
+            return PsCommon::responseFailed('标签id不能为空');
+        }
+        return HouseService::service()->label_add($room_id,$label_id);
+
+    }
+
+    public function actionLabelDelete()
+    {
+        $room_id = PsCommon::get($this->request_params,'room_id');
+        if(empty($room_id)){
+            return PsCommon::responseFailed('房屋id不能为空');
+        }
+        $label_id = PsCommon::get($this->request_params,'label_id');
+        if(empty($label_id)){
+            return PsCommon::responseFailed('标签id不能为空');
+        }
+        return HouseService::service()->label_delete($room_id,$label_id);
+
     }
 
     /****todo 还未调试接口***/

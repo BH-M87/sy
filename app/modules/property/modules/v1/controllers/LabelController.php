@@ -95,7 +95,7 @@ class LabelController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    // 标签下拉
+    // 添加 标签关联关系
     public function actionAddRelation()
     {
         $data_id = $this->request_params['data_id'];
@@ -103,7 +103,20 @@ class LabelController extends BaseController
         $data_type = $this->request_params['data_type'];
 
         $result = LabelsService::service()->addRelation($data_id, $labels_id, $data_type);
+        if (!empty($result)) {
+            return PsCommon::responseSuccess();
+        }
+        return PsCommon::responseFailed('标签关系已存在');
+    }
 
-        return PsCommon::responseSuccess($result);
+    // 删除 标签关联关系
+    public function actionDeleteRelation()
+    {
+        $result = LabelsService::service()->deleteRelation($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess();
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
     }
 }

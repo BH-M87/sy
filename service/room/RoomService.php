@@ -78,6 +78,7 @@ Class RoomService extends BaseService
         $query->groupBy('`group`');
         $query->orderBy('(`group`+0) asc,`group` asc');
         $model = $query->all();
+
         return $model;
     }
 

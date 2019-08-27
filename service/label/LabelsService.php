@@ -145,6 +145,8 @@ Class LabelsService extends BaseService
         foreach ($result as $k => $v) {
             $arr['id'] = $k;
             $arr['name'] = $v;
+            $arr['children'] = PsLabels::find()->select('id, name')->where(['label_type' => $k])
+                ->andFilterWhere(['label_attribute' => $param['type']])->asArray()->all();
 
             $list[] = $arr;
         }
@@ -152,18 +154,22 @@ Class LabelsService extends BaseService
         return ['list' => $list];
     }
 
-    // 添加表关联数据
+    // 添加 关联数据
     public function addRelation($data_id, $labels_id, $data_type)
     {
         if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
-                PsLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
-                if (is_array($labels_id)) {
+                if (is_array($labels_id)) { // 批量添加标签关联关系
+                    PsLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
                     foreach ($labels_id as $v) {
                         $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
                     }
-                } else {
+                } else { // 单个添加标签关联关系
+                    $rela = PsLabelsRela::find()->where(['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type])->asArray()->all();
+                    if (!empty($rela)) {
+                        return false;
+                    }
                     $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
                 }
 
@@ -180,7 +186,22 @@ Class LabelsService extends BaseService
         }
         return false;
     }
+    
+    // 删除 关联数据
+    public function deleteRelation($param)
+    {
+        $rela = PsLabelsRela::find()->where(['data_type' => $param['data_type'], 'data_id' => $param['data_id'], 'labels_id' => $param['labels_id']])->asArray()->one();
 
+        if (empty($rela)) {
+            return $this->failed('标签关系不存在');
+        }
+
+        $model = PsLabelsRela::deleteAll(['data_type' => $param['data_type'], 'data_id' => $param['data_id'], 'labels_id' => $param['labels_id']]);
+        if (!empty($model)) {
+            return $this->success();
+        }
+        return $this->failed();
+    }
 
     //根据房屋id获取这个房屋下的所有标签
     public function getLabelByRoomId($room_id)
