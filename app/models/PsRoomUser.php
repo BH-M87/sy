@@ -75,7 +75,7 @@ class PsRoomUser extends BaseModel
         return [
             [['community_id', 'room_id', 'member_id', 'name', 'mobile', 'group', 'building', 'unit', 'room', 'identity_type',
                 'status'], 'required'],
-            [['community_id', 'room_id', 'member_id', 'sex', 'identity_type', 'status', 'auth_time', 'time_end',
+            [['community_id', 'room_id', 'member_id', 'sex', 'identity_type', 'status', 'auth_time', 'time_end', 'out_time',
                 'operator_id', 'enter_time', 'nation', 'face', 'household_type', 'marry_status', 'household_province',
                 'household_city', 'household_area', 'live_type', 'live_detail', 'change_detail', 'create_at', 'update_at'
             ], 'integer'],

@@ -151,6 +151,7 @@ class ResidentService extends BaseService
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
             $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
+            $model['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $model['create_at'] = $model['create_at'] > 0 ? date("Y-m-d", $model['create_at']) : "-";
             $model['update_at'] = $model['update_at'] > 0 ? date("Y-m-d", $model['update_at']) : "-";
             $model['marry_status_desc'] = PsCommon::get($this->marry_status, $model['marry_status']);
@@ -724,6 +725,7 @@ class ResidentService extends BaseService
             // 状态验证
             'status' => $isAuth ? 2 : 1,
             'auth_time' => $isAuth ? time() : 0,
+            'out_time' => 0,
             'time_end' => $time_end,
             'operator_id' => $operator['id'],
             'operator_name' => $operator['truename'],
@@ -757,14 +759,16 @@ class ResidentService extends BaseService
         }
 
         $model->status = PsRoomUser::UNAUTH_OUT;
+        $model->out_time = time();
+
         if (!$model->save()) {
             return $this->failed($this->getError($model));
         }
 
         // 业主迁出，则对应该房屋下所有的家人，租客都迁出，重新添加
         if ($model->identity_type == 1) {
-            PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
-            PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
+            PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
+            PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
         }
         // 添加变更历史
         PsResidentHistory::model()->addHistory($model, ['id' => $userInfo['id'], 'name' => $userInfo['username']], true);
