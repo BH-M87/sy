@@ -518,7 +518,7 @@ class CarportService extends BaseService
             "operate_content" => '',
         ];
         OperateService::addComm($userInfo, $operate);
-        return $this->success($downUrl);
+        return $this->success(["down_url" => $downUrl]);
     }
 
     //获取sheet配置
