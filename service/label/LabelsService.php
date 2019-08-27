@@ -222,4 +222,14 @@ Class LabelsService extends BaseService
             ->where(['lr.data_id'=>$room_id,'lr.data_type'=>1,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }
+
+    //根据车辆id获取这个车辆下的所有标签id和名称
+    public function getLabelInfoByCarId($carId)
+    {
+        $list = PsLabelsRela::find()->alias('lr')
+            ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
+            ->select(['l.id','l.name'])
+            ->where(['lr.data_id'=>$carId,'lr.data_type'=>3,'l.is_delete'=>1])->asArray()->all();
+        return $list ? $list : [];
+    }
 }

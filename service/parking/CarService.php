@@ -22,6 +22,7 @@ use service\basic_data\MemberService;
 use service\basic_data\RoomService;
 use service\common\CsvService;
 use service\common\ExcelService;
+use service\label\LabelsService;
 use service\rbac\OperateService;
 use Yii;
 use yii\base\Exception;
@@ -350,7 +351,7 @@ class CarService extends BaseService
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
 
             //查询标签
-            
+            $carInfo['labels'] = LabelsService::service()->getLabelInfoByCarId($req['id']);
         }
         return $carInfo;
     }
