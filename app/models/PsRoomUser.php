@@ -179,7 +179,7 @@ class PsRoomUser extends BaseModel
     public function getRoomInfo()
     {
         return $this->hasOne(PsCommunityRoominfo::className(), ['id' => 'room_id'])
-            ->select(['id', 'charge_area', 'status', 'property_type']);
+            ->select(['id', 'charge_area', 'floor', 'status', 'property_type', 'out_room_id']);
     }
 
     /*

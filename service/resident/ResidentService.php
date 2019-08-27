@@ -383,15 +383,20 @@ class ResidentService extends BaseService
         }
 
         $data = $query->with('roomInfo')->orderBy('id desc')
-            ->select('id, room_id, member_id, identity_type, status, group, building, unit, room, time_end')
+            ->select('id, community_id, room_id, member_id, group, building, unit, room')
             ->asArray()->all();
-        foreach ($data as &$datum) {
-            $datum['time_end'] = !empty($datum['time_end']) ? date('Y-m-d', $datum['time_end']) : 0;
-            $datum['create_at'] = !empty($datum['create_at']) ? date('Y-m-d', $datum['create_at']) : '';
-            $datum['identity_type_des'] = PsCommon::getIdentityType($datum['identity_type'], 'key');
-            if (!empty($datum['roomInfo'])) {
-                $datum['roomInfo']['property_type_desc'] = PsCommon::propertyType($datum['roomInfo']['property_type']);
-                $datum['roomInfo']['status_desc'] = PsCommon::houseStatus($datum['roomInfo']['status']);
+        foreach ($data as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+            if (!empty($v['roomInfo'])) {
+                $v['roomInfo']['property_type_desc'] = PsCommon::propertyType($v['roomInfo']['property_type']);
+                $v['roomInfo']['status_desc'] = PsCommon::houseStatus($v['roomInfo']['status']);
+            }
+            $label = PsLabelsRela::find()->select('labels_id')->where(['data_id' => $v['roomInfo']['id'], 'data_type' => 1])->asArray()->all();//标签id
+            if (!empty($label)) {
+                foreach ($label as $k => $val) {
+                    $v['label'][$k]['id'] = $val['labels_id'];
+                    $v['label'][$k]['name'] = PsLabels::findOne($val['labels_id'])->name;
+                }
             }
         }
 

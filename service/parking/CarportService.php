@@ -518,7 +518,7 @@ class CarportService extends BaseService
             "operate_content" => '',
         ];
         OperateService::addComm($userInfo, $operate);
-        return $this->success($downUrl);
+        return $this->success(["down_url" => $downUrl]);
     }
 
     //获取sheet配置
@@ -555,7 +555,6 @@ class CarportService extends BaseService
                 continue;
             }
             $v['lot_id'] = $code['id'];
-            $v['lot_area_id'] = 0;
 
             //车位号是否重复
             $supplier_id = $code['supplier_id'];
@@ -566,15 +565,9 @@ class CarportService extends BaseService
                 continue;
             }
 
-            $lot = ['lot_id'=>$code['id'],'lot_area_id'=>$code['lot_area_id']];
-            if(!in_array($lot,$lot_list)){
-                $lot_list[] = $lot;
-            }
-
             $insert['community_id'][] = $communityId;
             $insert['supplier_id'][] = $supplier_id;
             $insert['lot_id'][] = $v['lot_id'];
-            $insert['lot_area_id'][] = $v['lot_area_id'];
             $insert['car_port_num'][] = $v['car_port_num'];
             $insert['car_port_type'][] = $this->searchIdByName($this->types, $v['type']);
             $insert['car_port_area'][] = $v['car_port_area'];
