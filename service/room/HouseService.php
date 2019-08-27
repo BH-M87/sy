@@ -100,6 +100,7 @@ Class HouseService extends BaseService
                 foreach ($label as $v) {
                     $list['room_label_id'][] = $v['name'];
                 }
+                $list['labels'] = $label;
             }
             $list['community_name'] =  PsCommunityModel::findOne($list['community_id'])->name;
             $house_type = explode("|",$list['house_type']);
