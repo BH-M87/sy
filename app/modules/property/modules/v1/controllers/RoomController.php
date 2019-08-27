@@ -1088,53 +1088,53 @@ class RoomController extends BaseController
     {
         $community_id = PsCommon::get($this->request_params,'community_id');
         $list = PsCommunityGroups::find()
-            ->select(['name as group_name'])
+            ->select(['name'])
             ->where(['community_id' => $community_id])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取苑期区列表--无分页
     public function actionGetBuilding()
     {
         $community_id = PsCommon::get($this->request_params,'community_id');
-        $group_name = PsCommon::get($this->request_params,'group_name');
+        $group_name = PsCommon::get($this->request_params,'group');
         $list = PsCommunityBuilding::find()
-            ->select(['name as building_name'])
+            ->select(['name'])
             ->where(['community_id' => $community_id,'group_name'=>$group_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取苑期区列表--无分页
     public function actionGetUnit()
     {
         $community_id = PsCommon::get($this->request_params,'community_id');
-        $group_name = PsCommon::get($this->request_params,'group_name');
-        $building_name = PsCommon::get($this->request_params,'building_name');
+        $group_name = PsCommon::get($this->request_params,'group');
+        $building_name = PsCommon::get($this->request_params,'building');
         $list = PsCommunityUnits::find()
-            ->select(['name as unit_name'])
+            ->select(['name'])
             ->where(['community_id' => $community_id,'group_name'=>$group_name,'building_name'=>$building_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取房屋列表--无分页
     public function actionGetRoom()
     {
         $community_id = PsCommon::get($this->request_params,'community_id');
-        $group_name = PsCommon::get($this->request_params,'group_name');
-        $building_name = PsCommon::get($this->request_params,'building_name');
-        $unit_name = PsCommon::get($this->request_params,'unit_name');
+        $group_name = PsCommon::get($this->request_params,'group');
+        $building_name = PsCommon::get($this->request_params,'building');
+        $unit_name = PsCommon::get($this->request_params,'unit');
         $list = PsCommunityRoominfo::find()
-            ->select(['room as room_name'])
+            ->select(['id','room as name'])
             ->where(['community_id' => $community_id,'group'=>$group_name,'building'=>$building_name,'unit'=>$unit_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     /****todo 还未调试接口***/

@@ -165,7 +165,7 @@ class PsCommon {
      * @param array $data
      * @return string
      */
-    public static function responseSuccess($data = [])
+    public static function responseSuccess($data = [],$object = true)
     {
         if (self::$log) {
             $log['action'] = Yii::$app->controller->action->getUniqueId();
@@ -173,7 +173,7 @@ class PsCommon {
             $log['data'] = F::request();
             Yii::info(json_encode($log, 320), 'api-success');
         }
-        if (empty($data)) {
+        if (empty($data) && $object) {
             $reData = (object)$data;
         } else {
             $reData = $data;
