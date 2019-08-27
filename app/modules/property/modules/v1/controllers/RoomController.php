@@ -1092,7 +1092,7 @@ class RoomController extends BaseController
             ->where(['community_id' => $community_id])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取苑期区列表--无分页
@@ -1105,7 +1105,7 @@ class RoomController extends BaseController
             ->where(['community_id' => $community_id,'group_name'=>$group_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取苑期区列表--无分页
@@ -1119,7 +1119,7 @@ class RoomController extends BaseController
             ->where(['community_id' => $community_id,'group_name'=>$group_name,'building_name'=>$building_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     //获取房屋列表--无分页
@@ -1134,7 +1134,7 @@ class RoomController extends BaseController
             ->where(['community_id' => $community_id,'group'=>$group_name,'building'=>$building_name,'unit'=>$unit_name])
             ->orderBy('id desc')
             ->asArray()->all();
-        return PsCommon::responseSuccess($list);
+        return PsCommon::responseSuccess($list,false);
     }
 
     /****todo 还未调试接口***/
