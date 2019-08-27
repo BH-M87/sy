@@ -1130,7 +1130,7 @@ class RoomController extends BaseController
         $building_name = PsCommon::get($this->request_params,'building');
         $unit_name = PsCommon::get($this->request_params,'unit');
         $list = PsCommunityRoominfo::find()
-            ->select(['room'])
+            ->select(['id','room as name'])
             ->where(['community_id' => $community_id,'group'=>$group_name,'building'=>$building_name,'unit'=>$unit_name])
             ->orderBy('id desc')
             ->asArray()->all();
