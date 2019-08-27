@@ -22,6 +22,7 @@ use service\basic_data\MemberService;
 use service\basic_data\RoomService;
 use service\common\CsvService;
 use service\common\ExcelService;
+use service\label\LabelsService;
 use service\rbac\OperateService;
 use Yii;
 use yii\base\Exception;
@@ -112,6 +113,8 @@ class CarService extends BaseService
         $req['images'] = F::value($req,'images','');
         $req['user_name'] = F::value($req,'user_name','');
         $req['user_mobile'] = F::value($req,'user_mobile','');
+        $req['carport_rent_start'] = F::value($req,'carport_rent_start','');
+        $req['carport_rent_end'] = F::value($req,'carport_rent_end','');
         $req['room_address'] = '';
         //校验数据
         $lotInfo = ParkingLot::find()
@@ -331,12 +334,13 @@ class CarService extends BaseService
         $carInfo = ParkingCars::find()
             ->alias('car')
             ->select('car.*,puc.member_id,puc.room_id,puc.room_address,
-            puc.carport_rent_start,puc.carport_rent_end,pu.user_name,
-            pu.user_mobile,room.group,room.building,room.unit,room.room')
+            puc.carport_rent_start,puc.carport_rent_end,puc.carport_id,pu.user_name,
+            pu.user_mobile,room.group,room.building,room.unit,room.room,pc.lot_id,pc.car_port_num,pc.car_port_status,comm.name as community_name')
             ->leftJoin('parking_user_carport puc','puc.car_id = car.id')
             ->leftJoin('parking_carport pc','pc.id = puc.carport_id')
             ->leftJoin('parking_users pu','pu.id = puc.user_id')
             ->leftJoin('ps_community_roominfo room', 'room.id = puc.room_id')
+            ->leftJoin('ps_community comm', 'comm.id = car.community_id')
             ->where(['car.id' => $req['id']])
             ->asArray()
             ->one();
@@ -345,6 +349,14 @@ class CarService extends BaseService
             $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
             $carInfo['carport_rent_start'] = $carInfo['carport_rent_start'] ? date("Y-m-d", $carInfo['carport_rent_start']) : '';
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
+
+            //查询标签
+            $carInfo['labels'] = LabelsService::service()->getLabelInfoByCarId($req['id']);
+            //查询车场
+            $carInfo['lot_name'] = ParkingLot::find()
+                ->select('name')
+                ->where(['id' => $carInfo['lot_id']])
+                ->scalar();
         }
         return $carInfo;
     }
