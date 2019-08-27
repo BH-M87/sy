@@ -598,9 +598,7 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /*
-     * 审核通过迁入
-     */
+    // 审核通过迁入
     public function pass($id, $param, $operator)
     {
         $psResidentAudit = PsResidentAudit::find()->with('room')->where(['id' => $id, 'community_id' => $this->communityId])->one();
@@ -663,11 +661,8 @@ class ResidentService extends BaseService
         //推送到供应商
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
-        $communityName = CommunityService::service()->getCommunityName($this->communityId);
-        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName['name']]);
+
         PsResidentHistory::model()->addHistory($psRoomUser, ['id' => $operator['id'], 'name' => $operator['username']], true);
-        //生活号发送消息模版
-        $this->sendAlipayTempMsg($psResidentAudit->community_id, $psResidentAudit->member_id, '已通过', '请尽快完成业主认证');
         //保存日志
         $log = [
             "community_id" => $this->communityId,
@@ -676,6 +671,7 @@ class ResidentService extends BaseService
             "operate_content" => $psResidentAudit->name . " " . (PsCommon::isVirtualPhone($psResidentAudit->mobile) ? '' : $psResidentAudit->mobile)
         ];
         OperateService::addComm($operator, $log);
+        
         return $this->success();
     }
 
