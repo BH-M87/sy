@@ -10,8 +10,10 @@ namespace app\modules\property\modules\v1\controllers;
 
 use app\models\BuildForm;
 use app\modules\property\controllers\BaseController;
+use common\core\F;
 use common\core\PsCommon;
 use service\basic_data\CommunityBuildingService;
+use service\common\ExcelService;
 
 class CommunityBuildingController extends BaseController
 {
@@ -108,6 +110,8 @@ class CommunityBuildingController extends BaseController
 
     /******************社区微脑定制的楼幢相关接口********************/
 
+    private $nature = [['key'=>1, 'value'=>'商用'], ['key'=>2, 'value'=>'住宅'], ['key'=>3, 'value'=>'商住两用']];
+
     public function actionBuildingList()
     {
         $data = $this->request_params;
@@ -166,21 +170,32 @@ class CommunityBuildingController extends BaseController
     //楼幢性质
     public function actionBuildingNature()
     {
-        $list = [
-            [
-                'key'=>1,
-                'value'=>'商用'
-            ],
-            [
-                'key'=>2,
-                'value'=>'住宅'
-            ],
-            [
-                'key'=>3,
-                'value'=>'商住两用'
-            ]
-        ];
+        $list = $this->nature;
         return PsCommon::responseSuccess($list);
+    }
+
+    //楼幢导出
+    public function actionBuildingExport()
+    {
+        $data = $this->request_params;
+        $resultData = CommunityBuildingService::service()->exportBuilding($data);
+        $config["sheet_config"] = [
+            'community_name' => ['title' => '所属小区', 'width' => 10],
+            'group_name' => ['title' => '所属区域', 'width' => 16],
+            'name' => ['title' => '楼幢名称', 'width' => 16],
+            'locations' => ['title' => '楼幢地址', 'width' => 26],
+            'unit_num' => ['title' => '单元数量', 'width' => 10],
+            'floor_num' => ['title' => '楼幢楼层', 'width' => 10],
+            'nature' => ['title' => '楼幢性质', 'width' => 16, 'type' => 'keys', "items" => ['1' => '商用', '2' => '住宅','3' => '商住两用']],
+            'orientation' => ['title' => '楼幢朝向', 'width' => 10],
+        ];
+        $config["save"] = true;
+        $config['path'] = 'temp/' . date('Y-m-d');
+        $config['file_name'] = ExcelService::service()->generateFileName('Building');
+        $url = ExcelService::service()->export($resultData, $config);
+        $fileName = pathinfo($url, PATHINFO_BASENAME);
+        $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'Building.xlsx');
+        return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
     /******************社区微脑定制的单元相关接口********************/

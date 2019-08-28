@@ -112,13 +112,14 @@ class ResidentService extends BaseService
         }
 
         $models = PsRoomUser::model()->get($params)
-            ->select('id, name, mobile, sex, card_no, group, building, unit, room, identity_type, status, auth_time, time_end')
+            ->select('id, name, mobile, sex, card_no, group, building, unit, room, identity_type, status, auth_time, time_end, out_time')
             ->orderBy('id desc')
             ->offset(($page - 1) * $rows)->limit($rows)
             ->asArray()->all();
         foreach ($models as $key => $model) {
             $models[$key]['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
             $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
+            $models[$key]['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $models[$key]['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $models[$key]['identity_type_desc'] = $model['identity_type'] ? PsCommon::getIdentityType($model['identity_type'], 'key') : "-";
             $models[$key]['status_desc'] = $model['status'] ? PsCommon::getIdentityStatus($model['status']) : "-";
@@ -151,6 +152,7 @@ class ResidentService extends BaseService
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
             $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
+            $model['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $model['create_at'] = $model['create_at'] > 0 ? date("Y-m-d", $model['create_at']) : "-";
             $model['update_at'] = $model['update_at'] > 0 ? date("Y-m-d", $model['update_at']) : "-";
             $model['marry_status_desc'] = PsCommon::get($this->marry_status, $model['marry_status']);
@@ -383,15 +385,20 @@ class ResidentService extends BaseService
         }
 
         $data = $query->with('roomInfo')->orderBy('id desc')
-            ->select('id, room_id, member_id, identity_type, status, group, building, unit, room, time_end')
+            ->select('id, community_id, room_id, member_id, group, building, unit, room')
             ->asArray()->all();
-        foreach ($data as &$datum) {
-            $datum['time_end'] = !empty($datum['time_end']) ? date('Y-m-d', $datum['time_end']) : 0;
-            $datum['create_at'] = !empty($datum['create_at']) ? date('Y-m-d', $datum['create_at']) : '';
-            $datum['identity_type_des'] = PsCommon::getIdentityType($datum['identity_type'], 'key');
-            if (!empty($datum['roomInfo'])) {
-                $datum['roomInfo']['property_type_desc'] = PsCommon::propertyType($datum['roomInfo']['property_type']);
-                $datum['roomInfo']['status_desc'] = PsCommon::houseStatus($datum['roomInfo']['status']);
+        foreach ($data as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+            if (!empty($v['roomInfo'])) {
+                $v['roomInfo']['property_type_desc'] = PsCommon::propertyType($v['roomInfo']['property_type']);
+                $v['roomInfo']['status_desc'] = PsCommon::houseStatus($v['roomInfo']['status']);
+            }
+            $label = PsLabelsRela::find()->select('labels_id')->where(['data_id' => $v['roomInfo']['id'], 'data_type' => 1])->asArray()->all();//标签id
+            if (!empty($label)) {
+                foreach ($label as $k => $val) {
+                    $v['label'][$k]['id'] = $val['labels_id'];
+                    $v['label'][$k]['name'] = PsLabels::findOne($val['labels_id'])->name;
+                }
             }
         }
 
@@ -495,10 +502,13 @@ class ResidentService extends BaseService
             ->asArray()->all();
 
         foreach ($models as &$model) {
+            $model['sex'] = $model['sex'] == 1 ? '男' : '女';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
-            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
-            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
-            $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '永久';
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d H:i:s', $model['create_at']) : '';
+            $model['unaccept_at'] = !empty($model['unaccept_at']) ? date('Y-m-d H:i:s', $model['unaccept_at']) : '';
+            $model['identity_type_desc'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['images'] = explode(',', $model['images']);
         }
 
         return ["list" => $models, 'totals' => $count];
@@ -543,12 +553,11 @@ class ResidentService extends BaseService
         $model->reason = $message;
         $model->operator = $operator['id'];
         $model->operator_name = $operator['username'];
+        $model->unaccept_at = time();
+
         if (!$model->save()) {
             return $this->failed($model->errors);
         }
-
-        $communityName = CommunityService::service()->getCommunityName($model['community_id']);
-        SmsService::service()->init(34, $model['mobile'])->send([$communityName['name']]);
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
 
@@ -589,9 +598,7 @@ class ResidentService extends BaseService
         return $this->success();
     }
 
-    /*
-     * 审核通过迁入
-     */
+    // 审核通过迁入
     public function pass($id, $param, $operator)
     {
         $psResidentAudit = PsResidentAudit::find()->with('room')->where(['id' => $id, 'community_id' => $this->communityId])->one();
@@ -654,11 +661,8 @@ class ResidentService extends BaseService
         //推送到供应商
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
-        $communityName = CommunityService::service()->getCommunityName($this->communityId);
-        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName['name']]);
+
         PsResidentHistory::model()->addHistory($psRoomUser, ['id' => $operator['id'], 'name' => $operator['username']], true);
-        //生活号发送消息模版
-        $this->sendAlipayTempMsg($psResidentAudit->community_id, $psResidentAudit->member_id, '已通过', '请尽快完成业主认证');
         //保存日志
         $log = [
             "community_id" => $this->communityId,
@@ -667,6 +671,7 @@ class ResidentService extends BaseService
             "operate_content" => $psResidentAudit->name . " " . (PsCommon::isVirtualPhone($psResidentAudit->mobile) ? '' : $psResidentAudit->mobile)
         ];
         OperateService::addComm($operator, $log);
+        
         return $this->success();
     }
 
@@ -719,6 +724,7 @@ class ResidentService extends BaseService
             // 状态验证
             'status' => $isAuth ? 2 : 1,
             'auth_time' => $isAuth ? time() : 0,
+            'out_time' => 0,
             'time_end' => $time_end,
             'operator_id' => $operator['id'],
             'operator_name' => $operator['truename'],
@@ -752,14 +758,16 @@ class ResidentService extends BaseService
         }
 
         $model->status = PsRoomUser::UNAUTH_OUT;
+        $model->out_time = time();
+
         if (!$model->save()) {
             return $this->failed($this->getError($model));
         }
 
         // 业主迁出，则对应该房屋下所有的家人，租客都迁出，重新添加
         if ($model->identity_type == 1) {
-            PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
-            PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
+            PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
+            PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
         }
         // 添加变更历史
         PsResidentHistory::model()->addHistory($model, ['id' => $userInfo['id'], 'name' => $userInfo['username']], true);
