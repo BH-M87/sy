@@ -229,7 +229,7 @@ class ResidentService extends BaseService
                 return $this->failed('手机号不能为空');
             }
         }
-        $r = $this->_addCheck($communityId, $roomId, $mobile, $id);
+        $r = $this->_addCheck($communityId, $roomId, $mobile, $id, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
@@ -602,7 +602,7 @@ class ResidentService extends BaseService
             return $this->failed('记录不存在');
         }
         $roomId = PsCommon::get($param, 'room_id');
-        $r = $this->_addCheck($psResidentAudit->community_id, $roomId, $psResidentAudit->mobile);
+        $r = $this->_addCheck($psResidentAudit->community_id, $roomId, $psResidentAudit->mobile, null, $psResidentAudit->name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
@@ -857,8 +857,17 @@ class ResidentService extends BaseService
             ->exists();
     }
 
+    // 住户重复验证，一个房屋下的迁入住户姓名无法重复
+    private function repeatCheckName($communityId, $roomId, $name, $id = false)
+    {
+        return PsRoomUser::find()
+            ->where(['community_id' => $communityId, 'room_id' => $roomId, 'name' => $name, 'status' => [1, 2]])
+            ->andFilterWhere(['<>', 'id', $id])
+            ->exists();
+    }
+
     // 新增(编辑)用户检查规则(已失效不在检查范围)
-    private function _addCheck($communityId, $roomId, $mobile, $id = null)
+    private function _addCheck($communityId, $roomId, $mobile, $id = null, $name = null)
     {
         if (!$communityId) {
             return $this->failed('小区ID不能为空');
@@ -880,6 +889,10 @@ class ResidentService extends BaseService
             return $this->failed('同一个房屋下手机号无法重复');
         }
 
+        if ($this->repeatCheckName($communityId, $roomId, $name, $id)) {
+            return $this->failed('同一个房屋下姓名无法重复');
+        }
+
         return $this->success();
     }
 
@@ -892,7 +905,7 @@ class ResidentService extends BaseService
         $name = trim(PsCommon::get($data, 'name'));
         $label_id = PsCommon::get($data, 'user_label_id');
 
-        $r = $this->_addCheck($communityId, $roomId, $mobile);
+        $r = $this->_addCheck($communityId, $roomId, $mobile, null, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
@@ -1569,7 +1582,7 @@ class ResidentService extends BaseService
                 /** 20190805 wyf end 要删除的旧手机号的member用户信息 */
             }
         }
-        $r = $this->_addCheck($communityId, $roomId, $mobile, $id);
+        $r = $this->_addCheck($communityId, $roomId, $mobile, $id, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
@@ -1765,7 +1778,7 @@ class ResidentService extends BaseService
             'status' => [PsRoomUser::UN_AUTH, PsRoomUser::UNAUTH_OUT, PsRoomUser::AUTH_OUT]])->one();
         $name = PsCommon::get($params, 'name');
         if (!$model) return $this->failed('住户不存在');
-        $r = $this->_addCheck($communityId, $roomId, $mobile, $id);
+        $r = $this->_addCheck($communityId, $roomId, $mobile, $id, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
@@ -1836,14 +1849,13 @@ class ResidentService extends BaseService
      */
     private function _saveAuditRoomUser($data, $userInfo)
     {
-
         $communityId = PsCommon::get($data, 'community_id');
         $roomId = (integer)PsCommon::get($data, 'room_id');
         $mobile = trim(PsCommon::get($data, 'mobile'));
         $name = trim(PsCommon::get($data, 'name'));
         $id = trim(PsCommon::get($data, 'rid'));
 
-        $r = $this->_addCheck($communityId, $roomId, $mobile);
+        $r = $this->_addCheck($communityId, $roomId, $mobile, null, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
         }
