@@ -177,10 +177,6 @@ class ResidentService extends BaseService
     {
         $transaction = Yii::$app->getDb()->beginTransaction();
         try {
-            if (empty($request['mobile'])) { // 手机号为空则生成默认手机号
-                //手机号不存在，随机生成手机号
-                $request['mobile'] = PsCommon::generateVirtualPhone();
-            }
             $r = $this->_saveRoomUser($request, $operatorInfo);
             if (!$r['code']) {
                 throw new Exception($r['msg']);
@@ -869,7 +865,7 @@ class ResidentService extends BaseService
         }
 
         if (!$roomId) {
-            return $this->failed('房屋ID不能为空');
+            return $this->failed('房屋不能为空');
         }
 
         if (!$mobile) {
@@ -895,7 +891,7 @@ class ResidentService extends BaseService
         $mobile = trim(PsCommon::get($data, 'mobile'));
         $name = trim(PsCommon::get($data, 'name'));
         $label_id = PsCommon::get($data, 'user_label_id');
-        
+
         $r = $this->_addCheck($communityId, $roomId, $mobile);
         if (!$r['code']) {
             return $this->failed($r['msg']);
