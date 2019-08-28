@@ -76,8 +76,8 @@ class CarService extends BaseService
         if (!empty($req['room'])) {
             $query->andWhere(['room.room' => $req['room']]);
         }
-        if (!empty($params['user_name'])) {
-            $query->andWhere(['or', ['like', 'pu.user_name', $params['user_name']], ['like', 'pu.user_mobile', $params['user_name']]]);
+        if (!empty($req['user_name'])) {
+           $query->andFilterWhere(['or', ['like', 'pu.user_name', $req['user_name']], ['like', 'pu.user_mobile', $req['user_name']]]);
         }
         if (!empty($req['car_num'])) {
             $query->andWhere(['like', 'car.car_num', $req['car_num']]);
@@ -619,8 +619,8 @@ class CarService extends BaseService
         if (!empty($req['room'])) {
             $query->andWhere(['room.room' => $req['room']]);
         }
-        if (!empty($params['user_name'])) {
-            $query->andWhere(['or', ['like', 'pu.user_name', $params['user_name']], ['like', 'pu.user_mobile', $params['user_name']]]);
+        if (!empty($req['user_name'])) {
+            $query->andWhere(['or', ['like', 'pu.user_name', $req['user_name']], ['like', 'pu.user_mobile', $req['user_name']]]);
         }
         if (!empty($req['car_num'])) {
             $query->andWhere(['like', 'car.car_num', $req['car_num']]);
