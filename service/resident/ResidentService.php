@@ -865,7 +865,7 @@ class ResidentService extends BaseService
         }
 
         if (!$roomId) {
-            return $this->failed('房屋ID不能为空');
+            return $this->failed('房屋不能为空');
         }
 
         if (!$mobile) {
@@ -891,7 +891,7 @@ class ResidentService extends BaseService
         $mobile = trim(PsCommon::get($data, 'mobile'));
         $name = trim(PsCommon::get($data, 'name'));
         $label_id = PsCommon::get($data, 'user_label_id');
-        
+
         $r = $this->_addCheck($communityId, $roomId, $mobile);
         if (!$r['code']) {
             return $this->failed($r['msg']);
