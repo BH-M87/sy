@@ -57,7 +57,8 @@ Class BaseController extends CoreController
         if (!parent::beforeAction($action)) {
             return false;
         }
-
+        $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
+        \Yii::info("controller:".$action->id."action:".$action->id.'request:'.$dataStr,'api');
         $this->communityId  = F::request('community_id');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['community_id'] = $this->communityId;

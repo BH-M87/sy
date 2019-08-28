@@ -561,6 +561,8 @@ class CarService extends BaseService
     {
         $carList = $this->getExportList($params);
         $config = [
+            ['title' => '车辆编号', 'field' => 'id', 'data_type' => 'str'],
+            ['title' => '所属小区', 'field' => 'community_name', 'data_type' => 'str'],
             ['title' => '车牌', 'field' => 'car_num', 'data_type' => 'str'],
             ['title' => '苑期区', 'field' => 'group', 'data_type' => 'str'],
             ['title' => '幢', 'field' => 'building', 'data_type' => 'str'],
@@ -570,6 +572,7 @@ class CarService extends BaseService
             ['title' => '联系电话', 'field' => 'user_mobile', 'data_type' => 'str'],
             ['title' => '停车场名称', 'field' => 'lot_name', 'data_type' => 'str'],
             ['title' => '车位号', 'field' => 'car_port_num', 'data_type' => 'str'],
+            ['title' => '车辆型号', 'field' => 'car_model', 'data_type' => 'str'],
             ['title' => '开始时间', 'field' => 'carport_rent_start', 'data_type' => 'str'],
             ['title' => '结束时间', 'field' => 'carport_rent_end', 'data_type' => 'str']
         ];
