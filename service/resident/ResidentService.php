@@ -177,10 +177,6 @@ class ResidentService extends BaseService
     {
         $transaction = Yii::$app->getDb()->beginTransaction();
         try {
-            if (empty($request['mobile'])) { // 手机号为空则生成默认手机号
-                //手机号不存在，随机生成手机号
-                $request['mobile'] = PsCommon::generateVirtualPhone();
-            }
             $r = $this->_saveRoomUser($request, $operatorInfo);
             if (!$r['code']) {
                 throw new Exception($r['msg']);
