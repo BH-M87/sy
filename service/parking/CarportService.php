@@ -17,6 +17,7 @@ use common\core\F;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\RoomService;
+use service\common\CsvService;
 use service\common\ExcelService;
 use service\rbac\OperateService;
 use yii\db\Query;
@@ -335,18 +336,19 @@ class CarportService extends BaseService
      * @param $id
      * @return array|bool
      */
-    public function deleteData($id, $userInfo = [])
+    public function deleteData($req, $userInfo = [])
     {
-        $model = $this->checkCarportInfo($id);
+        $model = $this->checkCarportInfo($req['id']);
         if (!$model) {
             return $this->failed('车位信息不存在');
         }
 
         $detail = $model->toArray();
+
         //查询是否已有车辆
         $carIdList = ParkingUserCarport::find()
             ->select('car_id')
-            ->where(['carport_id' => $id])
+            ->where(['carport_id' => $req['id']])
             ->asArray()
             ->column();
         if ($carIdList) {
@@ -485,32 +487,21 @@ class CarportService extends BaseService
             $v['status'] = !empty($v['status']['name']) ? $v['status']['name'] : '';
             $data[] = $v;
         }
-        $types = $this->types;
-        $status = $this->status;
-        $tArr = $sArr = [];
-        foreach ($types as $k => $v) {
-            $tArr[$k] = $v['name'];
-        }
-        foreach ($status as $k => $v) {
-            $sArr[$k] = $v['name'];
-        }
-        $config['sheet_config'] = [
-            'tid' => ['title' => '编号'],
-            'lot_name' => ['title' => '停车场'],
-            'car_port_num' => ['title' => '车位号'],
-            'type' => ['title' => '车位类型'],
-            'car_port_area' => ['title' => '车位面积'],
-            'status' => ['title' => '车位状态'],
-            'room_name' => ['title' => '产权人'],
-            'room_mobile_export' => ['title' => '联系电话'],
-            'room_id_card_export' => ['title' => '身份证号码'],
+
+        $config = [
+            ['title' => '编号', 'field' => 'tid', 'data_type' => 'str'],
+            ['title' => '所属小区', 'field' => 'community_name', 'data_type' => 'str'],
+            ['title' => '停车场', 'field' => 'lot_name', 'data_type' => 'str'],
+            ['title' => '车位号', 'field' => 'car_port_num', 'data_type' => 'str'],
+            ['title' => '车位类型', 'field' => 'type', 'data_type' => 'str'],
+            ['title' => '车位面积','field' => 'car_port_area', 'data_type' => 'str'],
+            ['title' => '车位状态', 'field' => 'status', 'data_type' => 'str'],
+            ['title' => '产权人', 'field' => 'room_name', 'data_type' => 'str'],
+            ['title' => '联系电话', 'field' => 'room_mobile_export', 'data_type' => 'str'],
+            ['title' => '身份证号码', 'field' => 'room_id_card_export', 'data_type' => 'str']
         ];
-        $config["save"] = true;
-        $config['path'] = 'temp/'.date('Y-m-d');
-        $config['file_name'] = ExcelService::service()->generateFileName('chewei');
-        $url = ExcelService::service()->export($data, $config);
-        $fileName = pathinfo($url, PATHINFO_BASENAME);
-        $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'chewei.xlsx');
+        $filename = CsvService::service()->saveTempFile(1, $config, $data, 'Chewei');
+        $downUrl = F::downloadUrl($filename, 'temp', 'Chewei.csv');
         $operate = [
             "community_id" => $params["community_id"],
             "operate_menu" => "车位管理",
