@@ -8,6 +8,7 @@
 
 namespace service\qiniu;
 
+use common\core\PsCommon;
 use Yii;
 use common\core\Curl;
 use common\core\F;
@@ -271,9 +272,6 @@ Class UploadService extends BaseService
                     return "图片质量不佳";
                 }
 
-//                if (bccomp($faceScore, '0.999998', 6) < 0) {
-//                    return "图片质量不佳";
-//                }
                 return true;
             } else{
                 return "图中有脸，但不是".$count."张脸";//数量不匹配
@@ -282,4 +280,42 @@ Class UploadService extends BaseService
             return "七牛鉴定失败";//七牛鉴定失败
         }
     }
+
+    public function stream_image($img,$type = '')
+    {
+        if (!$img) {
+            return PsCommon::responseFailed('未获取上传文件');
+        }
+        //图片文件检测
+        $r = $this->checkStreamImage($img);
+        if (!$r['code']) {
+            return PsCommon::responseFailed($r['msg']);
+        }
+        $imgArr = $r['data'];
+        $imgString = str_replace($imgArr['result'][1], '', $imgArr['characters']);
+        //上传到本地
+        $r = $this->saveStreamLocal($imgString, 'jpg', F::qiniuImagePath());
+        if (!$r) {
+            return PsCommon::responseFailed($r['msg']);
+        }
+        $local = $r['data'];
+        //上传到七牛
+        $re['filepath'] = $this->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
+        if (!$re['filepath']) {
+            return PsCommon::responseFailed('七牛上传失败');
+        }
+        //本地模拟测试的时候没有parentDir字段，因此做了一个判断。add by zq 2019-4-25
+        $parentDir = !empty($local['parentDir']) ? $local['parentDir'] : '';
+        $re['localPath'] = 'front/original/' . $parentDir . '/' . $local['fileName'];
+        if (!empty($type) && $type == "face") {
+            //校验人脸照片
+            $body['data']['uri'] = $re['filepath'];
+            $res = $this->checkExistFace('/v1/face/detect',json_encode($body));
+            if($res !== true){
+                return PsCommon::responseFailed($res);
+            }
+        }
+        return PsCommon::responseSuccess($re);
+    }
+
 }
