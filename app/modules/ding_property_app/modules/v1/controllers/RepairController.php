@@ -42,7 +42,8 @@ class RepairController extends UserBaseController
             return F::apiFailed('无权查看此小区！');
         }
         $rooms = RoomService::service()->getRoomsRelated($communityId);
-        return F::apiSuccess($rooms);
+        $re['list'] = $rooms;
+        return F::apiSuccess($re);
     }
 
     //发布报事报修
@@ -55,7 +56,6 @@ class RepairController extends UserBaseController
         $params['repair_content'] = F::value($this->request_params, 'repair_content', '');
         $params['contact_mobile'] = F::value($this->request_params, 'contact_mobile', '');
         $params['repair_imgs'] =  F::value($this->request_params, 'imgs', '');
-        $params['agentid'] =  F::value($this->request_params, 'agentid', '');
         $params['expired_repair_time'] = $params['expired_repair_time'] ? date("Y-m-d", $params['expired_repair_time']) : 0;
         $params['repair_from'] = 3;
 

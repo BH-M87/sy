@@ -73,7 +73,7 @@ class ParkingCarport extends BaseModel
             'car_port_status' => '车位状态',
             'room_id' => '房屋 ID',
             'room_address' => '房屋住址',
-            'room_name' => '产权人',
+            'room_name' => '车位所有人姓名',
             'room_id_card' => '身份证号码',
             'room_mobile' => '联系电话',
             'created_at' => 'Created At',

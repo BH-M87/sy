@@ -35,8 +35,8 @@ class CarportService extends BaseService
         2 => ['id' => 2, 'name' => '已售'],
         3 => ['id' => 3, 'name' => '已租'],
         4 => ['id' => 4, 'name' => '自用'],
-        5 => ['id' => 5, 'name' => '代售'],
-        6 => ['id' => 6, 'name' => '代租'],
+        5 => ['id' => 5, 'name' => '待售'],
+        6 => ['id' => 6, 'name' => '待租'],
     ];
 
     public function getCommon($params)

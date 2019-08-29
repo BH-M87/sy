@@ -1091,8 +1091,8 @@ class RepairService extends BaseService
 
         //查询最近处理人
         $tmpAssign = PsRepairAssign::find()
-            ->select(['ps_user.truename', 'ps_repair_assign.remark'])
-            ->leftJoin('ps_user', 'ps_user.id = ps_repair_assign.user_id')
+            ->select(['u.username truename', 'ps_repair_assign.remark'])
+            ->leftJoin('user u', 'u.id = ps_repair_assign.user_id')
             ->where(['ps_repair_assign.repair_id' => $params['repair_id']])
             ->orderBy('ps_repair_assign.id desc')
             ->limit(1)
@@ -1442,8 +1442,8 @@ class RepairService extends BaseService
     {
         $info = PsRepairRecord::find()
             ->alias('r')
-            ->select("r.content as handle_content,r.operator_name,r.status,r.create_at as handle_time,m.mobile as operator_mobile,r.repair_imgs")
-            ->leftJoin('ps_user m', 'm.id = r.operator_id')
+            ->select("r.content as handle_content,r.operator_name,r.status,r.create_at as handle_time,m.mobileNumber as operator_mobile,r.repair_imgs")
+            ->leftJoin('user m', 'm.id = r.operator_id')
             ->where(['repair_id' => $repair_id])
             ->orderBy('handle_time desc')
             ->asArray()

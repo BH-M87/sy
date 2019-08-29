@@ -59,6 +59,8 @@ class BaseController extends Controller
         $this->page = (integer)F::value($params, 'page', $this->page);
         $this->pageSize = (integer)F::value($params, 'rows', $this->pageSize);
 
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params),'api');
+
         //钉钉专用3s重复请求过滤
         if (in_array($action->id, $this->repeatAction) && F::repeatRequestDingApp()) {
             echo PsCommon::responseFailed('请勿重复请求，3s后重试');

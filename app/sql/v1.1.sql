@@ -135,3 +135,10 @@ CREATE TABLE `ps_repair_appraise` (
   `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=187 DEFAULT CHARSET=utf8 COMMENT='报事报修点赞记录表' ;
+
+CREATE TABLE `ps_user_community` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `manage_id` int(11) NOT NULL COMMENT '用户id',
+  `community_id` int(11) NOT NULL COMMENT '小区id',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=32558 DEFAULT CHARSET=utf8 COMMENT='管理员关联小区表';

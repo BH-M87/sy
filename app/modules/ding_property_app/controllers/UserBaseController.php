@@ -24,22 +24,28 @@ class UserBaseController extends BaseController
     {
         if(!parent::beforeAction($action)) return false;
 
-        $this->token = F::value($this->request_params, 'token');
-        if (!$this->token) {
-            return F::apiFailed('登录token不能为空！');
-        }
+//        $this->token = F::value($this->request_params, 'token');
+//        if (!$this->token) {
+//            return F::apiFailed('登录token不能为空！');
+//        }
 
-        $re = UserService::service()->refreshToken($this->token);
-        $re = 1775;
-        if($re === false){
-            return F::apiFailed('token过期',50002);
-        }
+        //$re = UserService::service()->refreshToken($this->token);
+//        $re = 17;
+//        if($re === false){
+//            return F::apiFailed('token过期',50002);
+//        }
+//
+//        $userInfo = UserService::service()->getUserById($re);
 
-        $userInfo = UserService::service()->getUserById($re);
-
-
+        //TODO 查询java对应的表获取用户信息？
+        $userInfo = [
+            'id' => 17,
+            'username' => '李笑乐',
+            'truename' => '李笑乐',
+            'mobile' => '17682306456'
+        ];
         $this->userInfo = $userInfo;
-        $this->userId = $re;
+        $this->userId = $userInfo['id'];
         $this->userMobile = $userInfo['mobile'];
         return true;
     }
