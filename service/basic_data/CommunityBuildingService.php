@@ -481,6 +481,12 @@ class CommunityBuildingService extends BaseService
             ->offset($offset)->limit($pageSize)
             ->orderBy('cb.id desc')
             ->asArray()->all();
+        if(!empty($list)){
+            foreach($list as $key=>$value){
+                $list[$key]['longitude'] = (empty($value['longitude']) || $value['longitude'] == '0.000000') ? "": $value['longitude'];
+                $list[$key]['latitude'] = (empty($value['latitude']) || $value['latitude'] == '0.000000') ? "": $value['latitude'];
+            }
+        }
         $result['list'] = !empty($list) ? $list : [];
         $result['totals'] = $this->buildingSearchDeal($data)->count();
         return $result;
