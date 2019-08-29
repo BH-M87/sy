@@ -256,6 +256,7 @@ class ResidentController extends BaseController
 
         $allRooms = RoomService::service()->getAllRooms($communityId); // 该小区所有的房屋
         $allResidents = ResidentService::service()->getMobileNames($communityId); // 该小区下已认证的住户手机号
+
         foreach ($residentDatas as $residentData) {
             $r = ResidentService::service()->importCheck($residentData, $allRooms, $nationNames, $labelNames);
             if (!$r['code']) {
@@ -265,8 +266,10 @@ class ResidentController extends BaseController
             $checkResult = $r['data'];
             // 房屋ID
             $roomId = $checkResult['room_id'];
+
             // 判断数据重复
             if (!empty($allResidents[$roomId])) {
+
                 if (isset($allResidents[$roomId][$residentData['mobile']][$residentData['name']])) {
                     ExcelService::service()->setError($residentData, '手机号码已经在房屋下出现');
                     continue;
