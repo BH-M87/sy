@@ -505,7 +505,10 @@ class F
      */
     public static function processIdCard($idCard)
     {
-        return substr($idCard, 0, 6).'********'.substr($idCard, -4);
+        if (!empty($idCard)) {
+            return substr($idCard, 0, 6).'********'.substr($idCard, -4);
+        }
+        return '';
     }
 }
 

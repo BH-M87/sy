@@ -100,7 +100,7 @@ class PsRoomUser extends BaseModel
         return [
             'id' => 'ID',
             'community_id' => '小区ID',
-            'room_id' => '房屋ID',
+            'room_id' => '房屋',
             'member_id' => '用户ID',
             'name' => '业主名称',
             'sex' => '性别',
