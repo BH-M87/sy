@@ -691,6 +691,8 @@ class CommunityBuildingService extends BaseService
             return PsCommon::responseFailed('楼幢不存在');
         }
         $res['building_name'] = $res['name'];
+        $res['longitude'] = (empty($res['longitude']) || $res['longitude'] == '0.000000') ? "": $res['longitude'];
+        $res['latitude'] = (empty($res['latitude']) || $res['latitude'] == '0.000000') ? "": $res['latitude'];
         return PsCommon::responseSuccess($res);
     }
 
