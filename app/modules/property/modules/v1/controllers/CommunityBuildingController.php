@@ -182,12 +182,12 @@ class CommunityBuildingController extends BaseController
         $config["sheet_config"] = [
             'community_name' => ['title' => '所属小区', 'width' => 10],
             'group_name' => ['title' => '所属区域', 'width' => 16],
-            'name' => ['title' => '楼幢名称', 'width' => 16],
-            'locations' => ['title' => '楼幢地址', 'width' => 26],
+            'name' => ['title' => '楼栋名称', 'width' => 16],
+            'locations' => ['title' => '楼栋地址', 'width' => 26],
             'unit_num' => ['title' => '单元数量', 'width' => 10],
-            'floor_num' => ['title' => '楼幢楼层', 'width' => 10],
-            'nature' => ['title' => '楼幢性质', 'width' => 16, 'type' => 'keys', "items" => ['1' => '商用', '2' => '住宅','3' => '商住两用']],
-            'orientation' => ['title' => '楼幢朝向', 'width' => 10],
+            'floor_num' => ['title' => '楼栋楼层', 'width' => 10],
+            'nature' => ['title' => '楼栋性质', 'width' => 16, 'type' => 'keys', "items" => ['1' => '商用', '2' => '住宅','3' => '商住两用']],
+            'orientation' => ['title' => '楼栋朝向', 'width' => 10],
         ];
         $config["save"] = true;
         $config['path'] = 'temp/' . date('Y-m-d');

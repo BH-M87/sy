@@ -192,7 +192,7 @@ class CommunityGroupService extends BaseService {
 
         $build = PsCommunityBuilding::find()->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id']])->asArray()->one();
         if ($build) {
-            return PsCommon::responseFailed("区域下无挂靠楼宇才可删除");
+            return PsCommon::responseFailed("区域下无挂靠楼幢才可删除");
         }
 
         // 删除 楼宇中心数据

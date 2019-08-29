@@ -495,8 +495,8 @@ class CommunityBuildingService extends BaseService
         $floor_num = PsCommon::get($data,'floor_num',0);
         $orientation = PsCommon::get($data,'orientation');
         $locations = PsCommon::get($data,'locations');
-        $longitude = PsCommon::get($data,'longitude','0.000000');
-        $latitude = PsCommon::get($data,'latitude','0.000000');
+        $longitude = PsCommon::get($data,'longitude','0');
+        $latitude = PsCommon::get($data,'latitude','0');
         $nature = PsCommon::get($data,'nature',1);
 
         //如果新增的时候苑期区没填，就默认放到住宅下面，如果住宅不存在就新建
@@ -655,8 +655,8 @@ class CommunityBuildingService extends BaseService
         $floor_num = PsCommon::get($data,'floor_num',0);
         $orientation = PsCommon::get($data,'orientation');
         $locations = PsCommon::get($data,'locations');
-        $longitude = PsCommon::get($data,'longitude');
-        $latitude = PsCommon::get($data,'latitude');
+        $longitude = PsCommon::get($data,'longitude',0);
+        $latitude = PsCommon::get($data,'latitude',0);
         $nature = PsCommon::get($data,'nature',1);
 
         //yii2事物
@@ -796,6 +796,8 @@ class CommunityBuildingService extends BaseService
             if($unit_id <= 0){
                 return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
             }
+            //楼幢下面的单元数量加1
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>1],['id'=>$building_id]);
             $transaction->commit();
             return PsCommon::responseSuccess();
         } catch (\Exception $e) {
@@ -834,6 +836,9 @@ class CommunityBuildingService extends BaseService
             $unit_name = $unitModel->name;
             $building_name = $unitModel->building_name;
             $unitModel->delete();
+            $building_id = $unitModel->building_id;
+            //楼幢下面的单元数量减一
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>-1],['id'=>$building_id]);
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {

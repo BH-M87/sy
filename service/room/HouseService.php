@@ -109,6 +109,7 @@ Class HouseService extends BaseService
             $list['house_type_kitchen'] = $house_type[2];
             $list['house_type_toilet'] = $house_type[3];
             $list['delivery_time'] = !empty($list['delivery_time']) ? date('Y-m-d H:i:s',$list['delivery_time']) : '';
+            $list['own_age_limit'] = !empty($list['own_age_limit']) ? $list['own_age_limit'] : '';
             return ['list' => $list];
         }
 
@@ -174,7 +175,7 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            $label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
+            /*$label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
             if ($label) {
                 $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
                 $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
@@ -182,7 +183,13 @@ Class HouseService extends BaseService
                     return ['list' => [], 'totals' => 0, "all_area" => 0];
                 }
                 $where .= " AND id in ($room_id)";
+            }*/
+            $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
+            if(empty($room_id_array)){
+                return ['list' => [], 'totals' => 0, "all_area" => 0];
             }
+            $room_id = implode(',',$room_id_array);
+            $where .= " AND id in ($room_id)";
         }
 
         $count = Yii::$app->db->createCommand("SELECT count(id) as total,sum(charge_area) as all_area FROM ps_community_roominfo WHERE " . $where, $params)->queryOne();
@@ -702,10 +709,12 @@ Class HouseService extends BaseService
 
             }
             $room_id = LabelsService::service()->getRoomIdByLabelId($data['room_label_id']);*/
-            $room_id = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
-            if($room_id){
-                $where .= " AND id in ($room_id)";
+            $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
+            if (empty($room_id_array)) {
+                return [];
             }
+            $room_id = implode(',',$room_id_array);
+            $where .= " AND id in ($room_id)";
         }
         $order_arr = ["asc", "desc"];
         $group_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
@@ -714,16 +723,14 @@ Class HouseService extends BaseService
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = " (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
         $models = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, is_elevator, floor_coe, 
-            floor_shared_id, lift_shared_id, property_type, status, charge_area, intro, out_room_id, address, floor, room_code 
+            floor_shared_id, lift_shared_id, property_type, status, charge_area, intro, out_room_id, address, floor, room_code,orientation,delivery_time,own_age_limit,house_type 
             FROM ps_community_roominfo WHERE $where order by $order_by", $params)->queryAll();
         if ($models) {
             foreach ($models as $house) {
-                /*$label_room = PsRoomLabel::find()->select('name')
-                    ->innerJoin('ps_labels AS pl', 'pl.id = ps_room_label.label_id')->where(['ps_room_label.room_id' => $house['id']])
-                    ->asArray()->all();*/
                 $label_room = LabelsService::service()->getLabelByRoomId($house['id']);
                 if (!empty($label_room)) {
-                    $label_name = implode(array_unique(array_column($label_room, 'name')), ',');
+                    //$label_name = implode(array_unique(array_column($label_room, 'name')), ',');
+                    $label_name = implode(',',$label_room);
                     $house['label_name'] = $label_name;
                 } else {
                     $house['label_name'] = '';
