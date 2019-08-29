@@ -893,7 +893,7 @@ class ResidentService extends BaseService
         }
 
         if ($this->repeatCheckName($communityId, $roomId, $name, $id)) {
-            return $this->failed('同一个房屋下姓名无法重复');
+            //return $this->failed('同一个房屋下姓名无法重复');
         }
 
         return $this->success();

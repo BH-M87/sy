@@ -90,40 +90,7 @@ Class UploadController extends BaseController
     {
         $img = F::post('img');
         $type = Yii::$app->request->post('type', '');
-
-        if (!$img) {
-            return PsCommon::responseFailed('未获取上传文件');
-        }
-        //图片文件检测
-        $r = UploadService::service()->checkStreamImage($img);
-        if (!$r['code']) {
-            return PsCommon::responseFailed($r['msg']);
-        }
-        $imgArr = $r['data'];
-        $imgString = str_replace($imgArr['result'][1], '', $imgArr['characters']);
-        //上传到本地
-        $r = UploadService::service()->saveStreamLocal($imgString, 'jpg', F::qiniuImagePath());
-        if (!$r) {
-            return PsCommon::responseFailed($r['msg']);
-        }
-        $local = $r['data'];
-        //上传到七牛
-        $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
-        if (!$re['filepath']) {
-            return PsCommon::responseFailed('七牛上传失败');
-        }
-        //本地模拟测试的时候没有parentDir字段，因此做了一个判断。add by zq 2019-4-25
-        $parentDir = !empty($local['parentDir']) ? $local['parentDir'] : '';
-        $re['localPath'] = 'front/original/' . $parentDir . '/' . $local['fileName'];
-        if (!empty($type) && $type == "face") {
-            //校验人脸照片
-            $body['data']['uri'] = $re['filepath'];
-            $res = UploadService::service()->checkExistFace('/v1/face/detect',json_encode($body));
-            if($res !== true){
-                return PsCommon::responseFailed($res);
-            }
-        }
-        return PsCommon::responseSuccess($re);
+        return UploadService::service()->stream_image($img,$type);
     }
 
     //上传版本更新，操作手册

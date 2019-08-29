@@ -392,8 +392,7 @@ Class DoorPushService extends BaseService
      * @param $userId     住户id
      * @return bool
      */
-    public function userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,
-                               $userType, $userSex, $userId)
+    public function userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone, $userType, $userSex, $userId)
     {
         $needPush = $this->isNeedPush($communityId);
         if ($needPush === false) {

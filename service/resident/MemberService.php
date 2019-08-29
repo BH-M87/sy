@@ -432,57 +432,7 @@ Class MemberService extends BaseService
         
         return $room_id;
     }
-    //小程序业主认证
-    public function authTo($params)
-    {
-        $m = MemberService::service()->saveMember(['mobile' => $params['mobile'], 'name' => $params['user_name']]);
-        $memberId = $m['data'];
-        //只要走过业主认证的(支付宝实名+支付宝未实名但修改后提交的)，姓名和手机号就不允许再更改
-        MemberService::service()->turnReal($memberId);
 
-        //绑定ps_app_user和ps_member
-        $one = PsAppMember::find()->where(['app_user_id' => $params['app_user_id']])->one();
-        if (!$one) {
-            $one = new PsAppMember();
-            $one->app_user_id = $params['app_user_id'];
-        }
-        $one->member_id = $memberId;
-        if (!$one->save()) {
-            return $this->failed('绑定手机号失败');
-        }
-        //更新授权的用户名称
-        PsAppUser::updateAll(['nick_name'=>$params['user_name'],'true_name'=>$params['user_name']],['id'=>$params['app_user_id']]);
-        //查询有无房屋
-        $hasRoomCommunitys = PsRoomUser::find()
-            ->select(['community_id'])
-            ->where(['name' => $params['user_name'], 'mobile' => $params['mobile']])
-            ->asArray()
-            ->column();
-        if ($hasRoomCommunitys) {
-            //将未认证的房屋都认证掉
-            $flag = PsRoomUser::updateAll(['status' => 2, 'auth_time' => time()],
-                ['status' => 1, 'name' => $params['user_name'], 'mobile' => $params['mobile']]);
-        } else {
-            //无房屋，判断是否有在申请中的房屋
-            $auditRoom = PsResidentAudit::find()
-                ->select(['id'])
-                ->where(['member_id' => $memberId])
-                ->asArray()
-                ->all();
-            if ($auditRoom) {
-                return $this->failed('房屋还在认证中', 50002);
-            } else {
-                return $this->failed('没有房屋', 50003);
-            }
-        }
-        $hasRoomCommunitys = array_unique($hasRoomCommunitys);
-        //认证成功后的，推送到监控页面，变更业主身份数据 @shenyang v4.4数据监控版本
-        foreach ($hasRoomCommunitys as $val) {
-            //todo
-            //WebSocketClient::getInstance()->send(MonitorService::MONITOR_RESIDENT, $val);
-        }
-        return $this->success();
-    }
 
     //获取首页数据
     public function homeData($params)
