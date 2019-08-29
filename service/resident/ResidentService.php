@@ -192,7 +192,7 @@ class ResidentService extends BaseService
             ];
             OperateService::addComm($operatorInfo, $operator);
             $transaction->commit();
-            return $this->success();
+            return $this->success(['id' => $r['data']['id']]);
         } catch (Exception $e) {
             $transaction->rollBack();
             return $this->failed($e->getMessage());
@@ -893,7 +893,7 @@ class ResidentService extends BaseService
         }
 
         if ($this->repeatCheckName($communityId, $roomId, $name, $id)) {
-            return $this->failed('同一个房屋下姓名无法重复');
+            //return $this->failed('同一个房屋下姓名无法重复');
         }
 
         return $this->success();

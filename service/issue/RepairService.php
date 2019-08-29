@@ -11,7 +11,6 @@ namespace service\issue;
 
 use app\models\PsCommunityModel;
 use app\models\PsOrder;
-use app\models\PsPropertyCompany;
 use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairAssign;
@@ -19,18 +18,15 @@ use app\models\PsRepairBill;
 use app\models\PsRepairBillMaterial;
 use app\models\PsRepairMaterials;
 use app\models\PsRepairRecord;
-use app\models\PsUser;
-use app\models\RepairType;
+use app\models\SqwnUser;
 use common\core\F;
 use service\alipay\BillService;
 use service\manage\CommunityService;
-use service\message\MessageService;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\MemberService;
 use service\basic_data\RoomService;
 use service\common\CsvService;
-use service\common\SmsService;
 use service\rbac\OperateService;
 use yii\base\Exception;
 use yii\db\Query;
@@ -298,13 +294,6 @@ class RepairService extends BaseService
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
         $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
-        $operate = [
-            "community_id" => $params["community_id"],
-            "operate_menu" => "报事报修",
-            "operate_type" => $params['hard_type'] == 2 ? "疑难问题" : "普通工单",
-            "operate_content" => "导出",
-        ];
-        OperateService::addComm($userInfo, $operate);
         return $downUrl;
     }
 
@@ -373,13 +362,6 @@ class RepairService extends BaseService
         //TODO 发送短信
         //TODO 发送站内消息
         if ($useAs != 'small') {
-            $operate = [
-                "community_id" => $params["community_id"],
-                "operate_menu" => "报修管理",
-                "operate_type" => "新增工单",
-                "operate_content" => '工单编号' . $model->repair_no . '-类型：' . $typeName,
-            ];
-            OperateService::addComm($userInfo, $operate);
         }
         return $model->id;
     }
@@ -437,8 +419,8 @@ class RepairService extends BaseService
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = PsUser::find()
-            ->select('truename,mobile')
+        $user = SqwnUser::find()
+            ->select('username as truename,mobileNumber as mobile')
             ->where(["id" => $params["user_id"]])
             ->asArray()
             ->one();
@@ -503,13 +485,6 @@ class RepairService extends BaseService
 //            }
 //            SmsService::service()->init(27, $user["mobile"])->send();
             //TODO 钉消息，站内消息等处理
-            $operate = [
-                "community_id" => $params["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "分配工单",
-                "operate_content" => "工单编号：".$model['repair_no'].'-指派员工：'.$user["truename"],
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -528,9 +503,9 @@ class RepairService extends BaseService
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = PsUser::find()
-            ->select('truename,mobile')
-            ->where(["id" => $params["operator_id"]])
+        $user = SqwnUser::find()
+            ->select('username as truename,mobileNumber as mobile')
+            ->where(["id" => $params["user_id"]])
             ->asArray()
             ->one();
         if (!$user) {
@@ -548,38 +523,31 @@ class RepairService extends BaseService
                 'repair_imgs' => $repairImages,
                 'status' => 2,
                 'create_at' => time(),
-                'operator_id' => $params["operator_id"],
+                'operator_id' => $params["user_id"],
                 'operator_name' => $user["truename"],
             ])->execute();
             //将钉钉的图片转化为七牛图片地址
             //TODO 钉钉图片转为七牛图片是否还需要处理
             $id = $connection->getLastInsertID();
-            if ($params["operator_id"] != $model["operator_id"]) {
+            if ($params["user_id"] != $model["operator_id"]) {
                 $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
                 // 添加一条分配记录 ps_repair_assign
                 $connection->createCommand()->insert('ps_repair_assign', [
                     "repair_id" => $params["repair_id"],
-                    "user_id" => $params["operator_id"],
-                    "operator_id" => $userInfo["id"] ? $userInfo["id"] : $params["operator_id"],
+                    "user_id" => $params["user_id"],
+                    "operator_id" => $userInfo["id"] ? $userInfo["id"] : 0,
                     "is_operate" => 1,
                     "finish_time" => time(),
                     "created_at" => time(),
                 ])->execute();
             }
             $repairArr["is_assign"] = 1;
-            $repairArr["operator_id"] = $params["operator_id"];
-            $repairArr["operator_name"] = $user["truename"];
+            $repairArr["operator_id"] = $userInfo["id"];
+            $repairArr["operator_name"] = $userInfo["truename"];
             $repairArr["status"] = 2;
             $connection->createCommand()->update('ps_repair',
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
-            $operate = [
-                "community_id" => $params["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "添加记录",
-                "operate_content" => '订单号:'.$model['repair_no'].'-员工：'.$user['truename'].'-处理结果:'.$params["repair_content"],
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -598,14 +566,16 @@ class RepairService extends BaseService
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = PsUser::find()
-            ->select('truename,mobile')
-            ->where(["id" => $params["operator_id"]])
+
+        $user = SqwnUser::find()
+            ->select('username as truename,mobileNumber as mobile')
+            ->where(["id" => $params["user_id"]])
             ->asArray()
             ->one();
         if (!$user) {
             return "操作人员未找到";
         }
+
         $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($model['repair_type_id']);
         if ($releateRoom && empty($params['amount'])) {
             return '请输入使用金额';
@@ -622,25 +592,25 @@ class RepairService extends BaseService
                 'repair_imgs' => $repairImages,
                 'status' => 3,
                 'create_at' => time(),
-                'operator_id' => $params["operator_id"],
+                'operator_id' => $params["user_id"],
                 'operator_name' => $user["truename"],
             ])->execute();
             //将钉钉图片转化为七牛图片
             //TODO 图片转换
-            if ($params["operator_id"] != $model["operator_id"]) {
+            if ($params["user_id"] != $model["operator_id"]) {
                 $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
                 // 添加一条分配记录 ps_repair_assign
                 $connection->createCommand()->insert('ps_repair_assign', [
                     "repair_id" => $params["repair_id"],
-                    "user_id" => $params["operator_id"],
-                    "operator_id" => $userInfo["id"] ? $userInfo["id"] : $params["operator_id"],
+                    "user_id" => $params["user_id"],
+                    "operator_id" => $userInfo["id"] ? $userInfo["id"] : 0,
                     "is_operate" => 1,
                     "finish_time" => time(),
                     "created_at" => time(),
                 ])->execute();
                 $repairArr["is_assign"] = 1;
-                $repairArr["operator_id"] = $params["operator_id"];
-                $repairArr["operator_name"] = $user["truename"];
+                $repairArr["operator_id"] = $userInfo['id'];
+                $repairArr["operator_name"] = $userInfo["truename"];
             }
             if ($releateRoom && $params['amount']) {
                 //TODO 生成报事报修账单
@@ -661,13 +631,6 @@ class RepairService extends BaseService
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
             //TODO 发送钉消息，站内消息等
-            $operate = [
-                "community_id" => $params['community_id'],
-                "operate_menu" => "报事报修",
-                "operate_type" => '标记完成',
-                "operate_content" => '工单编号'.$model["repair_no"]
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -698,13 +661,6 @@ class RepairService extends BaseService
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $params["repair_id"]])->execute();
         if ($re) {
             //TODO 发送站内消息
-            $operate = [
-                "community_id" => $params["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "标记疑难",
-                "operate_content" => '订单号：'.$model['repair_no'].'-标记说明'.$updateArr['hard_remark'],
-            ];
-            OperateService::addComm($userInfo, $operate);
             return true;
         }
         return '系统错误,标记为疑难失败';
@@ -723,13 +679,6 @@ class RepairService extends BaseService
         $re = Yii::$app->db->createCommand()->update('ps_repair',
             ["status" => 6, 'hard_type' => 1], ["id" => $params['repair_id']])->execute();
         if ($re) {
-            $operate = [
-                "community_id" =>$model['community_id'],
-                "operate_menu" => "报事报修",
-                "operate_type" => '工单作废',
-                "operate_content" => '工单编号'.$model["repair_no"]
-            ];
-            OperateService::addComm($userInfo, $operate);
             return true;
         }
         return "系统错误,工作作废失败";
@@ -780,13 +729,6 @@ class RepairService extends BaseService
                 throw new Exception('工单保存失败');
             }
             //TODO 发送站内消息
-            $operate = [
-                "community_id" => $model["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "标记为支付",
-                "operate_content" => '订单号：'.$model['repair_no'],
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -828,13 +770,6 @@ class RepairService extends BaseService
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
 
-            $operate = [
-                "community_id" => $model["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "工单复核",
-                "operate_content" => '订单号：'.$model['repair_no'],
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -877,13 +812,6 @@ class RepairService extends BaseService
             $repair['is_assign_again'] = 0;
             $repair['day'] = date('Y-m-d');
             Yii::$app->db->createCommand()->insert('ps_repair', $repair)->execute();
-            $operate = [
-                "community_id" => $repair["community_id"],
-                "operate_menu" => "报事报修",
-                "operate_type" => "二次维修",
-                "operate_content" => '订单号:'.$repair['repair_no'],
-            ];
-            OperateService::addComm($userInfo, $operate);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -897,11 +825,11 @@ class RepairService extends BaseService
     {
         $query = new Query();
         $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`',
-            'A.create_at', 'U.truename as operator_name', 'U.group_id',
-            'U.mobile as operator_mobile', 'G.name as group_name'])
-            ->from(' ps_repair_record A')
-            ->leftJoin('ps_user U', 'U.id=A.operator_id')
-            ->leftJoin('ps_groups G', 'U.group_id=G.id')
+            'A.create_at', 'U.username as operator_name', 'info.dept_id as group_id',
+            'U.mobileNumber as operator_mobile', 'info.org_name as group_name'])
+            ->from('ps_repair_record A')
+            ->leftJoin('user U', 'U.id=A.operator_id')
+            ->leftJoin('user_info info', 'U.id = info.user_id')
             ->where(["A.repair_id" => $params["repair_id"]]);
         if (!empty($params["status"]) && is_array($params["status"])) {
             $mod->andWhere(['in', 'A.status', $params["status"]]);
@@ -975,11 +903,11 @@ class RepairService extends BaseService
     {
         $query = new Query();
         $models = $query->select(['A.id', 'A.repair_id', 'A.user_id as operator_id',
-            'A.`remark`', 'A.finish_time', 'A.created_at', 'U.truename as operator_name',
-            'U.group_id', 'U.mobile as operator_mobile', 'G.name as group_name'])
+            'A.`remark`', 'A.finish_time', 'A.created_at', 'U.username as operator_name',
+            'G.dept_id as group_id', 'U.mobileNumber as operator_mobile', 'G.org_name as group_name'])
             ->from(' ps_repair_assign A')
-            ->leftJoin('ps_user U', 'U.id=A.user_id')
-            ->leftJoin('ps_groups G', 'U.group_id=G.id')
+            ->leftJoin('user U', 'U.id=A.user_id')
+            ->leftJoin('user_info G', 'U.id=G.user_id')
             ->where(["A.repair_id" => $params["repair_id"]])
             ->orderBy('A.created_at asc')
             ->all();
