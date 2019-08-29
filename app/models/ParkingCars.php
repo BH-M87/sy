@@ -42,8 +42,8 @@ class ParkingCars extends BaseModel
         return [
             [['community_id', 'created_at'], 'integer'],
             [['car_delivery'], 'number'],
-            [['car_num', 'car_model'], 'string', 'max' => 20],
-            [['car_color'], 'string', 'max' => 10],
+            [['car_model'], 'string', 'max' => 20],
+            [['car_num', 'car_color'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！'],
             [['images'], 'string', 'max' => 500],
             [['community_id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['list']],
             [['community_id', 'car_num', 'lot_id', 'carport_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
