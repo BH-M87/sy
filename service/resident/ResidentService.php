@@ -192,7 +192,7 @@ class ResidentService extends BaseService
             ];
             OperateService::addComm($operatorInfo, $operator);
             $transaction->commit();
-            return $this->success($r['data']);
+            return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
             return $this->failed($e->getMessage());
