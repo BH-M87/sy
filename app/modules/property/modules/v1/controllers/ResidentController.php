@@ -69,7 +69,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    // 新增 {"room_id":"1","group":"张强测试区2","buliding":"1幢","unit":"1单元","room":"106室","name":"吴建阳","mobile":"18768143435","identity_type":"1","sex":"1","user_label_id":[1,2]}
+    // 新增 {"room_id":"1","group":"张强测试区2","building":"1幢","unit":"1单元","room":"106室","name":"吴建阳","mobile":"18768143435","identity_type":"1","sex":"1","user_label_id":[1,2]}
     public function actionAdd()
     {
         $result = ResidentService::service()->add($this->request_params, $this->user_info);
