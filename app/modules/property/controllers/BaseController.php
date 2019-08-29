@@ -66,7 +66,11 @@ Class BaseController extends CoreController
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
         //token验证
-        $this->user_info = [];
+        $this->user_info = [
+            'id' => 17,
+            'mobile' => '17682306456',
+            'truename' => '李笑乐'
+        ];
         $this->userId = PsCommon::get($this->user_info, 'id', 0);
         UserService::setUser($this->user_info);
 //        if (!in_array($action->id, $this->enableAction)) {//验证token

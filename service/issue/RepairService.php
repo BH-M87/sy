@@ -21,6 +21,7 @@ use app\models\PsRepairMaterials;
 use app\models\PsRepairRecord;
 use app\models\PsUser;
 use app\models\RepairType;
+use app\models\User;
 use common\core\F;
 use service\alipay\BillService;
 use service\manage\CommunityService;
@@ -437,8 +438,8 @@ class RepairService extends BaseService
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = PsUser::find()
-            ->select('truename,mobile')
+        $user = User::find()
+            ->select('username as truename,mobileNumber as mobile')
             ->where(["id" => $params["user_id"]])
             ->asArray()
             ->one();
@@ -897,11 +898,11 @@ class RepairService extends BaseService
     {
         $query = new Query();
         $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`',
-            'A.create_at', 'U.truename as operator_name', 'U.group_id',
-            'U.mobile as operator_mobile', 'G.name as group_name'])
-            ->from(' ps_repair_record A')
-            ->leftJoin('ps_user U', 'U.id=A.operator_id')
-            ->leftJoin('ps_groups G', 'U.group_id=G.id')
+            'A.create_at', 'U.username as operator_name', 'info.dept_id as group_id',
+            'U.mobileNumber as operator_mobile', 'info.org_name as group_name'])
+            ->from('ps_repair_record A')
+            ->leftJoin('user U', 'U.id=A.operator_id')
+            ->leftJoin('user_info info', 'U.id = info.user_id')
             ->where(["A.repair_id" => $params["repair_id"]]);
         if (!empty($params["status"]) && is_array($params["status"])) {
             $mod->andWhere(['in', 'A.status', $params["status"]]);
@@ -975,11 +976,11 @@ class RepairService extends BaseService
     {
         $query = new Query();
         $models = $query->select(['A.id', 'A.repair_id', 'A.user_id as operator_id',
-            'A.`remark`', 'A.finish_time', 'A.created_at', 'U.truename as operator_name',
-            'U.group_id', 'U.mobile as operator_mobile', 'G.name as group_name'])
+            'A.`remark`', 'A.finish_time', 'A.created_at', 'U.username as operator_name',
+            'G.dept_id as group_id', 'U.mobileNumber as operator_mobile', 'G.org_name as group_name'])
             ->from(' ps_repair_assign A')
-            ->leftJoin('ps_user U', 'U.id=A.user_id')
-            ->leftJoin('ps_groups G', 'U.group_id=G.id')
+            ->leftJoin('user U', 'U.id=A.user_id')
+            ->leftJoin('user_info G', 'U.id=G.user_id')
             ->where(["A.repair_id" => $params["repair_id"]])
             ->orderBy('A.created_at asc')
             ->all();

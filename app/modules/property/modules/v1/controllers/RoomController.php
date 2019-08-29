@@ -918,30 +918,20 @@ class RoomController extends BaseController
     {
         $data = $this->request_params;
         $resultData = HouseService::service()->exportHouse($data);
-        /*$operate = [
-            "community_id" => $data["community_id"],
-            "operate_menu" => "房屋管理",
-            "operate_type" => "导出房屋",
-            "operate_content" => "",
-        ];
-        OperateService::addComm($this->user_info, $operate);*/
-
         $config["sheet_config"] = [
             'group' => ['title' => '苑/期/区', 'width' => 26],
             'building' => ['title' => '幢', 'width' => 16],
             'unit' => ['title' => '单元', 'width' => 16],
             'room' => ['title' => '室', 'width' => 16],
             'charge_area' => ['title' => '收费面积', 'width' => 16],
-            'floor_coe' => ['title' => '楼层系数', 'width' => 18],
-            'floor_shared_msg' => ['title' => '楼道号', 'width' => 18],
-            'is_elevator_msg' => ['title' => '是否需要电梯', 'width' => 16],
-            'lift_shared_msg' => ['title' => '电梯编号', 'width' => 18],
+            'orientation' => ['title' => '房屋朝向', 'width' => 18],
+            'delivery_time' => ['title' => '交房时间', 'width' => 18],
+            'own_age_limit' => ['title' => '产权年限', 'width' => 16],
+            'floor' => ['title' => '所在楼层', 'width' => 18],
             'status' => ['title' => '房屋状态', 'width' => 16, 'type' => 'keys', "items" => PsCommon::houseStatus()],
             'property_type' => ['title' => '物业类型', 'width' => 16, 'type' => 'keys', 'items' => PsCommon::propertyType()],
-            'intro' => ['title' => '备注', 'width' => 26, 'default' => '-'],
-            'label_name' => ['title' => '标签类型', 'width' => 26],
-            'room_code' => ['title' => '室号编码', 'width' => 16],
-            'floor' => ['title' => '楼层', 'width' => 16],
+            'house_type' => ['title' => '房屋户型', 'width' => 26],
+            'label_name' => ['title' => '标签分类', 'width' => 16],
         ];
 
         $config["save"] = true;
