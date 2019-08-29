@@ -117,8 +117,9 @@ class ResidentService extends BaseService
             ->offset(($page - 1) * $rows)->limit($rows)
             ->asArray()->all();
         foreach ($models as $key => $model) {
+            $models[$key]['card_no'] = F::processIdCard($model['card_no']);
             $models[$key]['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
-            $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
+            $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
             $models[$key]['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $models[$key]['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $models[$key]['identity_type_desc'] = $model['identity_type'] ? PsCommon::getIdentityType($model['identity_type'], 'key') : "-";
@@ -150,7 +151,7 @@ class ResidentService extends BaseService
             //edit by wenchao.feng 虚拟手机号处理
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? "" : $model['mobile'];
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
-            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : 0;
+            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $model['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $model['create_at'] = $model['create_at'] > 0 ? date("Y-m-d", $model['create_at']) : "-";
@@ -446,7 +447,7 @@ class ResidentService extends BaseService
 
         $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
-            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '长期';
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
             $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
             $model['status_desc'] = PsCommon::getIdentityStatus($model['status']);
@@ -498,9 +499,10 @@ class ResidentService extends BaseService
             ->asArray()->all();
 
         foreach ($models as &$model) {
+            $model['card_no'] = F::processIdCard($model['card_no']);
             $model['sex'] = $model['sex'] == 1 ? '男' : '女';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
-            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '永久';
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '长期';
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d H:i:s', $model['create_at']) : '';
             $model['unaccept_at'] = !empty($model['unaccept_at']) ? date('Y-m-d H:i:s', $model['unaccept_at']) : '';
             $model['identity_type_desc'] = PsCommon::getIdentityType($model['identity_type'], 'key');
@@ -523,7 +525,7 @@ class ResidentService extends BaseService
 
         $data['create_at'] = $data['create_at'] ? date('Y-m-d', $data['create_at']) : 0;
         $data['update_at'] = $data['update_at'] ? date('Y-m-d', $data['update_at']) : 0;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : 0;
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
         $data['accept_at'] = $data['accept_at'] ? date('Y-m-d', $data['accept_at']) : '';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         $data['images'] = $data['images'] ? explode(',', $data['images']) : [];
@@ -1289,7 +1291,7 @@ class ResidentService extends BaseService
             ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status')
             ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '';
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         return $data;
     }
@@ -1467,7 +1469,7 @@ class ResidentService extends BaseService
         if ($result) {
             $result['identity_type_desc'] = PsCommon::getIdentityType($result['identity_type'], 'key');
             $result['status_desc'] = PsCommon::getIdentityStatus($result['status']);
-            $result['time_end'] = $result['time_end'] ? date('Y-m-d', $result['time_end']) : '';
+            $result['time_end'] = $result['time_end'] ? date('Y-m-d', $result['time_end']) : '长期';
         }
         return $result;
     }
@@ -1496,7 +1498,7 @@ class ResidentService extends BaseService
         foreach ($data as $v) {
             $v['identity_type_desc'] = PsCommon::getIdentityType($v['identity_type'], 'key');
             $v['status_desc'] = PsCommon::getIdentityStatus($v['status']);
-            $v['time_end'] = $v['time_end'] ? date('Y-m-d', $v['time_end']) : '';
+            $v['time_end'] = $v['time_end'] ? date('Y-m-d', $v['time_end']) : '长期';
             $result[] = $v;
         }
         return $this->success($result);
@@ -1712,7 +1714,7 @@ class ResidentService extends BaseService
             $v['identity_type_desc'] = PsCommon::getIdentityType($v['identity_type'], 'key');
             $v['status'] = $v['status'] == 0 ? 5 : 6;
             $v['status_desc'] = $v['status'] == 5 ? '待审核' : '审核不通过';
-            $v['time_end'] = $v['time_end'] ? date('Y-m-d', $v['time_end']) : '';
+            $v['time_end'] = $v['time_end'] ? date('Y-m-d', $v['time_end']) : '长期';
             $result[] = $v;
         }
         return $this->success($result);
