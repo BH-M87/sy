@@ -537,12 +537,11 @@ class CarService extends BaseService
             } else {
                 $val['carport_pay_type'] = 2; //租赁
             }
-
             $carReq['car_num'] = $val['car_num'];
             $carReq['community_id'] = $communityId;
             $carReq['car_model'] = F::value($val, 'car_model', '');
             $carReq['car_color'] = F::value($val,'car_color', '');
-            $carReq['car_delivery'] = F::value($val,'car_delivery', '');
+            $carReq['car_delivery'] = F::value($val,'car_delivery', 0);
             list($carId, $error) = $this->_saveCarData($carReq);
             $val['car_id'] = $carId;
 
