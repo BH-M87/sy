@@ -151,7 +151,7 @@ class ResidentService extends BaseService
             //edit by wenchao.feng 虚拟手机号处理
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? "" : $model['mobile'];
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
-            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
+            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '0';
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $model['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $model['create_at'] = $model['create_at'] > 0 ? date("Y-m-d", $model['create_at']) : "-";
@@ -526,7 +526,7 @@ class ResidentService extends BaseService
 
         $data['create_at'] = $data['create_at'] ? date('Y-m-d', $data['create_at']) : 0;
         $data['update_at'] = $data['update_at'] ? date('Y-m-d', $data['update_at']) : 0;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '0';
         $data['accept_at'] = $data['accept_at'] ? date('Y-m-d', $data['accept_at']) : '';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         $data['images'] = $data['images'] ? explode(',', $data['images']) : [];
@@ -1292,7 +1292,7 @@ class ResidentService extends BaseService
             ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status')
             ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '0';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         return $data;
     }
