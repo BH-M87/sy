@@ -555,7 +555,7 @@ class ResidentService extends BaseService
         $model->unaccept_at = time();
 
         if (!$model->save()) {
-            return $this->failed($model->errors);
+            return $this->failed(array_values($model->errors)[0][0]);
         }
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
