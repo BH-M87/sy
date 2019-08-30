@@ -745,7 +745,7 @@ class CarService extends BaseService
             'unit' => ['title' => '单元'],
             'room' => ['title' => '房号'],
             'user_name' => ['title' => '车主姓名', 'rules' => ['required' => true]],
-            'user_mobile' => ['title' => '联系电话'],
+            'user_mobile' => ['title' => '联系电话','rules' => ['required' => true]],
             'lot_name' => ['title' => '所在停车场', 'rules' => ['required' => true]],
             'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
             'car_model' => ['title' => '车辆型号'],
