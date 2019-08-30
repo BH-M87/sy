@@ -504,7 +504,6 @@ class CarService extends BaseService
             }
             $success[] = $tmpCarData;
         }
-
         $this->saveImport($success, $params['community_id']);
         $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
         $fail =  ExcelService::service()->getErrorCount();
@@ -541,9 +540,9 @@ class CarService extends BaseService
 
             $carReq['car_num'] = $val['car_num'];
             $carReq['community_id'] = $communityId;
-            $carReq['car_model'] = $val['car_model'];
-            $carReq['car_color'] = $val['car_color'];
-            $carReq['car_delivery'] = $val['car_delivery'];
+            $carReq['car_model'] = F::value($val, 'car_model', '');
+            $carReq['car_color'] = F::value($val,'car_color', '');
+            $carReq['car_delivery'] = F::value($val,'car_delivery', '');
             list($carId, $error) = $this->_saveCarData($carReq);
             $val['car_id'] = $carId;
 
