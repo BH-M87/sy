@@ -491,12 +491,12 @@ class CarportService extends BaseService
         $config = [
             ['title' => '编号', 'field' => 'tid', 'data_type' => 'str'],
             ['title' => '所属小区', 'field' => 'community_name', 'data_type' => 'str'],
-            ['title' => '停车场', 'field' => 'lot_name', 'data_type' => 'str'],
+            ['title' => '所属车场', 'field' => 'lot_name', 'data_type' => 'str'],
             ['title' => '车位号', 'field' => 'car_port_num', 'data_type' => 'str'],
             ['title' => '车位类型', 'field' => 'type', 'data_type' => 'str'],
             ['title' => '车位面积','field' => 'car_port_area', 'data_type' => 'str'],
             ['title' => '车位状态', 'field' => 'status', 'data_type' => 'str'],
-            ['title' => '产权人', 'field' => 'room_name', 'data_type' => 'str'],
+            ['title' => '车位所有人姓名', 'field' => 'room_name', 'data_type' => 'str'],
             ['title' => '联系电话', 'field' => 'room_mobile_export', 'data_type' => 'str'],
             ['title' => '身份证号码', 'field' => 'room_id_card_export', 'data_type' => 'str']
         ];
