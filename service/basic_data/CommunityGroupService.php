@@ -192,20 +192,9 @@ class CommunityGroupService extends BaseService {
 
         $build = PsCommunityBuilding::find()->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id']])->asArray()->one();
         if ($build) {
-            return PsCommon::responseFailed("区域下无挂靠楼幢才可删除");
+            return PsCommon::responseFailed("区域下无挂靠楼栋才可删除");
         }
-
-        // 删除 楼宇中心数据
-        //TODO
         if ($group->delete()) {
-            /*$content = "区域名称:" . $group_name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "区域信息",
-                "operate_type" => "删除区域",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);*/
             return PsCommon::responseSuccess("删除成功");
         } else {
             return PsCommon::responseFailed("删除失败");
