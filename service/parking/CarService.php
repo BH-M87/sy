@@ -454,7 +454,7 @@ class CarService extends BaseService
             //查询车位
             $carportInfo = ParkingCarport::find()
                 ->select(['id', 'car_port_status'])
-                ->where(['car_port_num' => $row['car_port_num'], 'lot_id' => $row['lot_id']])
+                ->where(['car_port_num' => trim($row['car_port_num']), 'lot_id' => $tmpCarData['lot_id']])
                 ->andWhere(['community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
