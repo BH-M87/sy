@@ -440,7 +440,7 @@ class CarService extends BaseService
             //查询车场
             $lotInfo = ParkingLot::find()
                 ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
-                ->where(['lot_name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
+                ->where(['name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
             if (!$lotInfo) {
