@@ -518,13 +518,13 @@ class CarportService extends BaseService
         $types = array_column($this->types, 'name');
         $status = array_column($this->status, 'name');
         return [
-            'lot_id' => ['title' => '车场id', 'rules' => ['required' => true]],
+            'lot_name' => ['title' => '所属车场', 'rules' => ['required' => true]],
             'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
             'type' => ['title' => '车位类型', 'items' => $types, 'rules' => ['required' => true]],
             'car_port_area' => ['title' => '车位面积(M2)','rules' => ['required' => true]],
-            'status' => ['title' => '使用状态','items' => $status, 'rules' => ['required' => true]],
-            'room_name' => ['title' => '产权人姓名'],
-            'room_mobile' => ['title' => '电话'],
+            'status' => ['title' => '车位状态','items' => $status, 'rules' => ['required' => true]],
+            'room_name' => ['title' => '车位所有人姓名'],
+            'room_mobile' => ['title' => '联系电话'],
             'room_id_card' => ['title' => '身份证号码'],
         ];
     }
@@ -538,8 +538,9 @@ class CarportService extends BaseService
         $success_num = 0;
         foreach ($data as $k=>$v) {
             $v['error_mes'] = '';
+            $v['lot_name'] = trim($v['lot_name']);
             //检测停车场是否存在
-            $code = ParkingLot::find()->where(['id'=>$v['lot_id'],'status'=>1])->asArray()->one();
+            $code = ParkingLot::find()->where(['name'=>$v['lot_name'],'status'=>1, 'community_id' => $communityId])->asArray()->one();
             if (!$code) {
                 $v['error_mes'] = "停车场不存在";
                 $return[] = $v;
