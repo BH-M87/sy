@@ -919,19 +919,19 @@ class RoomController extends BaseController
         $data = $this->request_params;
         $resultData = HouseService::service()->exportHouse($data);
         $config["sheet_config"] = [
-            'group' => ['title' => '苑/期/区', 'width' => 26],
-            'building' => ['title' => '幢', 'width' => 16],
+            'group' => ['title' => '区域', 'width' => 26],
+            'building' => ['title' => '楼栋', 'width' => 16],
             'unit' => ['title' => '单元', 'width' => 16],
-            'room' => ['title' => '室', 'width' => 16],
-            'charge_area' => ['title' => '收费面积', 'width' => 16],
+            'room' => ['title' => '房号', 'width' => 16],
+            'charge_area' => ['title' => '房屋面积', 'width' => 16],
             'orientation' => ['title' => '房屋朝向', 'width' => 18],
             'delivery_time' => ['title' => '交房时间', 'width' => 18],
             'own_age_limit' => ['title' => '产权年限', 'width' => 16],
-            'floor' => ['title' => '所在楼层', 'width' => 18],
+            'floor' => ['title' => '楼层', 'width' => 18],
             'status' => ['title' => '房屋状态', 'width' => 16, 'type' => 'keys', "items" => PsCommon::houseStatus()],
             'property_type' => ['title' => '物业类型', 'width' => 16, 'type' => 'keys', 'items' => PsCommon::propertyType()],
             'house_type' => ['title' => '房屋户型', 'width' => 26],
-            'label_name' => ['title' => '标签分类', 'width' => 16],
+            'label_name' => ['title' => '房屋标签', 'width' => 16],
         ];
 
         $config["save"] = true;
