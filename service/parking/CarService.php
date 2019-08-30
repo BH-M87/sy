@@ -440,7 +440,7 @@ class CarService extends BaseService
             //查询车场
             $lotInfo = ParkingLot::find()
                 ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
-                ->where(['id' => intval($row['lot_id']), 'community_id' => $params['community_id']])
+                ->where(['lot_name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
             if (!$lotInfo) {
@@ -742,13 +742,13 @@ class CarService extends BaseService
     {
         return [
             'car_num' => ['title' => '车牌', 'rules' => ['required' => true]],
-            'group' => ['title' => '苑期区'],
-            'building' => ['title' => '幢'],
+            'group' => ['title' => '区域'],
+            'building' => ['title' => '楼栋'],
             'unit' => ['title' => '单元'],
-            'room' => ['title' => '室号'],
+            'room' => ['title' => '房号'],
             'user_name' => ['title' => '车主姓名', 'rules' => ['required' => true]],
             'user_mobile' => ['title' => '联系电话'],
-            'lot_id' => ['title' => '停车场ID', 'rules' => ['required' => true]],
+            'lot_name' => ['title' => '所在停车场', 'rules' => ['required' => true]],
             'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
             'car_model' => ['title' => '车辆型号'],
             'car_color' => ['title' => '车辆颜色'],
