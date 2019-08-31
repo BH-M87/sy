@@ -276,6 +276,11 @@ class ResidentController extends BaseController
                 }
             }
 
+            if (empty($residentData['mobile'])) {
+                ExcelService::service()->setError($residentData, '手机号码不能为空');
+                continue;
+            }
+
             $memberArr = [
                 'name' => $residentData['name'],
                 "mobile" => $residentData["mobile"],
