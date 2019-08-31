@@ -142,10 +142,16 @@ class ResidentService extends BaseService
         $psAreas = AreaService::service()->getNamesByCodes($areaCodes);
         if ($model) {
             $label = PsLabelsRela::find()->select('labels_id')->where(['data_id' => $model['id'], 'data_type' => 2])->asArray()->all();//标签id
+            $model['user_label'] = [];
+            $model['user_label_id'] = [];
             if (!empty($label)) {
                 foreach ($label as $k => $v) {
+                    $psLabels = PsLabels::findOne($v['labels_id']);
                     $model['user_label'][$k]['id'] = $v['labels_id'];
-                    $model['user_label'][$k]['name'] = PsLabels::findOne($v['labels_id'])->name;
+                    $model['user_label'][$k]['name'] = $psLabels->name;
+                    $model['user_label'][$k]['label_type'] = $psLabels->label_type;
+
+                    $model['user_label_id'][] = $v['labels_id'];
                 }
             }
             //edit by wenchao.feng 虚拟手机号处理
