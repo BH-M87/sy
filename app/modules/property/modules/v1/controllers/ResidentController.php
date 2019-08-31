@@ -219,7 +219,7 @@ class ResidentController extends BaseController
             $val = $sheetData[$i];
             $residentDatas[] = [
                 "name" => !empty($val['A']) ? $val['A'] : '',
-                "mobile" => !empty($val['B']) ? $val['B'] : PsCommon::generateVirtualPhone(),
+                "mobile" => !empty($val['B']) ? $val['B'] : '',
                 "sex" => $val["C"],
                 "card_no" => $val["D"] ? $val["D"] : "",
                 "group" => $val["E"],
