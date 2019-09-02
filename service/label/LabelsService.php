@@ -94,6 +94,7 @@ Class LabelsService extends BaseService
         // return $this->failed('删除的前置条件为标签没有使用');
 
         if (PsLabels::updateAll(['is_delete' => 2], ['id' => $param['id']])) {
+            PsLabelsRela::deleteAll(['labels_id' => $param['id']]);
             return $this->success();
         }
 
@@ -146,7 +147,8 @@ Class LabelsService extends BaseService
             $arr['id'] = $k;
             $arr['name'] = $v;
             $arr['children'] = PsLabels::find()->select('id, name')->where(['label_type' => $k])
-                ->andFilterWhere(['label_attribute' => $param['type']])->asArray()->all();
+                ->andFilterWhere(['label_attribute' => $param['type']])
+                ->andFilterWhere(['is_delete' => 1])->asArray()->all();
 
             $list[] = $arr;
         }
@@ -228,7 +230,7 @@ Class LabelsService extends BaseService
     {
         $list = PsLabelsRela::find()->alias('lr')
             ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
-            ->select(['l.id','l.name'])
+            ->select(['l.id','l.name', 'l.label_type'])
             ->where(['lr.data_id'=>$carId,'lr.data_type'=>3,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }

@@ -51,6 +51,7 @@ class ParkingLotController extends BaseController
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+        $this->request_params['parkId'] = !empty($this->request_params['parkId']) ? (string)$this->request_params['parkId'] : '';
         //校验格式
         $valid = PsCommon::validParamArr(new ParkingLot(),$this->request_params,'edit');
         if(!$valid["status"] ) {
