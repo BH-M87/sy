@@ -42,6 +42,7 @@ class RepairController extends UserBaseController
             $params['unit'] = $roomInfo ? $roomInfo['unit'] : '';
             $params['room'] = $roomInfo ? $roomInfo['room'] : '';
         }
+
         if ($relateRoom) {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $params, 'add-repair3');
         } else {
@@ -53,10 +54,11 @@ class RepairController extends UserBaseController
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
         $result = RepairService::service()->add($validData, [], 'small');
-        if (!is_numeric($result)) {
-            return F::apiFailed($result);
+
+        if (is_array($result)) {
+            return F::apiSuccess($result);
         }
-        return F::apiSuccess($result);
+        return F::apiFailed($result);
     }
 
     //报事报修列表

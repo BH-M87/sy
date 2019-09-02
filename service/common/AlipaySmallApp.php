@@ -7,7 +7,7 @@
 
 namespace service\common;
 
-use common\ali\AopRedirect;
+use common\core\ali\AopRedirect;
 use Yii;
 
 Class AlipaySmallApp
@@ -19,9 +19,23 @@ Class AlipaySmallApp
     public function __construct($module)
     {
         $this->_aop = new AopRedirect();
-        $this->_aop->appId = Yii::$app->params['app'][$module];
-        $publicFile = Yii::$app->basePath . '/rsa_files/' . $module . '/alipay_public.txt';
-        $privateFile = Yii::$app->basePath . '/rsa_files/' . $module . '/rsa_private.txt';
+        switch($module){
+            case "door":
+                $this->_aop->appId = Yii::$app->params['door_app_id'];
+                $publicFile = Yii::$app->params['door_alipay_public_key_file'];
+                $privateFile = Yii::$app->params['door_rsa_private_key_file'];
+                break;
+            case "small":
+                $this->_aop->appId = Yii::$app->params['2017091308707970'];
+                $publicFile = Yii::$app->params['small_alipay_public_key_file'];
+                $privateFile = Yii::$app->params['small_rsa_private_key_file'];
+                break;
+            default:
+                $this->_aop->appId = Yii::$app->params['door_app_id'];
+                $publicFile = Yii::$app->params['door_alipay_public_key_file'];
+                $privateFile = Yii::$app->params['door_rsa_private_key_file'];
+
+        }
         $this->_aop->alipayrsaPublicKey = file_get_contents($publicFile);
         $this->_aop->rsaPrivateKey = file_get_contents($privateFile);
         $this->_aop->signType = 'RSA2';
