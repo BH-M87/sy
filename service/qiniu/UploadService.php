@@ -289,20 +289,20 @@ Class UploadService extends BaseService
         //图片文件检测
         $r = $this->checkStreamImage($img);
         if (!$r['code']) {
-            return PsCommon::responseFailed($r['msg']);
+            return $this->failed($r['msg']);
         }
         $imgArr = $r['data'];
         $imgString = str_replace($imgArr['result'][1], '', $imgArr['characters']);
         //上传到本地
         $r = $this->saveStreamLocal($imgString, 'jpg', F::qiniuImagePath());
         if (!$r) {
-            return PsCommon::responseFailed($r['msg']);
+            return $this->failed($r['msg']);
         }
         $local = $r['data'];
         //上传到七牛
         $re['filepath'] = $this->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
         if (!$re['filepath']) {
-            return PsCommon::responseFailed('七牛上传失败');
+            return $this->failed('七牛上传失败');
         }
         //本地模拟测试的时候没有parentDir字段，因此做了一个判断。add by zq 2019-4-25
         $parentDir = !empty($local['parentDir']) ? $local['parentDir'] : '';
@@ -312,10 +312,10 @@ Class UploadService extends BaseService
             $body['data']['uri'] = $re['filepath'];
             $res = $this->checkExistFace('/v1/face/detect',json_encode($body));
             if($res !== true){
-                return PsCommon::responseFailed($res);
+                return $this->failed($res);
             }
         }
-        return PsCommon::responseSuccess($re);
+        return $this->success($re);
     }
 
 }

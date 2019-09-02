@@ -175,15 +175,6 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            /*$label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
-            if ($label) {
-                $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
-                $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
-                if (empty($room_id)) {
-                    return ['list' => [], 'totals' => 0, "all_area" => 0];
-                }
-                $where .= " AND id in ($room_id)";
-            }*/
             $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
             if(empty($room_id_array)){
                 return ['list' => [], 'totals' => 0, "all_area" => 0];
@@ -197,7 +188,6 @@ Class HouseService extends BaseService
         if ($count["total"] == 0) {
             $arr1 = ['totals' => 0, "all_area" => 0.00, 'list' => []];
             return $arr1;
-            exit;
         }
         $rows = empty($rows) ? 10 : $rows;
         $page = $page > ceil($count["total"] / $rows) ? ceil($count["total"] / $rows) : $page;
@@ -212,8 +202,8 @@ Class HouseService extends BaseService
         $unit_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = "  (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
-        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor 
-            FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)->queryAll();
+        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)
+            ->queryAll();
         return ['list' => $list, 'totals' => $count["total"], "all_area" => $count["all_area"]];
     }
 
