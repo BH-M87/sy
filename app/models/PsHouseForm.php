@@ -37,7 +37,7 @@ class PsHouseForm extends Model
             ['group', 'string', 'max' => '32', 'on' => ['create', 'import']],
             ['building', 'string', 'max' => '32', 'on' => ['create', 'import']],
             ['unit', 'string', 'max' => '32', 'on' => ['create', 'import']],
-            ['room', 'string', 'max' => '64', 'on' => ['create', 'import']],
+            ['room', 'integer', 'on' => ['create', 'import']],
             [['status'], 'in', 'range' => [1, 2], 'on' => ['create',"import"], 'message' => '{attribute}只能是1或2'],
             [['property_type'], 'in', 'range' => [1, 2,3], 'on' => ['create',"import"], 'message' => '{attribute}只能是1或2或3'],
             ['charge_area', 'number', 'on' => ['create', 'import']], 

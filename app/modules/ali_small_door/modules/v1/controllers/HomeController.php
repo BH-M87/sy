@@ -19,6 +19,7 @@ use service\door\HomeService;
 class HomeController extends UserBaseController
 {
 
+    public $enableAction = ['auth'];
     //用户授权
     public function actionAuth()
     {
@@ -29,7 +30,7 @@ class HomeController extends UserBaseController
         $system_type = F::value($this->params, 'system_type','door');
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
-        $result = $service->getToken($authCode);
+        $r = $service->getToken($authCode);
         if (empty($r)) {
             return F::apiFailed("授权失败！");
         }
