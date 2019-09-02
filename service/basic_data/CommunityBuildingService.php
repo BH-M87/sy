@@ -65,6 +65,11 @@ class CommunityBuildingService extends BaseService
             ->offset($offset)->limit($pageSize)
             ->orderBy('cu.id desc')
             ->asArray()->all();
+        if(!empty($list)){
+            foreach($list as $key =>$value){
+                $list[$key]['floor_num'] = PsCommon::get($value,'floor_num');
+            }
+        }
         return $list;
     }
 
@@ -485,6 +490,7 @@ class CommunityBuildingService extends BaseService
             foreach($list as $key=>$value){
                 $list[$key]['longitude'] = (empty($value['longitude']) || $value['longitude'] == '0.000000') ? "": $value['longitude'];
                 $list[$key]['latitude'] = (empty($value['latitude']) || $value['latitude'] == '0.000000') ? "": $value['latitude'];
+                $list[$key]['floor_num'] = PsCommon::get($value,'floor_num');
             }
         }
         $result['list'] = !empty($list) ? $list : [];
@@ -699,6 +705,7 @@ class CommunityBuildingService extends BaseService
         $res['building_name'] = $res['name'];
         $res['longitude'] = (empty($res['longitude']) || $res['longitude'] == '0.000000') ? "": $res['longitude'];
         $res['latitude'] = (empty($res['latitude']) || $res['latitude'] == '0.000000') ? "": $res['latitude'];
+        $res['floor_num'] = PsCommon::get($res,'floor_num');
         return PsCommon::responseSuccess($res);
     }
 
