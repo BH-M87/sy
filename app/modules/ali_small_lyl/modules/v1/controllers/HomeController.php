@@ -12,7 +12,7 @@ namespace app\modules\ali_small_lyl\modules\v1\controllers;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
 use service\common\AlipaySmallApp;
-use service\door\HomeService;
+use service\small\MemberService;
 
 class HomeController extends UserBaseController
 {
@@ -27,7 +27,7 @@ class HomeController extends UserBaseController
         if (!$r['app_user_id']) {
             return F::apiFailed("用户id不能为空！");
         }
-        $result = HomeService::service()->getIndexData($r);
+        $result = MemberService::service()->homeData($r);
         return $this->dealReturnResult($result);
     }
 
