@@ -480,16 +480,15 @@ class VisitorService extends BaseService
     {
         /*图片转换为 base64格式编码*/
         $res = UploadService::service()->stream_image($img);
-        $result = json_decode($res,true);
-        if($result['code'] == '20000'){
-            $img_url = $result['data']['filepath'];//七牛的图片地址
+        if ($res['code']) {
+            $img_url = $res['data']['filepath'];//七牛的图片地址
             //编辑用户
             $params['img'] = $img_url;
             $params['visitor_id'] = $data['visitor_id'];
             $params['base64_img'] = $img2;
             return $this->save_upload_face($data['visitor_id'],$img_url,$img2);
-        } else{
-            return $this->failed($result['error']['errorMsg']);
+        }else{
+            return $res;
         }
     }
 

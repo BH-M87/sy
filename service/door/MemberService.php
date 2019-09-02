@@ -181,7 +181,6 @@ class MemberService extends BaseService
             return $this->success($result);
         }
         $memberId = $appUserInfo['member_id'];
-
         //获取用户信息
         $memberInfo = PsMember::find()->select("room_id,is_real,name")->where(['id' => $memberId])->asArray()->one();
         $select_room_id = $memberInfo['room_id'];
@@ -331,11 +330,11 @@ class MemberService extends BaseService
         if (!$unitId) return [];
         // 查看小区已接入的供应商
         $suppliers = (new Query())
-            ->select(['supplier.supplier_name', 'd.open_type', 'd.name','d.open_door_type'])
+            ->select(['supplier.supplier_name', 'd.name','d.open_door_type'])
             ->distinct()
             ->from('door_device_unit du')
             ->rightJoin('door_devices d', 'd.id = du.devices_id')
-            ->rightJoin('parking_suppliers supplier', 'supplier.id = d.supplier_id')
+            ->rightJoin('iot_suppliers supplier', 'supplier.id = d.supplier_id')
             ->where(['du.unit_id' => $unitId])
             ->all();
         // 根据供应商判断这个用户是否有扫码、访客密码、住户密码、反扫码的权限

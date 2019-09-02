@@ -90,7 +90,12 @@ Class UploadController extends BaseController
     {
         $img = F::post('img');
         $type = Yii::$app->request->post('type', '');
-        return UploadService::service()->stream_image($img,$type);
+        $result = UploadService::service()->stream_image($img,$type);
+        if (!$result['code']) {
+            return PsCommon::responseFailed($result['msg']);
+        }else{
+            return PsCommon::responseSuccess($result['data']);
+        }
     }
 
     //上传版本更新，操作手册

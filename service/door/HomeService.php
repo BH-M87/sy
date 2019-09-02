@@ -28,7 +28,7 @@ class HomeService extends BaseService
     {
         $res =  MemberService::service()->authTo($params);
         if($res){
-            return $this->success($res);
+            return $this->success($res['data']);
         }else{
             return $this->failed('用户保存失败');
         }
@@ -45,9 +45,9 @@ class HomeService extends BaseService
     }
 
     //获取biz_id
-    public function get_biz_id($params)
+    public function get_biz_id($user_id)
     {
-        $user_id  = PsCommon::get($params,'user_id');
+        //$user_id  = PsCommon::get($params,'user_id');
         return SelfService::service()->get_biz_id($user_id);
     }
 
@@ -57,18 +57,11 @@ class HomeService extends BaseService
         /*图片转换为 base64格式编码*/
         $params['img'] = $img;
         $res = UploadService::service()->stream_image($img);
-        $result = json_decode($res,true);
-        if($result['code'] == '20000'){
-            $img_url = $result['data']['filepath'];//七牛的图片地址
-            //编辑用户
-            $params['img'] = $img_url;
-            $params['member_id'] = $data['member_id'];
-            $params['community_id'] = $data['community_id'];
-            $params['room_id'] = $data['room_id'];
-            $params['base64_img'] = $img2;
+        if ($res['code']) {
+            $img_url = $res['data']['filepath'];//七牛的图片地址
             return KeyService::service()->upload_face($data['member_id'],$img_url,$data['room_id'],$img2);
-        } else{
-            return $this->failed($result['error']['errorMsg']);
+        }else{
+            return $res;
         }
 
     }
