@@ -160,7 +160,7 @@ class RepairController extends UserBaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result = RepairService::service()->assign($valid['data'], $this->userInfo);
-        if ($result === true) {
+        if (is_array($result)) {
             return F::apiSuccess($result);
         }
         return F::apiFailed($result);
@@ -205,7 +205,8 @@ class RepairController extends UserBaseController
         if ($params['status'] == 3 && $params['need_pay'] == 1 && empty($params['total_price'])) {
             return F::apiFailed('请填写收费金额！');
         }
-        $params['operator_id'] = $this->userInfo['id'];
+        $params['user_id'] = $this->userInfo['id'];
+
         $result = RepairService::service()->dingAddRecord($params, $this->userInfo);
         if ($result === true) {
             return F::apiSuccess($result);
@@ -219,13 +220,13 @@ class RepairController extends UserBaseController
         $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
         $params['repair_content'] = F::value($this->request_params, 'content', '');
         $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['operator_id'] = F::value($this->request_params, 'user_id', 0);
+        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
-        if (!$params['operator_id']) {
+        if (!$params['user_id']) {
             return F::apiFailed('请选择员工！');
         }
         $result = RepairService::service()->addRecord($params,$this->userInfo);
@@ -241,7 +242,7 @@ class RepairController extends UserBaseController
         $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
         $params['repair_content'] = F::value($this->request_params, 'content', '');
         $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['operator_id'] = F::value($this->request_params, 'user_id', 0);
+        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
         $params['amount'] = F::value($this->request_params, 'amount', 0);
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {

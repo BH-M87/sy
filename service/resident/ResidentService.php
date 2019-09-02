@@ -444,7 +444,7 @@ class ResidentService extends BaseService
         $houses = $this->relatedHouse($id);
         $housesIds = array_column($houses['list'], 'room_id');
 
-        $query = PsRoomUser::find()->select('id, name, mobile, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
+        $query = PsRoomUser::find()->select('id, name, mobile, sex, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
             ->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
         $total = $query->count();
         if ($page && $rows) {
@@ -453,6 +453,7 @@ class ResidentService extends BaseService
 
         $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
+            $model['sex'] = $model['sex'] == 1 ? '男' : '女';
             $model['card_no'] = F::processIdCard($model['card_no']);
             $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '长期';
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';

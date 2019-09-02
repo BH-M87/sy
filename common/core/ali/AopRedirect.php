@@ -12,7 +12,7 @@
  * @author shenyang
  * @date 2017-06-09
  */
-namespace common\ali;
+namespace common\core\ali;
 
 use common\core\ali\AopEncrypt;
 use yii\base\Exception;

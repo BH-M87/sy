@@ -142,3 +142,42 @@ CREATE TABLE `ps_user_community` (
   `community_id` int(11) NOT NULL COMMENT '小区id',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=32558 DEFAULT CHARSET=utf8 COMMENT='管理员关联小区表';
+
+CREATE TABLE `ps_app_member` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `app_user_id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='支付宝会员关系表(多对一)';
+
+CREATE TABLE `ps_app_user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nick_name` varchar(20) DEFAULT NULL COMMENT '用户昵称',
+  `true_name` varchar(20) NOT NULL DEFAULT '' COMMENT '真实姓名',
+  `phone` char(11) NOT NULL DEFAULT '' COMMENT '用户手机号',
+  `user_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '用户类型 1：支付宝',
+  `id_card` varchar(25) NOT NULL DEFAULT '' COMMENT '身份证号',
+  `user_ref` tinyint(1) NOT NULL DEFAULT '1' COMMENT '用户来源 1支付宝生活号用户 ',
+  `access_token` varchar(255) NOT NULL COMMENT '用户令牌',
+  `expires_in` int(11) NOT NULL DEFAULT '0' COMMENT '令牌过期时间',
+  `refresh_token` varchar(255) NOT NULL COMMENT '更新令牌值',
+  `channel_user_id` varchar(100) NOT NULL COMMENT '渠道授权用户id，支付宝独有，用以关联查询账单状态等',
+  `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
+  `avatar` varchar(200) NOT NULL DEFAULT '' COMMENT '用户头像',
+  `gender` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别 0未知 1男 2女',
+  `is_certified` tinyint(1) DEFAULT '2' COMMENT '是否通过支付宝实名认证：1通过 2未通过',
+  `authtoken` varchar(255) DEFAULT '' COMMENT '会员卡授权码',
+  `biz_card_no` varchar(100) DEFAULT '' COMMENT '会员卡号',
+  `sign` varchar(500) DEFAULT NULL,
+  `set_no` int(11) DEFAULT '0' COMMENT '编号，用于未认证无昵称的用户',
+  `last_city_code` varchar(64) DEFAULT NULL COMMENT '最近访问城市编号',
+  `last_city_name` varchar(50) DEFAULT NULL COMMENT '最近访问城市名称',
+  `last_comm_id` int(11) NOT NULL DEFAULT '0' COMMENT '最近一次访问的小区id',
+  `keys` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否已经编辑过常用钥匙',
+  `is_guide` tinyint(1) DEFAULT '1' COMMENT '是否有蒙层指导:1.是,2否',
+  `num` tinyint(2) DEFAULT NULL COMMENT '查询账单次数,每天五次',
+  `sel_time` int(10) DEFAULT NULL COMMENT '查询账单的时间:每天五次',
+  `plate_number` varchar(10) NOT NULL DEFAULT '' COMMENT '车牌号',
+  `create_at` int(11) DEFAULT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='授权用户表';

@@ -219,7 +219,7 @@ class ResidentController extends BaseController
             $val = $sheetData[$i];
             $residentDatas[] = [
                 "name" => !empty($val['A']) ? $val['A'] : '',
-                "mobile" => !empty($val['B']) ? $val['B'] : PsCommon::generateVirtualPhone(),
+                "mobile" => !empty($val['B']) ? $val['B'] : '',
                 "sex" => $val["C"],
                 "card_no" => $val["D"] ? $val["D"] : "",
                 "group" => $val["E"],
@@ -274,6 +274,11 @@ class ResidentController extends BaseController
                     ExcelService::service()->setError($residentData, '手机号码已经在房屋下出现');
                     continue;
                 }
+            }
+
+            if (empty($residentData['mobile'])) {
+                ExcelService::service()->setError($residentData, '手机号码不能为空');
+                continue;
             }
 
             $memberArr = [
@@ -576,14 +581,14 @@ class ResidentController extends BaseController
     {
         $config["sheet_config"] = [
             'name' => ['title' => '姓名', 'width' => 10],
-            'mobile' => ['title' => '手机号', 'width' => 13],
+            'mobile' => ['title' => '手机号码', 'width' => 13],
             'sex' => ['title' => '性别', 'width' => 6, 'items' => ['男', '女']],
             'card_no' => ['title' => '身份证号', 'width' => 16],
-            'group' => ['title' => '苑/期/区', 'width' => 8],
-            'building' => ['title' => '幢', 'width' => 8],
+            'group' => ['title' => '区域', 'width' => 8],
+            'building' => ['title' => '楼栋', 'width' => 8],
             'unit' => ['title' => '单元', 'width' => 8],
-            'room' => ['title' => '室号', 'width' => 8],
-            'identity_type' => ['title' => '身份', 'width' => 8, "items" => ResidentService::service()->identity_type],
+            'room' => ['title' => '房号', 'width' => 8],
+            'identity_type' => ['title' => '住户身份', 'width' => 8, "items" => ResidentService::service()->identity_type],
         ];
         if ($type == 2) {
             $config["sheet_config"]['status'] = ['title' => '认证状态', 'width' => 8, "items" => PsCommon::getIdentityStatus()];
@@ -591,7 +596,7 @@ class ResidentController extends BaseController
         }
         $config['sheet_config']['time_end'] = ['title' => '有效期', 'width' => 13];
         $config["sheet_config"]['enter_time'] = ['title' => '入住时间', 'width' => 13];
-        $config["sheet_config"]['label_name'] = ['title' => '标签类型', 'width' => 13];
+        $config["sheet_config"]['label_name'] = ['title' => '住户标签', 'width' => 13];
         $config["sheet_config"]['nation'] = ['title' => '民族', 'width' => 13];
         $config["sheet_config"]['face'] = ['title' => '政治面貌', 'width' => 13, 'items' => ResidentService::service()->face];
         $config["sheet_config"]['marry_status'] = ['title' => '婚姻状态', 'width' => 13, 'items' => ResidentService::service()->marry_status];
