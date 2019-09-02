@@ -181,3 +181,178 @@ CREATE TABLE `ps_app_user` (
   `create_at` int(11) DEFAULT NULL COMMENT '添加时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='授权用户表';
+
+CREATE TABLE `door_room_password` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `room_id` int(11) NOT NULL DEFAULT '0' COMMENT '房屋id',
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `unit_id` int(11) NOT NULL DEFAULT '0' COMMENT '楼宇id',
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '住户id',
+  `code` varchar(100) NOT NULL DEFAULT '' COMMENT '住户密码',
+  `code_img` varchar(100) NOT NULL DEFAULT '' COMMENT '二维码图片地址',
+  `expired_time` int(11) NOT NULL DEFAULT '0' COMMENT '有效期',
+  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='住户密码表';
+
+CREATE TABLE `door_record` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `supplier_id` int(11) NOT NULL DEFAULT '0' COMMENT '供应商id',
+  `capture_photo` varchar(1000) DEFAULT '' COMMENT '抓拍图片',
+  `open_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '开门方式 1 人脸开门， 2 蓝牙开门， 3 密码开门, 4 钥匙开门, 5 门卡开门，6 扫码开门, 7 临时密码 8二维码开门',
+  `open_time` int(11) NOT NULL COMMENT '开门时间',
+  `user_name` varchar(50) DEFAULT '' COMMENT '用户姓名',
+  `user_phone` varchar(15) DEFAULT '' COMMENT '住户手机号',
+  `user_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '被呼叫用户类型:1业主 2家人 3租客 4访客',
+  `card_no` varchar(50) DEFAULT '' COMMENT '门卡卡号',
+  `device_name` varchar(50) NOT NULL DEFAULT '' COMMENT '设备名称',
+  `device_no` varchar(80) NOT NULL DEFAULT '' COMMENT '设备编号',
+  `group` varchar(20) DEFAULT '' COMMENT '苑期区',
+  `building` varchar(20) DEFAULT '' COMMENT '幢',
+  `unit` varchar(20) DEFAULT '' COMMENT '单元',
+  `room` varchar(20) DEFAULT NULL COMMENT '室',
+  `room_id` int(11) DEFAULT '0' COMMENT '室',
+  `coat_color` tinyint(2) NOT NULL DEFAULT '0' COMMENT '上衣颜色',
+  `coat_color_str` varchar(10) NOT NULL DEFAULT '' COMMENT '上衣颜色描述',
+  `coat_type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '上衣类型',
+  `coat_type_str` varchar(10) NOT NULL DEFAULT '' COMMENT '上衣类型描述',
+  `trousers_color` tinyint(2) NOT NULL DEFAULT '0' COMMENT '下衣颜色',
+  `trousers_color_str` varchar(10) NOT NULL DEFAULT '' COMMENT '下衣颜色描述',
+  `trousers_type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '下衣类型',
+  `trousers_type_str` varchar(10) NOT NULL DEFAULT '' COMMENT '下衣类型描述',
+  `has_hat` tinyint(2) NOT NULL DEFAULT '0' COMMENT '是否带帽子 1不戴帽子 2戴帽子',
+  `has_bag` tinyint(2) NOT NULL DEFAULT '0' COMMENT '是否背包 1不带包 2带包',
+  `device_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '设备类型 1入门设备，2出门设备',
+  `create_at` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `cs` (`community_id`,`supplier_id`) USING BTREE,
+  KEY `time_index` (`open_time`) USING BTREE,
+  KEY `device_no` (`device_no`) USING BTREE,
+  KEY `open_type` (`open_type`) USING BTREE,
+  KEY `user_phone` (`user_phone`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='开门记录表';
+
+
+CREATE TABLE `door_photos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `supplier_id` int(11) NOT NULL DEFAULT '0' COMMENT '供应商id',
+  `capture_photo` varchar(300) DEFAULT '' COMMENT '抓拍的图片',
+  `call_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '呼叫方式：1手机呼叫 2房号呼叫',
+  `call_time` int(11) NOT NULL DEFAULT '0' COMMENT '呼叫时间',
+  `user_name` varchar(20) DEFAULT '' COMMENT '被呼叫用户姓名',
+  `user_phone` varchar(15) DEFAULT '' COMMENT '被呼叫人手机号',
+  `user_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '被呼叫用户类型:1业主 2家人 3租客 4访客',
+  `device_no` varchar(50) DEFAULT '0' COMMENT '设备编号',
+  `device_name` varchar(50) DEFAULT '' COMMENT '设备名称',
+  `group` varchar(20) DEFAULT NULL COMMENT '苑期区',
+  `building` varchar(20) DEFAULT NULL,
+  `unit` varchar(20) DEFAULT '0' COMMENT '楼宇幢单元',
+  `room` varchar(20) DEFAULT NULL COMMENT '室',
+  `room_id` int(11) DEFAULT '0' COMMENT '室',
+  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='门禁抓拍记录表';
+
+CREATE TABLE `door_last_visit` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区Id',
+  `community_name` varchar(50) NOT NULL COMMENT '小区名称',
+  `room_id` int(11) NOT NULL COMMENT '最后一次访问房屋id',
+  `out_room_id` varchar(100) NOT NULL COMMENT '商户系统小区房屋唯一ID标示',
+  `room_address` varchar(200) NOT NULL COMMENT '最后一次访问房屋地址',
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '业主id',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='用户选择房屋表';
+
+CREATE TABLE `door_key` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `community_name` varchar(50) DEFAULT '' COMMENT '小区名称',
+  `device_id` int(11) NOT NULL DEFAULT '0' COMMENT '门禁id',
+  `room_id` int(11) NOT NULL DEFAULT '0' COMMENT '室id',
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '业主id',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '插入时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='门禁常用钥匙表';
+
+CREATE TABLE `door_devices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL COMMENT '小区id',
+  `supplier_id` int(11) NOT NULL DEFAULT '0' COMMENT '供应商id',
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '门禁名称',
+  `type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '设备类型：1单元机2围墙机',
+  `device_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '开门类型，1入门设备，2出门设备',
+  `device_id` varchar(100) NOT NULL DEFAULT '' COMMENT '设备序列号',
+  `note` text,
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '状态：1启用 2禁用',
+  `online_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1在线 2离线 3设备常开，未自动关闭',
+  `open_door_type` varchar(10) NOT NULL DEFAULT '0' COMMENT '开门方式类型:1.人脸,2.蓝牙,3.二维码,4.电子钥匙,5密码 说明:多个方式逗号分隔',
+  `update_time` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='门禁设备表';
+
+CREATE TABLE `door_device_unit` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `devices_id` int(11) NOT NULL DEFAULT '0' COMMENT '关联设备表Id',
+  `group_id` int(11) NOT NULL DEFAULT '0' COMMENT '苑期区id',
+  `building_id` int(11) NOT NULL DEFAULT '0' COMMENT '楼幢id',
+  `unit_id` int(11) NOT NULL DEFAULT '0' COMMENT '单元Id',
+  `created_at` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='门禁权限表';
+
+CREATE TABLE `door_device_broken` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `supplier_id` int(11) NOT NULL DEFAULT '0' COMMENT '供应商id',
+  `deviceNo` varchar(50) NOT NULL COMMENT '设备编号',
+  `deviceName` varchar(50) DEFAULT NULL COMMENT '设备名称',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '设备状态 1在线 2离线 3设备常开，未自动关闭',
+  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='设备故障表';
+
+CREATE TABLE `ps_room_vistors` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `room_id` int(11) NOT NULL DEFAULT '0' COMMENT '房屋id',
+  `community_id` int(11) NOT NULL DEFAULT '0' COMMENT '小区id',
+  `group` varchar(32) NOT NULL DEFAULT '' COMMENT '苑期区',
+  `building` varchar(32) NOT NULL DEFAULT '' COMMENT '幢',
+  `unit` varchar(32) NOT NULL DEFAULT '' COMMENT '单元',
+  `room` varchar(64) NOT NULL DEFAULT '' COMMENT '室',
+  `app_user_id` int(11) NOT NULL DEFAULT '0' COMMENT '添加此访客的支付宝用户id',
+  `member_id` int(11) NOT NULL DEFAULT '0' COMMENT '住户id',
+  `vistor_name` varchar(20) NOT NULL DEFAULT '' COMMENT '访客姓名',
+  `vistor_mobile` varchar(15) NOT NULL DEFAULT '' COMMENT '访客手机号',
+  `vistor_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '访客类型 1临时访客 2预约访客',
+  `start_time` int(11) NOT NULL DEFAULT '0' COMMENT '到访开始时间',
+  `end_time` int(11) NOT NULL DEFAULT '0' COMMENT '到访结束时间',
+  `device_name` varchar(50) NOT NULL DEFAULT '' COMMENT '门禁名称',
+  `code` varchar(20) NOT NULL DEFAULT '' COMMENT '访客密码',
+  `qrcode` varchar(100) DEFAULT '' COMMENT '二维码url',
+  `car_number` varchar(15) NOT NULL DEFAULT '' COMMENT '车牌号',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '访问状态 1待访 2已访 3过期',
+  `is_cancel` tinyint(1) DEFAULT '2' COMMENT '取消邀请:1是，2否',
+  `is_del` tinyint(1) DEFAULT '2' COMMENT '是否删除：1是。2否',
+  `is_msg` tinyint(1) DEFAULT '2' COMMENT '发送短信:1已发，2未发',
+  `people_num` tinyint(2) NOT NULL DEFAULT '1' COMMENT '来访人数',
+  `reason_type` tinyint(1) DEFAULT '0' COMMENT '来访事由：1亲戚朋友，2中介看房，3搬家放行，4送货上门，5装修放行，6家政服务，9其他',
+  `reason` varchar(200) DEFAULT '' COMMENT '来访事由为其他时的备注',
+  `addtion_id` int(10) DEFAULT '0' COMMENT '补录人ID',
+  `addtion_prople` varchar(20) DEFAULT '' COMMENT '补录人名称',
+  `passage_at` int(10) DEFAULT '0' COMMENT '通行时间',
+  `passage_num` tinyint(1) DEFAULT '0' COMMENT '通行次数：不能超过3次',
+  `face_url` varchar(400) DEFAULT '' COMMENT '人脸图片',
+  `sex` tinyint(1) NOT NULL DEFAULT '1' COMMENT '性别，1男，2女',
+  `sync` tinyint(1) NOT NULL DEFAULT '0' COMMENT '同步到期访客给java，0还未同步，1同步删除成功，2同步失败',
+  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='房屋对应的访客表';
+
+
+

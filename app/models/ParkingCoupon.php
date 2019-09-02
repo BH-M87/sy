@@ -2,7 +2,9 @@
 
 namespace app\models;
 
+use common\MyException;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "parking_coupon".
@@ -29,8 +31,13 @@ use Yii;
  * @property int $updated_at 创建时间
  * @property int $version 乐观锁版本号
  */
-class ParkingCoupon extends \yii\db\ActiveRecord
+class ParkingCoupon extends BaseModel
 {
+    public $activity_start_date;
+    public $activity_end_date;
+    public $start_date;
+    public $end_date;
+
     /**
      * {@inheritdoc}
      */
@@ -45,9 +52,30 @@ class ParkingCoupon extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            ['id', 'required', 'message' => '{attribute}不能为空', 'on' => ['update', 'download', 'view', 'delete']],
             [['community_id', 'type', 'amount', 'amount_left', 'amount_use', 'expired_day', 'start_time', 'end_time', 'date_type', 'user_limit', 'activity_start', 'activity_end', 'deleted', 'created_at', 'updated_at', 'version'], 'integer'],
+            [
+                [
+                    'community_id',
+                    'title',
+                    'type',
+                    'activity_start_date',
+                    'activity_end_date',
+                    'user_limit',
+                    'money',
+                    //'date_type',
+                    'note',
+                    'amount',
+                ],
+                'required',
+                'message' => '{attribute}不能为空',
+                'on' => ['create', 'update']],
+            [['activity_start_date', 'activity_end_date'], 'date', 'format' => 'yyyy-mm-dd', 'message' => '{attribute}格式错误'],
+            ['activity_start_date', 'compare', 'compareAttribute' => 'activity_end_date', 'operator' => '<=', 'message' => '开始时间必须小于结束时间'],
+            //[['start_date', 'end_date'], 'date', 'format' => 'yyyy-mm-dd', 'message' => '{attribute}格式错误'],
+            //['start_date', 'compare', 'compareAttribute' => 'end_date', 'operator' => '<=', 'message' => '开始时间必须小于结束时间'],
+            [['type', 'date_type'], 'in', 'range' => [1, 2], 'message' => '{attribute}只能是1或者2!'],
             [['money'], 'number'],
-            [['amount', 'amount_left'], 'required'],
             [['note'], 'string'],
             [['title'], 'string', 'max' => 200],
             [['code_url'], 'string', 'max' => 250],
@@ -60,27 +88,66 @@ class ParkingCoupon extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'community_id' => 'Community ID',
-            'title' => 'Title',
-            'type' => 'Type',
-            'money' => 'Money',
-            'amount' => 'Amount',
-            'amount_left' => 'Amount Left',
-            'amount_use' => 'Amount Use',
-            'expired_day' => 'Expired Day',
-            'start_time' => 'Start Time',
-            'end_time' => 'End Time',
-            'date_type' => 'Date Type',
-            'user_limit' => 'User Limit',
-            'activity_start' => 'Activity Start',
-            'activity_end' => 'Activity End',
-            'code_url' => 'Code Url',
-            'note' => 'Note',
+            'id' => '优惠券编号',
+            'community_id' => '小区编号',
+            'title' => '活动名称',
+            'status' => 'Status',
+            'type' => '优惠券类型',
+            'money' => '优惠券面值',
+            'amount' => '总数量',
+            'amount_left' => '剩余数量',
+            'amount_use' => '使用数量',
+            'expired_day' => '有效期',
+            'start_date' => '券使用有效期开始时间',
+            'end_date' => '券使用有效期结束时间',
+            'date_type' => '券使用有效期类型',
+            'user_limit' => '每人领取券的上限',
+            'activity_start_date' => '活动开始时间',
+            'activity_end_date' => '活动结束时间',
+            'code_url' => '二维码链接地址',
+            'note' => '使用说明',
             'deleted' => 'Deleted',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'version' => 'Version',
+        ];
+    }
+
+    /**
+     * @api 统一验证
+     * @author wyf
+     * @date 2019/7/2
+     * @param $data
+     * @param $scenario
+     * @return mixed
+     * @throws MyException
+     */
+    public function validParamArr($data, $scenario)
+    {
+        if (!empty($data)) {
+            $this->setScenario($scenario);
+            $datas["data"] = $data;
+            $this->load($datas, "data");
+            if ($this->validate()) {
+                return $data;
+            } else {
+                $errorMsg = array_values($this->errors);
+                throw new MyException($errorMsg[0][0]);
+            }
+        } else {
+            throw new MyException('未接受到有效数据');
+        }
+    }
+
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::className(),
+                'createdAtAttribute' => 'created_at',
+                'updatedAtAttribute' => 'updated_at',
+                //'value' => new Expression('NOW()'),
+            ],
         ];
     }
 }
