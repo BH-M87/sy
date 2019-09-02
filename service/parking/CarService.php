@@ -440,7 +440,7 @@ class CarService extends BaseService
             //查询车场
             $lotInfo = ParkingLot::find()
                 ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
-                ->where(['lot_name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
+                ->where(['name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
             if (!$lotInfo) {
@@ -454,7 +454,7 @@ class CarService extends BaseService
             //查询车位
             $carportInfo = ParkingCarport::find()
                 ->select(['id', 'car_port_status'])
-                ->where(['car_port_num' => $row['car_port_num'], 'lot_id' => $row['lot_id']])
+                ->where(['car_port_num' => trim($row['car_port_num']), 'lot_id' => $tmpCarData['lot_id']])
                 ->andWhere(['community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
@@ -504,7 +504,6 @@ class CarService extends BaseService
             }
             $success[] = $tmpCarData;
         }
-
         $this->saveImport($success, $params['community_id']);
         $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
         $fail =  ExcelService::service()->getErrorCount();
@@ -538,12 +537,11 @@ class CarService extends BaseService
             } else {
                 $val['carport_pay_type'] = 2; //租赁
             }
-
             $carReq['car_num'] = $val['car_num'];
             $carReq['community_id'] = $communityId;
-            $carReq['car_model'] = $val['car_model'];
-            $carReq['car_color'] = $val['car_color'];
-            $carReq['car_delivery'] = $val['car_delivery'];
+            $carReq['car_model'] = F::value($val, 'car_model', '');
+            $carReq['car_color'] = F::value($val,'car_color', '');
+            $carReq['car_delivery'] = F::value($val,'car_delivery', 0);
             list($carId, $error) = $this->_saveCarData($carReq);
             $val['car_id'] = $carId;
 
@@ -747,7 +745,7 @@ class CarService extends BaseService
             'unit' => ['title' => '单元'],
             'room' => ['title' => '房号'],
             'user_name' => ['title' => '车主姓名', 'rules' => ['required' => true]],
-            'user_mobile' => ['title' => '联系电话'],
+            'user_mobile' => ['title' => '联系电话','rules' => ['required' => true]],
             'lot_name' => ['title' => '所在停车场', 'rules' => ['required' => true]],
             'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
             'car_model' => ['title' => '车辆型号'],

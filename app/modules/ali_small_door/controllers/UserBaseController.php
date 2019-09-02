@@ -14,10 +14,15 @@ use common\core\F;
 class UserBaseController extends BaseController
 {
     public $appUserId;
+    public $enableAction;//不需要验证app_user_id的方法
 
     public function beforeAction($action)
     {
         if(!parent::beforeAction($action)) return false;
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (in_array($action->id, $this->enableAction)) {
+            return true;
+        }
         $this->appUserId = F::value($this->params, 'app_user_id');
         if (!$this->appUserId) {
             return F::apiFailed('用户id不能为空！');

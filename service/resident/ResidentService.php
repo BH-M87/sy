@@ -142,16 +142,22 @@ class ResidentService extends BaseService
         $psAreas = AreaService::service()->getNamesByCodes($areaCodes);
         if ($model) {
             $label = PsLabelsRela::find()->select('labels_id')->where(['data_id' => $model['id'], 'data_type' => 2])->asArray()->all();//标签id
+            $model['user_label'] = [];
+            $model['user_label_id'] = [];
             if (!empty($label)) {
                 foreach ($label as $k => $v) {
+                    $psLabels = PsLabels::findOne($v['labels_id']);
                     $model['user_label'][$k]['id'] = $v['labels_id'];
-                    $model['user_label'][$k]['name'] = PsLabels::findOne($v['labels_id'])->name;
+                    $model['user_label'][$k]['name'] = $psLabels->name;
+                    $model['user_label'][$k]['label_type'] = $psLabels->label_type;
+
+                    $model['user_label_id'][] = $v['labels_id'];
                 }
             }
             //edit by wenchao.feng 虚拟手机号处理
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? "" : $model['mobile'];
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
-            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
+            $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '0';
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
             $model['out_time'] = $model['out_time'] > 0 ? date("Y-m-d H:i:s", $model['out_time']) : "-";
             $model['create_at'] = $model['create_at'] > 0 ? date("Y-m-d", $model['create_at']) : "-";
@@ -438,7 +444,7 @@ class ResidentService extends BaseService
         $houses = $this->relatedHouse($id);
         $housesIds = array_column($houses['list'], 'room_id');
 
-        $query = PsRoomUser::find()->select('id, name, mobile, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
+        $query = PsRoomUser::find()->select('id, name, mobile, sex, card_no, room_id, member_id, identity_type, status, group, building, unit, room, time_end, create_at, auth_time')
             ->where(['room_id' => $housesIds, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
         $total = $query->count();
         if ($page && $rows) {
@@ -447,6 +453,7 @@ class ResidentService extends BaseService
 
         $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
+            $model['sex'] = $model['sex'] == 1 ? '男' : '女';
             $model['card_no'] = F::processIdCard($model['card_no']);
             $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '长期';
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
@@ -526,7 +533,7 @@ class ResidentService extends BaseService
 
         $data['create_at'] = $data['create_at'] ? date('Y-m-d', $data['create_at']) : 0;
         $data['update_at'] = $data['update_at'] ? date('Y-m-d', $data['update_at']) : 0;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '0';
         $data['accept_at'] = $data['accept_at'] ? date('Y-m-d', $data['accept_at']) : '';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         $data['images'] = $data['images'] ? explode(',', $data['images']) : [];
@@ -1292,7 +1299,7 @@ class ResidentService extends BaseService
             ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status')
             ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
-        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '长期';
+        $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '0';
         $data['identity_type_des'] = PsCommon::getIdentityType($data['identity_type'], 'key');
         return $data;
     }
