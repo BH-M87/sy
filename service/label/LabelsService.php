@@ -147,7 +147,8 @@ Class LabelsService extends BaseService
             $arr['id'] = $k;
             $arr['name'] = $v;
             $arr['children'] = PsLabels::find()->select('id, name')->where(['label_type' => $k])
-                ->andFilterWhere(['label_attribute' => $param['type']])->asArray()->all();
+                ->andFilterWhere(['label_attribute' => $param['type']])
+                ->andFilterWhere(['is_delete' => 2])->asArray()->all();
 
             $list[] = $arr;
         }
