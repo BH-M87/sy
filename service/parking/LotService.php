@@ -118,16 +118,20 @@ class LotService extends BaseService
             return $this->failed('车场名重复');
         }
 
-        if (!empty($params['supplier_id']) && $model->supplier_id != $params['supplier_id']) {
+        if (!empty($params['supplier_id']) && $model->supplier_id && $model->supplier_id != $params['supplier_id']) {
             return $this->failed('供应商不可编辑');
         }
-        if (!empty($params['parkCode']) && $model->park_code != $params['parkCode']) {
+        if (!empty($params['parkCode']) && $model->park_code && $model->park_code != $params['parkCode']) {
             return $this->failed('设备对应车场不可编辑');
         }
 
         $model->name = F::value($params,'name', '');
         $model->lon = F::value($params,'lon', 0);
         $model->lat = F::value($params,'lat', 0);
+        $model->supplier_id = $params['supplier_id'];
+        $model->park_code = $params['parkCode'];
+        $model->iot_park_name = F::value($params,'parkName', '');
+        $model->parkId = F::value($params,'parkId', '');
         $model->location = F::value($params,'location', '');
         if ($model->save()) {
             return $this->success();
