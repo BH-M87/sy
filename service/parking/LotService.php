@@ -128,6 +128,8 @@ class LotService extends BaseService
         $model->name = F::value($params,'name', '');
         $model->lon = F::value($params,'lon', 0);
         $model->lat = F::value($params,'lat', 0);
+        $model->supplier_id = $params['supplier_id'];
+        $model->park_code = $params['parkCode'];
         $model->location = F::value($params,'location', '');
         if ($model->save()) {
             return $this->success();
