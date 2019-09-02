@@ -228,7 +228,7 @@ Class LabelsService extends BaseService
     {
         $list = PsLabelsRela::find()->alias('lr')
             ->leftJoin(['l'=>PsLabels::tableName()],'l.id = lr.labels_id')
-            ->select(['l.id','l.name'])
+            ->select(['l.id','l.name', 'l.label_type'])
             ->where(['lr.data_id'=>$carId,'lr.data_type'=>3,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }

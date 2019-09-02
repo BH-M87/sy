@@ -321,6 +321,7 @@ class RepairService extends BaseService
             if ($useAs == 'small') {
                 $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
                 $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
+                $model->appuser_id = $params['app_user_id'];
             } else {
                 $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
                 $model->contact_mobile = $params['contact_mobile'];
@@ -363,7 +364,8 @@ class RepairService extends BaseService
         //TODO 发送站内消息
         if ($useAs != 'small') {
         }
-        return $model->id;
+        $re['id'] = $model->id;
+        return $re;
     }
 
     //工单详情
@@ -486,7 +488,8 @@ class RepairService extends BaseService
 //            SmsService::service()->init(27, $user["mobile"])->send();
             //TODO 钉消息，站内消息等处理
             $transaction->commit();
-            return true;
+            $re['releate_id'] = $params['repair_id'];
+            return $re;
         } catch (Exception $e) {
             $transaction->rollBack();
             return $e->getMessage();
