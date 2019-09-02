@@ -94,6 +94,7 @@ Class LabelsService extends BaseService
         // return $this->failed('删除的前置条件为标签没有使用');
 
         if (PsLabels::updateAll(['is_delete' => 2], ['id' => $param['id']])) {
+            PsLabelsRela::deleteAll(['labels_id' => $param['id']]);
             return $this->success();
         }
 
