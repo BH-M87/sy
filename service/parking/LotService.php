@@ -118,10 +118,10 @@ class LotService extends BaseService
             return $this->failed('车场名重复');
         }
 
-        if (!empty($params['supplier_id']) && $model->supplier_id != $params['supplier_id']) {
+        if (!empty($params['supplier_id']) && $model->supplier_id && $model->supplier_id != $params['supplier_id']) {
             return $this->failed('供应商不可编辑');
         }
-        if (!empty($params['parkCode']) && $model->park_code != $params['parkCode']) {
+        if (!empty($params['parkCode']) && $model->park_code && $model->park_code != $params['parkCode']) {
             return $this->failed('设备对应车场不可编辑');
         }
 
