@@ -16,6 +16,7 @@ use service\small\FamilyManageService;
 
 class FamilyManageController extends UserBaseController
 {
+    public $enableAction = ['delete'];
     //获取住户信息
     public function actionList()
     {
@@ -28,7 +29,7 @@ class FamilyManageController extends UserBaseController
     {
         $data['resident_id'] = PsCommon::get($this->params, 'resident_id');
         $data['rid'] = PsCommon::get($this->params, 'rid');
-
+        $data['user_id'] = PsCommon::get($this->params, 'user_id');
         $result = FamilyManageService::service()->delResidentList($data);
         return F::apiSuccess($result);
     }

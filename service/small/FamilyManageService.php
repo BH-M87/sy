@@ -455,9 +455,9 @@ class FamilyManageService extends BaseService
             throw new MyException('用户不存在');
         }
         if (!empty($params['resident_id'])) {
-            return ResidentService::service()->removeChild($params['resident_id'], $memberId);
+            return $this->removeChild($params['resident_id'], $memberId);
         } else {
-            return ResidentService::service()->removeResiden($params['rid'], $memberId);
+            return $this->removeResiden($params['rid'], $memberId);
         }
     }
 

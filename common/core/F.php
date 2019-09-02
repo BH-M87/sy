@@ -510,5 +510,19 @@ class F
         }
         return '';
     }
+
+    //因为小程序跟物业后台的返回类型不一样，因此在调用Exception的时候，小程序端需要设置一下smallStatus
+    public static $smallStatus = '';
+    public static function setSmallStatus()
+    {
+        return self::$smallStatus = 1;
+    }
+
+    public static function getSmallStatus()
+    {
+        return self::$smallStatus;
+    }
+
+
 }
 
