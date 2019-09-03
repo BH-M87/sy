@@ -25,7 +25,7 @@ class HomeController extends UserBaseController
         if (!$authCode) {
             return F::apiFailed("授权码不能为空！");
         }
-        $system_type = F::value($this->params, 'system_type','door');
+        $system_type = F::value($this->params, 'system_type','edoor');
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
         $r = $service->getToken($authCode);
