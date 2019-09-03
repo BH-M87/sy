@@ -83,10 +83,11 @@ class CommunityRoomService extends BaseService
                 $info['list'] = $communityInfo;
             } else {
                 $info['list'] = $communityInfo;
+                $info['lat_info'] = [];
             }
         } else {
             $info['list'] = [];
-            //$info['lat_info'] = (new \stdClass());
+            $info['lat_info'] = [];
         }
         return $info;
     }

@@ -515,15 +515,15 @@ class RoomUserService extends BaseService
      */
     public function view($params)
     {
-        $communityId = F::get($params, 'community_id');
+        $communityId = PsCommon::get($params, 'community_id');
         if (empty($communityId)) {
             throw new MyException('小区id不能为空');
         }
-        $id = F::get($params, 'audit_record_id');
+        $id = PsCommon::get($params, 'audit_record_id');
         $type = 1;
         if (empty($id)) {
             $type = 2;
-            $id = F::get($params, 'rid');
+            $id = PsCommon::get($params, 'rid');
             if (empty($id)) {
                 throw new MyException('房屋id/审核id不能都为空');
             }

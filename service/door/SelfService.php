@@ -10,6 +10,8 @@ namespace service\door;
 
 use common\core\PsCommon;
 use service\BaseService;
+use service\resident\ResidentService;
+use service\room\RoomService;
 
 class SelfService extends BaseService
 {

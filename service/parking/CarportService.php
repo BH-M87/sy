@@ -230,7 +230,7 @@ class CarportService extends BaseService
         $requestArr['room_address'] = '';
         if(!empty($requestArr['group']) && !empty($requestArr['building']) && !empty($requestArr['unit']) && !empty($requestArr['room'])){
             //获取房屋信息
-            $room = RoomService::service()->findRoom($community_id, $requestArr['group'], $requestArr['building'], $requestArr['unit'], $requestArr['room']);
+            $room = \service\room\RoomService::service()->findRoom($community_id, $requestArr['group'], $requestArr['building'], $requestArr['unit'], $requestArr['room']);
             if (!$room) {
                 return "房屋信息不正确";
             } else {

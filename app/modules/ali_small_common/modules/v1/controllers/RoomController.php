@@ -11,6 +11,7 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 
 use app\modules\ali_small_common\controllers\UserBaseController;
 use common\core\F;
+use service\small\MemberService;
 use service\small\RoomUserService;
 
 class RoomController extends UserBaseController
@@ -41,5 +42,19 @@ class RoomController extends UserBaseController
     {
         $result = RoomUserService::service()->view($this->params);
         return F::apiSuccess($result);
+    }
+
+    //标记已选择房屋
+    public function actionSmallList()
+    {
+        $r = $this->params;
+        $r['app_user_id'] = $this->appUserId;
+        $result = MemberService::service()->smallSelcet($r);
+        if($result['code']){
+            return F::apiSuccess($result['data']);
+        }else{
+            return F::apiFailed($result['msg']);
+        }
+
     }
 }
