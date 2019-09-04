@@ -16,12 +16,12 @@ $data['external_invoke_small_address_park'] = 'https://wuye.zje.com/alipay/notif
 //临时停车二维码地址
 $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
 //小程序配置
-$data['small_app_id'] = '2017091308707970';
-$data['small_alipay_public_key_file'] = $basePath."/common/rsa_files/small/alipay_public.txt";
-$data['small_rsa_private_key_file'] = $basePath."/common/rsa_files/small/rsa_private.txt";
+$data['fczl_app_id'] = '2017091308707970';
+$data['fczl_alipay_public_key_file'] = $basePath."/common/rsa_files/fczl/alipay_public.txt";
+$data['fczl_rsa_private_key_file'] = $basePath."/common/rsa_files/fczl/rsa_private.txt";
 // 门禁配置
-$data['door_app_id'] = '2018062960478244';
-$data['door_alipay_public_key_file'] = $basePath."/common/rsa_files/door/alipay_public.txt";
-$data['door_rsa_private_key_file'] = $basePath."/common/rsa_files/door/rsa_private.txt";
+$data['edoor_app_id'] = '2018062960478244';
+$data['edoor_alipay_public_key_file'] = $basePath."/common/rsa_files/edoor/alipay_public.txt";
+$data['edoor_rsa_private_key_file'] = $basePath."/common/rsa_files/edoor/rsa_private.txt";
 
 return $data;

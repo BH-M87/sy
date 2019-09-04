@@ -7,7 +7,7 @@ $params = array_merge(
     require(__DIR__ . '/' . $paramsEnvFile)
 );
 
-return [
+$config =  [
     'id' => 'app-app',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\controllers',
@@ -17,7 +17,8 @@ return [
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-app',
-            'cookieValidationKey' => '',
+            'enableCsrfValidation' => false,
+            'cookieValidationKey' => true,
         ],
         'user' => [
             'identityClass' => 'common\models\User',
@@ -86,8 +87,21 @@ return [
         //七牛上传
         'qiniu' => [
             'class' => 'app\modules\qiniu\Qiniu'
+        ],
+        //街道相关
+        'street' => [
+            'class' => 'app\modules\street\Module'
         ]
 
     ],
     'params' => $params,
+
 ];
+
+if (YII_ENV != 'master' && YII_ENV != 'test' && YII_ENV != 'release') {
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = [
+        'class' => 'yii\gii\Module',
+    ];
+}
+return $config;

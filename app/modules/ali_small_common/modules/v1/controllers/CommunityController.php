@@ -17,6 +17,7 @@ use service\small\CommunityRoomService;
 
 class CommunityController extends UserBaseController
 {
+    public $enableAction = ['list','house-list','room-list'];
     /**
      * @api 获取小区列表-包含定位信息
      * @author wyf
@@ -72,7 +73,7 @@ class CommunityController extends UserBaseController
         if (empty($building_id)){
             throw new MyException('楼幢编号不能为空');
         }
-        $data = CommunityRoomService::RoomList($building_id);
+        $data = CommunityRoomService::roomList($building_id);
         $result = CommunityRoomService::service()->transFormRoomInfo($data);
         return F::apiSuccess($result);
     }

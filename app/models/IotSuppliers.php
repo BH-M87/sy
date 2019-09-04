@@ -27,7 +27,7 @@ class IotSuppliers extends BaseModel
      */
     public static function tableName()
     {
-        return 'parking_suppliers';
+        return 'iot_suppliers';
     }
 
     /**

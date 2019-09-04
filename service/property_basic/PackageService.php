@@ -6,6 +6,7 @@
  */
 namespace service\property_basic;
 
+use service\room\RoomService;
 use Yii;
 use common\core\PsCommon;
 use app\models\PsCommunityRoominfo;

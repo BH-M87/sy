@@ -6,6 +6,7 @@
 
 namespace common;
 
+use common\core\F;
 use common\core\PsCommon;
 use yii\web\ErrorHandler;
 use yii\web\Response;
@@ -16,6 +17,7 @@ class MyErrorHandler extends ErrorHandler
 
     public function renderException($exception)
     {
+
         if ($exception instanceof HttpException) {
             $result['code'] = $exception->statusCode;
             $result['msg'] = $exception->getMessage();
@@ -28,6 +30,12 @@ class MyErrorHandler extends ErrorHandler
         } else {
             $message = 'Error';
         }
-        return PsCommon::responseFailed($message);
+        $status = F::getSmallStatus();
+        if($status){
+            return F::apiFailed($message);
+        }else{
+            return PsCommon::responseFailed($message);
+        }
+
     }
 }

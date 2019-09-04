@@ -20,10 +20,11 @@ class UserBaseController extends BaseController
     {
         if(!parent::beforeAction($action)) return false;
         //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction)) {
+        if (!empty($this->enableAction) && in_array($action->id, $this->enableAction)) {
             return true;
         }
-        $this->appUserId = F::value($this->params, 'app_user_id');
+        F::setSmallStatus();
+        $this->appUserId = F::value($this->params, 'user_id');
         if (!$this->appUserId) {
             return F::apiFailed('用户id不能为空！');
         }

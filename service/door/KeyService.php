@@ -8,6 +8,9 @@
  */
 namespace service\door;
 
+use app\models\PsAppMember;
+use app\models\PsAppUser;
+use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsRoomUser;
@@ -180,14 +183,14 @@ class KeyService extends BaseService
     {
         $model = $this->get_user_info($appUserId,2)->asArray()->all();//已认证的房屋
         if($model){
-            $url_send = $this->getOpenDoorUrl('inner/v1/key/get-keys');
             $data['member_id'] = $memberId;
             $data['list'] = json_encode($model);
             $data['community_id'] = 'test';//小区id必传
-            $data['keys'] = PsMember::find()->select(['keys'])->where(['id'=>$memberId])->asArray()->scalar();
-            $params['data'] = json_encode($data);
-            $result =  $this->apiPost($url_send,$params,false,false);
-            if($result['errCode'] == '0'){
+            //$data['keys'] = PsMember::find()->select(['keys'])->where(['id'=>$memberId])->asArray()->scalar();
+            $data['keys'] = PsAppUser::find()->select(['keys'])->where(['id'=>$appUserId])->asArray()->scalar();
+            //$params['data'] = json_encode($data);
+            $result = OpenKeyService::service()->get_keys($data);
+            if($result['code']){
                 return $this->success($result['data']);
             }else{
                 return $this->failed($result['errMsg']);
@@ -354,7 +357,6 @@ class KeyService extends BaseService
     //访客密码
     public function visitor_password($user_id,$room_id,$pwd_type)
     {
-        $url_send = $this->getOpenDoorUrl('inner/v1/key/visitor-password');
         $member_id = $this->getMemberByUser($user_id);
         $data = $this->get_user_data($room_id,$member_id);
         if(!$data){
@@ -364,9 +366,9 @@ class KeyService extends BaseService
         $data['member_id'] = $member_id;
         $data['pwd_type'] = $pwd_type;//访问类型1密码，2二维码
         $data['visitor_type'] = 0;
-        $paramsData['data'] = json_encode($data);
-        $result =  $this->apiPost($url_send,$paramsData,false,false);
-        if($result['errCode'] == '0'){
+        //$paramsData['data'] = json_encode($data);
+        $result = OpenKeyService::service()->visitor_password($data);
+        if($result['code']){
             return $this->success($result['data']);
         } else {
             return $this->failed($result['errMsg']);

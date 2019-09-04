@@ -9,17 +9,23 @@
 namespace service\small;
 
 
+use app\models\DoorLastVisit;
 use app\models\PsAliToken;
 use app\models\PsAppMember;
 use app\models\PsCommunityModel;
+use app\models\PsCommunityRoominfo;
 use app\models\PsOrder;
 use app\models\PsPropertyIsvToken;
 use app\models\PsMember;
+use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
 use app\modules\small\services\BillSmallService;
 use service\alipay\AlipayBillService;
 use service\alipay\BillCostService;
 use service\BaseService;
+use service\door\KeyService;
+use service\room\RoomService;
+use yii\db\Query;
 
 class MemberService extends BaseService
 {
@@ -246,6 +252,130 @@ class MemberService extends BaseService
     {
         $columns = $withCard ? ['id', 'name', 'sex', 'mobile', 'member_card', 'face_url'] : ['id', 'name', 'sex', 'mobile', 'face_url', 'is_real'];
         return PsMember::find()->select($columns)->where(['id' => $memberId])->asArray()->one();
+    }
+
+    //获取首页数据
+    public function homeData($params)
+    {
+        $roomInfo = PsCommunityRoominfo::find()
+            ->alias('roominfo')
+            ->leftJoin('ps_community comm', 'comm.id=roominfo.community_id')
+            ->select(['comm.id as community_id', 'comm.name as community_name', 'roominfo.out_room_id', 'roominfo.id as room_id', 'roominfo.address as room_address','roominfo.unit_id','roominfo.unit_id'])
+            ->where(['roominfo.id' => $params['room_id']])
+            ->asArray()
+            ->one();
+        if (!$roomInfo) {
+            return $this->failed('房屋不存在');
+        }
+
+        //查询业主
+        $memberInfo = PsAppMember::find()
+            ->alias('a')
+            ->leftJoin('ps_member member', 'member.id=a.member_id')
+            ->select(['member.face_url', 'a.member_id'])
+            ->where(['a.app_user_id' => $params['app_user_id']])
+            ->asArray()
+            ->one();
+        if (!$memberInfo) {
+            return $this->failed('业主不存在');
+        }
+        $responseData = array_merge($roomInfo, $memberInfo);
+        unset($responseData['member_id']);
+        // 根据供应商判断这个用户是否有扫码、访客密码、住户密码、反扫码的权限
+        $unitId = $roomInfo['unit_id'];
+        $responseData = \service\door\MemberService::service()->_suppliers($unitId);
+        //保存最近一次访问的房屋
+        $visitModel = DoorLastVisit::find()
+            ->where(['member_id' => $memberInfo['member_id']])
+            ->one();
+        if (!$visitModel) {
+            $visitModel = new DoorLastVisit();
+            $visitModel->member_id = $memberInfo['member_id'];
+        }
+        $visitModel->community_id = $roomInfo['community_id'];
+        $visitModel->community_name = $roomInfo['community_name'];
+        $visitModel->room_id = $roomInfo['room_id'];
+        $visitModel->out_room_id = $roomInfo['out_room_id'];
+        $visitModel->room_address = $roomInfo['room_address'];
+        $visitModel->update_at = time();
+        $visitModel->save();
+
+        //查看常用钥匙
+        $responseData['keys'] = [];
+        $keyRe = KeyService::service()->get_keys($params['app_user_id'], $memberInfo['member_id']);
+        if ($keyRe['code'] == 1) {
+            $responseData['keys'] = $keyRe['data'];
+        }
+        //查看住户密码
+        $query = new Query();
+        $roomPassword = $query->select(['code as password','expired_time'])
+            ->from('door_room_password')
+            ->where(['room_id' => $params['room_id'], 'member_id' => $memberInfo['member_id']])
+            ->andWhere(['!=', 'code', ''])
+            ->andWhere(['>', 'expired_time', time()])
+            ->orderBy('id desc')
+            ->limit(1)
+            ->one();
+        if (!empty($roomPassword)) {
+            $roomPassword['expired_time'] = date("Y-m-d H:i:s", $roomPassword['expired_time']);
+        } else {
+            if ($responseData['link_pwd_name']) {
+                $re = KeyService::service()->visitor_password($params['app_user_id'],$params['room_id'],2);
+                if ($re['code'] == 1) {
+                    $keyData = $re['data'];
+                    $roomPassword['password'] = $keyData['password'];
+                    $roomPassword['expired_time'] = $keyData['expired_time'];
+                }
+            }
+        }
+        $responseData['room_password'] = !empty($roomPassword) ? $roomPassword : [];
+        return $this->success($responseData);
+    }
+
+    // 标记已选择房屋 提交房屋认证的时候也会调用
+    public function smallSelcet($params)
+    {
+        $app_user_id = $params['app_user_id'];
+
+        //查询业主
+        $member_id = PsAppMember::find()->alias('a')->leftJoin('ps_member member', 'member.id = a.member_id')
+            ->select(['a.member_id'])
+            ->where(['a.app_user_id' => $app_user_id])->scalar();
+        if (!$member_id) {
+            return $this->failed('业主不存在');
+        }
+
+        if (!empty($params['is_submit'])) { // 标记为提交房屋认证
+            $roomUser = PsRoomUser::find()->select(['id'])->where(['member_id' => $member_id])->asArray()->one();
+            $residentAudit = PsResidentAudit::find()->select(['id'])->where(['member_id' => $member_id])->asArray()->one();
+            $room_id = RoomService::service()->findRoom($params['community_id'], $params['group'], $params['building'], $params['unit'], $params['room'])['id'];
+
+            if (empty($roomUser) && empty($residentAudit)) { // 如果之前没有添加过房屋认证 获取room_id
+                $params['room_id'] = $room_id;
+            } else { // 新增的时候 如果之前添加过房屋 判断房屋不能有重复
+                $audit_record_id = !empty($params['audit_record_id']) ? $params['audit_record_id'] : '0';
+                $rid = !empty($params['rid']) ? $params['rid'] : '0';
+
+                $rUser = PsRoomUser::find()->select(['id'])->where(['member_id' => $member_id, 'room_id' => $room_id])
+                    ->andWhere(['!=', 'id', $rid])
+                    ->andWhere(['!=', 'status', '4'])
+                    ->asArray()->one();
+                $rAudit = PsResidentAudit::find()->select(['id'])->where(['member_id' => $member_id, 'room_id' => $room_id])
+                    ->andWhere(['!=', 'id', $audit_record_id])
+                    ->andWhere(['!=', 'status', '1'])
+                    ->asArray()->one();
+
+                if (!empty($rUser) || !empty($rAudit)) { // 只要有一个存在 就不能提交房屋认证
+                    return $this->failed('房屋已存在！');
+                }
+                return $this->success();
+            }
+        }
+
+        if (!empty($params['room_id'])) {
+            $model = PsMember::updateAll(['room_id' => $params['room_id']], ['id' => $member_id]);
+            return $this->success();
+        }
     }
 }
 
