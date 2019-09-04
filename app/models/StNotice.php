@@ -39,12 +39,12 @@ class StNotice extends BaseModel
     {
         return [
             [['organization_type', 'organization_id', 'type', 'operator_id', 'create_at'], 'integer'],
-            [['content'], 'required'],
             [['content'], 'string'],
             [['title'], 'string', 'max' => 100],
             [['describe'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
-            [['title','type','describe','receive_user_list','content'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['title','type','describe','receive_user_list','content'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
+            [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete']],
         ];
     }

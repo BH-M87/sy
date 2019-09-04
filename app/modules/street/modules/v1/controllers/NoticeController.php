@@ -3,7 +3,7 @@
  * User: ZQ
  * Date: 2019/9/4
  * Time: 11:05
- * For: ****
+ * For: 通知通报
  */
 
 namespace app\modules\street\modules\v1\controllers;
@@ -14,12 +14,20 @@ use service\street\NoticeService;
 
 class NoticeController extends BaseController
 {
+    /**
+     * 列表
+     * @return string
+     */
     public function actionList()
     {
         $result = NoticeService::service()->getList($this->request_params, $this->page, $this->pageSize);
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 新增
+     * @return string
+     */
     public function actionAdd()
     {
         $model = new StNotice();
@@ -28,11 +36,15 @@ class NoticeController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 编辑
+     * @return string
+     */
     public function actionEdit()
     {
         $model = new StNotice();
         $model->validParamArr($this->request_params,'edit');
-        $result = NoticeService::service()->edit($this->request_params, $this->page, $this->pageSize);
+        $result = NoticeService::service()->edit($this->request_params, $this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
