@@ -354,5 +354,169 @@ CREATE TABLE `ps_room_vistors` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='房屋对应的访客表';
 
+CREATE TABLE `st_communist` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '姓名',
+  `mobile` varchar(13) NOT NULL DEFAULT '' COMMENT '手机号',
+  `image` varchar(200) NOT NULL DEFAULT '' COMMENT '头像',
+  `sex` tinyint(1) NOT NULL DEFAULT '1' COMMENT '性别 1男 2女',
+  `birth_time` int(11) NOT NULL DEFAULT '0' COMMENT '出生日期',
+  `join_party_time` int(11) NOT NULL DEFAULT '0' COMMENT '入党日期',
+  `formal_time` int(11) NOT NULL DEFAULT '0' COMMENT '转正日期',
+  `branch` varchar(50) NOT NULL DEFAULT '' COMMENT '所在支部',
+  `job` varchar(50) NOT NULL DEFAULT '' COMMENT '党内职务',
+  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '党员类型：1离退休党员、2流动党员、3困难党员、4下岗失业党员、5在职党员',
+  `station_id` int(11) NOT NULL DEFAULT '0' COMMENT '先锋岗位id',
+  `pioneer_value` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '获得的先锋值',
+  `operator_id` int(11) NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '创建人',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
+  `is_authentication` tinyint(1) NOT NULL DEFAULT '2' COMMENT '是否支付宝认证 1是 2否',
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '支付宝ps_app_user用户id',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='党员表';
+
+CREATE TABLE `st_station` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `station` varchar(30) NOT NULL DEFAULT '' COMMENT '先锋岗名称',
+  `content` varchar(200) NOT NULL DEFAULT '' COMMENT '描述',
+  `operator_id` int(11) NOT NULL COMMENT '创建人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '操作人名',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='先锋岗位';
+
+
+CREATE TABLE `st_party_task` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '任务id',
+  `station_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '先锋岗位id',
+  `task_name` varchar(30) NOT NULL DEFAULT '' COMMENT '任务标题',
+  `task_introdu` varchar(100) NOT NULL DEFAULT '' COMMENT '任务简介',
+  `pioneer_value` tinyint(2) unsigned NOT NULL DEFAULT '0' COMMENT '先锋值',
+  `expire_time_type` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '领取截止时间类型 1 长期有效  2指定日期',
+  `expire_time` int(11) NOT NULL DEFAULT '0' COMMENT '领取截止时间',
+  `party_address` varchar(50) NOT NULL DEFAULT '' COMMENT '任务地址',
+  `contact_name` varchar(10) NOT NULL DEFAULT '' COMMENT '联系人名称',
+  `contact_phone` varchar(12) NOT NULL DEFAULT '' COMMENT '联系人手机号码',
+  `is_location` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '是否需要定位 1是 2否',
+  `task_details` text NOT NULL COMMENT '任务详情',
+  `create_at` int(11) unsigned NOT NULL COMMENT '创建时间',
+  `operator_id` int(11) NOT NULL COMMENT '创建人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '操作人名',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='党建任务表';
+
+
+CREATE TABLE `st_party_task_station` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `task_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '任务id',
+  `communist_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '党员id',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '审核状态 1=待完成 2=审核中 3=已审核 4=已取消',
+  `pioneer_value` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '获得的先锋值',
+  `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='党员任务关联表';
+
+CREATE TABLE `st_party_task_operate_record` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `party_task_station_id` int(11) NOT NULL DEFAULT '0' COMMENT '党员认领任务操作记录表',
+  `task_id` int(11) NOT NULL DEFAULT '0' COMMENT '任务id',
+  `communist_id` int(11) NOT NULL DEFAULT '0' COMMENT '党员id',
+  `operate_type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '操作类型 1完成 2审核 3取消',
+  `content` varchar(500) NOT NULL DEFAULT '' COMMENT '输入内容  operate_type1时为完成内容 2 审核说明 3 时为取消理由',
+  `images` varchar(500) NOT NULL DEFAULT '' COMMENT '上传图片，多个以逗号相连',
+  `location` varchar(255) NOT NULL DEFAULT '' COMMENT '当前位置',
+  `lon` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '所在位置经度值',
+  `lat` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '所在位置纬度值',
+  `pioneer_value` int(11) NOT NULL DEFAULT '0' COMMENT '评分  operate_type 为 2时必填',
+  `operator_id` int(11) NOT NULL DEFAULT '0' COMMENT '操作人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '操作人名',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='党建认领任务操作记录表';
+
+CREATE TABLE `st_notice` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '消息类型 1通知 2消息',
+  `title` varchar(100) NOT NULL DEFAULT '' COMMENT '公告标题',
+  `describe` varchar(200) DEFAULT '' COMMENT '简介',
+  `content` text NOT NULL COMMENT '发送内容',
+  `operator_id` int(11) NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '创建人姓名',
+  `accessory_file` varchar(500) DEFAULT '' COMMENT '附件，多个以逗号相连',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='通知通报表';
+
+CREATE TABLE `st_notice_user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `notice_id` int(11) NOT NULL COMMENT '通知ID',
+  `receive_user_id` int(11) NOT NULL COMMENT '通知接收者用户id',
+  `receive_user_name` varchar(20) NOT NULL DEFAULT '' COMMENT '通知接收者用户名',
+  `is_send` tinyint(1) NOT NULL DEFAULT '1' COMMENT '消息是否推送：1暂未推送 2已推送',
+  `is_read` tinyint(1) NOT NULL DEFAULT '1' COMMENT '消息是否已读：1未读 2已读',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
+  `send_at` int(11) NOT NULL DEFAULT '0' COMMENT '发送时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='通知通报与人关联表';
+
+CREATE TABLE `st_xz_task_template` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '任务名称',
+  `task_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '任务类型 1常规任务、2指令任务、3工作日志',
+  `task_attribute_id` int(10) NOT NULL DEFAULT '0' COMMENT '任务类别',
+  `start_date` int(10) NOT NULL DEFAULT '0' COMMENT '开始时间，精准到天',
+  `end_date` int(10) NOT NULL DEFAULT '0' COMMENT '结束时间，精准到天',
+  `exec_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '执行类型 1按天执行，2按周执行，3按月执行',
+  `interval_y` tinyint(2) NOT NULL DEFAULT '0' COMMENT '间隔扩展值 如，每周周y，每月y号',
+  `contact_mobile` varchar(12) NOT NULL DEFAULT '' COMMENT '联系电话',
+  `describe` varchar(200) DEFAULT '' COMMENT '任务描述',
+  `exec_users` varchar(200) NOT NULL DEFAULT '' COMMENT '执行人员，多个以逗号隔开',
+  `accessory_file` varchar(500) DEFAULT '' COMMENT '附件，多个以逗号相连',
+  `status` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否显示 1显示 2隐藏',
+  `operator_id` int(10) NOT NULL DEFAULT '0' COMMENT '创建人id',
+  `operator_name` varchar(20) NOT NULL DEFAULT '' COMMENT '创建人名称',
+  `created_at` int(10) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8 COMMENT='行政居务任务模板表';
+
+CREATE TABLE `st_xz_task_attribute` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '类别名称',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='行政居务任务类别表';
+
+CREATE TABLE `st_xz_task` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0' COMMENT '任务执行人id',
+  `user_name` int(11) NOT NULL DEFAULT '0' COMMENT '任务执行人名',
+  `task_template_id` int(11) NOT NULL DEFAULT '0' COMMENT '任务模板id',
+  `start_time` int(11) NOT NULL DEFAULT '0' COMMENT '任务开始时间',
+  `end_time` int(11) NOT NULL DEFAULT '0' COMMENT '任务结束时间',
+  `status` tinyint(1) NOT NULL DEFAULT '2' COMMENT '1待处理  2已处理',
+  `check_content` varchar(500) NOT NULL DEFAULT '' COMMENT '处理提交具体内容',
+  `check_images` varchar(500) NOT NULL DEFAULT '' COMMENT '处理提交具体图片，多个以逗号相连',
+  `check_location_lon` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '记录提交时所在位置经度值',
+  `check_location_lat` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '记录提交时所在位置纬度值',
+  `check_location` varchar(255) NOT NULL DEFAULT '' COMMENT '提交时所在位置',
+  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=353 DEFAULT CHARSET=utf8 COMMENT='行政居务任务表';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
