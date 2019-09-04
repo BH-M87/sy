@@ -12,4 +12,17 @@ namespace app\modules\street\controllers;
 class BaseController extends \app\modules\property\controllers\BaseController
 {
 
+    public function init()
+    {
+        parent::init();
+    }
+
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+        $this->systemType = 3;//街道办
+        return true;
+    }
 }
