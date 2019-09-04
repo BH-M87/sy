@@ -18,6 +18,7 @@ use common\core\F;
 use common\core\PsCommon;
 use service\parking\CarAcrossService;
 use service\parking\CarService;
+use service\resident\MemberService;
 
 class ParkingCarController extends BaseController
 {
@@ -37,6 +38,11 @@ class ParkingCarController extends BaseController
     //车辆新增
     public function actionAdd()
     {
+        $memberId = F::value($this->request_params,'member_id',0);
+        if ($memberId) {
+            $memberInfo = MemberService::service()->getInfo($memberId);
+            $this->request_params['user_name'] = !empty($memberInfo)? $memberInfo['name'] : '';
+        }
         $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'add');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
@@ -70,6 +76,12 @@ class ParkingCarController extends BaseController
     //车辆编辑
     public function actionEdit()
     {
+        $memberId = F::value($this->request_params,'member_id',0);
+        if ($memberId) {
+            $memberInfo = MemberService::service()->getInfo($memberId);
+            $this->request_params['user_name'] = !empty($memberInfo)? $memberInfo['name'] : '';
+        }
+
         $valid = PsCommon::validParamArr(new ParkingCars(), $this->request_params, 'edit');
         if(!$valid["status"] ) {
             echo PsCommon::responseFailed($valid["errorMsg"]);exit;
