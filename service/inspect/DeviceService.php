@@ -464,7 +464,6 @@ class DeviceService extends BaseService
         if (empty(PsCommon::get($params, 'id'))) {
             return $this->failed('ID不能为空！');
         }
-
         $model = PsDevice::findOne($params['id']);
 
         if (!$model) {
