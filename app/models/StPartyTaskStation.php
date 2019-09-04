@@ -65,7 +65,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      */
     public static function getList($param,$page=true)
     {
-        $model = self::find()->filterWhere(['status' => $param['audit_status'] ?? null]);
+        $model = self::find()->filterWhere(['status' => $param['status'] ?? null]);
         $model->orderBy([ 'create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
@@ -86,8 +86,9 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
     {
         foreach ($data as &$v) {
             $v['task_name'] = StPartyTask::find()->where(['id' => $v['task_id']])->asArray()->one()['task_name'];
-            $v['audit_status_msg'] = self::$audit_status_msg[$v['audit_status']];
-            $v['communist_name'] = self::$audit_status_msg[$v['audit_status']];
+            $v['status_msg'] = self::$audit_status_msg[$v['status']];
+            $v['communist_name'] = StCommunist::find()->where(['id' => $v['communist_id']])->asArray()->one()['name'];
+            $v['communist_mobile'] = StCommunist::find()->where(['id' => $v['communist_id']])->asArray()->one()['mobile'];
             $v['create_at'] = date('Y-m-d H:i:s',$v['create_at']);
         }
     }

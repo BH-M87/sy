@@ -87,4 +87,47 @@ class StPartyTask extends BaseModel
             ]
         ];
     }
+
+    /**
+     * 获取列表
+     * @author yjh
+     * @param $param
+     * @param bool $page
+     * @return mixed
+     */
+    public static function getList($param,$page=true)
+    {
+        $model = self::find()->filterWhere(['status' => $param['status'] ?? null]);
+        $model->orderBy([ 'create_at' => SORT_DESC]);
+        if ($page) {
+            $page = !empty($param['page']) ? $param['page'] : 1;
+            $row = !empty($param['rows']) ? $param['rows'] : 10;
+            $page = ($page-1)*$row;
+            $count = $model->count();
+            $data['totals'] = $count;
+            $model->offset($page)->limit($row);
+        }
+        $data['list'] = $model->asArray()->all();
+        if (!empty($data['list'])) {
+            self::afterList($data['list']);
+        }
+        return $data;
+    }
+
+    public static function afterList(&$data)
+    {
+        foreach ($data as &$v) {
+            $station = StStation::find()->where(['id' => $v['station_id']])->one();
+            $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
+            $v['station_name'] = $station->station;
+            $v['station_status'] = $station->status == 1 ? '显示中' : '已隐藏';
+            $v['claim_count'] = StPartyTaskStation::find()->where(['task_id' => $v['id']])->count();
+            if ($v['expire_time_type'] == 2) {
+                if ($v['expire_time'] < time()) {
+                    $task['expire_time_type'] = 3;
+                }
+            }
+            unset($station);
+        }
+    }
 }
