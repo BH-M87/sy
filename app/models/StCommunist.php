@@ -26,7 +26,7 @@ use Yii;
  * @property int $is_authentication 是否支付宝认证 1是 2否
  * @property int $user_id 支付宝ps_app_user用户id
  */
-class StCommunist extends \yii\db\ActiveRecord
+class StCommunist extends BaseModel
 {
     /**
      * {@inheritdoc}

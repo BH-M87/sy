@@ -15,7 +15,7 @@ use Yii;
  * @property string $operator_name 操作人名
  * @property int $create_at 创建时间
  */
-class StStation extends \yii\db\ActiveRecord
+class StStation extends BaseModel
 {
     /**
      * {@inheritdoc}

@@ -98,10 +98,10 @@ $config =  [
 
 ];
 
-//if (YII_ENV != 'master' && YII_ENV != 'test' && YII_ENV != 'release') {
+if (YII_ENV != 'master' && YII_ENV != 'test' && YII_ENV != 'release') {
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
     ];
-//}
+}
 return $config;
