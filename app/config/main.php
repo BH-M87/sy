@@ -87,6 +87,10 @@ $config =  [
         //七牛上传
         'qiniu' => [
             'class' => 'app\modules\qiniu\Qiniu'
+        ],
+        //街道相关
+        'street' => [
+            'class' => 'app\modules\street\Module'
         ]
 
     ],
