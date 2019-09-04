@@ -16,7 +16,7 @@ use Yii;
  * @property int $create_at 创建时间
  * @property int $send_at 发送时间
  */
-class StNoticeUser extends \yii\db\ActiveRecord
+class StNoticeUser extends BaseModel
 {
     /**
      * {@inheritdoc}

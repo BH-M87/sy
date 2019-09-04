@@ -8,8 +8,6 @@
 
 namespace app\modules\street\modules\v1\controllers;
 
-
-use app\models\NoticeForm;
 use app\models\StNotice;
 use common\core\PsCommon;
 use service\street\NoticeService;
@@ -26,7 +24,7 @@ class NoticeController extends BaseController
     {
         $model = new StNotice();
         $model->validParamArr($this->request_params,'add');
-        $result = NoticeService::service()->add($this->request_params, $this->page, $this->pageSize);
+        $result = NoticeService::service()->add($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
