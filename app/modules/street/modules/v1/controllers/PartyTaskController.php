@@ -3,11 +3,9 @@
  *
   党员任务*/
 
-namespace app\modules\property\modules\v1\controllers;
+namespace app\modules\street\modules\v1\controllers;
 
 
-use app\modules\property\controllers\BaseController;
-use common\core\F;
 use common\core\PsCommon;
 use service\street\PartyTaskService;
 
