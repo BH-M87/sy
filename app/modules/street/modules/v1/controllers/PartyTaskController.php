@@ -72,6 +72,8 @@ class PartyTaskController extends BaseController
      */
     public function actionCancel()
     {
+        $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
+        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
         PartyTaskService::service()->cancel($this->request_params);
         return PsCommon::responseSuccess();
     }
@@ -138,4 +140,65 @@ class PartyTaskController extends BaseController
         $data = PartyTaskService::service()->getCount();
         return PsCommon::responseSuccess($data);
     }
+
+    /**
+     * 获取领取统计
+     * @author yjh
+     * @return string
+     */
+    public function actionGetReceiveCount()
+    {
+        $data = PartyTaskService::service()->getReceiveCount();
+        return PsCommon::responseSuccess($data);
+    }
+
+    /**
+     * 获取任务审核列表
+     * @author yjh
+     * @return string
+     */
+    public function actionGetExamineList()
+    {
+        $data = PartyTaskService::service()->getExamineList($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
+
+    /**
+     * 审核统计
+     * @author yjh
+     * @return string
+     */
+    public function actionGetExamineCount()
+    {
+        $data = PartyTaskService::service()->getExamineCount();
+        return PsCommon::responseSuccess($data);
+    }
+
+    /**
+     * 审核详情
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionGetExamineInfo()
+    {
+        $data = PartyTaskService::service()->getExamineInfo($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
+
+    /**
+     * 任务审核
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionPostExamine()
+    {
+        $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
+        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
+        $data = PartyTaskService::service()->postExamine($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
+
+
 }

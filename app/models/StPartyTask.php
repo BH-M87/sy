@@ -97,7 +97,9 @@ class StPartyTask extends BaseModel
      */
     public static function getList($param,$page=true)
     {
-        $model = self::find()->filterWhere(['status' => $param['status'] ?? null]);
+        $model = self::find()
+            ->filterWhere(['like', 'task_name', $param['task_name'] ?? null])
+            ->filterWhere(['station_id' => $param['station_id'] ?? null]);
         $model->orderBy([ 'create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
@@ -118,15 +120,19 @@ class StPartyTask extends BaseModel
     {
         foreach ($data as &$v) {
             $station = StStation::find()->where(['id' => $v['station_id']])->one();
-            $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
             $v['station_name'] = $station->station;
             $v['station_status'] = $station->status == 1 ? '显示中' : '已隐藏';
             $v['claim_count'] = StPartyTaskStation::find()->where(['task_id' => $v['id']])->count();
             if ($v['expire_time_type'] == 2) {
                 if ($v['expire_time'] < time()) {
-                    $task['expire_time_type'] = 3;
+                    $task['expire_time'] = '已过期';
+                } else {
+                    $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
                 }
+            } else {
+                $task['expire_time'] = '长期有效';
             }
+            unset($v['expire_time_type']);
             unset($station);
         }
     }
