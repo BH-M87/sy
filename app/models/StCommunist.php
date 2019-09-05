@@ -28,6 +28,14 @@ use Yii;
  */
 class StCommunist extends BaseModel
 {
+    public static $type_desc = [
+        1 => '离退休党员',
+        2 => '流动党员',
+        3 => '困难党员',
+        4 => '下岗失业党员',
+        5 => '在职党员',
+    ] ;
+
     /**
      * {@inheritdoc}
      */
