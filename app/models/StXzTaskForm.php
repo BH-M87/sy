@@ -20,6 +20,7 @@ class StXzTaskForm extends BaseModel
     public $start_date;
     public $end_date;
     public $accessory_file;
+    public $id;
 
     /**
      * {@inheritdoc}
@@ -35,8 +36,11 @@ class StXzTaskForm extends BaseModel
     public function rules()
     {
         return [
-            [['name','task_type','task_attribute_id','contact_mobile','describe','receive_user_list','start_date','end_date','exec_type'
+            [['name','task_type','task_attribute_id','describe','start_date','end_date','exec_type'
             ], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
+            [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete','status','detail-user-list']],
+            [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
         ];
     }
 
@@ -47,21 +51,22 @@ class StXzTaskForm extends BaseModel
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'task_type' => 'Task Type',
-            'task_attribute_id' => 'Task Attribute ID',
-            'start_date' => 'Start Date',
-            'end_date' => 'End Date',
-            'exec_type' => 'Exec Type',
+            'name' => '任务名称',
+            'task_type' => '任务类型',
+            'task_attribute_id' => '任务类别',
+            'start_date' => '开始时间',
+            'end_date' => '结束时间',
+            'exec_type' => '任务周期',
             'interval_y' => 'Interval Y',
             'contact_mobile' => 'Contact Mobile',
             'describe' => 'Describe',
             'exec_users' => 'Exec Users',
             'accessory_file' => 'Accessory File',
-            'status' => 'Status',
+            'status' => '状态类型',
             'operator_id' => 'Operator ID',
             'operator_name' => 'Operator Name',
             'created_at' => 'Created At',
+            'receive_user_list'=>'执行人员'
         ];
     }
 }

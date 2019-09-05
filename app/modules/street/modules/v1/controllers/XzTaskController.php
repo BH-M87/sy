@@ -60,6 +60,17 @@ class XzTaskController extends BaseController
     }
 
     /**
+     * 详情-人员列表
+     * @return string
+     */
+    public function actionDetailUserList()
+    {
+        StXzTaskForm::model()->validParamArr($this->request_params,'detail-user-list');
+        $result = XzTaskService::service()->detail_user_list($this->request_params,$this->page, $this->pageSize);
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
      * 删除
      * @return string
      */
@@ -81,13 +92,13 @@ class XzTaskController extends BaseController
     }
 
     /**
-     * 发送提醒
+     * 控制显示跟隐藏
      * @return string
      */
-    public function actionRemind()
+    public function actionStatus()
     {
-        StXzTaskForm::model()->validParamArr($this->request_params,'remind');
-        $result = XzTaskService::service()->remind($this->request_params);
+        StXzTaskForm::model()->validParamArr($this->request_params,'status');
+        $result = XzTaskService::service()->status($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 }

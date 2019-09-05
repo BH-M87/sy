@@ -279,14 +279,7 @@ class NoticeService extends BaseService
      */
     public function getCommon()
     {
-        $type_info = $this->type_info;
-        $result = [];
-        foreach($type_info as $key=>$value){
-            $type['id'] = $key;
-            $type['name'] = $value;
-            $result['type'][] = $type;
-        }
-        return $result;
+        return $this->returnIdNameToCommon($this->type_info);
     }
 
     /**
