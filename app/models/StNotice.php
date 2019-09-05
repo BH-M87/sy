@@ -22,7 +22,6 @@ use Yii;
 class StNotice extends BaseModel
 {
     public $receive_user_list = [];
-    public $accessory_file = [];
 
     /**
      * {@inheritdoc}
@@ -40,6 +39,7 @@ class StNotice extends BaseModel
         return [
             [['organization_type', 'organization_id', 'type', 'operator_id', 'create_at'], 'integer'],
             [['content'], 'string'],
+            [['accessory_file'], 'string'],
             [['title'], 'string', 'max' => 100],
             [['describe'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
