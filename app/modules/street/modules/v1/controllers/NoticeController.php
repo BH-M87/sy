@@ -8,6 +8,7 @@
 
 namespace app\modules\street\modules\v1\controllers;
 
+use app\models\NoticeForm;
 use app\models\StNotice;
 use common\core\PsCommon;
 use service\street\NoticeService;
@@ -30,8 +31,9 @@ class NoticeController extends BaseController
      */
     public function actionAdd()
     {
-        $model = new StNotice();
-        $model->validParamArr($this->request_params,'add');
+        //$model = new NoticeForm();
+        //$model->validParamArr($this->request_params,'add');
+        NoticeForm::model()->validParamArr($this->request_params,'add');
         $result = NoticeService::service()->add($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
@@ -42,36 +44,52 @@ class NoticeController extends BaseController
      */
     public function actionEdit()
     {
-        $model = new StNotice();
-        $model->validParamArr($this->request_params,'edit');
+        NoticeForm::model()->validParamArr($this->request_params,'edit');
         $result = NoticeService::service()->edit($this->request_params, $this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 详情
+     * @return string
+     */
     public function actionDetail()
     {
-        $model = new StNotice();
-        $model->validParamArr($this->request_params,'detail');
-        $result = NoticeService::service()->detail($this->request_params, $this->page, $this->pageSize);
+        NoticeForm::model()->validParamArr($this->request_params,'detail');
+        $result = NoticeService::service()->detail($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 删除
+     * @return string
+     */
     public function actionDelete()
     {
-        $model = new StNotice();
-        $model->validParamArr($this->request_params,'delete');
-        $result = NoticeService::service()->getList($this->request_params, $this->page, $this->pageSize);
+        NoticeForm::model()->validParamArr($this->request_params,'delete');
+        $result = NoticeService::service()->delete($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 获取公共参数
+     * @return string
+     */
     public function actionCommon()
     {
-
+        $result = NoticeService::service()->getCommon();
+        return PsCommon::responseSuccess($result);
     }
 
-    public function actionMessage()
+    /**
+     * 发送提醒
+     * @return string
+     */
+    public function actionRemind()
     {
-
+        NoticeForm::model()->validParamArr($this->request_params,'remind');
+        $result = NoticeService::service()->remind($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
 
