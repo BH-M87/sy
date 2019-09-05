@@ -503,6 +503,11 @@ CREATE TABLE `st_xz_task` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=353 DEFAULT CHARSET=utf8 COMMENT='行政居务任务表';
 
+ALTER TABLE `st_party_task_operate_record`
+ADD COLUMN `info`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '完成内容' AFTER `create_at`;
+
+
+
 
 
 

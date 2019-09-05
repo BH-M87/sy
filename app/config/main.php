@@ -97,7 +97,6 @@ $config =  [
     'params' => $params,
 
 ];
-
 if (YII_ENV != 'master' && YII_ENV != 'test' && YII_ENV != 'release') {
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [

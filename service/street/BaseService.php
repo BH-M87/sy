@@ -41,4 +41,14 @@ class BaseService extends \service\BaseService
         return $result;
     }
 
+    public function getIdByName($arrayParams,$name)
+    {
+        foreach ($arrayParams as $key => $value) {
+            if ($name == $value['name']) {
+                return $value['id'];
+            }
+        }
+        return false;
+    }
+
 }
