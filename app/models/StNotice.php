@@ -8,6 +8,8 @@ use Yii;
  * This is the model class for table "st_notice".
  *
  * @property int $id
+ * @property int $organization_type 所属组织类型(1街道本级 2社区 ....)
+ * @property int $organization_id 所属组织Id
  * @property int $type 消息类型 1通知 2消息
  * @property string $title 公告标题
  * @property string $describe 简介
@@ -19,6 +21,8 @@ use Yii;
  */
 class StNotice extends BaseModel
 {
+    public $receive_user_list = [];
+
     /**
      * {@inheritdoc}
      */
@@ -33,13 +37,15 @@ class StNotice extends BaseModel
     public function rules()
     {
         return [
-            [['type', 'operator_id', 'create_at'], 'integer'],
-            [['content'], 'required'],
+            [['organization_type', 'organization_id', 'type', 'operator_id', 'create_at'], 'integer'],
             [['content'], 'string'],
+            [['accessory_file'], 'string'],
             [['title'], 'string', 'max' => 100],
             [['describe'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
-            [['accessory_file'], 'string', 'max' => 500],
+            [['title','type','describe','receive_user_list','content'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
+            [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete']],
         ];
     }
 
@@ -50,14 +56,17 @@ class StNotice extends BaseModel
     {
         return [
             'id' => 'ID',
-            'type' => 'Type',
-            'title' => 'Title',
+            'organization_type' => 'Organization Type',
+            'organization_id' => 'Organization ID',
+            'type' => '消息类型',
+            'title' => '标题',
             'describe' => 'Describe',
-            'content' => 'Content',
+            'content' => '发送内容',
             'operator_id' => 'Operator ID',
             'operator_name' => 'Operator Name',
             'accessory_file' => 'Accessory File',
             'create_at' => 'Create At',
+            'receive_user_list'=>'接收对象'
         ];
     }
 }
