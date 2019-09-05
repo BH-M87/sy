@@ -115,7 +115,7 @@ class PsActivity extends BaseModel
         $p['activity_end'] = !empty($p['activity_end']) ? strtotime($p['activity_end'].' 23:59:59') : null;
 
         $m = PsActivity::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
-            'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type'])
+            'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture'])
             ->where(['is_del' => 1])
             ->andFilterWhere(['=', 'type', $p['type']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
@@ -147,8 +147,16 @@ class PsActivity extends BaseModel
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
             $v['status_desc'] = self::$status[$v['status']];
             $v['activity_type_desc'] = self::$activity_type[$v['activity_type']];
-            $v['people_list'] = PsActivityEnroll::find()->select('user_id, name as user_name')
+            $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
                 ->where(['a_id' => $v['id']])->asArray()->all();
+            $v['people_list'] = $enroll;
+            $avatar_arr = [];
+            if (!empty($enroll)) {
+                foreach ($enroll as $val) {
+                    $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                }
+            }
+            $v['join_info'] = $avatar_arr;
         }
     }
 
