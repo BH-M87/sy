@@ -55,9 +55,9 @@ class ActivityService extends BaseService
 
     // 获取活动列表
     public function list($p)
-    {print_r($p);die;
-        $this->checkListParams($p);
-        $data = PsActivity::getList($p,['id','title','start_time','end_time','join_end','status','address','link_name','link_mobile','join_number','is_top','activity_number']);
+    {
+        $data = PsActivity::getList($p);
+
         return $data;
     }
 
@@ -127,43 +127,5 @@ class ActivityService extends BaseService
         $m->operator_id = $p['operator_id'];
 
         $m->save();
-    }
-
-    // 列表搜索参数整理
-    public function checkListParams(&$params)
-    {
-        if (empty($params['community_id'])) {
-            throw new MyException('小区ID不能为空!');
-        }
-        if (!empty($params['status']) && in_array($params['status'],[1,2,3])) {
-            $params['status'] = $params['status'] == 3 ? null : $params['status'];
-        } else {
-            $params['status'] = null;
-        }
-        if (!empty($params['join_start'])) {
-            $params['join_start'] = strtotime($params['join_start'].' 00:00');
-            if (!$params['join_start']) {
-                $params['join_start'] = null;
-            }
-        }
-        if (!empty($params['join_end'])) {
-            $params['join_end'] = strtotime($params['join_end'].' 23:59');
-            if (!$params['join_end']) {
-                $params['join_end'] = null;
-            }
-        }
-
-        if (!empty($params['activity_start'])) {
-            $params['activity_start'] = strtotime($params['activity_start'].' 00:00');
-            if (!$params['activity_start']) {
-                $params['activity_start'] = null;
-            }
-        }
-        if (!empty($params['activity_end'])) {
-            $params['activity_end'] = strtotime($params['activity_end'].' 23:59');
-            if (!$params['activity_end']) {
-                $params['activity_end'] = null;
-            }
-        }
     }
 }
