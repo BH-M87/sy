@@ -3,7 +3,7 @@
  * User: ZQ
  * Date: 2019/9/4
  * Time: 17:47
- * For: ****
+ * For: 获取JAVA user_info 表相关信息
  */
 
 namespace service\street;
@@ -18,4 +18,6 @@ class UserService extends BaseService
     {
         return  UserInfo::find()->select(['id as user_id','username as user_name'])->where(['id'=>$idList])->asArray()->all();
     }
+
+
 }

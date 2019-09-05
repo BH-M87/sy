@@ -31,11 +31,16 @@ class StStation extends BaseModel
     public function rules()
     {
         return [
-            [['status', 'operator_id', 'create_at'], 'integer'],
-            [['operator_id', 'create_at'], 'required'],
+            [['status', 'operator_id', 'create_at', 'organization_type', 'organization_id'], 'integer'],
+            [['station', 'content', 'status'], 'required', 'message' => '{attribute}不能为空','on' => ['add', 'edit']],
             [['station'], 'string', 'max' => 30],
             [['content'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
+            [['station'], 'string', 'max' => 15, 'message' => '{attribute}最多15个字！','on' => ['add', 'edit']],
+            [['content'], 'string', 'max' => 15, 'message' => '{attribute}最多50个字！','on' => ['add', 'edit']],
+            [['status'],'in','range'=>[1,2], 'message' => '{attribute}只能是1或2','on' => ['add', 'edit', 'list', 'edit-status']],
+            [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view', 'edit-status']],
+            [['status'], 'required', 'message' => '{attribute}不能为空','on' => ['edit-status']],
         ];
     }
 
@@ -45,10 +50,10 @@ class StStation extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'station' => 'Station',
-            'content' => 'Content',
-            'status' => 'Status',
+            'id' => '先锋岗id',
+            'station' => '先锋岗名称',
+            'content' => '岗位描述',
+            'status' => '岗位状态',
             'operator_id' => 'Operator ID',
             'operator_name' => 'Operator Name',
             'create_at' => 'Create At',
