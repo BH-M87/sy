@@ -9,7 +9,7 @@
 namespace app\models;
 
 
-class NoticeForm extends BaseModel
+class StNoticeForm extends BaseModel
 {
     public $receive_user_list = [];
     public $accessory_file = [];

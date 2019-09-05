@@ -5,9 +5,7 @@
  * Time: 11:27
  * For: 通知通报
  */
-
 namespace service\street;
-
 
 use app\models\StNotice;
 use app\models\StNoticeUser;
@@ -117,11 +115,9 @@ class NoticeService extends BaseService
             $id = $this->addNotice($data, $user_info);
             //每个发送对象，发送一个信息
             $receive_user_list = PsCommon::get($data, 'receive_user_list', []);
-            if ($receive_user_list) {
-                $this->addNoticeUser($receive_user_list, $id);
-            }
+            $result = $this->addNoticeUser($receive_user_list, $id);
             $transaction->commit();
-            return $id;
+            return $result;
         } catch (\Exception $e) {
             $transaction->rollBack();
             throw new MyException('新增失败:' . $e->getMessage());
@@ -179,6 +175,11 @@ class NoticeService extends BaseService
             $saveData['send_at'][] = 0;
         }
         StNoticeUser::model()->batchInsert($saveData);
+        $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
+        //发送钉钉信息
+        $result = DingMessageService::service()->send($list,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
+        return $result;
+
     }
 
     //编辑发送通知的发送对象
@@ -192,17 +193,29 @@ class NoticeService extends BaseService
         $oldReceiveList = $noticeUserInfo ? array_column($noticeUserInfo, 'user_id') : [];
         //比较两个数组，获取交集
         $intersect = array_intersect($newReceiveList, $oldReceiveList);
-        //比较交集跟第一个数组，确定要新增的数据
-        $difference1 = array_diff($newReceiveList, $intersect);
-        if ($difference1) {
-            $this->addNoticeUser($difference1, $id);
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $result = [];
+            //比较交集跟第一个数组，确定要新增的数据
+            $difference1 = array_diff($newReceiveList, $intersect);
+            if ($difference1) {
+                $result = $this->addNoticeUser($difference1, $id);
+            }
+            //比较交集跟第二个数组，确定要删除的数据
+            $difference2 = array_diff($oldReceiveList, $intersect);
+            if ($difference2) {
+                StNoticeUser::deleteAll(['receive_user_id' => $difference2, 'notice_id' => $id]);
+            }
+            $transaction->commit();
+            return $result;
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw new MyException('编辑失败：' . $e->getMessage());
+
         }
-        //比较交集跟第二个数组，确定要删除的数据
-        $difference2 = array_diff($oldReceiveList, $intersect);
-        if ($difference2) {
-            StNoticeUser::deleteAll(['receive_user_id' => $difference2, 'notice_id' => $id]);
-        }
-        return "编辑成功";
+
     }
 
     /**
@@ -276,6 +289,12 @@ class NoticeService extends BaseService
         return $result;
     }
 
+    /**
+     * 发送通知提醒
+     * @param $data
+     * @return mixed
+     * @throws MyException
+     */
     public function remind($data)
     {
         $id = $data['id'];
@@ -287,16 +306,7 @@ class NoticeService extends BaseService
         $un_read_user_list = $unReadUserList['un_read_user_list'];
         if($un_read_user_list){
             $userList = array_column($un_read_user_list,'user_id');
-            //获取这些对象对应的钉钉ID
-            $dingdingList = [];//
-            //给这些未读的对象发送钉钉消息
-            $sendData['title'] = '通知通报';
-            $sendData['markdown'] = $detail['title'];
-            $departName = '';
-            $sendData['single_title'] = $departName."|".$detail['operator_name']." ".date('Y-m-d H:i',$detail['create_at']);
-            $sendData['single_url'] = '';//钉钉端详情页的地址
-            $result['data'] = DingMessageService::service()->sendMessage(1,$sendData);
-            $result['userList'] = $dingdingList;
+            $result = DingMessageService::service()->send($userList,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
             return $result;
         }else{
             throw new MyException("没有可发送的消息对象");

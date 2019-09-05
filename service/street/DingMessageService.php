@@ -9,10 +9,26 @@
 namespace service\street;
 
 
+use app\models\Department;
+use app\models\UserInfo;
 use common\core\PsCommon;
 
 class DingMessageService extends BaseService
 {
+    public function send($userList,$title,$organization_id,$operator_name,$create_at)
+    {
+        //获取这些对象对应的钉钉ID
+        $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->column();
+        //给这些未读的对象发送钉钉消息
+        $sendData['title'] = '通知通报';
+        $sendData['markdown'] = $title;
+        $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
+        $sendData['single_title'] = $departName."|".$operator_name." ".date('Y-m-d H:i',$create_at);
+        $sendData['single_url'] = '';//钉钉端详情页的地址
+        $result['data'] = $this->sendMessage(1,$sendData);
+        $result['userList'] = $dingdingList ? implode('|',$dingdingList) : [];
+        return $result;
+    }
 
     /**
      * 发送工作通知
