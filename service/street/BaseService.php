@@ -27,4 +27,14 @@ class BaseService extends \service\BaseService
         }
         return '网络异常';
     }
+
+    public function getIdByName($arrayParams,$name)
+    {
+        foreach ($arrayParams as $key => $value) {
+            if ($name == $value['name']) {
+                return $value['id'];
+            }
+        }
+        return false;
+    }
 }
