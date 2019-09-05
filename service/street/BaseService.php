@@ -1,5 +1,7 @@
 <?php
 namespace service\street;
+use yii\base\Model;
+
 /**
  * User: ZQ
  * Date: 2019/9/4
@@ -8,5 +10,21 @@ namespace service\street;
  */
 class BaseService extends \service\BaseService
 {
+    public function returnIdName($data)
+    {
+        $arr = [];
+        foreach ($data as $key => $value) {
+            $arr[] = ["id" => $value['id'], "name" => $value['name']];
+        }
+        return $arr;
+    }
 
+    public function getError(Model $model)
+    {
+        $errors = array_values($model->getErrors());
+        if(!empty($errors[0][0])) {
+            return $errors[0][0];
+        }
+        return '网络异常';
+    }
 }
