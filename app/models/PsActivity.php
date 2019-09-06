@@ -159,14 +159,5 @@ class PsActivity extends BaseModel
             $v['join_info'] = $avatar_arr;
         }
     }
-
-    // 新增 编辑
-    public function saveData($scenario, $p)
-    {
-        if ($scenario == 'edit') {
-            self::updateAll($p, ['id' => $p['id']]);
-            return true;
-        }
-        return $this->save();
-    }
+    
 }
