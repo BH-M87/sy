@@ -60,7 +60,7 @@ class PsDevice extends BaseModel
             [['community_id', 'category_id', 'name', 'device_no', 'supplier', 'supplier_tel', 'install_place', 'leader', 'status', 'plan_scrap_at'], 'required', 'on' => ['add', 'edit']],
             [['community_id', 'category_id', 'num', 'price', 'status', 'scrap_at', 'create_at'], 'integer', 'on' => ['add', 'edit']],
             [['plan_scrap_at', 'start_at', 'expired_at'], 'safe'],
-            [['name', 'technology', 'supplier_tel', 'install_place', 'make_company_tel', 'scrap_person'], 'string', 'max' => 15, 'on' => ['add', 'edit']],
+            [['name', 'technology', 'supplier_tel', 'make_company_tel', 'scrap_person'], 'string', 'max' => 15, 'on' => ['add', 'edit']],
             [[ 'scrap_note'], 'string', 'max' => 200, 'on' => ['add', 'edit']],
             [['note'], 'string', 'max' => 500, 'on' => ['add', 'edit']],
             [['supplier','device_no'], 'string', 'max' => 50, 'on' => ['add', 'edit']],

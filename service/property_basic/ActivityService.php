@@ -61,9 +61,9 @@ class ActivityService extends BaseService
     // 获取活动列表
     public function list($p)
     {
-        $data = PsActivity::getList($p);
+        $m = PsActivity::getList($p);
 
-        return $this->success($data);
+        return $this->success($m);
     }
 
     // 活动删除
@@ -133,5 +133,5 @@ class ActivityService extends BaseService
 
         $m->save();
     }
-    
+
 }

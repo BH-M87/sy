@@ -11,6 +11,7 @@ namespace service\street;
 
 use app\models\StCompany;
 use app\models\StPlace;
+use common\core\F;
 use common\MyException;
 
 class CompanyService extends BaseService
@@ -75,7 +76,7 @@ class CompanyService extends BaseService
     {
         $model = $this->getData($params);
         $re['id'] = $model->id;
-        $re['name'] = $model->station;
+        $re['name'] = $model->name;
         $re['contact_name'] = $model->contact_name;
         $re['contact_mobile'] = $model->contact_mobile;
         $re['type_info'] = $this->_types[$model->type];
@@ -125,6 +126,7 @@ class CompanyService extends BaseService
             ->asArray()
             ->all();
         foreach ($list as $k => $v) {
+            $list[$k]['contact_mobile'] = F::processMobile($v['contact_mobile']);
             $list[$k]['type_info'] = $this->_types[$v['type']];
             $list[$k]['created_at'] = $v['create_at'] ? date("Y-m-d H:i", $v['create_at']) : '';
             unset($list[$k]['create_at']);
@@ -141,7 +143,8 @@ class CompanyService extends BaseService
             ->select('sc.id, sc.name')
             ->asArray()
             ->all();
-        return $re['list'] = $list;
+        $re['list'] = $list;
+        return $re;
     }
 
     private function getData($params)

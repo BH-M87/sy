@@ -1,99 +1,107 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
-use yii\base\Controller;
-
 use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
-
-use app\models\PsProclaim;
 
 use service\property_basic\ProclaimService;
 
 class ProclaimController extends BaseController
 {
-    // 公告列表
-    public function actionList()
+    public function beforeAction($action)
     {
-        $result = ProclaimService::service()->lists($this->request_params);
-        
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
-        } else {
-            return PsCommon::responseFailed($result['msg']);
+        if (!parent::beforeAction($action)) {
+            return false;
         }
+
+        $this->request_params['operator_id'] = $this->user_info['id'];
+        $this->request_params['operator_name'] = $this->user_info['truename'];
+
+        return true;
     }
 
     // 公告新增
     public function actionAdd()
     {
-        $result = ProclaimService::service()->add($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->add($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
     // 公告编辑
     public function actionEdit()
     {
-        $result = ProclaimService::service()->edit($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->edit($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
+        }
+    }
+
+    // 公告列表
+    public function actionList()
+    {
+        $r = ProclaimService::service()->list($this->request_params);
+        
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
     // 公告是否显示
     public function actionEditShow()
     {
-        $result = ProclaimService::service()->editShow($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->editShow($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
     // 公告是否置顶
     public function actionEditTop()
     {
-        $result = ProclaimService::service()->editTop($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->editTop($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
     // 公告详情
     public function actionShow()
     {
-        $result = ProclaimService::service()->show($this->request_params);
+        $r = ProclaimService::service()->show($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
     // 公告删除
     public function actionDel()
     {
-        $result = ProclaimService::service()->del($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->del($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 }

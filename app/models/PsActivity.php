@@ -91,7 +91,7 @@ class PsActivity extends BaseModel
         ];
     }
 
-    // 获取后台数据
+    // 获取单条数据
     public static function getOne($p)
     {
         $m = self::find()->where(['is_del' => 1, 'id' => $p['id']])
@@ -114,7 +114,7 @@ class PsActivity extends BaseModel
         $p['activity_start'] = !empty($p['activity_start']) ? strtotime($p['activity_start']) : null;
         $p['activity_end'] = !empty($p['activity_end']) ? strtotime($p['activity_end'].' 23:59:59') : null;
 
-        $m = PsActivity::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
+        $m = self::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
             'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture'])
             ->where(['is_del' => 1])
             ->andFilterWhere(['=', 'type', $p['type']])
@@ -159,5 +159,5 @@ class PsActivity extends BaseModel
             $v['join_info'] = $avatar_arr;
         }
     }
-    
+
 }
