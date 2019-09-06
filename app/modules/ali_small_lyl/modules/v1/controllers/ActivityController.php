@@ -18,12 +18,9 @@ class ActivityController extends BaseController
     // 0-100下拉列表
     public function actionNumberDropDown()
     {
-        $result = ActivityService::service()->numberDropDown($this->request_params);
+        $r = SmallActivityService::service()->numberDropDown($this->params);
         
-        if (!empty($result['code'])) {
-            return F::apiSuccess($result['data']);
-        }
-        return F::apiFailed($result['msg']);
+        return F::apiSuccess($r);
     }
 
 	// 活动 列表 {"community_id":"127","user_id":"194","page":"1","rows":"5"}
@@ -40,7 +37,7 @@ class ActivityController extends BaseController
     // 活动 详情 {"room_id":"","user_id":"","id":"1"}
     public function actionShow()
     {
-        $result = ActivityService::service()->show($this->params);
+        $result = SmallActivityService::service()->show($this->params);
 
         if (!empty($result['code'])) {
             return F::apiSuccess($result['data']);
@@ -51,7 +48,7 @@ class ActivityController extends BaseController
     // 活动 报名 {"room_id":"25049","user_id":"194","id":"2"}
     public function actionJoin()
     {
-        $result = ActivityService::service()->join($this->params);
+        $result = SmallActivityService::service()->join($this->params);
 
         if (!empty($result['code'])) {
             return F::apiSuccess($result['data']);
@@ -91,43 +88,55 @@ class ActivityController extends BaseController
     // 活动 我的活动列表 {"user_id":"194","type":"2"}
     public function actionListMe()
     {
-        $result = ActivityService::service()->listMe($this->request_params);
+        $r = SmallActivityService::service()->listMe($this->params);
         
-        if (!empty($result['code'])) {
-            return F::apiSuccess($result['data']);
+        if (!empty($r['code'])) {
+            return F::apiSuccess($r['data']);
         }
-        return F::apiFailed($result['msg']);
+        return F::apiFailed($r['msg']);
     }
 
     // 活动 详情（我参与的）{"room_id":"","id":""}
-    public function actionActivityShowMe()
+    public function actionShowMe()
     {
-        $result = ActivityService::service()->activityShowMe($this->request_params);
+        $r = SmallActivityService::service()->showMe($this->params);
 
-        return self::dealReturnResult($result);
+        if (!empty($r['code'])) {
+            return F::apiSuccess($r['data']);
+        }
+        return F::apiFailed($r['msg']);
     }
 
     // 活动 取消 {"room_id":"","user_id":"","id":"2"}
-    public function actionActivityCancel()
+    public function actionCancel()
     {
-        $result = ActivityService::service()->activityCancel($this->request_params);
+        $r = SmallActivityService::service()->cancel($this->params);
 
-        return self::dealReturnResult($result);
+        if (!empty($r['code'])) {
+            return F::apiSuccess($r['data']);
+        }
+        return F::apiFailed($r['msg']);
     }
 
     // 活动 报名列表 {"room_id":"","id":"2"}
-    public function actionActivityJoinList()
+    public function actionJoinList()
     {
-        $result = ActivityService::service()->activityJoinList($this->request_params);
+        $r = SmallActivityService::service()->joinList($this->params);
 
-        return self::dealReturnResult($result);
+        if (!empty($r['code'])) {
+            return F::apiSuccess($r['data']);
+        }
+        return F::apiFailed($r['msg']);
     }
 
     // 报名 取消 {"room_id":"1","user_id":"1","id":"1"}
-    public function actionActivityJoinCancel()
+    public function actionJoinCancel()
     {
-        $result = ActivityService::service()->activityJoinCancel($this->request_params);
+        $r = SmallActivityService::service()->joinCancel($this->params);
 
-        return self::dealReturnResult($result);
+        if (!empty($r['code'])) {
+            return F::apiSuccess($r['data']);
+        }
+        return F::apiFailed($r['msg']);
     }
 }
