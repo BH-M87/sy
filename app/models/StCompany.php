@@ -51,7 +51,7 @@ class StCompany extends BaseModel
                 'required', 'message' => '{attribute}不能为空', 'on' => ['add', 'edit']],
             ['contact_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式不正确', 'on' => ['add', 'edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
-            [['type'],'in','range'=>[1,2,3,4], 'message' => '{attribute}有误','on' => ['add', 'edit']],
+            [['type'],'in','range'=>[1,2,3,4], 'message' => '{attribute}有误','on' => ['add', 'edit', 'list']],
             [['name','contact_name', 'contact_position'], 'safe'],
         ];
     }
@@ -62,7 +62,7 @@ class StCompany extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
+            'id' => '单位ID',
             'organization_type' => 'Organization Type',
             'organization_id' => 'Organization ID',
             'name' => '单位名称',

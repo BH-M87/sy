@@ -29,6 +29,9 @@ use Yii;
  */
 class StPlace extends BaseModel
 {
+    public $area_min;
+    public $area_max;
+
     /**
      * {@inheritdoc}
      */
@@ -44,7 +47,6 @@ class StPlace extends BaseModel
     {
         return [
             [['organization_type', 'organization_id', 'company_id', 'open_start_weekday', 'open_end_weekday', 'people_num', 'operator_id', 'create_at'], 'integer'],
-            [['area'], 'number'],
             [['name'], 'string', 'max' => 30, 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
             [['contact_name'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！', 'on' => ['add', 'edit']],
             [['open_start_time', 'open_end_time','operator_name'], 'string', 'max' => 20],
@@ -54,10 +56,22 @@ class StPlace extends BaseModel
             [['company_id', 'name', 'area', 'people_num', 'open_start_weekday', 'open_end_weekday',
                 'open_start_time', 'open_end_time', 'contact_name', 'contact_mobile', 'address', 'note'],
                 'required', 'message' => '{attribute}不能为空', 'on' => ['add', 'edit']],
-            ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式不正确', 'on' => ['add', 'edit']],
+            ['contact_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式不正确', 'on' => ['add', 'edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
-
-
+            [['area'], 'match', 'pattern' => Regular::float(1),
+                'message' => '{attribute}必须为正数，最多保留一位小数', 'on' =>['add', 'edit']],
+            [['people_num'], 'match', 'pattern' => Regular::number(),
+                'message' => '{attribute}必须为1-5000内的整数', 'on' =>['add', 'edit']],
+            ['people_num', 'compare', 'compareValue' => 1, 'operator' => '>=', 'message' => '{attribute}必须为1-5000内的整数', 'on' =>['add', 'edit']],
+            ['people_num', 'compare', 'compareValue' => 5000, 'operator' => '<=', 'message' => '{attribute}必须为1-5000内的整数', 'on' =>['add', 'edit']],
+            [['open_start_weekday', 'open_end_weekday'], 'in', 'range' => [1,2,3,4,5,6,7],
+                'message' => '{attribute}必须为1-7内的整数', 'on' =>['add', 'edit']],
+            ['open_end_weekday', 'compare', 'compareAttribute' => 'open_start_weekday', 'operator' => '>=' ,'on'=>['add', 'edit'], 'message' => '{attribute}必须大于等于开放开始日期'],
+            [['open_start_time','open_end_time'], 'date','format'=>'HH:mm','on' =>['add', 'edit'], 'message' => '{attribute}格式错误',],
+            [['open_end_time'], 'validateTime', 'on' => ['add', 'edit']],
+            [['area_min', 'area_max'], 'match', 'pattern' => Regular::float(1),
+                'message' => '{attribute}必须为正数，最多保留一位小数', 'on' =>['list']],
+            [['name','contact_name', 'note', 'area'], 'safe'],
         ];
     }
 
@@ -67,16 +81,16 @@ class StPlace extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
+            'id' => '场地id',
             'organization_type' => 'Organization Type',
             'organization_id' => 'Organization ID',
             'company_id' => '单位名称',
             'name' => '场地名称',
             'area' => '场地面积',
-            'open_start_weekday' => '开放日期',
-            'open_end_weekday' => '开放日期',
-            'open_start_time' => '开放时间',
-            'open_end_time' => '开放时间',
+            'open_start_weekday' => '开放开始日期',
+            'open_end_weekday' => '开放截止日期',
+            'open_start_time' => '开放开始时间',
+            'open_end_time' => '开放截止时间',
             'contact_name' => '联系人',
             'contact_mobile' => '手机号码',
             'address' => '场地地址',
@@ -85,6 +99,20 @@ class StPlace extends BaseModel
             'operator_id' => 'Operator ID',
             'operator_name' => 'Operator Name',
             'create_at' => 'Create At',
+            'area_min' => '场地最小面积',
+            'area_max' => '场地最大面积'
         ];
+    }
+
+    public function validateTime($attribute, $params)
+    {
+        $startTime = $this->open_start_time;
+        $endTime = $this->open_end_time;
+        $day = date("Y-m-d",time());
+        $strStartTime = $day." ".$startTime.":00";
+        $strEndTime = $day." ".$endTime.":00";
+        if (strtotime($strEndTime) <= strtotime($strStartTime)) {
+            $this->addError($attribute, "结束时间必须大于开始时间");
+        }
     }
 }
