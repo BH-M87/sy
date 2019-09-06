@@ -235,6 +235,8 @@ class NoticeService extends BaseService
             }else{
                 $detail['accessory_file'] = [];
             }
+            $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);
+            $detail['operator_group_name'] = UserService::service()->getDepartmentNameById($detail['organization_id']);
         }else{
             $detail = [];
         }
@@ -305,6 +307,51 @@ class NoticeService extends BaseService
             throw new MyException("没有可发送的消息对象");
         }
 
+    }
+
+    /**
+     * 钉钉端获取我的通知列表
+     * @param $data
+     * @param $page
+     * @param $pageSize
+     * @return mixed
+     */
+    public function getMyList($data,$page, $pageSize)
+    {
+        $user_id = $data['user_id'];
+        $model = StNoticeUser::find()->alias('u')
+            ->leftJoin(['n'=>StNotice::tableName()],'u.notice_id = n.id')
+            ->where(['u.receive_user_id'=>$user_id]);
+        $offset = ($page - 1) * $pageSize;
+        $list = $model->select(['n.id','n.type','n.describe','n.operator_id','n.operator_name','n.organization_id','n.create_at','u.is_read'])
+            ->offset($offset)->limit($pageSize)->orderBy('n.id desc')->asArray()->all();
+        $count = $model->count();
+        if($list){
+            foreach($list as $key =>$value){
+                $list[$key]['type_info'] = ['id'=>$value['type'],'name'=>$this->type_info[$value['type']]];
+                $list[$key]['operator_group_name'] = UserService::service()->getDepartmentNameById($value['organization_id']);
+            }
+        }else{
+            $list = [];
+        }
+        $result['list'] = $list;
+        $result['totals'] = $count;
+        return $result;
+    }
+
+    /**
+     * 钉钉端查看我的通知详情
+     * @param $data
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getMydetail($data)
+    {
+        $detail = $this->detail($data);
+        if($detail && $detail['is_read'] == 1){
+            //更新这条记录已读
+            StNoticeUser::updateAll(['is_read'=>2],['notice_id'=>$data['id'],'receive_user_id'=>$data['user_id']]);
+        }
+        return $detail;
     }
 
 

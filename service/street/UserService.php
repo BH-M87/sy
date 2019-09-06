@@ -9,14 +9,107 @@
 namespace service\street;
 
 
+use app\models\Department;
+use app\models\PsCommunityModel;
 use app\models\UserInfo;
 
 class UserService extends BaseService
 {
 
+    /**
+     * 获取user_info表的id-name
+     * @param $idList
+     * @return array|\yii\db\ActiveRecord[]
+     */
     public function getUserInfoByIdList($idList)
     {
         return  UserInfo::find()->select(['id as user_id','username as user_name'])->where(['id'=>$idList])->asArray()->all();
+    }
+
+    /**
+     * 获取user_info的基础信息
+     * @param $id
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getUserInfoById($id)
+    {
+        //token验证
+        $user_info = UserInfo::find()
+            ->select(['id','mobile_number','username','dept_id','node_type','org_code'])
+            ->where(['user_id'=>$id])->asArray()->one();
+        if($user_info){
+            //根据所属的组织，查找拥有的小区权限
+            $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
+        }else{
+            $user_info = [];
+        }
+        return $user_info;
+    }
+
+    /**
+     * 获取这个人的小区id权限列表
+     * @param $node_type
+     * @param $dept_id
+     * @return array
+     */
+    public function getCommunityList($node_type,$dept_id)
+    {
+        switch($node_type){
+            case "1":
+                //找到这个街道下面所有的社区id
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$dept_id,'department_level'=>3])->asArray()->column();
+                //找到这些社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
+                break;
+            case "2":
+                //找到这个社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$dept_id,'department_level'=>4])->asArray()->column();
+                break;
+            case "3":
+                //找到对应的街道
+                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                //找到这个街道下面所有的社区id
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
+                //找到这些社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
+                break;
+            case "4":
+                //找到对应的街道
+                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                //找到这个街道下面所有的社区id
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
+                //找到这些社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
+                break;
+            case "5":
+                //找到对应的街道
+                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                //找到这个街道下面所有的社区id
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
+                //找到这些社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
+                break;
+            case "6":
+                //找到这个小区code
+                $department = Department::find()->select(['org_code'])->where(['id'=>$dept_id])->asArray()->column();
+                break;
+            default:
+                $department = [];
+        }
+        //根据code找到对应的小区id
+        $community = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$department])->asArray()->column();
+        return $community ? $community : [];
+
+    }
+
+    /**
+     * 获取部门的名称
+     * @param $id
+     * @return false|null|string
+     */
+    public function getDepartmentNameById($id)
+    {
+        return Department::find()->select(['department_name'])->where(['id'=>$id])->scalar();
     }
 
 
