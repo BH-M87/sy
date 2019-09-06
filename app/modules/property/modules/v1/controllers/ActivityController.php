@@ -24,17 +24,25 @@ class ActivityController extends BaseController
     // 活动新增
     public function actionAdd()
     {
-        ActivityService::service()->add($this->request_params);
+        $r = ActivityService::service()->add($this->request_params);
 
-        PsCommon::responseSuccess();
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
+        }
     }
 
     // 活动编辑
     public function actionEdit()
     {
-        ActivityService::service()->edit($this->request_params);
+        $r = ActivityService::service()->edit($this->request_params);
 
-        PsCommon::responseSuccess();
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
+        }
     }
 
     // 获取活动列表

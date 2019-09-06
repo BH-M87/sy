@@ -20,6 +20,8 @@ use Yii;
  * @property string $supplier 供应商
  * @property string $supplier_tel 供应商联系电话
  * @property string $install_place 安装地点
+ * @property string $lon 经度
+ * @property string $lat 维度
  * @property string $leader 设备负责人
  * @property int $inspect_status 巡检状态：1正常；2异常
  * @property int $status 设备状态 1运行 2报废
@@ -71,6 +73,7 @@ class PsDevice extends BaseModel
             ['inspect_status', 'default', 'value' => 1, 'on' => 'add'],
             // 编辑场景
             [['id'], 'required', 'on' => ['edit']],
+            [['lon', 'lat'], 'number'],
         ];
     }
 
@@ -91,6 +94,8 @@ class PsDevice extends BaseModel
             'supplier'            => '供应商',
             'supplier_tel'        => '供应商联系电话',
             'install_place'       => '安装地点',
+            'lon'       => '所在位置经度值',
+            'lat'       => '所在位置维度值',
             'leader'              => '设备负责人',
             'status'              => '设备状态',
             'plan_scrap_at'       => '拟报废日期',
