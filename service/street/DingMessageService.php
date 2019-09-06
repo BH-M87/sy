@@ -26,7 +26,7 @@ class DingMessageService extends BaseService
         $sendData['single_title'] = $departName."|".$operator_name." ".date('Y-m-d H:i',$create_at);
         $sendData['single_url'] = '';//钉钉端详情页的地址
         $result['data'] = $this->sendMessage(1,$sendData);
-        $result['userList'] = $dingdingList ? implode('|',$dingdingList) : [];
+        $result['userList'] = $dingdingList ? $dingdingList: [];
         return $result;
     }
 

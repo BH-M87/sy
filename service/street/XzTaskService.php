@@ -514,6 +514,12 @@ class XzTaskService extends BaseService
         return  StXzTaskAttribute::find()->where(['id'=>$id])->asArray()->all();
     }
 
+    /**
+     * 控制显示跟隐藏
+     * @param $data
+     * @return string
+     * @throws MyException
+     */
     public function status($data)
     {
         $id = $data['id'];
@@ -523,6 +529,83 @@ class XzTaskService extends BaseService
             throw new MyException("更新：该任务模版不存在");
         }
         StXzTaskTemplate::updateAll(['status'=>$status],['id'=>$id]);
+        return "更新成功";
+    }
+
+    public function getCompleteList($data, $page, $pageSize)
+    {
+        $model = $this->searchCompleteList($data);
+        $offset = ($page - 1) * $pageSize;
+        $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
+        $totals = $model->count();
+        if ($list) {
+            foreach ($list as $key => $value) {
+                $list[$key]['type_info'] = ['id'=>$value['task_type'],'name'=>$this->type_info[$value['task_type']]];
+                $list[$key]['attribute_info'] = $this->getAttributeInfo($value['task_attribute_id']);
+                $list[$key]['check_at'] = date("Y-m-d H:i:s",$value['check_at']);
+                $list[$key]['created_at'] = date("Y-m-d H:i:s",$value['created_at']);
+            }
+        } else {
+            $list = [];
+        }
+        $result['list'] = $list;
+        $result['totals'] = $totals;
+        return $result;
+    }
+
+    /**
+     * 搜索查询
+     * @param $data
+     * @return $this
+     */
+    public function searchCompleteList($data)
+    {
+        $exec_user_name = PsCommon::get($data, 'exec_user_name');
+        $task_name = PsCommon::get($data, 'task_name');
+        $task_type = PsCommon::get($data, 'task_type');
+        $task_attribute_id = PsCommon::get($data, 'task_attribute_id');
+        $date_start = PsCommon::get($data, 'date_start');
+        $date_end = PsCommon::get($data, 'date_end');
+        $model = StXzTask::find()->alias('t')
+            ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
+            ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe',
+                't.user_name as exec_user_name','t.user_id as exec_user_id','t.check_at','t.created_at'])
+            ->where(['t.status'=>2])
+            ->andFilterWhere(['like','t.user_name',$exec_user_name])
+            ->andFilterWhere(['like','tt.name',$task_name])
+            ->andFilterWhere(['tt.task_type'=>$task_type])
+            ->andFilterWhere(['tt.task_attribute_id'=>$task_attribute_id]);
+        //如果搜索了发布时间
+        if ($date_start && $date_end) {
+            $start_time = strtotime($date_start . " 00:00:00");
+            $end_time = strtotime($date_end . " 23:59:59");
+            $model = $model->andFilterWhere(['>=', 't.check_at', $start_time])
+                ->andFilterWhere(['<=', 't.check_at', $end_time]);
+        }
+        return $model;
+    }
+
+    public function complete_detail($data)
+    {
+        $id = $data['id'];
+        $detail = StXzTask::find()->alias('t')
+            ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
+            ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe','tt.exec_type',
+                't.user_name as exec_user_name','t.user_id as exec_user_id','t.check_at','t.created_at',
+                't.check_location','t.check_images','t.check_content'])
+            ->where(['t.status'=>2,'t.id'=>$id])->asArray()->one();
+        if ($detail) {
+            $detail['type_info'] = ['id'=>$detail['task_type'],'name'=>$this->type_info[$detail['task_type']]];
+            $detail['attribute_info'] = $this->getAttributeInfo($detail['task_attribute_id']);
+            $detail['exec_type_info'] = ['id'=>$detail['exec_type'],'name'=>$this->exec_type_info[$detail['exec_type']]];
+            $detail['check_at'] = date("Y-m-d H:i:s",$detail['check_at']);
+            $detail['created_at'] = date("Y-m-d H:i:s",$detail['created_at']);
+            $detail['check_images'] = $detail['check_images'] ? explode(',',$detail['check_images']) : [];
+        } else {
+            $detail = [];
+        }
+
+        return $detail;
     }
 
 
