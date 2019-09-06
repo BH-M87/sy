@@ -95,8 +95,8 @@ class PioneerRanKingService extends BaseService
         if (!$info) {
             throw new MyException('ID错误');
         }
-        $params['start'] = empty($params['start_time']) ? null : strtotime($params['start_time']);
-        $params['end'] = empty($params['end_time']) ? null : strtotime($params['end_time']);
+        $params['start'] = empty($params['start_time']) ? null : strtotime($params['start_time'].' 00:00');
+        $params['end'] = empty($params['end_time']) ? null : strtotime($params['end_time'].' 24:00');
         $params['status'] = 3;
         $data = StPartyTaskStation::getList($params);
         return $data;
