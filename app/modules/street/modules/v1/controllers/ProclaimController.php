@@ -3,93 +3,117 @@ namespace app\modules\street\modules\v1\controllers;
 
 use common\core\PsCommon;
 
-use app\models\PsProclaim;
-
 use service\property_basic\ProclaimService;
 
 class ProclaimController extends BaseController
 {
-    // 小区公告 列表
-    public function actionList()
+    // 工作台
+    public function actionHome()
     {
-        $result = ProclaimService::service()->lists($this->request_params);
-        
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = ProclaimService::service()->home($this->request_params);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 新增
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        $this->request_params['operator_id'] = $this->user_info['id'];
+        $this->request_params['operator_name'] = $this->user_info['username'];
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        return true;
+    }
+
+    // 公告新增
     public function actionAdd()
     {
-        $result = ProclaimService::service()->add($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->add($this->request_params, 'streetAdd');
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 编辑
+    // 公告编辑
     public function actionEdit()
     {
-        $result = ProclaimService::service()->edit($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->edit($this->request_params, 'streetEdit');
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 是否显示
+    // 公告列表
+    public function actionList()
+    {
+        $r = ProclaimService::service()->list($this->request_params);
+        
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
+        }
+    }
+
+    // 公告是否显示
     public function actionEditShow()
     {
-        $result = ProclaimService::service()->editShow($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->editShow($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 是否置顶
+    // 公告是否置顶
     public function actionEditTop()
     {
-        $result = ProclaimService::service()->editTop($this->request_params, $this->user_info);
+        $r = ProclaimService::service()->editTop($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 详情
+    // 公告详情
     public function actionShow()
     {
-        $result = ProclaimService::service()->show($this->request_params);
+        $r = ProclaimService::service()->show($this->request_params);
         
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    // 小区公告 删除
+    // 公告删除
     public function actionDel()
     {
-        $result = ProclaimService::service()->del($this->request_params, $this->user_info);
-        
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = ProclaimService::service()->del($this->request_params);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 }
