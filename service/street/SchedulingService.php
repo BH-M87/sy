@@ -10,6 +10,7 @@ namespace service\street;
 
 
 use app\models\StScheduling;
+use app\models\UserInfo;
 
 class SchedulingService extends BaseService
 {
@@ -20,19 +21,59 @@ class SchedulingService extends BaseService
             ->where(['organization_type' => $params['organization_type'], 'organization_id' => $params['organization_id']])
             ->asArray()
             ->all();
-        $this->_processData($scheduleData);
+        return $this->_processData($scheduleData);
 
     }
 
     public function publish($params, $userInfo = [])
     {
-
+        print_r($params);exit;
+//        foreach ($params as $k => $v) {
+//            $v['organization_type'] = $params
+//            $insertData[] = $v;
+//        }
     }
 
     private function _processData($data)
     {
-        print_r($data);
+        $reData = [
+            'day1' => [],
+            'day2' => [],
+            'day3' => [],
+            'day4' => [],
+            'day5' => [],
+            'day6' => [],
+            'day7' => []
+        ];
+        foreach ($data as $k => $v) {
+            //查询头像
+            $photo = UserInfo::find()
+                ->select('profile_image')
+                ->where(['user_id' => $v['user_id']])
+                ->asArray()
+                ->scalar();
+            $v['user_photo'] = $photo ? $photo : '';
+            $tmpKey = 'day'.$v['day_type'];
+            unset($v['day_type']);
+            array_push($reData[$tmpKey], $v);
+        }
 
+        //按照职级排序，值班领导
+        foreach ($reData as $k => $v) {
+            $tmpArr = $v;
+            if (count($tmpArr) > 1) {
+                foreach ($tmpArr as $kk => $vv) {
+                    $userTypeList[] = $vv['user_type'];
+                }
+                array_multisort($userTypeList, SORT_ASC, $tmpArr);
+                $reData[$k] = $tmpArr;
+            }
+        }
+        return $reData;
+    }
+
+    private function _validateData()
+    {
 
     }
 }
