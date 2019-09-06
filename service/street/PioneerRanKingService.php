@@ -144,4 +144,14 @@ class PioneerRanKingService extends BaseService
         return $info_list;
     }
 
+    public function getStationList($params)
+    {
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['id'] = $user['communist_id'];
+        $commInfo = CommunistService::service()->getData($params);
+        $stationParam['organization_type'] = $commInfo->organization_type;
+        $stationParam['organization_id'] = $commInfo->organization_id;
+        return StationService::service()->getSimpleList($stationParam);
+    }
+
 }

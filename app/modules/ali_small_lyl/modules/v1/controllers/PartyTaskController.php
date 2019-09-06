@@ -74,6 +74,15 @@ class PartyTaskController extends UserBaseController
         return F::apiSuccess($data);
     }
 
-
-
+    /**
+     * 岗位列表
+     * @author wenchao.feng
+     * @throws \common\MyException
+     * @throws \yii\db\Exception
+     */
+    public function actionGetStationList()
+    {
+        $data = PioneerRanKingService::service()->getStationList($this->params);
+        return F::apiSuccess($data);
+    }
 }

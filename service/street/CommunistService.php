@@ -266,7 +266,7 @@ class CommunistService extends BaseService
         return $this->success($result);
     }
 
-    private function getData($params)
+    public function getData($params)
     {
         $info = StCommunist::findOne($params['id']);
         if (!$info) {
