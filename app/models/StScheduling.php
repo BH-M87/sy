@@ -19,7 +19,7 @@ use Yii;
  * @property string $operator_name 操作人名
  * @property int $create_at 添加时间
  */
-class StScheduling extends \yii\db\ActiveRecord
+class StScheduling extends BaseModel
 {
     /**
      * {@inheritdoc}
