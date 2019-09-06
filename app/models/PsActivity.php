@@ -6,6 +6,8 @@ use yii\behaviors\TimestampBehavior;
 use common\core\Regular;
 use common\MyException;
 
+use app\models\PsActivityEnroll;
+
 class PsActivity extends BaseModel
 {
     public static $type = [1 => '小区活动', 2 => '邻里活动', 3 => '官方活动', 4 => '社区活动'];
@@ -89,29 +91,6 @@ class PsActivity extends BaseModel
         ];
     }
 
-    // 获取列表
-    public static function getList($params, $field, $page = true)
-    {
-        $activity = PsActivity::find()->select($field)
-            ->where(['community_id' => $params['community_id'],'is_del' => 1,'type' => 1])
-            ->andFilterWhere(['status' => $params['status']])
-            ->andFilterWhere(['like', 'title', $params['title'] ?? null])
-            ->andFilterWhere(['or', ['like', 'link_name', $params['name'] ?? null], ['like', 'link_mobile', $params['name'] ?? null]])
-            ->andFilterWhere(['and', ['>=', 'join_end', $params['join_start'] ?? null], ['<=', 'join_end', $params['join_end'] ?? null]])
-            ->andFilterWhere(['and', ['>=', 'start_time',$params['activity_start'] ?? null ], ['<=', 'end_time',$params['activity_end'] ?? null]]);
-        $count = $activity->count();
-        if ($count > 0) {
-            $activity->orderBy('id desc');
-            if ($page) {
-                $activity->offset((($params['page'] ?? 1) - 1) * ($params['rows'] ?? 10))->limit($params['rows'] ?? 10);
-            }
-            $data = $activity->asArray()->all();
-            self::afterList($data);
-        }
-
-        return ['totals' => $count, 'list' => $data ?? []];
-    }
-
     // 获取后台数据
     public static function getOne($p)
     {
@@ -124,15 +103,60 @@ class PsActivity extends BaseModel
         return $m;
     }
 
-    // 列表结果格式化
-    public static function afterList(&$data)
+    // 获取列表
+    public static function getList($p)
     {
-        foreach ($data as &$v) {
-            $v['activity_title'] = $v['title'];
-            $v['start_time'] = date('Y-m-d H:i',$v['start_time']);
-            $v['end_time'] = date('Y-m-d H:i',$v['end_time']);
-            $v['join_end'] = date('Y-m-d H:i',$v['join_end']);
-            $v['status_desc'] = PsActivity::$status_desc[$v['status']];
+        $page = $p['page'] ?? 1;
+        $rows = $p['rows'] ?? 10;
+
+        $p['join_start'] = !empty($p['join_start']) ? strtotime($p['join_start']) : null;
+        $p['join_end'] = !empty($p['join_end']) ? strtotime($p['join_end'].' 23:59:59') : null;
+        $p['activity_start'] = !empty($p['activity_start']) ? strtotime($p['activity_start']) : null;
+        $p['activity_end'] = !empty($p['activity_end']) ? strtotime($p['activity_end'].' 23:59:59') : null;
+
+        $m = PsActivity::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
+            'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture'])
+            ->where(['is_del' => 1])
+            ->andFilterWhere(['=', 'type', $p['type']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'status', $p['status']])
+            ->andFilterWhere(['=', 'activity_type', $p['activity_type']])
+            ->andFilterWhere(['like', 'title', $p['title']])
+            ->andFilterWhere(['or', ['like', 'link_name', $p['name'] ?? null], ['like', 'link_mobile', $p['name'] ?? null]])
+            ->andFilterWhere(['>=', 'join_end', $p['join_start']])
+            ->andFilterWhere(['<=', 'join_end', $p['join_end']])
+            ->andFilterWhere(['>=', 'start_time', $p['activity_start']])
+            ->andFilterWhere(['<=', 'end_time', $p['activity_end']]);
+
+        $totals = $m->count();
+        if ($totals > 0) {
+            $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+
+            self::afterList($list);
+        }
+
+        return ['list' => $list ?? [], 'totals' => $totals];
+    }
+
+    // 列表结果格式化
+    public static function afterList(&$list)
+    {
+        foreach ($list as &$v) {
+            $v['start_time'] = date('Y-m-d H:i', $v['start_time']);
+            $v['end_time'] = date('Y-m-d H:i', $v['end_time']);
+            $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
+            $v['status_desc'] = self::$status[$v['status']];
+            $v['activity_type_desc'] = self::$activity_type[$v['activity_type']];
+            $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
+                ->where(['a_id' => $v['id']])->asArray()->all();
+            $v['people_list'] = $enroll;
+            $avatar_arr = [];
+            if (!empty($enroll)) {
+                foreach ($enroll as $val) {
+                    $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                }
+            }
+            $v['join_info'] = $avatar_arr;
         }
     }
 

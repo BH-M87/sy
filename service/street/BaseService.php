@@ -27,4 +27,28 @@ class BaseService extends \service\BaseService
         }
         return '网络异常';
     }
+
+    public function returnIdNameToCommon($list)
+    {
+        $result = [];
+        if($list){
+            foreach ($list as $key =>$value){
+                $a['id'] = $key;
+                $a['name'] = $value;
+                $result[] = $a;
+            }
+        }
+        return $result;
+    }
+
+    public function getIdByName($arrayParams,$name)
+    {
+        foreach ($arrayParams as $key => $value) {
+            if ($name == $value['name']) {
+                return $value['id'];
+            }
+        }
+        return false;
+    }
+
 }
