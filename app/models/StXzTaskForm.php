@@ -21,6 +21,11 @@ class StXzTaskForm extends BaseModel
     public $end_date;
     public $accessory_file;
     public $id;
+    public $check_content;
+    public $check_images;
+    public $check_location_lon;
+    public $check_location_lat;
+    public $check_location;
 
     /**
      * {@inheritdoc}
@@ -39,8 +44,9 @@ class StXzTaskForm extends BaseModel
             [['name','task_type','task_attribute_id','describe','start_date','end_date','exec_type'
             ], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
             [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
-            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete','status','detail-user-list']],
+            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete','status','detail-user-list','submit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
+            [['check_content','check_images','check_location_lon','check_location_lat','check_location'], 'required','message' => '{attribute}不能为空!', 'on' => ['submit']],
         ];
     }
 
@@ -66,7 +72,12 @@ class StXzTaskForm extends BaseModel
             'operator_id' => 'Operator ID',
             'operator_name' => 'Operator Name',
             'created_at' => 'Created At',
-            'receive_user_list'=>'执行人员'
+            'receive_user_list'=>'执行人员',
+            'check_content'=>'提交具体内容',
+            'check_images'=>'提交具体图片',
+            'check_location_lon'=>'所在位置经度值',
+            'check_location_lat'=>'所在位置纬度值',
+            'check_location'=>'所在位置',
         ];
     }
 }

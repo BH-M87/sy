@@ -9,7 +9,9 @@
 namespace service\street;
 
 
+use app\models\StCompany;
 use app\models\StPlace;
+use common\core\F;
 use common\MyException;
 
 class PlaceService extends BaseService
@@ -34,6 +36,11 @@ class PlaceService extends BaseService
 
     public function add($params, $userInfo = [])
     {
+        $companyId = F::value($params, 'company_id', 0);
+        if ($companyId) {
+            $this->getCompanyData($params['company_id']);
+        }
+
         //查询数据是否重复
         $tmpModel = StPlace::find()
             ->where(['name' => $params['name']])
@@ -57,6 +64,10 @@ class PlaceService extends BaseService
     public function edit($params, $userInfo = [])
     {
         $model = $this->getData($params);
+        $companyId = F::value($params, 'company_id', 0);
+        if ($companyId) {
+            $this->getCompanyData($params['company_id']);
+        }
         //查询数据是否重复
         $tmpModel = StPlace::find()
             ->where(['name' => $params['name']])
@@ -90,6 +101,9 @@ class PlaceService extends BaseService
             'id' => $info['company_id'],
             'name' => $info['company_name']
         ];
+        $info['area'] = $info['area'] ? sprintf("%.1f",$info['area']) : '';
+        unset($info['open_start_weekday']);
+        unset($info['open_end_weekday']);
         return $info;
     }
 
@@ -138,8 +152,12 @@ class PlaceService extends BaseService
                 'id' => $v['company_id'],
                 'name' => $v['company_name']
             ];
+            $list[$k]['area'] = $v['area'] ? sprintf("%.1f",$v['area']) : '';
+            $list[$k]['contact_mobile'] = $v['contact_mobile'] ? F::processMobile($v['contact_mobile']) : '';
             $list[$k]['created_at'] = $v['create_at'] ? date("Y-m-d H:i", $v['create_at']) : '';
             unset($list[$k]['create_at']);
+            unset($list[$k]['open_end_weekday']);
+            unset($list[$k]['open_start_weekday']);
         }
         $re['list'] = $list;
         return $re;
@@ -150,6 +168,15 @@ class PlaceService extends BaseService
         $info = StPlace::findOne($params['id']);
         if (!$info) {
             throw new MyException("场地记录不存在！");
+        }
+        return $info;
+    }
+
+    private function getCompanyData($companyId)
+    {
+        $info = StCompany::findOne($companyId);
+        if (!$info) {
+            throw new MyException("单位不存在！");
         }
         return $info;
     }

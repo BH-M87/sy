@@ -677,8 +677,8 @@ class ResidentService extends BaseService
             "operate_content" => $psResidentAudit->name . " " . (PsCommon::isVirtualPhone($psResidentAudit->mobile) ? '' : $psResidentAudit->mobile)
         ];
         OperateService::addComm($operator, $log);
-        
-        return $this->success();
+        $re['id'] = $psRoomUser->id;
+        return $this->success($re);
     }
 
     // 迁出后迁入
@@ -750,8 +750,8 @@ class ResidentService extends BaseService
             "operate_content" => $model->name . " " . (PsCommon::isVirtualPhone($model->mobile) === true ? '' : $model->mobile)
         ];
         OperateService::addComm($operator, $log);
-
-        return $this->success();
+        $re['id'] = $model->id;
+        return $this->success($re);
     }
 
     // 迁出
