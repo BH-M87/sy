@@ -11,6 +11,7 @@ namespace app\modules\street\controllers;
 
 use common\core\F;
 use common\core\PsCommon;
+use service\street\UserService;
 use yii\base\Controller;
 
 class BaseController extends Controller
@@ -57,17 +58,7 @@ class BaseController extends Controller
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
-
-        //token验证
-        $this->user_info = [
-            'id' => 51,
-            'mobile_number' => '18768177608',
-            'username' => '张强',
-            'dept_id'=>'5',//物业id
-            'node_type'=>'6',//物业，
-            'org_code'=>'33018301114',//所属组织的code
-            'community_id'=>['1'],//根据所属的组织，查找拥有的小区权限
-        ];
+        $this->user_info = UserService::service()->getUserInfoById($this->user_id);
         //UserService::setUser($this->user_info);
         //验证签名
         if ($action->controller->id != 'download') {//下载文件不走签名
@@ -84,12 +75,12 @@ class BaseController extends Controller
         }
 
         //物业系统必传小区ID
-        if (!in_array($action->id, $this->communityNoCheck)) {
-            if (!$this->user_id) {
-                echo PsCommon::responseFailed('用户不能为空');
-                return false;
-            }
-        }
+//        if (!in_array($action->id, $this->communityNoCheck)) {
+//            if (!$this->user_id) {
+//                echo PsCommon::responseFailed('用户不能为空');
+//                return false;
+//            }
+//        }
 
         //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
         if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {

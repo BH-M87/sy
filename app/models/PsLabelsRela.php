@@ -37,4 +37,26 @@ class PsLabelsRela extends BaseModel
     {
         return $this->save();
     }
+
+    public static function rate($p, $limit = false)
+    {
+        $m = self::find()->alias('A')
+            ->select('count(A.id) total, B.name')
+            ->leftJoin('ps_labels B', 'B.id = A.labels_id')
+            ->filterWhere(['=', 'label_attribute', $p['label_attribute']])
+            ->filterWhere(['=', 'label_type', $p['label_type']]);
+        
+        if (!empty($limit)) {
+            $m = $m->limit($limit);
+        }
+
+        $m = $m->groupBy('A.labels_id')->asArray()->all();
+
+        $total = array_sum(array_column($m, 'total'));
+        foreach ($m as $k => &$v) {
+            $v['rate'] = round($v['total'] / $total, 2);
+        }
+
+        return $m;
+    }
 }

@@ -10,6 +10,7 @@ namespace service\street;
 
 
 use app\models\StCommunist;
+use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
@@ -100,6 +101,47 @@ class PioneerRanKingService extends BaseService
         $params['status'] = 3;
         $data = StPartyTaskStation::getList($params);
         return $data;
+    }
+
+    //##########################先锋排名###########################
+
+    /**
+     * 先锋列表
+     * @author yjh
+     * @param $params
+     * @return mixed
+     * @throws MyException
+     * @throws \yii\db\Exception
+     */
+    public function getCommunistList($params)
+    {
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['years'] = date('Y',time());
+        $params['start'] = strtotime($params['years'].'-01-01 00:00');
+        $params['end'] = strtotime($params['years'].'-12-31 24:00');
+        $data = StPartyTaskStation::getOrderList($params);
+        $user_top = StPartyTaskStation::getUserTop($user['communist_id']);
+        return [$data,'user' => $user_top[0]];
+    }
+
+    /**
+     * 先锋列表
+     * @author yjh
+     * @param $params
+     * @return mixed
+     * @throws MyException
+     * @throws \yii\db\Exception
+     */
+    public function getCommunistInfoList($params)
+    {
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $user_info = StPartyTaskStation::getUserTop($user['communist_id'],false);
+        $info_list = $this->getInfoList(['communist_id' => $user['communist_id']]);
+        $info_list['grade_order'] = $user_info[0]['grade_order'];
+        $info_list['name'] = $user_info[0]['name'];
+        $info_list['task_count'] = $user_info[0]['task_count'];
+        $info_list['image'] = $user_info[0]['image'];
+        return $info_list;
     }
 
 }

@@ -39,7 +39,8 @@ class XzTaskService extends BaseService
         if ($list) {
             foreach ($list as $key => $value) {
                 $list[$key]['task_type_desc'] = $this->type_info[$value['task_type']];
-                $list[$key]['task_attribute_desc'] = $this->getAttributeInfo($value['task_attribute_id']);
+                $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
+                $list[$key]['task_attribute_desc'] = $task_attribute['name'];
                 $list[$key]['task_time'] = date('Y-m-d', $value['start_date']) . "到" . date('Y-m-d', $value['end_date']);
                 $list[$key]['number'] = count(explode(',', $value['exec_users']));
                 $list[$key]['status_desc'] = $this->status_info[$value['status']];
@@ -362,7 +363,8 @@ class XzTaskService extends BaseService
         $detail = StXzTaskTemplate::find()->where(['id' => $id])->asArray()->one();
         if ($detail) {
             $detail['task_type_desc'] = $this->type_info[$detail['task_type']];
-            $detail['task_attribute_desc'] = $this->getAttributeInfo($detail['task_attribute_id']);
+            $task_attribute = $this->getAttributeInfo($detail['task_attribute_id']);
+            $detail['task_attribute_desc'] = $task_attribute['name'];
             $detail['date'] = date('Y-m-d', $detail['start_date']) . "到" . date('Y-m-d', $detail['end_date']);
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
@@ -381,6 +383,7 @@ class XzTaskService extends BaseService
             }
             $detail['exec_type_desc'] = $exec_type_desc;
             $detail['interval_y_desc'] = $interval_y_desc;
+            $detail['accessory_file'] = $detail['accessory_file'] ? explode(',',$detail['accessory_file']) : '';
         } else {
             $detail = [];
         }
@@ -511,7 +514,7 @@ class XzTaskService extends BaseService
      */
     public function getAttributeInfo($id)
     {
-        return  StXzTaskAttribute::find()->where(['id'=>$id])->asArray()->all();
+        return  StXzTaskAttribute::find()->where(['id'=>$id])->asArray()->one();
     }
 
     /**
@@ -532,6 +535,13 @@ class XzTaskService extends BaseService
         return "更新成功";
     }
 
+    /**
+     * 完成情况列表
+     * @param $data
+     * @param $page
+     * @param $pageSize
+     * @return mixed
+     */
     public function getCompleteList($data, $page, $pageSize)
     {
         $model = $this->searchCompleteList($data);
@@ -585,6 +595,11 @@ class XzTaskService extends BaseService
         return $model;
     }
 
+    /**
+     * 完成情况详情
+     * @param $data
+     * @return array|null|\yii\db\ActiveRecord
+     */
     public function complete_detail($data)
     {
         $id = $data['id'];
@@ -606,6 +621,120 @@ class XzTaskService extends BaseService
         }
 
         return $detail;
+    }
+
+    public function searchMyList($data)
+    {
+        $user_id = $data['user_id'];
+        $type = PsCommon::get($data,'type');
+        $task_type = PsCommon::get($data,'task_type');
+        $task_attribute_id = PsCommon::get($data,'task_attribute_id');
+        $perform_time = PsCommon::get($data,'perform_time');
+        $searchTime = $perform_time ? strtotime($perform_time) : '';
+
+        $model = StXzTask::find()->alias('t')
+            ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
+            ->where(['t.user_id'=>$user_id])
+            ->andFilterWhere(['tt.task_type'=>$task_type])
+            ->andFilterWhere(['tt.task_attribute_id'=>$task_attribute_id]);
+        if($searchTime){
+            $model = $model->andFilterWhere(['<','t.start_time',$searchTime])->andFilterWhere(['>','t.end_time',$searchTime]);
+        }
+        $time = time();
+        switch($type){
+            case "1":
+                $model = $model->andWhere(['t.status'=>1])->andWhere(['>=','t.end_time',$time]);
+                break;
+            case "2":
+                $model = $model->andWhere(['t.status'=>2]);
+                break;
+            case "3":
+                $model = $model->andWhere(['t.status'=>1])->andWhere(['<','t.end_time',$time]);
+                break;
+            default:
+                $model = $model->andWhere(['t.status'=>1])->andWhere(['>=','t.end_time',$time]);
+        }
+
+        return $model;
+    }
+
+    /**
+     * 获取钉钉列表
+     * @param $data
+     * @param $page
+     * @param $pageSize
+     * @return mixed
+     */
+    public function getMyList($data, $page, $pageSize)
+    {
+
+        $model = $this->searchMyList($data);
+        $offset = ($page - 1) * $pageSize;
+        $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type'])
+            ->offset($offset)->limit($pageSize)->orderBy('t.id desc')->asArray()->all();
+        $count = $model->count();
+        if($list){
+            foreach($list as $key =>$value){
+                $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
+                $list[$key]['task_attribute_id_desc'] = $task_attribute['name'];
+                $list[$key]['task_type_desc'] = $this->type_info[$value['task_type']];
+                $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);
+                $list[$key]['exec_type_desc'] = $this->exec_type_info[$value['exec_type']]."任务";
+            }
+        }else{
+            $list = [];
+        }
+        $result['list'] = $list;
+        $result['totals'] = $count;
+        return $result;
+    }
+
+    /**
+     * 获取钉钉详情
+     * @param $data
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getMyDetail($data)
+    {
+        $dataTask['id'] = StXzTask::find()->select(['task_template_id'])->where(['id'=>$data['id']])->scalar();
+        $detail = $this->detail($dataTask);
+        if($detail){
+            $complete = StXzTask::find()
+                ->select(['check_content','check_images','check_location_lon','check_location_lat','check_location'])
+                ->where(['id'=>$data['id']])->asArray()->one();
+            if($complete){
+                $complete['check_images'] = $complete['check_images'] ? explode(',',$complete['check_images']) : '';
+            }else{
+                $complete = [];
+            }
+            $detail['complete'] = $complete;
+        }
+        return $detail;
+    }
+
+    /**
+     * 提交钉钉任务
+     * @param $data
+     * @return string
+     * @throws MyException
+     */
+    public function mySubmit($data)
+    {
+
+        $id = $data['id'];
+        $detail = StXzTask::find()->where(['id' => $id])->asArray()->one();
+        if(empty($detail)){
+            throw new MyException('模板不存在');
+        }
+        $submit['status'] =2;
+        $submit['check_content'] = $data['check_content'];
+        $submit['check_images'] = implode(',',$data['check_images']);
+        $submit['check_location_lon'] = $data['check_location_lon'];
+        $submit['check_location_lat'] = $data['check_location_lat'];
+        $submit['check_location'] = $data['check_location'];
+        $submit['check_at'] = time();
+        StXzTask::updateAll($submit,['id'=>$id]);
+        return "提交成功";
     }
 
 
