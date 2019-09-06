@@ -3,6 +3,10 @@ namespace app\models;
 
 class PsProclaim extends BaseModel
 {
+    public static $proclaim_type = ['1' => '通知', '2' => '新闻', '3' => '公告', '4' => '社区公约', '5' => '三务公开', 
+        '6' => '政策法规', '7' => '网上办事', '8' => '保障信息', '9' => '其他信息'];
+    public static $proclaim_cate = ['1' => '文字', '2' => '新闻', '3' => '图文新闻'];
+
     public static function tableName()
     {
         return 'ps_proclaim';
@@ -11,33 +15,88 @@ class PsProclaim extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','title','proclaim_type','proclaim_cate','is_top','operator_id','operator_name'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
-            [['id','community_id','title','proclaim_type','proclaim_cate','is_top'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
-            [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit','del','edit_show','edit_top']],
-            [['is_show'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit_show']],
-            [['is_top'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit_top']],
-            [['proclaim_type','proclaim_cate'], 'in', 'range' => [1, 2, 3],'message' => '{attribute}不正确', 'on' =>['add', 'edit']],
-            [['is_top'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确', 'on' =>['add', 'edit','edit_top']],
-            [['is_show'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确', 'on' =>['edit_show']],
-            //['content', 'string', 'length' => [1, 500], 'message' => '{attribute}长度不正确', 'on' =>['add','edit']],
-            ['img_url', 'string', 'length' => [1, 100], 'message' => '{attribute}长度不正确', 'on' =>['add','edit']],
+            [['community_id', 'title', 'proclaim_type', 'proclaim_cate', 'operator_id', 'operator_name'], 'required', 'message' => '{attribute}必填'],
+            [['community_id', 'proclaim_type', 'proclaim_cate', 'operator_id', 'organization_type', 'organization_id', 'top_at'], 'integer', 'message'=> '{attribute}不是数字'],
+            [['proclaim_type','proclaim_cate'], 'in', 'range' => [1, 2, 3],'message' => '{attribute}不正确'],
+            [['is_top'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确'],
+            [['is_show'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确'],
+            ['img_url', 'string', 'length' => [1, 100], 'message' => '{attribute}长度不正确'],
             [['title'], 'string', 'max' => 30],
-            [['content'], 'safe']
+            [['content'], 'safe'],
+            [['proclaim_cate', 'img_url', 'content'], 'typeVerify'],
+
+            [['id'], 'required', 'on' => ['edit', 'streetEdit'], 'message' => '{attribute}必填'],
+
+            [['create_at'], 'default', 'on' => ['add', 'streetAdd'], 'value' => time()],
         ];
+    }
+
+    // 根据类型必填验证 新闻和图片新闻-图片必填 文字和图片新闻-内容必填
+    public function typeVerify()
+    {   
+        if ($this->proclaim_cate != 1 && empty($this->img_url)) {
+            $this->addError('', '图片不能为空');
+        }
+
+        if ($this->proclaim_cate != 2 && empty($this->content)) {
+            $this->addError('', '内容不能为空');
+        }
     }
 
     public function attributeLabels()
     {
         return [
-            'community_id' => '小区id',
+            'id' => '公告ID',
+            'organization_type' => '所属组织类型',
+            'organization_id' => '所属组织ID',
+            'community_id' => '小区ID',
             'title' => '标题',
             'content' => '内容',
             'proclaim_type' => '公告类型',
             'proclaim_cate' => '内容分类',
             'img_url' => '图片',
             'is_top' => '是否置顶',
+            'top_at' => '置顶时间',
             'is_show' => '是否显示',
-            'create_at' => '添加时间',
+            'operator_id' => '操作人ID',
+            'operator_name' => '操作人姓名',
+            'create_at' => '添加时间'
         ];
+    }
+
+    // 获取列表
+    public static function getList($p)
+    {
+        $page = $p['page'] ?? 1;
+        $rows = $p['rows'] ?? 10;
+
+        $p['start_date'] = !empty($p['start_date']) ? strtotime($p['start_date']) : null;
+        $p['end_date'] = !empty($p['end_date']) ? strtotime($p['end_date'].' 23:59:59') : null;
+
+        $m = self::find()
+            ->filterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'proclaim_type', $p['proclaim_type']])
+            ->andFilterWhere(['like', 'title', $p['title']])
+            ->andFilterWhere(['>=', 'create_at', $p['start_date']])
+            ->andFilterWhere(['<=', 'create_at', $p['end_date']]);
+
+        $totals = $m->count();
+        if ($totals > 0) {
+            $list = $m->orderBy('create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+
+            self::afterList($list);
+        }
+
+        return ['list' => $list ?? [], 'totals' => $totals];
+    }
+
+    // 列表结果格式化
+    public static function afterList(&$list)
+    {
+        foreach ($list as &$v) {
+            $v['show_at'] = date('Y-m-d H:i', $v['show_at']);
+            $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
+            $v['proclaim_type_desc'] = self::$proclaim_type[$v['proclaim_type']];
+        }
     }
 }
