@@ -101,4 +101,27 @@ class XzTaskController extends BaseController
         $result = XzTaskService::service()->status($this->request_params);
         return PsCommon::responseSuccess($result);
     }
+
+    /**
+     * 列表
+     * @return string
+     */
+    public function actionCompleteList()
+    {
+        $result = XzTaskService::service()->getCompleteList($this->request_params, $this->page, $this->pageSize);
+        return PsCommon::responseSuccess($result);
+    }
+
+    /**
+     * 详情
+     * @return string
+     */
+    public function actionCompleteDetail()
+    {
+        StXzTaskForm::model()->validParamArr($this->request_params,'detail');
+        $result = XzTaskService::service()->complete_detail($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
+
 }

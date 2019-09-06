@@ -28,6 +28,12 @@ class BaseService extends \service\BaseService
         return '网络异常';
     }
 
+    /**
+     * 根据默认的数据，将其转换成id-name格式的数组
+     * 原始数据格式：$type_info = ['1' => '常规任务', '2' => '指令任务', '3' => '工作日志'];
+     * @param $list
+     * @return array
+     */
     public function returnIdNameToCommon($list)
     {
         $result = [];
