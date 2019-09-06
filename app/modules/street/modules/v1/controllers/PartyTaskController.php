@@ -22,7 +22,7 @@ class PartyTaskController extends BaseController
     public function actionAdd()
     {
         $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
-        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
+        $this->request_params['operator_name'] = $this->user_info['username'] ?? '张三';
         PartyTaskService::service()->addTask($this->request_params);
         return PsCommon::responseSuccess();
     }
@@ -36,7 +36,7 @@ class PartyTaskController extends BaseController
     public function actionEdit()
     {
         $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
-        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
+        $this->request_params['operator_name'] = $this->user_info['username'] ?? '张三';
         PartyTaskService::service()->editTask($this->request_params);
         return PsCommon::responseSuccess();
     }
@@ -73,7 +73,7 @@ class PartyTaskController extends BaseController
     public function actionCancel()
     {
         $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
-        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
+        $this->request_params['operator_name'] = $this->user_info['username'] ?? '张三';
         PartyTaskService::service()->cancel($this->request_params);
         return PsCommon::responseSuccess();
     }
@@ -195,7 +195,7 @@ class PartyTaskController extends BaseController
     public function actionPostExamine()
     {
         $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
-        $this->request_params['operator_name'] = $this->user_info['truename'] ?? '张三';
+        $this->request_params['operator_name'] = $this->user_info['username'] ?? '张三';
         $data = PartyTaskService::service()->postExamine($this->request_params);
         return PsCommon::responseSuccess($data);
     }
