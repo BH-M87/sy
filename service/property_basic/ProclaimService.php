@@ -31,7 +31,11 @@ class ProclaimService extends BaseService
         $m = new PsProclaim();
 
         if (!empty($p['id'])) {
-            $m = self::getOne($p);
+            $m = PsProclaim::getOne($p);
+
+            if (!$m) {
+                return $this->failed("数据不存在");
+            }
 
             if ($m->is_show == 2) {
                 return $this->failed("数据已上线不可编辑");
@@ -64,7 +68,11 @@ class ProclaimService extends BaseService
     // 公告是否显示
     public function editShow($p)
     {
-        $m = self::getOne($p);
+        $m = PsProclaim::getOne($p);
+        
+        if (!$m) {
+            return $this->failed("数据不存在");
+        }
 
         if ($m->is_show == 1) {
             $m->is_show = 2; // 置顶
@@ -83,7 +91,11 @@ class ProclaimService extends BaseService
     // 公告是否置顶
     public function editTop($p)
     {
-        $m = self::getOne($p);
+        $m = PsProclaim::getOne($p);
+
+        if (!$m) {
+            return $this->failed("数据不存在");
+        }
 
         if ($m->is_top == 1) {
             $m->is_top = 2; // 置顶
@@ -102,7 +114,13 @@ class ProclaimService extends BaseService
     // 公告详情
     public function show($p)
     {
-        $m = self::getOne($p)->toArray();
+        $m = PsProclaim::getOne($p);
+
+        if (!$m) {
+            return $this->failed("数据不存在");
+        }
+
+        $m = $m->toArray();
 
         $m['create_at'] = !empty($m['create_at']) ? date("Y-m-d H:i", $m['create_at']) : '';
         $m['show_at'] = !empty($m['show_at']) ? date("Y-m-d H:i", $m['show_at']) : '';
@@ -118,8 +136,12 @@ class ProclaimService extends BaseService
     // 公告删除
     public function del($p)
     {
-        $m = self::getOne($p);
+        $m = PsProclaim::getOne($p);
 
+        if (!$m) {
+            return $this->failed("数据不存在");
+        }
+    
         if ($m->is_show == 2) {
             return $this->failed("数据已上线不可删除");
         }
@@ -127,16 +149,5 @@ class ProclaimService extends BaseService
         if ($m->delete()) {
             return $this->success();
         }   
-    }
-
-    // 获取单条数据
-    public function getOne($p)
-    {
-        $m = PsProclaim::find()->where(['id' => $p['id']])
-            ->andFilterWhere(['=', 'community_id', $p['community_id']])->one();
-        if (!$m) {
-            return $this->failed("数据不存在");
-        }
-        return $m;
     }
 }

@@ -15,7 +15,7 @@ class PsProclaim extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'title', 'proclaim_type', 'proclaim_cate', 'operator_id', 'operator_name'], 'required', 'message' => '{attribute}必填'],
+            [['title', 'proclaim_type', 'proclaim_cate', 'operator_id', 'operator_name'], 'required', 'message' => '{attribute}必填'],
             [['community_id', 'proclaim_type', 'proclaim_cate', 'operator_id', 'organization_type', 'organization_id', 'top_at'], 'integer', 'message'=> '{attribute}不是数字'],
             [['proclaim_type','proclaim_cate'], 'in', 'range' => [1, 2, 3],'message' => '{attribute}不正确'],
             [['is_top'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确'],
@@ -62,6 +62,14 @@ class PsProclaim extends BaseModel
             'operator_name' => '操作人姓名',
             'create_at' => '添加时间'
         ];
+    }
+
+    // 获取单条数据
+    public static function getOne($p)
+    {
+        $m = PsProclaim::find()->where(['id' => $p['id']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])->one();
+        return $m;
     }
 
     // 获取列表
