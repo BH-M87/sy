@@ -8,53 +8,6 @@ use phpDocumentor\Reflection\Types\Self_;
 use Yii;
 use yii\db\ActiveQuery;
 
-/**
- * This is the model class for table "ps_room_user".
- *
- * @property integer $id
- * @property integer $community_id
- * @property integer $room_id
- * @property integer $member_id
- * @property string $name
- * @property integer $sex
- * @property string $mobile
- * @property string $card_no
- * @property string $group
- * @property string $building
- * @property string $unit
- * @property string $room
- * @property integer $identity_type
- * @property integer $status
- * @property integer $auth_time
- * @property integer $time_end
- * @property integer $operator_id
- * @property string $operator_name
- * @property string $enter_time
- * @property string $reason
- * @property string $work_address
- * @property string $qq
- * @property string $wechat
- * @property string $email
- * @property string $telephone
- * @property string $emergency_contact
- * @property string $emergency_mobile
- * @property integer $nation
- * @property integer $face
- * @property integer $household_type
- * @property integer $marry_status
- * @property integer $household_province
- * @property integer $household_city
- * @property integer $household_area
- * @property string $household_address
- * @property string $residence_number
- * @property integer $live_type
- * @property integer $live_detail
- * @property integer $change_detail
- * @property string $change_before
- * @property string $change_after
- * @property integer $create_at
- * @property integer $update_at
- */
 class PsRoomUser extends BaseModel
 {
     const UN_AUTH = 1;//未认证
@@ -308,6 +261,13 @@ class PsRoomUser extends BaseModel
         return $result;
     }
 
-
+    public static function getCount($p)
+    {
+        return self::find()->select('distinct(mobile)')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andWhere(['in', 'status', [1,2]])
+            ->andFilterWhere(['identity_type' => $p['identity_type']])
+            ->andFilterWhere(['time_end' => $p['time_end']])->count();
+    }
 
 }

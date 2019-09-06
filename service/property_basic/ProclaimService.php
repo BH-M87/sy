@@ -10,9 +10,44 @@ use service\rbac\OperateService;
 use common\core\PsCommon;
 
 use app\models\PsProclaim;
+use app\models\StScheduling;
+use app\models\PsLabelsRela;
+use app\models\PsCommunityRoominfo;
+use app\models\PsRoomUser;
+use app\models\ParkingCars;
 
 class ProclaimService extends BaseService
 {
+    public function home($p)
+    {
+        // 值班人员
+        $week = date("w") == 0 ? 7 : date("w");
+        $r['schedule'] = StScheduling::getList(['day_type' => $week]);
+
+        $user_num = PsRoomUser::getCount(['community_id' => $p['community_id']]);
+        $flow = PsRoomUser::getCount(['community_id' => $p['community_id'], 'identity_type' => 3, 'time_end' => 0]);
+        $user_label[] = ['name' => '流动人口', 'total' => $flow, 'rate' => round($flow / $user_num, 2)];
+        $user_label[] = ['name' => '常住人口', 'total' => $user_num - $flow, 'rate' => round(($user_num - $flow) / $user_num, 2)];
+        $r['areaBase']['user_label'] = $user_label;
+        $r['areaBase']['user_num'] = $user_num;
+        
+        $r['areaBase']['room_label'] = PsLabelsRela::rate(['label_attribute' => 1], 4);
+        $r['areaBase']['room_num'] = PsCommunityRoominfo::find()
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])->count();
+        
+        $car_num = ParkingCars::find()
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])->count();
+        $car_label[] = ['name' => '机动车', 'total' => $car_num, 'rate' => round(($car_num) / $car_num, 2)];
+        $r['areaBase']['car_label'] = $car_label;
+        $r['areaBase']['car_num'] = $car_num;
+        // 重点人员
+        $r['carePeople'] = PsLabelsRela::rate(['label_type' => 2]);
+        // 关怀人群
+        $r['keyPeople'] = PsLabelsRela::rate(['label_type' => 3]);
+
+        return $this->success($r);
+    }
+
     // 公告 新增
     public function add($p, $scenario = 'add')
     {

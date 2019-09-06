@@ -21,17 +21,13 @@ use Yii;
  */
 class StScheduling extends \yii\db\ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
+    public static $user_type = [1 => '值班负责人', 2 => '值班人员'];
+
     public static function tableName()
     {
         return 'st_scheduling';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
@@ -41,9 +37,6 @@ class StScheduling extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -59,5 +52,17 @@ class StScheduling extends \yii\db\ActiveRecord
             'operator_name' => 'Operator Name',
             'create_at' => 'Create At',
         ];
+    }
+    
+    // 获取列表
+    public static function getList($p)
+    {
+        $m = self::find()->alias('A')->leftJoin('user_info B', 'B.id = A.user_id')->select('A.user_id, B.username as user_name, B.mobile_number as user_mobile, A.user_type')->where(['day_type' => $p['day_type']])->asArray()->all();
+
+        foreach ($m as &$v) {
+            $v['user_type_desc'] = self::$user_type[$v['user_type']];
+        }
+
+        return $m;
     }
 }
