@@ -9,7 +9,7 @@ namespace service\small;
 use Yii;
 
 use yii\db\Exception;
-
+use common\core\Curl;
 use common\core\PsCommon;
 
 use service\BaseService;
@@ -78,13 +78,14 @@ Class CommunityService extends BaseService
         }
 
         $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $p['user_id']])->asArray()->one();
+        $community = PsCommunityModel::findOne($roomInfo['community_id']);
 
         $p['app_user_id'] = $p['user_id'];
         $p['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
         $p['name'] = $appUser['true_name'];
         $p['mobile'] = $appUser['phone'];
         $p['community_id'] = $roomInfo['community_id'];
-        $p['event_community_no'] = PsCommunityModel::findOne($roomInfo['community_id'])->event_community_no;
+        $p['event_community_no'] = $community->event_community_no;
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
@@ -94,7 +95,7 @@ Class CommunityService extends BaseService
             if (!$model->load($p, '') || !$model->validate()) {
                 return $this->failed($this->getError($model));
             }
-//event_no
+
             if (!$model->save()) {
                 return $this->failed($this->getError($model));
             }
@@ -108,6 +109,25 @@ Class CommunityService extends BaseService
                     $image->save();
                 }
             }
+
+            // 处理结果 调Java接口
+            $data = [
+                'title' => $p['title'],
+                'description' => $p['describe'], 
+                'eventFrom' => 2,
+                'eventTime' => date('Y-m-d H:i:s', time()),
+                'eventType' => $p['event_child_type_id'],
+                'imageUrl' => $p['image_url'],
+                'reportAddress' => $p['address'],
+                'address' => $p['address'],
+                'userId' => PsAppMember::find()->where(['app_user_id' => $p['user_id']])->one()->member_id,
+                'xqName' => $community->name,
+                'xqOrgCode' => $community->event_community_no,
+            ];
+            $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/eventDing/addEvent', json_encode($data), true);
+            $model->event_no = json_decode($event, true)['data'];
+            $model->save();
+
             $trans->commit();
             return $this->success(['id' => $model->attributes['id']]);
         } catch (Exception $e) {
@@ -146,13 +166,19 @@ Class CommunityService extends BaseService
         $list = [];
         $avatar = [];
         if (!empty($m)) {
-            foreach ($m as $k => $v) {
-                $m[$k]['status_msg'] = PsCommunityExposure::status($v['status']);
-                $m[$k]['type_msg'] = EventTemplate::typeDesc($v);
+            foreach ($m as $k => &$v) {
+                $v['status_msg'] = PsCommunityExposure::status($v['status']);
+                $v['type_msg'] = EventTemplate::typeDesc($v);
                 $image_1 = PsCommunityExposureImage::find()->select('image_url')->where(['community_exposure_id' => $v['id'], 'type' => 1])->asArray()->all();
-                $m[$k]['image_url'] = array_column($image_1, 'image_url');
-                $m[$k]['name'] =  CommunityService::service()->_hideName($v['name']);
-                // 处理结果调Java接口
+                $v['image_url'] = array_column($image_1, 'image_url');
+                $v['name'] =  CommunityService::service()->_hideName($v['name']);
+
+                // 处理结果 调Java接口
+                $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/community/communityExposure/getExposureDealWithDetailById', json_encode(['exposureId' => $p['id']]), true);
+                $event = json_decode($event, true)['data'];
+                $v['content'] = $event['content'] ?? '';
+                $v['deal_at'] = $event['dealAt'] ?? '';
+                $v['deal_image'] = $event['dealWithPicList'] ?? '';
 
                 if (!empty($param['homePage']) && $k < 3) {
                     $avatar[] = $v['avatar']; 
@@ -218,7 +244,11 @@ Class CommunityService extends BaseService
         $m['image_url'] = array_column($image_1, 'image_url');
         
         // 处理结果 调Java接口
-        
+        $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/community/communityExposure/getExposureDealWithDetailById', json_encode(['exposureId' => $p['id']]), true);
+        $event = json_decode($event, true)['data'];
+        $m['content'] = $event['content'] ?? '';
+        $m['deal_at'] = $event['dealAt'] ?? '';
+        $m['deal_image'] = $event['dealWithPicList'] ?? '';
 
         return $this->success($m);
     }
