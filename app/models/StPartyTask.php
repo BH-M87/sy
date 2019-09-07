@@ -88,6 +88,62 @@ class StPartyTask extends BaseModel
         ];
     }
 
+
+    /**
+     * 获取个人列表(只获取本年的)
+     * @author yjh
+     * @param $param
+     * @param bool $page
+     * @return mixed
+     */
+    public static function getUserList($param,$page=true)
+    {
+        $param['years'] = date('Y',time());
+        $param['start'] = strtotime($param['years'].'-01-01 00:00');
+        $param['end'] = strtotime($param['years'].'-12-31 24:00');
+
+        $model = self::find()->alias('st')
+            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at')
+            ->leftJoin('st_station as ss', 'ss.id = st.station_id')
+            ->leftJoin('st_party_task_station as sts', 'sts.task_id = st.id')
+            ->where(['sts.communist_id' => $param['communist_id']])
+            ->andFilterWhere(['sts.status' => $param['status'] ?? null])
+            ->andFilterWhere(['>','sts.create_at',$param['start']])
+            ->andFilterWhere(['<','sts.create_at',$param['end']]);
+        $model->orderBy([ 'st.create_at' => SORT_DESC]);
+        if ($page) {
+            $page = !empty($param['page']) ? $param['page'] : 1;
+            $row = !empty($param['rows']) ? $param['rows'] : 10;
+            $page = ($page-1)*$row;
+            $count = $model->count();
+            $data['totals'] = $count;
+            $model->offset($page)->limit($row);
+        }
+        $data['list'] = $model->asArray()->all();
+        if (!empty($data['list'])) {
+            self::afterUserList($data['list']);
+        }
+        return $data;
+    }
+
+    public static function afterUserList(&$data)
+    {
+        foreach ($data as &$v) {
+            $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+            if ($v['status'] == 3 || $v['status'] == 4) {
+                $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $v['id']])->one();
+                $v['content'] = $record['content'];
+                unset($record);
+            }
+            $v['status_info'] = [
+                'id' => $v['status'],
+                'name' => StPartyTaskStation::$audit_status_msg[$v['status']],
+            ];
+            unset($v['station']);
+        }
+    }
+
+
     /**
      * 获取列表
      * @author yjh
