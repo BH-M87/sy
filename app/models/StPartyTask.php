@@ -103,7 +103,7 @@ class StPartyTask extends BaseModel
         $param['end'] = strtotime($param['years'].'-12-31 24:00');
 
         $model = self::find()->alias('st')
-            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at')
+            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at,sts.update_at')
             ->leftJoin('st_station as ss', 'ss.id = st.station_id')
             ->leftJoin('st_party_task_station as sts', 'sts.task_id = st.id')
             ->where(['sts.communist_id' => $param['communist_id']])
@@ -129,7 +129,12 @@ class StPartyTask extends BaseModel
     public static function afterUserList(&$data)
     {
         foreach ($data as &$v) {
-            $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+            //领取时间取新增时间
+            if ($v['status'] == 1) {
+                $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+            } else {
+                $v['created_at'] = date('Y-m-d H:i:s',$v['update_at']);
+            }
             if ($v['status'] == 3 || $v['status'] == 4) {
                 $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $v['id']])->one();
                 $v['content'] = $record['content'];

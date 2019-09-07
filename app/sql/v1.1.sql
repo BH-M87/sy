@@ -504,11 +504,16 @@ CREATE TABLE `st_xz_task` (
 ) ENGINE=InnoDB AUTO_INCREMENT=353 DEFAULT CHARSET=utf8 COMMENT='行政居务任务表';
 
 ALTER TABLE `st_party_task_operate_record`
-ADD COLUMN `info`  varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '完成内容' AFTER `create_at`;
+ADD COLUMN `info`  varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '完成内容' AFTER `create_at`;
 
 ALTER TABLE `ps_device`
 ADD COLUMN `lon`  decimal(10,6) NOT NULL DEFAULT 0.000000 COMMENT '所在位置经度值' AFTER `install_place`,
 ADD COLUMN `lat`  decimal(10,6) NOT NULL DEFAULT 0.000000 COMMENT '所在位置纬度值' AFTER `lon`;
+
+ALTER TABLE `st_party_task_station`
+ADD COLUMN `update_at`  int(11) NOT NULL AFTER `pioneer_value`;
+
+
 
 
 

@@ -13,6 +13,7 @@ use Yii;
  * @property int $status 审核状态 1=待完成 2=审核中 3=已审核 4=已取消
  * @property int $pioneer_value 获得的先锋值
  * @property string $create_at 创建时间
+ * @property string $update_at 创建时间
  */
 class StPartyTaskStation extends \yii\db\ActiveRecord
 {
@@ -51,6 +52,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             'task_id' => 'Task ID',
             'communist_id' => 'Communist ID',
             'status' => 'Status',
+            'update_at' => 'update_at',
             'pioneer_value' => 'Pioneer Value',
             'create_at' => 'Create At',
         ];

@@ -168,6 +168,7 @@ class PartyTaskService extends BaseService
         $record->operator_name = $params['operator_name'];
         $record->content = $params['content'];
         $party->status = 4;
+        $party->update_at = time();
         $party->save();
         $record->save();
     }
@@ -299,6 +300,7 @@ class PartyTaskService extends BaseService
         $record->content = $params['remark'];
         $party->status = 3;
         $party->pioneer_value = $params['pioneer_value'];
+        $party->update_at = time();
         $party->save();
         $record->save();
     }
@@ -411,11 +413,11 @@ class PartyTaskService extends BaseService
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
         $app_user = $this->checkUser($params['user_id']);
-        $task = StPartyTask::find()->where(['id' => $params['id']])->asArray()->one();
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
-        if (!$task || !$party) {
+        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        if (!$party) {
             throw new MyException('该任务不存在');
         }
+        $task = StPartyTask::find()->where(['id' => $party->task_id])->asArray()->one();
         $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
         if ($task['expire_time_type'] == 2) {
@@ -430,7 +432,7 @@ class PartyTaskService extends BaseService
         //1待完成 2审核中 3取消 4已审核
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party['id']])->one();
         if ($party['status'] == 2) {
-            $task['complete']['content'] = $record['content'];
+            $task['complete']['content'] = $record['info'];
             $task['complete']['images'] = $party['images'];
             $task['complete']['location'] = $party['location'];
             $task['complete']['lon'] = $party['lon'];
@@ -441,14 +443,63 @@ class PartyTaskService extends BaseService
             $task['examine']['content'] = $record['content'];
             $task['examine']['operator_name'] = $record['operator_name'];
             $task['examine']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
+            $task['complete']['content'] = $record['info'];
+            $task['complete']['images'] = $party['images'];
+            $task['complete']['location'] = $party['location'];
+            $task['complete']['lon'] = $party['lon'];
+            $task['complete']['lat'] = $party['lat'];
         } else if ($party['status'] == 4) {
             $task['status'] = 3;
             $task['cancel']['content'] = $record['content'];
             $task['cancel']['operator_name'] = $record['operator_name'];
             $task['cancel']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
+
         }
         return $task;
     }
+
+    /**
+     * 任务提交
+     * @author yjh
+     * @param $params
+     * @throws MyException
+     */
+    public function completeTask($params)
+    {
+        if (empty($params['id']) || empty($params['content']) || empty($params['images'])) throw new MyException('参数错误');
+        $app_user = $this->checkUser($params['user_id']);
+        if (count($params['images']) > 5) throw new MyException('图片不能超过5张');
+        if (mb_strlen($params['content']) > 500) throw new MyException('完成情况不能大于500字');
+        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        if (!$party) {
+            throw new MyException('该任务不存在');
+        } else {
+            if ($party->status != 1) {
+                throw new MyException('该任务已经提交过');
+            }
+        }
+        $task = StPartyTask::find()->where(['id' => $party->task_id])->one();
+        $record = new StPartyTaskOperateRecord();
+        if ($task->is_location == 1) {
+            if (empty($params['location']) || empty($params['lon']) || empty($params['lat'])) throw new MyException('定位地址信息必填');
+            $record->location = $params['location'];
+            $record->lon = $params['lon'];
+            $record->lat = $params['lat'];
+        }
+        $record->party_task_station_id = $party->id;
+        $record->task_id = $party->task_id;
+        $record->operate_type = 2;
+        $record->content = '';
+        $record->info = $params['content'];
+        $record->create_at = time();
+        $record->images = implode(',',$params['images']);
+        $record->communist_id = $app_user['communist_id'];
+        $party->status = 2;
+        $party->update_at = time();
+        $party->save();
+        $record->save();
+    }
+
 
     /**
      * 检查是不是党员
