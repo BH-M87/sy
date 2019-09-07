@@ -12,6 +12,7 @@ namespace service\street;
 use app\models\Department;
 use app\models\PsCommunityModel;
 use app\models\UserInfo;
+use common\MyException;
 
 class UserService extends BaseService
 {
@@ -37,6 +38,9 @@ class UserService extends BaseService
         $user_info = UserInfo::find()
             ->select(['id','mobile_number','username','dept_id','node_type','org_code'])
             ->where(['user_id'=>$id])->asArray()->one();
+        if (!$user_info) {
+            throw new MyException("用户不存在！");
+        }
         if($user_info){
             //根据所属的组织，查找拥有的小区权限
             $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
