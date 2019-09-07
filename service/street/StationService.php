@@ -106,7 +106,7 @@ class StationService extends BaseService
             ->alias('st')
             ->where(['st.organization_type' => $params['organization_type'], 'st.organization_id' => $params['organization_id']]);
         if (!empty($params['name'])) {
-            $query->andWhere(['like', 'st.name', $params['name']]);
+            $query->andWhere(['like', 'st.station', $params['name']]);
         }
         if (!empty($params['status'])) {
             $query->andWhere(['st.status' => $params['status']]);
