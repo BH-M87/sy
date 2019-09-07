@@ -31,6 +31,7 @@ use app\models\PsSensitiveWord;
 use app\models\PsCommunityExposure;
 use app\models\PsCommunityExposureImage;
 use app\models\ParkingCarport;
+use app\models\EventTemplate;
 
 Class CommunityService extends BaseService
 {
@@ -221,7 +222,7 @@ Class CommunityService extends BaseService
         } else {
             $total = $this->_searchExposure($param)->count();
 
-            return ['list' => $list, 'total' => $total, 'avatar' => $avatar];
+            return $this->success(['list' => $list, 'total' => $total, 'avatar' => $avatar]);
         }
     }
 
@@ -323,25 +324,17 @@ Class CommunityService extends BaseService
     // 曝光台 类型
     public function exposureType($param)
     {
-        if ($param['type'] == 1) {
-            $count = PsCommunityExposure::find()->select('count(id) as c, type')->where(['is_del' => 1, 'community_id' => $param['community_id']])->orderBy('type asc')->groupBy('type')->asArray()->all();
-            
+        if ($param['type'] == 1) { // 
+            $count = PsCommunityExposure::find()->select('count(id) as c, event_parent_type_id as type')->where(['is_del' => 1, 'community_id' => $param['community_id']])->orderBy('event_parent_type_id asc')->groupBy('event_parent_type_id')->asArray()->all();
+
             if (!empty($count)) {
                 foreach ($count as $k => $v) {
                     switch ($v['type']) {
                         case '1':
                             $arr['1'] = $v['c'];
                             break;
-                        case '2':
-                            $arr['2'] = $v['c'];
-                            break;
-                        case '3':
-                            $arr['3'] = $v['c'];
-                            break;
-                        case '4':
-                            $arr['4'] = $v['c'];
-                            break;
                         default:
+                            $arr[$v['type']] = $v['c'];
                             break;
                     }
                 }
@@ -352,16 +345,17 @@ Class CommunityService extends BaseService
             $result[0]['name'] = '全部('. $arr_sum .')';
         }
 
-        $type = PsCommunityExposure::type();
+        $type = EventTemplate::type([]);
         foreach ($type as $k => $v) {
             if ($param['type'] == 1) {
-                $result[$k]['id'] = $k;
-                $total = !empty($arr[$k]) ? $arr[$k] : 0;
-                $result[$k]['name'] = $v . '('. $total .')';
+                ++$k;
+                $total = !empty($arr[$v['id']]) ? $arr[$v['id']] : 0;
+
+                $result[$k]['id'] = $v['id'];
+                $result[$k]['name'] = $v['name'] . '('. $total .')';
             } else {
-                --$k;
-                $result[$k]['id'] = $k;
-                $result[$k]['name'] = $v;
+                $v['child'] = $typeChild = EventTemplate::type(['parent_id' => $v['id'], 'type' => 2]);
+                $result[$k] = $v;
             }
         }
 
