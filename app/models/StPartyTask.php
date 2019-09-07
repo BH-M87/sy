@@ -189,12 +189,12 @@ class StPartyTask extends BaseModel
             $v['claim_count'] = StPartyTaskStation::find()->where(['task_id' => $v['id']])->count();
             if ($v['expire_time_type'] == 2) {
                 if ($v['expire_time'] < time()) {
-                    $task['expire_time'] = '已过期';
+                    $v['expire_time'] = '已过期';
                 } else {
                     $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
                 }
             } else {
-                $task['expire_time'] = '长期有效';
+                $v['expire_time'] = '长期有效';
             }
             unset($v['expire_time_type']);
             unset($station);
