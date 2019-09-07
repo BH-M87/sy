@@ -125,12 +125,12 @@ class CommunityController extends BaseController
         $community_id = PsCommon::get($this->params, 'community_id');
 
         if (empty($user_id) && empty($community_id)) {
-            return PsCommon::responseAppSuccess([]);
+            return F::apiSuccess([]);
         }
 
-        $result = CommunityService::service()->exposureList($this->params);
+        $r = CommunityService::service()->exposureList($this->params);
 
-        return PsCommon::responseAppSuccess($result);
+        return self::dealReturnResult($r);
     }
 
     // 曝光台 详情

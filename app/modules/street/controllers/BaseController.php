@@ -54,6 +54,7 @@ class BaseController extends Controller
         if (!parent::beforeAction($action)) {
             return false;
         }
+
         $this->user_id  = F::request('user_id');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');

@@ -36,15 +36,11 @@ class BaseController extends Controller
         return true;
     }
     
-    public function dealReturnResult($result)
+    public function dealReturnResult($r)
     {
-        if($result['code'] == 1){
-            return PsCommon::responseAppSuccess($result['data']);
-        } else {
-            if (!empty($result['code'])) {
-                return PsCommon::responseAppFailed($result['msg'], $result['code']);
-            }
-            return PsCommon::responseAppFailed($result['msg']);
+        if ($r['code'] == 1) {
+            return F::apiSuccess($r['data']);
         }
+        return F::apiFailed($r['msg']);
     }
 }
