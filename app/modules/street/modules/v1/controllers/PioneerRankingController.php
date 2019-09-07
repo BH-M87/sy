@@ -29,6 +29,7 @@ class PioneerRankingController extends BaseController
      * 先锋列表
      * @author yjh
      * @return string
+     * @throws \yii\db\Exception
      */
     public function actionGetList()
     {

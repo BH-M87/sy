@@ -40,17 +40,18 @@ class PioneerRanKingService extends BaseService
     }
 
     /**
-     * 先锋列表
+     * 后台先锋列表
      * @author yjh
      * @param $params
      * @return mixed
+     * @throws \yii\db\Exception
      */
     public function getList($params)
     {
         $params['years'] = empty($params['years']) ? date('Y',time()) : $params['years'];
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
         $params['end'] = strtotime($params['years'].'-12-31 24:00');
-        $data = StPartyTaskStation::getOrderList($params);
+        $data = StPartyTaskStation::getOrderList($params,true,false);
         return $data;
     }
 
@@ -125,7 +126,7 @@ class PioneerRanKingService extends BaseService
     }
 
     /**
-     * 先锋列表
+     * 先锋明细列表
      * @author yjh
      * @param $params
      * @return mixed
@@ -143,4 +144,54 @@ class PioneerRanKingService extends BaseService
         $info_list['image'] = $user_info[0]['image'];
         return $info_list;
     }
+
+
+    public function getStationList($params)
+    {
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['id'] = $user['communist_id'];
+        $commInfo = CommunistService::service()->getData($params);
+        $stationParam['organization_type'] = $commInfo->organization_type;
+        $stationParam['organization_id'] = $commInfo->organization_id;
+        return StationService::service()->getSimpleList($stationParam);
+    }
+
+    /**
+     * 个人信息
+     * @author yjh
+     * @param $params
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws MyException
+     */
+    public function getUserInfo($params)
+    {
+        //个人信息
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $communist = StCommunist::find()->where(['id' => $user['communist_id']])->asArray()->one();
+        $communist['join_party_time'] = date('Y-m-d H:i:s',$communist['join_party_time']);
+        $communist['formal_time'] = date('Y-m-d H:i:s',$communist['formal_time']);
+        $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
+
+        $params['years'] = date('Y',time());
+        $params['start'] = strtotime($params['years'].'-01-01 00:00');
+        $params['end'] = strtotime($params['years'].'-12-31 24:00');
+        //统计
+        $model = StPartyTaskStation::find()->alias('sts')->select('sts.*')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.communist_id' => $user['communist_id']])
+            ->andFilterWhere(['>','sts.create_at',$params['start']])
+            ->andFilterWhere(['<','sts.create_at',$params['end']]);
+
+        $communist['task_statistics_info']['totals_num'] = $model->count();
+        $communist['task_statistics_info']['wait_aduit_num'] = $model->where(['sts.status' => 2])->count();
+        $communist['task_statistics_info']['aduit_done_num'] =$model->where(['sts.status' => 3])->count();
+        $communist['task_statistics_info']['wait_do_num'] =$model->where(['sts.status' => 1])->count();
+        $communist['task_statistics_info']['cancel_done_num'] =$model->where(['sts.status' => 4])->count();
+
+        return $communist;
+    }
+
+
+
+
 }

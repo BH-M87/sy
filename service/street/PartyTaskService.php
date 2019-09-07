@@ -385,6 +385,70 @@ class PartyTaskService extends BaseService
         return $task;
     }
 
+    /**
+     * 个人任务列表
+     * @author yjh
+     * @param $params
+     * @return mixed
+     * @throws MyException
+     */
+    public function getUserTaskList($params)
+    {
+        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['status'] = empty($params['status']) ? '1' : $params['status'];
+        $params['communist_id'] = $user['communist_id'];
+        return StPartyTask::getUserList($params);
+    }
+
+    /**
+     * 获取个人任务详情
+     * @author yjh
+     * @param $params
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws MyException
+     */
+    public function getSmallTaskMyDetail($params)
+    {
+        if (empty($params['id'])) throw new MyException('ID不能为空');
+        $app_user = $this->checkUser($params['user_id']);
+        $task = StPartyTask::find()->where(['id' => $params['id']])->asArray()->one();
+        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        if (!$task || !$party) {
+            throw new MyException('该任务不存在');
+        }
+        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
+        if ($task['expire_time_type'] == 2) {
+            if ($task < time()) {
+                $task['expire_time_desc'] = '任务已过期';
+            } else {
+                $task['expire_time_desc'] = date('Y-m-d H:i:s',$task['expire_time']);
+            }
+        } else {
+            $task['expire_time_desc'] = '长期有效';
+        }
+        //1待完成 2审核中 3取消 4已审核
+        $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party['id']])->one();
+        if ($party['status'] == 2) {
+            $task['complete']['content'] = $record['content'];
+            $task['complete']['images'] = $party['images'];
+            $task['complete']['location'] = $party['location'];
+            $task['complete']['lon'] = $party['lon'];
+            $task['complete']['lat'] = $party['lat'];
+        } else if ($party['status'] == 3) {
+            $task['status'] = 4;
+            $task['examine']['pioneer_value'] = $party['pioneer_value'];
+            $task['examine']['content'] = $record['content'];
+            $task['examine']['operator_name'] = $record['operator_name'];
+            $task['examine']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
+        } else if ($party['status'] == 4) {
+            $task['status'] = 3;
+            $task['cancel']['content'] = $record['content'];
+            $task['cancel']['operator_name'] = $record['operator_name'];
+            $task['cancel']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
+        }
+        return $task;
+    }
 
     /**
      * 检查是不是党员
@@ -401,4 +465,6 @@ class PartyTaskService extends BaseService
         }
         return $app_user;
     }
+
+
 }

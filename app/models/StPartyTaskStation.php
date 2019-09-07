@@ -123,11 +123,12 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * 获取排名列表
      * @author yjh
      * @param $param
+     * @param $type true 小程序 false后台
      * @param bool $page
      * @return mixed
      * @throws \yii\db\Exception
      */
-    public static function getOrderList($param,$page=true)
+    public static function getOrderList($param,$page=true,$type = true)
     {
         $model = self::find()
             ->alias('sts')
@@ -149,7 +150,11 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         }
         $data['list'] = $model->asArray()->all();
         if (!empty($data['list'])) {
-            self::afterOrderList($data['list']);
+            if ($type) {
+                self::afterOrderList($data['list']);
+            } else {
+                self::afterBackendOrderList($data['list']);
+            }
         }
         return $data;
     }
@@ -181,8 +186,23 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         return $data;
     }
 
+
     /**
-     * 排名处理
+     * 后台排名处理
+     * @author yjh
+     * @param $data
+     * @throws \yii\db\Exception
+     */
+    public static function afterBackendOrderList(&$data)
+    {
+        foreach ($data as &$v) {
+            $v['top'] = self::getTop($v['id']);
+            $v['type_name'] = StCommunist::$type_desc[$v['type']];
+        }
+    }
+
+    /**
+     * 小程序排名处理
      * @author yjh
      * @param $data
      * @throws \yii\db\Exception

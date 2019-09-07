@@ -74,6 +74,46 @@ class PartyTaskController extends UserBaseController
         return F::apiSuccess($data);
     }
 
+    /**
+     * 岗位列表
+     * @author yjh
+     */
+    public function actionGetStationList()
+    {
+        $data = PioneerRanKingService::service()->getStationList($this->params);
+        return F::apiSuccess($data);
+    }
 
+    /**
+     * 个人信息
+     * @author yjh
+     * @throws \common\MyException
+     */
+    public function actionGetUserInfo()
+    {
+        $data = PioneerRanKingService::service()->getUserInfo($this->params);
+        return F::apiSuccess($data);
+    }
 
+    /**
+     * 个人任务列表
+     * @author yjh
+     * @throws \common\MyException
+     */
+    public function actionGetUserTaskList()
+    {
+        $data = PartyTaskService::service()->getUserTaskList($this->params);
+        return F::apiSuccess($data);
+    }
+
+    /**
+     * 获取个人任务详情
+     * @author yjh
+     * @throws \common\MyException
+     */
+    public function actionGetMyTaskInfo()
+    {
+        $data = PartyTaskService::service()->getSmallTaskMyDetail($this->params);
+        return F::apiSuccess($data);
+    }
 }
