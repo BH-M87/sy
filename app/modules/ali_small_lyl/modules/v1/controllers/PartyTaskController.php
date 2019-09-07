@@ -116,4 +116,15 @@ class PartyTaskController extends UserBaseController
         $data = PartyTaskService::service()->getSmallTaskMyDetail($this->params);
         return F::apiSuccess($data);
     }
+
+    /**
+     * 任务完成提交
+     * @author yjh
+     * @throws \common\MyException
+     */
+    public function actionPostTaskComplete()
+    {
+        PartyTaskService::service()->completeTask($this->params);
+        return F::apiSuccess();
+    }
 }
