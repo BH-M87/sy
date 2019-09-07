@@ -16,11 +16,11 @@ $data['external_invoke_small_address_park'] = 'https://wuye.zje.com/alipay/notif
 //临时停车二维码地址
 $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
 //小程序配置
-$data['fczl_app_id'] = '2017091308707970';
+$data['fczl_app_id'] = '2019071165794353';
 $data['fczl_alipay_public_key_file'] = $basePath."/common/rsa_files/fczl/alipay_public.txt";
 $data['fczl_rsa_private_key_file'] = $basePath."/common/rsa_files/fczl/rsa_private.txt";
 // 门禁配置
-$data['edoor_app_id'] = '2018062960478244';
+$data['edoor_app_id'] = '2019031663543853';
 $data['edoor_alipay_public_key_file'] = $basePath."/common/rsa_files/edoor/alipay_public.txt";
 $data['edoor_rsa_private_key_file'] = $basePath."/common/rsa_files/edoor/rsa_private.txt";
 
