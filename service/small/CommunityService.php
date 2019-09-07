@@ -200,15 +200,16 @@ Class CommunityService extends BaseService
     // 曝光台 搜索
     private function _searchExposure($param)
     {
-        $start_at = !empty($param['start_at']) ? strtotime($param['start_at']) : '';
-        $end_at = !empty($param['end_at']) ? strtotime($param['end_at'].' 23:59:59') : '';
+        $start_at = !empty($param['start_at']) ? $param['start_at'] : '';
+        $end_at = !empty($param['end_at']) ? $param['end_at'].' 23:59:59' : '';
 
         $model = PsCommunityExposure::find()->alias("A")
             ->leftJoin('ps_community_roominfo B', 'A.room_id = B.id')
             ->filterWhere(['like', 'A.name', PsCommon::get($param, 'name')])
             ->orFilterWhere(['like', 'A.mobile', PsCommon::get($param, 'name')])
             ->filterWhere(['=', 'A.app_user_id', $param['user_id']])
-            ->andFilterWhere(['=', 'A.type', $param['type']])
+            ->andFilterWhere(['=', 'A.event_parent_type_id', $param['parent_type']])
+            ->andFilterWhere(['=', 'A.event_child_type_id', $param['child_type']])
             ->andFilterWhere(['=', 'A.status', $param['status']])
             ->andFilterWhere(['=', 'A.room_id', $param['room_id']])
             ->andFilterWhere(['=', 'A.community_id', $param['community_id']])
