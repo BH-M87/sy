@@ -10,7 +10,8 @@ class EventTemplate extends BaseModel
     {
         return 'event_template';
     }
-
+    
+    // 一级 二级分类
     public static function type($p)
     {
         $m = self::find()->select('id, title as name')->where(['status' => 1])
@@ -19,5 +20,11 @@ class EventTemplate extends BaseModel
             ->asArray()->all();
 
         return $m;
+    }
+    
+    // 类型描述
+    public static function typeDesc($p)
+    {
+        return self::findOne($p['event_parent_type_id'])->title.'-'.self::findOne($p['event_child_type_id'])->title;
     }
 }

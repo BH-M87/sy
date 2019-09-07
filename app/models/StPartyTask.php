@@ -41,7 +41,7 @@ class StPartyTask extends BaseModel
     {
         return [
             [['station_id', 'pioneer_value', 'expire_time_type', 'expire_time', 'is_location', 'create_at', 'operator_id'], 'integer'],
-            [['task_details', 'operator_id','station_id','task_name','pioneer_value','expire_time','party_address','contact_name','contact_phone','is_location'], 'required','message' => '{attribute}必填','on' => ['add','edit']],
+            [['task_details', 'operator_id','station_id','task_name','pioneer_value','expire_time','is_location'], 'required','message' => '{attribute}必填','on' => ['add','edit']],
             [['task_details'], 'string','max' => 1000],
             [['task_name'], 'string', 'max' => 30],
             [['is_location','expire_time_type'], 'in', 'range' => [1, 2],'message' => '{attribute}非法'],
@@ -103,7 +103,7 @@ class StPartyTask extends BaseModel
         $param['end'] = strtotime($param['years'].'-12-31 24:00');
 
         $model = self::find()->alias('st')
-            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at')
+            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at,sts.update_at')
             ->leftJoin('st_station as ss', 'ss.id = st.station_id')
             ->leftJoin('st_party_task_station as sts', 'sts.task_id = st.id')
             ->where(['sts.communist_id' => $param['communist_id']])
@@ -129,7 +129,12 @@ class StPartyTask extends BaseModel
     public static function afterUserList(&$data)
     {
         foreach ($data as &$v) {
-            $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+            //领取时间取新增时间
+            if ($v['status'] == 1) {
+                $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+            } else {
+                $v['created_at'] = date('Y-m-d H:i:s',$v['update_at']);
+            }
             if ($v['status'] == 3 || $v['status'] == 4) {
                 $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $v['id']])->one();
                 $v['content'] = $record['content'];
@@ -184,12 +189,12 @@ class StPartyTask extends BaseModel
             $v['claim_count'] = StPartyTaskStation::find()->where(['task_id' => $v['id']])->count();
             if ($v['expire_time_type'] == 2) {
                 if ($v['expire_time'] < time()) {
-                    $task['expire_time'] = '已过期';
+                    $v['expire_time'] = '已过期';
                 } else {
                     $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
                 }
             } else {
-                $task['expire_time'] = '长期有效';
+                $v['expire_time'] = '长期有效';
             }
             unset($v['expire_time_type']);
             unset($station);

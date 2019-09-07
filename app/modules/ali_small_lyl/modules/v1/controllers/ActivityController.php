@@ -7,13 +7,13 @@ use common\core\PsCommon;
 use service\small\ActivityService as SmallActivityService;
 use service\property_basic\ActivityService;
 
-use app\modules\ali_small_lyl\controllers\BaseController;
+use app\modules\ali_small_lyl\controllers\UserBaseController;
 
 use app\models\PsAppUser;
 use app\models\PsAppMember;
 use app\models\PsCommunityRoominfo;
 
-class ActivityController extends BaseController
+class ActivityController extends UserBaseController
 {
     // 0-100下拉列表
     public function actionNumberDropDown()
@@ -28,10 +28,7 @@ class ActivityController extends BaseController
     {
         $r = ActivityService::service()->list($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 详情 {"room_id":"","user_id":"","id":"1"}
@@ -39,10 +36,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->show($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 报名 {"room_id":"25049","user_id":"194","id":"2"}
@@ -50,10 +44,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->join($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 新增 {"community_id":"127", "room_id":"38329", "title":"旧衣服捐赠","picture":"http://static.zje.com/formal/0985330d50d4203be4dfb1aa41f8f3b2.jpg","link_name":"王宝强", "link_mobile":"18768143536","address":"海创科技中心","join_end":"2019-4-19", "start_time":"2019-4-13", "end_time":"2019-4-19", "activity_number":"99", "description":"我们送出的不是旧衣服 而是爱心啊爱心啊","user_id":"194"}
@@ -79,10 +70,7 @@ class ActivityController extends BaseController
 
         $r = ActivityService::service()->add($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 我的活动列表 {"user_id":"194","type":"2"}
@@ -90,10 +78,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->listMe($this->params);
         
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 详情（我参与的）{"room_id":"","id":""}
@@ -101,10 +86,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->showMe($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 取消 {"room_id":"","user_id":"","id":"2"}
@@ -112,10 +94,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->cancel($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 活动 报名列表 {"room_id":"","id":"2"}
@@ -123,10 +102,7 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->joinList($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 
     // 报名 取消 {"room_id":"1","user_id":"1","id":"1"}
@@ -134,9 +110,6 @@ class ActivityController extends BaseController
     {
         $r = SmallActivityService::service()->joinCancel($this->params);
 
-        if (!empty($r['code'])) {
-            return F::apiSuccess($r['data']);
-        }
-        return F::apiFailed($r['msg']);
+        return self::dealReturnResult($r);
     }
 }

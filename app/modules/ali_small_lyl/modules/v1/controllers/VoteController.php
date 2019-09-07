@@ -9,17 +9,17 @@ use app\models\PsCommunityModel;
 use service\resident\MemberService;
 use service\property_basic\VoteService;
 
-use app\modules\ali_small_lyl\controllers\BaseController;
+use app\modules\ali_small_lyl\controllers\UserBaseController;
 
-class VoteController extends BaseController 
+class VoteController extends UserBaseController 
 {
     // 小区列表
     public function actionCommunitys()
     {
-        $commName = PsCommon::get($this->request_params, 'name', '');
+        $commName = PsCommon::get($this->params, 'name', '');
         $comms = VoteService::service()->getAllCommunitys($commName);
         $data['list'] = $comms;
-        return PsCommon::responseSuccess($data);
+        return F::apiSuccess($data);
     }
 
     // 投票列表
@@ -28,10 +28,10 @@ class VoteController extends BaseController
         $appUserId    = $this->appUserId;
         $community_id = $this->communityId;
         if (!$community_id) {
-            return PsCommon::responseFailed('参数错误');
+            return F::apiFailed('参数错误');
         }
 
-        $from = PsCommon::get($this->request_params, 'from', '');
+        $from = PsCommon::get($this->params, 'from', '');
 
         $reqArr['community_id'] = $community_id;
         $data['list'] = VoteService::service()->simpleVoteList($reqArr);
@@ -55,53 +55,53 @@ class VoteController extends BaseController
             $appUserModel->save();
         }
 
-        return PsCommon::responseSuccess($data);
+        return F::apiSuccess($data);
     }
 
     // 投票详情接口
     public function actionView()
     {
-        $voteId = PsCommon::get($this->request_params, 'vote_id', 0);
-        $roomId = PsCommon::get($this->request_params, 'room_id', 0);
+        $voteId = PsCommon::get($this->params, 'vote_id', 0);
+        $roomId = PsCommon::get($this->params, 'room_id', 0);
         if (!$voteId || !$roomId) {
-            return PsCommon::responseFailed('参数错误');
+            return F::apiFailed('参数错误');
         }
 
         // 查询member_id
         $memberId = MemberService::service()->getMemberId($this->appUserId);
         if (!$memberId) {
-            return PsCommon::responseFailed('用户不存在');
+            return F::apiFailed('用户不存在');
         }
         $voteInfo = VoteService::service()->showVote($voteId, $memberId, $roomId);
 
         if (!$voteInfo) {
-            return PsCommon::responseFailed('投票信息不存在');
+            return F::apiFailed('投票信息不存在');
         } else {
-            return PsCommon::responseSuccess($voteInfo);
+            return F::apiSuccess($voteInfo);
         }
     }
 
     // 投票接口
     public function actionDoVote()
     {
-        $voteId     = PsCommon::get($this->request_params, 'vote_id', 0);
-        $voteDetail = PsCommon::get($this->request_params, 'vote_det', '');
-        $roomId = PsCommon::get($this->request_params, 'room_id', 0);
+        $voteId     = PsCommon::get($this->params, 'vote_id', 0);
+        $voteDetail = PsCommon::get($this->params, 'vote_det', '');
+        $roomId = PsCommon::get($this->params, 'room_id', 0);
         if (!$voteId || !$voteDetail || !$roomId) {
-            return PsCommon::responseFailed('参数错误');
+            return F::apiFailed('参数错误');
         }
         //查询member_id
         $memberInfo = MemberService::service()->getInfoByAppUserId($this->appUserId);
         if (!$memberInfo) {
-            return PsCommon::responseFailed('用户不存在');
+            return F::apiFailed('用户不存在');
         }
         $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->communityId, 'on', $roomId);
         if ($doVote === true) {
-            return PsCommon::responseSuccess();
+            return F::apiSuccess();
         } elseif ($doVote === false){
-            return PsCommon::responseFailed('投票失败');
+            return F::apiFailed('投票失败');
         } else {
-            return PsCommon::responseFailed($doVote);
+            return F::apiFailed($doVote);
         }
     }
 }

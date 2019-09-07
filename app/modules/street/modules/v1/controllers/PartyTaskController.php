@@ -124,8 +124,10 @@ class PartyTaskController extends BaseController
         $data = StPartyTaskStation::$audit_status_msg;
         $list = [];
         foreach ($data as $k =>  &$v) {
-            $list[$k]['key'] = $k;
-            $list[$k]['value'] = $v;
+            $list[] = [
+                'key' => $k,
+                'value' => $v,
+            ];
         }
         return PsCommon::responseSuccess(['list' => $list]);
     }

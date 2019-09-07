@@ -13,6 +13,7 @@ use Yii;
  * @property int $status 审核状态 1=待完成 2=审核中 3=已审核 4=已取消
  * @property int $pioneer_value 获得的先锋值
  * @property string $create_at 创建时间
+ * @property string $update_at 创建时间
  */
 class StPartyTaskStation extends \yii\db\ActiveRecord
 {
@@ -51,6 +52,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             'task_id' => 'Task ID',
             'communist_id' => 'Communist ID',
             'status' => 'Status',
+            'update_at' => 'update_at',
             'pioneer_value' => 'Pioneer Value',
             'create_at' => 'Create At',
         ];
@@ -68,7 +70,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $model = self::find()->filterWhere(['status' => $param['status'] ?? null])
             ->andFilterWhere(['communist_id' => $param['communist_id']])
             ->andFilterWhere(['<=','create_at',$param['end'] ?? null])
-            ->andFilterWhere(['<=','create_at',$param['end'] ?? null]);
+            ->andFilterWhere(['>=','create_at',$param['start'] ?? null]);
         $model->orderBy([ 'create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
@@ -95,7 +97,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
     public static function getExamineList($param,$page=true)
     {
         $model = self::find()->alias('sts')
-            ->select('st.task_name,sts.id,sts.status,sts.pioneer_value,sc.name,sc.mobile,st.station_id')
+            ->select('st.task_name,sts.id,sts.status,sts.pioneer_value,sc.name,sc.mobile,st.station_id,sts.task_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['status' => $param['audit_status'] ?? [2,3]])
