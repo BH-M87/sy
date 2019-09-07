@@ -147,7 +147,7 @@ class CommunityController extends BaseController
         $userId = PsCommon::get($this->params, 'user_id');
 
         if (empty($userId)) {
-            return PsCommon::responseAppFailed("住户ID不能为空！");
+            return F::apiFailed("住户ID不能为空！");
         }
 
         $result = CommunityService::service()->exposureDelete($this->params);

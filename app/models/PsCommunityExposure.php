@@ -13,19 +13,16 @@ class PsCommunityExposure extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'room_id', 'app_user_id', 'avatar', 'name', 'mobile', 'describe', 'address', 'type'], 'required', 'on' => 'add'],
-            [['community_id', 'room_id', 'app_user_id', 'type'], 'integer', 'on' => 'add'],
-            [['avatar'], 'string', 'max' => 255, 'on' => 'add'],
-            [['name'], 'string', 'max' => 30, 'on' => 'add'],
-            [['address'], 'string', 'max' => 10, 'on' => 'add'],
-            [['mobile'], 'string', 'max' => 11, 'on' => 'add'],
-            [['type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}只能是1或2或3或4', 'on' => 'add'],
-            [['describe', 'content'], 'string', 'max' => 500, 'on' => 'add'],
-            ['created_at', 'default', 'value' => time(), 'on' => 'add'],
-            ['deal_at', 'default', 'value' => 0, 'on' => 'add'],
+            [['community_id', 'room_id', 'app_user_id', 'avatar', 'name', 'mobile', 'describe', 'address', 'event_parent_type_id', 'event_child_type_id', 'event_community_no'], 'required'],
+            [['community_id', 'room_id', 'app_user_id', 'event_parent_type_id', 'event_child_type_id'], 'integer'],
+            [['avatar'], 'string', 'max' => 255],
+            [['name'], 'string', 'max' => 30],
+            [['title'], 'string', 'max' => 100],
+            [['address'], 'string', 'max' => 10],
+            [['mobile'], 'string', 'max' => 11],
+            [['describe', 'content'], 'string', 'max' => 500],
+            ['created_at', 'default', 'value' => date('Y-m-d H:i:s', time())],
             [['is_del', 'status'], 'default', 'value' => 1, 'on' => 'add'],
-
-            [['content'], 'string', 'max' => 200, 'on' => 'edit'],
         ];
     }
 
@@ -39,9 +36,11 @@ class PsCommunityExposure extends BaseModel
             'avatar' => '头像',
             'name' => '姓名',
             'mobile' => '手机',
+            'title' => '标题',
             'describe' => '问题描述',
             'address' => '问题地址',
-            'type' => '曝光类型',
+            'event_parent_type_id' => '一级分类',
+            'event_child_type_id' => '二级分类',
             'is_del' => '是否删除',
             'status' => '处理状态',
             'content' => '处理结果',
