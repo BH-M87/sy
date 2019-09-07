@@ -143,5 +143,4 @@ class PioneerRanKingService extends BaseService
         $info_list['image'] = $user_info[0]['image'];
         return $info_list;
     }
-
 }
