@@ -158,7 +158,7 @@ class PartyTaskService extends BaseService
         if (empty($params['id'])) throw new MyException('ID不能为空');
         if (empty($params['content'])) throw new MyException('内容不能为空');
         if (mb_strlen($params['content']) > 200) throw new MyException('内容长度不能超过200');
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
+        $party = StPartyTaskStation::find()->where(['id' => $params['id']])->one();
         if (!$party) {
             throw new MyException('ID错误');
         }
