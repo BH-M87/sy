@@ -264,7 +264,7 @@ class PartyTaskService extends BaseService
         if (empty($params['id'])) throw new MyException('ID不能为空');
         $params['info_status'] = empty($params['info_status']) ? '1' : $params['info_status'];
         $info = StPartyTaskOperateRecord::find()
-            ->select('operate_type,create_at as audit_time,operator_name as audit_name,content as audit_remark,location as complete_address,info as complete_remark,pioneer_value,images as complete_image')
+            ->select('operate_type,create_at as audit_time,operator_name as audit_name,content as audit_remark,location as complete_address,info as complete_remark,pioneer_value,images as complete_image,task_id')
             ->where(['id' => $params['id']])->asArray()->one();
         if ($info['operate_type'] != 2 && $params['info_status'] == 1) throw new MyException('该任务未审核');
         $info['audit_time'] = date('Y-m-d H:i:s');
