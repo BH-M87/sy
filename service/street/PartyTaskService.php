@@ -293,7 +293,7 @@ class PartyTaskService extends BaseService
         if (empty($record) || $party->status != 2) {
             throw new MyException('任务未完成或任务已处理');
         }
-        $record->operate_type = 2;
+        $record->operate_type = 1;
         $record->pioneer_value = $params['pioneer_value'];
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
