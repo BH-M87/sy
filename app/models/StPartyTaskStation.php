@@ -125,19 +125,20 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * @param $param
      * @param bool $page
      * @return mixed
+     * @throws \yii\db\Exception
      */
     public static function getOrderList($param,$page=true)
     {
         $model = self::find()
             ->alias('sts')
-            ->select('SUM(sts.pioneer_value) as total_score,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
+            ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as grade_order,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['or', ['like', 'name', $param['contact_name'] ?? null], ['like', 'mobile', $param['contact_name'] ?? null]])
             ->andFilterWhere(['>','sts.create_at',$param['start']])
             ->andFilterWhere(['<','sts.create_at',$param['end']])
             ->andFilterWhere(['sts.status' => 3])
             ->groupBy('communist_id')
-            ->orderBy([ 'total_score' => SORT_DESC]);
+            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
@@ -148,19 +149,78 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         }
         $data['list'] = $model->asArray()->all();
         if (!empty($data['list'])) {
-            self::afterOrderList($data['list'],$page,$row);
+            self::afterOrderList($data['list']);
         }
         return $data;
     }
 
-
-    public static function afterOrderList(&$data,$page,$row)
+    /**
+     * 获取个人排名
+     * @author yjh
+     * @param $communist_id
+     * @param $type true 获取排名 false不获取
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws \yii\db\Exception
+     */
+    public static function getUserTop($communist_id,$type = true)
     {
-        $num = $page == 1 ? 1 : $row*$page+1;
+        $model = self::find()
+            ->alias('sts')
+            ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as grade_order,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
+            ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
+            ->andFilterWhere(['sts.status' => 3])
+            ->andFilterWhere(['sts.id' => $communist_id])
+            ->groupBy('communist_id')
+            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
+        $data = $model->asArray()->all();
+        if (!empty($data)) {
+            if ($type) {
+                self::afterOrderList($data);
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 排名处理
+     * @author yjh
+     * @param $data
+     * @throws \yii\db\Exception
+     */
+    public static function afterOrderList(&$data)
+    {
+        $top = self::getTop($data[0]['id']);
         foreach ($data as &$v) {
-            $v['grade_order'] = $num++; //算排名
+            $v['top'] = $top++; //算排名
             $v['type_name'] = StCommunist::$type_desc[$v['type']];
         }
+    }
+
+
+    /**
+     * 获取当前人员的排名
+     * @author yjh
+     * @param $id
+     * @return mixed
+     * @throws \yii\db\Exception
+     */
+    public static function getTop($id)
+    {
+        $connection  = Yii::$app->db;
+        $sql = 'SET @xh=0;';
+        $command = $connection->createCommand($sql);
+        $command->execute();
+        $a_model = self::find()
+            ->alias('sts')
+            ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as total_score,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
+            ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
+            ->andFilterWhere(['sts.status' => 3])
+            ->groupBy('communist_id')
+            ->orderBy([ 'total_score' => SORT_DESC,'task_count' => SORT_DESC]);
+        $result = self::find()->select('(@xh := @xh + 1) as top,a.*')->from(['a' => $a_model])->asArray()->all();
+        $found_key = array_search($id, array_column($result, 'id'));
+        $top = $result[$found_key]['top'];
+        return $top;
     }
 
     public static function afterExamineList(&$data)

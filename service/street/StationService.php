@@ -104,7 +104,7 @@ class StationService extends BaseService
     {
         $query = StStation::find()
             ->alias('st')
-            ->where(['organization_type' => $params['organization_type'], 'organization_id' => $params['organization_id']]);
+            ->where(['st.organization_type' => $params['organization_type'], 'st.organization_id' => $params['organization_id']]);
         if (!empty($params['name'])) {
             $query->andWhere(['like', 'st.name', $params['name']]);
         }
@@ -135,7 +135,7 @@ class StationService extends BaseService
     {
         $list = StStation::find()
             ->alias('st')
-            ->where(['organization_type' => $params['organization_type'], 'organization_id' => $params['organization_id'], 'status' => 1])
+            ->where(['st.organization_type' => $params['organization_type'], 'st.organization_id' => $params['organization_id'], 'st.status' => 1])
             ->select('st.id, st.station name')
             ->asArray()
             ->all();

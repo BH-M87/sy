@@ -110,7 +110,7 @@ class CompanyService extends BaseService
     {
         $query = StCompany::find()
             ->alias('sc')
-            ->where(['organization_type' => $params['organization_type'], 'organization_id' => $params['organization_id']]);
+            ->where(['sc.organization_type' => $params['organization_type'], 'sc.organization_id' => $params['organization_id']]);
         if (!empty($params['name'])) {
             $query->andWhere(['like', 'sc.name', $params['name']]);
         }

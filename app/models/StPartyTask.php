@@ -97,10 +97,13 @@ class StPartyTask extends BaseModel
      */
     public static function getList($param,$page=true)
     {
-        $model = self::find()
+        $model = self::find()->alias('st')->select('st.*')
+            ->leftJoin('st_station as ss', 'ss.id = st.station_id')
             ->filterWhere(['like', 'task_name', $param['task_name'] ?? null])
-            ->filterWhere(['station_id' => $param['station_id'] ?? null]);
-        $model->orderBy([ 'create_at' => SORT_DESC]);
+            ->andFilterWhere(['station_id' => $param['station_id']])
+            ->andFilterWhere(['ss.status' => $param['station_status'] ?? null ])
+            ->andFilterWhere(['or',['>','expire_time',$param['expire_time'] ?? null],['expire_time_type' => $param['expire_time_type'] ?? null]]);
+        $model->orderBy([ 'st.create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;

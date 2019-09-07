@@ -9,9 +9,11 @@
 namespace service\street;
 
 
+use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
+use app\models\StStation;
 use common\MyException;
 use service\BaseService;
 
@@ -81,6 +83,7 @@ class PartyTaskService extends BaseService
             throw new MyException('该任务不存在');
         }
         $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
+        $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
         //有人认领只能修改截止时间
         if ($party) {
             $task['is_claim'] = 1;
@@ -298,5 +301,104 @@ class PartyTaskService extends BaseService
         $party->pioneer_value = $params['pioneer_value'];
         $party->save();
         $record->save();
+    }
+
+    //################################小程序##############################
+
+    /**
+     * 获取小程序任务列表
+     * @author yjh
+     * @param $params
+     * @return mixed
+     * @throws MyException
+     */
+    public function getSmallList($params)
+    {
+        $this->checkUser($params['user_id']);
+        $params['station_id'] = empty($params['station_id']) ? null : $params['station_id'];
+        $params['expire_time_type'] = 1;
+        $params['station_status'] = 1;
+        $params['expire_time'] = time();
+        return StPartyTask::getList($params);
+    }
+
+    /**
+     * 任务认领
+     * @author yjh
+     * @param $params
+     * @throws MyException
+     */
+    public function getSmallTask($params)
+    {
+        if (empty($params['id'])) throw new MyException('ID不能为空');
+        $app_user = $this->checkUser($params['user_id']);
+        $task_station = StPartyTaskStation::find()->where(['communist_id' => $app_user['communist_id'],'task_id' => $params['id']])->orderBy('id desc')->limit(1)->one();
+        if ($task_station && $task_station->status != 3) {
+            throw new MyException('任务未完成则不可重复认领');
+        }
+        $party_task = new StPartyTaskStation;
+        $party_task->task_id = $params['id'];
+        $party_task->communist_id = $app_user['communist_id'];
+        $party_task->status = '1';
+        $party_task->create_at = time();
+        $party_task->save();
+    }
+
+    /**
+     * 获取小程序任务详情
+     * @author yjh
+     * @param $params
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws MyException
+     */
+    public function getSmallDetail($params)
+    {
+        if (empty($params['id'])) throw new MyException('ID不能为空');
+        $app_user = $this->checkUser($params['user_id']);
+        $task = StPartyTask::find()->where(['id' => $params['id']])->asArray()->one();
+        if (!$task) {
+            throw new MyException('该任务不存在');
+        }
+        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
+//        $task['expire_time'] = date('Y-m-d',$task['expire_time']);
+        $d = floor(($task['expire_time']-time())/3600/24);
+        $h = floor(($task['expire_time']-time())/3600%24);
+        //是否认领
+        if ($party) {
+            $task['is_claim'] = 1;
+        } else {
+            $task['is_claim'] = 2;
+        }
+        if ($task['expire_time_type'] == 2) {
+            if ($task < time()) {
+                $task['time_status'] = 3;
+                $task['expire_time'] = '任务已过期';
+            } else {
+                $task['time_status'] = 2;
+                $task['expire_time'] = $d.'天'.$h.'小时';
+            }
+        } else {
+            $task['time_status'] = 1;
+            $task['expire_time'] = '长期有效';
+        }
+        return $task;
+    }
+
+
+    /**
+     * 检查是不是党员
+     * @author yjh
+     * @param $user_id
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws MyException
+     */
+    public function checkUser($user_id)
+    {
+        $app_user = StCommunistAppUser::find()->where(['app_user_id' => $user_id])->asArray()->one();
+        if (empty($app_user)) {
+            throw new MyException('系统发现您非党员，请与管理员核实');
+        }
+        return $app_user;
     }
 }
