@@ -35,6 +35,12 @@ use app\models\EventTemplate;
 
 Class CommunityService extends BaseService
 {
+    // java路由
+    public $urlJava= [
+        'addEvent' => '/eventDing/addEvent', // 新增曝光台事件
+        'dealDetail' => '/community/communityExposure/getExposureDealWithDetailById' // 处理结果
+    ];
+
     // -----------------------------------     社区曝光台   ------------------------------
     
     // 曝光台 发布
@@ -124,7 +130,7 @@ Class CommunityService extends BaseService
                 'xqName' => $community->name,
                 'xqOrgCode' => $community->event_community_no,
             ];
-            $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/eventDing/addEvent', json_encode($data), true);
+            $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['addEvent'], json_encode($data), true);
             $model->event_no = json_decode($event, true)['data'];
             $model->save();
 
@@ -174,7 +180,7 @@ Class CommunityService extends BaseService
                 $v['name'] =  CommunityService::service()->_hideName($v['name']);
 
                 // 处理结果 调Java接口
-                $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/community/communityExposure/getExposureDealWithDetailById', json_encode(['exposureId' => $p['id']]), true);
+                $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $p['id']]), true);
                 $event = json_decode($event, true)['data'];
                 $v['content'] = $event['content'] ?? '';
                 $v['deal_at'] = $event['dealAt'] ?? '';
@@ -244,7 +250,7 @@ Class CommunityService extends BaseService
         $m['image_url'] = array_column($image_1, 'image_url');
         
         // 处理结果 调Java接口
-        $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].'/community/communityExposure/getExposureDealWithDetailById', json_encode(['exposureId' => $p['id']]), true);
+        $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $p['id']]), true);
         $event = json_decode($event, true)['data'];
         $m['content'] = $event['content'] ?? '';
         $m['deal_at'] = $event['dealAt'] ?? '';
