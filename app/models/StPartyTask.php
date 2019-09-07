@@ -41,7 +41,7 @@ class StPartyTask extends BaseModel
     {
         return [
             [['station_id', 'pioneer_value', 'expire_time_type', 'expire_time', 'is_location', 'create_at', 'operator_id'], 'integer'],
-            [['task_details', 'operator_id','station_id','task_name','pioneer_value','expire_time','party_address','contact_name','contact_phone','is_location'], 'required','message' => '{attribute}必填','on' => ['add','edit']],
+            [['task_details', 'operator_id','station_id','task_name','pioneer_value','expire_time','is_location'], 'required','message' => '{attribute}必填','on' => ['add','edit']],
             [['task_details'], 'string','max' => 1000],
             [['task_name'], 'string', 'max' => 30],
             [['is_location','expire_time_type'], 'in', 'range' => [1, 2],'message' => '{attribute}非法'],
