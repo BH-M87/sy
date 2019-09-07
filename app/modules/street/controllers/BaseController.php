@@ -53,7 +53,7 @@ class BaseController extends Controller
         if (!parent::beforeAction($action)) {
             return false;
         }
-        $this->user_id  = F::request('user_id');
+        $this->user_id  = F::request('userId');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
