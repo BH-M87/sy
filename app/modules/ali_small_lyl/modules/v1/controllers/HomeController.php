@@ -27,6 +27,7 @@ class HomeController extends UserBaseController
         if (!$r['app_user_id']) {
             return F::apiFailed("用户id不能为空！");
         }
+        $r['system_type'] = 'fczl';
         $result = MemberService::service()->getHomeData($r);
         return $this->dealReturnResult($result);
     }

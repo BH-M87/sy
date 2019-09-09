@@ -62,7 +62,6 @@ class ActivityService extends BaseService
     public function list($p)
     {
         $m = PsActivity::getList($p);
-
         return $this->success($m);
     }
 

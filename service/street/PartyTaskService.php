@@ -163,6 +163,9 @@ class PartyTaskService extends BaseService
             throw new MyException('ID错误');
         }
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party->id])->one();
+        if ($record->operate_type != 1) {
+            throw new MyException('该任务已经处理过');
+        }
         $record->operate_type = 3;
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
@@ -293,7 +296,7 @@ class PartyTaskService extends BaseService
         if (empty($record) || $party->status != 2) {
             throw new MyException('任务未完成或任务已处理');
         }
-        $record->operate_type = 1;
+        $record->operate_type = 2;
         $record->pioneer_value = $params['pioneer_value'];
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
@@ -488,7 +491,7 @@ class PartyTaskService extends BaseService
         }
         $record->party_task_station_id = $party->id;
         $record->task_id = $party->task_id;
-        $record->operate_type = 2;
+        $record->operate_type = 1;
         $record->content = '';
         $record->info = $params['content'];
         $record->create_at = time();

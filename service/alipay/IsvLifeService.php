@@ -7,7 +7,7 @@
  * Time: 10:04
  */
 namespace service\alipay;
-use common\ali\AopRedirect;
+use common\core\ali\AopRedirect;
 use Yii;
 
 class IsvLifeService {

@@ -30,6 +30,7 @@ use service\alipay\BillCostService;
 use service\alipay\MemberCardService;
 use service\BaseService;
 use service\door\KeyService;
+use service\property_basic\ActivityService;
 use service\room\RoomService;
 use yii\db\Query;
 
@@ -449,7 +450,6 @@ class MemberService extends BaseService
         // 根据显示时间倒序排序
         $arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $news);
         array_multisort($arr1, SORT_DESC, $news);
-
         // 业主卡
         $pass_id = MemberCardService::service()->cardQuery($appUser)['data']['pass_id'];
         $result['card'] = [
@@ -467,12 +467,12 @@ class MemberService extends BaseService
         }
 
         // 小区活动
-        $activity = ActivityService::service()->activityList(['community_id' => $result['community_id']])['list'];
-        $result['activity'] = !empty($activity) ? $activity : '';
-
+        $activity = ActivityService::service()->list(['community_id' => $result['community_id']]);
+        //$activity = ActivityService::service()->list(['community_id' => $result['community_id']])['list'];
+        $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : '';
         // 社区曝光台
         $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
-
+        var_dump($exposure);die;
         $result['exposure'] = $exposure['list'];
         $result['exposure_total'] = $exposure['total'];
         $result['exposure_avatar'] = $exposure['avatar'];

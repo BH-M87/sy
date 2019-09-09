@@ -147,8 +147,9 @@ Class CommunityService extends BaseService
     {
         $page = !empty($param['page']) ? $param['page'] : 1;
         $rows = !empty($param['rows']) ? $param['rows'] : 5;
+        $user_id = PsCommon::get($param,'user_id');
 
-        if (!empty($param['user_id'])) { // 我的曝光
+        if ($user_id) { // 我的曝光
             // 查询业主
             $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
                 ->select(['A.member_id'])
@@ -165,7 +166,6 @@ Class CommunityService extends BaseService
 
             unset($param['room_id']); // 判断房屋是否认证用 筛选不用这个参数
         }
-
         $m = $this->_searchExposure($param)
             ->orderBy('A.created_at desc')
             ->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
@@ -180,7 +180,7 @@ Class CommunityService extends BaseService
                 $v['name'] =  CommunityService::service()->_hideName($v['name']);
 
                 // 处理结果 调Java接口
-                $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $p['id']]), true);
+                $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $v['id']]), true);
                 $event = json_decode($event, true)['data'];
                 $v['content'] = $event['content'] ?? '';
                 $v['deal_at'] = $event['dealAt'] ?? '';
@@ -207,19 +207,19 @@ Class CommunityService extends BaseService
             ->leftJoin('ps_community_roominfo B', 'A.room_id = B.id')
             ->filterWhere(['like', 'A.name', PsCommon::get($param, 'name')])
             ->orFilterWhere(['like', 'A.mobile', PsCommon::get($param, 'name')])
-            ->filterWhere(['=', 'A.app_user_id', $param['user_id']])
-            ->andFilterWhere(['=', 'A.event_parent_type_id', $param['parent_type']])
-            ->andFilterWhere(['=', 'A.event_child_type_id', $param['child_type']])
-            ->andFilterWhere(['=', 'A.status', $param['status']])
-            ->andFilterWhere(['=', 'A.room_id', $param['room_id']])
-            ->andFilterWhere(['=', 'A.community_id', $param['community_id']])
+            ->filterWhere(['=', 'A.app_user_id', PsCommon::get($param, 'user_id')])
+            ->andFilterWhere(['=', 'A.event_parent_type_id', PsCommon::get($param, 'parent_type')])
+            ->andFilterWhere(['=', 'A.event_child_type_id', PsCommon::get($param, 'child_type')])
+            ->andFilterWhere(['=', 'A.status', PsCommon::get($param, 'status')])
+            ->andFilterWhere(['=', 'A.room_id', PsCommon::get($param, 'room_id')])
+            ->andFilterWhere(['=', 'A.community_id', PsCommon::get($param, 'community_id')])
             ->andFilterWhere(['>=', 'A.created_at', $start_at])
             ->andFilterWhere(['<=', 'A.created_at', $end_at])
             ->andFilterWhere(['=', 'A.is_del', 1])
-            ->andFilterWhere(['=', 'B.group', $param['group']])
-            ->andFilterWhere(['=', 'B.building', $param['building']])
-            ->andFilterWhere(['=', 'B.unit', $param['unit']])
-            ->andFilterWhere(['=', 'B.room', $param['room']]);   
+            ->andFilterWhere(['=', 'B.group', PsCommon::get($param, 'group')])
+            ->andFilterWhere(['=', 'B.building', PsCommon::get($param, 'building')])
+            ->andFilterWhere(['=', 'B.unit', PsCommon::get($param, 'unit')])
+            ->andFilterWhere(['=', 'B.room', PsCommon::get($param, 'room')]);
 
         return $model;
     }

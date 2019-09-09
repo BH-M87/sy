@@ -1,6 +1,7 @@
 <?php
 namespace app\models;
 
+use common\core\PsCommon;
 use yii\behaviors\TimestampBehavior;
 
 use common\core\Regular;
@@ -117,21 +118,20 @@ class PsActivity extends BaseModel
         $m = self::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
             'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture'])
             ->where(['is_del' => 1])
-            ->andFilterWhere(['=', 'type', $p['type']])
-            ->andFilterWhere(['=', 'community_id', $p['community_id']])
-            ->andFilterWhere(['=', 'status', $p['status']])
-            ->andFilterWhere(['=', 'activity_type', $p['activity_type']])
-            ->andFilterWhere(['like', 'title', $p['title']])
-            ->andFilterWhere(['or', ['like', 'link_name', $p['name'] ?? null], ['like', 'link_mobile', $p['name'] ?? null]])
-            ->andFilterWhere(['>=', 'join_end', $p['join_start']])
-            ->andFilterWhere(['<=', 'join_end', $p['join_end']])
-            ->andFilterWhere(['>=', 'start_time', $p['activity_start']])
-            ->andFilterWhere(['<=', 'end_time', $p['activity_end']]);
+            ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
+            ->andFilterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
+            ->andFilterWhere(['=', 'status', PsCommon::get($p,'status')])
+            ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
+            ->andFilterWhere(['like', 'title', PsCommon::get($p,'title')])
+            ->andFilterWhere(['or', ['like', 'link_name', PsCommon::get($p,'name') ?? null], ['like', 'link_mobile', PsCommon::get($p,'name') ?? null]])
+            ->andFilterWhere(['>=', 'join_end', PsCommon::get($p,'join_start')])
+            ->andFilterWhere(['<=', 'join_end', PsCommon::get($p,'join_end')])
+            ->andFilterWhere(['>=', 'start_time', PsCommon::get($p,'activity_start')])
+            ->andFilterWhere(['<=', 'end_time', PsCommon::get($p,'activity_end')]);
 
         $totals = $m->count();
         if ($totals > 0) {
             $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
-
             self::afterList($list);
         }
 
@@ -146,7 +146,7 @@ class PsActivity extends BaseModel
             $v['end_time'] = date('Y-m-d H:i', $v['end_time']);
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
             $v['status_desc'] = self::$status[$v['status']];
-            $v['activity_type_desc'] = self::$activity_type[$v['activity_type']];
+            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : '';
             $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
                 ->where(['a_id' => $v['id']])->asArray()->all();
             $v['people_list'] = $enroll;

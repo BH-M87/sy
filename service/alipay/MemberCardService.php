@@ -36,21 +36,21 @@ class MemberCardService extends BaseService
     public $small_url;
 
     //获取阿里实例
-    public function getAliService($type = 'small')
+    public function getAliService($type = 'fczl')
     {
-        $this->small_url = 'alipays://platformapi/startapp?appId='.Yii::$app->params['small_app_id'].'&pages/homePage/homePage/homePage';
+        $this->small_url = 'alipays://platformapi/startapp?appId='.Yii::$app->params['fczl_app_id'].'&pages/homePage/homePage/homePage';
 
         switch ($type){
-            case 'door'://筑家易智能门禁
+            case 'edoor'://筑家易智能门禁
                 $this->template_id = $this->door_template_id;
-                $alipayPublicKey = file_get_contents(Yii::$app->params['door_alipay_public_key_file']);
-                $rsaPrivateKey = file_get_contents(Yii::$app->params['door_rsa_private_key_file']);
-                $alipayLifeService = new IsvLifeService(Yii::$app->params['door_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
+                $alipayPublicKey = file_get_contents(Yii::$app->params['edoor_alipay_public_key_file']);
+                $rsaPrivateKey = file_get_contents(Yii::$app->params['edoor_rsa_private_key_file']);
+                $alipayLifeService = new IsvLifeService(Yii::$app->params['edoor_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
                 break;
             default://邻易联
-                $alipayPublicKey = file_get_contents(Yii::$app->params['small_alipay_public_key_file']);
-                $rsaPrivateKey = file_get_contents(Yii::$app->params['small_rsa_private_key_file']);
-                $alipayLifeService = new IsvLifeService(Yii::$app->params['small_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
+                $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
+                $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);
+                $alipayLifeService = new IsvLifeService(Yii::$app->params['fczl_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
         }
 
         return $alipayLifeService;
@@ -203,7 +203,8 @@ class MemberCardService extends BaseService
             return $this->failed('用户不存在！');
         }
 
-        $alipayLifeService = $this->getAliService($param['system_type']);
+        $system_type = !empty($param['system_type']) ? $param['system_type'] : 'fczl';
+        $alipayLifeService = $this->getAliService($system_type);
         if (is_object($alipayLifeService) === false) {
             return $alipayLifeService;
         }
@@ -250,7 +251,8 @@ class MemberCardService extends BaseService
     // 会员卡 查询
     public function cardQuery($user)
     {
-        $alipayLifeService = $this->getAliService($user['type']);
+        $type = !empty($user['type']) ? $user['type'] : 'fczl';
+        $alipayLifeService = $this->getAliService($type);
         if (is_object($alipayLifeService) === false) {
             return $alipayLifeService;
         }
@@ -400,12 +402,12 @@ class MemberCardService extends BaseService
                 'code' => 'door',
                 'text' => '去开门',
                 'url_type' => 'miniAppUrl',
-                'mini_app_url' => ['mini_app_id' => Yii::$app->params['door_app_id'], 'display_on_list' => true]
+                'mini_app_url' => ['mini_app_id' => Yii::$app->params['edoor_app_id'], 'display_on_list' => true]
             ], [
                 'code' => 'small',
                 'text' => '社区服务',
                 'url_type' => 'miniAppUrl',
-                'mini_app_url' => ['mini_app_id' => Yii::$app->params['small_app_id'], 'display_on_list' => true]
+                'mini_app_url' => ['mini_app_id' => Yii::$app->params['fczl_app_id'], 'display_on_list' => true]
             ]]
         ];
 
