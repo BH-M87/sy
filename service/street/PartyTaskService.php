@@ -163,6 +163,9 @@ class PartyTaskService extends BaseService
             throw new MyException('ID错误');
         }
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party->id])->one();
+        if ($record->operate_type != 1) {
+            throw new MyException('该任务已经处理过');
+        }
         $record->operate_type = 3;
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
