@@ -31,7 +31,7 @@ Class AopEncrypt {
         //AES, 128 模式加密数据 CBC
         $str = base64_decode($str);
         $screct_key = base64_decode($screct_key);
-        $iv = mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128,MCRYPT_MODE_CBC),1);
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size(MCRYPT_RIJNDAEL_128,MCRYPT_MODE_CBC),1);
         $encrypt_str =  mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $screct_key, $str, MCRYPT_MODE_CBC);
         $encrypt_str = trim($encrypt_str);
 
