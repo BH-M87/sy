@@ -29,6 +29,7 @@ class BaseController extends Controller
         if(empty($params['user_id'])){
             throw new MyException('用户id不能为空');
         }
+
         $this->user_id = $params['user_id'];
         $this->user_info = UserService::service()->getUserInfoById($this->user_id);
         if(empty($this->user_info)){
@@ -39,6 +40,9 @@ class BaseController extends Controller
         $this->request_params['user_id'] = $this->user_id;
         $this->page = (integer)F::value($params, 'page', $this->page);
         $this->pageSize = (integer)F::value($params, 'rows', $this->pageSize);
+
+        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
+        
         return true;
     }
 }
