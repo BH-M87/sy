@@ -57,6 +57,8 @@ class HomeController extends UserBaseController
     //解析手机号
     public function actionGetMobile()
     {
+        set_error_handler(null);
+        set_exception_handler(null);
         $userId = F::value($this->params, 'user_id');
         $encryptStr = F::value($this->params, 'encrypt_str');
         $system_type = F::value($this->params, 'system_type','edoor');
