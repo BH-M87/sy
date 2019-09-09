@@ -5,7 +5,7 @@ use Yii;
 use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
 
-use app\common\core\Regular;
+use common\core\Regular;
 
 class PsSteWard extends BaseModel
 {
