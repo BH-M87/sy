@@ -324,7 +324,7 @@ class NoticeService extends BaseService
             ->leftJoin(['n'=>StNotice::tableName()],'u.notice_id = n.id')
             ->where(['u.receive_user_id'=>$user_id]);
         $offset = ($page - 1) * $pageSize;
-        $list = $model->select(['n.id','n.type','n.describe','n.operator_id','n.operator_name','n.organization_id','n.create_at','u.is_read'])
+        $list = $model->select(['n.id','n.type','n.describe','n.operator_id','n.operator_name','n.organization_id','n.create_at','u.is_read','n.title'])
             ->offset($offset)->limit($pageSize)->orderBy('n.id desc')->asArray()->all();
         $count = $model->count();
         if($list){
