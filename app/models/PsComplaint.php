@@ -22,6 +22,7 @@ use yii\db\Query;
  */
 class PsComplaint extends BaseModel
 {
+    public static $status = [1 => '待处理', 2 => '已取消', 3 => '已处理'];
     /**
      * @inheritdoc
      */

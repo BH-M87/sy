@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use app\models\PsAppUser;
@@ -26,7 +27,7 @@ class VoteController extends UserBaseController
     public function actionList()
     {
         $appUserId    = $this->appUserId;
-        $community_id = $this->communityId;
+        $community_id = $this->params['community_id'];
         if (!$community_id) {
             return F::apiFailed('参数错误');
         }
@@ -95,7 +96,7 @@ class VoteController extends UserBaseController
         if (!$memberInfo) {
             return F::apiFailed('用户不存在');
         }
-        $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->communityId, 'on', $roomId);
+        $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
             return F::apiSuccess();
         } elseif ($doVote === false){
