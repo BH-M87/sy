@@ -127,13 +127,15 @@ Class AlipaySmallApp
 //                error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . json_encode($query) . PHP_EOL, 3, Yii::$app->getRuntimePath().'/logs/aes_decode.log');
                 //验签
                 $signData = "\"{$query['response']}\"";
-                $signRes = $this->_aop->verify($signData, $query['sign'], $this->_aop->alipayrsaPublicKey, $query['sign_type']);
+                $signRes = $this->_aop->verify($signData, $query['sign'], '', $query['sign_type']);
                 if (!$signRes) {
                     throw new MyException("验签失败，请检查验签配置是否正确");
                 }
                 //解密
-                $res = AopEncrypt::decrypt2($query['response'], $this->_aop->encryptKey);
+                $res = AopEncrypt::decrypt2($query['response'], "EBG7v29Z3B4+DYuGk1a0ww==");
+                print_r($res);exit;
                 $result = json_decode($res, true);
+
                 if ($result['code'] != 10000) {
                     throw new MyException($res['msg']);
                 }
