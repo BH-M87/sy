@@ -42,7 +42,6 @@ class HomeController extends UserBaseController
 
         // 获取支付宝用户基本信息
         $user = $service->getUser($r['access_token']);
-        var_dump($user);die;
 
         $result = array_merge($r, $user);
         if (!empty($result['mobile'])) {
