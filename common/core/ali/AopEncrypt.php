@@ -41,6 +41,24 @@ Class AopEncrypt {
     }
 
     /**
+     * 解密手机号方法
+     * @param string $str
+     * @return string
+     */
+    public static function decrypt2($str,$screct_key){
+        //AES, 128 模式加密数据 CBC
+        $str = base64_decode($str);
+        $screct_key = base64_decode($screct_key);
+
+        //设置全0的IV
+        $iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128,MCRYPT_MODE_CBC);
+        $iv = str_repeat("\0", $iv_size);
+
+        $decrypt_str = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $screct_key, $str, MCRYPT_MODE_CBC, $iv);
+        return trim($decrypt_str);
+    }
+
+    /**
      * 填充算法
      * @param string $source
      * @return string
