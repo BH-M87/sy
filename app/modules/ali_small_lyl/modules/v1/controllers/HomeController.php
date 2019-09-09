@@ -13,6 +13,7 @@ use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
 use service\common\AlipaySmallApp;
 use service\small\MemberService;
+use service\alipay\MemberCardService;
 
 class HomeController extends UserBaseController
 {
@@ -32,8 +33,14 @@ class HomeController extends UserBaseController
         return $this->dealReturnResult($result);
     }
 
+    // 开卡
+    public function actionOpenCard()
+    {
+        $data['user_id'] = F::value($this->params, 'user_id');
+        $data['system_type'] = F::value($this->params, 'system_type','small');
 
+        $result = MemberCardService::service()->cardOpen($data);
 
-
-
+        return self::dealReturnResult($result);
+    }
 }
