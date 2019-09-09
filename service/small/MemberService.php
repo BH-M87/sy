@@ -14,6 +14,7 @@ use app\models\PsAlipayCardRecord;
 use app\models\PsAliToken;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
+use app\models\PsAreaAli;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsLifeBroadcastRecord;
@@ -544,6 +545,43 @@ class MemberService extends BaseService
             $model = PsMember::updateAll(['room_id' => $params['room_id']], ['id' => $member_id]);
             return $this->success();
         }
+    }
+
+    //获取天气详情接口
+    public function getWeatherInfo($data)
+    {
+        //默认信息
+        $type = -1;
+        $id = '-1';
+        $lon = '120.005176';
+        $lat = '30.281448';
+        $city = '杭州市';
+        //用户授权以后没房屋并且前端传了经纬度
+        if(!empty($data['app_user_id'])){
+            $type = 2;
+            $id = $data['app_user_id'];
+            $lon = $data['lon'];
+            $lat = $data['lat'];
+            $city = $data['city'];
+        }
+        //用户有房屋，切换小区
+        if(!empty($data['community_id'])){
+            $type = 1;
+            $id = $data['community_id'];
+            $res = PsCommunityModel::find()->alias('c')
+                ->leftJoin(['a'=>PsAreaAli::tableName()],'a.areaCode = c.city_id')
+                ->select(['a.areaName','c.longitude as lon','c.latitude as lat'])
+                ->where(['c.id'=>$id])->asArray()->one();
+            $city = PsCommon::get($res,'areaName');
+            $lon = PsCommon::get($res,'lon');
+            $lat = PsCommon::get($res,'lat');
+        }
+        $result['city'] = $city;
+        $result['weather'] = MojiService::service()->getWeather($id,$lon,$lat,$type);
+        $result['suggest'] = MojiService::service()->getSuggest($id,$lon,$lat,$type);
+        $result['limt'] = MojiService::service()->getLimit($id,$lon,$lat,$type);
+        return $this->success($result);
+
     }
 }
 
