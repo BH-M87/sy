@@ -290,10 +290,10 @@ class PartyTaskService extends BaseService
         $task = StPartyTask::find()->where(['id' => $party->task_id])->one();
         if ($params['pioneer_value'] < 0 || $params['pioneer_value'] > $task->pioneer_value) throw new MyException('先锋值必须大于等于0小于等于任务先锋值');
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party->id])->one();
-        if (empty($record) || $party->status != 2) {
+        if (empty($record) || $party->status != 1) {
             throw new MyException('任务未完成或任务已处理');
         }
-        $record->operate_type = 1;
+        $record->operate_type = 2;
         $record->pioneer_value = $params['pioneer_value'];
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
@@ -488,7 +488,7 @@ class PartyTaskService extends BaseService
         }
         $record->party_task_station_id = $party->id;
         $record->task_id = $party->task_id;
-        $record->operate_type = 2;
+        $record->operate_type = 1;
         $record->content = '';
         $record->info = $params['content'];
         $record->create_at = time();
