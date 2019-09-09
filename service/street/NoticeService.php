@@ -36,6 +36,7 @@ class NoticeService extends BaseService
                 $un_read = $this->getUnReadInfoByNoticeId($value['id']);
                 $list[$key]['un_read_num'] = $un_read['un_read_num'];
                 $list[$key]['un_read_user_list'] = $un_read['un_read_user_list'];
+                $list[$key]['create_at'] = date("Y-m-d H:i:s",$value['create_at']);
             }
         } else {
             $list = [];

@@ -31,10 +31,12 @@ class HomeController extends UserBaseController
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
         $r = $service->getToken($authCode);
+        //var_dump($r);die;
         if (empty($r)) {
             return F::apiFailed("授权失败！");
         }
-        if (!empty($r) && $r['code']) {
+
+        if (!empty($r) && !empty($r['code'])) {
             return F::apiFailed($r['sub_msg']);
         }
 
