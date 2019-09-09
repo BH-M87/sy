@@ -12,6 +12,7 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 use app\modules\ali_small_common\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
+use common\MyException;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
 use service\small\MemberService;
@@ -56,6 +57,8 @@ class HomeController extends UserBaseController
     //解析手机号
     public function actionGetMobile()
     {
+        set_error_handler(null);
+        set_exception_handler(null);
         $userId = F::value($this->params, 'user_id');
         $encryptStr = F::value($this->params, 'encrypt_str');
         $system_type = F::value($this->params, 'system_type','edoor');
@@ -66,12 +69,24 @@ class HomeController extends UserBaseController
         if (!$encryptStr) {
             return F::apiFailed("手机号加密字符串不能为空！");
         }
-        \Yii::info("system:small-app"."--params:".json_encode($this->params),'api');
+        $encryptStr = json_decode($encryptStr, true);
 
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
-        $res['mobile_data'] = $service->decryptData($encryptStr);
-        return $this->dealReturnResult($res);
+        $mobile = $service->decryptData($encryptStr);
+        //保存用户
+        $params['mobile'] = $mobile;
+        $memberSave = \service\door\MemberService::service()->saveMember($params);
+        if ($memberSave['code']) {
+            $memberId = $memberSave['data'];
+            //保存ps_member 与app_user_id 的关联关系
+            MemberService::service()->saveMemberAppUser($memberId, $userId);
+        } else {
+            throw new MyException("用户保存失败");
+        }
+        $res['user_id'] = $userId;
+        $res['mobile'] = $mobile;
+        return F::apiSuccess($res);
     }
 
     //业主认证

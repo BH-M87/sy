@@ -26,6 +26,7 @@ use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
 use app\modules\small\services\BillSmallService;
 use common\core\PsCommon;
+use common\MyException;
 use service\alipay\AlipayBillService;
 use service\alipay\BillCostService;
 use service\alipay\MemberCardService;
@@ -582,6 +583,23 @@ class MemberService extends BaseService
         $result['limt'] = MojiService::service()->getLimit($id,$lon,$lat,$type);
         return $this->success($result);
 
+    }
+
+    public function saveMemberAppUser($memberId, $appUserId)
+    {
+        $model = PsAppMember::find()
+            ->where(['app_user_id' => $appUserId, 'member_id' => $memberId])
+            ->one();
+        if ($model) {
+            return true;
+        }
+        $model = new PsAppMember();
+        $model->app_user_id = $appUserId;
+        $model->member_id = $memberId;
+        if ($model->save()) {
+            return true;
+        }
+        throw new MyException("用户保存失败");
     }
 }
 
