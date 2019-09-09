@@ -181,7 +181,8 @@ Class CommunityService extends BaseService
 
                 // 处理结果 调Java接口
                 $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $v['id']]), true);
-                $event = json_decode($event, true)['data'];
+                $res = json_decode($event, true);
+                $event = !empty($res['data']) ? $res['data'] : [];
                 $v['content'] = $event['content'] ?? '';
                 $v['deal_at'] = $event['dealAt'] ?? '';
                 $v['deal_image'] = $event['dealWithPicList'] ?? '';

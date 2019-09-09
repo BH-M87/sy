@@ -472,7 +472,7 @@ class MemberService extends BaseService
         $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : '';
         // 社区曝光台
         $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
-        var_dump($exposure);die;
+        $exposure = $exposure['data'];
         $result['exposure'] = $exposure['list'];
         $result['exposure_total'] = $exposure['total'];
         $result['exposure_avatar'] = $exposure['avatar'];
