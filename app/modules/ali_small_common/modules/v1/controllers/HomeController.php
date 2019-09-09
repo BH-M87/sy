@@ -19,7 +19,7 @@ use service\small\MemberService;
 class HomeController extends UserBaseController
 {
 
-    public $enableAction = ['auth'];
+    public $enableAction = ['auth','get-weather-info'];
     //用户授权
     public function actionAuth()
     {
