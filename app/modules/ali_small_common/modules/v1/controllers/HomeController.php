@@ -11,8 +11,10 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 
 use app\modules\ali_small_common\controllers\UserBaseController;
 use common\core\F;
+use common\core\PsCommon;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
+use service\small\MemberService;
 
 class HomeController extends UserBaseController
 {
@@ -77,6 +79,20 @@ class HomeController extends UserBaseController
         return $this->dealReturnResult($result);
 
     }
+
+    //获取天气详情接口
+    public function actionGetWeatherInfo()
+    {
+        $data['app_user_id'] = PsCommon::get($this->params, 'user_id');
+        $data['community_id'] = PsCommon::get($this->params, 'community_id');
+        $data['lon'] = PsCommon::get($this->params, 'lon');
+        $data['lat'] = PsCommon::get($this->params, 'lat');
+        $data['city'] = PsCommon::get($this->params, 'city');
+        $result = MemberService::service()->getWeatherInfo($data);
+        return self::dealReturnResult($result);
+    }
+
+
 
 
 
