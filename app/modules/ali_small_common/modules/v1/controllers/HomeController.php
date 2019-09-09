@@ -69,7 +69,7 @@ class HomeController extends UserBaseController
 
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
-        $res['mobile_data'] = $service->decryptMobile($encryptStr);
+        $res['mobile_data'] = $service->decryptData($encryptStr);
         return $this->dealReturnResult($res);
     }
 

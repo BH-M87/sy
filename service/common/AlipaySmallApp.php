@@ -9,6 +9,7 @@ namespace service\common;
 
 use common\core\ali\AopEncrypt;
 use common\core\ali\AopRedirect;
+use common\MyException;
 use Yii;
 
 Class AlipaySmallApp
@@ -109,8 +110,38 @@ Class AlipaySmallApp
     }
 
     //解密字符串
-    public function decryptMobile($str)
+    /**
+     * Notes: 小程序解密数据
+     * @param $query
+     * @return string
+     * @throws Exception
+     */
+    public function decryptData($query)
     {
-        return AopEncrypt::decrypt($str, $this->_aes_secret);
+        try {
+            //判断报文是否加密, 非加密数据直接返回数据
+            if (is_array($query['response'])) {
+                $res = $query['response'];
+            } else {
+                $query['sign_type'] = $query['sign_type'] ? $query['sign_type'] : 'RSA2';
+//                error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . json_encode($query) . PHP_EOL, 3, Yii::$app->getRuntimePath().'/logs/aes_decode.log');
+                //验签
+                $signData = "\"{$query['response']}\"";
+                $signRes = $this->_aop->verify($signData, $query['sign'], $this->_aop->alipayrsaPublicKey, $query['sign_type']);
+                if (!$signRes) {
+                    throw new MyException("验签失败，请检查验签配置是否正确");
+                }
+                //解密
+                $res = AopEncrypt::decrypt2($query['response'], $this->_aop->encryptKey);
+                $result = json_decode($res, true);
+                if ($result['code'] != 10000) {
+                    throw new MyException($res['msg']);
+                }
+                return $result;
+            }
+            return $res;
+        } catch (\Exception $e) {
+            throw new MyException($e->getMessage());
+        }
     }
 }
