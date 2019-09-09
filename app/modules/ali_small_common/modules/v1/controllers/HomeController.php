@@ -69,6 +69,8 @@ class HomeController extends UserBaseController
         if (!$encryptStr) {
             return F::apiFailed("手机号加密字符串不能为空！");
         }
+        $encryptStr = json_decode($encryptStr, true);
+
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
         $mobile = $service->decryptData($encryptStr);
