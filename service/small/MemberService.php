@@ -10,18 +10,24 @@ namespace service\small;
 
 
 use app\models\DoorLastVisit;
+use app\models\PsAlipayCardRecord;
 use app\models\PsAliToken;
 use app\models\PsAppMember;
+use app\models\PsAppUser;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
+use app\models\PsLifeBroadcastRecord;
 use app\models\PsOrder;
+use app\models\PsProclaim;
 use app\models\PsPropertyIsvToken;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
 use app\modules\small\services\BillSmallService;
+use common\core\PsCommon;
 use service\alipay\AlipayBillService;
 use service\alipay\BillCostService;
+use service\alipay\MemberCardService;
 use service\BaseService;
 use service\door\KeyService;
 use service\room\RoomService;
@@ -330,6 +336,168 @@ class MemberService extends BaseService
         }
         $responseData['room_password'] = !empty($roomPassword) ? $roomPassword : [];
         return $this->success($responseData);
+    }
+
+    // 获取首页数据
+    public function getHomeData($params)
+    {
+        // 查询业主
+        $memberInfo = PsAppMember::find()->alias('A')
+            ->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select(['B.face_url', 'B.id as member_id', 'B.name', 'B.mobile', 'B.room_id as sel_room_id'])
+            ->where(['A.app_user_id' => $params['app_user_id']])->asArray()->one();
+        $appUser = PsAppUser::find()->select('id, nick_name, avatar, phone, true_name, is_certified, biz_card_no, channel_user_id')->where(['id' => $params['app_user_id']])->asArray()->one();
+        if(empty($memberInfo)){
+            $resident['is_house'] =  2; // 至少有一个已认证的房屋 1有 2没有
+            $resident['type'] = 0;
+            $resident['is_auth'] =  2; // 当前房屋是否认证 1已认证 2未认证
+            $resident['is_auth_member'] =  2; //是否业主认证 1已认证 2未认证
+            $resident['community_id'] =  '';
+            $resident['community_name'] = '';
+            $resident['steward'] = '';
+            $resident['name'] =  !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
+            $resident['face_url'] = $appUser['avatar'];
+            $resident['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+            $resident['hideMobile'] = PsCommon::hideMobile($resident['mobile']);
+            $resident['is_certified'] = $appUser['is_certified'];
+            return $this->success($resident);
+        }
+        $roomIds = [];
+        // 查询已审核的房屋数量
+        $roomAll = PsRoomUser::find()->select(['room_id'])
+            ->where(['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name']])->all();
+        if(!empty($roomAll)){
+            foreach ($roomAll as $k=>$v) {
+                array_push($roomIds, $v['room_id']);
+            }
+        }
+        // 查询待审核 审核失败的房屋数量
+        $roomAuditAll = PsResidentAudit::find()->select(['room_id'])
+            ->where(['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name']])
+            ->andWhere(['!=', 'status', '1'])->all();
+        if(!empty($roomAuditAll)){
+            foreach ($roomAuditAll as $k=>$m) {
+                array_push($roomIds, $m['room_id']);
+            }
+        }
+        $count = count($roomAuditAll) + count($roomAll); // 业主全部房屋数量
+        if(!empty($memberInfo['sel_room_id']) && in_array($memberInfo['sel_room_id'], $roomIds)) {//说明业主选择了房屋并且业主选择的房屋也是在当前房屋中
+            $sel_room = $memberInfo['sel_room_id'];
+        }else{//没有选择房屋的情况根据用户id查询一条已认证的房屋
+            $sel_room = PsRoomUser::find()->select('room_id')->where(['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name'],'status'=>'2'])->scalar();
+        }
+
+        if (empty($sel_room)) { // 都没有 迁入未认证的 2019-6-20说要改的
+            $sel_room = PsRoomUser::find()->select('room_id')->where(['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name']])->andWhere(['!=', 'status', '2'])->scalar();
+        }
+
+        if (empty($sel_room)) { // 都没有 就看待审核 审核失败的房屋 2019-6-20说要改的
+            $sel_room = PsResidentAudit::find()->select('room_id')->where(['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name']])->andWhere(['!=', 'status', '1'])->scalar();
+        }
+
+        // 当前房屋是否认证
+        $roomUser = PsRoomUser::find()->select('status')->where(['room_id' => $sel_room, 'member_id' => $memberInfo['member_id']])->orderBy('status asc')->asArray()->one();
+        //选择的房屋在后台有住户信息
+        $roomInfo= ["community_id"=>'',"community_name"=>'',"room_id"=>'','room_info'=>''];
+        if(!empty($sel_room)){
+            // 查询访问的房屋
+            $roomInfo = PsCommunityRoominfo::find()->alias('roominfo')
+                ->leftJoin('ps_community comm', 'comm.id=roominfo.community_id')
+                ->select(['comm.id as community_id', 'comm.name as community_name','comm.pro_company_id','roominfo.id as room_id', 'roominfo.address as room_info','comm.longitude as lon','comm.latitude as lat'])
+                ->where(['roominfo.id' => $sel_room])->asArray()->one();
+        }
+
+        // 查询是否有认证的房屋
+        $is_house = PsRoomUser::find()->select('id')->where(['member_id' => $memberInfo['member_id'], 'status' => 2, 'name' => $memberInfo['name']])->scalar();
+        PsRoomUser::updateAll(['status' => PsRoomUser::AUTH, 'auth_time' => time()], ['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name'], 'status' => PsRoomUser::UN_AUTH]);
+
+        $result = !empty($roomInfo) ? array_merge($memberInfo, $roomInfo) : $memberInfo;
+        $result['is_house'] = !empty($is_house) ? 1 : 2; // 至少有一个已认证的房屋 1有 2没有
+        $result['type'] = $count > 1 ? 2 : $count;
+        $result['is_auth'] = $roomUser['status']==2 ? 1 : 2; // 当前房屋是否认证 1已认证 2未认证
+        // 用$memberInfo['mobile']判断是因为 出现过ps_app_member表有关联数据 ps_member表对应数据被删了 如果是这种情况就是业主未认证 重新去走业主认证操作 更新ps_app_member表
+        $result['is_auth_member'] = !empty($memberInfo['mobile']) ? 1 : 2; //是否业主认证 1已认证 2未认证
+        $result['community_id'] = !empty($result['community_id']) ? $result['community_id'] : '0';
+        $result['community_name'] = !empty($result['community_name']) ? $result['community_name'] : '';
+        //获取物业公司的电话
+        $result['property_mobile'] = !empty($roomInfo['pro_company_id'])?PsCommunityModel::find()->select('phone')->where(['id' => $result['community_id']])->scalar():'';
+        //添加经纬度，用于首页的天气查找， add by zq 2019-3-25
+        $result['lon'] = !empty($result['lon']) ? $result['lon'] : '';
+        $result['lat'] = !empty($result['lat']) ? $result['lat'] : '';
+        //$result['weather'] = MojiService::service()->getWeather($result['community_id'],$result['lon'],$result['lat']);
+        //$result['suggest'] = MojiService::service()->getSuggest($result['community_id'],$result['lon'],$result['lat']);
+        $result['name'] = !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
+        $result['face_url'] = $appUser['avatar'];
+        $result['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+        $result['is_certified'] = $appUser['is_certified'];
+        //获取管家数据
+        $steward_params['community_id'] = $result['community_id'];
+        $steward_params['room_id'] = $result['room_id'];
+        $result['steward'] = ComplaintService::service()->stewardIndexInfo($steward_params);
+        // 滚动消息需要滚动展示系统信息和物业公告的前十条
+        $proclaim = PsProclaim::find()->select('title, show_at')->where(['community_id' => $result['community_id'], 'is_show' => 2])->limit(10)->orderBy('show_at DESC')->asArray()->all();
+        $broadcast = PsLifeBroadcastRecord::find()->alias('A')
+            ->leftJoin('ps_life_broadcast B', 'A.broadcast_id = B.id')
+            ->select(['B.title', 'A.send_at as show_at'])
+            ->where(['A.community_id' => $result['community_id'], 'A.status' => 1])
+            ->andWhere(['=', 'B.push_type', 2])
+            ->limit(10)
+            ->orderBy('A.send_at desc')
+            ->asArray()->all();
+
+        $news = array_merge($broadcast, $proclaim);
+        // 根据显示时间倒序排序
+        $arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $news);
+        array_multisort($arr1, SORT_DESC, $news);
+
+        // 业主卡
+        $pass_id = MemberCardService::service()->cardQuery($appUser)['data']['pass_id'];
+        $result['card'] = [
+            'pass_id' => !empty($pass_id) ? $pass_id : '',
+            'is_card' => !empty($pass_id) ? 1 : 2,
+            'apply_card_url' => !empty($pass_id) ? '' : MemberCardService::service()->cardActivateurlApply(['type' => $params['system_type']])['apply_card_url']
+        ];
+
+        if (empty($pass_id) && !empty($appUser['biz_card_no'])) { // 删卡记录
+            $record = new PsAlipayCardRecord();
+            $record->app_user_id = $appUser['id'];
+            $record->biz_card_no = $appUser['biz_card_no'];
+            $record->create_at = time();
+            $record->save();
+        }
+
+        // 小区活动
+        $activity = ActivityService::service()->activityList(['community_id' => $result['community_id']])['list'];
+        $result['activity'] = !empty($activity) ? $activity : '';
+
+        // 社区曝光台
+        $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
+
+        $result['exposure'] = $exposure['list'];
+        $result['exposure_total'] = $exposure['total'];
+        $result['exposure_avatar'] = $exposure['avatar'];
+        $result['hideMobile'] = PsCommon::hideMobile($result['mobile']);
+
+        if (!empty($news)) {
+            foreach ($news as $k => $v) {
+                if ($k <= 9) { // 前十条
+                    $news[$k]['show_at'] = !empty($v['show_at']) ? date('Y-m-d', $v['show_at']) : '';
+                } else {
+                    unset($news[$k]);
+                }
+            }
+
+            $new_count = count($news);
+            if ($new_count % 2 == 1) { // 前端两条两条滚动 所以取双数
+                unset($news[$new_count - 1]);
+            }
+
+            $result['news'] = $news;
+        }
+
+        unset($result['member_id']);
+
+        return $this->success($result);
     }
 
     // 标记已选择房屋 提交房屋认证的时候也会调用
