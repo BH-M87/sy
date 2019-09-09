@@ -40,7 +40,7 @@ class HomeController extends UserBaseController
             return F::apiFailed($r['sub_msg']);
         }
 
-        // 获取支付宝用户基本信息
+        //获取支付宝用户基本信息
         $user = $service->getUser($r['access_token']);
 
         $result = array_merge($r, $user);
@@ -49,8 +49,27 @@ class HomeController extends UserBaseController
         }
         $result['token_type'] = F::value($this->params, 'token_type');
 
-        //调用api接口获取用户的app_user_id
-        $res = HomeService::service()->getUserId($result);
+        $res = HomeService::service()->getUserId($result, $system_type);
+        return $this->dealReturnResult($res);
+    }
+
+    //解析手机号
+    public function actionGetMobile()
+    {
+        $userId = F::value($this->params, 'user_id');
+        $encryptStr = F::value($this->params, 'encrypt_str');
+        $system_type = F::value($this->params, 'system_type','edoor');
+
+        if (!$userId) {
+            return F::apiFailed("用户id不能为空！");
+        }
+        if (!$encryptStr) {
+            return F::apiFailed("手机号加密字符串不能为空！");
+        }
+
+        //获取支付宝会员信息
+        $service = new AlipaySmallApp($system_type);
+        $res['mobile_data'] = $service->decryptMobile($encryptStr);
         return $this->dealReturnResult($res);
     }
 

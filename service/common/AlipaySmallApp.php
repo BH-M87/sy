@@ -7,13 +7,14 @@
 
 namespace service\common;
 
+use common\core\ali\AopEncrypt;
 use common\core\ali\AopRedirect;
 use Yii;
 
 Class AlipaySmallApp
 {
-
     private $_aop;
+    private $_aes_secret = '';
 
     //文件固定路径: alisa/rsa_files/module_name/xxx.txt
     public function __construct($module)
@@ -29,6 +30,13 @@ Class AlipaySmallApp
                 $this->_aop->appId = Yii::$app->params['fczl_app_id'];
                 $publicFile = Yii::$app->params['fczl_alipay_public_key_file'];
                 $privateFile = Yii::$app->params['fczl_rsa_private_key_file'];
+                $this->_aes_secret = Yii::$app->params['fczl_aes_secret'];
+                break;
+            case "djyl":
+                $this->_aop->appId = Yii::$app->params['djyl_app_id'];
+                $publicFile = Yii::$app->params['djyl_alipay_public_key_file'];
+                $privateFile = Yii::$app->params['djyl_rsa_private_key_file'];
+                $this->_aes_secret = Yii::$app->params['djyl_aes_secret'];
                 break;
             default:
                 $this->_aop->appId = Yii::$app->params['edoor_app_id'];
@@ -98,5 +106,11 @@ Class AlipaySmallApp
         ];
         $params['biz_content'] = json_encode($biz);
         return $this->_aop->execute('zoloz.identification.user.web.query', $params);
+    }
+
+    //解密字符串
+    public function decryptMobile($str)
+    {
+        return AopEncrypt::decrypt($str, $this->_aes_secret);
     }
 }
