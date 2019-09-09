@@ -422,7 +422,7 @@ CREATE TABLE `st_party_task_operate_record` (
   `party_task_station_id` int(11) NOT NULL DEFAULT '0' COMMENT '党员认领任务操作记录表',
   `task_id` int(11) NOT NULL DEFAULT '0' COMMENT '任务id',
   `communist_id` int(11) NOT NULL DEFAULT '0' COMMENT '党员id',
-  `operate_type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '操作类型 1完成 2审核 3取消',
+  `operate_type` tinyint(2) NOT NULL DEFAULT '0' COMMENT '操作类型 1完成 2审核完成 3取消',
   `content` varchar(500) NOT NULL DEFAULT '' COMMENT '输入内容  operate_type1时为完成内容 2 审核说明 3 时为取消理由',
   `images` varchar(500) NOT NULL DEFAULT '' COMMENT '上传图片，多个以逗号相连',
   `location` varchar(255) NOT NULL DEFAULT '' COMMENT '当前位置',
