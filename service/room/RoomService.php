@@ -16,6 +16,23 @@ use yii\db\Query;
 
 Class RoomService extends BaseService
 {
+    public function getOwnView($room_id)
+    {
+        $roomInfo = (new Query())
+            ->select('room_info.group as group_name,room_info.building as building_name,
+            room_info.unit as unit_name,room_info.room as room_name,community.name as community_name,
+            community.id as community_id,community.phone as community_mobile')
+            ->from('ps_community_roominfo room_info')
+            ->leftJoin('ps_community community', 'community.id = room_info.community_id')
+            ->where(['room_info.id' => $room_id])
+            ->createCommand()
+            ->queryOne();
+        if ($roomInfo) {
+            return $this->success($roomInfo);
+        } else {
+            throw new MyException('房屋信息不存在');
+        }
+    }
 
     /*获取房屋得信息*/
     public function getRoomInfo($out_room_id)
