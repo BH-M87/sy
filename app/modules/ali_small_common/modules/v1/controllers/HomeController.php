@@ -36,9 +36,18 @@ class HomeController extends UserBaseController
             return F::apiFailed($r['sub_msg']);
         }
 
+        // 获取支付宝用户基本信息
+        $user = $service->getUser($r['access_token']);
+
+        $result = array_merge($r, $user);
+        if (!empty($result['mobile'])) {
+            $result['phone'] = $result['mobile'];
+        }
+        $result['token_type'] = F::value($this->params, 'token_type');
+
         //调用api接口获取用户的app_user_id
-        $result = HomeService::service()->getUserId($r);
-        return $this->dealReturnResult($result);
+        $res = HomeService::service()->getUserId($result);
+        return $this->dealReturnResult($res);
     }
 
     //业主认证
