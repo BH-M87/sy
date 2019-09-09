@@ -307,7 +307,8 @@ class AopRedirect {
      * @param $method
      * @param $apiParas
      */
-    public function getApiParams($method, $apiParas=[], $appInfoAuthtoken=null, $authToken=null) {
+    public function getApiParams($method, $apiParas=[], $appInfoAuthtoken=null, $authToken=null)
+    {
         //组装系统参数
         $sysParams["app_id"] = $this->appId;
         $sysParams["version"] = $this->apiVersion;
@@ -319,21 +320,21 @@ class AopRedirect {
         $sysParams["terminal_type"] = $this->terminalType;
         $sysParams["terminal_info"] = $this->terminalInfo;
         $sysParams["prod_code"] = $this->prodCode;
-        $sysParams["notify_url"] = !empty($apiParas['notify_url'])?$apiParas['notify_url']:$this->notifyUrl;
-        if($this->returnUrl) {
+        $sysParams["notify_url"] = !empty($apiParas['notify_url']) ? $apiParas['notify_url'] : $this->notifyUrl;
+        if ($this->returnUrl) {
             $sysParams["return_url"] = $this->returnUrl;
         }
         $sysParams["charset"] = $this->postCharset;
-        if($appInfoAuthtoken) {
+        if ($appInfoAuthtoken) {
             $sysParams["app_auth_token"] = $appInfoAuthtoken;
         }
-        if($authToken) {
+        if ($authToken) {
             $sysParams["auth_token"] = $authToken;
         }
         //获取业务参数
         $apiParams = $apiParas;
         //默认不加密
-        if ($this->needEncrypt){
+        if ($this->needEncrypt) {
             $sysParams["encrypt_type"] = $this->encryptType;
             if ($this->checkEmpty($apiParams['biz_content'])) {
                 throw new HttpException(500, " api request Fail! The reason : encrypt request is not supperted!");
