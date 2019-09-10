@@ -190,8 +190,4 @@ class PioneerRanKingService extends BaseService
 
         return $communist;
     }
-
-
-
-
 }
