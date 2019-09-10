@@ -176,7 +176,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as grade_order,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->andFilterWhere(['sts.status' => 3])
-            ->andFilterWhere(['sts.id' => $communist_id])
+            ->andFilterWhere(['sts.communist_id' => $communist_id])
             ->groupBy('communist_id')
             ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
         $data = $model->asArray()->all();
