@@ -8,10 +8,12 @@
 
 namespace service\door;
 
+use app\models\PsMember;
 use common\core\PsCommon;
 use service\BaseService;
 use service\resident\ResidentService;
 use service\room\RoomService;
+use service\small\MemberService;
 
 class SelfService extends BaseService
 {

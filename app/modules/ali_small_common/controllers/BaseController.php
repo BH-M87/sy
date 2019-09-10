@@ -8,6 +8,7 @@
 
 namespace app\modules\ali_small_common\controllers;
 
+use common\core\PsCommon;
 use Yii;
 use yii\web\Controller;
 use common\core\F;
@@ -32,12 +33,7 @@ class BaseController extends Controller
             return false;
         }
         $params = F::request();
-        if (Yii::$app->controller->id == "blue-tooth" || Yii::$app->controller->id == "home") {
-            file_put_contents("smallInfo.txt", "request-url:" . Yii::$app->controller->id . Yii::$app->controller->action->id . "params:" . $params['data'] . "\r\n", FILE_APPEND);
-        }
-
         $this->params = !empty($params['data']) ? json_decode($params['data'], true) : [];
-        file_put_contents("aaab.txt",$this->params['encrypt_str']."\r\n",FILE_APPEND);
         \Yii::info("system:small-app"."controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'api');
         return true;
     }
