@@ -24,6 +24,8 @@ use app\models\PsPropertyIsvToken;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
+use app\models\StCommunist;
+use app\models\StCommunistAppUser;
 use app\modules\small\services\BillSmallService;
 use common\core\PsCommon;
 use common\MyException;
@@ -585,21 +587,65 @@ class MemberService extends BaseService
 
     }
 
-    public function saveMemberAppUser($memberId, $appUserId)
+    /**
+     * 保存member表与ps_app_user表的关系
+     * @param $memberId
+     * @param $appUserId
+     * @param $systemType
+     * @param $mobile
+     * @return bool
+     * @throws MyException
+     */
+    public function saveMemberAppUser($memberId, $appUserId, $systemType, $mobile)
     {
-        $model = PsAppMember::find()
-            ->where(['app_user_id' => $appUserId, 'member_id' => $memberId])
-            ->one();
-        if ($model) {
-            return true;
+        if ($systemType == "djyl") {
+            $model = PsAppMember::find()
+                ->where(['app_user_id' => $appUserId, 'member_id' => $memberId])
+                ->one();
+            if (!$model) {
+                $model = new PsAppMember();
+                $model->app_user_id = $appUserId;
+                $model->member_id = $memberId;
+                $model->save();
+            }
+
+            //根据手机号查找党员
+            $communistInfo = StCommunist::find()
+                ->where(['mobile' => $mobile])
+                ->one();
+            if ($communistInfo) {
+                //查找党员
+                $commAppUser = StCommunistAppUser::find()
+                    ->where(['communist_id' => $communistInfo['id']])
+                    ->andWhere(['app_user_id' => $appUserId])
+                    ->asArray()
+                    ->one();
+                if ($commAppUser) {
+                    return true;
+                }
+                $commAppUser = new StCommunistAppUser();
+                $commAppUser->communist_id = $communistInfo['id'];
+                $commAppUser->app_user_id = $appUserId;
+                if ($commAppUser->save()) {
+                    return true;
+                }
+                throw new MyException("用户保存失败");
+            }
+        } else {
+            $model = PsAppMember::find()
+                ->where(['app_user_id' => $appUserId, 'member_id' => $memberId])
+                ->one();
+            if ($model) {
+                return true;
+            }
+            $model = new PsAppMember();
+            $model->app_user_id = $appUserId;
+            $model->member_id = $memberId;
+            if ($model->save()) {
+                return true;
+            }
+            throw new MyException("用户保存失败");
         }
-        $model = new PsAppMember();
-        $model->app_user_id = $appUserId;
-        $model->member_id = $memberId;
-        if ($model->save()) {
-            return true;
-        }
-        throw new MyException("用户保存失败");
     }
 }
 
