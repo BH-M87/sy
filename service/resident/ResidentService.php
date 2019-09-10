@@ -362,16 +362,27 @@ class ResidentService extends BaseService
             return $this->failed("已认证住户无法删除");
         }
 
+
+
         $operate = [
             "community_id" => $roomUser["community_id"],
             "operate_menu" => "住户管理",
             "operate_type" => "删除住户",
             "operate_content" => $roomUser["name"] . " " . (PsCommon::isVirtualPhone($roomUser["mobile"]) ? '' : $roomUser["mobile"]),
         ];
-        OperateService::addComm($user_info, $operate);
 
-        $roomUser->delete();
-        return $this->success();
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+            OperateService::addComm($user_info, $operate);
+            PsLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]); // 删除住户所有标签关联关系
+            $roomUser->delete();
+
+            $trans->commit();
+            return $this->success();
+        } catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 
     // 关联房屋
