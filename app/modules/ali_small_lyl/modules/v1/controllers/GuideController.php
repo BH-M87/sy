@@ -16,7 +16,7 @@ class GuideController extends UserBaseController
     public function actionList()
     {
         $data = ComplaintService::service()->getGuideList($this->params);
-        return F::apiSuccess($data);
+        return F::apiSuccess($data['data']);
     }
 
     // 社区指南类型列表

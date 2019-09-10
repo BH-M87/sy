@@ -160,23 +160,37 @@ Class LabelsService extends BaseService
     public function addRelation($data_id, $labels_id, $data_type)
     {
         if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
+            $type = 1;
+            switch ($data_type) {
+                case '1': // 1 房屋
+                    $m = PsCommunityRoominfo::findOne($data_id);
+                    break;
+                case '3': // 3 车辆
+                    $m = ParkingCars::findOne($data_id);
+                    break;
+                default: // 2 住户
+                    $m = PsRoomUser::findOne($data_id);
+                    $type = $m->status;
+                    break;
+            }
+
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
                 if (is_array($labels_id)) { // 批量添加标签关联关系
                     PsLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
                     foreach ($labels_id as $v) {
-                        $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
+                        $insert[] = ['labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'community_id' => $m->community_id, 'type' => $type];
                     }
                 } else { // 单个添加标签关联关系
                     $rela = PsLabelsRela::find()->where(['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type])->asArray()->all();
                     if (!empty($rela)) {
                         return false;
                     }
-                    $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time()];
+                    $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'community_id' => $m->community_id, 'type' => $type];
                 }
 
                 Yii::$app->db->createCommand()
-                    ->batchInsert('ps_labels_rela', ['labels_id', 'data_id', 'data_type', 'created_at'], $insert)->execute();
+                    ->batchInsert('ps_labels_rela', ['labels_id', 'data_id', 'data_type', 'created_at', 'community_id', 'type'], $insert)->execute();
 
                 $trans->commit();
             } catch (\Exception $e) {
