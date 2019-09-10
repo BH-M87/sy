@@ -11,7 +11,7 @@ use Yii;
  * @property int $communist_id 党员id
  * @property int $app_user_id 小程序用户id
  */
-class StCommunistAppUser extends \yii\db\ActiveRecord
+class StCommunistAppUser extends BaseModel 
 {
     /**
      * {@inheritdoc}
