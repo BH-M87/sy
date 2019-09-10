@@ -21,7 +21,8 @@
         "qiniu/php-sdk": "^7.1",
         "yiisoft/yii2-redis": "^2.0",
         "yiisoft/yii2-imagine": "^2.1",
-        "kriss/yii2-log-reader": "2.*"
+        "kriss/yii2-log-reader": "2.*",
+        "aliyuncs/oss-sdk-php": "^2.3"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
