@@ -8,6 +8,7 @@
 
 namespace app\modules\ali_small_common\controllers;
 
+use common\core\PsCommon;
 use Yii;
 use yii\web\Controller;
 use common\core\F;
@@ -37,7 +38,8 @@ class BaseController extends Controller
         }
 
         $this->params = !empty($params['data']) ? json_decode($params['data'], true) : [];
-        file_put_contents("aaab.txt",$this->params['encrypt_str']."\r\n",FILE_APPEND);
+        $encrypt_str = PsCommon::get($this->params,'encrypt_str');
+        file_put_contents("aaab.txt",$encrypt_str."\r\n",FILE_APPEND);
         \Yii::info("system:small-app"."controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'api');
         return true;
     }
