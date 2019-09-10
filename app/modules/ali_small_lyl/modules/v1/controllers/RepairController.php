@@ -122,7 +122,7 @@ class RepairController extends UserBaseController
         if (!$params['community_id']) {
             return F::apiFailed("小区id不能为空");
         }
-        $result = RepairTypeService::service()->getRepairTypeTree($params);
+        $result = RepairTypeService::service()->getSmallAppRepairTypeTree($params);
         return F::apiSuccess($result);
     }
 }

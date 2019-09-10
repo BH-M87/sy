@@ -11,6 +11,7 @@ namespace service\issue;
 
 use app\models\PsRepair;
 use app\models\PsRepairType;
+use app\models\RepairType;
 use common\core\PsCommon;
 use service\BaseService;
 use service\rbac\OperateService;
@@ -161,6 +162,19 @@ class RepairTypeService extends BaseService
         return self::dealRepairType($model);
     }
 
+    //小程序报修类目树，结构与后台不一样
+    public function getSmallAppRepairTypeTree($params)
+    {
+        $model = new RepairType();
+        $type_info = $model::find()
+            ->select('id, name, parent_id')
+            ->where(['status' => 1, 'community_id' => $params['community_id']])
+            ->asArray()
+            ->all();
+        $list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
+        return $list;
+    }
+
     private function getRepairTypesById($idList)
     {
         $res = PsRepairType::find()->select(['id', 'name'])->where(['in', 'id', $idList])->asArray()->all();
@@ -184,5 +198,31 @@ class RepairTypeService extends BaseService
             ->asArray()
             ->scalar();
         return $relateRoom == 1 ? true : false;
+    }
+
+    /**
+     * @api 获取类型分类树
+     * @param $list
+     * @param string $pk 当前 id
+     * @param string $pid 父级 id
+     * @param string $child 定义下级key
+     * @param int $root 下级开始坐标
+     * @return array
+     */
+    private function _makeTree($list, $pk = 'id', $pid = 'parent_id', $child = 'child', $root = 0)
+    {
+        $tree = [];
+        $packData = [];
+        foreach ($list as $data) {
+            $packData[$data[$pk]] = $data;
+        }
+        foreach ($packData as $key => $val) {
+            if ($val[$pid] == $root) {
+                $tree[] = &$packData[$key];
+            } else {
+                $packData[$val[$pid]][$child][] = &$packData[$key];
+            }
+        }
+        return $tree;
     }
 }
