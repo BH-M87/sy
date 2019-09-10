@@ -211,7 +211,6 @@ class SelfService extends BaseService
     public function get_common($user_id, $type = 1)
     {
         $memberId = MemberService::service()->getMemberId($user_id);
-        var_dump($memberId);die;
         $data = PsMember::find()->select(['id', 'name', 'mobile'])->where(['id' => $memberId])->asArray()->one();
         $identity = [];
         foreach($this->identity_type as $key =>$value){
