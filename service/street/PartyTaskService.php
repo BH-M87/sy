@@ -437,9 +437,9 @@ class PartyTaskService extends BaseService
         if ($party['status'] == 2) {
             $task['complete']['content'] = $record['info'];
             $task['complete']['images'] = $party['images'] ?? '';
-            $task['complete']['location'] = $party['location'] ?? '';
-            $task['complete']['lon'] = $party['lon'] ?? '';
-            $task['complete']['lat'] = $party['lat'] ?? '';
+            $task['complete']['location'] = $record['location'] ?? '';
+            $task['complete']['lon'] = $record['lon'] ?? '';
+            $task['complete']['lat'] = $record['lat'] ?? '';
         } else if ($party['status'] == 3) {
             $task['status'] = 4;
             $task['examine']['pioneer_value'] = $party['pioneer_value'];
@@ -448,9 +448,9 @@ class PartyTaskService extends BaseService
             $task['examine']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
             $task['complete']['content'] = $record['info'];
             $task['complete']['images'] = $party['images'] ?? '';
-            $task['complete']['location'] = $party['location'] ?? '';
-            $task['complete']['lon'] = $party['lon'] ?? '';
-            $task['complete']['lat'] = $party['lat'] ?? '';
+            $task['complete']['location'] = $record['location'] ?? '';
+            $task['complete']['lon'] = $record['lon'] ?? '';
+            $task['complete']['lat'] = $record['lat'] ?? '';
         } else if ($party['status'] == 4) {
             $task['status'] = 3;
             $task['cancel']['content'] = $record['content'];
