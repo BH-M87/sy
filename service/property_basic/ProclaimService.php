@@ -15,6 +15,7 @@ use app\models\PsLabelsRela;
 use app\models\PsCommunityRoominfo;
 use app\models\PsRoomUser;
 use app\models\ParkingCars;
+use app\models\PsLifeBroadcastRecord;
 
 class ProclaimService extends BaseService
 {
@@ -146,24 +147,35 @@ class ProclaimService extends BaseService
         return $this->failed();
     }
 
-    // 公告详情
+    // 公告详情 系统公告详情
     public function show($p)
     {
-        $m = PsProclaim::getOne($p);
+        if ($p['msg_type'] == 2) { // 系统公告推送到小程序
+            $m = PsLifeBroadcastRecord::find()->alias('A')
+                ->leftJoin('ps_life_broadcast B', 'A.broadcast_id = B.id')
+                ->select('A.id, B.title, B.content, B.image as img_url, A.send_at as show_at, B.type as proclaim_cate')
+                ->where(['A.id' => $p['id']])
+                ->asArray()->one();
 
-        if (!$m) {
-            return $this->failed("数据不存在");
+            $m['show_at'] = !empty($m['show_at']) ? date('Y-m-d H:i', $m['show_at']) : '';
+            $m['proclaim_cate_desc'] = !empty($m['proclaim_cate']) ? PsProclaim::$proclaim_cate[$m['proclaim_cate']] : '';
+        } else {
+            $m = PsProclaim::getOne($p);
+
+            if (!$m) {
+                return $this->failed("数据不存在");
+            }
+
+            $m = $m->toArray();
+
+            $m['create_at'] = !empty($m['create_at']) ? date("Y-m-d H:i", $m['create_at']) : '';
+            $m['show_at'] = !empty($m['show_at']) ? date("Y-m-d H:i", $m['show_at']) : '';
+            $m['top_at'] = !empty($m['top_at']) ? date("Y-m-d H:i", $m['top_at']) : '';
+            $m['proclaim_type_desc'] = PsProclaim::$proclaim_type[$m['proclaim_type']];
+            $m['proclaim_cate_desc'] = PsProclaim::$proclaim_cate[$m['proclaim_cate']];
+            $m['is_top_desc'] = $m['is_top'] == 2 ? '是' : '否';
+            $m['receive'] = [];
         }
-
-        $m = $m->toArray();
-
-        $m['create_at'] = !empty($m['create_at']) ? date("Y-m-d H:i", $m['create_at']) : '';
-        $m['show_at'] = !empty($m['show_at']) ? date("Y-m-d H:i", $m['show_at']) : '';
-        $m['top_at'] = !empty($m['top_at']) ? date("Y-m-d H:i", $m['top_at']) : '';
-        $m['proclaim_type_desc'] = PsProclaim::$proclaim_type[$m['proclaim_type']];
-        $m['proclaim_cate_desc'] = PsProclaim::$proclaim_cate[$m['proclaim_cate']];
-        $m['is_top_desc'] = $m['is_top'] == 2 ? '是' : '否';
-        $m['receive'] = [];
 
         return $this->success($m);
     }
@@ -184,5 +196,48 @@ class ProclaimService extends BaseService
         if ($m->delete()) {
             return $this->success();
         }   
+    }
+
+    // 我的消息列表 小区公告和系统公告
+    public function news($p)
+    {
+        $p['type'] = !empty($p['type']) ? $p['type'] : 0;
+        $proclaim = $news = [];
+
+        if ($p['type'] != 1) { // 系统公共 运营后台添加
+            $news = PsLifeBroadcastRecord::find()->alias('A')
+                ->leftJoin('ps_life_broadcast B', 'A.broadcast_id = B.id')
+                ->select(['A.id', 'B.title', 'B.content', 'B.type as cate', 'B.image as img_url', 'A.send_at as show_at'])
+                ->where(['A.community_id' => $p['community_id'], 'A.status' => 1])
+                ->andWhere(['=', 'B.push_type', 2])->orderBy('A.send_at desc')->asArray()->all();
+
+            if (!empty($news)) {
+                foreach ($news as &$n) {
+                    $n['show_at'] = !empty($n['show_at']) ? date('Y-m-d H:i', $n['show_at']) : '';
+                    $n['msg_type'] = 2;
+                    $n['msg_type_desc'] = '系统公告';
+                }
+            }
+        }
+      
+        if ($p['type'] != 2) { // 物业公共 物业后台添加 小区公告
+            $proclaim = PsProclaim::find()->select('id, title, content, img_url, show_at, proclaim_type as type, proclaim_cate as cate')->where(['community_id' => $p['community_id'], 'is_show' => 2])
+                ->orderBy('show_at desc')->asArray()->all();
+            if (!empty($proclaim)) {
+                foreach ($proclaim as &$p) {
+                    $p['show_at'] = !empty($p['show_at']) ? date('Y-m-d H:i', $p['show_at']) : '';
+                    $p['type_desc'] = PsProclaim::$proclaim_type[$p['type']];
+                    $p['msg_type'] = 1;
+                    $p['msg_type_desc'] = '小区通知';
+                }
+            }
+        }
+
+        $r = array_merge($news, $proclaim);
+        // 根据显示时间倒序排序
+        //$arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $r);
+        //array_multisort($arr1, SORT_DESC, $r);
+
+        return $this->success($r);
     }
 }
