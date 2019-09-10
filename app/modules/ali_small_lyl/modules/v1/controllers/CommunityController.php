@@ -19,9 +19,9 @@ use service\small\CommunityService;
 use service\door\RoomService;
 use service\door\CommunityService as CommunityServices;
 
-use app\modules\ali_small_lyl\controllers\UserBaseController;
+use app\modules\ali_small_lyl\controllers\BaseController;
 
-class CommunityController extends UserBaseController
+class CommunityController extends BaseController
 {
     // 获取小区详情
     public function actionCommunityShow()
