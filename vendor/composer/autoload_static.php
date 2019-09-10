@@ -80,6 +80,7 @@ class ComposerStaticInitcf9f9c77e8d50f46e50cdf09864f3864
         'O' => 
         array (
             'Opis\\Closure\\' => 13,
+            'OSS\\' => 4,
         ),
         'I' => 
         array (
@@ -237,6 +238,10 @@ class ComposerStaticInitcf9f9c77e8d50f46e50cdf09864f3864
         'Opis\\Closure\\' => 
         array (
             0 => __DIR__ . '/..' . '/opis/closure/src',
+        ),
+        'OSS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/aliyuncs/oss-sdk-php/src/OSS',
         ),
         'Imagine\\' => 
         array (

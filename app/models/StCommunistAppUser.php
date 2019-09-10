@@ -11,7 +11,7 @@ use Yii;
  * @property int $communist_id 党员id
  * @property int $app_user_id 小程序用户id
  */
-class StCommunistAppUser extends BaseModel
+class StCommunistAppUser extends BaseModel 
 {
     /**
      * {@inheritdoc}
@@ -27,8 +27,7 @@ class StCommunistAppUser extends BaseModel
     public function rules()
     {
         return [
-            [['id'], 'required'],
-            [['id', 'communist_id', 'app_user_id'], 'integer'],
+            [['communist_id', 'app_user_id'], 'integer'],
         ];
     }
 
