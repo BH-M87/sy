@@ -288,10 +288,9 @@ Class ActivityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $p['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $p['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
@@ -302,14 +301,12 @@ Class ActivityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
-        
         $params['a_id'] = $p['id'];
         $params['user_id'] = $p['user_id'];
         $params['room_id'] = $p['room_id'];
-        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['name'];
-        $params['mobile'] = $appUser['mobile'];
+        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $member['name'];
+        $params['mobile'] = $member['mobile'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 

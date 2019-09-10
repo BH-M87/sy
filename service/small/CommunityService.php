@@ -63,17 +63,16 @@ Class CommunityService extends BaseService
         }
  
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $p['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $p['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $p['room_id']])->orderBy("status")->asArray()->one();
+        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $p['room_id']])->orderBy("status")->asArray()->one();
 
         if ($roomUser['status'] != 2) {
-            //return $this->failed('房屋未认证！');
+            return $this->failed('房屋未认证！');
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
@@ -83,13 +82,12 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         $community = PsCommunityModel::findOne($roomInfo['community_id']);
 
         $p['app_user_id'] = $p['user_id'];
-        $p['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
-        $p['name'] = $appUser['name'];
-        $p['mobile'] = $appUser['mobile'];
+        $p['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $p['name'] = $member['name'];
+        $p['mobile'] = $member['mobile'];
         $p['community_id'] = $roomInfo['community_id'];
         $p['event_community_no'] = $community->event_community_no;
 
@@ -126,7 +124,7 @@ Class CommunityService extends BaseService
                 'imageUrl' => $p['image_url'],
                 'reportAddress' => $p['address'],
                 'address' => $p['address'],
-                'userId' => PsAppMember::find()->where(['app_user_id' => $p['user_id']])->one()->member_id,
+                'userId' => $member['id'],
                 'xqName' => $community->name,
                 'xqOrgCode' => $community->event_community_no,
             ];
@@ -151,14 +149,13 @@ Class CommunityService extends BaseService
 
         if ($user_id) { // 我的曝光
             // 查询业主
-            $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-                ->select(['A.member_id'])
-                ->where(['A.app_user_id' => $param['user_id']])->scalar();
-            if (!$member_id) {
+            $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+                ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+            if (!$member) {
                 return $this->failed('业主不存在！');
             }
 
-            $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $param['room_id']])->asArray()->one();
+            $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->asArray()->one();
 
             if ($roomUser['status'] != 2) {
                 return $this->success(['list' => [], 'total' => 0]);
@@ -239,10 +236,9 @@ Class CommunityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $p['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $p['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
@@ -326,10 +322,9 @@ Class CommunityService extends BaseService
     public function commentIndex($param)
     {
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
@@ -419,10 +414,9 @@ Class CommunityService extends BaseService
     public function commentShow($param)
     {
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
@@ -433,7 +427,7 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $param['room_id']])->asArray()->one();
+        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->asArray()->one();
         
         $beginThismonth = mktime(0,0,0,date('m'),1,date('Y'));
         $endThismonth = mktime(23,59,59,date('m'),date('t'),date('Y'));
@@ -469,14 +463,13 @@ Class CommunityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $param['room_id']])->asArray()->one();
+        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->asArray()->one();
 
         if ($roomUser['status'] != 2) {
             return $this->failed('房屋未认证！');
@@ -489,7 +482,7 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member['id']])->asArray()->one();
         
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
@@ -507,14 +500,12 @@ Class CommunityService extends BaseService
         }
 
         // 发送消息 获取业主id
-        $member_id = $this->getMemberByUser($param['user_id']);
-        $member_name = $this->getMemberNameByUser($member_id);
         $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
         $data = [
             'community_id' => $roomInfo['community_id'],
             'id' => 0,
-            'member_id' => $member_id,
-            'user_name' => $member_name,
+            'member_id' => $member['id'],
+            'user_name' => $member['name'],
             'create_user_type' => 2,
 
             'remind_tmpId' => 12,
@@ -624,14 +615,13 @@ Class CommunityService extends BaseService
         }
  
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $param['room_id']])->orderBy("status")->asArray()->one();
+        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->orderBy("status")->asArray()->one();
 
         if ($roomUser['status'] != 2) {
             return $this->failed('房屋未认证！');
@@ -644,14 +634,12 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
-        
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['name'];
-        $params['mobile'] = $appUser['mobile'];
+        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $member['name'];
+        $params['mobile'] = $member['mobile'];
         $params['content'] = $param['content'];
         $params['type'] = !empty($param['type']) ? implode(",", $param['type']) : 1;
 
@@ -678,14 +666,12 @@ Class CommunityService extends BaseService
             }
 
             // 发送消息 获取业主id
-            $member_id = $this->getMemberByUser($param['user_id']);
-            $member_name = $this->getMemberNameByUser($member_id);
             $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
             $data = [
                 'community_id' => $roomInfo['community_id'],
                 'id' => 0,
-                'member_id' => $member_id,
-                'user_name' => $member_name,
+                'member_id' => $member['id'],
+                'user_name' => $member['name'],
                 'create_user_type' => 2,
 
                 'remind_tmpId' => 13,
@@ -824,10 +810,9 @@ Class CommunityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
@@ -888,14 +873,13 @@ Class CommunityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member_id, 'room_id' => $param['room_id']])->orderBy("status")->asArray()->one();
+        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->orderBy("status")->asArray()->one();
 
         if ($roomUser['status'] != 2) {
             return $this->failed('房屋未认证！');
@@ -908,15 +892,13 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
-        
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['community_circle_id'] = $param['id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['name'];
-        $params['mobile'] = $appUser['mobile'];
+        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $member['name'];
+        $params['mobile'] = $member['mobile'];
 
         $model = new PsCommunityCirclePraise(['scenario' => 'add']);
 
@@ -941,10 +923,9 @@ Class CommunityService extends BaseService
         }
 
         // 查询业主
-        $member_id = PsAppMember::find()->alias('A')->leftJoin('ps_member member', 'member.id = A.member_id')
-            ->select(['A.member_id'])
-            ->where(['A.app_user_id' => $param['user_id']])->scalar();
-        if (!$member_id) {
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
             return $this->failed('业主不存在！');
         }
 
