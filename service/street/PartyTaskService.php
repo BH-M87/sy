@@ -421,7 +421,6 @@ class PartyTaskService extends BaseService
             throw new MyException('该任务不存在');
         }
         $task = StPartyTask::find()->where(['id' => $party->task_id])->asArray()->one();
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
         if ($task['expire_time_type'] == 2) {
             if ($task < time()) {
@@ -434,12 +433,13 @@ class PartyTaskService extends BaseService
         }
         //1待完成 2审核中 3取消 4已审核
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party['id']])->one();
+        $task['status'] = $party['status'];
         if ($party['status'] == 2) {
             $task['complete']['content'] = $record['info'];
-            $task['complete']['images'] = $party['images'];
-            $task['complete']['location'] = $party['location'];
-            $task['complete']['lon'] = $party['lon'];
-            $task['complete']['lat'] = $party['lat'];
+            $task['complete']['images'] = $party['images'] ?? '';
+            $task['complete']['location'] = $record['location'] ?? '';
+            $task['complete']['lon'] = $record['lon'] ?? '';
+            $task['complete']['lat'] = $record['lat'] ?? '';
         } else if ($party['status'] == 3) {
             $task['status'] = 4;
             $task['examine']['pioneer_value'] = $party['pioneer_value'];
@@ -447,10 +447,10 @@ class PartyTaskService extends BaseService
             $task['examine']['operator_name'] = $record['operator_name'];
             $task['examine']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
             $task['complete']['content'] = $record['info'];
-            $task['complete']['images'] = $party['images'];
-            $task['complete']['location'] = $party['location'];
-            $task['complete']['lon'] = $party['lon'];
-            $task['complete']['lat'] = $party['lat'];
+            $task['complete']['images'] = $party['images'] ?? '';
+            $task['complete']['location'] = $record['location'] ?? '';
+            $task['complete']['lon'] = $record['lon'] ?? '';
+            $task['complete']['lat'] = $record['lat'] ?? '';
         } else if ($party['status'] == 4) {
             $task['status'] = 3;
             $task['cancel']['content'] = $record['content'];
@@ -469,9 +469,11 @@ class PartyTaskService extends BaseService
      */
     public function completeTask($params)
     {
-        if (empty($params['id']) || empty($params['content']) || empty($params['images'])) throw new MyException('参数错误');
+        if (empty($params['id']) || empty($params['content'])) throw new MyException('参数错误');
         $app_user = $this->checkUser($params['user_id']);
-        if (count($params['images']) > 5) throw new MyException('图片不能超过5张');
+        if (!empty($params['images'])) {
+            if (count($params['images']) > 5) throw new MyException('图片不能超过5张');
+        }
         if (mb_strlen($params['content']) > 500) throw new MyException('完成情况不能大于500字');
         $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
         if (!$party) {

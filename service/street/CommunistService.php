@@ -9,11 +9,14 @@
 namespace service\street;
 
 
+use app\models\PsAppMember;
+use app\models\PsMember;
 use app\models\StCommunist;
 use app\models\StStation;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
+use service\basic_data\MemberService;
 use service\common\ExcelService;
 
 class CommunistService extends BaseService
@@ -104,6 +107,18 @@ class CommunistService extends BaseService
         $model = new StCommunist();
         $model->load($params, '');
         if ($model->save()) {
+            //查找ps_member表
+            $memberInfo = MemberService::service()->getMemberByMobile($params['mobile']);
+            if ($memberInfo) {
+                $appUserIds = PsAppMember::find()
+                    ->select('app_user_id')
+                    ->where(['member_id' => $memberInfo['id']])
+                    ->asArray()
+                    ->column();
+                if ($appUserIds) {
+                    $this->_bindCommunistAppUserIds($appUserIds, $model->id);
+                }
+            }
             return $model->id;
         }
         throw new MyException($this->getError($model));
@@ -300,6 +315,16 @@ class CommunistService extends BaseService
             'formal_time' => ['title' => '转正日期'],
             'job' => ['title' => '党内职务']
         ];
+    }
+
+    private function _bindCommunistAppUserIds($appUserIds, $communistId)
+    {
+        $insert_data = [];
+        foreach ($appUserIds as $key =>$value){
+            $insert_data['communist_id'][] = $communistId;
+            $insert_data['app_user_id'][] = $value;
+        }
+        return StCommunist::model()->batchInsert($insert_data);
     }
 
 }

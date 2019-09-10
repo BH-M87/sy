@@ -80,7 +80,7 @@ class HomeController extends UserBaseController
         if ($memberSave['code']) {
             $memberId = $memberSave['data'];
             //保存ps_member 与app_user_id 的关联关系
-            MemberService::service()->saveMemberAppUser($memberId, $userId);
+            MemberService::service()->saveMemberAppUser($memberId, $userId, $system_type, $mobile);
         } else {
             throw new MyException("用户保存失败");
         }

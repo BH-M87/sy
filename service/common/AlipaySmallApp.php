@@ -135,7 +135,7 @@ Class AlipaySmallApp
                     throw new MyException('验签失败，请检查验签配置是否正确');
                 }
                 //解密
-                $res = AopEncrypt::decrypt($query['response'], "EBG7v29Z3B4+DYuGk1a0ww==");
+                $res = AopEncrypt::decrypt($query['response'], $this->_aes_secret);
                 $result = json_decode($res, true);
                 if ($result['code'] != 10000) {
                     throw new MyException($res['msg']);
