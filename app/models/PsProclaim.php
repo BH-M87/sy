@@ -105,6 +105,7 @@ class PsProclaim extends BaseModel
             $v['show_at'] = date('Y-m-d H:i', $v['show_at']);
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
             $v['proclaim_type_desc'] = self::$proclaim_type[$v['proclaim_type']];
+            $v['proclaim_cate_desc'] = self::$proclaim_cate[$v['proclaim_cate']];
         }
     }
 }
