@@ -83,13 +83,13 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $p['user_id']])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         $community = PsCommunityModel::findOne($roomInfo['community_id']);
 
         $p['app_user_id'] = $p['user_id'];
-        $p['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
-        $p['name'] = $appUser['true_name'];
-        $p['mobile'] = $appUser['phone'];
+        $p['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $p['name'] = $appUser['name'];
+        $p['mobile'] = $appUser['mobile'];
         $p['community_id'] = $roomInfo['community_id'];
         $p['event_community_no'] = $community->event_community_no;
 
@@ -489,14 +489,14 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $param['user_id']])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['true_name'];
-        $params['mobile'] = $appUser['phone'];
+        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $appUser['name'];
+        $params['mobile'] = $appUser['mobile'];
         $params['score'] = $param['starIdx'];
         $params['content'] = $param['content'];
 
@@ -644,14 +644,14 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $param['user_id']])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['true_name'];
-        $params['mobile'] = $appUser['phone'];
+        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $appUser['name'];
+        $params['mobile'] = $appUser['mobile'];
         $params['content'] = $param['content'];
         $params['type'] = !empty($param['type']) ? implode(",", $param['type']) : 1;
 
@@ -908,15 +908,15 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $param['user_id']])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['community_circle_id'] = $param['id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['true_name'];
-        $params['mobile'] = $appUser['phone'];
+        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $appUser['name'];
+        $params['mobile'] = $appUser['mobile'];
 
         $model = new PsCommunityCirclePraise(['scenario' => 'add']);
 

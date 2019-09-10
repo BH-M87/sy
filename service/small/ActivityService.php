@@ -302,14 +302,14 @@ Class ActivityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::find()->select('avatar, phone, true_name')->where(['id' => $p['user_id']])->asArray()->one();
+        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member_id])->asArray()->one();
         
         $params['a_id'] = $p['id'];
         $params['user_id'] = $p['user_id'];
         $params['room_id'] = $p['room_id'];
-        $params['avatar'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['true_name'];
-        $params['mobile'] = $appUser['phone'];
+        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $appUser['name'];
+        $params['mobile'] = $appUser['mobile'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
@@ -378,7 +378,7 @@ Class ActivityService extends BaseService
 
         $activityEnroll = PsActivityEnroll::find()->select('id')->where(['a_id' => $m['id'], 'user_id' => $p['user_id']])->asArray()->one();
         $m['is_join'] = !empty($activityEnroll) ? 1 : 2;
-
+        
         $appUser = PsAppUser::find()->select('avatar, true_name')->where(['id' => $m['operator_id']])->asArray()->one();
         if ($m['type'] == 2) {
             $m['operator_name'] = $appUser['true_name'];
