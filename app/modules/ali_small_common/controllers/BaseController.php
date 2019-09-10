@@ -37,7 +37,6 @@ class BaseController extends Controller
         }
 
         $this->params = !empty($params['data']) ? json_decode($params['data'], true) : [];
-        file_put_contents("aaab.txt",$this->params['encrypt_str']."\r\n",FILE_APPEND);
         \Yii::info("system:small-app"."controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'api');
         return true;
     }
