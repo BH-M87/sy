@@ -103,7 +103,7 @@ class StPartyTask extends BaseModel
         $param['end'] = strtotime($param['years'].'-12-31 24:00');
 
         $model = self::find()->alias('st')
-            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at,sts.update_at')
+            ->select('st.task_name,sts.status,sts.id,ss.station as station_name,sts.pioneer_value,sts.create_at,sts.update_at,st.is_location')
             ->leftJoin('st_station as ss', 'ss.id = st.station_id')
             ->leftJoin('st_party_task_station as sts', 'sts.task_id = st.id')
             ->where(['sts.communist_id' => $param['communist_id']])
