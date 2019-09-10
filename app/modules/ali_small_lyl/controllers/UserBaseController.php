@@ -25,6 +25,9 @@ class UserBaseController extends BaseController
         }
         F::setSmallStatus();
         $this->appUserId = F::value($this->params, 'user_id');
+        if (empty($this->appUserId)) {
+            $this->appUserId = F::value($this->params, 'app_user_id');
+        }
         if (!$this->appUserId) {
             return F::apiFailed('用户id不能为空！');
         }

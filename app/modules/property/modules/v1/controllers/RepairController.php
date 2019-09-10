@@ -59,7 +59,7 @@ class RepairController extends BaseController {
         $validData = $valid['data'];
         $validData['relate_room'] = $repair_type;
         $result = RepairService::service()->add($validData, $this->user_info);
-        if (!is_numeric($result)) {
+        if (!is_array($result)) {
             return PsCommon::responseFailed($result);
         }
         return PsCommon::responseSuccess($result);
@@ -115,7 +115,7 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result = RepairService::service()->assign($valid['data'], $this->user_info);
-        if ($result === true) {
+        if (is_array($result)) {
             return PsCommon::responseSuccess($result);
         }
         return PsCommon::responseFailed($result);

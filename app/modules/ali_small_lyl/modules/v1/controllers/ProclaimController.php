@@ -25,4 +25,12 @@ class ProclaimController extends UserBaseController
         
         return self::dealReturnResult($r);
     }
+
+    // 消息中心 我的消息 小区公告&系统公告
+    public function actionNews()
+    {
+        $r = ProclaimService::service()->news($this->params);
+        
+        return self::dealReturnResult($r);
+    }
 }
