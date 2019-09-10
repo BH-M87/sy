@@ -6,7 +6,7 @@
  * Time: 17:37
  */
 
-namespace app\modules\small\services;
+namespace service\alipay;
 
 use app\models\ParkingPayCode;
 use app\models\PsBillCost;
