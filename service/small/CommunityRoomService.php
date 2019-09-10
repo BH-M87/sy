@@ -9,6 +9,7 @@
 namespace service\small;
 
 
+use app\models\PsCommunityModel;
 use common\core\Helpers;
 use common\core\Pinyin;
 use service\BaseService;
@@ -48,6 +49,11 @@ class CommunityRoomService extends BaseService
         $query->orderBy('comm.pinyin asc');
         $command = $query->createCommand();
         $communityInfo = $command->queryAll();
+        $communityInfo = PsCommunityModel::find()
+            ->select('id as community_id, name,address,longitude,latitude')
+            ->asArray()
+            ->all();
+
         return $communityInfo;
     }
 

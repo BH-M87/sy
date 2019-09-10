@@ -19,6 +19,13 @@ class StNoticeForm extends BaseModel
     public $content;
     public $id;
 
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'st_notice';
+    }
 
     /**
      * {@inheritdoc}

@@ -7,13 +7,17 @@
 
 namespace service\common;
 
+use common\core\ali\AopEncrypt;
 use common\core\ali\AopRedirect;
+use common\core\Security;
+use common\MyException;
+use service\door\MemberService;
 use Yii;
 
 Class AlipaySmallApp
 {
-
     private $_aop;
+    private $_aes_secret = '';
 
     //文件固定路径: alisa/rsa_files/module_name/xxx.txt
     public function __construct($module)
@@ -29,6 +33,13 @@ Class AlipaySmallApp
                 $this->_aop->appId = Yii::$app->params['fczl_app_id'];
                 $publicFile = Yii::$app->params['fczl_alipay_public_key_file'];
                 $privateFile = Yii::$app->params['fczl_rsa_private_key_file'];
+                $this->_aes_secret = Yii::$app->params['fczl_aes_secret'];
+                break;
+            case "djyl":
+                $this->_aop->appId = Yii::$app->params['djyl_app_id'];
+                $publicFile = Yii::$app->params['djyl_alipay_public_key_file'];
+                $privateFile = Yii::$app->params['djyl_rsa_private_key_file'];
+                $this->_aes_secret = Yii::$app->params['djyl_aes_secret'];
                 break;
             default:
                 $this->_aop->appId = Yii::$app->params['edoor_app_id'];
@@ -98,5 +109,42 @@ Class AlipaySmallApp
         ];
         $params['biz_content'] = json_encode($biz);
         return $this->_aop->execute('zoloz.identification.user.web.query', $params);
+    }
+
+    //解密字符串
+    /**
+     * Notes: 小程序解密数据
+     * @param $query
+     * @return string
+     * @throws Exception
+     */
+    public function decryptData($query)
+    {
+        try {
+            //判断报文是否加密, 非加密数据直接返回数据
+            if (is_array($query['response'])) {
+                $res = $query['response'];
+            } else {
+                $query['sign_type'] = $query['sign_type'] ? $query['sign_type'] : 'RSA2';
+                //验签
+                $query['sign'] = str_replace(" ", '+', $query['sign']);
+                $query['response'] = str_replace(" ", '+', $query['response']);
+                $signData = "\"{$query['response']}\"";
+                $signRes = $this->_aop->verify($signData, $query['sign'], $this->_aop->alipayrsaPublicKey, $query['sign_type']);
+                if (!$signRes) {
+                    throw new MyException('验签失败，请检查验签配置是否正确');
+                }
+                //解密
+                $res = AopEncrypt::decrypt($query['response'], "EBG7v29Z3B4+DYuGk1a0ww==");
+                $result = json_decode($res, true);
+                if ($result['code'] != 10000) {
+                    throw new MyException($res['msg']);
+                }
+                return $result['mobile'];
+            }
+            return $res;
+        } catch (\Exception $e) {
+            throw new MyException($e->getMessage());
+        }
     }
 }

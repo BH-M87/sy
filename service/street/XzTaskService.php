@@ -652,7 +652,6 @@ class XzTaskService extends BaseService
                 $model = $model->andWhere(['t.status'=>1])->andWhere(['<','t.end_time',$time]);
                 break;
             default:
-                $model = $model->andWhere(['t.status'=>1])->andWhere(['>=','t.end_time',$time]);
         }
 
         return $model;

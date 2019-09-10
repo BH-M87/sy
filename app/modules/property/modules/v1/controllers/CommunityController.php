@@ -77,7 +77,7 @@ class CommunityController extends BaseController
     {
         $result = SmallCommunityService::service()->month($this->request_params);
 
-        return PsCommon::responseSuccess($result);
+        return PsCommon::responseSuccess($result, false);
     }
 
     // -----------------------------------     社区曝光台   ------------------------------

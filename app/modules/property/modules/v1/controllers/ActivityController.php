@@ -49,7 +49,8 @@ class ActivityController extends BaseController
     public function actionList()
     {
         $data = ActivityService::service()->list($this->request_params);
-        PsCommon::responseSuccess($data);
+
+        PsCommon::responseSuccess($data['data']);
     }
 
     // 活动删除

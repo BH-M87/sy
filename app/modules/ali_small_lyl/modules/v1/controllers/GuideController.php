@@ -2,6 +2,7 @@
 // 社区指南、邻里公约
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use service\small\ComplaintService;
@@ -22,7 +23,10 @@ class GuideController extends UserBaseController
     public function actionGuideListWap()
     {
         $r = GuideService::service()->listWap($this->params);
-        return self::dealReturnResult($r);
+        if (!$r['code'] && $r['msg']) {
+            return F::apiFailed($r['msg']);
+        }
+        return F::apiSuccess($r);
     }
 
     // 社区指南 类型
@@ -36,6 +40,9 @@ class GuideController extends UserBaseController
     public function actionConventionDetail()
     {
         $r = GuideService::service()->conventionDetail($this->params);
-        return self::dealReturnResult($r);
+        if (!$r['code'] && $r['msg']) {
+            return F::apiFailed($r['msg']);
+        }
+        return F::apiSuccess($r['data']);
     }
 }

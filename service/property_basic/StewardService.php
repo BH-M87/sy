@@ -5,6 +5,7 @@ use common\core\PsCommon;
 use common\MyException;
 
 use service\BaseService;
+use service\rbac\OperateService;
 
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityRoominfo;
