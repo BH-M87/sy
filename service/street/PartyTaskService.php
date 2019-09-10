@@ -421,7 +421,6 @@ class PartyTaskService extends BaseService
             throw new MyException('该任务不存在');
         }
         $task = StPartyTask::find()->where(['id' => $party->task_id])->asArray()->one();
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
         if ($task['expire_time_type'] == 2) {
             if ($task < time()) {
