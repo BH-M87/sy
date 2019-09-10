@@ -235,8 +235,8 @@ class ProclaimService extends BaseService
 
         $r = array_merge($news, $proclaim);
         // 根据显示时间倒序排序
-        //$arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $r);
-        //array_multisort($arr1, SORT_DESC, $r);
+        $arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $r);
+        array_multisort($arr1, SORT_DESC, $r);
 
         return $this->success($r);
     }

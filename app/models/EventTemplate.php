@@ -14,7 +14,7 @@ class EventTemplate extends BaseModel
     // 一级 二级分类
     public static function type($p)
     {
-        $m = self::find()->select('id, title as name')->where(['status' => 1])
+        $m = self::find()->select('id, title as name, parent_id')->where(['status' => 1])
             ->andFilterWhere(['=', 'type', $p['type']])
             ->andFilterWhere(['=', 'parent_id', $p['parent_id']])
             ->asArray()->all();

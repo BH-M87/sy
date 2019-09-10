@@ -135,10 +135,22 @@ class AopRedirect {
      */
     public function execute($method, $apiParas=[], $authToken = null, $appInfoAuthtoken = null) {
         list($sysParams, $apiParams) = $this->getApiParams($method, $apiParas, $appInfoAuthtoken, $authToken);
-
         //系统参数放入GET请求串
         $requestUrl = $this->gatewayUrl .'?'.http_build_query($sysParams);
 
+        //发起HTTP请求
+        try {
+            $resp = $this->curl($requestUrl, $apiParams);
+        } catch (Exception $e) {
+            print_r( $e->getCode(). $e->getMessage());
+            return false;
+        }
+
+        $respObject = $this->response($resp, $method);
+        //记下错误日志
+        if(!$respObject) {
+            \Yii::error($sysParams["method"] . $requestUrl. "HTTP_RESPONSE_NOT_WELL_FORMED".$resp);
+        }
         if ($this->writelog) {
             $log  = "Request time:" . date('YmdHis') . PHP_EOL;
             $log .= "Request url:" . $requestUrl . PHP_EOL;
@@ -146,27 +158,6 @@ class AopRedirect {
             $log .= "Request token:" . $appInfoAuthtoken . PHP_EOL;
             $this->addLog($method, $log);
         }
-        //发起HTTP请求
-        try {
-            $resp = $this->curl($requestUrl, $apiParams);
-            $respObject = $this->response($resp, $method);
-            if (!$respObject) {
-                \Yii::error("支付宝接口响应解析失败：".$sysParams["method"] . ':'.$requestUrl);
-                throw new HttpException(500);
-            }
-        } catch (HttpException $e) {
-            $resp = !empty($resp) ? $resp : '';
-            $this->addLog($method, "Response Content: ". $resp . PHP_EOL );
-            throw new Exception("支付宝接口响应解析失败");
-        } catch (Exception $e) {
-            $this->addLog($method, "Curl Error: ".$e->getMessage() . PHP_EOL);
-            throw new Exception("支付宝接口请求失败");
-        }
-        if ($this->writelog) {
-            $log = "Response content:". var_export($respObject, true) . PHP_EOL;
-            $this->addLog($method, $log);
-        }
-
         return $respObject;
     }
 
@@ -213,7 +204,6 @@ class AopRedirect {
     }
 
     protected function sign($data, $signType = "RSA") {
-
         if($this->checkEmpty($this->rsaPrivateKeyFilePath)){
             $priKey=$this->rsaPrivateKey;
             $res = "-----BEGIN RSA PRIVATE KEY-----\n" .
@@ -226,7 +216,6 @@ class AopRedirect {
         if(!$res) {
             throw new HttpException(500, '您使用的私钥格式错误，请检查RSA私钥配置');
         }
-
         try {
             if ("RSA2" == $signType) {
                 openssl_sign($data, $sign, $res, OPENSSL_ALGO_SHA256);
@@ -391,9 +380,7 @@ class AopRedirect {
     }
 
     function verify($data, $sign, $rsaPublicKeyFilePath, $signType = 'RSA') {
-
         if($this->checkEmpty($this->alipayPublicKey)){
-
             $pubKey= $this->alipayrsaPublicKey;
             $res = "-----BEGIN PUBLIC KEY-----\n" .
                 wordwrap($pubKey, 64, "\n", true) .
@@ -452,6 +439,7 @@ class AopRedirect {
      * @throws Exception
      */
     public function checkResponseSign($method, $respArr) {
+
         if (!$this->checkEmpty($this->alipayPublicKey) || !$this->checkEmpty($this->alipayrsaPublicKey)) {
             $result = $this->parseResponse($method, $respArr);
             if(!$result['sign']) {
@@ -460,9 +448,9 @@ class AopRedirect {
             if(!$result['data']) {
                 throw new HttpException(500, "check sign failed because of response data empty");
             }
-
             $verifyData = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
-            $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayPublicKey, $this->signType);
+            $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayrsaPublicKey, $this->signType);
+
             if(!$checkResult) {
                 if(strpos($verifyData, "\\/") > 0) {
                     $verifyData = str_replace("\\/", "/", $verifyData);
