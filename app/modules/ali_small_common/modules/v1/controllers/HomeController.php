@@ -15,12 +15,13 @@ use common\core\PsCommon;
 use common\MyException;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
+use service\door\SelfService;
 use service\small\MemberService;
 
 class HomeController extends UserBaseController
 {
 
-    public $enableAction = ['auth','get-weather-info'];
+    public $enableAction = ['auth','get-weather-info','common'];
     //用户授权
     public function actionAuth()
     {
@@ -126,6 +127,15 @@ class HomeController extends UserBaseController
         $data['lat'] = PsCommon::get($this->params, 'lat');
         $data['city'] = PsCommon::get($this->params, 'city');
         $result = MemberService::service()->getWeatherInfo($data);
+        return self::dealReturnResult($result);
+    }
+
+    //公共接口
+    public function actionCommon()
+    {
+        $user_id  = PsCommon::get($this->params,'user_id');
+        $type  = PsCommon::get($this->params,'type');
+        $result = SelfService::service()->get_common($user_id,$type);
         return self::dealReturnResult($result);
     }
 

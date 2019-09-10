@@ -8,10 +8,12 @@
 
 namespace service\door;
 
+use app\models\PsMember;
 use common\core\PsCommon;
 use service\BaseService;
 use service\resident\ResidentService;
 use service\room\RoomService;
+use service\small\MemberService;
 
 class SelfService extends BaseService
 {
@@ -209,6 +211,7 @@ class SelfService extends BaseService
     public function get_common($user_id, $type = 1)
     {
         $memberId = MemberService::service()->getMemberId($user_id);
+        var_dump($memberId);die;
         $data = PsMember::find()->select(['id', 'name', 'mobile'])->where(['id' => $memberId])->asArray()->one();
         $identity = [];
         foreach($this->identity_type as $key =>$value){
