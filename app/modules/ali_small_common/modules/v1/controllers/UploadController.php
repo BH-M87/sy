@@ -27,10 +27,10 @@ class UploadController extends BaseController
             return F::apiFailed('未获取上传文件');
         }
 
-        $accessKeyId = "LTAIG9QWK20XYpp1";
-        $accessKeySecret = "yWQNFSfw2Yxo3AeKiHYAlS5UH6MOOF";
+        $accessKeyId = "LTAIRMyJgmFU2NnA";
+        $accessKeySecret = "x6iozkqapZVgE5BsKBeU23eP3xDA1p";
         $endpoint = "http://oss-cn-shanghai.aliyuncs.com";
-        $bucket= "micro-brain-bucket";
+        $bucket= "microbrain";
         $file = $_FILES['file'];
         //图片文件检测
         $r = UploadService::service()->checkImage($file);
@@ -50,38 +50,27 @@ class UploadController extends BaseController
         try{
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $re = $ossClient->uploadFile($bucket, $object, $filePath);
-
+            print_r($re);exit;
         } catch(OssException $e) {
             printf(__FUNCTION__ . ": FAILED\n");
             printf($e->getMessage() . "\n");
         }
 
+        exit;
+//        $timeout = 3600;
+//        try {
+//            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint, false, '');
+//
+//            // 生成GetObject的签名URL。
+//            $signedUrl = $ossClient->signUrl($bucket, $object, $timeout);
+//        } catch (OssException $e) {
+//            printf(__FUNCTION__ . ": FAILED\n");
+//            printf($e->getMessage() . "\n");
+//        }
+//        print(__FUNCTION__ . ": signedUrl: " . $signedUrl . "\n");
+//
+//        exit;
 
-
-        $timeout = 3600;
-        try {
-            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint, false, '');
-
-            // 生成GetObject的签名URL。
-            $signedUrl = $ossClient->signUrl($bucket, $object, $timeout);
-        } catch (OssException $e) {
-            printf(__FUNCTION__ . ": FAILED\n");
-            printf($e->getMessage() . "\n");
-        }
-        print(__FUNCTION__ . ": signedUrl: " . $signedUrl . "\n");
-
-
-        $request = new RequestCore($signedUrl);
-// 生成的URL默认以GET方式访问。
-        $request->set_method('GET');
-        $request->add_header('Content-Type', '');
-        $request->send_request();
-        $res = new ResponseCore($request->get_response_header(), $request->get_response_body(), $request->get_response_code());
-        if ($res->isOK()) {
-            print(__FUNCTION__ . ": OK" . "\n");
-        } else {
-            print(__FUNCTION__ . ": FAILED" . "\n");
-        };
     }
 
     public function actionGetImage()

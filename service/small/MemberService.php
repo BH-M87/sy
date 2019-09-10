@@ -349,7 +349,7 @@ class MemberService extends BaseService
         // 查询业主
         $memberInfo = PsAppMember::find()->alias('A')
             ->leftJoin('ps_member B', 'B.id = A.member_id')
-            ->select(['B.face_url', 'B.id as member_id', 'B.name', 'B.mobile', 'B.room_id as sel_room_id'])
+            ->select(['B.face_url', 'B.id as member_id', 'B.name', 'B.mobile', 'B.room_id as sel_room_id', 'B.is_real'])
             ->where(['A.app_user_id' => $params['app_user_id']])->asArray()->one();
         $appUser = PsAppUser::find()->select('id, nick_name, avatar, phone, true_name, is_certified, biz_card_no, channel_user_id')->where(['id' => $params['app_user_id']])->asArray()->one();
         if(empty($memberInfo)){
@@ -421,7 +421,7 @@ class MemberService extends BaseService
         $result['type'] = $count > 1 ? 2 : $count;
         $result['is_auth'] = $roomUser['status']==2 ? 1 : 2; // 当前房屋是否认证 1已认证 2未认证
         // 用$memberInfo['mobile']判断是因为 出现过ps_app_member表有关联数据 ps_member表对应数据被删了 如果是这种情况就是业主未认证 重新去走业主认证操作 更新ps_app_member表
-        $result['is_auth_member'] = !empty($memberInfo['mobile']) ? 1 : 2; //是否业主认证 1已认证 2未认证
+        $result['is_auth_member'] = !empty($memberInfo['mobile']) && $memberInfo['is_real'] ? 1 : 2; //是否业主认证 1已认证 2未认证
         $result['community_id'] = !empty($result['community_id']) ? $result['community_id'] : '0';
         $result['community_name'] = !empty($result['community_name']) ? $result['community_name'] : '';
         //获取物业公司的电话
