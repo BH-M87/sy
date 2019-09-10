@@ -30,7 +30,7 @@ class UploadController extends BaseController
         $accessKeyId = "LTAIRMyJgmFU2NnA";
         $accessKeySecret = "x6iozkqapZVgE5BsKBeU23eP3xDA1p";
         $endpoint = "http://oss-cn-shanghai.aliyuncs.com";
-        $bucket= "microbrain";
+        $bucket = "zjy-datav2";
         $file = $_FILES['file'];
         //图片文件检测
         $r = UploadService::service()->checkImage($file);
@@ -46,12 +46,14 @@ class UploadController extends BaseController
 
         $object = $r['data']['fileName'];
         $filePath = $r['data']['fileDir'].$r['data']['fileName'];
-        $fileName = $object;
+
+        print_r($r);exit;
         try{
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $re = $ossClient->uploadFile($bucket, $object, $filePath);
             print_r($re);exit;
         } catch(OssException $e) {
+            echo "333";exit;
             printf(__FUNCTION__ . ": FAILED\n");
             printf($e->getMessage() . "\n");
         }

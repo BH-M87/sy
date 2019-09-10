@@ -346,7 +346,7 @@ class MemberService extends BaseService
     // 获取首页数据
     public function getHomeData($params)
     {
-        // 查询业主
+        //查询业主
         $memberInfo = PsAppMember::find()->alias('A')
             ->leftJoin('ps_member B', 'B.id = A.member_id')
             ->select(['B.face_url', 'B.id as member_id', 'B.name', 'B.mobile', 'B.room_id as sel_room_id', 'B.is_real'])
@@ -360,7 +360,7 @@ class MemberService extends BaseService
             $resident['community_id'] =  '';
             $resident['community_name'] = '';
             $resident['steward'] = '';
-            $resident['name'] =  !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
+            $resident['name'] =  !empty($memberInfo['name']) ? $memberInfo['name'] : $appUser['nick_name'];
             $resident['face_url'] = $appUser['avatar'];
             $resident['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
             $resident['hideMobile'] = PsCommon::hideMobile($resident['mobile']);
