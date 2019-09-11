@@ -65,6 +65,7 @@ class RepairController extends BaseController {
         return PsCommon::responseSuccess($result);
     }
 
+
     //获取公共接口
     public function actionGetCommon()
     {

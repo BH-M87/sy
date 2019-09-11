@@ -34,8 +34,7 @@ class RepairTypeController extends BaseController
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
-        $result['list'] =  RepairTypeService::service()->getRepairTypeList($valid['data']);
-
+        $result =  RepairTypeService::service()->getRepairTypeList($valid['data']);
         return PsCommon::responseSuccess($result);
     }
 
@@ -54,6 +53,24 @@ class RepairTypeController extends BaseController
             return PsCommon::responseFailed($result);
         }
         return PsCommon::responseSuccess($result);
+    }
+
+    //类目编辑
+    public function actionEdit()
+    {
+        $data = $this->request_params;
+        if (empty($data)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+        $valid = PsCommon::validParamArr(new PsRepairType(), $data, 'edit');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        $result = RepairTypeService::service()->edit($valid['data'],$this->user_info);
+        if ($result) {
+            return PsCommon::responseSuccess();
+        }
+        return PsCommon::responseFailed('编辑失败');
     }
 
     //状态变更
