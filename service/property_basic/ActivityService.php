@@ -54,7 +54,7 @@ class ActivityService extends BaseService
         }
 
         if ($m->save()) {
-            return $this->success();
+            return $this->success(['id' => $m->id]);
         }
     }
 
