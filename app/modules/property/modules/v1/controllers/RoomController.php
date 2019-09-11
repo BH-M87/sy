@@ -1101,6 +1101,7 @@ class RoomController extends BaseController
     //获取苑期区列表--无分页
     public function actionGetUnit()
     {
+        var_dump($this->request_params);die;
         $community_id = PsCommon::get($this->request_params,'community_id');
         $group_name = PsCommon::get($this->request_params,'group');
         $building_name = PsCommon::get($this->request_params,'building');
