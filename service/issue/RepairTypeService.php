@@ -25,6 +25,15 @@ class RepairTypeService extends BaseService
         '3' => '三级类目',
     ];
 
+    //公共参数
+    public function getCommon()
+    {
+        $comm = [
+            'repair_type_level' =>  PsCommon::returnKeyValue(self::$Repair_Type_Level)
+        ];
+        return $comm;
+    }
+
     //获取报修类目列表
     public function getRepairTypeList($params)
     {
@@ -224,5 +233,41 @@ class RepairTypeService extends BaseService
             }
         }
         return $tree;
+    }
+
+    /**
+     * 报事报修类型管理--获取类目--列表
+     * User zq to dingding1.0
+     * @param $params
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getRepairTypeLevelList($params)
+    {
+        $level = PsCommon::get($params, 'level');
+        $id = PsCommon::get($params, 'id');
+        switch ($level) {
+            case "1":
+                $levels = '1';
+                break;
+            case "2":
+                $levels = '1';
+                break;
+            case "3":
+                $levels = '2';
+                break;
+            default:
+                $levels = '1';
+        }
+        $mod = PsRepairType::find()
+            ->filterWhere([
+                'community_id' => PsCommon::get($params, 'community_id'),
+                'level' => $levels,
+            ]);
+        //剔除出入的id，防止修改类目的时候选到自己当前这个类目
+        if ($id) {
+            $mod->andFilterWhere(['not in', 'id', [$id]]);
+        }
+        $res = $mod->asArray()->all();
+        return $res;
     }
 }
