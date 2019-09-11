@@ -37,7 +37,12 @@ $data['djyl_aes_secret'] = "ee1ysBQwEIBmbCO7++GEvw==";
 //七牛上传图片配置，后面改为oss会去掉
 $bucket      = "wuyetest";
 $fileHostUrl = "https://static.elive99.com/";
-
 $data['bucket'] = $bucket;
 $data['fileHostUrl'] = $fileHostUrl;
+
+//oss文件上传配置
+$data['oss_access_key_id'] = 'LTAIG9QWK20XYpp1';
+$data['oss_secret_key_id'] = 'yWQNFSfw2Yxo3AeKiHYAlS5UH6MOOF';
+$data['oss_bucket'] = 'micro-brain-bucket';
+$data['oss_domain'] = 'http://oss-cn-shanghai.aliyuncs.com';
 return $data;

@@ -7,6 +7,8 @@
 
 namespace common\core;
 
+use OSS\Core\OssException;
+use OSS\OssClient;
 use Yii;
 use yii\helpers\FileHelper;
 use yii\web\HttpException;
@@ -521,6 +523,30 @@ class F
     public static function getSmallStatus()
     {
         return self::$smallStatus;
+    }
+
+    /**
+     * 根据图片key_name 获取图片可访问路径
+     * @param $keyName
+     */
+    public static function getOssImagePath($keyName)
+    {
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+
+        // 设置URL的有效期为3600秒。
+        $timeout = 3600;
+        $signedUrl = '';
+        try {
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            // 生成GetObject的签名URL。
+            $signedUrl = $ossClient->signUrl($bucket, $keyName, $timeout);
+        } catch (OssException $e) {
+
+        }
+        return $signedUrl;
     }
 
 
