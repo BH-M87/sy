@@ -11,6 +11,7 @@ namespace app\modules\ali_small_common\modules\v1\controllers;
 
 use app\modules\ali_small_common\controllers\BaseController;
 use common\core\F;
+use common\MyException;
 use OSS\Core\OssException;
 use OSS\Http\RequestCore;
 use OSS\Http\ResponseCore;
@@ -27,11 +28,12 @@ class UploadController extends BaseController
             return F::apiFailed('未获取上传文件');
         }
 
-        $accessKeyId = "LTAIRMyJgmFU2NnA";
-        $accessKeySecret = "x6iozkqapZVgE5BsKBeU23eP3xDA1p";
-        $endpoint = "http://zjy-datav2.oss-cn-hangzhou.aliyuncs.com";
-        $bucket = "zjy-datav2";
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
         $file = $_FILES['file'];
+
         //图片文件检测
         $r = UploadService::service()->checkImage($file);
         if (!$r['code']) {
@@ -44,27 +46,19 @@ class UploadController extends BaseController
             return F::apiFailed($r['msg']);
         }
         $local = $r['data'];
-        //上传到七牛
-        $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
-        if (!$re['filepath']) {
-            return F::apiFailed('七牛上传失败');
+        $object = $local['fileName'];
+        $filePath = $local['fileDir'] . $local['fileName'];
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
         }
+
+        //上传到七牛
+        $re['filepath'] = F::getOssImagePath($object);
+        $re['key_name'] = $object;
         return F::apiSuccess($re);
 
-    }
-
-    public function actionGetImage()
-    {
-
-    }
-
-    /**
-     * 创建新的文件名称(以时间区分)
-     */
-    private function _generateName($ext)
-    {
-        list($msec, $sec) = explode(' ', microtime());
-        $msec = round($msec, 3) * 1000;//获取毫秒
-        return date('YmdHis') . $msec . rand(10,100) . '.' . $ext;
     }
 }
