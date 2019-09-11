@@ -125,4 +125,29 @@ class RepairController extends UserBaseController
         $result = RepairTypeService::service()->getSmallAppRepairTypeTree($params);
         return F::apiSuccess($result);
     }
+
+    //报事报修工单生成订单
+    public function actionGetOrder()
+    {
+        if (empty($this->params)) {
+            return F::apiFailed("未接受到有效数据");
+        }
+        $params['community_id'] = F::value($this->params, 'community_id', 0);
+        $params['repair_id'] = F::value($this->params, 'repair_id', 0);
+        $params['app_user_id'] = F::value($this->params, 'app_user_id', 0);
+        if (!$params['community_id']) {
+            return F::apiFailed("小区id不能为空");
+        }
+        if (!$params['repair_id']) {
+            return F::apiFailed("报事报修工单id不能为空");
+        }
+        if (!$params['app_user_id']) {
+            return F::apiFailed("用户id不能为空");
+        }
+        $result = RepairService::service()->getAlipayOrder($params);
+        if ($result['code']) {
+            return F::apiSuccess($result['data']);
+        }
+        return F::apiFailed($result['msg']);
+    }
 }

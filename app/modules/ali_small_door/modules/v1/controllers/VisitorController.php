@@ -19,59 +19,6 @@ use service\door\VisitorService;
 
 class VisitorController extends UserBaseController
 {
-// 重新发送短信 {"user_id":"35","id":"753"}
-    public function actionVisitorMsg()
-    {
-        $user_id = PsCommon::get($this->params, 'user_id');
-        $id = PsCommon::get($this->params, 'id');
-
-        if (empty($user_id)) {
-            return F::apiFailed("用户ID不能为空");
-        }
-
-        if (empty($id)) {
-            return F::apiFailed("访客记录ID不能为空");
-        }
-
-        $data = VisitorService::service()->visitorMsg($this->params);
-        if(strlen($data[6]) > 11){
-            $data[6] = preg_replace("/\D/", '',$data[6]);
-        }
-        $re = SmsService::service()->init(41, $data[6])->send($data);
-        if ($re === true) {
-            PsRoomVistors::updateAll(['is_msg' => 1], ['id' => $id]); // 短信发送成功 更新is_msg字段
-            return F::apiSuccess();
-        } else {
-            return F::apiFailed($re);
-        }
-    }
-
-    // 取消邀请 {"user_id":"35","id":"753"}
-    public function actionVisitorCancel()
-    {
-        $user_id = PsCommon::get($this->params, 'user_id');
-        $id = PsCommon::get($this->params, 'id');
-
-        if (empty($user_id)) {
-            return F::apiFailed("用户ID不能为空");
-        }
-
-        if (empty($id)) {
-            return F::apiFailed("访客记录ID不能为空");
-        }
-        $result = VisitorService::service()->visitorCancel($this->params);
-        if (!empty($result['code'] == 1)) {
-            $data = VisitorService::service()->visitorMsg($this->params,true);
-            if(strlen($data[5]) > 11){
-                $data[5] = preg_replace("/\D/", '',$data[5]);
-            }
-            $re = SmsService::service()->init(37, $data[5])->send($data);
-            return F::apiSuccess();
-        }
-
-        return self::dealReturnResult($result);
-    }
-
 
     // 访客删除 {"user_id":"35","id":"753"}
     public function actionVisitorDelete()
@@ -91,7 +38,6 @@ class VisitorController extends UserBaseController
 
         return self::dealReturnResult($result);
     }
-
 
 
     //查询人脸采集特征值--访客
@@ -123,22 +69,6 @@ class VisitorController extends UserBaseController
         return $this->dealResult($result);
     }
 
-    /**
-     * @api 访客管理首页
-     * @author wyf
-     * @date 2019/5/31
-     * @return array
-     */
-    public function actionVisitorIndex()
-    {
-        $visitor_id = PsCommon::get($this->params, 'visitor_id');
-        if (empty($visitor_id)) {
-            return F::apiFailed("访客记录id不能为空");
-        }
-        $result = VisitorService::service()->visitorIndex($visitor_id);
-        return self::dealReturnResult($result);
-    }
-
     //获取访客二维码
     public function actionVisitorQrcode()
     {
@@ -150,10 +80,10 @@ class VisitorController extends UserBaseController
         return self::dealReturnResult($result);
     }
 
-
     /****************************新版访客相关service add by zq 2019-9-11********************************************/
     /**
-     * 访客列表 {"user_id":"35","type":"1"}
+     * 访客列表
+     * {"user_id":"35","type":"1"}
      * @return null
      */
     public function actionVisitorList()
@@ -226,13 +156,86 @@ class VisitorController extends UserBaseController
         }
 
         $result = VisitorService::service()->visitorAdd($this->params);
-        var_dump($result);die;
-        if (!empty($result['code'] == 1)) { // 访客新增成功发送短信
+        if (!empty($result['code']) &&  $result['code'] == 1) { // 访客新增成功发送短信
             $data = VisitorService::service()->visitorMsg(['user_id' => $user_id, 'id' => $result['data']['id'],'system_type'=>$system_type]);
             $re = SmsService::service()->init(41, $data[6])->send($data);
             return F::apiSuccess();
         }
 
+        return self::dealReturnResult($result);
+    }
+
+    /**
+     * 重新发送短信
+     * {"user_id":"35","id":"753"}
+     * @return null
+     */
+    public function actionVisitorMsg()
+    {
+        $user_id = PsCommon::get($this->params, 'user_id');
+        $id = PsCommon::get($this->params, 'id');
+
+        if (empty($user_id)) {
+            return F::apiFailed("用户ID不能为空");
+        }
+
+        if (empty($id)) {
+            return F::apiFailed("访客记录ID不能为空");
+        }
+
+        $data = VisitorService::service()->visitorMsg($this->params);
+        if(strlen($data[6]) > 11){
+            $data[6] = preg_replace("/\D/", '',$data[6]);
+        }
+        $re = SmsService::service()->init(41, $data[6])->send($data);
+        if ($re === true) {
+            PsRoomVistors::updateAll(['is_msg' => 1], ['id' => $id]); // 短信发送成功 更新is_msg字段
+            return F::apiSuccess();
+        } else {
+            return F::apiFailed($re);
+        }
+    }
+
+    /**
+     * 取消邀请
+     * {"user_id":"35","id":"753"}
+     * @return null
+     */
+    public function actionVisitorCancel()
+    {
+        $user_id = PsCommon::get($this->params, 'user_id');
+        $id = PsCommon::get($this->params, 'id');
+
+        if (empty($user_id)) {
+            return F::apiFailed("用户ID不能为空");
+        }
+
+        if (empty($id)) {
+            return F::apiFailed("访客记录ID不能为空");
+        }
+        $result = VisitorService::service()->visitorCancel($this->params);
+        if (!empty($result['code'] == 1)) {
+            $data = VisitorService::service()->visitorMsg($this->params,true);
+            if(strlen($data[5]) > 11){
+                $data[5] = preg_replace("/\D/", '',$data[5]);
+            }
+            $re = SmsService::service()->init(37, $data[5])->send($data);
+            return F::apiSuccess();
+        }
+
+        return self::dealReturnResult($result);
+    }
+
+    /**
+     * 访客管理首页
+     */
+    public function actionVisitorIndex()
+    {
+        $visitor_id = PsCommon::get($this->params, 'visitor_id');
+        if (empty($visitor_id)) {
+            return F::apiFailed("访客记录id不能为空");
+        }
+        $result = VisitorService::service()->visitorIndex($visitor_id);
         return self::dealReturnResult($result);
     }
 
