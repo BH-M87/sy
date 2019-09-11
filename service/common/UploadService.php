@@ -17,7 +17,7 @@ class UploadService extends BaseService
     //图片允许的最大文件大小2M
     public $imageMaxSize = 4;
     //允许的图片格式
-    public $imageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+    public $imageMimes = ['image','image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
     //允许的图片后缀
     public $imageExt = ['jpg', 'png', 'gif','jpeg', 'bmp', 'pjpeg'];
 
