@@ -1222,6 +1222,7 @@ class BillService extends BaseService
      */
     public function alipayNotifySmallRepair($data)
     {
+        \Yii::info("--alipay-notify-content".json_encode($data), 'api');
         $checkRe = AliCommonService::service()->notifyVerify($data);
         if (!$checkRe) {
             //记录支付宝验签失败
