@@ -43,12 +43,12 @@ class StXzTaskForm extends BaseModel
     public function rules()
     {
         return [
-            [['name','task_type','task_attribute_id','describe','start_date','end_date','exec_type'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
+            [['name','task_type','task_attribute_id','describe','start_date','end_date'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
             [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete','status','detail-user-list','submit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
             [['check_content','check_images','check_location_lon','check_location_lat','check_location'], 'required','message' => '{attribute}不能为空!', 'on' => ['submit']],
-            ['interval_y', 'checkInterY', 'on'=>['add']],
+            ['task_type', 'checkInterY', 'on'=>['add']],
             ['start_date', 'compare_time','on'=>['add']],
             ['end_date', 'compare_time', 'on'=>['add']],
             ['end_date', 'compareTimeRange', 'on'=>['add']],
@@ -106,22 +106,28 @@ class StXzTaskForm extends BaseModel
      */
     public function checkInterY($label)
     {
-        $execType = $this->exec_type;
-        $interY   = $this->interval_y;
-        if ($execType == 2) {
-            //按周执行
-            if ($interY == 0) {
-                $this->addError($label, "按周执行的计划".$this->getAttributeLabel($label)."不能为空");
+        $task_type = $this->task_type;
+        if($task_type == 1){
+            $execType = $this->exec_type;
+            if(empty($execType)){
+                $this->addError($label, "任务周期不能为空");
             }
-            if(!in_array($interY,[1,2,3,4,5,6,7])){
-                $this->addError($label, "按周执行的计划".$this->getAttributeLabel($label)."只能填写数字1-7");
-            }
-        } elseif ($execType == 3) {
-            if ($interY == 0) {
-                $this->addError($label, "按月执行的计划".$this->getAttributeLabel($label)."不能为空");
-            }
-            if($interY > 31 || $interY < 1){
-                $this->addError($label, "按月执行的计划".$this->getAttributeLabel($label)."只能填写数字1-31");
+            $interY   = $this->interval_y;
+            if ($execType == 2) {
+                //按周执行
+                if ($interY == 0) {
+                    $this->addError($label, "按周执行的计划,任务周期扩展值不能为空");
+                }
+                if(!in_array($interY,[1,2,3,4,5,6,7])){
+                    $this->addError($label, "按周执行的计划,任务周期扩展值只能填写数字1-7");
+                }
+            } elseif ($execType == 3) {
+                if ($interY == 0) {
+                    $this->addError($label, "按月执行的计划,任务周期扩展值不能为空");
+                }
+                if($interY > 31 || $interY < 1){
+                    $this->addError($label, "按月执行的计划,任务周期扩展值只能填写数字1-31");
+                }
             }
         }
     }

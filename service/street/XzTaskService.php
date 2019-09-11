@@ -43,7 +43,7 @@ class XzTaskService extends BaseService
                 $list[$key]['task_attribute_desc'] = $task_attribute['name'];
                 $list[$key]['task_time'] = date('Y-m-d', $value['start_date']) . "到" . date('Y-m-d', $value['end_date']);
                 $list[$key]['number'] = count(explode(',', $value['exec_users']));
-                $list[$key]['status_desc'] = $this->status_info[$value['status']];
+                $list[$key]['status'] = $this->status_info[$value['status']];
             }
         } else {
             $list = [];
@@ -63,14 +63,12 @@ class XzTaskService extends BaseService
         $name = PsCommon::get($data, 'name');
         $task_type = PsCommon::get($data, 'task_type');
         $task_attribute_id = PsCommon::get($data, 'task_attribute_id');
-        $complete_status = PsCommon::get($data, 'complete_status');
         $status = PsCommon::get($data, 'status');
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
         $model = StXzTaskTemplate::find()
             ->andFilterWhere(['name' => $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
-            ->andFilterWhere(['complete_status' => $complete_status])
             ->andFilterWhere(['status' => $status])
             ->andFilterWhere(['task_type' => $task_type]);
         //如果搜索了发布时间
