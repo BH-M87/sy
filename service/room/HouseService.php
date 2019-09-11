@@ -991,13 +991,12 @@ Class HouseService extends BaseService
     // 关联车辆--房屋详情用
     public function relatedCar($room_id)
     {
-        $mobile = PsRoomUser::find()->select(['mobile'])->where(['room_id'=>$room_id])->asArray()->column();
-        $models = ParkingUsers::find()->alias('A')
+        $models = ParkingUserCarport::find()->alias('B')
             ->select('C.id, C.community_id, B.room_address, D.car_port_num, A.user_name, A.user_mobile, C.car_num, C.car_model')
-            ->leftJoin(['B'=>ParkingUserCarport::tableName()],'A.id = B.user_id')
+            ->leftJoin(['A'=>ParkingUsers::tableName()],'A.id = B.user_id')
             ->leftJoin(['C'=>ParkingCars::tableName()],'C.id = B.car_id')
             ->leftJoin(['D'=>ParkingCarport::tableName()],'D.id = B.carport_id')
-            ->where(['A.user_mobile'=>$mobile]);
+            ->where(['B.room_id'=>$room_id]);
         $total = $models->count();
         $model = $models->orderBy('id desc')->asArray()->all();
         foreach ($model as &$v) {
