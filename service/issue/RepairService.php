@@ -1344,6 +1344,14 @@ class RepairService extends BaseService
         }
         $repair_info["appraise_content"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
         $repair_info['repair_image'] = empty($repair_info['repair_image']) ? [] : explode(',', $repair_info['repair_image']);
+        if (!empty($repair_info['repair_image'])) {
+            $imageArr = [];
+            foreach ($repair_info['repair_image'] as $k => $v){
+                $tmpImgPath = F::getOssImagePath($v);
+                array_push($imageArr, $tmpImgPath);
+            }
+            $repair_info['repair_image'] = $imageArr;
+        }
         $repair_info['expired_repair_time'] = $repair_info['expired_repair_time'] ? date('Y-m-d', $repair_info['expired_repair_time']) : '';
         $repair_info['expired_repair_type_desc'] = self::$_expired_repair_type[$repair_info['expired_repair_type']];
         $repair_info['handle_info'] = $this->handleInfo($params['repair_id']);

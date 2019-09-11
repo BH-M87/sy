@@ -35,6 +35,7 @@ class RepairTypeController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result['list'] =  RepairTypeService::service()->getRepairTypeList($valid['data']);
+
         return PsCommon::responseSuccess($result);
     }
 
