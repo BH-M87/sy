@@ -4,6 +4,8 @@ namespace service\small;
 
 use service\BaseService;
 
+use common\core\F;
+
 use app\models\PsGuide;
 use app\models\PsCommunityConvention;
 
@@ -32,7 +34,7 @@ class GuideService extends BaseService
                     $element['title'] = $value['title'];
                     $element['address'] = $value['address'];
                     $element['phone'] = $value['phone'];
-                    $element['img_url'] = $value['img_url'];
+                    $element['img_url'] = F::ossImagePath($value['img_url']);
                     $element['hours_start'] = $value['hours_start']>=10?$value['hours_start'].":00":"0".$value['hours_start'].":00";
                     $element['hours_end'] = $value['hours_end']>=10?$value['hours_end'].":00":"0".$value['hours_end'].":00";
                     $data[] = $element;
