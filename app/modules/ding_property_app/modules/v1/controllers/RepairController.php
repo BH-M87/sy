@@ -122,10 +122,10 @@ class RepairController extends UserBaseController
         if (!$params['status']) {
             return F::apiFailed('请输入操作状态！');
         }
-        if (!in_array($params['status'], [RepairService::STATUS_UN_DO, RepairService::STATUS_REJECTED])) {
+        if (!in_array($params['status'], [1,2])) {
             return F::apiFailed('状态值错误！');
         }
-        if ($params['status'] == RepairService::STATUS_REJECTED && !$params['reason']) {
+        if ($params['status'] == 2 && !$params['reason']) {
             return F::apiFailed('请输入驳回原因！');
         }
         $result = RepairService::service()->acceptIssue($params, $this->userInfo);

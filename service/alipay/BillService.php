@@ -319,8 +319,6 @@ class BillService extends BaseService
         return $arr;
     }
 
-
-
     public function billShow($bill_id)
     {
         $where = " id=:id ";
@@ -1305,8 +1303,6 @@ class BillService extends BaseService
             PsBillIncome::updateAll($data, ['id' => $id]);
         }
     }
-
-
 
     /**
      * 小程序报事报修账单缴费回调
