@@ -780,9 +780,15 @@ class ResidentService extends BaseService
         if (!$model->save()) {
             return $this->failed($this->getError($model));
         }
+        // 标签状态更新
+        PsLabelsRela::updateAll(['type' => 3], ['data_type' => 2, 'data_id' => $id]);
 
         // 业主迁出，则对应该房屋下所有的家人，租客都迁出，重新添加
         if ($model->identity_type == 1) {
+            // 标签状态更新
+            Yii::$app->db->createCommand("UPDATE ps_labels_rela set type = 3 where data_type = 2 
+                and data_id in(select id from ps_room_user where room_id = :room_id 
+                and identity_type in(2,3))", [':room_id'=>$model['room_id']])->execute();
             PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
         }
