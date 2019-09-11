@@ -548,6 +548,18 @@ class F
         }
         return $signedUrl;
     }
+    
+    // 图片地址转换
+    public static function ossImagePath($p)
+    {
+        if (is_array($p)) {
+            foreach ($p as $k => $v) {
+                $p[$k] = self::getOssImagePath($v);
+            }
+            return $p;
+        }
+        return self::getOssImagePath($p);
+    }
 
     // 切割字符串，多余部分用...表示
     public static function cutString($str, $limit)

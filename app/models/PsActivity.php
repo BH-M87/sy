@@ -1,6 +1,7 @@
 <?php
 namespace app\models;
 
+use common\core\F;
 use common\core\PsCommon;
 use yii\behaviors\TimestampBehavior;
 
@@ -142,6 +143,7 @@ class PsActivity extends BaseModel
     public static function afterList(&$list)
     {
         foreach ($list as &$v) {
+            $v['picture'] = F::ossImagePath($v['picture']);
             $v['start_time'] = date('Y-m-d H:i', $v['start_time']);
             $v['end_time'] = date('Y-m-d H:i', $v['end_time']);
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
