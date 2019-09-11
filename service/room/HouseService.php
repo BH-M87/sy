@@ -688,17 +688,6 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            /*$label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
-            if ($label) {
-                $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
-                $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
-                if (empty($room_id)) {
-                    return [];
-                }
-                $where .= " AND id in ($room_id)";
-
-            }
-            $room_id = LabelsService::service()->getRoomIdByLabelId($data['room_label_id']);*/
             $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
             if (empty($room_id_array)) {
                 return [];
@@ -728,6 +717,9 @@ Class HouseService extends BaseService
                 $house['is_elevator_msg'] = $house['is_elevator'] != 1 ? '否' : '是';
                 $house['floor_shared_msg'] = $house['floor_shared_id'] ? SharedService::service()->getNameById($house['floor_shared_id']) : '';
                 $house['lift_shared_msg'] = $house['lift_shared_id'] ? SharedService::service()->getNameById($house['lift_shared_id']) : 'X';
+                $house_type = explode('|',$house['house_type']);
+                $house['house_type'] = $house_type[0]."室".$house_type[1]."厅".$house_type[2]."厨".$house_type[3]."卫";
+                $house['delivery_time'] = !empty($house['delivery_time']) ? date("Y-m-d H:i:s",$house['delivery_time']) : '';
                 $arr[] = $house;
             }
             return $arr;
