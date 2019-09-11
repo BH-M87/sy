@@ -13,6 +13,8 @@ use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
 use app\models\ParkingSuppliers;
+use app\models\PsAppMember;
+use app\models\PsAppUser;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsCommunityUnits;
@@ -21,6 +23,7 @@ use app\models\PsRoomVistors;
 use common\core\Curl;
 use common\core\F;
 use common\core\PsCommon;
+use common\MyException;
 use service\alipay\AlipayBillService;
 use service\BaseService;
 use service\basic_data\DoorPushService;
@@ -158,7 +161,6 @@ class VisitorService extends BaseService
         }
 
         $member_id = $this->getMemberByUser($param['user_id']);
-
         if ($model['member_id'] != $member_id) {
             return $this->failed("没有权限删除此数据！");
         }
@@ -181,7 +183,7 @@ class VisitorService extends BaseService
             $index="edoor";
         }
         $url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
-        $data[] = $this->getShortUrl($url).' '; // 加空格 不然ios手机会把后面的都当成是链接部分
+        $data[] = $this->getShortUrl2($url).' '; // 加空格 不然ios手机会把后面的都当成是链接部分
         $data[] = $model['vistor_mobile'];
 
         return $data;
@@ -195,6 +197,19 @@ class VisitorService extends BaseService
         $content = json_decode($curl->get($purl), true);
         return $content[0]['url_short'];
     }
+
+    // 短链接转化
+    public function getShortUrl2($url)
+    {
+        $curl = Curl::getInstance();
+        $purl = 'http://116.62.92.115:106/short/generate';
+        $content = json_decode($curl->post($purl,['url'=>$url]), true);
+        if(!empty($content['code']) && $content['code'] ==1){
+            return $content['data']['url'];
+        }
+        return '';
+    }
+
 
     // 取消
     public function visitorCancel($param)
@@ -627,7 +642,6 @@ class VisitorService extends BaseService
     /**
      * 列表搜索
      * @param $param
-     * @return $this
      */
     private function _visitorSearch($param)
     {
@@ -635,12 +649,13 @@ class VisitorService extends BaseService
         $typeL = PsCommon::get($param,'type');
         $type = ($typeL == 1) ? [1,3] : $typeL; // 过期也在未到访列表
         $room_id = PsCommon::get($param,'room_id');
-        return PsRoomVistors::find()
-            ->where(['is_cancel'=>2]) // 没有取消邀请的数据
+        $model =  PsRoomVistors::find()
+            ->where(['is_cancel'=>2])// 没有取消邀请的数据
             ->andFilterWhere(['is_del'=>2])
             ->andFilterWhere(['room_id'=>$room_id])
             ->andFilterWhere(['member_id'=>$member_id])
             ->andFilterWhere(['in', 'status', $type]);
+        return $model;
     }
 
     // 加
@@ -649,41 +664,122 @@ class VisitorService extends BaseService
         //获取这个房屋下面所有的供应商
         $room_id = $data['room_id'];
         $roomInfo = PsCommunityRoominfo::find()->where(['id'=>$room_id])->asArray()->one();
-        var_dump($roomInfo);die;
+        if(empty($roomInfo)){
+            throw new MyException('房屋信息不存在');
+        }
         $community_id = $roomInfo['community_id'];//小区id
         $unit_id = $roomInfo['unit_id'];//单元编号
-        $deviceData['community_id'] = '';
-        $deviceData['unit_id'] = '';
-        $return = $this->get_device_info($deviceData);
-        if ($return['code']) {
-            $res = $return['data'];
-            //跟笑乐确认，只要有门禁设备供应厂商就支持访客预约，add by zq 2019-4-29
-            if (in_array('iot',$res['supplier_name']) || in_array('iot-b',$res['supplier_name'])) {
-                $getPassRe = $this->iotOldVisitorAdd($data);
-                if ($getPassRe['code']) {
-                    return $this->success($getPassRe['data']);
-                } else {
-                    return $this->failed($getPassRe['msg']);
-                }
-            } else {
-                return $this->failed('设备暂不支持');
-            }
-        }else{
-            return $this->failed($return['msg']);
+        //根据房屋id获取这个房屋下面的二维码供应商
+        $res = $this->getSupplierNameListByRoomId($community_id,$unit_id);
+        if(empty($res)){
+            //不存在二维码供应商
+            //throw new MyException('设备不支持');
         }
+        $getPassRe = $this->getQrCode($roomInfo,$data);
+        return $this->success($getPassRe['data']);
 
     }
 
     //根据房屋id获取这个房屋下面的二维码供应商
-    public function getSupplierNameListByRoomId($community_id,$unit_id,$type)
+    public function getSupplierNameListByRoomId($community_id,$unit_id)
     {
         //获取设备相关信息，设备厂商，设备序列号
         $device = DoorDeviceUnit::find()->alias('du')
             ->rightJoin(['d'=>DoorDevices::tableName()],'d.id=du.devices_id')
             ->rightJoin(['ps'=>IotSuppliers::tableName()],'ps.id=d.supplier_id')
-            ->select(['ps.supplier_name','d.device_id','d.name as device_name'])
-            ->where(['du.community_id'=>$community_id,'du.unit_id'=>$unit_id])
-            ->asArray()->all();
+            ->select(['ps.supplier_name'])
+            ->where(['du.community_id'=>$community_id,'du.unit_id'=>$unit_id,'ps.functionCode'=>1])
+            ->asArray()->scalar();
+        return  $device ? $device : '';
+    }
+
+    public function getQrCode($roomInfo,$data)
+    {
+        $user_id = $data['user_id'];
+        $member_id = PsAppMember::find()->select(['member_id'])->where(['app_user_id'=>$user_id])->scalar();
+        $start_time = strtotime($data['start_time']);
+        $end_time = strtotime($data['end_time']);
+        //保存访客信息
+        $visitorData['room_id'] = PsCommon::get($data,'room_id');
+        $visitorData['community_id'] = PsCommon::get($roomInfo,'community_id');
+        $visitorData['group'] =PsCommon::get($roomInfo,'group');
+        $visitorData['building'] = PsCommon::get($roomInfo,'building');
+        $visitorData['unit'] = PsCommon::get($roomInfo,'unit');
+        $visitorData['room'] = PsCommon::get($roomInfo,'room');
+        $visitorData['app_user_id'] = $user_id;
+        $visitorData['member_id'] = $member_id;
+        $visitorData['vistor_name'] = PsCommon::get($data,'vistor_name');
+        $visitorData['vistor_mobile'] = PsCommon::get($data,'vistor_mobile');
+        $visitorData['start_time'] = $start_time;
+        $visitorData['end_time'] = $end_time;
+        $visitorData['device_name'] =PsCommon::get($data,'address');
+        $visitorData['car_number'] = PsCommon::get($data,'car_number');
+        $visitorData['reason'] = PsCommon::get($data,'content');
+        $visitorData['sex'] = PsCommon::get($data,'sex',1);
+        $visitirId = $this->saveVisitorInfo($visitorData);
+
+        // 二维码
+        $paramsQr['userId'] = $member_id; // 用户id
+        //$paramsQr['communityNo'] = $unitInfo['community_no']; // 小区编号
+        //$paramsQr['buildingNo'] = $unitInfo['unit_no']; // 楼幢编号
+        $paramsQr['roomNo'] = $roomInfo['out_room_id']; // 房间号
+        $paramsQr['visitorId'] = $visitirId; // 访客表记录id 后面开门记录的时候查询信息用
+        $paramsQr['userType'] = 4;//住户类型是4，访客
+        // 有值代表是业主邀请自己 访客才有到访时间 因为java是用到访时间判断是不是访客的 业主不能当访客 不然业主二维码身份会被更改会访客
+        $paramsQr['visitTime'] = $start_time; // 到访时间
+        $paramsQr['exceedTime'] = $end_time; // 结束时间
+        $reData = $this->getIotQrCode($paramsQr,$visitirId);
+        return $this->success($reData);
+    }
+
+    public function saveVisitorInfo($data)
+    {
+        $model = new PsRoomVistors();
+        $model->room_id = PsCommon::get($data,'room_id');
+        $model->community_id = PsCommon::get($data,'community_id');
+        $model->group = PsCommon::get($data,'group');
+        $model->building = PsCommon::get($data,'building');
+        $model->unit = PsCommon::get($data,'unit');
+        $model->room = PsCommon::get($data,'room');
+        $model->app_user_id = PsCommon::get($data,'app_user_id');
+        $model->member_id = PsCommon::get($data,'member_id');
+        $model->vistor_name = PsCommon::get($data,'vistor_name');
+        $model->vistor_mobile = PsCommon::get($data,'vistor_mobile');
+        $model->vistor_type = PsCommon::get($data,'vistor_type',1);
+        $model->start_time = PsCommon::get($data,'start_time');
+        $model->end_time = PsCommon::get($data,'end_time');
+        $model->device_name = PsCommon::get($data,'device_name');
+        $model->code = PsCommon::get($data,'code',rand(100000, 999999)."");
+        $model->qrcode = PsCommon::get($data,'qrcode');
+        $model->car_number = PsCommon::get($data,'car_number');
+        $model->status = PsCommon::get($data,'status',1);
+        $model->is_cancel = PsCommon::get($data,'is_cancel',2);
+        $model->is_del = PsCommon::get($data,'is_del',2);
+        $model->is_msg = PsCommon::get($data,'is_msg',2);
+        $model->people_num = PsCommon::get($data,'people_num',0);
+        $model->reason_type = PsCommon::get($data,'reason_type',9);
+        $model->reason = PsCommon::get($data,'reason');
+        $model->addtion_id = PsCommon::get($data,'addtion_id');
+        $model->addtion_prople = PsCommon::get($data,'addtion_prople');
+        $model->passage_at = PsCommon::get($data,'passage_at');
+        $model->passage_num = PsCommon::get($data,'passage_num');
+        $model->face_url = PsCommon::get($data,'face_url');
+        $model->sex = PsCommon::get($data,'sex',1);
+        $model->sync = PsCommon::get($data,'sync',0);
+        $model->created_at = time();
+        if(!$model->save()){
+            throw new MyException("访客邀请失败");
+        }else{
+            return $model->id;
+        }
+    }
+
+    public function getIotQrCode($paramsQr,$visitirId)
+    {
+        $qrcode = '';//todo 获取iot的二维码；
+        $reData['id'] = $visitirId;
+        $reData['qrcode'] = $qrcode; // 返回报文 api去生成二维码
+        return $reData;
     }
 
 }
