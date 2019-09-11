@@ -1246,6 +1246,7 @@ class BillService extends BaseService
                     Yii::$app->db->createCommand()->update('ps_repair', ['is_pay' => 2], "id=:id", [":id" => $bill['repair_id']])->execute();
                     die("success");
                 } else {
+                    \Yii::info("--alipay-notify-result".json_encode($result), 'api');
                     die("fail");
                 }
             } else {
