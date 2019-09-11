@@ -21,6 +21,7 @@ use app\models\PsRepairRecord;
 use app\models\SqwnUser;
 use common\core\F;
 use service\alipay\BillService;
+use service\alipay\BillSmallService;
 use service\manage\CommunityService;
 use common\core\PsCommon;
 use service\BaseService;
@@ -1178,7 +1179,7 @@ class RepairService extends BaseService
         //保存操作记录
         $recordModel = new PsRepairRecord();
         $recordModel->repair_id = $params['repair_id'];
-        $recordModel->content = $params['status'] == self::STATUS_REJECTED ? $params['reason'] : '已确认';
+        $recordModel->content = $params['status'] == 2 ? $params['reason'] : '已确认';
         $recordModel->status = $params['status'];
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
@@ -1186,7 +1187,15 @@ class RepairService extends BaseService
         if (!$recordModel->save()) {
             return "操作记录添加失败";
         }
-        $repair_arr['status'] = $params['status'];
+
+        if ($params['status'] == 1) {
+            //确认
+            $repairStatus = self::STATUS_UN_DO;
+        } elseif ($params['status'] == 2) {
+            //驳回
+            $repairStatus = self::STATUS_REJECTED;
+        }
+        $repair_arr['status'] = $repairStatus;
         Yii::$app->db->createCommand()->update('ps_repair',
             $repair_arr,
             "id=:id",
@@ -1413,6 +1422,26 @@ class RepairService extends BaseService
         )->execute();
         //TODO 发送站内消息
         return true;
+    }
+
+    public function getAlipayOrder($params)
+    {
+        $repair_info = PsRepair::find()
+            ->select(['ps_repair.room_address','bill.id','bill.amount','bill.pay_status'])
+            ->leftJoin('ps_repair_bill bill', 'ps_repair.id = bill.repair_id')
+            ->where(['ps_repair.id' => $params['repair_id'],'pay_status'=>0])
+            ->asArray()
+            ->one();
+        if (empty($repair_info)) {
+            return $this->failed("账单已支付");
+        }
+
+        $params['room_address'] = $repair_info['room_address'];
+        $params['amount'] = $repair_info['amount'];
+        $params['repair_bill'] = $repair_info['id'];
+        $bill = new BillSmallService();
+        $result = $bill->addRepairBill($params);
+        return $result;
     }
 
     /**
