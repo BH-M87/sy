@@ -26,7 +26,6 @@ class PsCommunityGroups extends BaseModel
     {
         return [
             [['id','community_id'], 'integer'],
-            [['name'], 'string', 'max' => 50],
             [['groups_code'], 'string', 'max' => 20],
             [['code'], 'string', 'max' => 2],
             [['community_id', 'name'], 'required', 'on' => ['add', 'edit']],
