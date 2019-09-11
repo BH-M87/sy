@@ -549,6 +549,14 @@ class F
         return $signedUrl;
     }
 
-
+    // 切割字符串，多余部分用...表示
+    public static function cutString($str, $limit)
+    {
+        $len = mb_strlen($str);
+        if ($len > $limit) {
+            return mb_substr($str, 0, $limit) . '...';
+        }
+        return $str;
+    }
 }
 
