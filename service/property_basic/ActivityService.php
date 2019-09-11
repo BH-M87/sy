@@ -1,6 +1,7 @@
 <?php
 namespace service\property_basic;
 
+use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 
@@ -82,7 +83,8 @@ class ActivityService extends BaseService
     public function detail($p)
     {
         $m = PsActivity::getOne($p)->toArray();
-
+        
+        $m['picture'] = F::ossImagePath($m['picture']);
         $m['join_end'] = date('Y-m-d H:i', $m['join_end']);
         $m['start_time'] = date('Y-m-d H:i', $m['start_time']);
         $m['end_time'] = date('Y-m-d H:i', $m['end_time']);

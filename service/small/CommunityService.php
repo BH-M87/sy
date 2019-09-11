@@ -9,6 +9,8 @@ namespace service\small;
 use Yii;
 
 use yii\db\Exception;
+
+use common\core\F;
 use common\core\Curl;
 use common\core\PsCommon;
 
@@ -173,7 +175,7 @@ Class CommunityService extends BaseService
                 $v['status_msg'] = PsCommunityExposure::status($v['status']);
                 $v['type_msg'] = EventTemplate::typeDesc($v);
                 $image_1 = PsCommunityExposureImage::find()->select('image_url')->where(['community_exposure_id' => $v['id'], 'type' => 1])->asArray()->all();
-                $v['image_url'] = array_column($image_1, 'image_url');
+                $v['image_url'] = F::ossImagePath(array_column($image_1, 'image_url'));
                 $v['name'] =  CommunityService::service()->_hideName($v['name']);
 
                 // 处理结果 调Java接口
@@ -245,7 +247,7 @@ Class CommunityService extends BaseService
         $m['status_msg'] = PsCommunityExposure::status($m['status']);
         $m['type_msg'] = EventTemplate::typeDesc($m);
         $image_1 = PsCommunityExposureImage::find()->select('image_url')->where(['community_exposure_id' => $m['id'], 'type' => 1])->asArray()->all();
-        $m['image_url'] = array_column($image_1, 'image_url');
+        $m['image_url'] = F::ossImagePath(array_column($image_1, 'image_url'));
         
         // 处理结果 调Java接口
         $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['dealDetail'], json_encode(['exposureId' => $p['id']]), true);
@@ -741,7 +743,7 @@ Class CommunityService extends BaseService
                 $arr[$k]['mobile'] = $v['mobile'];
                 $arr[$k]['content'] = $v['content'];
                 $images = PsCommunityCircleImage::find()->select('image_url')->where(['community_circle_id' => $v['id']])->asArray()->all();
-                $arr[$k]['image_url'] = array_column($images, 'image_url');
+                $arr[$k]['image_url'] = F::ossImagePath(array_column($images, 'image_url'));
                 $arr[$k]['praise_total'] = PsCommunityCirclePraise::find()->where(['community_circle_id' => $v['id']])->count();
 
                 if ($param['systemtype'] == 1) { // 物业系统
@@ -821,7 +823,7 @@ Class CommunityService extends BaseService
         $arr['name'] =  self::_hideName($model['name']);
         $arr['content'] = $model['content'];
         $images = PsCommunityCircleImage::find()->select('image_url')->where(['community_circle_id' => $model['id']])->asArray()->all();
-        $arr['image_url'] = array_column($images, 'image_url');
+        $arr['image_url'] = F::ossImagePath(array_column($images, 'image_url'));
         $arr['type'] = explode(',', $model['type']);
         $arr['type_msg'] = PsCommunityCircle::type($arr['type']);
         $arr['create_at'] = self::_time($model['created_at']);
@@ -986,7 +988,7 @@ Class CommunityService extends BaseService
                     $content = PsCommunityCircle::find()->select('content')->where(['id' => $v['community_circle_id']])->scalar();
                     $list[$k]['content'] = !empty($content) ? $content : '';
                 }
-                $list[$k]['image_url'] = PsCommunityCircleImage::find()->select('image_url')->where(['community_circle_id' => $v['community_circle_id']])->orderBy('id asc')->scalar();
+                $list[$k]['image_url'] = F::ossImagePath(PsCommunityCircleImage::find()->select('image_url')->where(['community_circle_id' => $v['community_circle_id']])->orderBy('id asc')->scalar());
             }
         }
 
