@@ -753,7 +753,7 @@ class ResidentService extends BaseService
         }
 
         // 标签状态更新
-        PsLabelsRela::updateAll(['type' => 3], ['data_type' => 2, 'data_id' => $id]);
+        PsLabelsRela::updateAll(['type' => 1], ['data_type' => 2, 'data_id' => $id]);
 
         MemberService::service()->turnReal($model['member_id']);
         //保存日志
