@@ -387,6 +387,14 @@ class RepairService extends BaseService
         $model['create_at'] = $model['create_at'] ? date("Y-m-d H:i:s", $model['create_at']) : '';
         $model['hard_check_at'] = $model['hard_check_at'] ? date("Y-m-d H:i", $model['hard_check_at']) : '';
         $model["repair_imgs"] = $model["repair_imgs"] ? explode(',', $model["repair_imgs"]) : [];
+        if (!empty($model["repair_imgs"])) {
+            $imageArr = [];
+            foreach ($model["repair_imgs"] as $k => $v){
+                $tmpImgPath = F::getOssImagePath($v);
+                array_push($imageArr, $tmpImgPath);
+            }
+            $model["repair_imgs"] = $imageArr;
+        }
         $model['is_pay_desc'] = isset(self::$_is_pay[$model['is_pay']]) ? self::$_is_pay[$model['is_pay']] : '';
 
         if ($model['status'] == self::STATUS_DONE && $model['is_pay'] > 1) {
@@ -598,8 +606,6 @@ class RepairService extends BaseService
                 'operator_id' => $params["user_id"],
                 'operator_name' => $user["truename"],
             ])->execute();
-            //将钉钉图片转化为七牛图片
-            //TODO 图片转换
             if ($params["user_id"] != $model["operator_id"]) {
                 $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
                 // 添加一条分配记录 ps_repair_assign
@@ -861,6 +867,14 @@ class RepairService extends BaseService
                 }
                 $models[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $models[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
+                if (!empty($models[$key]["repair_imgs"])) {
+                    $imageArr = [];
+                    foreach ($models[$key]["repair_imgs"] as $k => $v){
+                        $tmpImgPath = F::getOssImagePath($v);
+                        array_push($imageArr, $tmpImgPath);
+                    }
+                    $models[$key]["repair_imgs"] = $imageArr;
+                }
                 unset($models[$key]['operator_mobile']);
             }
 
@@ -1079,6 +1093,15 @@ class RepairService extends BaseService
             $repairInfo['status'] = 4;
         }
         $repairInfo['repair_imgs'] = $repairInfo['repair_imgs'] ? explode(",", $repairInfo['repair_imgs']) : [];
+        if (!empty($repairInfo['repair_imgs'])) {
+            $imageArr = [];
+            foreach ($repairInfo['repair_imgs'] as $k => $v){
+                $tmpImgPath = F::getOssImagePath($v);
+                array_push($imageArr, $tmpImgPath);
+            }
+            $repairInfo['repair_imgs'] = $imageArr;
+        }
+
         $repairInfo['created_at'] = $repairInfo['created_at'] ? date("Y-m-d H:i", $repairInfo['created_at']) : '';
         $expiredRepairTypeDesc =
             isset(self::$_expired_repair_type[$repairInfo['expired_repair_type']]) ? self::$_expired_repair_type[$repairInfo['expired_repair_type']] : '';

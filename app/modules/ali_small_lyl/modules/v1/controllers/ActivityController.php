@@ -67,6 +67,7 @@ class ActivityController extends UserBaseController
 
         $this->params['type'] = 2;
         $this->params['community_id'] = $roomInfo['community_id'];
+        $this->params['operator_id'] = $this->params['user_id'];
 
         $r = ActivityService::service()->add($this->params);
 
