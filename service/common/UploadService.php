@@ -8,6 +8,7 @@
 
 namespace service\common;
 
+use common\core\ImageManage;
 use service\BaseService;
 use Yii;
 
@@ -76,6 +77,23 @@ class UploadService extends BaseService
         }
         chmod($newFile, 0755);
         return $this->success(['fileName' => $newFileName, 'fileDir' => $realDir, 'parentDir' => $parentDir]);
+    }
+
+    /**
+     * 保存到七牛上，返回完整URL
+     * @param $keyName
+     * @param $fileName
+     * @param $fileDir
+     * @return string
+     */
+    public function saveQiniu($keyName, $filePath)
+    {
+        $bucket    = Yii::$app->params['bucket'];
+        $result = ImageManage::getInstance()->upfile($bucket, $keyName, $filePath);
+        if (!$result) {
+            return "";
+        }
+        return Yii::$app->params['fileHostUrl'] . $result;
     }
 
     /**

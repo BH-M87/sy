@@ -43,35 +43,13 @@ class UploadController extends BaseController
         if (!$r['code']) {
             return F::apiFailed($r['msg']);
         }
-        $res['file_path'] = \Yii::$app->params['host_name'].'store/uploadFiles/front/original/'.$r['data']['parentDir']."/".$r['data']['fileName'];
-        return F::apiSuccess($res);
-
-//        $object = $r['data']['fileName'];
-//        $filePath = $r['data']['fileDir'].$r['data']['fileName'];
-//        try{
-//            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
-//            $re = $ossClient->uploadFile($bucket, $object, $filePath);
-//            //print_r($re);exit;
-//        } catch(OssException $e) {
-//
-//            //printf(__FUNCTION__ . ": FAILED\n");
-//            printf($e->getMessage() . "\n");
-//        }
-//
-//        exit;
-//        $timeout = 3600;
-//        try {
-//            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint, false, '');
-//
-//            // 生成GetObject的签名URL。
-//            $signedUrl = $ossClient->signUrl($bucket, $object, $timeout);
-//        } catch (OssException $e) {
-//            printf(__FUNCTION__ . ": FAILED\n");
-//            printf($e->getMessage() . "\n");
-//        }
-//        print(__FUNCTION__ . ": signedUrl: " . $signedUrl . "\n");
-//
-//        exit;
+        $local = $r['data'];
+        //上传到七牛
+        $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
+        if (!$re['filepath']) {
+            return F::apiFailed('七牛上传失败');
+        }
+        return F::apiSuccess($re);
 
     }
 

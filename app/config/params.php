@@ -34,4 +34,10 @@ $data['djyl_alipay_public_key_file'] = $basePath."/common/rsa_files/djyl/alipay_
 $data['djyl_rsa_private_key_file'] = $basePath."/common/rsa_files/djyl/rsa_private.txt";
 $data['djyl_aes_secret'] = "ee1ysBQwEIBmbCO7++GEvw==";
 
+//七牛上传图片配置，后面改为oss会去掉
+$bucket      = "wuyetest";
+$fileHostUrl = "https://static.elive99.com/";
+
+$data['bucket'] = $bucket;
+$data['fileHostUrl'] = $fileHostUrl;
 return $data;
