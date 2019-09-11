@@ -7,6 +7,7 @@ use yii\base\Exception;
 use service\BaseService;
 use service\rbac\OperateService;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use app\models\PsProclaim;
@@ -156,7 +157,8 @@ class ProclaimService extends BaseService
                 ->select('A.id, B.title, B.content, B.image as img_url, A.send_at as show_at, B.type as proclaim_cate')
                 ->where(['A.id' => $p['id']])
                 ->asArray()->one();
-
+            
+            $m['img_url'] = F::ossImagePath($m['img_url']);
             $m['show_at'] = !empty($m['show_at']) ? date('Y-m-d H:i', $m['show_at']) : '';
             $m['proclaim_cate_desc'] = !empty($m['proclaim_cate']) ? PsProclaim::$proclaim_cate[$m['proclaim_cate']] : '';
         } else {
@@ -167,7 +169,8 @@ class ProclaimService extends BaseService
             }
 
             $m = $m->toArray();
-
+            
+            $m['img_url'] = F::ossImagePath($m['img_url']);
             $m['create_at'] = !empty($m['create_at']) ? date("Y-m-d H:i", $m['create_at']) : '';
             $m['show_at'] = !empty($m['show_at']) ? date("Y-m-d H:i", $m['show_at']) : '';
             $m['top_at'] = !empty($m['top_at']) ? date("Y-m-d H:i", $m['top_at']) : '';
@@ -216,6 +219,7 @@ class ProclaimService extends BaseService
                     $n['show_at'] = !empty($n['show_at']) ? date('Y-m-d H:i', $n['show_at']) : '';
                     $n['msg_type'] = 2;
                     $n['msg_type_desc'] = '系统公告';
+                    $n['img_url'] = F::ossImagePath($n['img_url']);
                 }
             }
         }
@@ -229,6 +233,7 @@ class ProclaimService extends BaseService
                     $p['type_desc'] = PsProclaim::$proclaim_type[$p['type']];
                     $p['msg_type'] = 1;
                     $p['msg_type_desc'] = '小区通知';
+                    $p['img_url'] = F::ossImagePath($p['img_url']);
                 }
             }
         }

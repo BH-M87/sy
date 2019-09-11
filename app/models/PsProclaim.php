@@ -1,6 +1,8 @@
 <?php
 namespace app\models;
 
+use common\core\F;
+
 class PsProclaim extends BaseModel
 {
     public static $proclaim_type = ['1' => '通知', '2' => '新闻', '3' => '公告', '4' => '社区公约', '5' => '三务公开', 
@@ -69,6 +71,7 @@ class PsProclaim extends BaseModel
     {
         $m = PsProclaim::find()->where(['id' => $p['id']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])->one();
+        
         return $m;
     }
 
@@ -102,6 +105,7 @@ class PsProclaim extends BaseModel
     public static function afterList(&$list)
     {
         foreach ($list as &$v) {
+            $v['img_url'] = F::ossImagePath($v['img_url']);
             $v['show_at'] = date('Y-m-d H:i', $v['show_at']);
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
             $v['proclaim_type_desc'] = self::$proclaim_type[$v['proclaim_type']];
