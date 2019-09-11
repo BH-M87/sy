@@ -33,6 +33,8 @@ class BaseController extends Controller
         $this->params = !empty($params['data']) ? json_decode($params['data'],true) : [];
         $this->page = !empty($params['page']) ? $params['page'] : 1;
         $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
+
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'api');
         return true;
     }
     
