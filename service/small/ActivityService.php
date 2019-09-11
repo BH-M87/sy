@@ -5,6 +5,7 @@ use Yii;
 use yii\db\Query;
 use yii\db\Exception;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use service\BaseService;
@@ -89,12 +90,13 @@ Class ActivityService extends BaseService
         $totals = $this->_searchActivity($params)->count();
         
         if (!empty($model)) {
-            foreach ($model as $k => $v) {
-                $model[$k]['start_time'] = !empty($v['start_time']) ? date('Y-m-d', $v['start_time']) : '';
-                $model[$k]['join_end'] = !empty($v['join_end']) ? date('Y-m-d H:i', $v['join_end']) : '';
-                $model[$k]['type_msg'] = PsActivity::$type[$v['type']];
-                $model[$k]['status'] = $v['end_time'] < time() ? 2 : $v['status'];
-                $model[$k]['status_msg'] = PsActivity::$status[$model[$k]['status']];
+            foreach ($model as $k => &$v) {
+                $v['picture'] = F::ossImagePath($v['picture']);
+                $v['start_time'] = !empty($v['start_time']) ? date('Y-m-d', $v['start_time']) : '';
+                $v['join_end'] = !empty($v['join_end']) ? date('Y-m-d H:i', $v['join_end']) : '';
+                $v['type_msg'] = PsActivity::$type[$v['type']];
+                $v['status'] = $v['end_time'] < time() ? 2 : $v['status'];
+                $v['status_msg'] = PsActivity::$status[$v['status']];
 
                 $enroll = PsActivityEnroll::find()->select('avatar')->where(['a_id' => $v['id']])->limit(3)->orderBy('id')->asArray()->all();
                 $avatar_arr = [];
@@ -103,7 +105,7 @@ Class ActivityService extends BaseService
                         $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
                     }
                 }
-                $model[$k]['join_info'] = $avatar_arr;
+                $v['join_info'] = $avatar_arr;
             }
         }
 
@@ -158,6 +160,7 @@ Class ActivityService extends BaseService
         $model['mobile'] = !empty($enroll['mobile']) ? $enroll['mobile'] : '';
         $model['created_at'] = !empty($enroll['created_at']) ? date('Y-m-d H:i', $enroll['created_at']) : '';
         $model['room_info'] = $roomInfo['name'].$roomInfo['address'];
+        $model['picture'] = F::ossImagePath($model['picture']);
       
         return $this->success($model);
     }
@@ -345,6 +348,7 @@ Class ActivityService extends BaseService
             return $this->failed('用户ID必填！');
         }
         
+        $m['picture'] = F::ossImagePath($m['picture']);
         $m['type_msg'] = PsActivity::$type[$m['type']];
         $m['status'] = $m['end_time'] < time() ? 2 : $m['status'];
         $m['status_msg'] = PsActivity::$status[$m['status']];

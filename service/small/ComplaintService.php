@@ -1,6 +1,7 @@
 <?php
 namespace service\small;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use app\models\PsCommunityUnits;
@@ -76,7 +77,7 @@ class ComplaintService extends BaseService
         $result['handle_at'] = !empty($data['handle_at']) ? date('Y-m-d H:i', $data['handle_at']) : '';
         $result['handle_content'] = $data['handle_content'];
         $result['create_at'] = date('Y-m-d H:i', $data['create_at']);
-        $result['images'] = $imgList ?? [];
+        $result['images'] = F::ossImagePath(array_column($imgList, 'img'));
 
         return $this->success($result);
     }
