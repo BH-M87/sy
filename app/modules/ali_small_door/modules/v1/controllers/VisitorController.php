@@ -20,8 +20,6 @@ use service\door\VisitorService;
 class VisitorController extends UserBaseController
 {
 
-
-
     // 访客删除 {"user_id":"35","id":"753"}
     public function actionVisitorDelete()
     {
@@ -71,22 +69,6 @@ class VisitorController extends UserBaseController
         return $this->dealResult($result);
     }
 
-    /**
-     * @api 访客管理首页
-     * @author wyf
-     * @date 2019/5/31
-     * @return array
-     */
-    public function actionVisitorIndex()
-    {
-        $visitor_id = PsCommon::get($this->params, 'visitor_id');
-        if (empty($visitor_id)) {
-            return F::apiFailed("访客记录id不能为空");
-        }
-        $result = VisitorService::service()->visitorIndex($visitor_id);
-        return self::dealReturnResult($result);
-    }
-
     //获取访客二维码
     public function actionVisitorQrcode()
     {
@@ -97,7 +79,6 @@ class VisitorController extends UserBaseController
         $result = VisitorService::service()->get_code($visitor_id);
         return self::dealReturnResult($result);
     }
-
 
     /****************************新版访客相关service add by zq 2019-9-11********************************************/
     /**
@@ -242,6 +223,19 @@ class VisitorController extends UserBaseController
             return F::apiSuccess();
         }
 
+        return self::dealReturnResult($result);
+    }
+
+    /**
+     * 访客管理首页
+     */
+    public function actionVisitorIndex()
+    {
+        $visitor_id = PsCommon::get($this->params, 'visitor_id');
+        if (empty($visitor_id)) {
+            return F::apiFailed("访客记录id不能为空");
+        }
+        $result = VisitorService::service()->visitorIndex($visitor_id);
         return self::dealReturnResult($result);
     }
 
