@@ -29,7 +29,7 @@ class UploadController extends BaseController
 
         $accessKeyId = "LTAIRMyJgmFU2NnA";
         $accessKeySecret = "x6iozkqapZVgE5BsKBeU23eP3xDA1p";
-        $endpoint = "http://oss-cn-shanghai.aliyuncs.com";
+        $endpoint = "http://zjy-datav2.oss-cn-hangzhou.aliyuncs.com";
         $bucket = "zjy-datav2";
         $file = $_FILES['file'];
         //图片文件检测
@@ -43,22 +43,22 @@ class UploadController extends BaseController
         if (!$r['code']) {
             return F::apiFailed($r['msg']);
         }
+        $res['file_path'] = \Yii::$app->params['host_name'].'store/uploadFiles/front/original/'.$r['data']['parentDir']."/".$r['data']['fileName'];
+        return F::apiSuccess($res);
 
-        $object = $r['data']['fileName'];
-        $filePath = $r['data']['fileDir'].$r['data']['fileName'];
-
-        print_r($r);exit;
-        try{
-            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
-            $re = $ossClient->uploadFile($bucket, $object, $filePath);
-            print_r($re);exit;
-        } catch(OssException $e) {
-            echo "333";exit;
-            printf(__FUNCTION__ . ": FAILED\n");
-            printf($e->getMessage() . "\n");
-        }
-
-        exit;
+//        $object = $r['data']['fileName'];
+//        $filePath = $r['data']['fileDir'].$r['data']['fileName'];
+//        try{
+//            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+//            $re = $ossClient->uploadFile($bucket, $object, $filePath);
+//            //print_r($re);exit;
+//        } catch(OssException $e) {
+//
+//            //printf(__FUNCTION__ . ": FAILED\n");
+//            printf($e->getMessage() . "\n");
+//        }
+//
+//        exit;
 //        $timeout = 3600;
 //        try {
 //            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint, false, '');
