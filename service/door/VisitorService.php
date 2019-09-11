@@ -11,6 +11,7 @@ namespace service\door;
 
 use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
+use app\models\IotSuppliers;
 use app\models\ParkingSuppliers;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
@@ -26,6 +27,7 @@ use service\basic_data\DoorPushService;
 use service\common\CsvService;
 use service\qiniu\UploadService;
 use service\rbac\OperateService;
+use service\room\RoomService;
 use yii\db\Query;
 
 class VisitorService extends BaseService
@@ -236,43 +238,9 @@ class VisitorService extends BaseService
         PsRoomVistors::updateAll(['sync'=>1],['id'=>$visitor_id]);
     }
 
-    // 列表
-    public function visitorList($param, $page, $pageSize)
-    {
-        $result = $this->_visitorSearch($param)
-            ->select('id, vistor_name, vistor_mobile, start_time, end_time, passage_at, is_msg, status,car_number,sex,reason')
-            ->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)
-            ->asArray()->all();
 
-        if (!empty($result)) {
-            foreach ($result as $k => $v) {
-                $result[$k]['start_time'] = !empty($v['start_time']) ? date('Y-m-d H:i', $v['start_time']) : '';
-                $result[$k]['end_time'] = !empty($v['end_time']) ? date('Y-m-d H:i', $v['end_time']) : '';
-                $result[$k]['passage_at'] = !empty($v['passage_at']) ? date('Y-m-d H:i', $v['passage_at']) : '';
-            }
-        }
-        //房屋地址
-        $address = PsCommunityRoominfo::find()->select('id,address,community_id')
-            ->where(['id' => $param['room_id']])
-            ->asArray()->one();
-        //小区名称
-        $community  = PsCommunityModel::find()->select('id, name')->where(['id' => $address['community_id']])->asArray()->one();
-        return $this->success(['list'=>$result, 'room_info' => $address['address'], 'community_name' => $community['name']]);
-    }
 
-    // 列表搜索
-    private function _visitorSearch($param)
-    {
-        $member_id = $this->getMemberByUser($param['user_id']);
-        $type = $param['type'] == 1 ? [1,3] : $param['type']; // 过期也在未到访列表
 
-        return PsRoomVistors::find()
-            ->where(['=', 'is_cancel', 2]) // 没有取消邀请的数据
-            ->andFilterWhere(['=', 'is_del', 2])
-            ->andFilterWhere(['=', 'room_id', $param['room_id']])
-            ->andFilterWhere(['=', 'member_id', $member_id])
-            ->andFilterWhere(['in', 'status', $type]);
-    }
 
     // 删除
     public function visitorDelete($param)
@@ -329,28 +297,7 @@ class VisitorService extends BaseService
 
     }
 
-    // 加
-    public function visitorAdd($data)
-    {
-        $return = $this->get_device_info($data);
-        if ($return['code']) {
-            $res = $return['data'];
-            //跟笑乐确认，只要有门禁设备供应厂商就支持访客预约，add by zq 2019-4-29
-            if (in_array('iot',$res['supplier_name']) || in_array('iot-b',$res['supplier_name'])) {
-                $getPassRe = $this->iotOldVisitorAdd($data);
-                if ($getPassRe['code']) {
-                    return $this->success($getPassRe['data']);
-                } else {
-                    return $this->failed($getPassRe['msg']);
-                }
-            } else {
-                return $this->failed('设备暂不支持');
-            }
-        }else{
-            return $this->failed($return['msg']);
-        }
 
-    }
 
     public function iotOldVisitorAdd($data)
     {
@@ -645,6 +592,98 @@ class VisitorService extends BaseService
             return $this->failed($getPassRe['msg']);
         }
 
+    }
+    /****************************新版访客相关service add by zq 2019-9-11********************************************/
+    /**
+     * 列表
+     * @param $param
+     * @param $page
+     * @param $pageSize
+     * @return array
+     */
+    public function visitorList($param, $page, $pageSize)
+    {
+        $result = $this->_visitorSearch($param)
+            ->select('id, vistor_name, vistor_mobile, start_time, end_time, passage_at, is_msg, status,car_number,sex,reason')
+            ->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)
+            ->asArray()->all();
+
+        if (!empty($result)) {
+            foreach ($result as $k => $v) {
+                $result[$k]['start_time'] = !empty($v['start_time']) ? date('Y-m-d H:i', $v['start_time']) : '';
+                $result[$k]['end_time'] = !empty($v['end_time']) ? date('Y-m-d H:i', $v['end_time']) : '';
+                $result[$k]['passage_at'] = !empty($v['passage_at']) ? date('Y-m-d H:i', $v['passage_at']) : '';
+            }
+        }
+        //房屋地址
+        $address = PsCommunityRoominfo::find()->select('id,address,community_id')
+            ->where(['id' => $param['room_id']])
+            ->asArray()->one();
+        //小区名称
+        $community  = PsCommunityModel::find()->select('id, name')->where(['id' => $address['community_id']])->asArray()->one();
+        return $this->success(['list'=>$result, 'room_info' => $address['address'], 'community_name' => $community['name']]);
+    }
+
+    /**
+     * 列表搜索
+     * @param $param
+     * @return $this
+     */
+    private function _visitorSearch($param)
+    {
+        $member_id = $this->getMemberByUser($param['user_id']);
+        $typeL = PsCommon::get($param,'type');
+        $type = ($typeL == 1) ? [1,3] : $typeL; // 过期也在未到访列表
+        $room_id = PsCommon::get($param,'room_id');
+        return PsRoomVistors::find()
+            ->where(['is_cancel'=>2]) // 没有取消邀请的数据
+            ->andFilterWhere(['is_del'=>2])
+            ->andFilterWhere(['room_id'=>$room_id])
+            ->andFilterWhere(['member_id'=>$member_id])
+            ->andFilterWhere(['in', 'status', $type]);
+    }
+
+    // 加
+    public function visitorAdd($data)
+    {
+        //获取这个房屋下面所有的供应商
+        $room_id = $data['room_id'];
+        $roomInfo = PsCommunityRoominfo::find()->where(['id'=>$room_id])->asArray()->one();
+        var_dump($roomInfo);die;
+        $community_id = $roomInfo['community_id'];//小区id
+        $unit_id = $roomInfo['unit_id'];//单元编号
+        $deviceData['community_id'] = '';
+        $deviceData['unit_id'] = '';
+        $return = $this->get_device_info($deviceData);
+        if ($return['code']) {
+            $res = $return['data'];
+            //跟笑乐确认，只要有门禁设备供应厂商就支持访客预约，add by zq 2019-4-29
+            if (in_array('iot',$res['supplier_name']) || in_array('iot-b',$res['supplier_name'])) {
+                $getPassRe = $this->iotOldVisitorAdd($data);
+                if ($getPassRe['code']) {
+                    return $this->success($getPassRe['data']);
+                } else {
+                    return $this->failed($getPassRe['msg']);
+                }
+            } else {
+                return $this->failed('设备暂不支持');
+            }
+        }else{
+            return $this->failed($return['msg']);
+        }
+
+    }
+
+    //根据房屋id获取这个房屋下面的二维码供应商
+    public function getSupplierNameListByRoomId($community_id,$unit_id,$type)
+    {
+        //获取设备相关信息，设备厂商，设备序列号
+        $device = DoorDeviceUnit::find()->alias('du')
+            ->rightJoin(['d'=>DoorDevices::tableName()],'d.id=du.devices_id')
+            ->rightJoin(['ps'=>IotSuppliers::tableName()],'ps.id=d.supplier_id')
+            ->select(['ps.supplier_name','d.device_id','d.name as device_name'])
+            ->where(['du.community_id'=>$community_id,'du.unit_id'=>$unit_id])
+            ->asArray()->all();
     }
 
 }

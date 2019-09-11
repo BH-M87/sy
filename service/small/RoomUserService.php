@@ -542,6 +542,14 @@ class RoomUserService extends BaseService
             $data['room_address'] = $result['group'] . $result['building'] . $result['unit'] . $result['room'];
             $data['identity_label'] = $result['identity_type_des'];
             $data['community_name'] = PsCommunityModel::find()->select(['name'])->where(['id' => $communityId])->asArray()->scalar();
+            if(!empty($data['images'])){
+                $images = [];
+                foreach($data['images'] as $key =>$value){
+                    $images[] = F::getOssImagePath($value);
+                }
+                $data['images'] = $images;
+            }
+
         }
         return $data;
     }
