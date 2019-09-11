@@ -36,9 +36,9 @@ class UploadService extends BaseService
             return $this->failed('不是真实的图片');
         }
         //检测文件类型
-        if(!in_array($img['type'], $this->imageMimes)){
-            return $this->failed('不允许的文件Mime类型');
-        }
+//        if(!in_array($img['type'], $this->imageMimes)){
+//            return $this->failed('不允许的文件Mime类型');
+//        }
         //检测文件扩展名
         $ext = strtolower(pathinfo($img['name'], PATHINFO_EXTENSION));
         if(!in_array($ext, $this->imageExt)){
