@@ -8,6 +8,7 @@
  */
 namespace service\alipay;
 
+use common\core\ali\AopRedirect;
 use service\BaseService;
 use service\manage\CommunityService;
 use app\models\PsPropertyCompany;
@@ -16,58 +17,20 @@ use yii\helpers\FileHelper;
 use common\core\F;
 use service\qiniu\UploadService;
 use service\common\QrcodeService;
-use common\ali\AopRedirect;
 use Yii;
 
 class AlipayBillService extends BaseService
 {
-    private $_alipay;// AopRedirect实例
+    private $_alipay;
 
     function __construct($communityNo = null)
     {
         $this->_alipay = new AopRedirect();
-        if (is_null($communityNo)) {
-            $this->_alipay->alipayPublicKey = Yii::$app->params['alipay_public_key_file'];
-            $this->_alipay->rsaPrivateKeyFilePath = Yii::$app->params['merchant_private_key_file'];
-            $this->_alipay->gatewayUrl = Yii::$app->params['gate_way_url'];
-            $this->_alipay->appId = Yii::$app->params['property_app_id'];
-            $this->_alipay->signType = 'RSA';
-        } else {
-            $companyModel = PsPropertyCompany::find()
-                ->select(['ps_property_company.has_sign_qrcode', 'ps_property_company.id as pro_company_id'])
-                ->leftJoin('ps_community comm', 'ps_property_company.id = comm.pro_company_id')
-                ->where(['comm.community_no' => $communityNo])
-                ->asArray()
-                ->one();
-            $hasQrcodeAuth = $companyModel['has_sign_qrcode'] == 1 ? true : false;
-            if (YII_ENV == 'master' || YII_ENV == 'release') {
-                if ($hasQrcodeAuth) {
-                    $this->_alipay->gatewayUrl         = Yii::$app->params['gate_way_url'];
-                    $this->_alipay->appId              = Yii::$app->params['property_isv_app_id'];
-                    $this->_alipay->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
-                    $this->_alipay->rsaPrivateKey      = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
-                    $this->_alipay->signType = 'RSA2';
-                } else {
-                    $this->_alipay->alipayPublicKey = Yii::$app->params['alipay_public_key_file'];
-                    $this->_alipay->rsaPrivateKeyFilePath = Yii::$app->params['merchant_private_key_file'];
-                    $this->_alipay->gatewayUrl = Yii::$app->params['gate_way_url'];
-                    $this->_alipay->appId = Yii::$app->params['property_app_id'];
-                    $this->_alipay->signType = 'RSA';
-                }
-            } elseif (YII_ENV == 'shaxiang'){
-                $this->_alipay->alipayPublicKey = Yii::$app->params['alipay_public_key_file'];
-                $this->_alipay->rsaPrivateKeyFilePath = Yii::$app->params['merchant_private_key_file'];
-                $this->_alipay->gatewayUrl = Yii::$app->params['gate_way_url'];
-                $this->_alipay->appId = Yii::$app->params['property_app_id'];
-                $this->_alipay->signType = 'RSA';
-            } else {
-                $this->_alipay->gatewayUrl         = Yii::$app->params['gate_way_url'];
-                $this->_alipay->appId              = Yii::$app->params['property_isv_app_id'];
-                $this->_alipay->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
-                $this->_alipay->rsaPrivateKey      = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
-                $this->_alipay->signType = 'RSA2';
-            }
-        }
+        $this->_alipay->gatewayUrl         = Yii::$app->params['gate_way_url'];
+        $this->_alipay->appId              = Yii::$app->params['property_isv_app_id'];
+        $this->_alipay->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
+        $this->_alipay->rsaPrivateKey      = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
+        $this->_alipay->signType = 'RSA2';
     }
 
     /**

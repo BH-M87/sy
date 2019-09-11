@@ -7,7 +7,7 @@
  */
 
 namespace service\alipay;
-use common\ali\AopRedirect;
+use common\core\ali\AopRedirect;
 use service\BaseService;
 use Yii;
 
@@ -18,7 +18,7 @@ class AliCommonService extends BaseService {
     {
         $this->_alipay = new AopRedirect();
         $this->_alipay->gatewayUrl         = Yii::$app->params['gate_way_url'];
-        $this->_alipay->appId              = Yii::$app->params['property_isv_app_id'];
+        $this->_alipay->appId              = Yii::$app->params['property_app_id'];
         $this->_alipay->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
         $this->_alipay->rsaPrivateKey      = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
         $this->_alipay->signType = 'RSA2';

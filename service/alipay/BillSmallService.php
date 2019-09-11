@@ -344,7 +344,6 @@ class BillSmallService extends BaseService
         $member_name = $this->getMemberNameByUser($member_id);
         //获取支付宝id
         $buyer_id = $this->getBuyerIdr($app_user_id);
-
         $data = [
             "community_id" => $community_no,
             "out_trade_no" => $this->_generateBatchId(),
