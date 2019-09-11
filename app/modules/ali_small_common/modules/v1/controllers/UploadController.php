@@ -33,8 +33,9 @@ class UploadController extends BaseController
         $endpoint = \Yii::$app->params['oss_domain'];
         $bucket = \Yii::$app->params['oss_bucket'];
         $file = $_FILES['file'];
-
+        \Yii::info("system:small-app"."controller:".\Yii::$app->controller->id.'request:'.json_encode($file),'api');
         //图片文件检测
+
         $r = UploadService::service()->checkImage($file);
         if (!$r['code']) {
             return F::apiFailed($r['msg']);
