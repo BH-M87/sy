@@ -6,6 +6,7 @@ $data = [
     'list_rows' => 20,
     'gaode_url'   => 'http://restapi.amap.com/v3/geocode/geo',
     'gaode_key'   => 'd7298ae8e746fbacb6836ba918eedc52',
+    'host_name'   => 'https://sqwr.elive99.com/'
 ];
 //小程序支付回调地址
 $data['external_invoke_small_address'] = 'https://wuye.zje.com/alipay/notify/small';
@@ -33,4 +34,10 @@ $data['djyl_alipay_public_key_file'] = $basePath."/common/rsa_files/djyl/alipay_
 $data['djyl_rsa_private_key_file'] = $basePath."/common/rsa_files/djyl/rsa_private.txt";
 $data['djyl_aes_secret'] = "ee1ysBQwEIBmbCO7++GEvw==";
 
+//七牛上传图片配置，后面改为oss会去掉
+$bucket      = "wuyetest";
+$fileHostUrl = "https://static.elive99.com/";
+
+$data['bucket'] = $bucket;
+$data['fileHostUrl'] = $fileHostUrl;
 return $data;

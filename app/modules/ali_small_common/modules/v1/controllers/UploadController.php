@@ -1,0 +1,70 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: fengwenchao
+ * Date: 2019/9/10
+ * Time: 16:23
+ */
+
+namespace app\modules\ali_small_common\modules\v1\controllers;
+
+
+use app\modules\ali_small_common\controllers\BaseController;
+use common\core\F;
+use OSS\Core\OssException;
+use OSS\Http\RequestCore;
+use OSS\Http\ResponseCore;
+use OSS\OssClient;
+use service\common\UploadService;
+
+class UploadController extends BaseController
+{
+    //图片上传
+    public function actionImage()
+    {
+        //图片文件检测
+        if (empty($_FILES['file'])) {
+            return F::apiFailed('未获取上传文件');
+        }
+
+        $accessKeyId = "LTAIRMyJgmFU2NnA";
+        $accessKeySecret = "x6iozkqapZVgE5BsKBeU23eP3xDA1p";
+        $endpoint = "http://zjy-datav2.oss-cn-hangzhou.aliyuncs.com";
+        $bucket = "zjy-datav2";
+        $file = $_FILES['file'];
+        //图片文件检测
+        $r = UploadService::service()->checkImage($file);
+        if (!$r['code']) {
+            return F::apiFailed($r['msg']);
+        }
+
+        //上传到本地
+        $r = UploadService::service()->saveLocal($file, F::qiniuImagePath());
+        if (!$r['code']) {
+            return F::apiFailed($r['msg']);
+        }
+        $local = $r['data'];
+        //上传到七牛
+        $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
+        if (!$re['filepath']) {
+            return F::apiFailed('七牛上传失败');
+        }
+        return F::apiSuccess($re);
+
+    }
+
+    public function actionGetImage()
+    {
+
+    }
+
+    /**
+     * 创建新的文件名称(以时间区分)
+     */
+    private function _generateName($ext)
+    {
+        list($msec, $sec) = explode(' ', microtime());
+        $msec = round($msec, 3) * 1000;//获取毫秒
+        return date('YmdHis') . $msec . rand(10,100) . '.' . $ext;
+    }
+}

@@ -18,7 +18,7 @@ class SchedulingController extends BaseController {
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
-        $result = SchedulingService::service()->view($this->request_params);
+        $result['list'] = SchedulingService::service()->view($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 

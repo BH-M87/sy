@@ -76,13 +76,13 @@ class SchedulingService extends BaseService
     private function _processData($data)
     {
         $reData = [
-            'day1' => [],
-            'day2' => [],
-            'day3' => [],
-            'day4' => [],
-            'day5' => [],
-            'day6' => [],
-            'day7' => []
+            '1' => [],
+            '2' => [],
+            '3' => [],
+            '4' => [],
+            '5' => [],
+            '6' => [],
+            '7' => []
         ];
         foreach ($data as $k => $v) {
             //查询头像
@@ -103,6 +103,7 @@ class SchedulingService extends BaseService
                 $reData[$k] = $tmpArr;
             }
         }
+
         return $reData;
     }
 
