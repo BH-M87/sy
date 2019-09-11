@@ -330,7 +330,7 @@ class VoteService extends BaseService
         $canVote = $this->doCanVoting($memberId, $voteId, $voteChannel, $room_id);
         if (!empty($canVote['voting_status']) && $canVote['voting_status'] == 1) {
             // 可投票
-            $voteDetArr = json_decode($voteDetail, true);
+            $voteDetArr = $voteDetail;//json_decode($voteDetail, true);
             // 数据检查
             foreach ($voteDetArr as $vote) {
                 if (empty($vote['problem_id'])) {
@@ -386,36 +386,6 @@ class VoteService extends BaseService
                 $voteModel->totals = $voteModel->totals + 1;
                 $voteModel->save();
 
-                // 发送消息
-                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
-                $data = [
-                    'community_id' => $communityId,
-                    'id' => $voteId,
-                    'member_id' => $memberId,
-                    'user_name' => $memberName,
-                    'create_user_type' => 2,
-
-                    'remind_tmpId' => 5,
-                    'remind_target_type' => 5,
-                    'remind_auth_type' => 5,
-                    'msg_type' => 1,
-
-                    'msg_tmpId' => 5,
-                    'msg_target_type' => 5,
-                    'msg_auth_type' => 5,
-                    'remind' =>[
-                        0 => $memberName
-                    ],
-                    'msg' => [
-                        0 => $memberName,
-                        1 => $voteModel['vote_name'],
-                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
-                        3 => $memberName,
-                        4 => date("Y-m-d H:i:s",time())
-                    ]
-                ];
-                MessageService::service()->addMessageTemplate($data);
-
                 return true;
             }
 
@@ -431,6 +401,7 @@ class VoteService extends BaseService
             }
             return !empty($canVote['voting_value']) ? $canVote['voting_value'] : '投票失败！';
         }
+
         return false;
     }
 
