@@ -38,9 +38,14 @@ class BaseController extends Controller
     
     public function dealReturnResult($r)
     {
-        if ($r['code'] == 1) {
+        if($r['code'] == 1){
             return F::apiSuccess($r['data']);
+        } else {
+            if (!empty($r['code'])) {
+                return F::apiFailed($r['msg'], $r['code']);
+
+            }
+            return F::apiFailed($r['msg']);
         }
-        return F::apiFailed($r['msg']);
     }
 }

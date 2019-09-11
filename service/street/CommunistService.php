@@ -12,6 +12,7 @@ namespace service\street;
 use app\models\PsAppMember;
 use app\models\PsMember;
 use app\models\StCommunist;
+use app\models\StCommunistAppUser;
 use app\models\StStation;
 use common\core\F;
 use common\core\PsCommon;
@@ -327,4 +328,12 @@ class CommunistService extends BaseService
         return StCommunist::model()->batchInsert($insert_data);
     }
 
+    public function getUser($user_id)
+    {
+        $app_user = StCommunistAppUser::find()->where(['app_user_id' => $user_id])->asArray()->one();
+        if ($app_user) {
+            return true;
+        }
+        return false;
+    }
 }

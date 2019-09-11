@@ -96,6 +96,7 @@ class CarService extends BaseService
             $list[$k]['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
             $list[$k]['images'] = $v['images'] ? explode(',', $v['images']) : [];
             $list[$k]['user_mobile'] = $v['user_mobile'] ? F::processMobile($v['user_mobile']) : '';
+            $list[$k]['car_delivery'] = $v['car_delivery'] > 0 ? $v['car_delivery'] : '';
         }
         $re['list'] = $list;
         return $re;
@@ -349,7 +350,7 @@ class CarService extends BaseService
             $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
             $carInfo['carport_rent_start'] = $carInfo['carport_rent_start'] ? date("Y-m-d", $carInfo['carport_rent_start']) : '';
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
-
+            $carInfo['car_delivery'] = $carInfo['car_delivery'] > 0 ? $carInfo['car_delivery'] : '';
             //查询标签
             $carInfo['labels'] = LabelsService::service()->getLabelInfoByCarId($req['id']);
             //查询车场

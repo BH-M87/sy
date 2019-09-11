@@ -20,7 +20,7 @@ class GuideController extends UserBaseController
     }
 
     // 社区指南类型列表
-    public function actionGuideListWap()
+    public function actionGetList()
     {
         $r = GuideService::service()->listWap($this->params);
         if (!$r['code'] && $r['msg']) {

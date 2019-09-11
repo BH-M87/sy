@@ -27,8 +27,7 @@ class StCommunistAppUser extends BaseModel
     public function rules()
     {
         return [
-            [['id'], 'required'],
-            [['id', 'communist_id', 'app_user_id'], 'integer'],
+            [['communist_id', 'app_user_id'], 'integer'],
         ];
     }
 

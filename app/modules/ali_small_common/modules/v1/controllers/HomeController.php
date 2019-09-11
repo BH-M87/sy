@@ -17,6 +17,8 @@ use service\common\AlipaySmallApp;
 use service\door\HomeService;
 use service\door\SelfService;
 use service\small\MemberService;
+use service\street\CommunistService;
+use service\street\PartyTaskService;
 
 class HomeController extends UserBaseController
 {
@@ -87,6 +89,10 @@ class HomeController extends UserBaseController
         }
         $res['user_id'] = $userId;
         $res['mobile'] = $mobile;
+        if ($system_type == "djyl") {
+            $checkUser = CommunistService::service()->getUser($res['user_id']);
+            $res['is_communist'] = $checkUser ? 1 : 0;
+        }
         return F::apiSuccess($res);
     }
 

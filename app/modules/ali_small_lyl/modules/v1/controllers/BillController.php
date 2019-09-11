@@ -8,7 +8,7 @@
 
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
-use app\modules\small\services\BillSmallService;
+use service\alipay\BillSmallService;
 use common\core\F;
 
 class BillController extends UserBaseController
