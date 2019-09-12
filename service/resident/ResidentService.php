@@ -338,7 +338,8 @@ class ResidentService extends BaseService
             ];
             OperateService::addComm($user_info, $operate);
             $trans->commit();
-            return $this->success();
+            $reData['id'] = $id;
+            return $this->success($reData);
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -351,26 +352,19 @@ class ResidentService extends BaseService
         if (!$id) {
             return $this->failed('ID不能为空');
         }
-
         $roomUser = PsRoomUser::findOne(['id' => $id]);
-
         if (!$roomUser) {
             return $this->failed('数据不存在');
         }
-
         if ($roomUser["status"] == PsRoomUser::AUTH) {
             return $this->failed("已认证住户无法删除");
         }
-
-
-
         $operate = [
             "community_id" => $roomUser["community_id"],
             "operate_menu" => "住户管理",
             "operate_type" => "删除住户",
             "operate_content" => $roomUser["name"] . " " . (PsCommon::isVirtualPhone($roomUser["mobile"]) ? '' : $roomUser["mobile"]),
         ];
-
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             OperateService::addComm($user_info, $operate);
@@ -378,7 +372,8 @@ class ResidentService extends BaseService
             $roomUser->delete();
 
             $trans->commit();
-            return $this->success();
+            $reData['id'] = $id;
+            return $this->success($reData);
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
