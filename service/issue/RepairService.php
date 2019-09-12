@@ -1346,7 +1346,14 @@ class RepairService extends BaseService
         }
         $repair_info['repair_status'] = $repair_info['status'];
         $repair_info['created_at'] = $repair_info['created_at'] ? date('Y-m-d H:i', $repair_info['created_at']) : '';
-        $repair_info['handle_content'] = '';
+
+        if ($repair_info['status'] == 3 || $repair_info['status'] == 4 || $repair_info['status'] == 5) {
+            $repair_record = PsRepairRecord::find()->select("content")
+                ->where(['repair_id' => $params['repair_id'], 'status' => 3])->asArray()->one();
+            $repair_info['handle_content'] = empty($repair_record['content']) ? "" : $repair_record['content'];
+        } else {
+            $repair_info['handle_content'] = '';
+        }
         //查询账单相关
         $repair_info['material_detail'] = [];
         $repair_info['amount'] = "";
