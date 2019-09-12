@@ -89,6 +89,9 @@ class SchedulingService extends BaseService
     private function _validateData($data, $dayType)
     {
         $userIds = [];
+        if (count($data) > 5) {
+            throw new MyException("每天最多5人");
+        }
         foreach ($data as $k => $v) {
             $userInfo = UserInfo::find()
                 ->select('username as user_name,profile_image as user_photo,mobile_number')
