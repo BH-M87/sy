@@ -101,7 +101,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['status' => $param['audit_status'] ?? [2,3]])
-            ->andFilterWhere(['station_id' => $param['station_id'] ?? null])
+            ->andFilterWhere(['st.station_id' => $param['station_id'] ?? null])
             ->andFilterWhere(['like', 'name', $param['communist_name'] ?? null])
             ->andFilterWhere(['like', 'mobile', $param['communist_mobile'] ?? null])
             ->andFilterWhere(['like', 'task_name', $param['task_name'] ?? null]);
