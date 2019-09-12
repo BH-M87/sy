@@ -14,6 +14,7 @@ use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
 use app\models\StStation;
+use common\core\F;
 use common\MyException;
 use service\BaseService;
 
@@ -437,7 +438,7 @@ class PartyTaskService extends BaseService
         $task['status'] = $party['status'];
         if ($party['status'] == 2) {
             $task['complete']['content'] = $record['info'];
-            $task['complete']['images'] = $party['images'] ?? '';
+            $task['complete']['images'] = !empty($record['images']) ? $this->getImage($record['images']) : [];
             $task['complete']['location'] = $record['location'] ?? '';
             $task['complete']['lon'] = $record['lon'] ?? '';
             $task['complete']['lat'] = $record['lat'] ?? '';
@@ -448,7 +449,7 @@ class PartyTaskService extends BaseService
             $task['examine']['operator_name'] = $record['operator_name'];
             $task['examine']['create_at'] = date('Y-m-d H:i:s',$record['create_at']);
             $task['complete']['content'] = $record['info'];
-            $task['complete']['images'] = $party['images'] ?? '';
+            $task['complete']['images'] = !empty($record['images']) ? $this->getImage($record['images']) : [];
             $task['complete']['location'] = $record['location'] ?? '';
             $task['complete']['lon'] = $record['lon'] ?? '';
             $task['complete']['lat'] = $record['lat'] ?? '';
@@ -460,6 +461,16 @@ class PartyTaskService extends BaseService
 
         }
         return $task;
+    }
+
+    public function getImage($image)
+    {
+        $images = explode(',',$image);
+        $data = [];
+        foreach ($images as $v) {
+            $data[] = F::getOssImagePath($v);
+        }
+        return $data;
     }
 
     /**
