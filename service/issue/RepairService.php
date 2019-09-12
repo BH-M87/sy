@@ -1523,6 +1523,14 @@ class RepairService extends BaseService
                 $info[$key]['repair_status_desc'] =  $value['status'] == 3 ? '已完成' : self::$_repair_status[$value['status']];
                 $info[$key]['handle_time'] = $value['handle_time'] ? date('Y-m-d H:i', $value['handle_time']) : '';
                 $info[$key]['repair_image'] = empty($value['repair_imgs']) ? [] : explode(',', $value['repair_imgs']);
+                if (!empty($info[$key]['repair_image'])) {
+                    $imageArr = [];
+                    foreach ($info[$key]['repair_image'] as $k => $v){
+                        $tmpImgPath = F::getOssImagePath($v);
+                        array_push($imageArr, $tmpImgPath);
+                    }
+                    $info[$key]['repair_image'] = $imageArr;
+                }
             }
         }
         return $info;
