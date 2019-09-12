@@ -178,7 +178,7 @@ class NoticeService extends BaseService
         StNoticeUser::model()->batchInsert($saveData);
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
         //发送钉钉信息
-        $result = DingMessageService::service()->send($list,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
+        $result = DingMessageService::service()->send($id,$list,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
         return $result;
 
     }
@@ -302,7 +302,7 @@ class NoticeService extends BaseService
         $un_read_user_list = $unReadUserList['un_read_user_list'];
         if($un_read_user_list){
             $userList = array_column($un_read_user_list,'user_id');
-            $result = DingMessageService::service()->send($userList,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
+            $result = DingMessageService::service()->send($id,$userList,$detail['title'],$detail['organization_id'],$detail['operator_name'],$detail['create_at']);
             return $result;
         }else{
             throw new MyException("没有可发送的消息对象");
