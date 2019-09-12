@@ -10,6 +10,7 @@ namespace service\basic_data;
 
 use app\models\DoorSendRequest;
 use app\models\IotSupplierCommunity;
+use app\models\IotSuppliers;
 use app\models\ParkingSupplierCommunity;
 use app\models\ParkingSuppliers;
 use common\core\F;
@@ -31,11 +32,16 @@ class SupplierService extends BaseService
      */
     public function getSupplierList($communityId, $type)
     {
-        $res = IotSupplierCommunity::find()
-            ->alias('isc')
-            ->leftJoin('iot_suppliers is','isc.supplier_id = is.id')
-            ->select(['is.id','is.name'])
-            ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
+//        $res = IotSupplierCommunity::find()
+//            ->alias('isc')
+//            ->leftJoin('iot_suppliers is','isc.supplier_id = is.id')
+//            ->select(['is.id','is.name'])
+//            ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
+//            ->asArray()
+//            ->all();
+        //TODO 目前先全部放开
+        $res = IotSuppliers::find()
+            ->select('id,name')
             ->asArray()
             ->all();
         $supplierInfo['list'] = $res;
