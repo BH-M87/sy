@@ -269,7 +269,7 @@ class PartyTaskService extends BaseService
         $info = StPartyTaskOperateRecord::find()
             ->select('operate_type,create_at as audit_time,operator_name as audit_name,content as audit_remark,location as complete_address,info as complete_remark,pioneer_value,images as complete_image,task_id')
             ->where(['party_task_station_id' => $params['id']])->asArray()->one();
-        if ($info['operate_type'] != 1 && $params['info_status'] == 1) throw new MyException('该任务未审核');
+        if ($info['operate_type'] != 2 && $params['info_status'] == 1) throw new MyException('该任务未审核');
         $info['task_pioneer_value'] = StPartyTask::find()->where(['id' => $info['task_id']])->asArray()->one()['pioneer_value'];
         $info['audit_time'] = date('Y-m-d H:i:s');
         return $info;
