@@ -109,7 +109,7 @@ class PsActivity extends BaseModel
     public static function getList($p)
     {
         $page = $p['page'] ?? 1;
-        $rows = $p['rows'] ?? 10;
+        $rows = $p['rows'] ?? 5;
 
         $p['join_start'] = !empty($p['join_start']) ? strtotime($p['join_start']) : null;
         $p['join_end'] = !empty($p['join_end']) ? strtotime($p['join_end'].' 23:59:59') : null;
