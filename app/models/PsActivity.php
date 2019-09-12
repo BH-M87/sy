@@ -117,7 +117,7 @@ class PsActivity extends BaseModel
         $p['activity_end'] = !empty($p['activity_end']) ? strtotime($p['activity_end'].' 23:59:59') : null;
 
         $m = self::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
-            'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture'])
+            'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture', 'type'])
             ->where(['is_del' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
             ->andFilterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
@@ -148,7 +148,8 @@ class PsActivity extends BaseModel
             $v['end_time'] = date('Y-m-d H:i', $v['end_time']);
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
             $v['status_desc'] = self::$status[$v['status']];
-            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : '';
+            $v['type_desc'] = self::$type[$v['type']];
+            $v['activity_type_desc'] = !empty($v['activity_type']) ? $v['type_desc'] .'|'. self::$activity_type[$v['activity_type']] : $v['type_desc'];
             $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
                 ->where(['a_id' => $v['id']])->asArray()->all();
             $v['people_list'] = $enroll;

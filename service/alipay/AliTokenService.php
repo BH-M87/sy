@@ -6,12 +6,12 @@
  */
 namespace service\alipay;
 
-use common\ali\AopRedirect;
 use app\models\PsUser;
 use app\models\PsCommunityModel;
 use app\models\PsPropertyAlipay;
 use app\models\PsPropertyAlipayInfo;
 use app\models\PsPropertyIsvToken;
+use common\core\ali\AopRedirect;
 use service\common\SmsService;
 use service\BaseService;
 use Yii;
@@ -70,39 +70,6 @@ Class AliTokenService extends BaseService {
         }
     }
 
-    //获取令牌
-    public function getToken($code, $refresh=false)
-    {
-        $aop = new AopRedirect();
-        $aop->appId = Yii::$app->params['property_app_id'];
-        $aop->gatewayUrl = Yii::$app->params['gate_way_url'];
-        $aop->alipayPublicKey = Yii::$app->params['alipay_public_key_file'];
-        $aop->rsaPrivateKeyFilePath = Yii::$app->params['merchant_private_key_file'];
-        $aop->signType = 'RSA';
-
-        if($refresh) {
-            $data['grant_type'] = 'refresh_token';
-            $data['refresh_token'] = $code;
-            $params['biz_content'] = json_encode($data);
-            $result = $aop->execute('alipay.open.auth.token.app', $params);
-        } else {
-            $data['grant_type'] = 'authorization_code';
-            $data['code'] = $code;
-            $params['biz_content'] = json_encode($data);
-            $result = $aop->execute('alipay.open.auth.token.app', $params);
-        }
-        if(!empty($result['code']) && $result['code'] == 10000) {
-            $logs['msg'] = 'success';
-        } else {
-            $logs['msg'] = 'failed';
-        }
-        $logs['code'] = $code;
-        $logs['refresh'] = $refresh;
-        $logs['result'] = $result;
-        $this->log(json_encode($logs));
-        return $result;
-    }
-
     /**
      * 从表中获取token
      * @param $type
@@ -111,51 +78,23 @@ Class AliTokenService extends BaseService {
      */
     public function getTokenByType($type, $typeId)
     {
-        if(YII_ENV == 'master') {
-            //兼容未授权当面付的物业公司
-            $companyModel = PsPropertyCompany::findOne($typeId);
-            if ($companyModel->has_sign_qrcode == 1) {
-                //已签约当面付的
-                $model = PsPropertyIsvToken::find()
-                    ->where(['type'=>$type, 'type_id' => $typeId])
-                    ->one();
-                if($model) {
-                    if(time() - $model["create_at"] >= 300 * 3600 * 24) {
-                        $result = $this->getScanToken($model['refresh_token'], true);//刷新
-                        if ($result['code'] == 10000) {
-                            //更新token
-                            $model->token = $result['app_auth_token'];
-                            $model->refresh_token = $result['app_refresh_token'];
-                            $model->create_at = time();
-                            return $model->token;
-                        }
-                    }
-                    return $model->token;
-                }
-            } else {
-                //未签约当面付的，用之前的wap支付授权
-                $model = PsAliToken::find()
-                    ->where(['type'=>$type, 'type_id' => $typeId])
-                    ->one();
-                if($model) {
-                    if(time() - $model["create_at"] >= 300 * 3600 * 24) {
-                        $result = $this->getToken($model['refresh_token'], true);//刷新
-                        if ($result['code'] == 10000) {
-                            //更新token
-                            $model->token = $result['app_auth_token'];
-                            $model->refresh_token = $result['app_refresh_token'];
-                            $model->create_at = time();
-                            return $model->token;
-                        }
-                    }
+        $model = PsPropertyIsvToken::find()
+            ->where(['type'=>$type, 'type_id' => $typeId])
+            ->one();
+        if($model) {
+            if(time() - $model["create_at"] >= 300 * 3600 * 24) {
+                $result = $this->getScanToken($model['refresh_token'], true);//刷新
+                if ($result['code'] == 10000) {
+                    //更新token
+                    $model->token = $result['app_auth_token'];
+                    $model->refresh_token = $result['app_refresh_token'];
+                    $model->create_at = time();
                     return $model->token;
                 }
             }
-
-            return false;
-        } else {
-            return Yii::$app->params['test_auth_token'];
+            return $model->token;
         }
+        return '';
     }
 
 
@@ -163,21 +102,11 @@ Class AliTokenService extends BaseService {
     public function getScanToken($code, $refresh=false, $nonce = '')
     {
         $aop = new AopRedirect();
-
-        if(YII_ENV == 'master') {
-            //生产环境，授权切换应用ID
-            $aop->appId = Yii::$app->params['property_isv_app_id'];
-            $aop->gatewayUrl = Yii::$app->params['gate_way_url'];
-            $aop->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
-            $aop->rsaPrivateKey = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
-            $aop->signType = 'RSA2';
-        } else {
-            $aop->appId = Yii::$app->params['property_app_id'];
-            $aop->gatewayUrl = Yii::$app->params['gate_way_url'];
-            $aop->alipayPublicKey = Yii::$app->params['alipay_public_key_file'];
-            $aop->rsaPrivateKeyFilePath = Yii::$app->params['merchant_private_key_file'];
-            $aop->signType = 'RSA';
-        }
+        $aop->appId = Yii::$app->params['property_isv_app_id'];
+        $aop->gatewayUrl = Yii::$app->params['gate_way_url'];
+        $aop->alipayrsaPublicKey = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
+        $aop->rsaPrivateKey = file_get_contents(Yii::$app->params['property_isv_merchant_private_key_file']);
+        $aop->signType = 'RSA2';
 
         if($refresh) {
             $data['grant_type'] = 'refresh_token';
@@ -247,15 +176,10 @@ Class AliTokenService extends BaseService {
      * @param $type bool 是否签约当面付 true 已签约 false 未签约
      * @return mixed
      */
-    public function checkToken($tokenModel, $signScan)
+    public function checkToken($tokenModel)
     {
         if (time() - $tokenModel->create_at >= 300 * 3600 * 24) {
-            if ($signScan) {
-                $result = $this->getScanToken($tokenModel->refresh_token, true);
-            } else {
-                $result = $this->getToken($tokenModel->refresh_token, true);
-            }
-
+            $result = $this->getScanToken($tokenModel->refresh_token, true);
             if ($result['code'] == 10000) {
                 //更新token
                 $tokenModel->token = $result['app_auth_token'];
@@ -301,53 +225,16 @@ Class AliTokenService extends BaseService {
      */
     public function getTokenByCompany($proCompanyId)
     {
-        if (YII_ENV == "master") {
-            //查询物业公司是否已重新授权物业token
-            $companyModel = PsPropertyCompany::find()
-                ->select(['has_sign_qrcode'])
-                ->where(['id' => $proCompanyId])
-                ->asArray()
-                ->one();
-            $hasQrcodeAuth = $companyModel['has_sign_qrcode'] == 1 ? true : false;
-            if ($hasQrcodeAuth) {
-                $userToken = PsPropertyIsvToken::find()
-                    ->where(['type'=>1, 'type_id' => $proCompanyId])
-                    ->one();
-            } else {
-                $userToken = PsAliToken::find()
-                    ->where(['type'=>1, 'type_id' => $proCompanyId])
-                    ->one();
-            }
-            //判断token是否快要过期，如果要过期，更新token
-            if (!$userToken) {
-                return '';
-            }
-            $token = $this->checkToken($userToken, $hasQrcodeAuth);
-            return $token;
+        $userToken = PsPropertyIsvToken::find()
+            ->where(['type'=>1, 'type_id' => $proCompanyId])
+            ->one();
 
-        } else if(YII_ENV == "release"){
-            $userToken = PsPropertyIsvToken::find()
-                ->where(['type'=>1, 'type_id' => 1])
-                ->one();
-            //判断token是否快要过期，如果要过期，更新token
-            if (!$userToken) {
-                return '';
-            }
-            $token = $this->checkToken($userToken, 1);
-            return $token;
-        } else if(YII_ENV == "shaxiang") {
-            $userToken = PsAliToken::find()
-                ->where(['type'=>1, 'type_id' => $proCompanyId])
-                ->one();
-            if (!$userToken) {
-                return '';
-            }
-            $token = $this->checkToken($userToken, false);
-            return $token;
-        } else {
-            $token = Yii::$app->params['test_auth_token'];
-            return $token;
+        //判断token是否快要过期，如果要过期，更新token
+        if (!$userToken) {
+            return '';
         }
+        $token = $this->checkToken($userToken);
+        return $token;
     }
 
     /**

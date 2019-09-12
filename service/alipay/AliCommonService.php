@@ -7,7 +7,7 @@
  */
 
 namespace service\alipay;
-use common\ali\AopRedirect;
+use common\core\ali\AopRedirect;
 use service\BaseService;
 use Yii;
 

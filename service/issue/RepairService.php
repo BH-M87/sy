@@ -1346,7 +1346,14 @@ class RepairService extends BaseService
         }
         $repair_info['repair_status'] = $repair_info['status'];
         $repair_info['created_at'] = $repair_info['created_at'] ? date('Y-m-d H:i', $repair_info['created_at']) : '';
-        $repair_info['handle_content'] = '';
+
+        if ($repair_info['status'] == 3 || $repair_info['status'] == 4 || $repair_info['status'] == 5) {
+            $repair_record = PsRepairRecord::find()->select("content")
+                ->where(['repair_id' => $params['repair_id'], 'status' => 3])->asArray()->one();
+            $repair_info['handle_content'] = empty($repair_record['content']) ? "" : $repair_record['content'];
+        } else {
+            $repair_info['handle_content'] = '';
+        }
         //查询账单相关
         $repair_info['material_detail'] = [];
         $repair_info['amount'] = "";
@@ -1516,6 +1523,14 @@ class RepairService extends BaseService
                 $info[$key]['repair_status_desc'] =  $value['status'] == 3 ? '已完成' : self::$_repair_status[$value['status']];
                 $info[$key]['handle_time'] = $value['handle_time'] ? date('Y-m-d H:i', $value['handle_time']) : '';
                 $info[$key]['repair_image'] = empty($value['repair_imgs']) ? [] : explode(',', $value['repair_imgs']);
+                if (!empty($info[$key]['repair_image'])) {
+                    $imageArr = [];
+                    foreach ($info[$key]['repair_image'] as $k => $v){
+                        $tmpImgPath = F::getOssImagePath($v);
+                        array_push($imageArr, $tmpImgPath);
+                    }
+                    $info[$key]['repair_image'] = $imageArr;
+                }
             }
         }
         return $info;
