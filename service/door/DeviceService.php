@@ -70,7 +70,8 @@ class DeviceService extends BaseService
             ];
         }
         $query = new Query();
-        $query->from('door_devices dd')
+        $query
+            ->from('door_devices dd')
             ->leftJoin('door_device_unit ddu', 'ddu.devices_id = dd.id')
             ->leftJoin('ps_community_units pcu', 'pcu.id = ddu.unit_id')
             ->leftJoin('iot_suppliers as is','is.id = dd.supplier_id')
@@ -105,8 +106,11 @@ class DeviceService extends BaseService
         if (!empty($params['device_id'])) {
             $query->andWhere(['like', 'dd.device_id', $params['device_id']]);
         }
-        $re['totals'] = $query->count();
-        $query->select(['dd.*','is.name as supplier_name']);
+        $countQuery = $query->select('dd.id');
+        $command = $countQuery->createCommand();
+        $models = $command->queryAll();
+        $re['totals'] = count(array_unique(array_column($models, 'id')));
+        $query->select(['dd.*','is.name as supplier_name'])->distinct();
         $query->orderBy('dd.create_at desc');
         $offset = ($params['page'] - 1) * $params['page'];
         $query->offset($offset)->limit($params['rows']);
