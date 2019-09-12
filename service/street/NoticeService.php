@@ -233,8 +233,7 @@ class NoticeService extends BaseService
             $detail['type_info'] = ['id'=>$detail['type'],'name'=>$this->type_info[$detail['type']]];
             $detail['receive_user_list'] = $this->getUserInfoByNoticeId($id);
             $accessory_file = $detail['accessory_file'];
-            $detail['accessory_file'] = $detail['accessory_file'] ? explode(',',$accessory_file) : [];
-            $detail['accessory_file_array'] = $this->getOssUrlByKey($accessory_file);
+            $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
             $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);
             $detail['operator_group_name'] = UserService::service()->getDepartmentNameById($detail['organization_id']);
         }else{

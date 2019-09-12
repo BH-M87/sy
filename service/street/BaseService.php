@@ -70,7 +70,9 @@ class BaseService extends \service\BaseService
         if($keyString){
             $array = explode($delimiter,$keyString);
             foreach ($array as $key =>$value){
-                $url[] = F::getOssImagePath($value);
+                $oss['key'] = $value;
+                $oss['value'] = F::getOssImagePath($value);
+                $url[] = $oss;
             }
         }
         return $url;

@@ -580,7 +580,7 @@ class RoomUserService extends BaseService
     public static function showOne($id, $communityId)
     {
         $data = PsRoomUser::find()
-            ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status')
+            ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status,room_image as images')
             ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
         $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '';
