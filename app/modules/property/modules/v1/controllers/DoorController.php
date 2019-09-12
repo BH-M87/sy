@@ -139,5 +139,12 @@ class DoorController extends BaseController
         }
     }
 
+    //门禁权限列表
+    public function actionPermissionList()
+    {
+        $result['list'] = DeviceService::service()->getPerMissionList($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
 
 }
