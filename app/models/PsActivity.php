@@ -109,7 +109,7 @@ class PsActivity extends BaseModel
     public static function getList($p)
     {
         $page = $p['page'] ?? 1;
-        $rows = $p['rows'] ?? 10;
+        $rows = $p['rows'] ?? 5;
 
         $p['join_start'] = !empty($p['join_start']) ? strtotime($p['join_start']) : null;
         $p['join_end'] = !empty($p['join_end']) ? strtotime($p['join_end'].' 23:59:59') : null;
@@ -121,7 +121,7 @@ class PsActivity extends BaseModel
             ->where(['is_del' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
             ->andFilterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
-            ->andFilterWhere(['=', 'status', PsCommon::get($p,'status')])
+            ->andFilterWhere(['in', 'status', PsCommon::get($p,'status')])
             ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
             ->andFilterWhere(['like', 'title', PsCommon::get($p,'title')])
             ->andFilterWhere(['or', ['like', 'link_name', PsCommon::get($p,'name') ?? null], ['like', 'link_mobile', PsCommon::get($p,'name') ?? null]])
@@ -143,6 +143,7 @@ class PsActivity extends BaseModel
     public static function afterList(&$list)
     {
         foreach ($list as &$v) {
+            $v['status'] = $v['end_time'] < time() ? 2 : $v['status'];
             $v['picture'] = F::ossImagePath($v['picture']);
             $v['start_time'] = date('Y-m-d H:i', $v['start_time']);
             $v['end_time'] = date('Y-m-d H:i', $v['end_time']);

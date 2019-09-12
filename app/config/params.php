@@ -9,11 +9,11 @@ $data = [
     'host_name'   => 'https://sqwr.elive99.com/'
 ];
 //小程序支付回调地址
-$data['external_invoke_small_address'] = $data['host_name'].'/property/v1/notify/small-repair';
+$data['external_invoke_small_address'] = $data['host_name'].'/property/v1/notify/small';
 //小程序与钉钉报事报修支付回调地址
 $data['external_invoke_small_repair_address'] = $data['host_name'].'/property/v1/notify/small-repair';
 //小程序临停缴费支付回调地址
-$data['external_invoke_small_address_park'] = $data['host_name'].'/property/v1/notify/small-repair';
+$data['external_invoke_small_address_park'] = $data['host_name'].'/property/v1/notify/small-park';
 
 //临时停车二维码地址
 $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
