@@ -145,6 +145,4 @@ class DoorController extends BaseController
         $result['list'] = DeviceService::service()->getPerMissionList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
-
-
 }
