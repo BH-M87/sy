@@ -1152,6 +1152,13 @@ class BillService extends BaseService
             //Yii::$app->redis->lpush('error_notify', '空数据' . '|' . date("Y-m-d H:i", time()));
             return $this->_response($result, 'fail', '空数据');
         }
+        \Yii::info("--small-notify-content".json_encode($data), 'api');
+        $checkRe = AliCommonService::service()->notifyVerify($data);
+        if (!$checkRe) {
+            //记录支付宝验签失败
+            \Yii::info("--small notify sign verify fail", 'api');
+            die("fail");
+        }
         //查询收款记录
         $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
         if(empty($incomeInfo)){
