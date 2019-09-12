@@ -1,5 +1,6 @@
 <?php
 namespace service\street;
+use common\core\F;
 use yii\base\Model;
 
 /**
@@ -55,6 +56,25 @@ class BaseService extends \service\BaseService
             }
         }
         return false;
+    }
+
+    /**
+     * 根据多个文件字符串获取完整的的文件地址数组
+     * @param $keyString 例如"1.doc,2.doc"
+     * @param string $delimiter
+     * @return array
+     */
+    public function getOssUrlByKey($keyString,$delimiter =',')
+    {
+        $url = [];
+        if($keyString){
+            $array = explode($delimiter,$keyString);
+            foreach ($array as $key =>$value){
+                $url[] = F::getOssImagePath($value);
+            }
+        }
+        return $url;
+
     }
 
 }

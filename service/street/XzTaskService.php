@@ -381,7 +381,9 @@ class XzTaskService extends BaseService
             }
             $detail['exec_type_desc'] = $exec_type_desc;
             $detail['interval_y_desc'] = $interval_y_desc;
-            $detail['accessory_file'] = $detail['accessory_file'] ? explode(',',$detail['accessory_file']) : '';
+            $accessory_file = $detail['accessory_file'];
+            $detail['accessory_file'] = $accessory_file ? explode(',',$accessory_file) : '';
+            $detail['accessory_file_array'] = $this->getOssUrlByKey($accessory_file);
         } else {
             $detail = [];
         }
