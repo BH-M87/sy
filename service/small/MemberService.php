@@ -470,8 +470,8 @@ class MemberService extends BaseService
             $record->save();
         }
 
-        // 小区活动
-        $activity = ActivityService::service()->list(['community_id' => $result['community_id']]);
+        // 小区活动 显示进行中和已结束的数据
+        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2]]);
         //$activity = ActivityService::service()->list(['community_id' => $result['community_id']])['list'];
         $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : '';
         // 社区曝光台
