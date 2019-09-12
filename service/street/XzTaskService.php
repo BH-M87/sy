@@ -381,7 +381,8 @@ class XzTaskService extends BaseService
             }
             $detail['exec_type_desc'] = $exec_type_desc;
             $detail['interval_y_desc'] = $interval_y_desc;
-            $detail['accessory_file'] = $detail['accessory_file'] ? explode(',',$detail['accessory_file']) : '';
+            $accessory_file = $detail['accessory_file'];
+            $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
         } else {
             $detail = [];
         }
@@ -613,7 +614,8 @@ class XzTaskService extends BaseService
             $detail['exec_type_info'] = ['id'=>$detail['exec_type'],'name'=>$this->exec_type_info[$detail['exec_type']]];
             $detail['check_at'] = date("Y-m-d H:i:s",$detail['check_at']);
             $detail['created_at'] = date("Y-m-d H:i:s",$detail['created_at']);
-            $detail['check_images'] = $detail['check_images'] ? explode(',',$detail['check_images']) : [];
+            $detail['check_images'] = $this->getOssUrlByKey($detail['check_images']);
+            //$detail['check_images'] = $detail['check_images'] ? explode(',',$detail['check_images']) : [];
         } else {
             $detail = [];
         }
@@ -700,10 +702,12 @@ class XzTaskService extends BaseService
                 ->select(['check_content','check_images','check_location_lon','check_location_lat','check_location'])
                 ->where(['id'=>$data['id']])->asArray()->one();
             if($complete){
-                $complete['check_images'] = $complete['check_images'] ? explode(',',$complete['check_images']) : '';
+                $complete['check_images'] = $this->getOssUrlByKey($complete['check_images']);
+                //$complete['check_images'] = $complete['check_images'] ? explode(',',$complete['check_images']) : '';
             }else{
                 $complete = [];
             }
+
             $detail['complete'] = $complete;
         }
         return $detail;

@@ -52,6 +52,7 @@ class StXzTaskForm extends BaseModel
             ['start_date', 'compare_time','on'=>['add']],
             ['end_date', 'compare_time', 'on'=>['add']],
             ['end_date', 'compareTimeRange', 'on'=>['add']],
+            [['exec_type','interval_y'],'safe']
         ];
     }
 

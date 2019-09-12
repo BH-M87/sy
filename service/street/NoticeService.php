@@ -9,6 +9,7 @@ namespace service\street;
 
 use app\models\StNotice;
 use app\models\StNoticeUser;
+use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 
@@ -231,11 +232,8 @@ class NoticeService extends BaseService
         if($detail){
             $detail['type_info'] = ['id'=>$detail['type'],'name'=>$this->type_info[$detail['type']]];
             $detail['receive_user_list'] = $this->getUserInfoByNoticeId($id);
-            if($detail['accessory_file']){
-                $detail['accessory_file'] = explode(',',$detail['accessory_file']);
-            }else{
-                $detail['accessory_file'] = [];
-            }
+            $accessory_file = $detail['accessory_file'];
+            $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
             $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);
             $detail['operator_group_name'] = UserService::service()->getDepartmentNameById($detail['organization_id']);
         }else{
