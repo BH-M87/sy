@@ -139,6 +139,14 @@ Class ComplaintService extends BaseService
             return $this->failed('数据不存在');
         }
         $images = $this->findImages($id);
+        if (!empty($images)) {
+            $imageArr = [];
+            foreach ($images as $k => $v){
+                $tmpImgPath = F::getOssImagePath($v);
+                array_push($imageArr, $tmpImgPath);
+            }
+            $images = $imageArr;
+        }
         $data['images'] = $images;
         $data['type'] = PsCommon::get($this->types, $data['type'], []);
         $data['status'] = PsCommon::get($this->status, $data['status'], []);

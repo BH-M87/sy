@@ -398,8 +398,8 @@ class CouponService extends BaseService
         }
         $desc = $name . '停车抵扣券';
         $filename = AliPayQrCodeService::createQrCode('pages/park/reviceCoupon/reviceCoupon', "couponId=" . $model->id, $desc);
-        $url = F::downloadUrl($filename . '.png', 'qrcode', $desc . '.png');
-        return $this->success(['down_url' => $url]);
+
+        return $this->success(['down_url' => $filename]);
     }
 
     /**

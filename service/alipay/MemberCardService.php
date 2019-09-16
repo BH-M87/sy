@@ -47,6 +47,12 @@ class MemberCardService extends BaseService
                 $rsaPrivateKey = file_get_contents(Yii::$app->params['edoor_rsa_private_key_file']);
                 $alipayLifeService = new IsvLifeService(Yii::$app->params['edoor_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
                 break;
+            case 'fczl':
+                $this->template_id = $this->fczl_template_id;
+                $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
+                $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);
+                $alipayLifeService = new IsvLifeService(Yii::$app->params['fczl_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
+                break;
             default://邻易联
                 $this->template_id = $this->fczl_template_id;
                 $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
