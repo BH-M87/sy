@@ -34,7 +34,7 @@ class BaseController extends Controller
         $this->page = !empty($params['page']) ? $params['page'] : 1;
         $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
 
-        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'api');
+        \Yii::info("small-app"."controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'smallapp');
         return true;
     }
     
