@@ -43,7 +43,6 @@ class AliPayQrCodeService extends BaseService
         } else {
             return "";
         }
-
         $options = [
             'Content-Type: application/octet-stream'
         ];
