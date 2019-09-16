@@ -65,6 +65,7 @@ class CommunityGroupService extends BaseService {
         }
         //判断名称是否重复，新增用
         if ($type == 2) {
+            $group = $group."期";
             return PsCommunityGroups::find()->where(['community_id' => $community_id, 'name' => $group])->asArray()->one();
         }
         //判断编码是否重复
