@@ -139,8 +139,11 @@ Class GuideService extends BaseService
         if (!$data) {
             return $this->failed('数据不存在');
         }
+        
+        $data['img_url'] = F::ossImagePath($data['img_url']);
         $data['type'] = PsCommon::get($this->types, $data['type'], []);
         $data['status'] = PsCommon::get($this->status, $data['status'], []);
+
         return $this->success($data);
     }
 
