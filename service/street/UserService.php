@@ -116,5 +116,15 @@ class UserService extends BaseService
         return Department::find()->select(['department_name'])->where(['id'=>$id])->scalar();
     }
 
+    /**
+     * 获取用户的姓名
+     * @param $id
+     * @return false|null|string
+     */
+    public function getUserNameById($id)
+    {
+        return UserInfo::find()->select(['username'])->where(['id'=>$id])->asArray()->scalar();
+    }
+
 
 }

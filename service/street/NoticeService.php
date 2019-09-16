@@ -58,7 +58,8 @@ class NoticeService extends BaseService
         $title = PsCommon::get($data, 'title');
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
-        $model = StNotice::find()->andFilterWhere(['type' => $type])->andFilterWhere(['title' => $title]);
+        $model = StNotice::find()->andFilterWhere(['type' => $type])
+            ->andFilterWhere(['like','title',$title]);
         //如果搜索了发布时间
         if ($date_start && $date_end) {
             $start_time = strtotime($date_start . " 00:00:00");
@@ -170,7 +171,7 @@ class NoticeService extends BaseService
         foreach ($list as $key => $value) {
             $saveData['notice_id'][] = $id;
             $saveData['receive_user_id'][] = $value;
-            $saveData['receive_user_name'][] = $id;
+            $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
             $saveData['is_send'][] = 1;
             $saveData['is_read'][] = 1;
             $saveData['create_at'][] = time();
