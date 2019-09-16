@@ -7,8 +7,11 @@
 
 namespace service\property_basic;
 
+use common\core\F;
 use common\core\PsCommon;
+
 use app\models\PsGuide;
+
 use service\rbac\OperateService;
 use service\BaseService;
 
@@ -61,12 +64,15 @@ Class GuideService extends BaseService
             ->asArray()->all();
         $result = [];
         foreach ($data as $v) {
+            $v['img_url'] = F::ossImagePath($v['img_url']);
             $v['type'] = PsCommon::get($this->types, $v['type'], []);
             $v['status'] = PsCommon::get($this->status, $v['status'], []);
             $v['hours_start'] = $v['hours_start']>=10?$v['hours_start'].":00":"0".$v['hours_start'].":00";
             $v['hours_end'] = $v['hours_end']>=10?$v['hours_end'].":00":"0".$v['hours_end'].":00";
+
             $result[] = $v;
         }
+
         return $result;
     }
 
