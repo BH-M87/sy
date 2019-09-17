@@ -14,6 +14,7 @@ use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
+use app\models\StRemind;
 use app\models\StStation;
 use common\core\F;
 use common\MyException;
@@ -353,6 +354,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
+        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$task_station->id);
     }
 
     /**
@@ -519,8 +521,31 @@ class PartyTaskService extends BaseService
         $party->update_at = time();
         $party->save();
         $record->save();
+        $this->addRemind($communist['id'],'又有党员提交任务啦，快去看看吧！',2,$party->id);
     }
 
+    /**
+     *
+     * @author yjh
+     * @param $communist_id
+     * @param $content
+     * @param $type 1 党员任务认领  2党员任务审核
+     * @param $related_id
+     * @throws MyException
+     */
+    public function addRemind($communist_id,$content,$type,$related_id)
+    {
+        $communist = $this->getCommunist($communist_id);
+        $remind = new StRemind();
+        $remind->organization_type = $communist['organization_type'];
+        $remind->organization_id = $communist['organization_id'];;
+        $remind->content = $content;
+        $remind->remind_type = $type;
+        $remind->related_id = $related_id;
+        $remind->create_at = time();
+        $remind->save();
+        unset($remind);
+    }
 
     /**
      * 检查是不是党员
