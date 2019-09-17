@@ -332,7 +332,14 @@ class CommunistService extends BaseService
 
     public function getUser($user_id)
     {
-        $app_user = StCommunistAppUser::find()->where(['app_user_id' => $user_id])->asArray()->one();
+        $app_user = StCommunistAppUser::find()
+            ->alias('scu')
+            ->leftJoin('st_communist st', 'scu.communist_id = st.id')
+            ->where(['scu.app_user_id' => $user_id, 'st.is_del' => 1])
+            ->orderBy('id desc')
+            ->limit(1)
+            ->asArray()
+            ->one();
         if ($app_user) {
             return true;
         }
