@@ -21,8 +21,7 @@ class DingMessageService extends BaseService
         $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->andWhere(['<>','ding_user_id',''])->column();
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $markdown = "#### 通知通报
-        您有一条通知通报消息，请及时查收。
+        $markdown = "##### 通知通报
         ".$title;
         $sendData['markdown'] = $markdown;
         $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
