@@ -626,7 +626,8 @@ class XzTaskService extends BaseService
             $detail['check_at'] = date("Y-m-d H:i:s",$detail['check_at']);
             $detail['created_at'] = date("Y-m-d H:i:s",$detail['created_at']);
             //$detail['check_images'] = $this->getOssUrlByKey($detail['check_images']);
-            $detail['check_images'] = $detail['check_images'] ? explode(',',$detail['check_images']) : [];
+            //$detail['check_images'] = $detail['check_images'] ? explode(',',$detail['check_images']) : [];
+            $detail['check_images'] = $this->getOssUrlByImageKey($detail['check_images']);
         } else {
             $detail = [];
         }
@@ -719,7 +720,8 @@ class XzTaskService extends BaseService
                 ->where(['id'=>$data['id']])->asArray()->one();
             if($complete){
                 //$complete['check_images'] = $this->getOssUrlByKey($complete['check_images']);
-                $complete['check_images'] = $complete['check_images'] ? explode(',',$complete['check_images']) : '';
+                //$complete['check_images'] = $complete['check_images'] ? explode(',',$complete['check_images']) : '';
+                $complete['check_images'] = $this->getOssUrlByImageKey($complete['check_images']);
             }else{
                 $complete = [];
             }
