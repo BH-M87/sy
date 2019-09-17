@@ -24,8 +24,8 @@ class DingMessageService extends BaseService
         $sendData['markdown'] = $title;
         $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
         $sendData['single_title'] = $departName."|".$operator_name." ".date('Y-m-d H:i',$create_at);
-        $query = urlencode("id=".$id);
-        $sendData['single_url'] = 'eapp://page=pages/noticeDetails/noticeDetails?query='.$query;//钉钉端详情页的地址
+        //$query = urlencode("id=".$id);
+        $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails?id='.$id;//钉钉端详情页的地址
         $result['data'] = $this->sendMessage(1,$sendData);
         $result['userList'] = $dingdingList ? $dingdingList: [];
         return $result;

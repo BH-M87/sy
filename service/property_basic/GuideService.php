@@ -158,6 +158,11 @@ Class GuideService extends BaseService
         if (!$model) {
             return $this->failed('数据不存在');
         }
+        
+        if (strstr($params['img_url'], 'http')) {
+            unset($params['img_url']);
+        }
+
         //数据验证
         $checkModel = new PsGuide(['scenario' => 'update']);
         if($checkModel->load($params,'') && $checkModel->validate()){
