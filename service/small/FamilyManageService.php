@@ -236,9 +236,14 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
             }
             $model->member_id = $member_id;
             if (empty($model->member_id)){
