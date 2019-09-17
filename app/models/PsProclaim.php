@@ -107,7 +107,7 @@ class PsProclaim extends BaseModel
     {
         foreach ($list as &$v) {
             $v['img_url'] = F::ossImagePath($v['img_url']);
-            $v['show_at'] = date('Y-m-d H:i', $v['show_at']);
+            $v['show_at'] = !empty($v['show_at']) ? date('Y-m-d H:i', $v['show_at']) : '';
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
             $v['proclaim_type_desc'] = self::$proclaim_type[$v['proclaim_type']];
             $v['proclaim_cate_desc'] = self::$proclaim_cate[$v['proclaim_cate']];
