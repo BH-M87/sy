@@ -610,7 +610,8 @@ class MemberService extends BaseService
 
             //根据手机号查找党员
             $communistInfo = StCommunist::find()
-                ->where(['mobile' => $mobile])
+                ->where(['mobile' => $mobile, 'is_del' => 1])
+                ->asArray()
                 ->one();
             if ($communistInfo) {
                 //查找党员
