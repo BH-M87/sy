@@ -172,7 +172,7 @@ class PioneerRanKingService extends BaseService
         $communist['join_party_time'] = date('Y-m-d H:i:s',$communist['join_party_time']);
         $communist['formal_time'] = date('Y-m-d H:i:s',$communist['formal_time']);
         $communist['birth_time'] = date('Y-m-d H:i:s',$communist['birth_time']);
-        $communist['type_info'] = StCommunist::$type_desc[$communist['type']]
+        $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
 
         $params['years'] = date('Y',time());
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
