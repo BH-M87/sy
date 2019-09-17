@@ -377,17 +377,19 @@ class XzTaskService extends BaseService
             $detail['end_time'] = date('Y-m-d', $detail['end_date']);
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
-            $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
             switch ($detail['exec_type']) {
                 case "2":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $week = F::getWeekChina($detail['interval_y']);
                     $interval_y_desc = $exec_type_desc . '的' . $week . "执行";
                     break;
                 case "3":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $month = $detail['interval_y'];
                     $interval_y_desc = $exec_type_desc . '的' . $month . "号执行";
                     break;
                 default:
+                    $exec_type_desc ='';
                     $interval_y_desc = '';
             }
             $detail['exec_type_desc'] = $exec_type_desc;
