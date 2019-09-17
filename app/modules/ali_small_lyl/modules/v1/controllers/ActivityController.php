@@ -26,6 +26,8 @@ class ActivityController extends UserBaseController
 	// 活动 列表 {"community_id":"127","user_id":"194","page":"1","rows":"5"}
     public function actionList()
     {
+        $this->params['small'] = 1; // 标记小程序
+        
         $r = ActivityService::service()->list($this->params);
 
         return self::dealReturnResult($r);
