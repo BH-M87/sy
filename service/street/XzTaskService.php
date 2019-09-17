@@ -692,12 +692,13 @@ class XzTaskService extends BaseService
                 $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
                 $list[$key]['task_attribute_id_desc'] = $task_attribute['name'];
                 $list[$key]['task_type_desc'] = $this->type_info[$value['task_type']];
-                $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);
+                $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);//执行时间
                 if(!empty($value['exec_type'])){
                     $list[$key]['exec_type_desc'] = $this->exec_type_info[$value['exec_type']]."任务";
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
+                $list[$key]['complete_time']  = $value['check_at'] ? date("Y-m-d",$value['check_at']) : "";//完成时间
 
             }
         }else{
