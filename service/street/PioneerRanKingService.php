@@ -181,11 +181,15 @@ class PioneerRanKingService extends BaseService
             ->where(['sts.communist_id' => $communist['id']])
             ->andFilterWhere(['>','sts.create_at',$params['start']])
             ->andFilterWhere(['<','sts.create_at',$params['end']]);
+        $wait_aduit_num = clone  $model;
+        $aduit_done_num = clone  $model;
+        $wait_do_num = clone  $model;
+        $cancel_done_num = clone  $model;
         $communist['task_statistics_info']['totals_num'] = $model->count();
-        $communist['task_statistics_info']['wait_aduit_num'] = $model->andWhere(['sts.status' => 2])->count();
-        $communist['task_statistics_info']['aduit_done_num'] =$model->andWhere(['sts.status' => 3])->count();
-        $communist['task_statistics_info']['wait_do_num'] =$model->andWhere(['sts.status' => 1])->count();
-        $communist['task_statistics_info']['cancel_done_num'] =$model->andWhere(['sts.status' => 4])->count();
+        $communist['task_statistics_info']['wait_aduit_num'] = $wait_aduit_num->andWhere(['sts.status' => 2])->count();
+        $communist['task_statistics_info']['aduit_done_num'] =$aduit_done_num->andWhere(['sts.status' => 3])->count();
+        $communist['task_statistics_info']['wait_do_num'] =$wait_do_num->andWhere(['sts.status' => 1])->count();
+        $communist['task_statistics_info']['cancel_done_num'] =$cancel_done_num->andWhere(['sts.status' => 4])->count();
         $checkUser = CommunistService::service()->getUser($params['user_id']);
         $communist['is_communist'] = $checkUser ? 1 : 0;
         return $communist;

@@ -41,12 +41,9 @@ class UserService extends BaseService
         if (!$user_info) {
             throw new MyException("用户不存在！");
         }
-        if($user_info){
-            //根据所属的组织，查找拥有的小区权限
-            $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
-        }else{
-            $user_info = [];
-        }
+        //根据所属的组织，查找拥有的小区权限
+        $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
+        $user_info['truename'] = $user_info['username'];
         return $user_info;
     }
 

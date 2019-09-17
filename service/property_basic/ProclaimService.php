@@ -174,7 +174,8 @@ class ProclaimService extends BaseService
             $m['proclaim_type_desc'] = PsProclaim::$proclaim_type[$m['proclaim_type']];
             $m['proclaim_cate_desc'] = PsProclaim::$proclaim_cate[$m['proclaim_cate']];
             $m['is_top_desc'] = $m['is_top'] == 2 ? '是' : '否';
-            $m['receive'] = PsProclaimCommunity::find()->Alias('A')->select('B.id, B.name, B.event_community_no')
+            $m['receive'] = PsProclaimCommunity::find()->Alias('A')
+                ->select('B.name as xqOrgName, B.event_community_no as xqOrgCode')
                 ->leftJoin('ps_community B', 'B.id = A.community_id')
                 ->where(['proclaim_id' => $m['id']])->asArray()->all();
         }
