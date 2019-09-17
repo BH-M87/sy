@@ -80,13 +80,13 @@ class CommunityGroupService extends BaseService {
     {
         $group = $this->checkGroups($data['group_name'], 2, $data['community_id']);
         if (!empty($group)) {
-            return PsCommon::responseFailed('苑期区名称已存在');
+            return PsCommon::responseFailed('区域名称已存在');
         }
 
         $data['group_code'] = !empty($data['group_code']) ? $this->getFillZeroCode($data['group_code']): '';
         $group = $this->checkGroups($data['group_code'], 3, $data['community_id']);
         if (!empty($group)) {
-            return PsCommon::responseFailed("苑期区编码已存在");
+            return PsCommon::responseFailed("区域编码已存在");
         }
         $res = $this->saveGroup($data);
         if ($res['code']) {
