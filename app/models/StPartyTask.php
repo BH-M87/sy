@@ -131,9 +131,9 @@ class StPartyTask extends BaseModel
         foreach ($data as &$v) {
             //领取时间取新增时间
             if ($v['status'] == 1) {
-                $v['created_at'] = date('Y-m-d H:i:s',$v['create_at']);
+                $v['created_at'] = date('Y-m-d H:i',$v['create_at']);
             } else {
-                $v['created_at'] = date('Y-m-d H:i:s',$v['update_at']);
+                $v['created_at'] = date('Y-m-d H:i',$v['update_at']);
             }
             if ($v['status'] == 3 || $v['status'] == 4) {
                 $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $v['id']])->one();
@@ -191,7 +191,7 @@ class StPartyTask extends BaseModel
                 if ($v['expire_time'] < time()) {
                     $v['expire_time'] = '已过期';
                 } else {
-                    $v['expire_time'] = date('Y-m-d H:i:s',$v['expire_time']);
+                    $v['expire_time'] = date('Y-m-d H:i',$v['expire_time']);
                 }
             } else {
                 $v['expire_time'] = '长期有效';
