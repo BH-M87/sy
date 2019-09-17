@@ -50,11 +50,7 @@ class ActivityController extends BaseController
     {
         $r = ActivityService::service()->list($this->request_params);
 
-        if ($r['code']) {
-            return PsCommon::responseSuccess($r['data']);
-        } else {
-            return PsCommon::responseFailed($r['msg']);
-        }
+        PsCommon::responseSuccess($r);
     }
 
     // 社区活动 删除
