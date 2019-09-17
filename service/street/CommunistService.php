@@ -173,8 +173,8 @@ class CommunistService extends BaseService
         $info['formal_time'] = $info['formal_time'] ? date("Y-m-d", $info['formal_time']) : '';
         $info['type_info'] = $this->_types[$info['type']];
         $info['station_info'] = [
-            'id' => $info['station_id'],
-            'name' => $info['station']
+            'id' => $info['station_id'] ? $info['station_id'] : '',
+            'name' => $info['station'] ? $info['station'] : ''
         ];
         unset($info['type']);
         unset($info['station']);
