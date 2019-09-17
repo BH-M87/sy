@@ -44,6 +44,13 @@ $config =  [
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['smallapp'],
+                    'logFile' => '@app/runtime/logs/smallapp.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
             ],
         ],
         'errorHandler' => [
