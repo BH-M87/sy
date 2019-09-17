@@ -208,7 +208,7 @@ class RepairTypeService extends BaseService
     public function getRepairTypeTree($params)
     {
         $model = $this->getRepairTypeList($params);
-        return self::dealRepairType($model);
+        return self::dealRepairType($model['list']);
     }
 
     //小程序报修类目树，结构与后台不一样
