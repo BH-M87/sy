@@ -158,12 +158,14 @@ class FamilyManageService extends BaseService
         $userInfoArray = self::checkUserInfo($params['user_id'], $params['room_id'], $params);
 
         $member_id = $userInfoArray['member_id'];
+        var_dump($member_id);die;
         //验证房屋信息是否存在
         if (!empty($member_id)) {
             RoomUserService::checkRoomExist($params['room_id'], $member_id, 3);
         }
         //判断小区是否需要查询审核表的家人与租客
         $is_family = ResidentService::service()->getCommunityConfig($params['community_id']);
+        var_dump($is_family);die;
         if ($is_family == 2) {//说明需要查询审核表的家人与租客
             self::packageResident($params, $userInfoArray);
         } else {

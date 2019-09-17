@@ -103,6 +103,7 @@ class XzTaskService extends BaseService
             $task_type = PsCommon::get($data, 'task_type', 1);
             if($task_type == 1){
                 $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
+                var_dump($timeList);die;
                 if (empty($timeList)) {
                     throw new MyException('任务日期内无执行该任务的日期');
                 }
@@ -210,7 +211,7 @@ class XzTaskService extends BaseService
                 $week = date('W', $for_date);//计算当前日子是第几周
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
-                $remainder = ($week - $w_start) % $interval_x;//区余数，能整除表示满足条件
+                $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
                 if ($remainder == 0 && $w == $interval_y && $for_date > $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
@@ -219,8 +220,8 @@ class XzTaskService extends BaseService
             if ($interval_x == '3') {
                 $m_start = date('m', $start_date);//计算开始时间所在的月份
                 $m = date('m', $for_date);//计算当前日子是几月
-                $d = date('d', $for_date);//计算当前日子是几号
-                $remainder = ($m - $m_start) % $interval_x;//区余数，能整除表示满足条件
+                $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
+                $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
                 if ($remainder == 0 && $d == $interval_y && $for_date > $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
