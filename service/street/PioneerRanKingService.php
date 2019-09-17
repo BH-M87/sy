@@ -14,6 +14,7 @@ use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
+use common\core\F;
 use common\MyException;
 use service\BaseService;
 
@@ -171,6 +172,7 @@ class PioneerRanKingService extends BaseService
         $communist['formal_time'] = date('Y-m-d',$communist['formal_time']);
         $communist['birth_time'] = date('Y-m-d',$communist['birth_time']);
         $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
+        $communist['image'] = F::getOssImagePath($communist['image']);
 
         $params['years'] = date('Y',time());
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
