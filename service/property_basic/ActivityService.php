@@ -27,6 +27,10 @@ class ActivityService extends BaseService
     // 活动 编辑
     public function edit($p, $scenario = 'edit')
     {
+        if (strstr($p['picture'], 'http')) {
+            unset($p['picture']);
+        }
+
         return $this->_saveActivity($p, $scenario);
     }
 
