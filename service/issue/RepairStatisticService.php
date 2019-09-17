@@ -13,6 +13,7 @@ use app\models\PsRepairAppraise;
 use app\models\PsRepairType;
 use common\core\PsCommon;
 use service\BaseService;
+use yii\db\Query;
 
 class RepairStatisticService extends BaseService
 {
@@ -136,11 +137,19 @@ class RepairStatisticService extends BaseService
 
     private function getOrderStatistic($community_id, $day, $type)
     {
-        $model = PsRepair::find()->where(["community_id" => $community_id]);
+        $query = new Query();
+        $query->from('ps_repair')->where(["community_id" => $community_id]);
         $start = strtotime(date('Y-m-d', strtotime('-1 ' . $day)) . " 00:00:00");
-        $end = strtotime(date('Y-m-d', strtotime('-1 day')) . " 23:59:59");
-        $model->andFilterWhere(['between', 'create_at', $start, $end]);
-        $list = $model->asArray()->all();
+        $end = strtotime(date('Y-m-d', time()) . " 23:59:59");
+        if ($start) {
+            $query->andWhere(['>=', 'create_at', $start]);
+        }
+        if ($end) {
+            $query->andWhere(['<=', 'create_at', $end]);
+        }
+        $command = $query->createCommand();
+        $list = $command->queryAll();
+
         $process = 0;   //待处理
         $confirm = 0;   //待确定
         $reject = 0;    //驳回
@@ -222,7 +231,7 @@ class RepairStatisticService extends BaseService
         if ($type == 'channel') {
             $return = compact('life', 'property', 'dingding', 'front', 'phone', 'reviews');
         }
-        $return['total_num'] = (int)$model->count();
+        $return['total_num'] = count($list);
         return $return;
     }
 

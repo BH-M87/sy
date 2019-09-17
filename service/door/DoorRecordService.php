@@ -90,7 +90,7 @@ class DoorRecordService extends BaseService
             $model = $model->andFilterWhere(['dr.room'=>$params['room']]);
         }
         $re['totals'] = $model->count();
-        $list = $model->offset((($params['page'] - 1) * $params['page']))
+        $list = $model->offset((($params['page'] - 1) * $params['rows']))
             ->limit($params['rows'])
             ->orderBy('dr.id desc')
             ->asArray()

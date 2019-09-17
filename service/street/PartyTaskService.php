@@ -14,6 +14,7 @@ use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
 use app\models\StPartyTaskStation;
+use app\models\StRemind;
 use app\models\StStation;
 use common\core\F;
 use common\MyException;
@@ -165,13 +166,18 @@ class PartyTaskService extends BaseService
             throw new MyException('ID错误');
         }
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party->id])->one();
-        if ($record->operate_type != 1) {
+        if ($record) {
             throw new MyException('该任务已经处理过');
         }
+        $record = new StPartyTaskOperateRecord();
+        $record->party_task_station_id = $party->id;
+        $record->task_id = $party->task_id;
         $record->operate_type = 3;
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
         $record->content = $params['content'];
+        $record->communist_id = $party->communist_id;
+        $record->create_at = time();
         $party->status = 4;
         $party->update_at = time();
         $party->save();
@@ -188,7 +194,7 @@ class PartyTaskService extends BaseService
     public function cancelInfo($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
+        $party = StPartyTaskStation::find()->where(['id' => $params['id']])->one();
         if (!$party) {
             throw new MyException('ID错误');
         }
@@ -353,6 +359,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
+        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$task_station->id);
     }
 
     /**
@@ -519,8 +526,31 @@ class PartyTaskService extends BaseService
         $party->update_at = time();
         $party->save();
         $record->save();
+        $this->addRemind($communist['id'],'又有党员提交任务啦，快去看看吧！',2,$party->id);
     }
 
+    /**
+     *
+     * @author yjh
+     * @param $communist_id
+     * @param $content
+     * @param $type 1 党员任务认领  2党员任务审核
+     * @param $related_id
+     * @throws MyException
+     */
+    public function addRemind($communist_id,$content,$type,$related_id)
+    {
+        $communist = $this->getCommunist($communist_id);
+        $remind = new StRemind();
+        $remind->organization_type = $communist['organization_type'];
+        $remind->organization_id = $communist['organization_id'];;
+        $remind->content = $content;
+        $remind->remind_type = $type;
+        $remind->related_id = $related_id;
+        $remind->create_at = time();
+        $remind->save();
+        unset($remind);
+    }
 
     /**
      * 检查是不是党员
@@ -531,7 +561,14 @@ class PartyTaskService extends BaseService
      */
     public function checkUser($user_id)
     {
-        $app_user = StCommunistAppUser::find()->where(['app_user_id' => $user_id])->asArray()->one();
+        $app_user = StCommunistAppUser::find()
+            ->alias('scu')
+            ->leftJoin('st_communist st', 'scu.communist_id = st.id')
+            ->where(['scu.app_user_id' => $user_id, 'st.is_del' => 1])
+            ->orderBy('id desc')
+            ->limit(1)
+            ->asArray()
+            ->one();
         if (empty($app_user)) {
             throw new MyException('系统发现您非党员，请与管理员核实');
         }
