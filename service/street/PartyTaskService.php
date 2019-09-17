@@ -9,6 +9,7 @@
 namespace service\street;
 
 
+use app\models\StCommunist;
 use app\models\StCommunistAppUser;
 use app\models\StPartyTask;
 use app\models\StPartyTaskOperateRecord;
@@ -341,14 +342,14 @@ class PartyTaskService extends BaseService
     public function getSmallTask($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $app_user = $this->checkUser($params['user_id']);
-        $task_station = StPartyTaskStation::find()->where(['communist_id' => $app_user['communist_id'],'task_id' => $params['id']])->orderBy('id desc')->limit(1)->one();
+        $communist = $this->checkUser($params['user_id']);
+        $task_station = StPartyTaskStation::find()->where(['communist_id' => $communist['id'],'task_id' => $params['id']])->orderBy('id desc')->limit(1)->one();
         if ($task_station && $task_station->status != 3) {
             throw new MyException('任务未完成则不可重复认领');
         }
         $party_task = new StPartyTaskStation;
         $party_task->task_id = $params['id'];
-        $party_task->communist_id = $app_user['communist_id'];
+        $party_task->communist_id = $communist['id'];
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
@@ -364,12 +365,12 @@ class PartyTaskService extends BaseService
     public function getSmallDetail($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $app_user = $this->checkUser($params['user_id']);
+        $communist = $this->checkUser($params['user_id']);
         $task = StPartyTask::find()->where(['id' => $params['id']])->asArray()->one();
         if (!$task) {
             throw new MyException('该任务不存在');
         }
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $communist['id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
 //        $task['expire_time'] = date('Y-m-d',$task['expire_time']);
         $d = floor(($task['expire_time']-time())/3600/24);
@@ -404,9 +405,9 @@ class PartyTaskService extends BaseService
      */
     public function getUserTaskList($params)
     {
-        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $communist = PartyTaskService::service()->checkUser($params['user_id']);
         $params['status'] = empty($params['status']) ? '1' : $params['status'];
-        $params['communist_id'] = $user['communist_id'];
+        $params['communist_id'] = $communist['id'];
         return StPartyTask::getUserList($params);
     }
 
@@ -420,8 +421,8 @@ class PartyTaskService extends BaseService
     public function getSmallTaskMyDetail($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $app_user = $this->checkUser($params['user_id']);
-        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        $communist = $this->checkUser($params['user_id']);
+        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $communist['id']])->one();
         if (!$party) {
             throw new MyException('该任务不存在');
         }
@@ -485,12 +486,12 @@ class PartyTaskService extends BaseService
     public function completeTask($params)
     {
         if (empty($params['id']) || empty($params['content'])) throw new MyException('参数错误');
-        $app_user = $this->checkUser($params['user_id']);
+        $communist = $this->checkUser($params['user_id']);
         if (!empty($params['images'])) {
             if (count($params['images']) > 5) throw new MyException('图片不能超过5张');
         }
         if (mb_strlen($params['content']) > 500) throw new MyException('完成情况不能大于500字');
-        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $app_user['communist_id']])->one();
+        $party = StPartyTaskStation::find()->where(['id' => $params['id'],'communist_id' => $communist['id']])->one();
         if (!$party) {
             throw new MyException('该任务不存在');
         } else {
@@ -513,7 +514,7 @@ class PartyTaskService extends BaseService
         $record->info = $params['content'];
         $record->create_at = time();
         $record->images = implode(',',$params['images']);
-        $record->communist_id = $app_user['communist_id'];
+        $record->communist_id = $communist['id'];
         $party->status = 2;
         $party->update_at = time();
         $party->save();
@@ -534,8 +535,23 @@ class PartyTaskService extends BaseService
         if (empty($app_user)) {
             throw new MyException('系统发现您非党员，请与管理员核实');
         }
-        return $app_user;
+        return $this->getCommunist($app_user['communist_id']);
     }
 
+    /**
+     * 获取党员数据
+     * @author yjh
+     * @param $id
+     * @return array|\yii\db\ActiveRecord|null
+     * @throws MyException
+     */
+    public function getCommunist($id)
+    {
+        $communist = StCommunist::find()->where(['id' => $id,'is_del' => 1])->asArray()->one();
+        if (empty($communist)) {
+            throw new MyException('该党员不存在');
+        }
+        return $communist;
+    }
 
 }
