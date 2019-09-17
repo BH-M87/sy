@@ -171,6 +171,7 @@ class PioneerRanKingService extends BaseService
         $communist = StCommunist::find()->where(['id' => $user['communist_id']])->asArray()->one();
         $communist['join_party_time'] = date('Y-m-d H:i:s',$communist['join_party_time']);
         $communist['formal_time'] = date('Y-m-d H:i:s',$communist['formal_time']);
+        $communist['birth_time'] = date('Y-m-d H:i:s',$communist['birth_time']);
         $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
 
         $params['years'] = date('Y',time());
@@ -189,7 +190,6 @@ class PioneerRanKingService extends BaseService
         $communist['task_statistics_info']['cancel_done_num'] =$model->andWhere(['sts.status' => 4])->count();
         $checkUser = CommunistService::service()->getUser($params['user_id']);
         $communist['is_communist'] = $checkUser ? 1 : 0;
-
         return $communist;
     }
 }

@@ -150,7 +150,7 @@ class PartyTaskController extends BaseController
      */
     public function actionGetReceiveCount()
     {
-        $data = PartyTaskService::service()->getReceiveCount();
+        $data = PartyTaskService::service()->getReceiveCount($this->request_params);
         return PsCommon::responseSuccess($data);
     }
 
