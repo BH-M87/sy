@@ -149,7 +149,7 @@ class RepairStatisticService extends BaseService
         }
         $command = $query->createCommand();
         $list = $command->queryAll();
-       
+
         $process = 0;   //待处理
         $confirm = 0;   //待确定
         $reject = 0;    //驳回
