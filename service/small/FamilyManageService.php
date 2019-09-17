@@ -441,7 +441,7 @@ class FamilyManageService extends BaseService
             $model->setAttributes($data);
             $result = $model->save();
             if (!$result) {
-                throw new MyException('新增住户失败');
+                throw new MyException('新增住户失败:'.$model->getErrors());
             }
             $trans->commit();
         } catch (\Exception $e) {
