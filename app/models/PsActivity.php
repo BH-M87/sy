@@ -137,7 +137,7 @@ class PsActivity extends BaseModel
             if (!empty($p['small'])) { // 小程序的列表
                 $list = $m->orderBy('is_top desc, top_time desc, created_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             } else {
-                $list = $m->orderBy('id1 desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+                $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             }
             self::afterList($list);
         }
