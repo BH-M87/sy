@@ -9,6 +9,7 @@ namespace service\street;
 
 use app\models\StNotice;
 use app\models\StNoticeUser;
+use app\models\UserInfo;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -77,9 +78,11 @@ class NoticeService extends BaseService
      */
     public function getUserInfoByNoticeId($id)
     {
-        $list = StNoticeUser::find()->select(['receive_user_id as user_id', 'receive_user_name as user_name'])
-            ->where(['notice_id' => $id])
-            ->andWhere(['>','receive_user_id',0])
+        $list = StNoticeUser::find()->alias('nu')
+            ->select(['mu.receive_user_id as user_id', 'mu.receive_user_name as user_name'])
+            ->leftJoin(['u'=>UserInfo::tableName()],'u.id = mu.receive_user_id')
+            ->where(['mu.notice_id' => $id])
+            ->andWhere(['>','mu.receive_user_id',0])
             ->asArray()->all();
         if ($list) {
             return $list;
