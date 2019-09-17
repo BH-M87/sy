@@ -17,7 +17,7 @@ Class DeviceController extends BaseController
 
         $arr = explode('/', $this->request_params['file_url']);
 
-        $downUrl = F::downloadUrl($this->systemType, $arr[count($arr) - 1], 'file', $file_name);
+        $downUrl = F::downloadUrl($this->systemType, 'file', $file_name);
 
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }

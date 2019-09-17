@@ -81,13 +81,14 @@ class BaseService extends \service\BaseService
 
     public function getOssUrlByImageKey($imageKey)
     {
+        $list = [];
         if(!empty($imageKey)){
             $images = explode(',',$imageKey);
             foreach($images as $key =>$value){
-                $imageKey[] = F::getOssImagePath($value);
+                $list[] = F::getOssImagePath($value);
             }
         }
-        return $imageKey;
+        return $list;
     }
 
 }

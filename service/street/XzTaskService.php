@@ -9,6 +9,7 @@
 namespace service\street;
 
 
+use app\models\StRemind;
 use app\models\StXzTask;
 use app\models\StXzTaskAttribute;
 use app\models\StXzTaskTemplate;
@@ -376,17 +377,19 @@ class XzTaskService extends BaseService
             $detail['end_time'] = date('Y-m-d', $detail['end_date']);
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
-            $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
             switch ($detail['exec_type']) {
                 case "2":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $week = F::getWeekChina($detail['interval_y']);
                     $interval_y_desc = $exec_type_desc . '的' . $week . "执行";
                     break;
                 case "3":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $month = $detail['interval_y'];
                     $interval_y_desc = $exec_type_desc . '的' . $month . "号执行";
                     break;
                 default:
+                    $exec_type_desc ='';
                     $interval_y_desc = '';
             }
             $detail['exec_type_desc'] = $exec_type_desc;
@@ -753,6 +756,12 @@ class XzTaskService extends BaseService
         $submit['check_location'] = $data['check_location'];
         $submit['check_at'] = time();
         StXzTask::updateAll($submit,['id'=>$id]);
+        $organization_type = $detail['organization_type'];
+        $organization_id = $detail['organization_id'];
+        $content = $detail['check_content'];
+        $type = 3;
+        $related_id = $id;
+        PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
         return "提交成功";
     }
 

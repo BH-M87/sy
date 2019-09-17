@@ -359,7 +359,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
-        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$task_station->id);
+        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$party_task->id);
     }
 
     /**
@@ -541,9 +541,24 @@ class PartyTaskService extends BaseService
     public function addRemind($communist_id,$content,$type,$related_id)
     {
         $communist = $this->getCommunist($communist_id);
+        $organization_type = $communist['organization_type'];
+        $organization_id = $communist['organization_id'];
+        $this->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
+    }
+
+    /**
+     * 保存数据到st_remind表
+     * @param $organization_type
+     * @param $organization_id
+     * @param $content
+     * @param $type
+     * @param $related_id
+     */
+    public function addStRemind($organization_type,$organization_id,$content,$type,$related_id)
+    {
         $remind = new StRemind();
-        $remind->organization_type = $communist['organization_type'];
-        $remind->organization_id = $communist['organization_id'];;
+        $remind->organization_type = $organization_type;
+        $remind->organization_id = $organization_id;
         $remind->content = $content;
         $remind->remind_type = $type;
         $remind->related_id = $related_id;

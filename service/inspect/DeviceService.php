@@ -650,6 +650,7 @@ class DeviceService extends BaseService
         }         
   
         $model['start_at'] = date('Y-m-d', $model['start_at']);
+        $model['file_url'] = F::getOssImagePath($model['file_url']);
         $model['end_at'] = date('Y-m-d', $model['end_at']);
         $model['check_at'] = date('Y-m-d', $model['check_at']);
         $model['status_name'] = $model['status'] == 1 ? '合格' : '不合格';
@@ -823,6 +824,7 @@ class DeviceService extends BaseService
             return $this->failed('您没有权限');
         }
 
+        $model['file_url'] = F::getOssImagePath($model['file_url']);
         $model['scene_at'] = date('Y-m-d H:i', $model['scene_at']);
         $model['happen_at'] = date('Y-m-d H:i', $model['happen_at']);
         $model['device_name'] = PsDevice::find()->select('name')->where(['id' => $model['device_id']])->scalar();
