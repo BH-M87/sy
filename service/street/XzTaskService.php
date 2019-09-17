@@ -103,7 +103,6 @@ class XzTaskService extends BaseService
             $task_type = PsCommon::get($data, 'task_type', 1);
             if($task_type == 1){
                 $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
-                var_dump($timeList);die;
                 if (empty($timeList)) {
                     throw new MyException('任务日期内无执行该任务的日期');
                 }
