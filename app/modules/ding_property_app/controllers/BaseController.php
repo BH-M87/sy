@@ -20,6 +20,7 @@ class BaseController extends Controller
     public $page = 1;
     public $pageSize = 20;
     public $repeatAction = [];//验证重复请求的方法数组
+    public $userId;
 
     //允许访问的域名
     //TODO 验证请求域名
@@ -58,6 +59,7 @@ class BaseController extends Controller
         $this->request_params = $params ? $params : [];
         $this->page = (integer)F::value($params, 'page', $this->page);
         $this->pageSize = (integer)F::value($params, 'rows', $this->pageSize);
+        $this->userId = F::value($params, 'user_id', 0);
 
         \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params),'api');
 
