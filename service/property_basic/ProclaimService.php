@@ -67,6 +67,7 @@ class ProclaimService extends BaseService
             $m->save();
 
             if (!empty($p['receive'])) {
+                PsProclaimCommunity::deleteAll(['proclaim_id' => $m->id]);
                 foreach ($p['receive'] as $k => $v) {
                     $pc = new PsProclaimCommunity();
                     $pc->community_id = $v;
