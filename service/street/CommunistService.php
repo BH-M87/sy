@@ -117,7 +117,7 @@ class CommunistService extends BaseService
                     ->asArray()
                     ->column();
                 if ($appUserIds) {
-                    $re = $this->_bindCommunistAppUserIds($appUserIds, $model->id);
+                    $this->_bindCommunistAppUserIds($appUserIds, $model->id);
                 }
             }
             return $model->id;
@@ -326,7 +326,7 @@ class CommunistService extends BaseService
             $insert_data['communist_id'][] = $communistId;
             $insert_data['app_user_id'][] = $value;
         }
-        return StCommunist::model()->batchInsert($insert_data);
+        return StCommunistAppUser::model()->batchInsert($insert_data);
     }
 
     public function getUser($user_id)

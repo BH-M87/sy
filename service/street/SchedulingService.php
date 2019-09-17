@@ -99,10 +99,10 @@ class SchedulingService extends BaseService
                 ->asArray()
                 ->one();
             if (!$userInfo) {
-                throw new MyException($v."，此用户不存在");
+                throw new MyException("用户不存在");
             }
             if (in_array($v, $userIds)) {
-                throw new MyException($v."，此用户已存在，不能重复添加");
+                throw new MyException($userInfo['user_name']."，此用户已存在，不能重复添加");
             }
             array_push($userIds, $v);
 
