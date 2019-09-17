@@ -59,9 +59,9 @@ Class BaseController extends CoreController
             return false;
         }
         $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
-        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr,'api');
         $this->communityId  = F::request('community_id');
         $this->userId = F::request('user_id');
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
