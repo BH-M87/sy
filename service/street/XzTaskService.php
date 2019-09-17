@@ -684,7 +684,7 @@ class XzTaskService extends BaseService
 
         $model = $this->searchMyList($data);
         $offset = ($page - 1) * $pageSize;
-        $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type'])
+        $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type','t.check_at'])
             ->offset($offset)->limit($pageSize)->orderBy('t.id desc')->asArray()->all();
         $count = $model->count();
         if($list){
@@ -698,7 +698,7 @@ class XzTaskService extends BaseService
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
-                $list[$key]['complete_time']  = $value['check_at'] ? date("Y-m-d",$value['check_at']) : "";//完成时间
+                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d",$value['check_at']) : "";//完成时间
 
             }
         }else{
