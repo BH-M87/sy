@@ -49,7 +49,7 @@ class RepairTypeService extends BaseService
 
         $re['totals'] = $query->count();
         $query->orderBy('level,created_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
         $list = $query->asArray()->all();
         if ($list) {
