@@ -689,7 +689,12 @@ class XzTaskService extends BaseService
                 $list[$key]['task_attribute_id_desc'] = $task_attribute['name'];
                 $list[$key]['task_type_desc'] = $this->type_info[$value['task_type']];
                 $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);
-                $list[$key]['exec_type_desc'] = $this->exec_type_info[$value['exec_type']]."任务";
+                if(!empty($value['exec_type'])){
+                    $list[$key]['exec_type_desc'] = $this->exec_type_info[$value['exec_type']]."任务";
+                }else{
+                    $list[$key]['exec_type_desc'] ='';
+                }
+
             }
         }else{
             $list = [];
