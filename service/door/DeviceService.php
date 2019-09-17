@@ -112,7 +112,7 @@ class DeviceService extends BaseService
         $re['totals'] = count(array_unique(array_column($models, 'id')));
         $query->select(['dd.*','is.name as supplier_name'])->distinct();
         $query->orderBy('dd.create_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
 
         $command = $query->createCommand();

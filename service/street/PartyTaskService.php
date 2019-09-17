@@ -176,6 +176,8 @@ class PartyTaskService extends BaseService
         $record->operator_id = $params['operator_id'];
         $record->operator_name = $params['operator_name'];
         $record->content = $params['content'];
+        $record->communist_id = $party->communist_id;
+        $record->create_at = time();
         $party->status = 4;
         $party->update_at = time();
         $party->save();
@@ -192,7 +194,7 @@ class PartyTaskService extends BaseService
     public function cancelInfo($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
+        $party = StPartyTaskStation::find()->where(['id' => $params['id']])->one();
         if (!$party) {
             throw new MyException('ID错误');
         }
@@ -357,7 +359,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
-        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$task_station->id);
+        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$party_task->id);
     }
 
     /**
