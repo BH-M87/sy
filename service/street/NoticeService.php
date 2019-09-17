@@ -58,7 +58,8 @@ class NoticeService extends BaseService
         $title = PsCommon::get($data, 'title');
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
-        $model = StNotice::find()->andFilterWhere(['type' => $type])->andFilterWhere(['title' => $title]);
+        $model = StNotice::find()->andFilterWhere(['type' => $type])
+            ->andFilterWhere(['like','title',$title]);
         //如果搜索了发布时间
         if ($date_start && $date_end) {
             $start_time = strtotime($date_start . " 00:00:00");
@@ -170,7 +171,7 @@ class NoticeService extends BaseService
         foreach ($list as $key => $value) {
             $saveData['notice_id'][] = $id;
             $saveData['receive_user_id'][] = $value;
-            $saveData['receive_user_name'][] = $id;
+            $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
             $saveData['is_send'][] = 1;
             $saveData['is_read'][] = 1;
             $saveData['create_at'][] = time();
@@ -345,12 +346,29 @@ class NoticeService extends BaseService
      */
     public function getMydetail($data)
     {
+        \Yii::info("dingDetail:".json_encode($data),"api");
         $detail = $this->detail($data);
         if($detail && $detail['is_read'] == 1){
             //更新这条记录已读
             StNoticeUser::updateAll(['is_read'=>2],['notice_id'=>$data['id'],'receive_user_id'=>$data['user_id']]);
         }
         return $detail;
+    }
+
+    public function fix($data,$type=1)
+    {
+        switch($type){
+            case "1":
+                $list = StNoticeUser::find()->where("1=1")->asArray()->all();
+                if($list){
+                    foreach($list as $key =>$value){
+                        $receive_user_name = UserService::service()->getUserNameById($value['receive_user_id']);
+                        StNoticeUser::updateAll(['receive_user_name'=>$receive_user_name],['id'=>$value['id']]);
+                    }
+                }
+                break;
+
+        }
     }
 
 

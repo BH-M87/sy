@@ -719,7 +719,7 @@ Class HouseService extends BaseService
                 $house['lift_shared_msg'] = $house['lift_shared_id'] ? SharedService::service()->getNameById($house['lift_shared_id']) : 'X';
                 $house_type = explode('|',$house['house_type']);
                 $house['house_type'] = $house_type[0]."室".$house_type[1]."厅".$house_type[2]."厨".$house_type[3]."卫";
-                $house['delivery_time'] = !empty($house['delivery_time']) ? date("Y-m-d H:i:s",$house['delivery_time']) : '';
+                $house['delivery_time'] = !empty($house['delivery_time']) ? date("Y-m-d",$house['delivery_time']) : '';
                 $arr[] = $house;
             }
             return $arr;

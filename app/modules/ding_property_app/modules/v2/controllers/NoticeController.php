@@ -9,6 +9,7 @@
 namespace app\modules\ding_property_app\modules\v2\controllers;
 
 
+use app\models\StNoticeForm;
 use common\core\F;
 use service\street\NoticeService;
 
@@ -31,6 +32,7 @@ class NoticeController extends BaseController
      */
     public function actionDetail()
     {
+        StNoticeForm::model()->validParamArr($this->request_params,'detail');
         $result = NoticeService::service()->getMydetail($this->request_params);
         return F::apiSuccess($result);
     }

@@ -7,18 +7,6 @@ use service\property_basic\ProclaimService;
 
 class ProclaimController extends BaseController
 {
-    // 工作台
-    public function actionHome()
-    {
-        $r = ProclaimService::service()->home($this->request_params);
-
-        if ($r['code']) {
-            return PsCommon::responseSuccess($r['data']);
-        } else {
-            return PsCommon::responseFailed($r['msg']);
-        }
-    }
-
     public function beforeAction($action)
     {
         if (!parent::beforeAction($action)) {

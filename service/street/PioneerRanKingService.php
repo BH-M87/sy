@@ -187,6 +187,8 @@ class PioneerRanKingService extends BaseService
         $communist['task_statistics_info']['aduit_done_num'] =$model->andWhere(['sts.status' => 3])->count();
         $communist['task_statistics_info']['wait_do_num'] =$model->andWhere(['sts.status' => 1])->count();
         $communist['task_statistics_info']['cancel_done_num'] =$model->andWhere(['sts.status' => 4])->count();
+        $checkUser = CommunistService::service()->getUser($params['user_id']);
+        $communist['is_communist'] = $checkUser ? 1 : 0;
 
         return $communist;
     }

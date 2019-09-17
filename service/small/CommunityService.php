@@ -19,6 +19,7 @@ use service\rbac\OperateService;
 use service\common\AreaService;
 use service\message\MessageService;
 
+use app\models\PsMember;
 use app\models\PsAppUser;
 use app\models\PsRoomUser;
 use app\models\PsAppMember;
@@ -485,7 +486,7 @@ Class CommunityService extends BaseService
         }
 
         $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member['id']])->asArray()->one();
-        
+
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
