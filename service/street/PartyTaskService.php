@@ -521,6 +521,11 @@ class PartyTaskService extends BaseService
         $record->save();
     }
 
+    public function addRemind($communist_id,$content,$type,$related_id)
+    {
+        $communist = $this->getCommunist($communist_id);
+
+    }
 
     /**
      * 检查是不是党员
