@@ -120,7 +120,7 @@ class PsActivity extends BaseModel
             'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture', 'type'])
             ->filterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
             ->orFilterWhere(['=', 'organization_id', PsCommon::get($p,'organization_id')])
-            ->andFilterWhere(['is_del1' => 1])
+            ->andFilterWhere(['is_del' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
             ->andFilterWhere(['in', 'status', PsCommon::get($p,'status')])
             ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
@@ -137,7 +137,7 @@ class PsActivity extends BaseModel
             if (!empty($p['small'])) { // 小程序的列表
                 $list = $m->orderBy('is_top desc, top_time desc, created_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             } else {
-                $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+                $list = $m->orderBy('id1 desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             }
             self::afterList($list);
         }
