@@ -131,9 +131,18 @@ class PsLabels extends BaseModel
     }
 
     // 标签分类
-    public static function type($index = 0)
+    public static function type($index = 0, $type = 0)
     {
-        $arr = ['1' => '日常画像', '2' => '重点关注', '3' => '关怀对象'];
+        switch ($type) {
+            case '1':
+            case '3':
+                $arr = ['1' => '日常画像', '2' => '重点关注'];
+                break;
+            default:
+                $arr = ['1' => '日常画像', '2' => '重点关注', '3' => '关怀对象'];
+                break;
+        }
+        
         
         if (!empty($index)) {
             return $arr[$index];
