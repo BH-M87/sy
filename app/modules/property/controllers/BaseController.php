@@ -74,11 +74,11 @@ Class BaseController extends CoreController
                 throw new MyException('登录用户id不能为空');
             }
             $userInfo = UserService::service()->getUserById($this->userId);
-            //$userInfo = \service\street\UserService::service()->getUserInfoById($this->userId);
+            $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
             //token验证
             $this->user_info = $userInfo;
-            //$this->communityId = $userInfo['community_id'];
-            //$this->request_params['community_id'] = $userInfo['community_id'];
+            $this->communityId = $community_id[0];
+            $this->request_params['community_id'] = $community_id[0];
             UserService::setUser($this->user_info);
         }
 
