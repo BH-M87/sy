@@ -120,7 +120,7 @@ class PsActivity extends BaseModel
             'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture', 'type'])
             ->filterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
             ->orFilterWhere(['=', 'organization_id', PsCommon::get($p,'organization_id')])
-            ->andFilterWhere(['is_del' => 1])
+            ->andFilterWhere(['is_del1' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
             ->andFilterWhere(['in', 'status', PsCommon::get($p,'status')])
             ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
