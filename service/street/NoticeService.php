@@ -184,6 +184,9 @@ class NoticeService extends BaseService
                 $saveData['send_at'][] = 0;
             }
         }
+        if(empty($saveData)){
+            throw new MyException('请选择至少一个执行人员');
+        }
         StNoticeUser::model()->batchInsert($saveData);
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
         //发送钉钉信息
