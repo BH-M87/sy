@@ -167,8 +167,8 @@ class PioneerRanKingService extends BaseService
     {
         //个人信息
         $communist = PartyTaskService::service()->checkUser($params['user_id']);
-        $communist['join_party_time'] = date('Y-m-d H:i:s',$communist['join_party_time']);
-        $communist['formal_time'] = date('Y-m-d H:i:s',$communist['formal_time']);
+        $communist['join_party_time'] = date('Y-m-d',$communist['join_party_time']);
+        $communist['formal_time'] = date('Y-m-d',$communist['formal_time']);
         $communist['birth_time'] = date('Y-m-d',$communist['birth_time']);
         $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
 
