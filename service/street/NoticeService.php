@@ -330,6 +330,7 @@ class NoticeService extends BaseService
             foreach($list as $key =>$value){
                 $list[$key]['type_info'] = ['id'=>$value['type'],'name'=>$this->type_info[$value['type']]];
                 $list[$key]['operator_group_name'] = UserService::service()->getDepartmentNameById($value['organization_id']);
+                $list[$key]['create_at'] = date("Y-m-d H:i",$value['create_at']);
             }
         }else{
             $list = [];

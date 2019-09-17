@@ -94,7 +94,7 @@ class XzTaskService extends BaseService
         try {
             //获取任务执行的时间段
             $exec_type = PsCommon::get($data, 'exec_type', 0);
-            $interval_y = PsCommon::get($data, 'interval_y');
+            $interval_y = PsCommon::get($data, 'interval_y',0);
             $start_date = PsCommon::get($data, 'start_date');
             $start_date = $start_date ? strtotime($start_date) : 0;
             $end_date = PsCommon::get($data, 'end_date');
@@ -152,7 +152,7 @@ class XzTaskService extends BaseService
         $model->start_date = $start_date;
         $model->end_date = $end_date;
         $model->exec_type = PsCommon::get($data, 'exec_type', 0);
-        $model->interval_y = PsCommon::get($data, 'interval_y');
+        $model->interval_y = PsCommon::get($data, 'interval_y',0);
         $model->contact_mobile = PsCommon::get($data, 'contact_mobile');
         $model->describe = PsCommon::get($data, 'describe');
         $model->exec_users = $exec_users;
