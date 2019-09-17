@@ -217,6 +217,7 @@ Class CommunityService extends BaseService
             ->andFilterWhere(['>=', 'A.created_at', $start_at])
             ->andFilterWhere(['<=', 'A.created_at', $end_at])
             ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andFilterWhere(['=', 'A.hide_status', 1])
             ->andFilterWhere(['=', 'B.group', PsCommon::get($param, 'group')])
             ->andFilterWhere(['=', 'B.building', PsCommon::get($param, 'building')])
             ->andFilterWhere(['=', 'B.unit', PsCommon::get($param, 'unit')])
