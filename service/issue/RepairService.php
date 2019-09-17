@@ -323,6 +323,8 @@ class RepairService extends BaseService
                 $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
                 $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
                 $model->appuser_id = $params['app_user_id'];
+                $model->created_username = $memberInfo['name'];
+                $model->created_id = $memberInfo['id'];
             } else {
                 $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
                 $model->contact_mobile = $params['contact_mobile'];

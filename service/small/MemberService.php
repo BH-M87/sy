@@ -471,7 +471,7 @@ class MemberService extends BaseService
         }
 
         // 小区活动 显示进行中和已结束的数据
-        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2]]);
+        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2], 'small' => 1]);
         $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : [];
         // 社区曝光台
         $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
