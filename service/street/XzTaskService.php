@@ -9,6 +9,7 @@
 namespace service\street;
 
 
+use app\models\StRemind;
 use app\models\StXzTask;
 use app\models\StXzTaskAttribute;
 use app\models\StXzTaskTemplate;
@@ -753,6 +754,12 @@ class XzTaskService extends BaseService
         $submit['check_location'] = $data['check_location'];
         $submit['check_at'] = time();
         StXzTask::updateAll($submit,['id'=>$id]);
+        $organization_type = $detail['organization_type'];
+        $organization_id = $detail['organization_id'];
+        $content = $detail['check_content'];
+        $type = 3;
+        $related_id = $id;
+        PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
         return "提交成功";
     }
 
