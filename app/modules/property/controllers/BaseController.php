@@ -7,6 +7,7 @@
 
 namespace app\modules\property\controllers;
 
+use common\MyException;
 use Yii;
 use common\core\F;
 use common\CoreController;
@@ -15,6 +16,7 @@ use service\manage\CommunityService;
 use service\rbac\GroupService;
 use service\rbac\MenuService;
 use service\rbac\UserService;
+
 
 Class BaseController extends CoreController
 {
@@ -58,31 +60,21 @@ Class BaseController extends CoreController
             return false;
         }
         $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
-        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr,'api');
         $this->communityId  = F::request('community_id');
+        $this->userId = F::request('user_id');
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+        if (!$this->userId) {
+            throw new MyException('登录用户id不能为空');
+        }
 
+        $userInfo = UserService::service()->getUserById($this->userId);
         //token验证
-        $this->user_info = [
-            'id' => 17,
-            'mobile' => '17682306456',
-            'truename' => '李笑乐'
-        ];
-        $this->userId = PsCommon::get($this->user_info, 'id', 0);
+        $this->user_info = $userInfo;
         UserService::setUser($this->user_info);
-//        if (!in_array($action->id, $this->enableAction)) {//验证token
-//            if (!$result['code']) {
-//                echo PsCommon::responseFailed($result['msg'], 50002);
-//                return false;
-//            }
-//            if ($this->user_info['system_type'] != UserService::SYSTEM_PROPERTY) {//判断系统
-//                echo PsCommon::responseFailed('token错误', 50002);
-//                return false;
-//            }
-//        }
 
         //验证签名
         if ($action->controller->id != 'download') {//下载文件不走签名

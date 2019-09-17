@@ -99,6 +99,7 @@ class StationController extends BaseController
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
+
         $result = StationService::service()->getList($this->page,$this->pageSize,$this->request_params);
         return PsCommon::responseSuccess($result);
     }
