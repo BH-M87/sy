@@ -67,57 +67,33 @@ Class BaseController extends CoreController
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
-        if (!$this->userId && $action->controller->id != 'download') {
-            throw new MyException('登录用户id不能为空');
-        }
 
-        $userInfo = UserService::service()->getUserById($this->userId);
-        //token验证
-        $this->user_info = $userInfo;
-        UserService::setUser($this->user_info);
-
-        //验证签名
+        //验证用户
         if ($action->controller->id != 'download') {//下载文件不走签名
-            $checkMsg = PsCommon::validSign($this->systemType);
-            if ($checkMsg !== true) {
-                echo PsCommon::responseFailed($checkMsg);
-                return false;
+            if (!$this->userId) {
+                throw new MyException('登录用户id不能为空');
             }
+            $userInfo = UserService::service()->getUserById($this->userId);
+            //token验证
+            $this->user_info = $userInfo;
+            UserService::setUser($this->user_info);
         }
 
         //不走token验证的接口，及download不走其他权限,小区ID 验证
         if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
             return true;
         }
-        //菜单权限验证
-//        $verifyAction = $action->getUniqueId();
-//        $systemMenus = MenuService::service()->getMenuCache(!empty($this->user_info["system_type"]) ? $this->user_info["system_type"] : '');
-//        $menu_ids = !empty($systemMenus[$verifyAction]) ? $systemMenus[$verifyAction] : [];
-//        if (!empty($this->user_info) && $menu_ids) {
-//            //分组是否有路由权限
-//            if (!GroupService::service()->menuCheck($menu_ids, $this->user_info['group_id'])) {
-//                echo PsCommon::responseFailed('权限不足');
-//                return false;
-//            }
-//        }
 
         //物业系统必传小区ID
         if (!in_array($action->id, $this->communityNoCheck)) {
             if (!$this->communityId) {
-                echo PsCommon::responseFailed('小区ID不能为空');
-                return false;
+                throw new MyException('小区ID不能为空');
             }
-            //小区权限判断
-//            if (!CommunityService::service()->communityAuth($this->userId, $this->communityId)) {
-//                echo PsCommon::responseFailed('没有小区权限');
-//                return false;
-//            }
         }
 
         //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
         if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
-            echo PsCommon::responseFailed('请勿重复请求，30s后重试');
-            return false;
+            throw new MyException('请勿重复请求，30s后重试');
         }
         return true;
     }
