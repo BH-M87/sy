@@ -51,7 +51,6 @@ class FamilyManageController extends UserBaseController
     //住户新增
     public function actionAdd()
     {
-        \Yii::info("111","api");
         FamilyManageService::service()->addResident($this->params);
         return F::apiSuccess();
     }

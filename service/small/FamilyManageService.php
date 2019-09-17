@@ -155,23 +155,18 @@ class FamilyManageService extends BaseService
         }
         $params['mobile'] = $mobile;
 
-        \Yii::info("111".$mobile,"api");
         $userInfoArray = self::checkUserInfo($params['user_id'], $params['room_id'], $params);
-
         $member_id = $userInfoArray['member_id'];
-        \Yii::info("111".$member_id,"api");
         //验证房屋信息是否存在
         if (!empty($member_id)) {
             RoomUserService::checkRoomExist($params['room_id'], $member_id, 3);
         }
         //判断小区是否需要查询审核表的家人与租客
         $is_family = ResidentService::service()->getCommunityConfig($params['community_id']);
-        \Yii::info("111".$is_family,"api");
         if ($is_family == 2) {//说明需要查询审核表的家人与租客
             self::packageResident($params, $userInfoArray);
         } else {
-            $a = self::packageRoomUser($params, $userInfoArray);
-            \Yii::info("222-".json_encode($a),"api");
+            self::packageRoomUser($params, $userInfoArray);
         }
         return $this->success();
     }
@@ -388,7 +383,6 @@ class FamilyManageService extends BaseService
         $userInfo = $userInfoArray['userInfo'];
         $roomUserInfo = $userInfoArray['roomUserInfo'];
         $isAuth = ResidentService::service()->isAuthByNameMobile($community_id, $params['name'], $params['mobile']);
-        \Yii::info("111-".$isAuth,"api");
         $model = new PsRoomUser();
         $et = PsCommon::get($params, 'enter_time');
         $data['community_id'] = $roomUserInfo['community_id'];
@@ -424,9 +418,15 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
+
             }
             if (empty($member_id)) {
                 $trans->rollback();
