@@ -49,7 +49,7 @@ class ActivityController extends BaseController
     public function actionList()
     {
         $r = ActivityService::service()->list($this->request_params);
-
+return PsCommon::responseFailed($this->user_id);
         if ($r['code']) {
             return PsCommon::responseSuccess($r['data']);
         } else {
