@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use common\core\F;
 use Yii;
 
 /**
@@ -215,6 +216,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $top = self::getTop($data[0]['id']);
         foreach ($data as &$v) {
             $v['top'] = $top++; //算排名
+            $v['image'] = F::getOssImagePath($v['image']);
             $v['type_name'] = StCommunist::$type_desc[$v['type']];
         }
     }
