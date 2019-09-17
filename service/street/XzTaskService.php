@@ -364,6 +364,8 @@ class XzTaskService extends BaseService
             $task_attribute = $this->getAttributeInfo($detail['task_attribute_id']);
             $detail['task_attribute_desc'] = $task_attribute['name'];
             $detail['date'] = date('Y-m-d', $detail['start_date']) . "到" . date('Y-m-d', $detail['end_date']);
+            $detail['start_time'] = date('Y-m-d', $detail['start_date']);
+            $detail['end_time'] = date('Y-m-d', $detail['end_date']);
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
             $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
@@ -383,6 +385,7 @@ class XzTaskService extends BaseService
             $detail['interval_y_desc'] = $interval_y_desc;
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
+            $detail['receive_user_list'] = StXzTask::find()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
         } else {
             $detail = [];
         }
