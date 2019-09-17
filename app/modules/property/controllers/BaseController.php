@@ -17,6 +17,7 @@ use service\rbac\GroupService;
 use service\rbac\MenuService;
 use service\rbac\UserService;
 
+
 Class BaseController extends CoreController
 {
     public $enableCsrfValidation = false;
@@ -69,6 +70,7 @@ Class BaseController extends CoreController
         if (!$this->userId) {
             throw new MyException('登录用户id不能为空');
         }
+
         $userInfo = UserService::service()->getUserById($this->userId);
         //token验证
         $this->user_info = $userInfo;

@@ -2,8 +2,10 @@
 
 namespace service\rbac;
 
+use app\models\UserInfo;
 use app\models\ZjyUserRole;
 use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
 use app\models\PsUser;
 use app\models\PsAgent;
@@ -644,6 +646,25 @@ class UserService extends BaseService
             $list[]=$data;
         }
         return $list;
+    }
+
+    /**
+     * 获取用户信息by id
+     * @param $user_id
+     * @return array|string|\yii\db\ActiveRecord|null
+     */
+    public function getUserById($user_id)
+    {
+        $userInfo = UserInfo::find()
+            ->select('username,dept_id,node_type,user_id as id,mobile_number as mobile')
+            ->where(['user_id' => $user_id])
+            ->asArray()
+            ->one();
+        if (!$userInfo) {
+            throw new MyException('该用户不存在！');
+        }
+        $userInfo['truename'] = $userInfo['username'];
+        return $userInfo;
     }
 
 }
