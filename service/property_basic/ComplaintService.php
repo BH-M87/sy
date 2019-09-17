@@ -72,7 +72,7 @@ Class ComplaintService extends BaseService
         $result = [];
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
-            $v['hide_mobile'] = !empty($v['mobile'])?mb_substr($v['mobile'],0,3)."****".mb_substr($v['mobile'],-4):"";
+            $v['mobile'] = !empty($v['mobile'])?mb_substr($v['mobile'],0,3)."****".mb_substr($v['mobile'],-4):"";
             $v['type'] = PsCommon::get($this->types, $v['type'], []);
             $v['status'] = PsCommon::get($this->status, $v['status'], []);
             $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
