@@ -346,12 +346,29 @@ class NoticeService extends BaseService
      */
     public function getMydetail($data)
     {
+        \Yii::info("dingDetail:".json_encode($data),"api");
         $detail = $this->detail($data);
         if($detail && $detail['is_read'] == 1){
             //更新这条记录已读
             StNoticeUser::updateAll(['is_read'=>2],['notice_id'=>$data['id'],'receive_user_id'=>$data['user_id']]);
         }
         return $detail;
+    }
+
+    public function fix($data,$type=1)
+    {
+        switch($type){
+            case "1":
+                $list = StNoticeUser::find()->where("1=1")->asArray()->all();
+                if($list){
+                    foreach($list as $key =>$value){
+                        $receive_user_name = UserService::service()->getUserNameById($value['receive_user_id']);
+                        StNoticeUser::updateAll(['receive_user_name'=>$receive_user_name],['id'=>$value['id']]);
+                    }
+                }
+                break;
+
+        }
     }
 
 

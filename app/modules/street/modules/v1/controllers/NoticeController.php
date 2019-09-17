@@ -89,5 +89,12 @@ class NoticeController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //修复数据接口
+    public function actionFix()
+    {
+        $result = NoticeService::service()->fix($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
 
 }
