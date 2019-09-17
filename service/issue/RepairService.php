@@ -1025,7 +1025,7 @@ class RepairService extends BaseService
             'prt.name as repair_type_label', 'prt.is_relate_room'
         ])
         ->orderBy('pr.id desc,pr.status asc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
         $command = $query->createCommand();
         $repairList = $command->queryAll();
@@ -1313,7 +1313,7 @@ class RepairService extends BaseService
             'A.is_pay', 'bill.id as bill_id',
             'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
         $command = $query->createCommand();
         $models = $command->queryAll();

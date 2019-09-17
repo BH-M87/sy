@@ -52,7 +52,7 @@ class MaterialService extends BaseService
         }
         $re['totals'] = $query->count();
         $query->orderBy('A.created_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
         $command = $query->createCommand();
         $models = $command->queryAll();
