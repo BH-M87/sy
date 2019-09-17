@@ -317,27 +317,25 @@ class RepairService extends BaseService
             }
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+        }
 
-            //查找住户相关信息
-            if ($useAs == 'small') {
-                $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
-                $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
-                $model->appuser_id = $params['app_user_id'];
-                $model->created_username = $memberInfo['name'];
-                $model->created_id = $memberInfo['id'];
-            } else {
-                $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
-                $model->contact_mobile = $params['contact_mobile'];
-                $model->created_id = $userInfo['id'];
-                $model->created_username = $userInfo['truename'];
-            }
-            if ($memberInfo) {
-                $model->member_id = $memberInfo['id'];
-                $roomUserInfo = MemberService::service()->getRoomUserByMemberIdRoomId($memberInfo['id'], $roomInfo['id']);
-                if ($roomUserInfo) {
-                    $model->room_username = $roomUserInfo['name'] ? $roomUserInfo['name'] : $memberInfo['name'];
-                    $model->appuser_id = $useAs == 'small' ? $params['app_user_id'] : $roomUserInfo['id'];
-                }
+        if ($useAs == 'small') {
+            $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
+            $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
+            $model->appuser_id = $params['app_user_id'];
+            $model->created_username = $memberInfo['name'];
+            $model->created_id = $memberInfo['id'];
+            $model->member_id = $memberInfo['id'];
+        } else {
+            $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
+            $model->contact_mobile = $params['contact_mobile'];
+            $model->created_id = $userInfo['id'];
+            $model->created_username = $userInfo['truename'];
+            $model->member_id = !empty($memberInfo) ? $memberInfo['id'] : 0;
+            //根据手机号及房屋反查小程序用户
+            if ($params['relate_room'] && $memberInfo) {
+                $appUserId = MemberService::service()->getAppUserIdsByMemberId($memberInfo['id']);
+                $model->appuser_id = $appUserId ? $appUserId : 0;
             }
         }
 
