@@ -359,7 +359,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
-        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$task_station->id);
+        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$party_task->id);
     }
 
     /**
