@@ -118,9 +118,10 @@ class PsActivity extends BaseModel
 
         $m = self::find()->select(['id', 'title', 'start_time', 'end_time', 'join_end', 'status', 'address', 
             'link_name', 'link_mobile', 'join_number', 'is_top', 'activity_number', 'activity_type', 'picture', 'type'])
-            ->where(['is_del' => 1])
+            ->filterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
+            ->orFilterWhere(['=', 'organization_id', PsCommon::get($p,'organization_id')])
+            ->andFilterWhere(['is_del' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
-            ->andFilterWhere(['=', 'community_id', PsCommon::get($p,'community_id')])
             ->andFilterWhere(['in', 'status', PsCommon::get($p,'status')])
             ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
             ->andFilterWhere(['like', 'title', PsCommon::get($p,'title')])
