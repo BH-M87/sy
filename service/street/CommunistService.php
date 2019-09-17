@@ -117,7 +117,7 @@ class CommunistService extends BaseService
                     ->asArray()
                     ->column();
                 if ($appUserIds) {
-                    $this->_bindCommunistAppUserIds($appUserIds, $model->id);
+                    $re = $this->_bindCommunistAppUserIds($appUserIds, $model->id);
                 }
             }
             return $model->id;
