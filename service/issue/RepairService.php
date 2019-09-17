@@ -176,7 +176,7 @@ class RepairService extends BaseService
         }
 
         if ($memberName) {
-            $query->andWhere(['like', 'A.room_username', $memberName]);
+            $query->andWhere(['or', ['like', 'A.room_username', $memberName ], ['like', 'A.contact_mobile', $memberName]]);
         }
         if ($memberMobile) {
             $query->andWhere(['like', 'A.contact_mobile', $memberMobile]);
