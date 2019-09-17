@@ -143,7 +143,7 @@ class PioneerRanKingService extends BaseService
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
         $info_list['task_count'] = $user_info[0]['task_count'];
-        $info_list['image'] = $user_info[0]['image'];
+        $info_list['image'] = F::getOssImagePath($user_info[0]['image']);
         return $info_list;
     }
 
