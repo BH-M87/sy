@@ -99,10 +99,18 @@ class XzTaskService extends BaseService
             $start_date = $start_date ? strtotime($start_date) : 0;
             $end_date = PsCommon::get($data, 'end_date');
             $end_date = $end_date ? strtotime($end_date) : 0;
-            $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
-            if (empty($timeList)) {
-                throw new MyException('任务日期内无执行该任务的日期');
+            $task_type = PsCommon::get($data, 'task_type', 1);
+            if($task_type == 1){
+                $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
+                if (empty($timeList)) {
+                    throw new MyException('任务日期内无执行该任务的日期');
+                }
+            }else{
+                $time['start_time'] = $start_date;
+                $time['end_time'] = $end_date;
+                $timeList[] = $time;
             }
+
             //新增消息，获取id
             $id = $this->addTaskTemplate($data, $user_info);
             //每个发送对象，发送一个信息

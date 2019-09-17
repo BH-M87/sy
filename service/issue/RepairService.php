@@ -233,7 +233,7 @@ class RepairService extends BaseService
             'A.operator_id', 'A.create_at', 'A.hard_check_at', 'A.hard_remark', 'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
         if (!$isExport) {
-            $offset = ($params['page'] - 1) * $params['page'];
+            $offset = ($params['page'] - 1) * $params['rows'];
             $query->offset($offset)->limit($params['rows']);
         }
         $command = $query->createCommand();
