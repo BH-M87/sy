@@ -78,7 +78,9 @@ class NoticeService extends BaseService
     public function getUserInfoByNoticeId($id)
     {
         $list = StNoticeUser::find()->select(['receive_user_id as user_id', 'receive_user_name as user_name'])
-            ->where(['notice_id' => $id])->asArray()->all();
+            ->where(['notice_id' => $id])
+            ->andWhere(['>','receive_user_id',0])
+            ->asArray()->all();
         if ($list) {
             return $list;
         } else {

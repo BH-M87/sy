@@ -99,10 +99,18 @@ class XzTaskService extends BaseService
             $start_date = $start_date ? strtotime($start_date) : 0;
             $end_date = PsCommon::get($data, 'end_date');
             $end_date = $end_date ? strtotime($end_date) : 0;
-            $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
-            if (empty($timeList)) {
-                throw new MyException('任务日期内无执行该任务的日期');
+            $task_type = PsCommon::get($data, 'task_type', 1);
+            if($task_type == 1){
+                $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
+                if (empty($timeList)) {
+                    throw new MyException('任务日期内无执行该任务的日期');
+                }
+            }else{
+                $time['start_time'] = $start_date;
+                $time['end_time'] = $end_date;
+                $timeList[] = $time;
             }
+
             //新增消息，获取id
             $id = $this->addTaskTemplate($data, $user_info);
             //每个发送对象，发送一个信息
@@ -364,6 +372,8 @@ class XzTaskService extends BaseService
             $task_attribute = $this->getAttributeInfo($detail['task_attribute_id']);
             $detail['task_attribute_desc'] = $task_attribute['name'];
             $detail['date'] = date('Y-m-d', $detail['start_date']) . "到" . date('Y-m-d', $detail['end_date']);
+            $detail['start_time'] = date('Y-m-d', $detail['start_date']);
+            $detail['end_time'] = date('Y-m-d', $detail['end_date']);
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
             $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
@@ -383,6 +393,7 @@ class XzTaskService extends BaseService
             $detail['interval_y_desc'] = $interval_y_desc;
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
+            $detail['receive_user_list'] = StXzTask::find()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
         } else {
             $detail = [];
         }

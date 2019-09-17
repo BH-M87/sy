@@ -95,7 +95,7 @@ class CommunistService extends BaseService
         }
         //查询数据是否重复
         $tmpModel = StCommunist::find()
-            ->where(['mobile' => $params['mobile']])
+            ->where(['mobile' => $params['mobile'], 'is_del' => 1])
             ->asArray()
             ->one();
         if ($tmpModel) {
