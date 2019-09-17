@@ -48,7 +48,8 @@ class CommunistService extends BaseService
         $query = StCommunist::find()
             ->alias('sc')
             ->leftJoin('st_station st', 'sc.station_id = st.id')
-            ->where(['sc.organization_type' => $params['organization_type'], 'sc.organization_id' => $params['organization_id']]);
+            ->where(['sc.organization_type' => $params['organization_type'], 'sc.organization_id' => $params['organization_id']])
+            ->andWhere(['sc.is_del' => 1]);
         if (!empty($params['name'])) {
             $query->andWhere(['like', 'sc.name', $params['name']]);
         }
