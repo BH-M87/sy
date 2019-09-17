@@ -283,7 +283,7 @@ Class CommunityService extends BaseService
     public function exposureType($p)
     {
         if ($p['type'] == 1) { // 
-            $count = PsCommunityExposure::find()->select('count(id) as c, event_parent_type_id as type')->where(['is_del' => 1, 'community_id' => $p['community_id']])->orderBy('event_parent_type_id asc')->groupBy('event_parent_type_id')->asArray()->all();
+            $count = PsCommunityExposure::find()->select('count(id) as c, event_parent_type_id as type')->where(['is_del' => 1, 'hide_status' => 1, 'community_id' => $p['community_id']])->orderBy('event_parent_type_id asc')->groupBy('event_parent_type_id')->asArray()->all();
 
             if (!empty($count)) {
                 foreach ($count as $k => $v) {
