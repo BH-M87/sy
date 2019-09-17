@@ -44,13 +44,13 @@ Class ComplaintService extends BaseService
         return $model->find()->alias('t')
             ->leftJoin(['m' => PsMember::tableName()], 't.member_id=m.id')
             ->leftJoin(['c' => PsCommunityModel::tableName()], 't.community_id=c.id')
-            ->filterWhere([
+            ->filterWhere(['like', 'm.name', PsCommon::get($params, 'username')])
+            ->orFilterWhere(['like', 'm.mobile', PsCommon::get($params, 'username')])
+            ->andFilterWhere([
                 't.community_id' => PsCommon::get($params, 'community_id'),
                 't.status' => PsCommon::get($params, 'status'),
                 't.type' => PsCommon::get($params, 'type'),
-            ])
-            ->andFilterWhere(['like', 'm.name', PsCommon::get($params, 'username')])
-            ->andFilterWhere(['like', 'm.mobile', PsCommon::get($params, 'mobile')]);
+            ]);
     }
 
     /**
