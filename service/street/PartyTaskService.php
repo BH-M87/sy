@@ -177,7 +177,7 @@ class PartyTaskService extends BaseService
         $record->operator_name = $params['operator_name'];
         $record->content = $params['content'];
         $record->communist_id = $party->communist_id;
-        $record->create = time();
+        $record->create_at = time();
         $party->status = 4;
         $party->update_at = time();
         $party->save();
