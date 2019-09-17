@@ -204,7 +204,8 @@ class StewardService extends BaseService
                 $group_info[] = $v['group_id'];
                 $building_info[] = [
                     'title' => $v['group_name'],
-                    'value' => $v['group_id'],
+                    // 乘以负数 避免和children里的value重复 重复的话前端选择会有问题说 相同value的都会一起勾选说
+                    'value' => $v['group_id']*'-1', 
                     'children' => [
                         ['title' => $v['group_name'].$v['name'],
                         'value' => $v['id']]
@@ -212,7 +213,7 @@ class StewardService extends BaseService
                 ];
             } else {
                 foreach ($building_info as $kk => $vv) {
-                    if ($vv['value'] == $v['group_id']) {
+                    if ($vv['value'] == $v['group_id']*'-1') {
                         $building_info[$kk]['children'][] = ['title' => $v['group_name'].$v['name'], 'value' => $v['id']];
                     }
                 }

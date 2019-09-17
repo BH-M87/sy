@@ -15,6 +15,7 @@ use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
 use app\models\PsAppUser;
+use app\models\PsCommunityBuilding;
 
 use service\message\MessageService;
 use service\BaseService;
@@ -212,8 +213,8 @@ class ComplaintService extends BaseService
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
         //获取幢id
-        $unit_id = PsCommunityRoominfo::model()->find()->select('unit_id')->where(['id' => $room_id])->scalar();
-        $buiding_id = PsCommunityUnits::model()->find()->select('building_id')->where(['id' => $unit_id, 'community_id' => $community_id])->scalar();
+        $room = PsCommunityRoominfo::findOne($room_id);
+        $buiding_id = PsCommunityBuilding::find()->select('id')->where(['group_name' => $room->group, 'community_id' => $community_id, 'name' => $room->building])->scalar();
         if (!empty($buiding_id)) {
             //获取管家信息
             $steward = PsSteWard::find()->alias('ward')->select(['ward.id','ward.name','ward.mobile','ward.evaluate','ward.praise'])

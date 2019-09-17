@@ -233,7 +233,7 @@ class RepairService extends BaseService
             'A.operator_id', 'A.create_at', 'A.hard_check_at', 'A.hard_remark', 'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
         if (!$isExport) {
-            $offset = ($params['page'] - 1) * $params['page'];
+            $offset = ($params['page'] - 1) * $params['rows'];
             $query->offset($offset)->limit($params['rows']);
         }
         $command = $query->createCommand();
@@ -267,6 +267,7 @@ class RepairService extends BaseService
                 $models[$key]['expired_repair_type_desc'] =
                     isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '未知';
                 $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
+                $models[$key]['amount'] = $this->getRepairBill($val['id']);
                 $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
             }
             $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
@@ -637,11 +638,12 @@ class RepairService extends BaseService
                     $this->addMaterials($params["repair_id"], $billId, $params['materials_list']);
                 }
             }
-            $repairArr["status"] = 3;
-            $repairArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
-            $repairArr["hard_type"] = 1;
+
+            $repairModelArr["status"] = 3;
+            $repairModelArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
+            $repairModelArr["hard_type"] = 1;
             $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
+                $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
             //TODO 发送钉消息，站内消息等
             $transaction->commit();
@@ -1612,5 +1614,12 @@ class RepairService extends BaseService
         }
         $str .= ' '.!empty(self::$_expired_repair_type[$expiredType]) ? self::$_expired_repair_type[$expiredType] : '';
         return $str;
+    }
+
+    //直接获取名称
+    private function getRepairBill($id)
+    {
+        $res = PsRepairBill::find()->select("amount")->where(['repair_id' => $id])->asArray()->one();
+        return $res ? $res['amount'] : '';
     }
 }

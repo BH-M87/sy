@@ -223,11 +223,11 @@ class PartyTaskService extends BaseService
     public function getReceiveCount($param)
     {
         if (empty($param['id'])) throw new MyException('ID不能为空');
-        $data['total'] = StPartyTaskStation::find()->where(['id' => $param['id']])->count();
-        $data['no_completed'] =StPartyTaskStation::find()->where(['status' => 1 ,'id' => $param['id']])->count();
-        $data['audit'] = StPartyTaskStation::find()->where(['status' => 2 ,'id' => $param['id']])->count();
-        $data['ok'] = StPartyTaskStation::find()->where(['status' => 3 ,'id' => $param['id']])->count();
-        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4 ,'id' => $param['id']])->count();
+        $data['total'] = StPartyTaskStation::find()->where(['task_id' => $param['id']])->count();
+        $data['no_completed'] =StPartyTaskStation::find()->where(['status' => 1 ,'task_id' => $param['id']])->count();
+        $data['audit'] = StPartyTaskStation::find()->where(['status' => 2 ,'task_id' => $param['id']])->count();
+        $data['ok'] = StPartyTaskStation::find()->where(['status' => 3 ,'task_id' => $param['id']])->count();
+        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4 ,'task_id' => $param['id']])->count();
         return $data;
     }
 

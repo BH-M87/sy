@@ -13,7 +13,7 @@ use app\models\PsActivityEnroll;
 class PsActivity extends BaseModel
 {
     public static $type = [1 => '小区活动', 2 => '邻里活动', 3 => '官方活动', 4 => '社区活动'];
-    public static $status = [1 => '进行中', 2 => '已结束', 3 => '已取消'];
+    public static $status = [1 => '进行中', 2 => '已结束', 3 => '已取消', 4 => '未开始'];
     public static $activity_type = [1 => '群团活动', 2 => '志愿活动', 3 => '党建活动', 4 => '其他活动'];
 
     public static function tableName()
@@ -148,7 +148,7 @@ class PsActivity extends BaseModel
     public static function afterList(&$list)
     {
         foreach ($list as &$v) {
-            $v['status'] = $v['end_time'] < time() ? 2 : $v['status'];
+            $v['status'] = self::status($v);
             $v['picture'] = F::ossImagePath($v['picture']);
             $v['start_time'] = date('Y-m-d H:i', $v['start_time']);
             $v['end_time'] = date('Y-m-d H:i', $v['end_time']);
@@ -166,6 +166,20 @@ class PsActivity extends BaseModel
                 }
             }
             $v['join_info'] = $avatar_arr;
+        }
+    }
+    
+    // 活动状态
+    public static function status($p)
+    {
+        if ($p['status'] == 3) {
+            return 3;
+        } else if ($p['end_time'] < time()) {
+            return 2;
+        } else if ($p['start_time'] > time()) {
+            return 4;
+        } else {
+            return 1;
         }
     }
 
