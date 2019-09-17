@@ -170,7 +170,8 @@ class FamilyManageService extends BaseService
         if ($is_family == 2) {//说明需要查询审核表的家人与租客
             self::packageResident($params, $userInfoArray);
         } else {
-            self::packageRoomUser($params, $userInfoArray);
+            $a = self::packageRoomUser($params, $userInfoArray);
+            \Yii::info("222-".json_encode($a),"api");
         }
         return $this->success();
     }
@@ -387,7 +388,7 @@ class FamilyManageService extends BaseService
         $userInfo = $userInfoArray['userInfo'];
         $roomUserInfo = $userInfoArray['roomUserInfo'];
         $isAuth = ResidentService::service()->isAuthByNameMobile($community_id, $params['name'], $params['mobile']);
-
+        \Yii::info("111-".$isAuth,"api");
         $model = new PsRoomUser();
         $et = PsCommon::get($params, 'enter_time');
         $data['community_id'] = $roomUserInfo['community_id'];
