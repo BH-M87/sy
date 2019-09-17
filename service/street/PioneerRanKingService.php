@@ -143,7 +143,7 @@ class PioneerRanKingService extends BaseService
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
         $info_list['task_count'] = $user_info[0]['task_count'];
-        $info_list['image'] = $user_info[0]['image'];
+        $info_list['image'] = F::getOssImagePath($user_info[0]['image']);
         return $info_list;
     }
 
@@ -168,9 +168,9 @@ class PioneerRanKingService extends BaseService
     {
         //个人信息
         $communist = PartyTaskService::service()->checkUser($params['user_id']);
-        $communist['join_party_time'] = date('Y-m-d',$communist['join_party_time']);
-        $communist['formal_time'] = date('Y-m-d',$communist['formal_time']);
-        $communist['birth_time'] = date('Y-m-d',$communist['birth_time']);
+        $communist['join_party_time'] = !empty($communist['join_party_time'] ) ? date('Y-m-d',$communist['join_party_time']) : '';
+        $communist['formal_time'] = !empty($communist['formal_time'] ) ? date('Y-m-d',$communist['formal_time']) : '';
+        $communist['birth_time'] = !empty($communist['birth_time'] ) ? date('Y-m-d',$communist['birth_time']) : '';
         $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
         $communist['image'] = F::getOssImagePath($communist['image']);
 
