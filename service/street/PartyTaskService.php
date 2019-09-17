@@ -194,7 +194,7 @@ class PartyTaskService extends BaseService
     public function cancelInfo($params)
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
+        $party = StPartyTaskStation::find()->where(['id' => $params['id']])->one();
         if (!$party) {
             throw new MyException('ID错误');
         }
