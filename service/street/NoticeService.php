@@ -174,13 +174,18 @@ class NoticeService extends BaseService
     {
         $saveData = [];
         foreach ($list as $key => $value) {
-            $saveData['notice_id'][] = $id;
-            $saveData['receive_user_id'][] = $value;
-            $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
-            $saveData['is_send'][] = 1;
-            $saveData['is_read'][] = 1;
-            $saveData['create_at'][] = time();
-            $saveData['send_at'][] = 0;
+            if($value){
+                $saveData['notice_id'][] = $id;
+                $saveData['receive_user_id'][] = $value;
+                $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
+                $saveData['is_send'][] = 1;
+                $saveData['is_read'][] = 1;
+                $saveData['create_at'][] = time();
+                $saveData['send_at'][] = 0;
+            }
+        }
+        if(empty($saveData)){
+            throw new MyException('请选择至少一个执行人员');
         }
         StNoticeUser::model()->batchInsert($saveData);
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();

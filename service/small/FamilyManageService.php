@@ -143,7 +143,8 @@ class FamilyManageService extends BaseService
     {
         self::checkParams($params);
         if (empty($params['mobile'])) {
-            $mobile = PsCommon::generateVirtualPhone();
+            throw new MyException('手机号不能为空');
+            //$mobile = PsCommon::generateVirtualPhone();
         } else {
             $mobile = $params['mobile'];
         }
