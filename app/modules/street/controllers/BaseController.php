@@ -56,7 +56,7 @@ class BaseController extends Controller
         }
 
         $this->user_id  = F::request('user_id');
-        $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
+        $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
         \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
         if (!$this->user_id) {
             throw new MyException("用户id不存在！");

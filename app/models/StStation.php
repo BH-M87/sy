@@ -37,7 +37,7 @@ class StStation extends BaseModel
             [['content'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
             [['station'], 'string', 'max' => 15, 'message' => '{attribute}最多15个字！','on' => ['add', 'edit']],
-            [['content'], 'string', 'max' => 15, 'message' => '{attribute}最多50个字！','on' => ['add', 'edit']],
+            [['content'], 'string', 'max' => 50, 'message' => '{attribute}最多50个字！','on' => ['add', 'edit']],
             [['status'],'in','range'=>[1,2], 'message' => '{attribute}只能是1或2','on' => ['add', 'edit', 'list', 'edit-status']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view', 'edit-status']],
             [['status'], 'required', 'message' => '{attribute}不能为空','on' => ['edit-status']],

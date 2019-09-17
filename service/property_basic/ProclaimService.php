@@ -15,6 +15,7 @@ use app\models\PsProclaimCommunity;
 use app\models\StScheduling;
 use app\models\PsLabelsRela;
 use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityModel;
 use app\models\PsRoomUser;
 use app\models\ParkingCars;
 use app\models\PsLifeBroadcastRecord;
@@ -30,6 +31,10 @@ class ProclaimService extends BaseService
     // 公告 编辑
     public function edit($p, $scenario = 'edit')
     {
+        if (strstr($p['img_url'], 'http')) {
+            unset($p['img_url']);
+        }
+
         return $this->_saveProclaim($p, $scenario);
     }
 
@@ -70,7 +75,8 @@ class ProclaimService extends BaseService
                 PsProclaimCommunity::deleteAll(['proclaim_id' => $m->id]);
                 foreach ($p['receive'] as $k => $v) {
                     $pc = new PsProclaimCommunity();
-                    $pc->community_id = $v;
+                    $pc->community_id = PsCommunityModel::find()->where(['event_community_no' => $v])->one()->id;
+                    $pc->event_community_no = $v;
                     $pc->proclaim_id = $m->id;
                     $pc->save();
                 }
@@ -168,7 +174,7 @@ class ProclaimService extends BaseService
             $m['proclaim_type_desc'] = PsProclaim::$proclaim_type[$m['proclaim_type']];
             $m['proclaim_cate_desc'] = PsProclaim::$proclaim_cate[$m['proclaim_cate']];
             $m['is_top_desc'] = $m['is_top'] == 2 ? '是' : '否';
-            $m['receive'] = PsProclaimCommunity::find()->Alias('A')->select('B.id, B.name')
+            $m['receive'] = PsProclaimCommunity::find()->Alias('A')->select('B.id, B.name, B.event_community_no')
                 ->leftJoin('ps_community B', 'B.id = A.community_id')
                 ->where(['proclaim_id' => $m['id']])->asArray()->all();
         }

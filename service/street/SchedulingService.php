@@ -33,23 +33,26 @@ class SchedulingService extends BaseService
         $insertData = $this->_validateData($params['user_ids'], $params['day_type']);
         StScheduling::deleteAll(['organization_type' => $params['organization_type'], 'organization_id' => $params['organization_id'], 'day_type' => $params['day_type']]);
 
-        $insert_data = [];
-        foreach ($insertData as $k => $v) {
-            $insert_data['organization_type'][] = $params['organization_type'];
-            $insert_data['organization_id'][] = $params['organization_id'];
-            $insert_data['user_id'][] = $v['user_id'];
-            $insert_data['user_type'][] = $v['user_type'];
-            $insert_data['day_type'][] = $v['day_type'];
-            $insert_data['operator_id'][] = $userInfo['id'];
-            $insert_data['operator_name'][] = $userInfo['username'];
-            $insert_data['create_at'][] = time();
+        if (is_array($insertData) && count($insertData) > 0) {
+            $insert_data = [];
+            foreach ($insertData as $k => $v) {
+                $insert_data['organization_type'][] = $params['organization_type'];
+                $insert_data['organization_id'][] = $params['organization_id'];
+                $insert_data['user_id'][] = $v['user_id'];
+                $insert_data['user_type'][] = $v['user_type'];
+                $insert_data['day_type'][] = $v['day_type'];
+                $insert_data['operator_id'][] = $userInfo['id'];
+                $insert_data['operator_name'][] = $userInfo['username'];
+                $insert_data['create_at'][] = time();
+            }
+            $res = StScheduling::model()->batchInsert($insert_data);
+            if ($res) {
+                return true;
+            } else {
+                throw new MyException("编辑失败");
+            }
         }
-        $res = StScheduling::model()->batchInsert($insert_data);
-        if ($res) {
-            return true;
-        } else {
-            throw new MyException("编辑失败");
-        }
+        return true;
     }
 
     private function _processData($data)
@@ -88,6 +91,9 @@ class SchedulingService extends BaseService
 
     private function _validateData($data, $dayType)
     {
+        if (empty($data)) {
+            return true;
+        }
         $userIds = [];
         if (count($data) > 5) {
             throw new MyException("每天最多5人");

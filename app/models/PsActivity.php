@@ -25,7 +25,7 @@ class PsActivity extends BaseModel
     {
         return [
             [['title', 'picture', 'link_name', 'link_mobile', 'join_end', 'start_time', 'end_time', 'description', 'address'], 'required', 'message' => '{attribute}必填'],
-            [['link_name'],  'match', 'pattern' => Regular::string(1, 10), 'message' => '{attribute}最长不超过10个汉字，且不能含字符'],
+            [['link_name'],  'match', 'pattern' => Regular::string(1, 10), 'message' => '{attribute}最长不能超过10个字符'],
             ['link_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}必须是手机号'],
             [['end_time', 'start_time', 'join_end'], 'timeVerify'],
             [['community_id', 'room_id', 'join_end', 'start_time', 'end_time', 'join_number', 'activity_number', 'status', 'is_top', 'type', 'is_del', 'operator_id', 'updated_at', 'organization_type', 'organization_id'], 'integer', 'message'=> '{attribute}不是数字'],
@@ -131,8 +131,13 @@ class PsActivity extends BaseModel
             ->andFilterWhere(['<=', 'end_time', PsCommon::get($p,'activity_end')]);
 
         $totals = $m->count();
+
         if ($totals > 0) {
-            $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            if (!empty($p['small'])) { // 小程序的列表
+                $list = $m->orderBy('is_top desc, top_time desc, created_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            } else {
+                $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            }
             self::afterList($list);
         }
 

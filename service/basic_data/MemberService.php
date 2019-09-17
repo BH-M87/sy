@@ -56,4 +56,17 @@ class MemberService extends BaseService
             ->asArray()
             ->one();
     }
+
+    //根据member_id 查找 app_user
+    public function getAppUserIdsByMemberId($memberId)
+    {
+        $appUserModel = PsAppMember::find()
+            ->select(['app_user_id'])
+            ->where(['member_id' => $memberId])
+            ->orderBy('id desc')
+            ->limit(1)
+            ->asArray()
+            ->one();
+        return $appUserModel['app_user_id'];
+    }
 }

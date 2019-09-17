@@ -116,12 +116,12 @@ class PioneerRanKingService extends BaseService
      */
     public function getCommunistList($params)
     {
-        $user = PartyTaskService::service()->checkUser($params['user_id']);
+        $communist = PartyTaskService::service()->checkUser($params['user_id']);
         $params['years'] = date('Y',time());
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
         $params['end'] = strtotime($params['years'].'-12-31 24:00');
         $data = StPartyTaskStation::getOrderList($params);
-        $user_top = StPartyTaskStation::getUserTop($user['communist_id']);
+        $user_top = StPartyTaskStation::getUserTop($communist['id']);
         $data['user'] = $user_top[0] ?? null;
         return $data;
     }
@@ -136,9 +136,9 @@ class PioneerRanKingService extends BaseService
      */
     public function getCommunistInfoList($params)
     {
-        $user = PartyTaskService::service()->checkUser($params['user_id']);
-        $user_info = StPartyTaskStation::getUserTop($user['communist_id'],false);
-        $info_list = $this->getInfoList(['communist_id' => $user['communist_id']]);
+        $communist = PartyTaskService::service()->checkUser($params['user_id']);
+        $user_info = StPartyTaskStation::getUserTop($communist['id'],false);
+        $info_list = $this->getInfoList(['communist_id' => $communist['id']]);
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
         $info_list['task_count'] = $user_info[0]['task_count'];
@@ -149,14 +149,13 @@ class PioneerRanKingService extends BaseService
 
     public function getStationList($params)
     {
-        $user = PartyTaskService::service()->checkUser($params['user_id']);
-        $params['id'] = $user['communist_id'];
+        $communist = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['id'] = $communist['id'];
         $commInfo = CommunistService::service()->getData($params);
         $stationParam['organization_type'] = $commInfo->organization_type;
         $stationParam['organization_id'] = $commInfo->organization_id;
         return StationService::service()->getSimpleList($stationParam);
     }
-
     /**
      * 个人信息
      * @author yjh
@@ -167,10 +166,10 @@ class PioneerRanKingService extends BaseService
     public function getUserInfo($params)
     {
         //个人信息
-        $user = PartyTaskService::service()->checkUser($params['user_id']);
-        $communist = StCommunist::find()->where(['id' => $user['communist_id']])->asArray()->one();
+        $communist = PartyTaskService::service()->checkUser($params['user_id']);
         $communist['join_party_time'] = date('Y-m-d H:i:s',$communist['join_party_time']);
         $communist['formal_time'] = date('Y-m-d H:i:s',$communist['formal_time']);
+        $communist['birth_time'] = date('Y-m-d H:i:s',$communist['birth_time']);
         $communist['type_info'] = StCommunist::$type_desc[$communist['type']];
 
         $params['years'] = date('Y',time());
@@ -179,7 +178,7 @@ class PioneerRanKingService extends BaseService
         //统计
         $model = StPartyTaskStation::find()->alias('sts')->select('sts.*')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.communist_id' => $user['communist_id']])
+            ->where(['sts.communist_id' => $communist['id']])
             ->andFilterWhere(['>','sts.create_at',$params['start']])
             ->andFilterWhere(['<','sts.create_at',$params['end']]);
         $communist['task_statistics_info']['totals_num'] = $model->count();
@@ -189,7 +188,6 @@ class PioneerRanKingService extends BaseService
         $communist['task_statistics_info']['cancel_done_num'] =$model->andWhere(['sts.status' => 4])->count();
         $checkUser = CommunistService::service()->getUser($params['user_id']);
         $communist['is_communist'] = $checkUser ? 1 : 0;
-
         return $communist;
     }
 }

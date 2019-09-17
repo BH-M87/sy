@@ -68,7 +68,8 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
     public static function getList($param,$page=true)
     {
         $model = self::find()->filterWhere(['status' => $param['status'] ?? null])
-            ->andFilterWhere(['communist_id' => $param['communist_id']])
+            ->andFilterWhere(['communist_id' => $param['communist_id'] ?? null])
+            ->andFilterWhere(['id' => $param['id'] ?? null])
             ->andFilterWhere(['<=','create_at',$param['end'] ?? null])
             ->andFilterWhere(['>=','create_at',$param['start'] ?? null]);
         $model->orderBy([ 'create_at' => SORT_DESC]);

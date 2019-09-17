@@ -361,8 +361,8 @@ class MemberService extends BaseService
             $resident['community_name'] = '';
             $resident['steward'] = '';
             $resident['name'] =  !empty($memberInfo['name']) ? $memberInfo['name'] : $appUser['nick_name'];
-            $resident['face_url'] = $appUser['avatar'];
-            $resident['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+            $resident['face_url'] = $memberInfo['face_url'];
+            $resident['mobile'] = $memberInfo['mobile'];
             $resident['hideMobile'] = PsCommon::hideMobile($resident['mobile']);
             $resident['is_certified'] = $appUser['is_certified'];
             return $this->success($resident);
@@ -431,9 +431,9 @@ class MemberService extends BaseService
         $result['lat'] = !empty($result['lat']) ? $result['lat'] : '';
         //$result['weather'] = MojiService::service()->getWeather($result['community_id'],$result['lon'],$result['lat']);
         //$result['suggest'] = MojiService::service()->getSuggest($result['community_id'],$result['lon'],$result['lat']);
-        $result['name'] = !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
-        $result['face_url'] = $appUser['avatar'];
-        $result['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+        $result['name'] = !empty($memberInfo['name']) ? $memberInfo['name'] : $appUser['nick_name'];
+        $result['face_url'] = $memberInfo['face_url'];
+        $result['mobile'] = $memberInfo['mobile'];
         $result['is_certified'] = $appUser['is_certified'];
         //获取管家数据
         $steward_params['community_id'] = $result['community_id'];
@@ -471,7 +471,7 @@ class MemberService extends BaseService
         }
 
         // 小区活动 显示进行中和已结束的数据
-        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2]]);
+        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2], 'small' => 1]);
         $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : [];
         // 社区曝光台
         $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);

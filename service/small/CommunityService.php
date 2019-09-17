@@ -217,6 +217,7 @@ Class CommunityService extends BaseService
             ->andFilterWhere(['>=', 'A.created_at', $start_at])
             ->andFilterWhere(['<=', 'A.created_at', $end_at])
             ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andFilterWhere(['=', 'A.hide_status', 1])
             ->andFilterWhere(['=', 'B.group', PsCommon::get($param, 'group')])
             ->andFilterWhere(['=', 'B.building', PsCommon::get($param, 'building')])
             ->andFilterWhere(['=', 'B.unit', PsCommon::get($param, 'unit')])
@@ -282,7 +283,7 @@ Class CommunityService extends BaseService
     public function exposureType($p)
     {
         if ($p['type'] == 1) { // 
-            $count = PsCommunityExposure::find()->select('count(id) as c, event_parent_type_id as type')->where(['is_del' => 1, 'community_id' => $p['community_id']])->orderBy('event_parent_type_id asc')->groupBy('event_parent_type_id')->asArray()->all();
+            $count = PsCommunityExposure::find()->select('count(id) as c, event_parent_type_id as type')->where(['is_del' => 1, 'hide_status' => 1, 'community_id' => $p['community_id']])->orderBy('event_parent_type_id asc')->groupBy('event_parent_type_id')->asArray()->all();
 
             if (!empty($count)) {
                 foreach ($count as $k => $v) {
