@@ -110,6 +110,9 @@ class PsProclaim extends BaseModel
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
             $v['proclaim_type_desc'] = self::$proclaim_type[$v['proclaim_type']];
             $v['proclaim_cate_desc'] = self::$proclaim_cate[$v['proclaim_cate']];
+            $v['receive'] = PsProclaimCommunity::find()->Alias('A')->select('B.id, B.name')
+                ->leftJoin('ps_community B', 'B.id = A.community_id')
+                ->where(['proclaim_id' => $v['id']])->asArray()->all();
         }
     }
 }
