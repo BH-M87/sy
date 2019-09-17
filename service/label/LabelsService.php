@@ -140,7 +140,7 @@ Class LabelsService extends BaseService
     // 标签 分类
     public function labelType($param)
     {
-        $result = PsLabels::type();
+        $result = PsLabels::type(0, $param['type']);
 
         $list = [];
         foreach ($result as $k => $v) {
