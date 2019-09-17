@@ -18,7 +18,7 @@ class DingMessageService extends BaseService
     public function send($id,$userList,$title,$organization_id,$operator_name,$create_at)
     {
         //获取这些对象对应的钉钉ID
-        $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->column();
+        $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->andWhere(['<>','ding_user_id',''])->column();
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
         $sendData['markdown'] = $title;
