@@ -67,7 +67,7 @@ Class BaseController extends CoreController
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
-        if (!$this->userId) {
+        if (!$this->userId && $action->controller->id != 'download') {
             throw new MyException('登录用户id不能为空');
         }
 
