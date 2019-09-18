@@ -23,7 +23,8 @@ class DingMessageService extends BaseService
         $departName = UserService::service()->getDepartmentNameByCode($organization_id);
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $br = "<br>";
+        $br = "
+";
         $markdown = "**通知通报**".$br;
         $markdown .= $title.$br;
         $markdown .= $departName."/".$operator_name.$br;
