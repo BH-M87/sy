@@ -162,7 +162,7 @@ class StPartyTask extends BaseModel
     public static function getList($param,$page=true)
     {
         $model = self::find()->alias('st')->select('st.*')
-            ->leftJoin('st_station as ss', 'ss.id = st.station_id')
+            ->innerJoin('st_station as ss', 'ss.id = st.station_id')
             ->filterWhere(['like', 'task_name', $param['task_name'] ?? null])
             ->andFilterWhere(['station_id' => $param['station_id']])
             ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
