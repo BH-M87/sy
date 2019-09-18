@@ -89,11 +89,12 @@ class PsProclaim extends BaseModel
             ->filterWhere(['=', 'B.community_id', $p['community_id']])
             ->orFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->andFilterWhere(['=', 'proclaim_type', $p['proclaim_type']])
+            ->andFilterWhere(['=', 'organization_id', $p['organization_id']])
             ->andFilterWhere(['like', 'title', $p['title']])
             ->andFilterWhere(['>=', 'create_at', $p['start_date']])
             ->andFilterWhere(['<=', 'create_at', $p['end_date']]);
 
-        $totals = $m->count();
+        $totals = count($m->asArray()->all());
         if ($totals > 0) {
             $list = $m->orderBy('create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
 
