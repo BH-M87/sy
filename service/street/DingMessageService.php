@@ -99,7 +99,7 @@ class DingMessageService extends BaseService
             foreach($dingList as $key=>$value){
                 $data['agent_id'] = "281128929";
                 $data['userid_list'] = $value;
-                $data['msg'] = $msgdData;
+                $data['msg'] = json_encode($msgdData);
                 $res = Curl::getInstance()->post($url,$data);
                 \Yii::info("dingReturn-".$value.":".$res,"api");
             }
