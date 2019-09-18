@@ -558,8 +558,8 @@ class RepairService extends BaseService
                 ])->execute();
             }
             $repairArr["is_assign"] = 1;
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
+            $repairArr["operator_id"] = $params["user_id"];
+            $repairArr["operator_name"] = $user["truename"];
             $repairArr["status"] = 2;
             $connection->createCommand()->update('ps_repair',
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
@@ -642,6 +642,8 @@ class RepairService extends BaseService
             $repairModelArr["status"] = 3;
             $repairModelArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
             $repairModelArr["hard_type"] = 1;
+            $repairModelArr["operator_id"] = $params["user_id"];
+            $repairModelArr["operator_name"] = $user["truename"];
             $connection->createCommand()->update('ps_repair',
                 $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
