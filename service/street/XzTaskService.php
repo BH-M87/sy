@@ -652,7 +652,7 @@ class XzTaskService extends BaseService
         $searchTime = $perform_time ? strtotime($perform_time." 12:00:00") : '';
         $model = StXzTask::find()->alias('t')
             ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
-            ->where(['t.user_id'=>$user_id])
+            ->where(['t.user_id'=>$user_id,'tt.status'=>1])
             ->andFilterWhere(['tt.task_type'=>$task_type])
             ->andFilterWhere(['tt.task_attribute_id'=>$task_attribute_id]);
         if($searchTime){
@@ -721,6 +721,11 @@ class XzTaskService extends BaseService
     {
         $dataTask['id'] = StXzTask::find()->select(['task_template_id'])->where(['id'=>$data['id']])->scalar();
         $detail = $this->detail($dataTask);
+        
+        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
+        if($status == 2){
+            throw new MyException('该任务不存在');
+        }
         if($detail){
             $complete = StXzTask::find()
                 ->select(['check_content','check_images','check_location_lon','check_location_lat','check_location'])
@@ -750,7 +755,11 @@ class XzTaskService extends BaseService
         $id = $data['id'];
         $detail = StXzTask::find()->where(['id' => $id])->asArray()->one();
         if(empty($detail)){
-            throw new MyException('模板不存在');
+            throw new MyException('任务不存在');
+        }
+        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
+        if($status == 2){
+            throw new MyException('该任务不存在');
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
