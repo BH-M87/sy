@@ -1308,9 +1308,9 @@ class BillService extends BaseService
         $psRepairBill->property_company_id = $community->pro_company_id;
         $psRepairBill->order_no = $psRepair->repair_no;
         $psRepairBill->property_alipay_account = $preCompany->alipay_account;
-        $psRepairBill->materials_price = $materialsPrice;
-        $psRepairBill->other_charge = $otherCharge;
-        $psRepairBill->amount = $totalPrice;
+        $psRepairBill->materials_price = $materialsPrice ? $materialsPrice : 0;
+        $psRepairBill->other_charge = $otherCharge ? $otherCharge : 0;
+        $psRepairBill->amount = $totalPrice ? $totalPrice : 0;
         $psRepairBill->trade_no = "";
         $psRepairBill->pay_status = 0;
         $psRepairBill->create_at = time();
