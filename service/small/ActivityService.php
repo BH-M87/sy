@@ -298,7 +298,7 @@ Class ActivityService extends BaseService
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select(['A.id'])
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id')
             ->where(['A.id' => $p['room_id']])->asArray()->one();
         if (!$roomInfo) {
             return $this->failed('房屋不存在！');
@@ -310,6 +310,7 @@ Class ActivityService extends BaseService
         $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
+        $params['community_id'] = $roomInfo ['community_id'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
