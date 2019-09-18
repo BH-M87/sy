@@ -66,7 +66,7 @@ class RepairTypeService extends BaseService
                 }
                 $list[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
                 $list[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
-                $list[$key]['cid'] = $value['id'];
+                $list[$key]['cid'] = $count;
                 $count--;
             }
         }
@@ -207,6 +207,7 @@ class RepairTypeService extends BaseService
     //获取报修类目树
     public function getRepairTypeTree($params)
     {
+        $params['status'] = 1;
         $model = $this->getRepairTypeList($params);
         return self::dealRepairType($model['list']);
     }

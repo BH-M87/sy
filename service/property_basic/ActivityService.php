@@ -16,6 +16,7 @@ use app\models\PsAppUser;
 use app\models\PsAppMember;
 use app\models\PsRoomUser;
 use app\models\Department;
+use app\models\DepartmentCommunity;
 
 class ActivityService extends BaseService
 {
@@ -67,10 +68,8 @@ class ActivityService extends BaseService
     // 获取活动列表
     public function list($p)
     {
-        if (!empty($p['small'])) { // 小程序的列表
-            $xq_orgcode = PsCommunityModel::findOne($p['community_id'])->event_community_no;
-            $p['organization_id'] = Department::find()->alias('A')->select('A.id')->leftJoin('department_community B', 'B.jd_org_code = A.org_code')
-                ->where(['B.xq_orgcode' => $xq_orgcode])->scalar();
+        if (!empty($p['small'])) { // 小程序的列表 有该小区权限的组织发的活动都要展示
+            $p['organization_id'] = Department::getDept($p['community_id']);
         }
 
         $m = PsActivity::getList($p);
