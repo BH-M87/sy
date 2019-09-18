@@ -42,6 +42,7 @@ class UserService extends BaseService
         if (!$user_info) {
             throw new MyException("用户不存在！");
         }
+
         if ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
@@ -54,8 +55,14 @@ class UserService extends BaseService
             $user_info['dept_id'] = $user_info['cg_org_code'];
         } elseif ($user_info['node_type'] == 6) {
             $user_info['dept_id'] = $user_info['xq_org_code'];
-        } else {
-            throw new MyException("用户组织不存在！");
+        } elseif ($user_info['node_type'] == 7) {
+            //其他层级，需向上查询第一个node_type 不为7的父级的org_code
+            $deptId = $user_info['dept_id'];
+            $orgCode = $this->_getParentOrgCode($deptId);
+            if (!$orgCode) {
+                throw new MyException("用户组织不存在！");
+            }
+            $user_info['dept_id'] = $orgCode;
         }
         //根据所属的组织，查找拥有的小区权限
         $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
@@ -152,6 +159,32 @@ class UserService extends BaseService
     public function getUserNameById($id)
     {
         return UserInfo::find()->select(['username'])->where(['id'=>$id])->asArray()->scalar();
+    }
+
+    /**
+     * 递归查询node_type 为7 的父级的 org_code
+     * @param $depId
+     * @return mixed
+     * @throws MyException
+     */
+    private function _getParentOrgCode($depId, $orgCode = '')
+    {
+        global $orgCode;
+        $model = Department::find()
+            ->select('id, org_code,parent_id,node_type')
+            ->where(['id' => $depId])
+            ->asArray()
+            ->one();
+        if (!$model) {
+            throw new MyException("部门不存在");
+        }
+        if (!in_array($model['node_type'], ['1','2','3','4','5','6'])) {
+            $depId = $model['parent_id'];
+            $this->_getParentOrgCode($depId, $orgCode);
+        } else {
+            $orgCode = $model['org_code'];
+        }
+        return $orgCode;
     }
 
 
