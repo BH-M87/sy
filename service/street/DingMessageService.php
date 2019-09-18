@@ -22,7 +22,7 @@ class DingMessageService extends BaseService
         $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $markdown = "**通知通报**
+        $markdown = "##### **通知通报**
         ".$title."
         ".$departName."/".$operator_name." ".date("Y-m-d H:i",$create_at);
         $sendData['markdown'] = $markdown;
