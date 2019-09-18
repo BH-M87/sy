@@ -13,8 +13,8 @@ class PsActivityEnroll extends BaseModel
     public function rules()
     {
         return [
-            [['a_id', 'user_id', 'room_id'], 'integer'],
-            [['name', 'mobile','a_id', 'user_id', 'room_id'], 'required'],
+            [['a_id', 'user_id', 'room_id', 'community_id'], 'integer'],
+            [['name', 'mobile','a_id', 'user_id', 'room_id', 'community_id'], 'required'],
             [['name'], 'string', 'max' => 30],
             [['mobile'], 'string', 'max' => 11],
             [['avatar'], 'string', 'max' => 255],
@@ -30,6 +30,7 @@ class PsActivityEnroll extends BaseModel
             'a_id' => '活动ID',
             'user_id' => '用户ID',
             'room_id' => '房屋ID',
+            'community_id' => '小区ID',
             'avatar' => '头像',
             'name' => '用户名',
             'mobile' => '手机号',

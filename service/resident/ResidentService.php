@@ -520,7 +520,7 @@ class ResidentService extends BaseService
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d H:i:s', $model['create_at']) : '';
             $model['unaccept_at'] = !empty($model['unaccept_at']) ? date('Y-m-d H:i:s', $model['unaccept_at']) : '';
             $model['identity_type_desc'] = PsCommon::getIdentityType($model['identity_type'], 'key');
-            $model['images'] = explode(',', $model['images']);
+            $model['images'] = F::ossImagePath(explode(',', $model['images']));
         }
 
         return ["list" => $models, 'totals' => $count];

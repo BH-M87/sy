@@ -74,7 +74,8 @@ class PioneerRanKingService extends BaseService
         $start = strtotime($year.'-01-01 00:00');
         $end = strtotime($year.'-12-31 24:00');
         $info['type_name'] = StCommunist::$type_desc[$info['type']];
-        $info['organization_type_desc'] = $info['organization_type'] == 1 ? '1街道本级' : '社区';
+        $info['organization_type_desc'] = $info['organization_type'] == 1 ? '街道本级' : '社区';
+        $info['image'] = F::getOssImagePath($info['image']);
         $info['sex'] = $info['sex'] == 1 ? '男' : '女';
         $info['all_score'] = StPartyTaskStation::find()->where(['communist_id' => $params['communist_id'],'status' => 3])->sum('pioneer_value');
         $info['year_score'] = StPartyTaskStation::find()->where(['communist_id' => $params['communist_id'],'status' => 3])
