@@ -648,8 +648,8 @@ class XzTaskService extends BaseService
         $task_type = PsCommon::get($data,'task_type');
         $task_attribute_id = PsCommon::get($data,'task_attribute_id');
         $perform_time = PsCommon::get($data,'perform_time');
-        $searchTime = $perform_time ? strtotime($perform_time) : '';
-
+        //搜索具体的某一天，因此取中间的某个时间点就行
+        $searchTime = $perform_time ? strtotime($perform_time." 12:00:00") : '';
         $model = StXzTask::find()->alias('t')
             ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
             ->where(['t.user_id'=>$user_id])
