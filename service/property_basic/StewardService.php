@@ -13,6 +13,7 @@ use app\models\PsCommunityRoominfo;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
+use app\models\PsMember;
 
 class StewardService extends BaseService
 {
@@ -79,7 +80,7 @@ class StewardService extends BaseService
             ->asArray()->all();;
         foreach ($list as &$v){
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
-            $v['user_mobile'] = PsMember::userinfo($v['user_id'])['mobile'];
+            $v['user_mobile'] = F::processMobile(PsMember::userinfo($v['user_id'])['mobile']);
         }
 
         return ['list' => $list, 'totals' => $totals];
