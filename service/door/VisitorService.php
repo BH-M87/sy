@@ -99,7 +99,7 @@ class VisitorService extends BaseService
         $list = $model->select('room.id, room.vistor_name,room.sex,room.vistor_mobile,room.start_time,room.end_time,room.car_number,
         room.is_cancel,room.`group`,room.building,room.unit,room.room,room.reason,room.passage_at,
         member.name as member_name,room.status');
-        if (!$params['use_as']) {
+        if (empty($params['use_as'])) {
             $model->offset((($params['page'] - 1) * $params['rows']))->limit($params['rows']);
         }
         $model->orderBy("room.id desc")
