@@ -163,6 +163,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
                 self::afterBackendOrderList($data['list']);
             }
         }
+        array_multisort(array_column($data['list'],'top'),SORT_ASC,$data['list']);
         return $data;
     }
 
