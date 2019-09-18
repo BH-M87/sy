@@ -119,4 +119,20 @@ class DingMessageService extends BaseService
         var_dump($res);die;
     }
 
+    public function sendTaskMessage($title,$dingId)
+    {
+        //给这些未读的对象发送钉钉消息
+        $sendData['title'] = '工作任务';
+        $br = "<br>";
+        $markdown = "**工作任务**".$br;
+        $markdown .= $title.$br;
+        $markdown .= "提醒时间：".date("Y-m-d H:i:s");
+        $sendData['markdown'] = $markdown;
+        $sendData['single_title'] = "查看详情";
+        //$query = urlencode("id=".$id);
+        $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails';//钉钉端详情页的地址
+        $data = $this->sendMessage(1,$sendData);
+        $this->sendDingMessage($data,$dingId);
+    }
+
 }
