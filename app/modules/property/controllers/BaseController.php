@@ -73,7 +73,9 @@ Class BaseController extends CoreController
             if (!$this->userId) {
                 throw new MyException('登录用户id不能为空');
             }
-            $userInfo = UserService::service()->getUserById($this->userId);
+            //$userInfo = UserService::service()->getUserById($this->userId);
+            $userInfo = \service\street\UserService::service()->getUserInfoById($this->userId);
+            $userInfo['mobile'] = $userInfo['mobile_number'];
             $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
             //token验证
             $this->user_info = $userInfo;
