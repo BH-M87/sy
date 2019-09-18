@@ -21,6 +21,7 @@ use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
 use app\models\ParkingUsers;
 use app\models\PsCommunityModel;
+use app\models\PsResidentAuditInfo;
 
 use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
@@ -789,6 +790,7 @@ class ResidentService extends BaseService
                 and identity_type in(2,3))", [':room_id'=>$model['room_id']])->execute();
             PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
+            PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_id' => $model['room_id'], 'identity_type' => [2, 3]]);
         }
         // 添加变更历史
         PsResidentHistory::model()->addHistory($model, ['id' => $userInfo['id'], 'name' => $userInfo['username']], true);
