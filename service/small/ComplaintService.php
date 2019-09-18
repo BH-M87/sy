@@ -14,6 +14,7 @@ use app\models\PsRoomUser;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
+use app\models\PsMember;
 use app\models\PsAppUser;
 use app\models\PsCommunityBuilding;
 
