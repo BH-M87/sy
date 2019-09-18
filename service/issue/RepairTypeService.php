@@ -66,7 +66,7 @@ class RepairTypeService extends BaseService
                 }
                 $list[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
                 $list[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
-                $list[$key]['cid'] = $count;
+                $list[$key]['cid'] = $value['id'];
                 $count--;
             }
         }

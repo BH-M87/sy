@@ -165,6 +165,8 @@ class StPartyTask extends BaseModel
             ->leftJoin('st_station as ss', 'ss.id = st.station_id')
             ->filterWhere(['like', 'task_name', $param['task_name'] ?? null])
             ->andFilterWhere(['station_id' => $param['station_id']])
+            ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
+            ->andFilterWhere(['st.organization_type' => $param['organization_type'] ?? null])
             ->andFilterWhere(['ss.status' => $param['station_status'] ?? null ])
             ->andFilterWhere(['or',['>','expire_time',$param['expire_time'] ?? null],['expire_time_type' => $param['expire_time_type'] ?? null]]);
         $model->orderBy([ 'st.create_at' => SORT_DESC]);

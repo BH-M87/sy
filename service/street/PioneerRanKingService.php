@@ -122,6 +122,8 @@ class PioneerRanKingService extends BaseService
         $params['years'] = date('Y',time());
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
         $params['end'] = strtotime($params['years'].'-12-31 24:00');
+        $params['organization_id'] = $communist['organization_id'];
+        $params['organization_type'] = $communist['organization_type'];
         $data = StPartyTaskStation::getOrderList($params);
         $user_top = StPartyTaskStation::getUserTop($communist['id']);
         $data['user'] = $user_top[0] ?? null;
@@ -139,8 +141,9 @@ class PioneerRanKingService extends BaseService
     public function getCommunistInfoList($params)
     {
         $communist = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['communist_id'] = $communist['id'];
         $user_info = StPartyTaskStation::getUserTop($communist['id'],false);
-        $info_list = $this->getInfoList(['communist_id' => $communist['id']]);
+        $info_list = $this->getInfoList($params);
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
         $info_list['task_count'] = $user_info[0]['task_count'];

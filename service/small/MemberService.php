@@ -360,9 +360,9 @@ class MemberService extends BaseService
             $resident['community_id'] =  '';
             $resident['community_name'] = '';
             $resident['steward'] = '';
-            $resident['name'] =  !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
+            $resident['name'] =  !empty($memberInfo['name']) ? $memberInfo['name'] : $appUser['nick_name'];
             $resident['face_url'] = $appUser['avatar'];
-            $resident['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+            $resident['mobile'] = $memberInfo['mobile'];
             $resident['hideMobile'] = PsCommon::hideMobile($resident['mobile']);
             $resident['is_certified'] = $appUser['is_certified'];
             return $this->success($resident);
@@ -431,9 +431,9 @@ class MemberService extends BaseService
         $result['lat'] = !empty($result['lat']) ? $result['lat'] : '';
         //$result['weather'] = MojiService::service()->getWeather($result['community_id'],$result['lon'],$result['lat']);
         //$result['suggest'] = MojiService::service()->getSuggest($result['community_id'],$result['lon'],$result['lat']);
-        $result['name'] = !empty($appUser['true_name']) ? $appUser['true_name'] : $appUser['nick_name'];
+        $result['name'] = !empty($memberInfo['name']) ? $memberInfo['name'] : $appUser['nick_name'];
         $result['face_url'] = $appUser['avatar'];
-        $result['mobile'] = !empty($appUser['phone']) ? $appUser['phone'] : $memberInfo['mobile'];
+        $result['mobile'] = $memberInfo['mobile'];
         $result['is_certified'] = $appUser['is_certified'];
         //获取管家数据
         $steward_params['community_id'] = $result['community_id'];

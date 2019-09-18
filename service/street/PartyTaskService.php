@@ -87,6 +87,7 @@ class PartyTaskService extends BaseService
         }
         $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
+        $task['organization_type'] = $task['organization_type'] == 1 ? '街道本级' : '社区';
         //有人认领只能修改截止时间
         if ($party) {
             $task['is_claim'] = 1;
@@ -206,16 +207,17 @@ class PartyTaskService extends BaseService
      * @author yjh
      * @return mixed
      */
-    public function getCount()
+    public function getCount($params)
     {
-        $task_count = StPartyTask::find()->count();
-        $data['history'] = StPartyTaskStation::find()->count();
+        $task_count = StPartyTask::find()->where(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
+        $data['history'] = StPartyTaskStation::find()->where(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
         $data['today'] = StPartyTaskStation::find()
             ->where(['<' ,'create_at' ,strtotime(date('Y-m-d',time()).' 23:59')])
             ->andWhere(['>' ,'create_at' ,strtotime(date('Y-m-d',time()).' 00:00')])
+            ->andWhere(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])
             ->count();
-        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4])->count();
-        $data['avg'] = $data['history'] / $task_count;
+        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4])->andWhere(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
+        $data['avg'] = number_format($data['history'] / $task_count,1);
         return $data;
     }
 
@@ -229,11 +231,12 @@ class PartyTaskService extends BaseService
     public function getReceiveCount($param)
     {
         if (empty($param['id'])) throw new MyException('ID不能为空');
-        $data['total'] = StPartyTaskStation::find()->where(['task_id' => $param['id']])->count();
-        $data['no_completed'] =StPartyTaskStation::find()->where(['status' => 1 ,'task_id' => $param['id']])->count();
-        $data['audit'] = StPartyTaskStation::find()->where(['status' => 2 ,'task_id' => $param['id']])->count();
-        $data['ok'] = StPartyTaskStation::find()->where(['status' => 3 ,'task_id' => $param['id']])->count();
-        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4 ,'task_id' => $param['id']])->count();
+        $data['total'] = StPartyTaskStation::find()->where(['task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])
+            ->count();
+        $data['no_completed'] =StPartyTaskStation::find()->where(['status' => 1 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
+        $data['audit'] = StPartyTaskStation::find()->where(['status' => 2 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
+        $data['ok'] = StPartyTaskStation::find()->where(['status' => 3 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
+        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
         return $data;
     }
 
@@ -253,16 +256,16 @@ class PartyTaskService extends BaseService
      * @author yjh
      * @return mixed
      */
-    public function getExamineCount()
+    public function getExamineCount($param)
     {
         $model = StPartyTaskStation::find()->alias('sts')->select('sts.*')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id');
-        $value = $model->where(['in','sts.status',[2,3]])->sum('sts.pioneer_value');
-        $avg_value = $model->where(['sts.status' => 3])->sum('sts.pioneer_value');
-        $data['no_audited'] = $model->where(['sts.status' => 2])->count();
-        $data['audited'] =$model->where(['sts.status' => 3])->count();
-        $data['value'] = empty($value) ? '0' : $value/ ($data['no_audited'] + $data['audited']);
-        $data['avg_value'] = empty($avg_value) ? '0' : $avg_value / $data['audited'];
+        $value = $model->where(['in','sts.status',[2,3]])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->sum('sts.pioneer_value');
+        $avg_value = $model->where(['sts.status' => 3])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->sum('sts.pioneer_value');
+        $data['no_audited'] = $model->where(['sts.status' => 2])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+        $data['audited'] =$model->where(['sts.status' => 3])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+        $data['value'] = empty($value) ? '0' : number_format($value/ ($data['no_audited'] + $data['audited']),1);
+        $data['avg_value'] = empty($avg_value) ? '0' : number_format($avg_value / $data['audited'],1);
         return $data;
     }
 
@@ -331,10 +334,12 @@ class PartyTaskService extends BaseService
      */
     public function getSmallList($params)
     {
-        $this->checkUser($params['user_id']);
+        $communist = $this->checkUser($params['user_id']);
         $params['station_id'] = empty($params['station_id']) ? null : $params['station_id'];
         $params['expire_time_type'] = 1;
         $params['station_status'] = 1;
+        $params['organization_id'] = $communist['organization_id'];
+        $params['organization_type'] = $communist['organization_type'];
         $params['expire_time'] = time();
         return StPartyTask::getList($params);
     }
@@ -359,7 +364,7 @@ class PartyTaskService extends BaseService
         $party_task->status = '1';
         $party_task->create_at = time();
         $party_task->save();
-        $this->addRemind($communist['id'],$communist['name'].'认领了党员任务！',1,$party_task->id);
+        $this->addRemind($party_task->task_id,$communist['name'].'认领了党员任务！',1,$party_task->id);
     }
 
     /**
@@ -527,23 +532,23 @@ class PartyTaskService extends BaseService
         $party->update_at = time();
         $party->save();
         $record->save();
-        $this->addRemind($communist['id'],'又有党员提交任务啦，快去看看吧！',2,$party->id);
+        $this->addRemind($party->task_id,'又有党员提交任务啦，快去看看吧！',2,$party->id);
     }
 
     /**
      *
      * @author yjh
-     * @param $communist_id
+     * @param $task_id
      * @param $content
      * @param $type 1 党员任务认领  2党员任务审核
      * @param $related_id
      * @throws MyException
      */
-    public function addRemind($communist_id,$content,$type,$related_id)
+    public function addRemind($task_id,$content,$type,$related_id)
     {
-        $communist = $this->getCommunist($communist_id);
-        $organization_type = $communist['organization_type'];
-        $organization_id = $communist['organization_id'];
+        $party = StPartyTask::find()->where(['id' => $task_id])->one();
+        $organization_type = $party['organization_type'];
+        $organization_id = $party['organization_id'];
         $this->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
     }
 

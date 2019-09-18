@@ -99,6 +99,8 @@ class PartyTaskController extends BaseController
      */
     public function actionList()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PartyTaskService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($data);
     }
@@ -141,7 +143,9 @@ class PartyTaskController extends BaseController
      */
     public function actionGetCount()
     {
-        $data = PartyTaskService::service()->getCount();
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
+        $data = PartyTaskService::service()->getCount($this->request_params);
         return PsCommon::responseSuccess($data);
     }
 
@@ -149,9 +153,12 @@ class PartyTaskController extends BaseController
      * 获取领取统计
      * @author yjh
      * @return string
+     * @throws \common\MyException
      */
     public function actionGetReceiveCount()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PartyTaskService::service()->getReceiveCount($this->request_params);
         return PsCommon::responseSuccess($data);
     }
@@ -163,6 +170,8 @@ class PartyTaskController extends BaseController
      */
     public function actionGetExamineList()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PartyTaskService::service()->getExamineList($this->request_params);
         return PsCommon::responseSuccess($data);
     }
@@ -174,7 +183,9 @@ class PartyTaskController extends BaseController
      */
     public function actionGetExamineCount()
     {
-        $data = PartyTaskService::service()->getExamineCount();
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
+        $data = PartyTaskService::service()->getExamineCount($this->request_params);
         return PsCommon::responseSuccess($data);
     }
 

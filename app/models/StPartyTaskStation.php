@@ -104,6 +104,8 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['status' => $param['audit_status'] ?? [2,3]])
             ->andFilterWhere(['st.station_id' => $param['station_id'] ?? null])
+            ->andFilterWhere(['st.organization_type' => $param['organization_type'] ?? null])
+            ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
             ->andFilterWhere(['like', 'name', $param['communist_name'] ?? null])
             ->andFilterWhere(['like', 'mobile', $param['communist_mobile'] ?? null])
             ->andFilterWhere(['like', 'task_name', $param['task_name'] ?? null]);
@@ -140,7 +142,8 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['or', ['like', 'name', $param['contact_name'] ?? null], ['like', 'mobile', $param['contact_name'] ?? null]])
             ->andFilterWhere(['>','sts.create_at',$param['start']])
-            ->andFilterWhere(['<','sts.create_at',$param['end']])
+            ->andFilterWhere(['sc.organization_id' => $param['organization_id']])
+            ->andFilterWhere(['sc.organization_type' => $param['organization_type']])
             ->andFilterWhere(['sts.status' => 3])
             ->groupBy('communist_id')
             ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
