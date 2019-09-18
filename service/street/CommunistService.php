@@ -166,6 +166,7 @@ class CommunistService extends BaseService
             ->where(['sc.id' => $params['id']])
             ->asArray()
             ->one();
+        $info['image_key_name'] = $info['image'];
         $info['image'] = $info['image'] ? F::getOssImagePath($info['image']) : '';
         $info['sex_info'] = $this->_sex[$info['sex']];
         $info['birth_time'] = $info['birth_time'] ? date("Y-m-d", $info['birth_time']) : '';
