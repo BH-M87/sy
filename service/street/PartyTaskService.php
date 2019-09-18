@@ -224,7 +224,7 @@ class PartyTaskService extends BaseService
             ->alias('sts')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
             ->where(['sts.status' => 4])->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
-        $data['avg'] = number_format($data['history'] / $task_count,1);
+        $data['avg'] = empty($data['history']) ? '0' : number_format($data['history'] / $task_count,1);
         return $data;
     }
 
