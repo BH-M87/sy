@@ -96,12 +96,13 @@ class VisitorService extends BaseService
             }
         }
         $re['total'] = $model->count();
-        $list = $model->select('room.id, room.vistor_name,room.sex,room.vistor_mobile,room.start_time,room.end_time,room.car_number,
+        $model->select('room.id, room.vistor_name,room.sex,room.vistor_mobile,room.start_time,room.end_time,room.car_number,
         room.is_cancel,room.`group`,room.building,room.unit,room.room,room.reason,room.passage_at,
-        member.name as member_name,room.status')
-            ->offset((($params['page'] - 1) * $params['rows']))
-            ->limit($params['rows'])
-            ->orderBy("room.id desc")
+        member.name as member_name,room.status');
+        if (empty($params['use_as'])) {
+            $model->offset((($params['page'] - 1) * $params['rows']))->limit($params['rows']);
+        }
+        $list = $model->orderBy("room.id desc")
             ->asArray()
             ->all();
         foreach ($list as $k=>$v) {
@@ -126,6 +127,7 @@ class VisitorService extends BaseService
     //导出
     public function export($params,$userInfo = [])
     {
+        $params['use_as'] = "export";
         $result = $this->getList($params);
         $config = [
             ['title' => '访客姓名', 'field' => 'vistor_name'],
