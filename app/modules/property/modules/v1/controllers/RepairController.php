@@ -285,6 +285,7 @@ class RepairController extends BaseController {
         }
         $this->request_params["hard_type"] = 2;
         $this->request_params["export"] = true;
+
         $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
