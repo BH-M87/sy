@@ -238,12 +238,27 @@ class PartyTaskService extends BaseService
     public function getReceiveCount($param)
     {
         if (empty($param['id'])) throw new MyException('ID不能为空');
-        $data['total'] = StPartyTaskStation::find()->where(['task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])
+        $data['total'] = StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])
             ->count();
-        $data['no_completed'] =StPartyTaskStation::find()->where(['status' => 1 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
-        $data['audit'] = StPartyTaskStation::find()->where(['status' => 2 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
-        $data['ok'] = StPartyTaskStation::find()->where(['status' => 3 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
-        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4 ,'task_id' => $param['id']])->andWhere(['organization_type' => $param['organization_type'],'organization_id' => $param['organization_id']])->count();
+        $data['no_completed'] =StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.status' => 1 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+        $data['audit'] = StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.status' => 2 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+        $data['ok'] = StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.status' => 3 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+        $data['cancel'] = StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+            ->where(['sts.status' => 4 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         return $data;
     }
 
