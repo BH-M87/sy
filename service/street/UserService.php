@@ -36,10 +36,26 @@ class UserService extends BaseService
     {
         //token验证
         $user_info = UserInfo::find()
-            ->select(['id','mobile_number','username','dept_id','node_type','org_code'])
+            ->select(['id','mobile_number','username','dept_id','node_type','org_code',
+                'jd_org_code', 'sq_org_code', 'xq_org_code', 'cg_org_code', 'xf_org_code', 'ga_org_code'])
             ->where(['user_id'=>$id])->asArray()->one();
         if (!$user_info) {
             throw new MyException("用户不存在！");
+        }
+        if ($user_info['node_type'] == 1) {
+            $user_info['dept_id'] = $user_info['jd_org_code'];
+        } elseif ($user_info['node_type'] == 2) {
+            $user_info['dept_id'] = $user_info['sq_org_code'];
+        } elseif ($user_info['node_type'] == 3) {
+            $user_info['dept_id'] = $user_info['ga_org_code'];
+        } elseif ($user_info['node_type'] == 4) {
+            $user_info['dept_id'] = $user_info['xf_org_code'];
+        } elseif ($user_info['node_type'] == 5) {
+            $user_info['dept_id'] = $user_info['cg_org_code'];
+        } elseif ($user_info['node_type'] == 6) {
+            $user_info['dept_id'] = $user_info['xq_org_code'];
+        } else {
+            throw new MyException("用户组织不存在！");
         }
         //根据所属的组织，查找拥有的小区权限
         $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);

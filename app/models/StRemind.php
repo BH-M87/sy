@@ -32,8 +32,9 @@ class StRemind extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'remind_type', 'is_read', 'related_id', 'create_at'], 'integer'],
+            [['organization_type','remind_type', 'is_read', 'related_id', 'create_at'], 'integer'],
             [['content'], 'string', 'max' => 500],
+            [['organization_id'], 'safe'],
         ];
     }
 

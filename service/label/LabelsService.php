@@ -14,6 +14,7 @@ use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
 use app\models\PsRoomUser;
 use app\models\PsRoomUserLabel;
+use app\models\ParkingCars;
 
 Class LabelsService extends BaseService
 {

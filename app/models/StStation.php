@@ -31,7 +31,7 @@ class StStation extends BaseModel
     public function rules()
     {
         return [
-            [['status', 'operator_id', 'create_at', 'organization_type', 'organization_id'], 'integer'],
+            [['status', 'operator_id', 'create_at', 'organization_type'], 'integer'],
             [['station', 'content', 'status'], 'required', 'message' => '{attribute}不能为空','on' => ['add', 'edit']],
             [['station'], 'string', 'max' => 30],
             [['content'], 'string', 'max' => 200],
@@ -41,6 +41,7 @@ class StStation extends BaseModel
             [['status'],'in','range'=>[1,2], 'message' => '{attribute}只能是1或2','on' => ['add', 'edit', 'list', 'edit-status']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view', 'edit-status']],
             [['status'], 'required', 'message' => '{attribute}不能为空','on' => ['edit-status']],
+            [['organization_id'], 'safe'],
         ];
     }
 
