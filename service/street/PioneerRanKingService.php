@@ -122,6 +122,8 @@ class PioneerRanKingService extends BaseService
         $params['years'] = date('Y',time());
         $params['start'] = strtotime($params['years'].'-01-01 00:00');
         $params['end'] = strtotime($params['years'].'-12-31 24:00');
+        $params['organization_id'] = $communist['organization_id'];
+        $params['organization_type'] = $communist['organization_type'];
         $data = StPartyTaskStation::getOrderList($params);
         $user_top = StPartyTaskStation::getUserTop($communist['id']);
         $data['user'] = $user_top[0] ?? null;
