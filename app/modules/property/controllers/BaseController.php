@@ -77,8 +77,9 @@ Class BaseController extends CoreController
             $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
             //token验证
             $this->user_info = $userInfo;
-            $this->communityId = $community_id[0];
-            $this->request_params['community_id'] = $community_id[0];
+            $communityId = $this->communityId ? $this->communityId : $community_id[0];
+            $this->communityId = $communityId;
+            $this->request_params['community_id'] = $communityId;
             UserService::setUser($this->user_info);
         }
 
