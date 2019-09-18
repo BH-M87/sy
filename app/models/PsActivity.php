@@ -162,7 +162,7 @@ class PsActivity extends BaseModel
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
             $v['status_desc'] = self::$status[$v['status']];
             $v['type_desc'] = self::$type[$v['type']];
-            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : '';
+            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : $v['type_desc'];
             $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
                 ->where(['a_id' => $v['id']])->asArray()->all();
             $v['people_list'] = $enroll;
