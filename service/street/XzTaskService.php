@@ -65,8 +65,8 @@ class XzTaskService extends BaseService
         $task_type = PsCommon::get($data, 'task_type');
         $task_attribute_id = PsCommon::get($data, 'task_attribute_id');
         $status = PsCommon::get($data, 'status');
-        $date_start = PsCommon::get($data, 'date_start');
-        $date_end = PsCommon::get($data, 'date_end');
+        $start_date = PsCommon::get($data, 'start_date');
+        $end_date = PsCommon::get($data, 'end_date');
         $model = StXzTaskTemplate::find()
             ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['name' => $name])
@@ -74,9 +74,9 @@ class XzTaskService extends BaseService
             ->andFilterWhere(['status' => $status])
             ->andFilterWhere(['task_type' => $task_type]);
         //如果搜索了发布时间
-        if ($date_start && $date_end) {
-            $start_time = strtotime($date_start . " 00:00:00");
-            $end_time = strtotime($date_end . " 23:59:59");
+        if ($start_date && $end_date) {
+            $start_time = strtotime($start_date . " 00:00:00");
+            $end_time = strtotime($end_date . " 23:59:59");
             $model = $model->andFilterWhere(['>=', 'start_date', $start_time])
                 ->andFilterWhere(['<=', 'end_date', $end_time]);
         }
@@ -108,8 +108,8 @@ class XzTaskService extends BaseService
                     throw new MyException('任务日期内无执行该任务的日期');
                 }
             }else{
-                $time['start_time'] = $start_date;
-                $time['end_time'] = $end_date;
+                $time['start_time'] = strtotime($data['start_date']);
+                $time['end_time'] = strtotime($data['end_date']." 23:59:59");
                 $timeList[] = $time;
             }
 
