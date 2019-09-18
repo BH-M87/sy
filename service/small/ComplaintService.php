@@ -14,6 +14,7 @@ use app\models\PsRoomUser;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
+use app\models\PsMember;
 use app\models\PsAppUser;
 use app\models\PsCommunityBuilding;
 
@@ -290,11 +291,11 @@ class ComplaintService extends BaseService
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();
-        foreach ($resultAll as $result){
-            $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
-            $result['user_name'] = $this->substr_cut($result['user_name']);
-            $result['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $result['user_id']])->scalar();
-            $list[] = $result;
+        foreach ($resultAll as $v){
+            $v['create_at'] = date('Y-m-d H:i',$v['create_at']);
+            $v['user_name'] = $this->substr_cut(PsMember::userinfo($v['user_id'])['name']);
+            $v['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $v['user_id']])->scalar();
+            $list[] = $v;
         }
 
         return $this->success(['list'=>$list,'total'=>$total]);
