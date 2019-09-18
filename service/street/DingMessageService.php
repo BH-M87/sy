@@ -31,9 +31,10 @@ class DingMessageService extends BaseService
         //$query = urlencode("id=".$id);
         $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails?id='.$id;//钉钉端详情页的地址
         $data = $this->sendMessage(1,$sendData);
+        $this->sendDingMessage($data,$dingdingList);
         $result['data'] = $data;
-        //$this->sendDingMessage($data,$dingdingList);
         $result['userList'] = $dingdingList ? $dingdingList: [];
+        $result = [];
         return $result;
     }
 
