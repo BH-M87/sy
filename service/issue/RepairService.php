@@ -265,11 +265,11 @@ class RepairService extends BaseService
                 $models[$key]['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
                 $models[$key]['expired_repair_type_desc'] =
-                    isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '未知';
+                    isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
                 $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
                 $models[$key]['amount'] = $this->getRepairBill($val['id']);
                 $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
-                $models[$key]['export_expired_repair_type_desc'] = $val['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
+                $models[$key]['export_expired_repair_type_desc'] = $models[$key]['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
             }
             $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
             if ($models[$key]['contact_mobile']) {
