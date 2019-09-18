@@ -292,11 +292,10 @@ class RepairService extends BaseService
             ['title' => '联系电话', 'field' => 'contact_mobile'],
             ['title' => '报修位置', 'field' => 'export_room_address'],
             ['title' => '内容', 'field' => 'repair_content'],
-            ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
             ['title' => '报修来源', 'field' => 'repair_from_desc'],
-            ['title' => '工单金额', 'field' => 'amount'],
             ['title' => '状态', 'field' => 'status_desc'],
-            ['title' => '处理人', 'field' => 'operator_name'],
+            ['title' => '标记说明', 'field' => 'hard_remark'],
+            ['title' => '标记时间', 'field' => 'hard_check_at'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
         $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
