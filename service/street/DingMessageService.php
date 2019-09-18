@@ -29,8 +29,8 @@ class DingMessageService extends BaseService
         $markdown .= $title.$br;
         $markdown .= $departName."/".$operator_name.$br;
         $markdown .= "提醒时间：".date("Y-m-d H:i:s");*/
-        $markdown = "**通知通报**
-        ".$title."
+        $markdown = "#### **通知通报**";
+        $markdown .= "##### ".$title."
         ".$departName."/".$operator_name."
         "."提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
