@@ -96,13 +96,18 @@ class PsProclaim extends BaseModel
 
         $m->andFilterWhere(['=', 'proclaim_type', $p['proclaim_type']])
             ->andFilterWhere(['=', 'organization_id', $p['organization_id']])
+            ->andFilterWhere(['=', 'is_show', $p['is_show']])
             ->andFilterWhere(['like', 'title', $p['title']])
             ->andFilterWhere(['>=', 'create_at', $p['start_date']])
             ->andFilterWhere(['<=', 'create_at', $p['end_date']]);
 
         $totals = count($m->asArray()->all());
         if ($totals > 0) {
-            $list = $m->orderBy('create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            if (!empty($p['small'])) { // 小程序的列表
+                $list = $m->orderBy('is_top desc, top_at desc, create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            } else {
+                $list = $m->orderBy('create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+            }
 
             self::afterList($list);
         }

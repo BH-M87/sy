@@ -271,6 +271,7 @@ class RepairService extends BaseService
                 $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
                 $models[$key]['export_expired_repair_type_desc'] = $models[$key]['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
             }
+
             $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
             if ($models[$key]['contact_mobile']) {
                 $models[$key]['contact_mobile'] = PsCommon::hideMobile($models[$key]['contact_mobile']);

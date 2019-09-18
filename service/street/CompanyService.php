@@ -35,7 +35,8 @@ class CompanyService extends BaseService
     {
         //查询数据是否重复
         $tmpModel = StCompany::find()
-            ->where(['name' => $params['name']])
+            ->where(['name' => $params['name'], 'organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->asArray()
             ->one();
         if ($tmpModel) {
@@ -60,6 +61,8 @@ class CompanyService extends BaseService
         $tmpModel = StCompany::find()
             ->where(['name' => $params['name']])
             ->andWhere(['!=', 'id', $params['id']])
+            ->andWhere(['organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->asArray()
             ->one();
         if ($tmpModel) {
