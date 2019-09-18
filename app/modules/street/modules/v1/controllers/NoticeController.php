@@ -96,5 +96,11 @@ class NoticeController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    public function actionTest()
+    {
+        $result = NoticeService::service()->fix($this->request_params,2);
+        return PsCommon::responseSuccess($result);
+    }
+
 
 }

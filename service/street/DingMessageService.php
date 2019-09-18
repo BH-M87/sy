@@ -106,4 +106,14 @@ class DingMessageService extends BaseService
         }
     }
 
+    public function getMessageStatus($task_id)
+    {
+        $access_token = $this->getAccessToken();
+        $url = "https://oapi.dingtalk.com/topapi/message/corpconversation/getsendresult?access_token=".$access_token;
+        $data['agent_id'] = 281128929;
+        $data['task_id'] = $task_id."";
+        $res = Curl::getInstance()->post($url,$data);
+        var_dump($res);die;
+    }
+
 }
