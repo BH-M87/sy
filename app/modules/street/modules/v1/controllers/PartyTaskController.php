@@ -23,6 +23,8 @@ class PartyTaskController extends BaseController
     {
         $this->request_params['operator_id'] = $this->user_info['id'] ?? 1;
         $this->request_params['operator_name'] = $this->user_info['username'] ?? '张三';
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         PartyTaskService::service()->addTask($this->request_params);
         return PsCommon::responseSuccess();
     }
@@ -97,6 +99,8 @@ class PartyTaskController extends BaseController
      */
     public function actionList()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PartyTaskService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($data);
     }

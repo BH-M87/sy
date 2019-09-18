@@ -19,13 +19,14 @@ class DingMessageService extends BaseService
     {
         //获取这些对象对应的钉钉ID
         $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->andWhere(['<>','ding_user_id',''])->column();
+        $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $markdown = "##### 通知通报
-        ".$title;
+        $markdown = "### **通知通报**
+        ".$title."
+        *".$departName."/".$operator_name." ".date("Y-m-d H:i",$create_at)."*";
         $sendData['markdown'] = $markdown;
-        $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
-        $sendData['single_title'] = $departName."/".$operator_name;
+        $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
         $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails?id='.$id;//钉钉端详情页的地址
         $result['data'] = $this->sendMessage(1,$sendData);

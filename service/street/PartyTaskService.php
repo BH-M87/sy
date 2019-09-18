@@ -87,6 +87,7 @@ class PartyTaskService extends BaseService
         }
         $party = StPartyTaskStation::find()->where(['task_id' => $params['id']])->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
+        $task['organization_type'] = $task['organization_type'] == 1 ? '街道本级' : '社区';
         //有人认领只能修改截止时间
         if ($party) {
             $task['is_claim'] = 1;
@@ -331,10 +332,12 @@ class PartyTaskService extends BaseService
      */
     public function getSmallList($params)
     {
-        $this->checkUser($params['user_id']);
+        $communist = $this->checkUser($params['user_id']);
         $params['station_id'] = empty($params['station_id']) ? null : $params['station_id'];
         $params['expire_time_type'] = 1;
         $params['station_status'] = 1;
+        $params['organization_id'] = $communist['organization_id'];
+        $params['organization_type'] = $communist['organization_type'];
         $params['expire_time'] = time();
         return StPartyTask::getList($params);
     }
@@ -447,6 +450,7 @@ class PartyTaskService extends BaseService
         //1待完成 2审核中 3取消 4已审核
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party['id']])->one();
         $task['status'] = $party['status'];
+        $task['task_station_id'] = $party['id'];
         if ($party['status'] == 2) {
             $task['complete']['content'] = $record['info'];
             $task['complete']['images'] = !empty($record['images']) ? $this->getImage($record['images']) : [];
