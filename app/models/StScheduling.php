@@ -31,9 +31,10 @@ class StScheduling extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'user_id', 'user_type', 'day_type', 'operator_id', 'create_at'], 'integer'],
+            [['organization_type','user_id', 'user_type', 'day_type', 'operator_id', 'create_at'], 'integer'],
             [['user_name', 'operator_name'], 'string', 'max' => 20],
             [['user_mobile'], 'string', 'max' => 12],
+            [['organization_id'], 'safe'],
         ];
     }
 

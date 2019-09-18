@@ -26,7 +26,7 @@ use Yii;
  * @property string $operator_name 创建人名称
  * @property int $created_at 创建时间
  */
-class StXzTaskTemplate extends \yii\db\ActiveRecord
+class StXzTaskTemplate extends BaseModel
 {
     /**
      * {@inheritdoc}
@@ -42,12 +42,13 @@ class StXzTaskTemplate extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'task_type', 'task_attribute_id', 'start_date', 'end_date', 'exec_type', 'interval_y', 'status', 'operator_id', 'created_at'], 'integer'],
+            [['organization_type', 'task_type', 'task_attribute_id', 'start_date', 'end_date', 'exec_type', 'interval_y', 'status', 'operator_id', 'created_at'], 'integer'],
             [['name'], 'string', 'max' => 50],
             [['contact_mobile'], 'string', 'max' => 12],
             [['describe', 'exec_users'], 'string', 'max' => 200],
             [['accessory_file'], 'string', 'max' => 500],
             [['operator_name'], 'string', 'max' => 20],
+            [['organization_id'], 'safe'],
         ];
     }
 

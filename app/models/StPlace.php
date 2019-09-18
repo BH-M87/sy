@@ -46,7 +46,7 @@ class StPlace extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'company_id', 'open_start_weekday', 'open_end_weekday', 'people_num', 'operator_id', 'create_at'], 'integer'],
+            [['organization_type','company_id', 'open_start_weekday', 'open_end_weekday', 'people_num', 'operator_id', 'create_at'], 'integer'],
             [['name'], 'string', 'max' => 30, 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
             [['contact_name'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！', 'on' => ['add', 'edit']],
             [['open_start_time', 'open_end_time','operator_name'], 'string', 'max' => 20],
@@ -71,7 +71,7 @@ class StPlace extends BaseModel
             [['open_end_time'], 'validateTime', 'on' => ['add', 'edit']],
             [['area_min', 'area_max'], 'match', 'pattern' => Regular::float(1),
                 'message' => '{attribute}必须为正数，最多保留一位小数', 'on' =>['list']],
-            [['name','contact_name', 'note', 'area'], 'safe'],
+            [['name','contact_name', 'note', 'area', 'organization_id'], 'safe'],
         ];
     }
 

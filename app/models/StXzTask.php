@@ -40,10 +40,11 @@ class StXzTask extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'user_id', 'user_name', 'task_template_id', 'start_time', 'end_time', 'status', 'check_at', 'created_at'], 'integer'],
+            [['organization_type', 'user_id', 'user_name', 'task_template_id', 'start_time', 'end_time', 'status', 'check_at', 'created_at'], 'integer'],
             [['check_location_lon', 'check_location_lat'], 'number'],
             [['check_content', 'check_images'], 'string', 'max' => 500],
             [['check_location'], 'string', 'max' => 255],
+            [['organization_id'], 'safe'],
         ];
     }
 
