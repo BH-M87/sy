@@ -135,6 +135,16 @@ class UserService extends BaseService
     }
 
     /**
+     * 获取部门的名称
+     * @param $code
+     * @return false|null|string
+     */
+    public function getDepartmentNameByCode($code)
+    {
+        return Department::find()->select(['department_name'])->where(['org_code'=>$code])->scalar();
+    }
+
+    /**
      * 获取用户的姓名
      * @param $id
      * @return false|null|string

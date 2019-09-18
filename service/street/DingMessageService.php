@@ -11,6 +11,7 @@ namespace service\street;
 
 use app\models\Department;
 use app\models\UserInfo;
+use common\core\Curl;
 use common\core\PsCommon;
 
 class DingMessageService extends BaseService
@@ -19,7 +20,7 @@ class DingMessageService extends BaseService
     {
         //获取这些对象对应的钉钉ID
         $dingdingList = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$userList])->andWhere(['<>','ding_user_id',''])->column();
-        $departName = Department::find()->select('department_name')->where(['id'=>$organization_id])->asArray()->scalar();
+        $departName = UserService::service()->getDepartmentNameByCode($organization_id);
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
         $markdown = "##### **通知通报**
@@ -29,7 +30,9 @@ class DingMessageService extends BaseService
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
         $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails?id='.$id;//钉钉端详情页的地址
-        $result['data'] = $this->sendMessage(1,$sendData);
+        $data = $this->sendMessage(1,$sendData);
+        $result['data'] = $data;
+        //$this->sendDingMessage($data,$dingdingList);
         $result['userList'] = $dingdingList ? $dingdingList: [];
         return $result;
     }
@@ -72,4 +75,33 @@ class DingMessageService extends BaseService
         }
         return $backData;
     }
+
+    public function getAccessToken()
+    {
+        $appKey = 'dingvxqretqs7uduiovc';
+        $appSecret = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
+        $url = 'https://oapi.dingtalk.com/gettoken?appkey='.$appKey.'&appsecret='.$appSecret;
+        $result = json_decode(Curl::getInstance()->get($url),true);
+        $access_token = '';
+        if($result['errcode'] == '0'){
+            $access_token = $result['access_token'];
+        }
+        return $access_token;
+    }
+
+    //发送钉钉通知
+    public function sendDingMessage($msgdData,$dingList)
+    {
+        if($dingList){
+            $access_token = $this->getAccessToken();
+            $url = "https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2?access_token=".$access_token;
+            foreach($dingList as $key=>$value){
+                $data['agent_id'] = "281128929l";
+                $data['userid_list'] = $value;
+                $data['msg'] = $msgdData;
+                Curl::getInstance()->post($url,$data);
+            }
+        }
+    }
+
 }
