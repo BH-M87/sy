@@ -143,7 +143,8 @@ class FamilyManageService extends BaseService
     {
         self::checkParams($params);
         if (empty($params['mobile'])) {
-            $mobile = PsCommon::generateVirtualPhone();
+            throw new MyException('手机号不能为空');
+            //$mobile = PsCommon::generateVirtualPhone();
         } else {
             $mobile = $params['mobile'];
         }
@@ -155,7 +156,6 @@ class FamilyManageService extends BaseService
         $params['mobile'] = $mobile;
 
         $userInfoArray = self::checkUserInfo($params['user_id'], $params['room_id'], $params);
-
         $member_id = $userInfoArray['member_id'];
         //验证房屋信息是否存在
         if (!empty($member_id)) {
@@ -236,9 +236,14 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
             }
             $model->member_id = $member_id;
             if (empty($model->member_id)){
@@ -383,7 +388,6 @@ class FamilyManageService extends BaseService
         $userInfo = $userInfoArray['userInfo'];
         $roomUserInfo = $userInfoArray['roomUserInfo'];
         $isAuth = ResidentService::service()->isAuthByNameMobile($community_id, $params['name'], $params['mobile']);
-
         $model = new PsRoomUser();
         $et = PsCommon::get($params, 'enter_time');
         $data['community_id'] = $roomUserInfo['community_id'];
@@ -419,9 +423,15 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
+
             }
             if (empty($member_id)) {
                 $trans->rollback();
@@ -431,7 +441,7 @@ class FamilyManageService extends BaseService
             $model->setAttributes($data);
             $result = $model->save();
             if (!$result) {
-                throw new MyException('新增住户失败');
+                throw new MyException('新增住户失败:'.$model->getFirstError('time_end'));
             }
             $trans->commit();
         } catch (\Exception $e) {

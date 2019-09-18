@@ -84,7 +84,8 @@ class PsProclaim extends BaseModel
         $p['start_date'] = !empty($p['start_date']) ? strtotime($p['start_date']) : null;
         $p['end_date'] = !empty($p['end_date']) ? strtotime($p['end_date'].' 23:59:59') : null;
 
-        $m = self::find()->alias('A')->leftJoin('ps_proclaim_community B', 'A.id = B.proclaim_id')
+        $m = self::find()->alias('A')->select('distinct(A.id), A.*')
+            ->leftJoin('ps_proclaim_community B', 'A.id = B.proclaim_id')
             ->filterWhere(['=', 'B.community_id', $p['community_id']])
             ->orFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->andFilterWhere(['=', 'proclaim_type', $p['proclaim_type']])

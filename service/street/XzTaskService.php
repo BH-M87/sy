@@ -31,9 +31,9 @@ class XzTaskService extends BaseService
      * @param $pageSize
      * @return mixed
      */
-    public function getList($data, $page, $pageSize)
+    public function getList($data, $page, $pageSize,$user_info)
     {
-        $model = $this->searchList($data);
+        $model = $this->searchList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
         $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
         $totals = $model->count();
@@ -59,7 +59,7 @@ class XzTaskService extends BaseService
      * @param $data
      * @return $this
      */
-    public function searchList($data)
+    public function searchList($data,$user_info)
     {
         $name = PsCommon::get($data, 'name');
         $task_type = PsCommon::get($data, 'task_type');
@@ -68,6 +68,7 @@ class XzTaskService extends BaseService
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
         $model = StXzTaskTemplate::find()
+            ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['name' => $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
             ->andFilterWhere(['status' => $status])
@@ -210,7 +211,7 @@ class XzTaskService extends BaseService
                 $week = date('W', $for_date);//计算当前日子是第几周
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
-                $remainder = ($week - $w_start) % $interval_x;//区余数，能整除表示满足条件
+                $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
                 if ($remainder == 0 && $w == $interval_y && $for_date > $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
@@ -219,8 +220,8 @@ class XzTaskService extends BaseService
             if ($interval_x == '3') {
                 $m_start = date('m', $start_date);//计算开始时间所在的月份
                 $m = date('m', $for_date);//计算当前日子是几月
-                $d = date('d', $for_date);//计算当前日子是几号
-                $remainder = ($m - $m_start) % $interval_x;//区余数，能整除表示满足条件
+                $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
+                $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
                 if ($remainder == 0 && $d == $interval_y && $for_date > $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
@@ -555,9 +556,9 @@ class XzTaskService extends BaseService
      * @param $pageSize
      * @return mixed
      */
-    public function getCompleteList($data, $page, $pageSize)
+    public function getCompleteList($data, $page, $pageSize,$user_info)
     {
-        $model = $this->searchCompleteList($data);
+        $model = $this->searchCompleteList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
         $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
         $totals = $model->count();
@@ -581,7 +582,7 @@ class XzTaskService extends BaseService
      * @param $data
      * @return $this
      */
-    public function searchCompleteList($data)
+    public function searchCompleteList($data,$user_info)
     {
         $exec_user_name = PsCommon::get($data, 'exec_user_name');
         $task_name = PsCommon::get($data, 'task_name');
@@ -593,7 +594,9 @@ class XzTaskService extends BaseService
             ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
             ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe',
                 't.user_name as exec_user_name','t.user_id as exec_user_id','t.check_at','t.created_at'])
-            ->where(['t.status'=>2])
+            //['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']
+            ->where(['t.status'=>2,'t.organization_type'=>$user_info['node_type'],'t.organization_id'=>$user_info['dept_id'],
+                'tt.organization_type'=>$user_info['node_type'],'tt.organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['like','t.user_name',$exec_user_name])
             ->andFilterWhere(['like','tt.name',$task_name])
             ->andFilterWhere(['tt.task_type'=>$task_type])
@@ -684,7 +687,7 @@ class XzTaskService extends BaseService
 
         $model = $this->searchMyList($data);
         $offset = ($page - 1) * $pageSize;
-        $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type'])
+        $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type','t.check_at'])
             ->offset($offset)->limit($pageSize)->orderBy('t.id desc')->asArray()->all();
         $count = $model->count();
         if($list){
@@ -692,12 +695,13 @@ class XzTaskService extends BaseService
                 $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
                 $list[$key]['task_attribute_id_desc'] = $task_attribute['name'];
                 $list[$key]['task_type_desc'] = $this->type_info[$value['task_type']];
-                $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);
+                $list[$key]['perform_time']  = date("Y-m-d",$value['start_time']);//执行时间
                 if(!empty($value['exec_type'])){
                     $list[$key]['exec_type_desc'] = $this->exec_type_info[$value['exec_type']]."任务";
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
+                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d",$value['check_at']) : "";//完成时间
 
             }
         }else{

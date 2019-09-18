@@ -20,7 +20,7 @@ class NoticeController extends BaseController
      */
     public function actionList()
     {
-        $result = NoticeService::service()->getList($this->request_params, $this->page, $this->pageSize);
+        $result = NoticeService::service()->getList($this->request_params, $this->page, $this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 

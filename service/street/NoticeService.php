@@ -25,9 +25,9 @@ class NoticeService extends BaseService
      * @param $pageSize
      * @return mixed
      */
-    public function getList($data, $page, $pageSize)
+    public function getList($data, $page, $pageSize,$user_info)
     {
-        $model = $this->searchList($data);
+        $model = $this->searchList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
         $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
         $totals = $model->count();
@@ -53,13 +53,14 @@ class NoticeService extends BaseService
      * @param $data
      * @return $this
      */
-    public function searchList($data)
+    public function searchList($data,$user_info)
     {
         $type = PsCommon::get($data, 'type');
         $title = PsCommon::get($data, 'title');
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
         $model = StNotice::find()->andFilterWhere(['type' => $type])
+            ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['like','title',$title]);
         //如果搜索了发布时间
         if ($date_start && $date_end) {
@@ -174,13 +175,18 @@ class NoticeService extends BaseService
     {
         $saveData = [];
         foreach ($list as $key => $value) {
-            $saveData['notice_id'][] = $id;
-            $saveData['receive_user_id'][] = $value;
-            $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
-            $saveData['is_send'][] = 1;
-            $saveData['is_read'][] = 1;
-            $saveData['create_at'][] = time();
-            $saveData['send_at'][] = 0;
+            if($value){
+                $saveData['notice_id'][] = $id;
+                $saveData['receive_user_id'][] = $value;
+                $saveData['receive_user_name'][] = UserService::service()->getUserNameById($value);
+                $saveData['is_send'][] = 1;
+                $saveData['is_read'][] = 1;
+                $saveData['create_at'][] = time();
+                $saveData['send_at'][] = 0;
+            }
+        }
+        if(empty($saveData)){
+            throw new MyException('请选择至少一个执行人员');
         }
         StNoticeUser::model()->batchInsert($saveData);
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
