@@ -721,7 +721,6 @@ class XzTaskService extends BaseService
     {
         $dataTask['id'] = StXzTask::find()->select(['task_template_id'])->where(['id'=>$data['id']])->scalar();
         $detail = $this->detail($dataTask);
-        
         $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
         if($status == 2){
             throw new MyException('该任务不存在');
@@ -757,9 +756,21 @@ class XzTaskService extends BaseService
         if(empty($detail)){
             throw new MyException('任务不存在');
         }
+        //查看任务是否隐藏
         $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
         if($status == 2){
             throw new MyException('该任务不存在');
+        }
+        //判断任务是否未开始或者已过期
+        if($detail['status'] == 2){
+            throw new MyException('该任务已完成');
+        }
+        $time = time();
+        if($detail['status'] == 1 && $detail['end_time'] < $time){
+            throw new MyException('该任务已过期');
+        }
+        if($detail['status'] == 1 && $detail['start_time'] > $time){
+            throw new MyException('该任务未开始');
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
