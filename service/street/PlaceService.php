@@ -43,7 +43,8 @@ class PlaceService extends BaseService
 
         //查询数据是否重复
         $tmpModel = StPlace::find()
-            ->where(['name' => $params['name']])
+            ->where(['name' => $params['name'],'organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->asArray()
             ->one();
         if ($tmpModel) {
@@ -72,6 +73,8 @@ class PlaceService extends BaseService
         $tmpModel = StPlace::find()
             ->where(['name' => $params['name']])
             ->andWhere(['!=', 'id', $params['id']])
+            ->andWhere(['organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->asArray()
             ->one();
         if ($tmpModel) {

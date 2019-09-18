@@ -34,6 +34,8 @@ class CompanyController extends BaseController
 
     public function actionEdit()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $valid = PsCommon::validParamArr(new StCompany(), $this->request_params, 'edit');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);

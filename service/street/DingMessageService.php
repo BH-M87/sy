@@ -23,11 +23,16 @@ class DingMessageService extends BaseService
         $departName = UserService::service()->getDepartmentNameByCode($organization_id);
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $br = "<br>";
-        $markdown = "**通知通报**".$br;
+        $br = "
+        ";
+        /*$markdown = "**通知通报**".$br;
         $markdown .= $title.$br;
         $markdown .= $departName."/".$operator_name.$br;
-        $markdown .= "提醒时间：".date("Y-m-d H:i:s");
+        $markdown .= "提醒时间：".date("Y-m-d H:i:s");*/
+        $markdown = "#### **通知通报**";
+        $markdown .= "##### ".$title."
+        ".$departName."/".$operator_name."
+        "."提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
@@ -117,6 +122,22 @@ class DingMessageService extends BaseService
         $data['task_id'] = $task_id."";
         $res = Curl::getInstance()->post($url,$data);
         var_dump($res);die;
+    }
+
+    public function sendTaskMessage($title,$dingId)
+    {
+        //给这些未读的对象发送钉钉消息
+        $sendData['title'] = '工作任务';
+        $br = "<br>";
+        $markdown = "**工作任务**".$br;
+        $markdown .= $title.$br;
+        $markdown .= "提醒时间：".date("Y-m-d H:i:s");
+        $sendData['markdown'] = $markdown;
+        $sendData['single_title'] = "查看详情";
+        //$query = urlencode("id=".$id);
+        $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails';//钉钉端详情页的地址
+        $data = $this->sendMessage(1,$sendData);
+        $this->sendDingMessage($data,$dingId);
     }
 
 }
