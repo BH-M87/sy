@@ -100,7 +100,8 @@ class DingMessageService extends BaseService
                 $data['agent_id'] = "281128929l";
                 $data['userid_list'] = $value;
                 $data['msg'] = $msgdData;
-                Curl::getInstance()->post($url,$data);
+                $res = Curl::getInstance()->post($url,$data);
+                \Yii::info("dingReturn-".$value.":".$res,"api");
             }
         }
     }
