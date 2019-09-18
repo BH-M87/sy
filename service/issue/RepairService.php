@@ -265,10 +265,11 @@ class RepairService extends BaseService
                 $models[$key]['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
                 $models[$key]['expired_repair_type_desc'] =
-                    isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '未知';
+                    isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
                 $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
                 $models[$key]['amount'] = $this->getRepairBill($val['id']);
                 $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
+                $models[$key]['export_expired_repair_type_desc'] = $models[$key]['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
             }
             $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
             if ($models[$key]['contact_mobile']) {
@@ -291,11 +292,10 @@ class RepairService extends BaseService
             ['title' => '联系电话', 'field' => 'contact_mobile'],
             ['title' => '报修位置', 'field' => 'export_room_address'],
             ['title' => '内容', 'field' => 'repair_content'],
-            ['title' => '期望上门时间', 'field' => 'expired_repair_time'],
             ['title' => '报修来源', 'field' => 'repair_from_desc'],
-            ['title' => '工单金额', 'field' => 'amount'],
             ['title' => '状态', 'field' => 'status_desc'],
-            ['title' => '处理人', 'field' => 'operator_name'],
+            ['title' => '标记说明', 'field' => 'hard_remark'],
+            ['title' => '标记时间', 'field' => 'hard_check_at'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
         $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
@@ -558,8 +558,8 @@ class RepairService extends BaseService
                 ])->execute();
             }
             $repairArr["is_assign"] = 1;
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
+            $repairArr["operator_id"] = $params["user_id"];
+            $repairArr["operator_name"] = $user["truename"];
             $repairArr["status"] = 2;
             $connection->createCommand()->update('ps_repair',
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
@@ -642,6 +642,8 @@ class RepairService extends BaseService
             $repairModelArr["status"] = 3;
             $repairModelArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
             $repairModelArr["hard_type"] = 1;
+            $repairModelArr["operator_id"] = $params["user_id"];
+            $repairModelArr["operator_name"] = $user["truename"];
             $connection->createCommand()->update('ps_repair',
                 $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
@@ -881,7 +883,7 @@ class RepairService extends BaseService
                     }
                     $models[$key]["repair_imgs"] = $imageArr;
                 }
-                unset($models[$key]['operator_mobile']);
+
             }
 
         }

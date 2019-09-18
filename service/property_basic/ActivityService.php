@@ -69,10 +69,7 @@ class ActivityService extends BaseService
     public function list($p)
     {
         if (!empty($p['small'])) { // 小程序的列表 有该小区权限的组织发的活动都要展示
-            $xq_orgcode = PsCommunityModel::findOne($p['community_id'])->event_community_no;
-            $org_code = DepartmentCommunity::find()->select('jd_org_code, sq_org_code, ga_org_code, xf_org_code, cg_org_code')->where(['xq_orgcode' => $xq_orgcode])->asArray()->one();
-            $m = Department::find()->select('id')->where(['in', 'org_code', array_values($org_code)])->asArray()->all();
-            $p['organization_id'] = array_column($m, 'id');
+            $p['organization_id'] = DepartmentCommunity::getCode($p['community_id']);
         }
 
         $m = PsActivity::getList($p);

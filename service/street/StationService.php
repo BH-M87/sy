@@ -137,6 +137,7 @@ class StationService extends BaseService
             ->alias('st')
             ->where(['st.organization_type' => $params['organization_type'], 'st.organization_id' => $params['organization_id'], 'st.status' => 1])
             ->select('st.id, st.station name')
+            ->orderBy('id desc')
             ->asArray()
             ->all();
         return $re['list'] = $list;

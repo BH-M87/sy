@@ -41,9 +41,9 @@ class StCompany extends BaseModel
         return [
             [['organization_type','type', 'operator_id', 'create_at'], 'integer'],
             [['lon', 'lat'], 'number'],
-            [['contact_position'], 'string', 'max' => 20, 'message' => '{attribute}最多20个字！', 'on' => ['add', 'edit']],
-            [['name'], 'string', 'max' => 30, 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
-            [['contact_name'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！', 'on' => ['add', 'edit']],
+            [['contact_position'], 'string', 'max' => 20, 'tooLong' => '{attribute}不能超过20个字符!', 'on' => ['add', 'edit']],
+            [['name'], 'string', 'max' => 30, 'tooLong' => '{attribute}不能超过30个字符!', 'on' => ['add', 'edit']],
+            [['contact_name'], 'string', 'max' => 10, 'tooLong' => '{attribute}不能超过10个字符!', 'on' => ['add', 'edit']],
             [['address'], 'string', 'max' => 255],
             [['operator_name'], 'string', 'max' => 20],
             [['contact_mobile'], 'string', 'max' => 12],

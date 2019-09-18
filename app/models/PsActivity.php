@@ -110,6 +110,7 @@ class PsActivity extends BaseModel
     {
         $page = $p['page'] ?? 1;
         $rows = $p['rows'] ?? 5;
+        $status = PsCommon::get($p,'status');
 
         $p['join_start'] = !empty($p['join_start']) ? strtotime($p['join_start']) : null;
         $p['join_end'] = !empty($p['join_end']) ? strtotime($p['join_end'].' 23:59:59') : null;
@@ -122,7 +123,6 @@ class PsActivity extends BaseModel
             ->orFilterWhere(['in', 'organization_id', PsCommon::get($p,'organization_id')])
             ->andFilterWhere(['is_del' => 1])
             ->andFilterWhere(['=', 'type', PsCommon::get($p,'type')])
-            ->andFilterWhere(['in', 'status', PsCommon::get($p,'status')])
             ->andFilterWhere(['=', 'activity_type', PsCommon::get($p,'activity_type')])
             ->andFilterWhere(['like', 'title', PsCommon::get($p,'title')])
             ->andFilterWhere(['or', ['like', 'link_name', PsCommon::get($p,'name') ?? null], ['like', 'link_mobile', PsCommon::get($p,'name') ?? null]])
@@ -130,6 +130,12 @@ class PsActivity extends BaseModel
             ->andFilterWhere(['<=', 'join_end', PsCommon::get($p,'join_end')])
             ->andFilterWhere(['>=', 'start_time', PsCommon::get($p,'activity_start')])
             ->andFilterWhere(['<=', 'end_time', PsCommon::get($p,'activity_end')]);
+
+        if ($status == 1) { // 进行中
+            $m->andWhere(['<=', 'start_time', time()])->andWhere(['>=', 'end_time', time()]);
+        } else if ($status == 2) { // 已结束
+            $m->andWhere(['<', 'end_time', time()]);
+        }
 
         $totals = $m->count();
 
@@ -156,7 +162,7 @@ class PsActivity extends BaseModel
             $v['join_end'] = date('Y-m-d H:i', $v['join_end']);
             $v['status_desc'] = self::$status[$v['status']];
             $v['type_desc'] = self::$type[$v['type']];
-            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : '';
+            $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : $v['type_desc'];
             $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
                 ->where(['a_id' => $v['id']])->asArray()->all();
             $v['people_list'] = $enroll;

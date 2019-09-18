@@ -247,7 +247,7 @@ class NoticeService extends BaseService
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
             $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);
-            $detail['operator_group_name'] = UserService::service()->getDepartmentNameById($detail['organization_id']);
+            $detail['operator_group_name'] = UserService::service()->getDepartmentNameByCode($detail['organization_id']);
         }else{
             $detail = [];
         }
@@ -340,7 +340,7 @@ class NoticeService extends BaseService
         if($list){
             foreach($list as $key =>$value){
                 $list[$key]['type_info'] = ['id'=>$value['type'],'name'=>$this->type_info[$value['type']]];
-                $list[$key]['operator_group_name'] = UserService::service()->getDepartmentNameById($value['organization_id']);
+                $list[$key]['operator_group_name'] = UserService::service()->getDepartmentNameByCode($value['organization_id']);
                 $list[$key]['create_at'] = date("Y-m-d H:i",$value['create_at']);
             }
         }else{
@@ -380,7 +380,9 @@ class NoticeService extends BaseService
                     }
                 }
                 break;
-
+            case "2":
+                DingMessageService::service()->getMessageStatus($data['task_id']);
+                break;
         }
     }
 

@@ -47,12 +47,12 @@ class StPlace extends BaseModel
     {
         return [
             [['organization_type','company_id', 'open_start_weekday', 'open_end_weekday', 'people_num', 'operator_id', 'create_at'], 'integer'],
-            [['name'], 'string', 'max' => 30, 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
-            [['contact_name'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！', 'on' => ['add', 'edit']],
+            [['name'], 'string', 'max' => 30, 'tooLong' => '{attribute}不能超过30个字符!', 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
+            [['contact_name'], 'string', 'max' => 10, 'tooLong' => '{attribute}不能超过10个字符!',  'message' => '{attribute}最多10个字！', 'on' => ['add', 'edit']],
             [['open_start_time', 'open_end_time','operator_name'], 'string', 'max' => 20],
             [['contact_mobile'], 'string', 'max' => 12],
             [['address'], 'string', 'max' => 255],
-            [['note'], 'string', 'max' => 1000, 'message' => '{attribute}最多1000个字！', 'on' => ['add', 'edit']],
+            [['note'], 'string', 'max' => 1000, 'tooLong' => '{attribute}不能超过1000个字符!',  'message' => '{attribute}最多1000个字！', 'on' => ['add', 'edit']],
             [['company_id', 'name', 'area', 'people_num', 'open_start_weekday', 'open_end_weekday',
                 'open_start_time', 'open_end_time', 'contact_name', 'contact_mobile', 'address', 'note'],
                 'required', 'message' => '{attribute}不能为空', 'on' => ['add', 'edit']],

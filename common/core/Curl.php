@@ -113,6 +113,10 @@ class Curl
         }
         curl_setopt(self::$ch, CURLOPT_HTTPGET, 1);    //GET
         curl_setopt(self::$ch, CURLOPT_URL, $url);
+        if(YII_ENV != 'master'){
+            curl_setopt(self::$ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt(self::$ch, CURLOPT_SSL_VERIFYHOST, 0);
+        }
         return self::request();
     }
 
@@ -141,6 +145,10 @@ class Curl
                 $parameters = $query;
             }
             curl_setopt(self::$ch, CURLOPT_POSTFIELDS, $parameters);
+            if(YII_ENV != 'master'){
+                curl_setopt(self::$ch, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt(self::$ch, CURLOPT_SSL_VERIFYHOST, 0);
+            }
         } else {
             self::get($url);
         }
