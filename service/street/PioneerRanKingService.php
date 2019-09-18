@@ -139,8 +139,9 @@ class PioneerRanKingService extends BaseService
     public function getCommunistInfoList($params)
     {
         $communist = PartyTaskService::service()->checkUser($params['user_id']);
+        $params['communist_id'] = $communist['id'];
         $user_info = StPartyTaskStation::getUserTop($communist['id'],false);
-        $info_list = $this->getInfoList(['communist_id' => $communist['id']]);
+        $info_list = $this->getInfoList($params);
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
         $info_list['task_count'] = $user_info[0]['task_count'];
