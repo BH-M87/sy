@@ -97,7 +97,7 @@ class DingMessageService extends BaseService
             $access_token = $this->getAccessToken();
             $url = "https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2?access_token=".$access_token;
             foreach($dingList as $key=>$value){
-                $data['agent_id'] = "281128929l";
+                $data['agent_id'] = "281128929";
                 $data['userid_list'] = $value;
                 $data['msg'] = $msgdData;
                 $res = Curl::getInstance()->post($url,$data);
