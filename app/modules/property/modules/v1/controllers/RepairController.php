@@ -154,6 +154,7 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $data['is_pay'] = 2;
+        $data['user_id'] = $data['operator_id'];
         $result = RepairService::service()->makeComplete($data, $this->user_info);
         if ($result === true) {
             return PsCommon::responseSuccess($result);

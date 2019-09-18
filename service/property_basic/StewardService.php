@@ -1,6 +1,7 @@
 <?php
 namespace service\property_basic;
 
+use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 
@@ -12,6 +13,7 @@ use app\models\PsCommunityRoominfo;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
+use app\models\PsMember;
 
 class StewardService extends BaseService
 {
@@ -55,30 +57,33 @@ class StewardService extends BaseService
     }
 
     // 评论列表
-    public function commentList($params)
+    public function commentList($p)
     {
-        $this->checkSteward($params);
-        if (empty($params['steward_type']) || $params['steward_type'] == 3) {
-            $params['steward_type'] = null;
+        $this->checkSteward($p);
+        if (empty($p['steward_type']) || $p['steward_type'] == 3) {
+            $p['steward_type'] = null;
         }
 
-        $page = !empty($params['page']) ? $params['page'] : 1;
-        $rows = !empty($params['rows']) ? $params['rows'] : 10;
+        $page = !empty($p['page']) ? $p['page'] : 1;
+        $rows = !empty($p['rows']) ? $p['rows'] : 10;
+
         $stewardEvaluate = PsSteWardEvaluate::find()->alias('s')->select('s.*,r.group,r.building,r.unit,r.room,r.address')
             ->innerJoin(['r' => PsCommunityRoominfo::tableName()], 's.room_id = r.id')
-            ->where(['steward_id' => $params['id']])
-            ->andFilterWhere(['=', 's.community_id', $params['community_id']])
-            ->andFilterWhere(['=', 's.steward_type', $params['steward_type']]);
+            ->where(['steward_id' => $p['id']])
+            ->andFilterWhere(['=', 's.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 's.steward_type', $p['steward_type']]);
+
         $totals = $stewardEvaluate->count();
-        $data = $stewardEvaluate->orderBy('create_at desc')
+        $list = $stewardEvaluate->orderBy('create_at desc')
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();;
-        foreach ($data as &$result){
-            $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
+        foreach ($list as &$v){
+            $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
+            $v['user_mobile'] = F::processMobile(PsMember::userinfo($v['user_id'])['mobile']);
         }
 
-        return ['list' => $data,'totals' => $totals];
+        return ['list' => $list, 'totals' => $totals];
     }
 
     // 获取后台专属管家列表
@@ -108,6 +113,7 @@ class StewardService extends BaseService
             $v['building_info'] = $building;
             $v['sex_desc'] = PsSteWard::$sex_info[$v['sex']];
             $v['praise_rate'] = $this->getPraiseRate($v['evaluate'], $v['praise']);
+            $v['mobile'] = F::processMobile($v['mobile']);
         }
     }
 
