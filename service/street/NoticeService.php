@@ -380,7 +380,9 @@ class NoticeService extends BaseService
                     }
                 }
                 break;
-
+            case "2":
+                DingMessageService::service()->getMessageStatus($data['task_id']);
+                break;
         }
     }
 
