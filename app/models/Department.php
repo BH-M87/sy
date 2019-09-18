@@ -4,39 +4,13 @@ namespace app\models;
 
 use Yii;
 
-/**
- * This is the model class for table "department".
- *
- * @property int $id 主键
- * @property string $org_code 部门code
- * @property string $department_name 部门名称
- * @property int $department_level 部门级别
- * @property string $description 部门描述
- * @property int $parent_id 部门父节点id
- * @property int $status 状态 1-为正常，2-为禁用，3-伪删除
- * @property int $is_internal 1-系统内置 2-新建
- * @property int $create_user_id 创建人
- * @property int $modify_user_id 修改人
- * @property string $gmt_create 创建时间
- * @property string $gmt_modified 修改时间
- * @property int $tenant_id 租户编码
- * @property int $node_type 节点类型1:街道2：社区3：民警4：消防5：城管6：小区7：自定义部门
- * @property int $dependent_id 归属依赖id
- * @property int $order_by 排序
- */
 class Department extends \yii\db\ActiveRecord
 {
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'department';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
@@ -49,9 +23,6 @@ class Department extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -72,5 +43,19 @@ class Department extends \yii\db\ActiveRecord
             'dependent_id' => 'Dependent ID',
             'order_by' => 'Order By',
         ];
+    }
+    
+    // 小区对应的所有部门id 数组返回
+    public static function getDept($community_id)
+    {
+        $xq_orgcode = PsCommunityModel::findOne($community_id)->event_community_no;
+        
+        $org_code = DepartmentCommunity::find()
+            ->select('jd_org_code, sq_org_code, ga_org_code, xf_org_code, cg_org_code')
+            ->where(['xq_orgcode' => $xq_orgcode])->asArray()->one();
+
+        $m = Department::find()->select('id')->where(['in', 'org_code', array_values($org_code)])->asArray()->all();
+
+        return array_column($m, 'id');
     }
 }
