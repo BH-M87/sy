@@ -23,10 +23,10 @@ class DingMessageService extends BaseService
         $departName = UserService::service()->getDepartmentNameByCode($organization_id);
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $markdown = "##### **通知通报**
-".$title."
-".$departName."/".$operator_name."
-"."提醒时间：".date("Y-m-d H:i:s");
+        $markdown = "**通知通报**"."
+        ".$title."
+        ".$departName."/".$operator_name."
+        "."提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
@@ -107,6 +107,7 @@ class DingMessageService extends BaseService
         }
     }
 
+    //测试-查看发送情况
     public function getMessageStatus($task_id)
     {
         $access_token = $this->getAccessToken();
