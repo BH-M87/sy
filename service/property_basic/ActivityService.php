@@ -16,6 +16,7 @@ use app\models\PsAppUser;
 use app\models\PsAppMember;
 use app\models\PsRoomUser;
 use app\models\Department;
+use app\models\DepartmentCommunity;
 
 class ActivityService extends BaseService
 {
@@ -67,10 +68,11 @@ class ActivityService extends BaseService
     // 获取活动列表
     public function list($p)
     {
-        if (!empty($p['small'])) { // 小程序的列表
+        if (!empty($p['small'])) { // 小程序的列表 有该小区权限的组织发的活动都要展示
             $xq_orgcode = PsCommunityModel::findOne($p['community_id'])->event_community_no;
-            $p['organization_id'] = Department::find()->alias('A')->select('A.id')->leftJoin('department_community B', 'B.jd_org_code = A.org_code')
-                ->where(['B.xq_orgcode' => $xq_orgcode])->scalar();
+            $org_code = DepartmentCommunity::find()->select('jd_org_code, sq_org_code, ga_org_code, xf_org_code, cg_org_code')->where(['xq_orgcode' => $xq_orgcode])->asArray()->one();
+            $m = Department::find()->select('id')->where(['in', 'org_code', array_values($org_code)])->asArray()->all();
+            $p['organization_id'] = array_column($m, 'id');
         }
 
         $m = PsActivity::getList($p);
