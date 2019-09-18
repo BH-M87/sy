@@ -99,6 +99,8 @@ class PartyTaskController extends BaseController
      */
     public function actionList()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PartyTaskService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($data);
     }
