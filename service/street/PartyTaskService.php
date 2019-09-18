@@ -447,6 +447,7 @@ class PartyTaskService extends BaseService
         //1待完成 2审核中 3取消 4已审核
         $record = StPartyTaskOperateRecord::find()->where(['party_task_station_id' => $party['id']])->one();
         $task['status'] = $party['status'];
+        $task['task_station_id'] = $party['id'];
         if ($party['status'] == 2) {
             $task['complete']['content'] = $record['info'];
             $task['complete']['images'] = !empty($record['images']) ? $this->getImage($record['images']) : [];

@@ -42,6 +42,7 @@ class StPartyTask extends BaseModel
         return [
             [['station_id', 'pioneer_value', 'expire_time_type', 'expire_time', 'is_location', 'create_at', 'operator_id'], 'integer'],
             [['task_details', 'operator_id','station_id','task_name','pioneer_value','expire_time','is_location'], 'required','message' => '{attribute}必填','on' => ['add','edit']],
+            [['organization_type', 'organization_id'], 'required','message' => '{attribute}必填','on' => ['add']],
             [['task_details'], 'string','max' => 1000],
             [['task_name'], 'string', 'max' => 30],
             [['is_location','expire_time_type'], 'in', 'range' => [1, 2],'message' => '{attribute}非法'],
@@ -61,6 +62,8 @@ class StPartyTask extends BaseModel
             'id' => 'ID',
             'station_id' => '岗位ID',
             'task_name' => '任务名称',
+            'organization_type' => '组织类型',
+            'organization_id' => '所在组织id',
             'pioneer_value' => '先锋值',
             'expire_time_type' => '领取截止时间类型',
             'expire_time' => '截止时间',
