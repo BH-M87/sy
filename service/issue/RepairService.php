@@ -884,7 +884,7 @@ class RepairService extends BaseService
                     }
                     $models[$key]["repair_imgs"] = $imageArr;
                 }
-                unset($models[$key]['operator_mobile']);
+               
             }
 
         }
