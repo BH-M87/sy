@@ -45,9 +45,9 @@ class TaskController extends ConsoleController
         if($newList){
             foreach ($newList as $k=>$v){
                 $dingId = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$v['user_id']])->asArray()->scalar();
-                $title = '';
+                $title = [];
                 foreach ($v['title'] as $a=>$b){
-                    $title .= "任务".($a+1)."名称：".$b;
+                    $title[] = "任务".($a+1)."名称：".$b;
                 }
                 if($v['user_id'] == "51"){
                     DingMessageService::service()->sendTaskMessage($title,[$dingId]);

@@ -23,12 +23,7 @@ class DingMessageService extends BaseService
         $departName = UserService::service()->getDepartmentNameByCode($organization_id);
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
-        $br = "
-        ";
-        /*$markdown = "**通知通报**".$br;
-        $markdown .= $title.$br;
-        $markdown .= $departName."/".$operator_name.$br;
-        $markdown .= "提醒时间：".date("Y-m-d H:i:s");*/
+        //todo 灰常重要的markdown的文件格式，下面的代码不能把空格和换行去掉
         $markdown = "#### **通知通报**";
         $markdown .= "
 ".$title."
@@ -131,10 +126,15 @@ class DingMessageService extends BaseService
     {
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '工作任务';
-        $br = "<br>";
-        $markdown = "**工作任务**".$br;
-        $markdown .= $title.$br;
-        $markdown .= "提醒时间：".date("Y-m-d H:i:s");
+        //todo 灰常重要的markdown的文件格式，下面的代码不能把空格和换行去掉
+        $titleString = '';
+        foreach ($title as $key=>$value){
+            $titleString .="
+            ".$value;
+        }
+        $markdown = "#### **工作任务**";
+        $markdown .= $titleString."
+"."提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
