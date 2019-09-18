@@ -560,7 +560,7 @@ class XzTaskService extends BaseService
     {
         $model = $this->searchCompleteList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
-        $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
+        $list = $model->offset($offset)->limit($pageSize)->orderBy('t.check_at desc')->asArray()->all();
         $totals = $model->count();
         if ($list) {
             foreach ($list as $key => $value) {
