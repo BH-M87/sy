@@ -56,7 +56,7 @@ class StCommunist extends BaseModel
     {
         return [
             [['sex', 'type', 'station_id', 'pioneer_value', 'operator_id',
-                'create_at', 'is_authentication', 'user_id', 'is_del', 'organization_type', 'organization_id'], 'integer'],
+                'create_at', 'is_authentication', 'user_id', 'is_del', 'organization_type'], 'integer'],
             [['branch', 'job'], 'string', 'max' => 30, 'on' => ['add', 'edit'], 'message' => '{attribute}最多30个字！'],
             [['mobile'], 'string', 'max' => 13],
             [['image'], 'string', 'max' => 200],
@@ -69,7 +69,7 @@ class StCommunist extends BaseModel
             [['birth_time_date','join_party_time_date', 'formal_time_date'], 'date','format'=>'yyyy-MM-dd', 'message'=>'{attribute}格式不正确!', 'on' => ['add', 'edit']],
             [['sex'],'in','range'=>[1,2], 'message' => '{attribute}只能是1或2','on' => ['add', 'edit']],
             [['join_party_time','formal_time'], 'validateTime', 'on' => ['add', 'edit']],
-            [['name','birth_time', 'join_party_time', 'formal_time','branch', 'job'], 'safe'],
+            [['name','birth_time', 'join_party_time', 'formal_time','branch', 'job', 'organization_id'], 'safe'],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
         ];
     }

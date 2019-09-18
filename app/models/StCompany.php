@@ -39,7 +39,7 @@ class StCompany extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'type', 'operator_id', 'create_at'], 'integer'],
+            [['organization_type','type', 'operator_id', 'create_at'], 'integer'],
             [['lon', 'lat'], 'number'],
             [['contact_position'], 'string', 'max' => 20, 'message' => '{attribute}最多20个字！', 'on' => ['add', 'edit']],
             [['name'], 'string', 'max' => 30, 'message' => '{attribute}最多30个字！', 'on' => ['add', 'edit']],
@@ -52,7 +52,7 @@ class StCompany extends BaseModel
             ['contact_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式不正确', 'on' => ['add', 'edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
             [['type'],'in','range'=>[1,2,3,4], 'message' => '{attribute}有误','on' => ['add', 'edit', 'list']],
-            [['name','contact_name', 'contact_position'], 'safe'],
+            [['name','contact_name', 'contact_position','organization_id'], 'safe'],
         ];
     }
 
