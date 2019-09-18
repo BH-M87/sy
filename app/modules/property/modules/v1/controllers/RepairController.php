@@ -155,6 +155,9 @@ class RepairController extends BaseController {
         }
         $data['is_pay'] = 2;
         $data['user_id'] = $data['operator_id'];
+        $data['material_total_price'] = 0;
+        $data['total_price'] = $data['amount'];
+        $data['other_charge'] = 0;
         $result = RepairService::service()->makeComplete($data, $this->user_info);
         if ($result === true) {
             return PsCommon::responseSuccess($result);
