@@ -49,11 +49,6 @@ class CommunityRoomService extends BaseService
         $query->orderBy('comm.pinyin asc');
         $command = $query->createCommand();
         $communityInfo = $command->queryAll();
-        $communityInfo = PsCommunityModel::find()
-            ->select('id as community_id, name,address,longitude,latitude')
-            ->asArray()
-            ->all();
-
         return $communityInfo;
     }
 
