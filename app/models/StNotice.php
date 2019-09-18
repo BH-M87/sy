@@ -37,7 +37,7 @@ class StNotice extends BaseModel
     public function rules()
     {
         return [
-            [['organization_type', 'organization_id', 'type', 'operator_id', 'create_at'], 'integer'],
+            [['organization_type','type', 'operator_id', 'create_at'], 'integer'],
             [['content'], 'string'],
             [['accessory_file'], 'string'],
             [['title'], 'string', 'max' => 100],
@@ -46,6 +46,7 @@ class StNotice extends BaseModel
             [['title','type','describe','receive_user_list','content'], 'required','message' => '{attribute}不能为空!', 'on' => ['add']],
             [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete']],
+            [['organization_id'], 'safe'],
         ];
     }
 

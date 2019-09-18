@@ -568,6 +568,7 @@ class XzTaskService extends BaseService
                 $list[$key]['attribute_info'] = $this->getAttributeInfo($value['task_attribute_id']);
                 $list[$key]['check_at'] = date("Y-m-d H:i:s",$value['check_at']);
                 $list[$key]['created_at'] = date("Y-m-d H:i:s",$value['created_at']);
+                $list[$key]['exec_type_desc'] = !empty($value['exec_type']) ? $this->exec_type_info[$value['exec_type']]."任务" : '';
             }
         } else {
             $list = [];
@@ -592,9 +593,8 @@ class XzTaskService extends BaseService
         $date_end = PsCommon::get($data, 'date_end');
         $model = StXzTask::find()->alias('t')
             ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
-            ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe',
+            ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe','tt.exec_type',
                 't.user_name as exec_user_name','t.user_id as exec_user_id','t.check_at','t.created_at'])
-            //['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']
             ->where(['t.status'=>2,'t.organization_type'=>$user_info['node_type'],'t.organization_id'=>$user_info['dept_id'],
                 'tt.organization_type'=>$user_info['node_type'],'tt.organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['like','t.user_name',$exec_user_name])
@@ -721,7 +721,6 @@ class XzTaskService extends BaseService
     {
         $dataTask['id'] = StXzTask::find()->select(['task_template_id'])->where(['id'=>$data['id']])->scalar();
         $detail = $this->detail($dataTask);
-        
         $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
         if($status == 2){
             throw new MyException('该任务不存在');
@@ -757,9 +756,21 @@ class XzTaskService extends BaseService
         if(empty($detail)){
             throw new MyException('任务不存在');
         }
+        //查看任务是否隐藏
         $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
         if($status == 2){
             throw new MyException('该任务不存在');
+        }
+        //判断任务是否未开始或者已过期
+        if($detail['status'] == 2){
+            throw new MyException('该任务已完成');
+        }
+        $time = time();
+        if($detail['status'] == 1 && $detail['end_time'] < $time){
+            throw new MyException('该任务已过期');
+        }
+        if($detail['status'] == 1 && $detail['start_time'] > $time){
+            throw new MyException('该任务未开始');
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
