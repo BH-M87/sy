@@ -24,7 +24,7 @@ class DingMessageService extends BaseService
         //给这些未读的对象发送钉钉消息
         $sendData['title'] = '通知通报';
         $br = "
-    ";
+        ";
         $markdown = "**通知通报**".$br;
         $markdown .= $title.$br;
         $markdown .= $departName."/".$operator_name.$br;
