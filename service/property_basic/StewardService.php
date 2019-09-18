@@ -81,6 +81,7 @@ class StewardService extends BaseService
         foreach ($list as &$v){
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
             $v['user_mobile'] = F::processMobile(PsMember::userinfo($v['user_id'])['mobile']);
+            $v['user_name'] = PsMember::userinfo($v['user_id'])['name'];
         }
 
         return ['list' => $list, 'totals' => $totals];
