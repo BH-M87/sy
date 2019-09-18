@@ -210,13 +210,20 @@ class PartyTaskService extends BaseService
     public function getCount($params)
     {
         $task_count = StPartyTask::find()->where(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
-        $data['history'] = StPartyTaskStation::find()->where(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
+        $data['history'] = StPartyTaskStation::find()->alias('sts')
+            ->leftJoin('st_park_task as st', 'st.id = sts.task_id')
+            ->where(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
         $data['today'] = StPartyTaskStation::find()
-            ->where(['<' ,'create_at' ,strtotime(date('Y-m-d',time()).' 23:59')])
-            ->andWhere(['>' ,'create_at' ,strtotime(date('Y-m-d',time()).' 00:00')])
-            ->andWhere(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])
+            ->alias('sts')
+            ->leftJoin('st_park_task as st', 'st.id = sts.task_id')
+            ->where(['<' ,'sts.create_at' ,strtotime(date('Y-m-d',time()).' 23:59')])
+            ->andWhere(['>' ,'sts.create_at' ,strtotime(date('Y-m-d',time()).' 00:00')])
+            ->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])
             ->count();
-        $data['cancel'] = StPartyTaskStation::find()->where(['status' => 4])->andWhere(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
+        $data['cancel'] = StPartyTaskStation::find()
+            ->alias('sts')
+            ->leftJoin('st_park_task as st', 'st.id = sts.task_id')
+            ->where(['sts.status' => 4])->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
         $data['avg'] = number_format($data['history'] / $task_count,1);
         return $data;
     }
