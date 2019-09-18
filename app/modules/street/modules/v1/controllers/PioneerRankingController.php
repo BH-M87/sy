@@ -33,6 +33,8 @@ class PioneerRankingController extends BaseController
      */
     public function actionGetList()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $data = PioneerRanKingService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($data);
     }
