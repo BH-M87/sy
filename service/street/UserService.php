@@ -73,18 +73,22 @@ class UserService extends BaseService
     {
         switch($node_type){
             case "1":
+                //查找这个接到的id
+                $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
                 //找到这个街道下面所有的社区id
-                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$dept_id,'department_level'=>3])->asArray()->column();
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$id,'department_level'=>3])->asArray()->column();
                 //找到这些社区下面所有的小区code
                 $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
                 break;
             case "2":
+                //查找这个接到的id
+                $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
                 //找到这个社区下面所有的小区code
-                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$dept_id,'department_level'=>4])->asArray()->column();
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$id,'department_level'=>4])->asArray()->column();
                 break;
             case "3":
                 //找到对应的街道
-                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                $jiedao = Department::find()->select(['parent_id'])->where(['org_code'=>$dept_id])->scalar();
                 //找到这个街道下面所有的社区id
                 $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
                 //找到这些社区下面所有的小区code
@@ -92,7 +96,7 @@ class UserService extends BaseService
                 break;
             case "4":
                 //找到对应的街道
-                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                $jiedao = Department::find()->select(['parent_id'])->where(['org_code'=>$dept_id])->scalar();
                 //找到这个街道下面所有的社区id
                 $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
                 //找到这些社区下面所有的小区code
@@ -100,7 +104,7 @@ class UserService extends BaseService
                 break;
             case "5":
                 //找到对应的街道
-                $jiedao = Department::find()->select(['parent_id'])->where(['id'=>$dept_id])->scalar();
+                $jiedao = Department::find()->select(['parent_id'])->where(['org_code'=>$dept_id])->scalar();
                 //找到这个街道下面所有的社区id
                 $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
                 //找到这些社区下面所有的小区code
@@ -108,7 +112,8 @@ class UserService extends BaseService
                 break;
             case "6":
                 //找到这个小区code
-                $department = Department::find()->select(['org_code'])->where(['id'=>$dept_id])->asArray()->column();
+                $department = $dept_id;
+                //$department = Department::find()->select(['org_code'])->where(['id'=>$dept_id])->asArray()->column();
                 break;
             default:
                 $department = [];
