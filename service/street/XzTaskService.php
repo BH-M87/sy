@@ -721,13 +721,15 @@ class XzTaskService extends BaseService
     {
         $dataTask['id'] = StXzTask::find()->select(['task_template_id'])->where(['id'=>$data['id']])->scalar();
         $detail = $this->detail($dataTask);
-        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
-        if($status == 2){
+        if(empty($detail)){
+            throw new MyException('任务不存在');
+        }
+        if($detail['status'] == 2){
             throw new MyException('该任务不存在');
         }
         if($detail){
             $complete = StXzTask::find()
-                ->select(['check_content','check_images','check_location_lon','check_location_lat','check_location'])
+                ->select(['check_content','check_images','check_location_lon','check_location_lat','check_location','start_time','end_time'])
                 ->where(['id'=>$data['id']])->asArray()->one();
             if($complete){
                 //$complete['check_images'] = $this->getOssUrlByKey($complete['check_images']);
@@ -736,8 +738,8 @@ class XzTaskService extends BaseService
             }else{
                 $complete = [];
             }
-
             $detail['complete'] = $complete;
+            $detail['perform_time']  = date("Y-m-d",$complete['start_time']);//执行时间
         }
         return $detail;
     }
