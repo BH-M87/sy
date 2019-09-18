@@ -104,7 +104,7 @@ class PsProclaim extends BaseModel
         $totals = count($m->asArray()->all());
         if ($totals > 0) {
             if (!empty($p['small'])) { // 小程序的列表
-                $list = $m->orderBy('is_top desc, top_at desc, create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+                $list = $m->orderBy('is_top desc, top_at desc, show_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             } else {
                 $list = $m->orderBy('create_at desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             }

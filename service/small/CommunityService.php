@@ -303,7 +303,7 @@ Class CommunityService extends BaseService
             $r[0]['name'] = '全部('. $arr_sum .')';
         }
 
-        $type = EventTemplate::type([]);
+        $type = EventTemplate::type(['type' => 1]);
         foreach ($type as $k => $v) {
             if ($p['type'] == 1) {
                 ++$k;
