@@ -31,9 +31,9 @@ class XzTaskService extends BaseService
      * @param $pageSize
      * @return mixed
      */
-    public function getList($data, $page, $pageSize)
+    public function getList($data, $page, $pageSize,$user_info)
     {
-        $model = $this->searchList($data);
+        $model = $this->searchList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
         $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
         $totals = $model->count();
@@ -59,7 +59,7 @@ class XzTaskService extends BaseService
      * @param $data
      * @return $this
      */
-    public function searchList($data)
+    public function searchList($data,$user_info)
     {
         $name = PsCommon::get($data, 'name');
         $task_type = PsCommon::get($data, 'task_type');
@@ -68,6 +68,7 @@ class XzTaskService extends BaseService
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
         $model = StXzTaskTemplate::find()
+            ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['name' => $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
             ->andFilterWhere(['status' => $status])
@@ -555,9 +556,9 @@ class XzTaskService extends BaseService
      * @param $pageSize
      * @return mixed
      */
-    public function getCompleteList($data, $page, $pageSize)
+    public function getCompleteList($data, $page, $pageSize,$user_info)
     {
-        $model = $this->searchCompleteList($data);
+        $model = $this->searchCompleteList($data,$user_info);
         $offset = ($page - 1) * $pageSize;
         $list = $model->offset($offset)->limit($pageSize)->orderBy('id desc')->asArray()->all();
         $totals = $model->count();
@@ -581,7 +582,7 @@ class XzTaskService extends BaseService
      * @param $data
      * @return $this
      */
-    public function searchCompleteList($data)
+    public function searchCompleteList($data,$user_info)
     {
         $exec_user_name = PsCommon::get($data, 'exec_user_name');
         $task_name = PsCommon::get($data, 'task_name');
@@ -593,7 +594,9 @@ class XzTaskService extends BaseService
             ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'t.task_template_id = tt.id')
             ->select(['t.id','tt.name as task_name','tt.task_type','tt.task_attribute_id','tt.describe',
                 't.user_name as exec_user_name','t.user_id as exec_user_id','t.check_at','t.created_at'])
-            ->where(['t.status'=>2])
+            //['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']
+            ->where(['t.status'=>2,'t.organization_type'=>$user_info['node_type'],'t.organization_id'=>$user_info['dept_id'],
+                'tt.organization_type'=>$user_info['node_type'],'tt.organization_id'=>$user_info['dept_id']])
             ->andFilterWhere(['like','t.user_name',$exec_user_name])
             ->andFilterWhere(['like','tt.name',$task_name])
             ->andFilterWhere(['tt.task_type'=>$task_type])

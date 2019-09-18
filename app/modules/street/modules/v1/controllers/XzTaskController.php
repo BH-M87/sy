@@ -22,7 +22,7 @@ class XzTaskController extends BaseController
      */
     public function actionList()
     {
-        $result = XzTaskService::service()->getList($this->request_params, $this->page, $this->pageSize);
+        $result = XzTaskService::service()->getList($this->request_params, $this->page, $this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
@@ -108,7 +108,7 @@ class XzTaskController extends BaseController
      */
     public function actionCompleteList()
     {
-        $result = XzTaskService::service()->getCompleteList($this->request_params, $this->page, $this->pageSize);
+        $result = XzTaskService::service()->getCompleteList($this->request_params, $this->page, $this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
