@@ -64,4 +64,11 @@ class PsMember extends BaseModel
             'face_url' => '人脸头像'
         ];
     }
+
+    public static function userInfo($user_id)
+    {
+        return self::find()->alias('A')->select('A.*')
+            ->leftJoin('ps_app_member B', 'A.id = B.member_id')
+            ->where(['B.app_user_id' => $user_id])->asArray()->one();
+    }
 }
