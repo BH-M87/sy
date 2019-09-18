@@ -13,6 +13,7 @@ class ProclaimController extends UserBaseController
     // 公告列表
     public function actionList()
     {
+        $this->params['is_show'] = 2;
         $this->params['small'] = 1; // 标记是小程序
 
         $r = ProclaimService::service()->list($this->params);
