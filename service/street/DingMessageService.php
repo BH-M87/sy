@@ -25,10 +25,17 @@ class DingMessageService extends BaseService
         $sendData['title'] = '通知通报';
         $br = "
         ";
-        $markdown = "**通知通报**".$br;
+        /*$markdown = "**通知通报**".$br;
         $markdown .= $title.$br;
         $markdown .= $departName."/".$operator_name.$br;
-        $markdown .= "提醒时间：".date("Y-m-d H:i:s");
+        $markdown .= "提醒时间：".date("Y-m-d H:i:s");*/
+        $markdown = "**通知通报**";
+        $markdown .="
+        ".$title;
+        $markdown .="
+        ".$departName."/".$operator_name;
+        $markdown .= "
+        提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
