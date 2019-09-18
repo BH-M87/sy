@@ -190,7 +190,7 @@ class XzTaskService extends BaseService
         $day_time = 86400;
         $now = strtotime(date('Y-m-d'));//当天时间戳
         //如果编辑的时候开始时间小于当前时间凌晨，则只生成今天之后的数据
-        $start_date = $start_date + $day_time;//第二天开始
+        //$start_date = $start_date + $day_time;//第二天开始
         //$end_date = $end_date;
         // 计算日期段内有多少天
         $interval_x = $exec_type;//1：每x天，2每x周，3每x月
