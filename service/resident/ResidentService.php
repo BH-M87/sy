@@ -673,7 +673,8 @@ class ResidentService extends BaseService
         }
         // 给住户发短信通知
         $communityName = PsCommunityModel::findOne($this->communityId)->name;
-        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName]);
+
+        AliSmsService::service(['templateCode' => 'SMS_165055077', 'mobile' => $psResidentAudit->mobile])->send(['community_name' => $communityName]);
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
