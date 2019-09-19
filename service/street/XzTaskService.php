@@ -345,12 +345,12 @@ class XzTaskService extends BaseService
                 if ($contact_mobile) {
                     $update['contact_mobile'] = $contact_mobile;
                 }
-                //更新附件
-                $accessory = PsCommon::get($data, 'accessory_file');
-                $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
-                $update['accessory_file'] = $accessory_file;
-                StXzTaskTemplate::updateAll($update, ['id' => $id]);
             }
+            //更新附件
+            $accessory = PsCommon::get($data, 'accessory_file');
+            $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
+            $update['accessory_file'] = $accessory_file;
+            StXzTaskTemplate::updateAll($update, ['id' => $id]);
             $transaction->commit();
             return $result;
         } catch (\Exception $e) {
