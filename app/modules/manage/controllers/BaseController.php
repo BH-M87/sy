@@ -28,7 +28,7 @@ Class BaseController extends CoreController
         'release' => [
             'dev-web.elive99.com',//前端测试环境
         ],
-        'master' => [
+        'prod' => [
             'hd-wuyeyy.zje.com'
         ],
     ];

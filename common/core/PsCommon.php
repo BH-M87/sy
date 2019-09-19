@@ -87,7 +87,7 @@ class PsCommon {
      */
     public static function corsFilter($origins, $allowAll = false)
     {
-        if (YII_ENV != 'master') {//本地/测试环境 postman测试的origin=chrome-extension://xxxx，需要排除掉
+        if (YII_ENV != 'prod') {//本地/测试环境 postman测试的origin=chrome-extension://xxxx，需要排除掉
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
             }
@@ -128,7 +128,7 @@ class PsCommon {
     public static function validSign($systemType)
     {
         return true;
-        if (YII_ENV != 'master') {//本地/测试环境 测试人员绕开验签
+        if (YII_ENV != 'prod') {//本地/测试环境 测试人员绕开验签
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
             }

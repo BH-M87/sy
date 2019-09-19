@@ -339,7 +339,7 @@ Class SmsService extends BaseService
         ];
         $headers = ['CURLOPT_HTTPHEADER'=>['Content-Type: application/json']];
         $SendSms = new Curl($headers);
-        $url = YII_ENV == "master" ? $this->url:$this->test_url;
+        $url = YII_ENV == "prod" ? $this->url:$this->test_url;
         $smsCode = $SendSms->post($url, json_encode($msg));
         \Yii::info("params:".json_encode($msg, JSON_UNESCAPED_UNICODE), 'api');
         \Yii::info("result:".$smsCode, 'api');
