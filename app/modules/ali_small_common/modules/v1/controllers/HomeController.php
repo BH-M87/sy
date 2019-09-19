@@ -23,7 +23,7 @@ use service\street\PartyTaskService;
 class HomeController extends UserBaseController
 {
 
-    public $enableAction = ['auth','get-weather-info','common'];
+    public $enableAction = ['auth','get-weather-info','common','save-member'];
     //用户授权
     public function actionAuth()
     {
@@ -44,7 +44,9 @@ class HomeController extends UserBaseController
             return F::apiFailed($r['sub_msg']);
         }
 
-        //获取支付宝用户基本信息
+        return F::apiSuccess($r);
+
+        /*//获取支付宝用户基本信息
         $user = $service->getUser($r['access_token']);
 
         $result = array_merge($r, $user);
@@ -54,6 +56,14 @@ class HomeController extends UserBaseController
         $result['token_type'] = F::value($this->params, 'token_type');
 
         $res = HomeService::service()->getUserId($result, $system_type);
+        return $this->dealReturnResult($res);*/
+    }
+
+    //前端保存授权用户信息
+    public function actionSaveMember()
+    {
+        $system_type = F::value($this->params, 'system_type','edoor');
+        $res = HomeService::service()->getUserId($this->params, $system_type);
         return $this->dealReturnResult($res);
     }
 
