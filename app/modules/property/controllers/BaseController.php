@@ -30,7 +30,7 @@ Class BaseController extends CoreController
         'release' => [
             'dev-web.elive99.com',
         ],
-        'prod' => [
+        'master' => [
             'alipay.elive99.com'
         ],
     ];
@@ -67,6 +67,10 @@ Class BaseController extends CoreController
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+
+        if ($action->id == 'move-out2') {
+            return true;
+        }
 
         //验证用户
         if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
