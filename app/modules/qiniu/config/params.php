@@ -1,5 +1,5 @@
 <?php
-if (YII_ENV == "master") {
+if (YII_ENV == "prod") {
     $bucket      = "formal";
 //    $fileHostUrl = "http://static.zhujiaimg.com/";
     $fileHostUrl = "http://static.zje.com/";

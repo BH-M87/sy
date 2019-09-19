@@ -197,9 +197,9 @@ Class BaseService extends \service\BaseService
         //$newIotCommunityListMaster = ['588','570','565','585'];
         $newIotCommunityListMaster = ['593','587','584','583','588','580','585','565','570','493'];
         $newIotCommunityListDev = ['220','134','147'];
-        if(YII_ENV == 'master' && !in_array($community_id,$newIotCommunityListMaster)){
+        if(YII_ENV == 'prod' && !in_array($community_id,$newIotCommunityListMaster)){
             return true;
-        }else if(YII_ENV != 'master' && !in_array($community_id,$newIotCommunityListDev)){
+        }else if(YII_ENV != 'prod' && !in_array($community_id,$newIotCommunityListDev)){
             return true;
         }else{
             return false;
@@ -210,7 +210,7 @@ Class BaseService extends \service\BaseService
     public function checkIsMaster($community_id =''){
         $testCommunity = ['220','222'];
         //测试环境且指定的小区
-        if(YII_ENV != 'master' && in_array($community_id,$testCommunity)){
+        if(YII_ENV != 'prod' && in_array($community_id,$testCommunity)){
             return true;
         }else{
             return false;
@@ -223,9 +223,9 @@ Class BaseService extends \service\BaseService
         //$newIotCommunityListMaster = ['588','570','565','585'];
         $newIotCommunityListMaster = ['593','587','584','583','588','580','585','565','570','493'];
         $newIotCommunityListDev = ['220','134','147'];
-        if(YII_ENV == 'master' && !in_array($community_id,$newIotCommunityListMaster)){
+        if(YII_ENV == 'prod' && !in_array($community_id,$newIotCommunityListMaster)){
             return true;
-        }else if(YII_ENV != 'master' && !in_array($community_id,$newIotCommunityListDev)){
+        }else if(YII_ENV != 'prod' && !in_array($community_id,$newIotCommunityListDev)){
             return true;
         }else{
             return false;

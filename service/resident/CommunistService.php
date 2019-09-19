@@ -345,7 +345,7 @@ class CommunistService extends BaseService  {
                 if($flog) {//标签包含党员的话  进行同步
                     if (empty($sres)) {//党员不存在  新增党员
                         //根据小区id查询关联的用户id
-                        if (YII_ENV == 'master') {
+                        if (YII_ENV == 'prod') {
                             $userInfo = PsUserCommunity::find()->select('manage_id')->where(['community_id' => $data['community_id']])->asArray()->all();//'deleted' => 0,
                         } else {
                             $userInfo = PsUserCommunity::find()->select('manage_id')->where(['deleted' => 0, 'community_id' => $data['community_id']])->asArray()->all();
@@ -412,7 +412,7 @@ class CommunistService extends BaseService  {
                     $sres = $smodel->getFindMobile(['mobile' => $v['mobile']]);//查询党员信息
                     if (empty($sres)) {//党员不存在  新增党员
                         //根据小区id查询关联的用户id
-                        if (YII_ENV == 'master') {
+                        if (YII_ENV == 'prod') {
                             $userInfo = PsUserCommunity::find()->select('manage_id')->where(['community_id' => $v['community_id']])->asArray()->all();//'deleted' => 0,
                         } else {
                             $userInfo = PsUserCommunity::find()->select('manage_id')->where(['deleted' => 0, 'community_id' => $v['community_id']])->asArray()->all();

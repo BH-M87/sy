@@ -30,7 +30,7 @@ Class BaseController extends CoreController
         'release' => [
             'dev-web.elive99.com',
         ],
-        'master' => [
+        'prod' => [
             'alipay.elive99.com'
         ],
     ];
