@@ -49,7 +49,7 @@ class TaskController extends ConsoleController
                 foreach ($v['title'] as $a=>$b){
                     $title[] = "任务".($a+1)."名称：".$b;
                 }
-                if($v['user_id'] == "116"){
+                if($v['user_id'] == "136"){
                     DingMessageService::service()->sendTaskMessage($title,[$dingId]);
                 }
 
