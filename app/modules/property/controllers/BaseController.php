@@ -37,7 +37,7 @@ Class BaseController extends CoreController
 
     public $user_info = [];
     public $userId = '';//当前用户ID
-    public $enableAction = ['move-out2'];//绕开token验证(登录，发送短信验证码，验证短信验证码，重置密码)
+    public $enableAction = [];//绕开token验证(登录，发送短信验证码，验证短信验证码，重置密码)
     public $communityNoCheck = [];//不验证小区ID，小区权限
     public $communityId = '';//当前请求的小区ID
     public $request_params;//请求参数
@@ -68,13 +68,12 @@ Class BaseController extends CoreController
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
-        //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
+        if ($action->id == 'move-out2') {
             return true;
         }
 
         //验证用户
-        if ($action->controller->id != 'download') {//下载文件不走签名
+        if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
             if (!$this->userId) {
                 throw new MyException('登录用户id不能为空');
             }
@@ -88,6 +87,11 @@ Class BaseController extends CoreController
             $this->communityId = $communityId;
             $this->request_params['community_id'] = $communityId;
             UserService::setUser($this->user_info);
+        }
+
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download' || $action->controller->id == 'third-butt') {
+            return true;
         }
 
         //物业系统必传小区ID

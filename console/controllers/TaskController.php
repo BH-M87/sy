@@ -49,7 +49,7 @@ class TaskController extends ConsoleController
                 foreach ($v['title'] as $a=>$b){
                     $title[] = "任务".($a+1)."名称：".$b;
                 }
-                if($v['user_id'] == "51"){
+                if($v['user_id'] == "136"){
                     DingMessageService::service()->sendTaskMessage($title,[$dingId]);
                 }
 
@@ -57,5 +57,10 @@ class TaskController extends ConsoleController
 
         }
 
+    }
+
+    public function actionTest()
+    {
+        echo "10086-1111";
     }
 }

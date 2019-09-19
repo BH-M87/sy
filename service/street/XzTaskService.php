@@ -201,7 +201,7 @@ class XzTaskService extends BaseService
             //按天执行
             if ($interval_x == '1') {
                 $remainder = $i % $interval_x;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $for_date > $now) {
+                if ($remainder == 0) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -212,7 +212,7 @@ class XzTaskService extends BaseService
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
                 $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $w == $interval_y && $for_date > $now) {
+                if ($remainder == 0 && $w == $interval_y) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -222,7 +222,7 @@ class XzTaskService extends BaseService
                 $m = date('m', $for_date);//计算当前日子是几月
                 $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
                 $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $d == $interval_y && $for_date > $now) {
+                if ($remainder == 0 && $d == $interval_y) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -345,12 +345,12 @@ class XzTaskService extends BaseService
                 if ($contact_mobile) {
                     $update['contact_mobile'] = $contact_mobile;
                 }
-                //更新附件
-                $accessory = PsCommon::get($data, 'accessory_file');
-                $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
-                $update['accessory_file'] = $accessory_file;
-                StXzTaskTemplate::updateAll($update, ['id' => $id]);
             }
+            //更新附件
+            $accessory = PsCommon::get($data, 'accessory_file');
+            $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
+            $update['accessory_file'] = $accessory_file;
+            StXzTaskTemplate::updateAll($update, ['id' => $id]);
             $transaction->commit();
             return $result;
         } catch (\Exception $e) {
