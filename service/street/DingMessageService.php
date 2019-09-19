@@ -130,7 +130,7 @@ class DingMessageService extends BaseService
         $titleString = '';
         foreach ($title as $key=>$value){
             $titleString .="
-            ".$value;
+".$value;
         }
         $markdown = "#### **工作任务**";
         $markdown .= $titleString."
@@ -138,7 +138,7 @@ class DingMessageService extends BaseService
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
         //$query = urlencode("id=".$id);
-        $sendData['single_url'] = 'eapp://pages/noticeDetails/noticeDetails';//钉钉端详情页的地址
+        $sendData['single_url'] = 'eapp://pages/workTask/workTask';//钉钉端详情页的地址
         $data = $this->sendMessage(1,$sendData);
         $this->sendDingMessage($data,$dingId);
     }
