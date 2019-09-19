@@ -462,7 +462,7 @@ class XzTaskService extends BaseService
         $unfinishedNum = $finishedNum = $untreatedNum = $unstartNum = $totalNum = 0;
         foreach($userTaskList as $key =>$value){
             //待完成
-            if($value['start_time'] < $time && $value['end_time'] > $time){
+            if($value['start_time'] < $time && $value['end_time'] > $time && $value['status'] == 1){
                 $unfinishedNum ++;
             }
             //已处理
