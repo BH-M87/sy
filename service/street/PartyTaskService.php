@@ -102,6 +102,7 @@ class PartyTaskService extends BaseService
             }
             $task['expire_time'] = date('Y-m-d H:i:s',$task['expire_time']);
         } else {
+            $task['expire_time'] = '长期有效';
             $task['time_status'] = 1;
         }
         return $task;
