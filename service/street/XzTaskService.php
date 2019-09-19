@@ -469,8 +469,8 @@ class XzTaskService extends BaseService
             if($value['status'] == 2){
                 $finishedNum ++;
             }
-            //未处理
-            if($value['status'] == 1){
+            //已过期
+            if($value['status'] == 1 && $value['end_time'] < $time){
                 $untreatedNum ++;
             }
             //未开始
