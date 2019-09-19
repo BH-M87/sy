@@ -69,7 +69,7 @@ Class BaseController extends CoreController
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
         //验证用户
-        if ($action->controller->id != 'download') {//下载文件不走签名
+        if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
             if (!$this->userId) {
                 throw new MyException('登录用户id不能为空');
             }
@@ -86,7 +86,7 @@ Class BaseController extends CoreController
         }
 
         //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
+        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download' || $action->controller->id == 'third-butt') {
             return true;
         }
 
