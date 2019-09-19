@@ -5,10 +5,28 @@ use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
 
+use app\models\PsCommunityModel;
+use app\models\PsCommunityConvention;
+
 use service\property_basic\CommunityConventionService;
 
 class CommunityConventionController extends BaseController 
 {
+    // 邻里公约初始化
+    public function actionAdd()
+    {
+        $m = PsCommunityModel::find()->select('id')->orderBy('id asc')->asArray()->all();
+
+        foreach ($m as $v) {
+            $con = PsCommunityConvention::find()->where(['community_id' => $v['id']])->asArray()->one();
+            if (empty($con)) {
+                CommunityConventionService::service()->addConvention(['community_id' => $v['id']]);
+            }
+        }
+
+        return PsCommon::responseSuccess();
+    }
+    
     // 新增公约
     public function actionAddConvention()
     {
