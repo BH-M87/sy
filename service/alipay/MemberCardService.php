@@ -228,6 +228,7 @@ class MemberCardService extends BaseService
                 'user_uni_id_type' => 'UID',
             ],
             'card_ext_info' => [
+                'biz_card_no' => $param['user_id'],
                 'external_card_no' => '1',
                 'open_date' => date('Y-m-d H:i:s', time()),
                 'valid_date' => '3040-12-12 23:59:59',
