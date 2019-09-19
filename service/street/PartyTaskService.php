@@ -308,6 +308,7 @@ class PartyTaskService extends BaseService
         if ($info['operate_type'] != 2 && $params['info_status'] == 1) throw new MyException('该任务未审核');
         $info['task_pioneer_value'] = StPartyTask::find()->where(['id' => $info['task_id']])->asArray()->one()['pioneer_value'];
         $info['audit_time'] = date('Y-m-d H:i:s');
+        $info['complete_image'] = !empty($info['complete_image']) ? $this->getImage($info['complete_image']) : [];
         return $info;
     }
 
@@ -376,6 +377,7 @@ class PartyTaskService extends BaseService
     {
         if (empty($params['id'])) throw new MyException('ID不能为空');
         $communist = $this->checkUser($params['user_id']);
+        //可能存在一个任务重复认领，所以取最新的
         $task_station = StPartyTaskStation::find()->where(['communist_id' => $communist['id'],'task_id' => $params['id']])->orderBy('id desc')->limit(1)->one();
         if (($task_station && $task_station->status != 3) && $task_station->status != 4) {
             throw new MyException('任务未完成则不可重复认领');
@@ -404,7 +406,8 @@ class PartyTaskService extends BaseService
         if (!$task) {
             throw new MyException('该任务不存在');
         }
-        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $communist['id']])->one();
+        //可能存在一个任务重复认领，所以取最新的
+        $party = StPartyTaskStation::find()->where(['task_id' => $params['id'],'communist_id' => $communist['id']])->orderBy('id desc')->limit(1)->one();
         $task['station_name'] = StStation::find()->where(['id' => $task['station_id']])->asArray()->one()['station'];
 //        $task['expire_time'] = date('Y-m-d',$task['expire_time']);
         $d = floor(($task['expire_time']-time())/3600/24);
