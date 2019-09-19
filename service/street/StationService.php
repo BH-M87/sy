@@ -19,7 +19,8 @@ class StationService extends BaseService
     {
         //查询数据是否重复
         $tmpModel = StStation::find()
-            ->where(['station' => $params['station']])
+            ->where(['station' => $params['station'], 'organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->asArray()
             ->one();
         if ($tmpModel) {
@@ -42,7 +43,8 @@ class StationService extends BaseService
         $model = $this->getData($params);
         //查询数据是否重复
         $tmpModel = StStation::find()
-            ->where(['station' => $params['station']])
+            ->where(['station' => $params['station'],'organization_type' => $params['organization_type'],
+                'organization_id' => $params['organization_id']])
             ->andWhere(['!=', 'id', $params['id']])
             ->asArray()
             ->one();

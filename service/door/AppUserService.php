@@ -145,7 +145,7 @@ class AppUserService extends BaseService
      * @param $data
      * @return bool
      */
-    public static function saveAppUser($data)
+    public static function saveAppUser($data,$type = '1')
     {
         //存入数据库
         $appUser = PsAppUser::find()->where(['channel_user_id' => $data['user_id'], 'user_type' => 1])->one();
@@ -163,8 +163,8 @@ class AppUserService extends BaseService
                 $appUser->true_name = !empty($appUser->true_name) ? $appUser->true_name : $data['true_name'];
             }
 
-            if (!empty($data['nick_name'])) {
-                $appUser->nick_name = $data['nick_name'];
+            if (!empty($data['nickName'])) {
+                $appUser->nick_name = $data['nickName'];
             }
 
             if (!empty($data['is_certified'])) {
@@ -178,11 +178,14 @@ class AppUserService extends BaseService
             if (!empty($data['token_type'])) { // 邻易联小程序 门禁小程序 会员卡
                 $appUser->authtoken = $data['access_token'];
             } else {
-                $appUser->access_token = $data['access_token'];
+                if($type == 1){
+                    $appUser->access_token = $data['access_token'];
+                }
             }
-            
-            $appUser->expires_in      = time() + $data['expires_in'];
-            $appUser->refresh_token   = $data['refresh_token'];
+            if($type == 1){
+                $appUser->expires_in      = time() + $data['expires_in'];
+                $appUser->refresh_token   = $data['refresh_token'];
+            }
             $gender = $data['gender'] == "f" ? 2 : 1;
             $appUser->gender          = $gender;
             

@@ -38,11 +38,11 @@ class ResidentController extends BaseController
         return true;
     }
 
-    // 住户过期迁出 每分钟执行
+    // 住户过期迁出 每分钟执行 */1 * * * * curl localhost:9093/property/v1/resident/move-out2
     public function actionMoveOut2()
     {
         // 查询id出来，再执行更新，避免锁全表
-        $m = PsRoomUser::find()->select('id, community_id')->where(['identity_type' => 3, 'status' => [1, 2]])
+        $m = PsRoomUser::find()->where(['identity_type' => 3, 'status' => [1, 2]])
             ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
         
         if (!empty($m)) {

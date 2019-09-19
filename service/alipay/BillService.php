@@ -682,7 +682,7 @@ class BillService extends BaseService
                 'bill_entry_amount' => $bill["bill_entry_amount"],
                 "release_day" => date("Ymd", $bill["acct_period_start"]),
                 "deadline" => '20991231',
-                "remark_str" => YII_ENV == 'master' ? "" : "zjy753",
+                "remark_str" => YII_ENV == 'prod' ? "" : "zjy753",
             ];
             $ids[] = $bill['id'];
         }
