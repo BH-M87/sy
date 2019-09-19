@@ -17,7 +17,7 @@ Class ResidentController extends ConsoleController
         $query = new Query();
         $m = $query->from("ps_room_user")
             ->where(['identity_type' => 3, 'status' => [1, 2]])
-            ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all()
+            ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
         
         if (!empty($m)) {
             foreach ($m as $v) {
