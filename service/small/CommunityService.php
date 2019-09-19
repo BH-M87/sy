@@ -1085,4 +1085,16 @@ Class CommunityService extends BaseService
 
         return $str;
     }
+
+    /**
+     * 获取单个小区名称
+     * @param $id
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getCommunityName($id)
+    {
+        return PsCommunityModel::find()->select('id, name, logo_url')
+            ->where(['id' => $id])
+            ->asArray()->one();
+    }
 }

@@ -59,8 +59,9 @@ class NoticeService extends BaseService
         $title = PsCommon::get($data, 'title');
         $date_start = PsCommon::get($data, 'date_start');
         $date_end = PsCommon::get($data, 'date_end');
-        $model = StNotice::find()->andFilterWhere(['type' => $type])
+        $model = StNotice::find()
             ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
+            ->andFilterWhere(['type' => $type])
             ->andFilterWhere(['like','title',$title]);
         //如果搜索了发布时间
         if ($date_start && $date_end) {

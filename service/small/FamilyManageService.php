@@ -443,6 +443,18 @@ class FamilyManageService extends BaseService
             if (!$result) {
                 throw new MyException('新增住户失败:'.$model->getFirstError('time_end'));
             }
+            //发送短信
+            if ($params['identity_type'] == 2) {
+                $identityTypeLabel = '家人';
+            } elseif ($params['identity_type'] == 3) {
+                $identityTypeLabel = '租客';
+            } else {
+                $identityTypeLabel = '';
+            }
+            $communityName = CommunityService::service()->getCommunityName($community_id);
+            if (!PsCommon::isVirtualPhone($params['mobile'])){
+                SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
+            }
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();
