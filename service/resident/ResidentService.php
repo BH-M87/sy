@@ -27,6 +27,7 @@ use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
 use service\common\SmsService;
+use service\common\AliSmsService;
 use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
