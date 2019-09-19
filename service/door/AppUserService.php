@@ -148,7 +148,7 @@ class AppUserService extends BaseService
     public static function saveAppUser($data)
     {
         //存入数据库
-        $appUser = PsAppUser::find()->where(['channel_user_id' => $data['user_id'], 'user_type' => 1])->one();
+        $appUser = PsAppUser::find()->where(['channel_user_id' => $data['channel_user_id'], 'user_type' => 1])->one();
         if ($appUser) {
 
             if (!empty($data['id_card'])) {
