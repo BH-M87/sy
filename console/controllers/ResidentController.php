@@ -2,6 +2,7 @@
 // 住户定时脚本
 namespace console\controllers;
 
+use yii\db\Query;
 use app\models\PsRoomUser;
 use service\resident\ResidentService;
 
@@ -11,8 +12,12 @@ Class ResidentController extends ConsoleController
     public function actionMoveOut()
     {
         // 查询id出来，再执行更新，避免锁全表
-        $m = PsRoomUser::find()->where(['identity_type' => 3, 'status' => [1, 2]])
-            ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
+        //$m = PsRoomUser::find()->where(['identity_type' => 3, 'status' => [1, 2]])
+            //->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
+        $query = new Query();
+        $m = $query->from("ps_room_user")
+            ->where(['identity_type' => 3, 'status' => [1, 2]])
+            ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all()
         
         if (!empty($m)) {
             foreach ($m as $v) {
