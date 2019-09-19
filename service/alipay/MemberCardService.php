@@ -206,7 +206,7 @@ class MemberCardService extends BaseService
 
     // 会员卡 开卡
     public function cardOpen($param)
-    {  
+    {
         $user = PsAppUser::find()->select('id, channel_user_id, authtoken')->where(['id' => $param['user_id']])->asArray()->one();
         $authtoken = $user['authtoken'];
         if (empty($user)) {
@@ -228,7 +228,7 @@ class MemberCardService extends BaseService
                 'user_uni_id_type' => 'UID',
             ],
             'card_ext_info' => [
-                'external_card_no' => '1',
+                'external_card_no' => '11', // 外部会员卡 区分不同的商户 不同的系统需要修改不同的值会员卡号biz_card_no才会变
                 'open_date' => date('Y-m-d H:i:s', time()),
                 'valid_date' => '3040-12-12 23:59:59',
             ]
