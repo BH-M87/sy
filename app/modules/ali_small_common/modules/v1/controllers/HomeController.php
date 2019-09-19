@@ -58,9 +58,8 @@ class HomeController extends UserBaseController
     //前端保存授权用户信息
     public function actionSaveMember()
     {
-        $system_type = F::value($this->params, 'system_type','edoor');
-        $res = HomeService::service()->getUserId($this->params, $system_type);
-        return $this->dealReturnResult($res);
+        HomeService::service()->saveUserId($this->params);
+        return F::apiSuccess();
     }
 
     //解析手机号
