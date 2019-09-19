@@ -687,8 +687,14 @@ class XzTaskService extends BaseService
 
         $model = $this->searchMyList($data);
         $offset = ($page - 1) * $pageSize;
+        $type = PsCommon::get($data,'type');
+        $order = "t.id desc";
+        //完成列表按完成时间来排序
+        if($type == 2){
+            $order = "t.check_at desc";
+        }
         $list = $model->select(['t.id','tt.name','tt.describe','tt.task_attribute_id','tt.task_type','t.start_time','tt.exec_type','t.check_at'])
-            ->offset($offset)->limit($pageSize)->orderBy('t.id desc')->asArray()->all();
+            ->offset($offset)->limit($pageSize)->orderBy($order)->asArray()->all();
         $count = $model->count();
         if($list){
             foreach($list as $key =>$value){

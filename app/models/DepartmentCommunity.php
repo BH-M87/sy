@@ -25,7 +25,6 @@ class DepartmentCommunity extends BaseModel
     public static function getCode($community_id)
     {
         $xq_orgcode = PsCommunityModel::findOne($community_id)->event_community_no;
-        
         $org_code = DepartmentCommunity::find()
             ->select('jd_org_code, sq_org_code, ga_org_code, xf_org_code, cg_org_code')
             ->where(['xq_orgcode' => $xq_orgcode])->asArray()->one();
