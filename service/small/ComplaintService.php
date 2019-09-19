@@ -18,6 +18,7 @@ use app\models\PsMember;
 use app\models\PsAppUser;
 use app\models\PsCommunityBuilding;
 
+use common\MyException;
 use service\message\MessageService;
 use service\BaseService;
 
@@ -215,7 +216,10 @@ class ComplaintService extends BaseService
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
         //获取幢id
         $room = PsCommunityRoominfo::findOne($room_id);
-        $buiding_id = PsCommunityBuilding::find()->select('id')->where(['group_name' => $room->group, 'community_id' => $community_id, 'name' => $room->building])->scalar();
+        $buiding_id = '';
+        if(!empty($room)){
+            $buiding_id = PsCommunityBuilding::find()->select('id')->where(['group_name' => $room->group, 'community_id' => $community_id, 'name' => $room->building])->scalar();
+        }
         if (!empty($buiding_id)) {
             //获取管家信息
             $steward = PsSteWard::find()->alias('ward')->select(['ward.id','ward.name','ward.mobile','ward.evaluate','ward.praise'])

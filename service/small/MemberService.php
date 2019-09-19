@@ -415,7 +415,6 @@ class MemberService extends BaseService
         // 查询是否有认证的房屋
         $is_house = PsRoomUser::find()->select('id')->where(['member_id' => $memberInfo['member_id'], 'status' => 2, 'name' => $memberInfo['name']])->scalar();
         PsRoomUser::updateAll(['status' => PsRoomUser::AUTH, 'auth_time' => time()], ['member_id' => $memberInfo['member_id'], 'name' => $memberInfo['name'], 'status' => PsRoomUser::UN_AUTH]);
-
         $result = !empty($roomInfo) ? array_merge($memberInfo, $roomInfo) : $memberInfo;
         $result['is_house'] = !empty($is_house) ? 1 : 2; // 至少有一个已认证的房屋 1有 2没有
         $result['type'] = $count > 1 ? 2 : $count;
@@ -449,7 +448,6 @@ class MemberService extends BaseService
             ->limit(10)
             ->orderBy('A.send_at desc')
             ->asArray()->all();
-
         $news = array_merge($broadcast, $proclaim);
         // 根据显示时间倒序排序
         $arr1 = array_map(create_function('$n', 'return $n["show_at"];'), $news);
@@ -471,10 +469,10 @@ class MemberService extends BaseService
         }
 
         // 小区活动 显示进行中和已结束的数据
-        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2], 'small' => 1]);
+        $activity = ActivityService::service()->list(['community_id' => $params['community_id'], 'status' => [1,2], 'small' => 1]);
         $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : [];
         // 社区曝光台
-        $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
+        $exposure = CommunityService::service()->exposureList(['community_id' => $params['community_id'], 'homePage' => 1]);
         $exposure = $exposure['data'];
         $result['exposure'] = $exposure['list'];
         $result['exposure_total'] = $exposure['total'];
