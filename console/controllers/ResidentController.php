@@ -7,7 +7,7 @@ use service\resident\ResidentService;
 
 Class ResidentController extends ConsoleController
 {
-    // 住户过期迁出 每分钟执行
+    // 住户过期迁出 每分钟执行 */1 * * * * docker exec -it 37b175573c2c php api/yii resident/move-out
     public function actionMoveOut()
     {
         // 查询id出来，再执行更新，避免锁全表
