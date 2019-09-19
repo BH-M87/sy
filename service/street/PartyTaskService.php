@@ -308,6 +308,7 @@ class PartyTaskService extends BaseService
         if ($info['operate_type'] != 2 && $params['info_status'] == 1) throw new MyException('该任务未审核');
         $info['task_pioneer_value'] = StPartyTask::find()->where(['id' => $info['task_id']])->asArray()->one()['pioneer_value'];
         $info['audit_time'] = date('Y-m-d H:i:s');
+        $info['complete_image'] = !empty($info['complete_image']) ? $this->getImage($info['complete_image']) : [];
         return $info;
     }
 
