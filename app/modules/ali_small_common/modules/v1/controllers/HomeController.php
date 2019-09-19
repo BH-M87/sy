@@ -35,7 +35,6 @@ class HomeController extends UserBaseController
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
         $r = $service->getToken($authCode);
-        //var_dump($r);die;
         if (empty($r)) {
             return F::apiFailed("授权失败！");
         }
@@ -43,10 +42,7 @@ class HomeController extends UserBaseController
         if (!empty($r) && !empty($r['code'])) {
             return F::apiFailed($r['sub_msg']);
         }
-
-        return F::apiSuccess($r);
-
-        /*//获取支付宝用户基本信息
+        //获取支付宝用户基本信息
         $user = $service->getUser($r['access_token']);
 
         $result = array_merge($r, $user);
@@ -56,7 +52,7 @@ class HomeController extends UserBaseController
         $result['token_type'] = F::value($this->params, 'token_type');
 
         $res = HomeService::service()->getUserId($result, $system_type);
-        return $this->dealReturnResult($res);*/
+        return $this->dealReturnResult($res);
     }
 
     //前端保存授权用户信息
