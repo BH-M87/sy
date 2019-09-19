@@ -671,7 +671,9 @@ class ResidentService extends BaseService
         if (!$psRoomUser->save()) {
             return $this->failed($psRoomUser->getErrors());
         }
-        //推送到供应商
+        // 给住户发短信通知
+        $communityName = PsCommunityModel::findOne($this->communityId)->name;
+        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName]);
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
