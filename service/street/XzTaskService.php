@@ -151,7 +151,7 @@ class XzTaskService extends BaseService
         $start_date = PsCommon::get($data, 'start_date');
         $start_date = $start_date ? strtotime($start_date) : '0';
         $end_date = PsCommon::get($data, 'end_date');
-        $end_date = $end_date ? strtotime($end_date) : '0';
+        $end_date = $end_date ? strtotime($end_date." 23:59:59") : '0';
 
         $model = new StXzTaskTemplate();
         $model->organization_type = $organization_type;
@@ -345,12 +345,12 @@ class XzTaskService extends BaseService
                 if ($contact_mobile) {
                     $update['contact_mobile'] = $contact_mobile;
                 }
-                //更新附件
-                $accessory = PsCommon::get($data, 'accessory_file');
-                $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
-                $update['accessory_file'] = $accessory_file;
-                StXzTaskTemplate::updateAll($update, ['id' => $id]);
             }
+            //更新附件
+            $accessory = PsCommon::get($data, 'accessory_file');
+            $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
+            $update['accessory_file'] = $accessory_file;
+            StXzTaskTemplate::updateAll($update, ['id' => $id]);
             $transaction->commit();
             return $result;
         } catch (\Exception $e) {
@@ -661,13 +661,13 @@ class XzTaskService extends BaseService
         $time = time();
         switch($type){
             case "1":
-                $model = $model->andWhere(['t.status'=>1])->andWhere(['>=','t.end_time',$time]);
+                $model = $model->andFilterWhere(['t.status'=>1])->andFilterWhere(['>=','t.end_time',$time]);
                 break;
             case "2":
-                $model = $model->andWhere(['t.status'=>2]);
+                $model = $model->andFilterWhere(['t.status'=>2]);
                 break;
             case "3":
-                $model = $model->andWhere(['t.status'=>1])->andWhere(['<','t.end_time',$time]);
+                $model = $model->andFilterWhere(['t.status'=>1])->andFilterWhere(['<','t.end_time',$time]);
                 break;
             default:
         }

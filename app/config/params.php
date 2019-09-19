@@ -59,4 +59,9 @@ if (YII_ENV == "dev" || YII_ENV == "test") {
     $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/sqwn/alipay_public.txt";
     $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/sqwn/rsa_private.txt";
 }
+
+$data['appKey'] = 'dingvxqretqs7uduiovc';
+$data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
+$data['agent_id'] = 281128929;
+
 return $data;

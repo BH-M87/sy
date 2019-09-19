@@ -102,6 +102,7 @@ class PartyTaskService extends BaseService
             }
             $task['expire_time'] = date('Y-m-d H:i:s',$task['expire_time']);
         } else {
+            $task['expire_time'] = '长期有效';
             $task['time_status'] = 1;
         }
         return $task;
@@ -387,6 +388,7 @@ class PartyTaskService extends BaseService
         $party_task->communist_id = $communist['id'];
         $party_task->status = '1';
         $party_task->create_at = time();
+        $party_task->update_at = time();
         $party_task->save();
         $this->addRemind($party_task->task_id,$communist['name'].'认领了党员任务！',1,$party_task->id);
     }
