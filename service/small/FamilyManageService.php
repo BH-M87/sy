@@ -453,7 +453,7 @@ class FamilyManageService extends BaseService
             }
             $communityName = CommunityService::service()->getCommunityName($community_id);
             if (!PsCommon::isVirtualPhone($params['mobile'])){
-                //SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
+                SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
             }
             $trans->commit();
         } catch (\Exception $e) {
