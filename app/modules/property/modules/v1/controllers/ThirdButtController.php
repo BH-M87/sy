@@ -13,6 +13,7 @@ use app\models\PsCommunityUnits;
 use app\modules\property\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
+use service\common\AliSmsService;
 use service\common\SmsService;
 
 class ThirdButtController extends BaseController
@@ -20,22 +21,25 @@ class ThirdButtController extends BaseController
     //发送短信
     public function actionSendSms()
     {
-        $templateId = F::value($this->request_params, 'template_id', 0);
+        $templateId = F::value($this->request_params, 'template_id', '');
         $mobile = F::value($this->request_params, 'mobile', '');
         $sendData = F::value($this->request_params, 'send_data', []);
 
         if (!$templateId) {
-            return PsCommon::responseFailed('模板id不能为空');
+            return PsCommon::responseFailed('模板编号不能为空');
         }
         if (!$mobile) {
             return PsCommon::responseFailed('手机号不能为空');
         }
-
-        $re = SmsService::service()->init(40, $mobile)->send($sendData);
-        if ($re === true) {
-            return PsCommon::responseSuccess();
-        } else {
-            return PsCommon::responseFailed($re);
+        if (!empty($sendData) && !is_array($sendData)) {
+            return PsCommon::responseFailed('发送内容格式有误，必须是个数组');
         }
+
+        $params['templateCode'] = $templateId;  //模板
+        $params['mobile'] = $mobile;
+        //发送内容
+        $sms = AliSmsService::service($params);
+        $sms->send($sendData);
+        return PsCommon::responseSuccess();
     }
 }
