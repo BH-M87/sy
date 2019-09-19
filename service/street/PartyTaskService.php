@@ -377,7 +377,7 @@ class PartyTaskService extends BaseService
         if (empty($params['id'])) throw new MyException('ID不能为空');
         $communist = $this->checkUser($params['user_id']);
         $task_station = StPartyTaskStation::find()->where(['communist_id' => $communist['id'],'task_id' => $params['id']])->orderBy('id desc')->limit(1)->one();
-        if ($task_station && $task_station->status != 3) {
+        if (($task_station && $task_station->status != 3) && $task_station->status != 4) {
             throw new MyException('任务未完成则不可重复认领');
         }
         $party_task = new StPartyTaskStation;
