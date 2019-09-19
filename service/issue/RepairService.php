@@ -305,7 +305,7 @@ class RepairService extends BaseService
                 ['title' => '订单号', 'field' => 'repair_no'],
                 ['title' => '提交人', 'field' => 'created_username'],
                 ['title' => '联系电话', 'field' => 'contact_mobile'],
-                ['title' => '报修位置', 'field' => 'room_address'],
+                ['title' => '报修位置', 'field' => 'export_room_address'],
                 ['title' => '内容', 'field' => 'repair_content'],
                 ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
                 ['title' => '报修来源', 'field' => 'repair_from_desc'],
