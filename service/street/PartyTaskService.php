@@ -410,7 +410,7 @@ class PartyTaskService extends BaseService
         $d = floor(($task['expire_time']-time())/3600/24);
         $h = floor(($task['expire_time']-time())/3600%24);
         //是否认领
-        if ($party) {
+        if ($party && $party->status != 3) {
             $task['is_claim'] = 1;
         } else {
             $task['is_claim'] = 2;
