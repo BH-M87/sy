@@ -58,4 +58,9 @@ class TaskController extends ConsoleController
         }
 
     }
+
+    public function actionTest()
+    {
+        echo "10086-1111";
+    }
 }
