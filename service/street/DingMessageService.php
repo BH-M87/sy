@@ -84,8 +84,8 @@ class DingMessageService extends BaseService
 
     public function getAccessToken()
     {
-        $appKey = 'dingvxqretqs7uduiovc';
-        $appSecret = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
+        $appKey = \Yii::$app->params['appKey'];
+        $appSecret = \Yii::$app->params['appSecret'];
         $url = 'https://oapi.dingtalk.com/gettoken?appkey='.$appKey.'&appsecret='.$appSecret;
         $result = json_decode(Curl::getInstance()->get($url),true);
         $access_token = '';
@@ -102,7 +102,7 @@ class DingMessageService extends BaseService
             $access_token = $this->getAccessToken();
             $url = "https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2?access_token=".$access_token;
             foreach($dingList as $key=>$value){
-                $data['agent_id'] = 281128929;
+                $data['agent_id'] = \Yii::$app->params['agent_id'];
                 $data['userid_list'] = $value."";
                 $data['msg'] = json_encode($msgdData);
                 $res = Curl::getInstance()->post($url,$data);
@@ -116,7 +116,7 @@ class DingMessageService extends BaseService
     {
         $access_token = $this->getAccessToken();
         $url = "https://oapi.dingtalk.com/topapi/message/corpconversation/getsendresult?access_token=".$access_token;
-        $data['agent_id'] = 281128929;
+        $data['agent_id'] = \Yii::$app->params['agent_id'];
         $data['task_id'] = $task_id."";
         $res = Curl::getInstance()->post($url,$data);
         var_dump($res);die;
