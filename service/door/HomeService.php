@@ -39,7 +39,7 @@ class HomeService extends BaseService
     public function saveUserId($params)
     {
         $params['user_id'] = PsAppUser::find()->select(['channel_user_id'])->where(['id'=>$params['user_id']])->asArray()->scalar();
-        AppUserService::saveAppUser($params);
+        AppUserService::saveAppUser($params,2);
     }
 
     //业主认证
