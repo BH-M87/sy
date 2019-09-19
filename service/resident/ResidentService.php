@@ -671,7 +671,9 @@ class ResidentService extends BaseService
         if (!$psRoomUser->save()) {
             return $this->failed($psRoomUser->getErrors());
         }
-        //推送到供应商
+        // 给住户发短信通知
+        $communityName = PsCommunityModel::findOne($this->communityId)->name;
+        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName]);
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
@@ -767,7 +769,7 @@ class ResidentService extends BaseService
     // 迁出
     public function moveOut($id, $userInfo, $communityId = '')
     {
-        $communityId = $this->communityId ? $this->communityId : $communityId;
+        $communityId = $communityId ? $communityId : $this->communityId;
         $model = PsRoomUser::findOne(['id' => $id, 'community_id' => $communityId]);
         if (!$model) {
             return $this->failed('数据不存在');

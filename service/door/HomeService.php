@@ -7,6 +7,7 @@
  */
 namespace service\door;
 
+use app\models\PsAppUser;
 use common\core\PsCommon;
 use service\BaseService;
 use service\qiniu\UploadService;
@@ -33,6 +34,12 @@ class HomeService extends BaseService
             }
             return $this->success(['user_id' => $result['id']]);
         }
+    }
+
+    public function saveUserId($params)
+    {
+        $params['user_id'] = PsAppUser::find()->select(['channel_user_id'])->where(['id'=>$params['user_id']])->asArray()->scalar();
+        AppUserService::saveAppUser($params);
     }
 
     //业主认证

@@ -113,7 +113,7 @@ class StPartyTask extends BaseModel
             ->andFilterWhere(['sts.status' => $param['status'] ?? null])
             ->andFilterWhere(['>','sts.create_at',$param['start']])
             ->andFilterWhere(['<','sts.create_at',$param['end']]);
-        $model->orderBy([ 'st.create_at' => SORT_DESC]);
+        $model->orderBy([ 'sts.update_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
