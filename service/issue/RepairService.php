@@ -286,18 +286,34 @@ class RepairService extends BaseService
     public function export($params, $userInfo = [])
     {
         $result = $this->getRepairLists($params);
-        $config = [
-            ['title' => '提交时间', 'field' => 'create_at'],
-            ['title' => '订单号', 'field' => 'repair_no'],
-            ['title' => '提交人', 'field' => 'created_username'],
-            ['title' => '联系电话', 'field' => 'contact_mobile'],
-            ['title' => '报修位置', 'field' => 'export_room_address'],
-            ['title' => '内容', 'field' => 'repair_content'],
-            ['title' => '报修来源', 'field' => 'repair_from_desc'],
-            ['title' => '状态', 'field' => 'status_desc'],
-            ['title' => '标记说明', 'field' => 'hard_remark'],
-            ['title' => '标记时间', 'field' => 'hard_check_at'],
-        ];
+        if ($params['hard_type'] == 2) {
+            $config = [
+                ['title' => '提交时间', 'field' => 'create_at'],
+                ['title' => '订单号', 'field' => 'repair_no'],
+                ['title' => '提交人', 'field' => 'created_username'],
+                ['title' => '联系电话', 'field' => 'contact_mobile'],
+                ['title' => '报修位置', 'field' => 'export_room_address'],
+                ['title' => '内容', 'field' => 'repair_content'],
+                ['title' => '报修来源', 'field' => 'repair_from_desc'],
+                ['title' => '状态', 'field' => 'status_desc'],
+                ['title' => '标记说明', 'field' => 'hard_remark'],
+                ['title' => '标记时间', 'field' => 'hard_check_at'],
+            ];
+        } else {
+            $config = [
+                ['title' => '提交时间', 'field' => 'create_at'],
+                ['title' => '订单号', 'field' => 'repair_no'],
+                ['title' => '提交人', 'field' => 'created_username'],
+                ['title' => '联系电话', 'field' => 'contact_mobile'],
+                ['title' => '报修位置', 'field' => 'room_address'],
+                ['title' => '内容', 'field' => 'repair_content'],
+                ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
+                ['title' => '报修来源', 'field' => 'repair_from_desc'],
+                ['title' => '工单金额', 'field' => 'amount'],
+                ['title' => '状态', 'field' => 'status_desc'],
+                ['title' => '处理人', 'field' => 'operator_name'],
+            ];
+        }
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
         $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
         return $downUrl;
