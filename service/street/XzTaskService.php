@@ -201,7 +201,7 @@ class XzTaskService extends BaseService
             //按天执行
             if ($interval_x == '1') {
                 $remainder = $i % $interval_x;//区余数，能整除表示满足条件
-                if ($remainder == 0) {
+                if ($remainder == 0  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -212,7 +212,7 @@ class XzTaskService extends BaseService
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
                 $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $w == $interval_y) {
+                if ($remainder == 0 && $w == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -222,7 +222,7 @@ class XzTaskService extends BaseService
                 $m = date('m', $for_date);//计算当前日子是几月
                 $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
                 $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $d == $interval_y) {
+                if ($remainder == 0 && $d == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
