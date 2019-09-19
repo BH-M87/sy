@@ -130,10 +130,12 @@ class DingMessageService extends BaseService
         $titleString = '';
         foreach ($title as $key=>$value){
             $titleString .="
+            
 ".$value;
         }
         $markdown = "#### **工作任务**";
         $markdown .= $titleString."
+        
 "."提醒时间：".date("Y-m-d H:i:s");
         $sendData['markdown'] = $markdown;
         $sendData['single_title'] = "查看详情";
