@@ -769,7 +769,7 @@ class ResidentService extends BaseService
     // 迁出
     public function moveOut($id, $userInfo, $communityId = '')
     {
-        $communityId = $this->communityId ? $this->communityId : $communityId;
+        $communityId = $communityId ? $communityId : $this->communityId;
         $model = PsRoomUser::findOne(['id' => $id, 'community_id' => $communityId]);
         if (!$model) {
             return $this->failed('数据不存在');
