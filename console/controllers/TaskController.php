@@ -62,7 +62,7 @@ class TaskController extends ConsoleController
     public function checkUser($user_id)
     {
         if(YII_ENV != 'prod'){
-            $array = ['136','202'];
+            $array = ['136','211'];
             if(in_array($user_id,$array)){
                 return true;
             }
