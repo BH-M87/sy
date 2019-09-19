@@ -158,7 +158,7 @@ class VisitorController extends UserBaseController
         $result = VisitorService::service()->visitorAdd($this->params);
         if (!empty($result['code']) &&  $result['code'] == 1) { // 访客新增成功发送短信
             $data = VisitorService::service()->visitorMsg(['user_id' => $user_id, 'id' => $result['data']['id'],'system_type'=>$system_type]);
-            $re = SmsService::service()->init(41, $data[6])->send($data);
+            //$re = SmsService::service()->init(41, $data[6])->send($data);
             return F::apiSuccess();
         }
 

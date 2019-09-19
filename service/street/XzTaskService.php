@@ -102,6 +102,16 @@ class XzTaskService extends BaseService
             $end_date = PsCommon::get($data, 'end_date');
             $end_date = $end_date ? strtotime($end_date) : 0;
             $task_type = PsCommon::get($data, 'task_type', 1);
+            $now = strtotime(date("Y-m-d"));
+            if($start_date < $now){
+                throw new MyException('开始时间必须在今天以后');
+            }
+            if($start_date < $now){
+                throw new MyException('结束时间必须在今天以后');
+            }
+            if($start_date > $end_date){
+                throw new MyException('开始时间必须大于结束时间');
+            }
             if($task_type == 1){
                 $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
                 if (empty($timeList)) {
