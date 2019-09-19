@@ -69,7 +69,7 @@ class XzTaskService extends BaseService
         $end_date = PsCommon::get($data, 'end_date');
         $model = StXzTaskTemplate::find()
             ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
-            ->andFilterWhere(['name' => $name])
+            ->andFilterWhere(['like','name', $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
             ->andFilterWhere(['status' => $status])
             ->andFilterWhere(['task_type' => $task_type]);
