@@ -283,11 +283,11 @@ class PartyTaskService extends BaseService
     {
         $model = StPartyTaskStation::find()->alias('sts')->select('sts.*')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id');
-        $value = $model->where(['in','sts.status',[2,3]])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->sum('st.pioneer_value');
+        $value = $model->where(['sts.status' => 3])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->sum('st.pioneer_value');
         $avg_value = $model->where(['sts.status' => 3])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->sum('sts.pioneer_value');
         $data['no_audited'] = $model->where(['sts.status' => 2])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         $data['audited'] =$model->where(['sts.status' => 3])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
-        $data['value'] = empty($value) ? '0' : number_format($value/ ($data['no_audited'] + $data['audited']),1);
+        $data['value'] = empty($value) ? '0' : number_format($value/ $data['audited'],1);
         $data['avg_value'] = empty($avg_value) ? '0' : number_format($avg_value / $data['audited'],1);
         return $data;
     }

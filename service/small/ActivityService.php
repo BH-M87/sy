@@ -184,22 +184,18 @@ Class ActivityService extends BaseService
             ->offset(($page - 1) * $pageSize)
             ->limit($pageSize)
             ->asArray()->all();
-        
+       
         if (!empty($model)) {
             foreach ($model as $k => $v) {
                 $model[$k]['created_at'] = date('Y-m-d H:i:s', $v['created_at']);
                 
                 if ($param['user_id'] != $activity['operator_id']) { // 不是活动发布人 隐藏姓名
                     $lenth = strlen($v['name']);
-                    if ($lenth <= 6) {
-                        $model[$k]['name'] = substr($v['name'], 0, 3) . '*';
-                    } else {
-                        $model[$k]['name'] = substr($v['name'], 0, 3) . '*' . substr($v['name'], -3);
-                    }
+                    $model[$k]['name'] = F::substrCut($v['name']);
                 }
             }
         }
-
+ 
         $totals = PsActivityEnroll::find()->filterWhere(['=', 'a_id', $param['id']])->count();
 
         return $this->success(['list' => $model, 'totals' => $totals]);
