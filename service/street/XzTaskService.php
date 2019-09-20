@@ -780,7 +780,8 @@ class XzTaskService extends BaseService
             throw new MyException('任务不存在');
         }
         //查看任务是否隐藏
-        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
+        $taskTemplate = StXzTaskTemplate::find()->where(['id'=>$detail['task_template_id']])->asArray()->one();
+        $status = $taskTemplate['status'];
         if($status == 2){
             throw new MyException('该任务不存在');
         }
@@ -805,7 +806,7 @@ class XzTaskService extends BaseService
         StXzTask::updateAll($submit,['id'=>$id]);
         $organization_type = $detail['organization_type'];
         $organization_id = $detail['organization_id'];
-        $content = $data['check_content'];
+        $content = $detail['user_name']."完成".$this->type_info[$taskTemplate['task_type']]."了,快去看看把！";
         $type = 3;
         $related_id = $id;
         PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
