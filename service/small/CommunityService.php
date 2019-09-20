@@ -86,9 +86,10 @@ Class CommunityService extends BaseService
         }
 
         $community = PsCommunityModel::findOne($roomInfo['community_id']);
+        $appUser = PsAppUser::findOne($p['user_id']);
 
         $p['app_user_id'] = $p['user_id'];
-        $p['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $p['avatar'] = !empty($appUser->avatar) ? $appUser->avatar : 'http://static.zje.com/2019041819483665978.png';
         $p['name'] = $member['name'];
         $p['mobile'] = $member['mobile'];
         $p['community_id'] = $roomInfo['community_id'];
