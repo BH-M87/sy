@@ -124,4 +124,13 @@ class XzTaskController extends BaseController
     }
 
 
+    /**
+     *  任务脚本
+     */
+    public function actionIndex()
+    {
+        XzTaskService::service()->console_index();
+    }
+
+
 }
