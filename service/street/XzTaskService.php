@@ -805,7 +805,7 @@ class XzTaskService extends BaseService
         StXzTask::updateAll($submit,['id'=>$id]);
         $organization_type = $detail['organization_type'];
         $organization_id = $detail['organization_id'];
-        $content = $detail['check_content'];
+        $content = $data['check_content'];
         $type = 3;
         $related_id = $id;
         PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
