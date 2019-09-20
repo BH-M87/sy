@@ -345,6 +345,7 @@ class PartyTaskService extends BaseService
         $party->update_at = time();
         $party->save();
         $record->save();
+        StCommunist::updateAllCounters(['pioneer_value' => $params['pioneer_value']],['id' => $record->communist_id]);
     }
 
     //################################小程序##############################

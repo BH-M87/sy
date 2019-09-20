@@ -99,7 +99,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
     public static function getExamineList($param,$page=true)
     {
         $model = self::find()->alias('sts')
-            ->select('st.task_name,sts.id,sts.status,st.pioneer_value,sc.name,sc.mobile,st.station_id,sts.task_id')
+            ->select('st.task_name,sts.id,sts.status,sts.pioneer_value,sc.name,sc.mobile,st.station_id,sts.task_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['status' => $param['audit_status'] ?? [2,3]])
@@ -139,7 +139,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $model = self::find()
             ->alias('sts')
             ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as grade_order,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
-            ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['or', ['like', 'name', $param['contact_name'] ?? null], ['like', 'mobile', $param['contact_name'] ?? null]])
             ->andFilterWhere(['>','sts.create_at',$param['start']])
             ->andFilterWhere(['sc.organization_id' => $param['organization_id']])
@@ -158,9 +158,9 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $data['list'] = $model->asArray()->all();
         if (!empty($data['list'])) {
             if ($type) {
-                self::afterOrderList($data['list']);
+                self::afterOrderList($data['list'],$param);
             } else {
-                self::afterBackendOrderList($data['list']);
+                self::afterBackendOrderList($data['list'],$param);
             }
         }
         array_multisort(array_column($data['list'],'top'),SORT_ASC,$data['list']);
@@ -201,10 +201,10 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * @param $data
      * @throws \yii\db\Exception
      */
-    public static function afterBackendOrderList(&$data)
+    public static function afterBackendOrderList(&$data,$param)
     {
         foreach ($data as &$v) {
-            $v['top'] = self::getTop($v['id']);
+            $v['top'] = self::getTop($v['id'],$param);
             $v['type_name'] = StCommunist::$type_desc[$v['type']];
         }
     }
@@ -215,9 +215,9 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * @param $data
      * @throws \yii\db\Exception
      */
-    public static function afterOrderList(&$data)
+    public static function afterOrderList(&$data,$param = null)
     {
-        $top = self::getTop($data[0]['id']);
+        $top = self::getTop($data[0]['id'],$param);
         foreach ($data as &$v) {
             $v['top'] = $top++; //算排名
             $v['image'] = F::getOssImagePath($v['image']);
@@ -233,7 +233,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * @return mixed
      * @throws \yii\db\Exception
      */
-    public static function getTop($id)
+    public static function getTop($id,$param)
     {
         $connection  = Yii::$app->db;
         $sql = 'SET @xh=0;';
@@ -244,6 +244,8 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->select('sc.image,COUNT(`task_id`) as task_count,SUM(sts.pioneer_value) as total_score,sts.id,sc.name,sc.mobile,sc.branch,sc.type,sts.communist_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->andFilterWhere(['sts.status' => 3])
+            ->andFilterWhere(['sc.organization_id' => $param['organization_id'] ?? null])
+            ->andFilterWhere(['sc.organization_type' => $param['organization_type'] ?? null])
             ->groupBy('communist_id')
             ->orderBy([ 'total_score' => SORT_DESC,'task_count' => SORT_DESC]);
         $result = self::find()->select('(@xh := @xh + 1) as top,a.*')->from(['a' => $a_model])->asArray()->all();

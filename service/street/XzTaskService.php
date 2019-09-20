@@ -13,6 +13,7 @@ use app\models\StRemind;
 use app\models\StXzTask;
 use app\models\StXzTaskAttribute;
 use app\models\StXzTaskTemplate;
+use app\models\UserInfo;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -350,11 +351,11 @@ class XzTaskService extends BaseService
                 //更新执行人员
                 $exec_users = implode(',', $newReceiveList);
                 $update['exec_users'] = $exec_users;
-                //更新联系电话
-                $contact_mobile = PsCommon::get($data, 'contact_mobile');
-                if ($contact_mobile) {
-                    $update['contact_mobile'] = $contact_mobile;
-                }
+            }
+            //更新联系电话
+            $contact_mobile = PsCommon::get($data, 'contact_mobile');
+            if ($contact_mobile) {
+                $update['contact_mobile'] = $contact_mobile;
             }
             //更新附件
             $accessory = PsCommon::get($data, 'accessory_file');
@@ -809,6 +810,55 @@ class XzTaskService extends BaseService
         $related_id = $id;
         PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
         return "提交成功";
+    }
+
+    public function console_index()
+    {
+        $time = time();
+        $list = StXzTask::find()->alias('t')
+            ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'tt.id = t.task_template_id')
+            ->select(['t.user_id','tt.name'])
+            ->where(['t.status'=>1,'tt.status'=>1])
+            ->andWhere(['<','t.start_time',$time])
+            ->andWhere(['>','t.end_time',$time])
+            ->asArray()->all();
+        $newList = [];
+        if($list){
+            foreach($list as $key=>$value){
+                if(empty($newList[$value['user_id']])){
+                    $newList[$value['user_id']]['user_id'] = $value['user_id'];
+                    $newList[$value['user_id']]['title'][] = $value['name'];
+                }else{
+                    $newList[$value['user_id']]['title'][] = $value['name'];
+                }
+            }
+        }
+        if($newList){
+            foreach ($newList as $k=>$v){
+                $dingId = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$v['user_id']])->asArray()->scalar();
+                $title = [];
+                foreach ($v['title'] as $a=>$b){
+                    $title[] = "任务".($a+1)."名称：".$b;
+                }
+                if($this->checkUser($v['user_id'])){
+                    DingMessageService::service()->sendTaskMessage($title,[$dingId]);
+                }
+
+            }
+
+        }
+    }
+
+    public function checkUser($user_id)
+    {
+        if(YII_ENV != 'prod'){
+            $array = ['136','211'];
+            if(in_array($user_id,$array)){
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
 
 
