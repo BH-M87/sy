@@ -99,7 +99,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
     public static function getExamineList($param,$page=true)
     {
         $model = self::find()->alias('sts')
-            ->select('st.task_name,sts.id,sts.status,st.pioneer_value,sc.name,sc.mobile,st.station_id,sts.task_id')
+            ->select('st.task_name,sts.id,sts.status,sts.pioneer_value,sc.name,sc.mobile,st.station_id,sts.task_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['status' => $param['audit_status'] ?? [2,3]])
