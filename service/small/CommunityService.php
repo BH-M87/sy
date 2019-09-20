@@ -313,7 +313,7 @@ Class CommunityService extends BaseService
                 $r[$k]['id'] = $v['id'];
                 $r[$k]['name'] = $v['name'] . '('. $total .')';
             } else {
-                $v['subList'] = $typeChild = EventTemplate::type(['parent_id' => $v['id'], 'type' => 2]);
+                $v['subList'] = $typeChild = EventTemplate::typeChild(['parent_id' => $v['id']]);
                 $r[$k] = $v;
             }
         }
