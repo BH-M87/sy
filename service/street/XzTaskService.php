@@ -797,7 +797,7 @@ class XzTaskService extends BaseService
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
-        $submit['check_images'] = implode(',',$data['check_images']);
+        $submit['check_images'] = !empty($data['check_images']) ? implode(',',$data['check_images']) : '';
         $submit['check_location_lon'] = $data['check_location_lon'];
         $submit['check_location_lat'] = $data['check_location_lat'];
         $submit['check_location'] = $data['check_location'];
