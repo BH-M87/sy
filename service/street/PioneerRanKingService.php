@@ -31,10 +31,10 @@ class PioneerRanKingService extends BaseService
     {
         $max = StPartyTask::find()->select('create_at')->orderBy('create_at desc')->limit(1)->asArray()->one();
         $min = StPartyTask::find()->select('create_at')->orderBy('create_at')->limit(1)->asArray()->one();
+        $now = date('Y');
         if (!empty($max) && !empty($min)) {
             $max = date('Y',$max['create_at']);
             $min = date('Y',$min['create_at']);
-            $now = date('Y');
             $data = [];
             for ($i = $min; $i<=$max;$i++) {
                 $data['years']['list'][] = ['name' => $i,'id' => $i];
@@ -43,7 +43,7 @@ class PioneerRanKingService extends BaseService
                 $data['years']['list'][] = ['name' => $now,'id' => $now];
             }
         } else {
-            $data['years']['list'][] =[];
+            $data['years']['list'][] =['name' => $now,'id' => $now];
         }
         return $data;
     }
