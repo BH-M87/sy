@@ -16,6 +16,7 @@ use service\street\XzTaskService;
 class XzTaskController extends BaseController
 {
 
+    public $enableAction =['index'];
     /**
      * 列表
      * @return string
