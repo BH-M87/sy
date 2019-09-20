@@ -38,7 +38,7 @@ class ResidentController extends BaseController
         return true;
     }
 
-    // 住户过期迁出 每分钟执行 */1 * * * * curl localhost:9093/property/v1/resident/move-out2
+    // 住户过期迁出 每分钟执行 */1 * * * * curl localhost:9003/property/v1/resident/move-out2
     public function actionMoveOut2()
     {
         // 查询id出来，再执行更新，避免锁全表
