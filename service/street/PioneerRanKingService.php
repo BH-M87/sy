@@ -34,9 +34,13 @@ class PioneerRanKingService extends BaseService
         if (!empty($max) && !empty($min)) {
             $max = date('Y',$max['create_at']);
             $min = date('Y',$min['create_at']);
+            $now = date('Y');
             $data = [];
             for ($i = $min; $i<=$max;$i++) {
                 $data['years']['list'][] = ['name' => $i,'id' => $i];
+            }
+            if ($max < $now) {
+                $data['years']['list'][] = ['name' => $now,'id' => $now];
             }
         } else {
             $data['years']['list'][] =[];
