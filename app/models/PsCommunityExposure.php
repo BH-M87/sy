@@ -63,7 +63,7 @@ class PsCommunityExposure extends BaseModel
     // 曝光 处理状态
     public static function status($index = 0)
     {
-        $arr = ['1' => '待处理', '2' => '已处理'];
+        $arr = ['1' => '待处理', '2' => '处理中', '3' => '已处理'];
         
         if (!empty($index)) {
             return $arr[$index];
