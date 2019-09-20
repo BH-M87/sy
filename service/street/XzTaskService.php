@@ -722,7 +722,7 @@ class XzTaskService extends BaseService
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
-                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d",$value['check_at']) : "";//完成时间
+                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d H:i",$value['check_at']) : "";//完成时间
 
             }
         }else{
