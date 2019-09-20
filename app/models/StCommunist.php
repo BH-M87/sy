@@ -111,12 +111,15 @@ class StCommunist extends BaseModel
         $compareBirthdayTime = $birthdayTime + 18*365*86400;
         $compareJoinPartyTime = $joinPartyTime + 365*86400;
 
+        if ($joinPartyTime >= time()) {
+            $this->addError($attribute, "入党时间不能大于当前时间");
+        }
+
         if ($birthdayTime && $joinPartyTime) {
             if ($this->join_party_time < $compareBirthdayTime) {
                 $this->addError($attribute, "未满18周岁，不符合入党条件！请检查入党日期和出生日期");
             }
         }
-
 
         if ($this->formal_time && $this->formal_time < $compareJoinPartyTime) {
             $this->addError($attribute, "预备期未满1年，不符合党员条件！请检查入党日期和转正日期");

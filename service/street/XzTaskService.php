@@ -69,7 +69,7 @@ class XzTaskService extends BaseService
         $end_date = PsCommon::get($data, 'end_date');
         $model = StXzTaskTemplate::find()
             ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
-            ->andFilterWhere(['name' => $name])
+            ->andFilterWhere(['like','name', $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
             ->andFilterWhere(['status' => $status])
             ->andFilterWhere(['task_type' => $task_type]);
@@ -102,6 +102,16 @@ class XzTaskService extends BaseService
             $end_date = PsCommon::get($data, 'end_date');
             $end_date = $end_date ? strtotime($end_date) : 0;
             $task_type = PsCommon::get($data, 'task_type', 1);
+            $now = strtotime(date("Y-m-d"));
+            if($start_date < $now){
+                throw new MyException('开始时间必须在今天以后');
+            }
+            if($start_date < $now){
+                throw new MyException('结束时间必须在今天以后');
+            }
+            if($start_date > $end_date){
+                throw new MyException('开始时间必须大于结束时间');
+            }
             if($task_type == 1){
                 $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
                 if (empty($timeList)) {
@@ -201,7 +211,7 @@ class XzTaskService extends BaseService
             //按天执行
             if ($interval_x == '1') {
                 $remainder = $i % $interval_x;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $for_date > $now) {
+                if ($remainder == 0  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -212,7 +222,7 @@ class XzTaskService extends BaseService
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
                 $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $w == $interval_y && $for_date > $now) {
+                if ($remainder == 0 && $w == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -222,7 +232,7 @@ class XzTaskService extends BaseService
                 $m = date('m', $for_date);//计算当前日子是几月
                 $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
                 $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $d == $interval_y && $for_date > $now) {
+                if ($remainder == 0 && $d == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -345,12 +355,12 @@ class XzTaskService extends BaseService
                 if ($contact_mobile) {
                     $update['contact_mobile'] = $contact_mobile;
                 }
-                //更新附件
-                $accessory = PsCommon::get($data, 'accessory_file');
-                $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
-                $update['accessory_file'] = $accessory_file;
-                StXzTaskTemplate::updateAll($update, ['id' => $id]);
             }
+            //更新附件
+            $accessory = PsCommon::get($data, 'accessory_file');
+            $accessory_file = !empty($accessory) ? implode(',', $accessory) : '';
+            $update['accessory_file'] = $accessory_file;
+            StXzTaskTemplate::updateAll($update, ['id' => $id]);
             $transaction->commit();
             return $result;
         } catch (\Exception $e) {
@@ -379,6 +389,10 @@ class XzTaskService extends BaseService
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
             switch ($detail['exec_type']) {
+                case "1":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
+                    $interval_y_desc = '';
+                    break;
                 case "2":
                     $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $week = F::getWeekChina($detail['interval_y']);
@@ -393,7 +407,7 @@ class XzTaskService extends BaseService
                     $exec_type_desc ='';
                     $interval_y_desc = '';
             }
-            $detail['exec_type_desc'] = $exec_type_desc;
+            $detail['exec_type_desc'] = $exec_type_desc ? $exec_type_desc."任务" : "";
             $detail['interval_y_desc'] = $interval_y_desc;
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
@@ -448,15 +462,15 @@ class XzTaskService extends BaseService
         $unfinishedNum = $finishedNum = $untreatedNum = $unstartNum = $totalNum = 0;
         foreach($userTaskList as $key =>$value){
             //待完成
-            if($value['start_time'] < $time && $value['end_time'] > $time){
+            if($value['start_time'] < $time && $value['end_time'] > $time && $value['status'] == 1){
                 $unfinishedNum ++;
             }
             //已处理
             if($value['status'] == 2){
                 $finishedNum ++;
             }
-            //未处理
-            if($value['status'] == 1){
+            //已过期
+            if($value['status'] == 1 && $value['end_time'] < $time){
                 $untreatedNum ++;
             }
             //未开始

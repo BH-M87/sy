@@ -26,7 +26,7 @@ class PropertyService extends BaseService {
         $aop = [];
         $aop['appAuthToken'] = null;
         //停车使用未来社区应用
-        if (YII_ENV == 'master' || YII_ENV == 'release') {
+        if (YII_ENV == 'prod' || YII_ENV == 'release') {
             $aop['gatewayUrl']         = Yii::$app->params['gate_way_url'];
             $aop['appId']              = Yii::$app->params['property_isv_app_id'];
             $aop['alipayrsaPublicKey'] = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);

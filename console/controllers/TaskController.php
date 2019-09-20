@@ -49,7 +49,7 @@ class TaskController extends ConsoleController
                 foreach ($v['title'] as $a=>$b){
                     $title[] = "任务".($a+1)."名称：".$b;
                 }
-                if($v['user_id'] == "51"){
+                if($this->checkUser($v['user_id'])){
                     DingMessageService::service()->sendTaskMessage($title,[$dingId]);
                 }
 
@@ -57,5 +57,22 @@ class TaskController extends ConsoleController
 
         }
 
+    }
+
+    public function checkUser($user_id)
+    {
+        if(YII_ENV != 'prod'){
+            $array = ['136','211'];
+            if(in_array($user_id,$array)){
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public function actionTest()
+    {
+        echo "10086-1111";
     }
 }

@@ -38,8 +38,9 @@ class BaseController extends Controller
         //配置基本参数
         $this->request_params = !empty($params['data']) ? json_decode($params['data'],true) : [];
         $this->request_params['user_id'] = $this->user_id;
-        $this->page = (integer)F::value($params, 'page', $this->page);
-        $this->pageSize = (integer)F::value($params, 'rows', $this->pageSize);
+        $this->page = (integer)F::value($this->request_params, 'page', $this->page);
+        $this->pageSize = (integer)F::value($this->request_params, 'rows', $this->pageSize);
+
 
         \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
 

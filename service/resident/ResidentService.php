@@ -27,6 +27,7 @@ use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
 use service\common\SmsService;
+use service\common\AliSmsService;
 use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
@@ -673,7 +674,8 @@ class ResidentService extends BaseService
         }
         // 给住户发短信通知
         $communityName = PsCommunityModel::findOne($this->communityId)->name;
-        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName]);
+
+        AliSmsService::service(['templateCode' => 'SMS_165055077', 'mobile' => $psResidentAudit->mobile])->send(['community_name' => $communityName]);
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
@@ -769,7 +771,7 @@ class ResidentService extends BaseService
     // 迁出
     public function moveOut($id, $userInfo, $communityId = '')
     {
-        $communityId = $this->communityId ? $this->communityId : $communityId;
+        $communityId = $communityId ? $communityId : $this->communityId;
         $model = PsRoomUser::findOne(['id' => $id, 'community_id' => $communityId]);
         if (!$model) {
             return $this->failed('数据不存在');

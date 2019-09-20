@@ -162,7 +162,7 @@ class MemberService extends BaseService
 
         $info['token'] = '';
         //查询此小区的用户token
-        if (YII_ENV == "master") {
+        if (YII_ENV == "prod") {
             if ($info['has_sign_qrcode']) {
                 $tokenInfo = PsPropertyIsvToken::find()->select(['token'])
                     ->where(['type' => 1, 'type_id' => $info['company_id']])
