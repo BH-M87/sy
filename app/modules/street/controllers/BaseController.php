@@ -58,6 +58,10 @@ class BaseController extends Controller
         $this->user_id  = F::request('user_id');
         $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
 
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
+            return true;
+        }
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
@@ -70,11 +74,6 @@ class BaseController extends Controller
                 echo PsCommon::responseFailed($checkMsg);
                 return false;
             }
-        }
-
-        //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
-            return true;
         }
 
         \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
