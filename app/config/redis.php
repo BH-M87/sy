@@ -3,10 +3,10 @@ switch (YII_ENV) {
     case "prod":
         return [
             'class'=>'yii\redis\Connection',
-            'hostname'=>'121.196.219.40',
+            'hostname'=>'r-bp1e443c2270ad24.redis.rds.aliyuncs.com',
             'port'=>6379,
             'database'=> 0,
-            'password' => 'ShenjianCun246'
+            'password' => 'RZ2017zhujia123'
         ];
         break;
     case "release":
