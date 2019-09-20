@@ -579,9 +579,11 @@ class RoomUserService extends BaseService
     //住户信息
     public static function showOne($id, $communityId)
     {
-        $data = PsRoomUser::find()
-            ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status,room_image as images')
-            ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
+        //->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status,room_image as images')
+        $data = PsRoomUser::find()->alias('u')
+            ->leftJoin(['r'=>PsCommunityRoominfo::tableName()],'u.room_id = r.id')
+            ->select(['u.id','u.room_id','u.group','u.building','u.unit','u.room','u.name','u.mobile','u.card_no','u.identity_type','u.time_end','u.status','r.room_image as images'])
+            ->where(['u.id' => $id, 'u.community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
         $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '';
         $data['identity_type_des'] = TagLibrary::roomUser('identity_type')[$data['identity_type']];

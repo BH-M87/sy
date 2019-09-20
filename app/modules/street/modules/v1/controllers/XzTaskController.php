@@ -16,6 +16,7 @@ use service\street\XzTaskService;
 class XzTaskController extends BaseController
 {
 
+    public $enableAction =['index'];
     /**
      * 列表
      * @return string
@@ -121,6 +122,15 @@ class XzTaskController extends BaseController
         StXzTaskForm::model()->validParamArr($this->request_params,'detail');
         $result = XzTaskService::service()->complete_detail($this->request_params);
         return PsCommon::responseSuccess($result);
+    }
+
+
+    /**
+     *  任务脚本
+     */
+    public function actionIndex()
+    {
+        XzTaskService::service()->console_index();
     }
 
 

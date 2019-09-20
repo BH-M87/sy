@@ -21,6 +21,7 @@ include_once dirname(__DIR__,2)."/app/models/UserInfo.php";
 class TaskController extends ConsoleController
 {
 
+    //因crontab 不能执行废弃
     public function actionIndex()
     {
         $time = time();

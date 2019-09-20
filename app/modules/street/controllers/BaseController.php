@@ -57,9 +57,10 @@ class BaseController extends Controller
 
         $this->user_id  = F::request('user_id');
         $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
-        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
-        if (!$this->user_id) {
-            throw new MyException("用户id不存在！");
+
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
+            return true;
         }
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
@@ -75,9 +76,9 @@ class BaseController extends Controller
             }
         }
 
-        //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
-            return true;
+        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
+        if (!$this->user_id) {
+            throw new MyException("用户id不存在！");
         }
 
         //物业系统必传小区ID
