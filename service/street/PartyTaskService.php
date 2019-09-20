@@ -335,7 +335,6 @@ class PartyTaskService extends BaseService
         if (empty($record) || $party->status != 2) {
             throw new MyException('任务未完成或任务已处理');
         }
-        StCommunist::updateAllCounters(['pioneer_value' => $params['pioneer_value']],['id' => $record->communist_id]);
         $record->operate_type = 2;
         $record->pioneer_value = $params['pioneer_value'];
         $record->operator_id = $params['operator_id'];
@@ -346,6 +345,7 @@ class PartyTaskService extends BaseService
         $party->update_at = time();
         $party->save();
         $record->save();
+        StCommunist::updateAllCounters(['pioneer_value' => $params['pioneer_value']],['id' => $record->communist_id]);
     }
 
     //################################小程序##############################
