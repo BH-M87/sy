@@ -51,6 +51,7 @@ class AliPayQrCodeService extends BaseService
         $imageData = Curl::getInstance(['CURLOPT_HTTPHEADER' => $options])->get($url);
         $filename = date('YmdHis') . mt_rand(1000, 9999);
         $imgUrl = self::createPng($imageData, $filename);
+        \Yii::info("img-url:".$imgUrl,'api');
         $fileRe = F::uploadFileToOss($imgUrl);
         $downUrl = $fileRe['filepath'];
 //        //TODO 由于前端需要,图片暂时保存到本地,不进行图片处理了
