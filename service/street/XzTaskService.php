@@ -346,11 +346,13 @@ class XzTaskService extends BaseService
             $difference2 = array_diff($oldReceiveList, $intersect);
             if ($difference2) {
                 //删除执行任务的人,当前时间以后的
-                $deleteCondition = ['and', ['>', 'start_time', time()], ['user_id' => $difference2, 'task_template_id' => $id]];
+                //$deleteCondition = ['and', ['>', 'start_time', time()], ['user_id' => $difference2, 'task_template_id' => $id]];
+                //只删除没有完成的任务
+                $deleteCondition = ['and',['!=','status',2],['user_id' => $difference2, 'task_template_id' => $id]];
                 StXzTask::deleteAll($deleteCondition);
 
             }
-            
+
             //更新执行人员
             $exec_users = implode(',', $newReceiveList);
             $update['exec_users'] = $exec_users;
