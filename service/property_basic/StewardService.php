@@ -114,7 +114,7 @@ class StewardService extends BaseService
             $v['building_info'] = $building;
             $v['sex_desc'] = PsSteWard::$sex_info[$v['sex']];
             $v['praise_rate'] = $this->getPraiseRate($v['evaluate'], $v['praise']);
-            $v['mobile'] = F::processMobile($v['mobile']);
+            $v['hide_mobile'] = F::processMobile($v['mobile']);
         }
     }
 
