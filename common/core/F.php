@@ -7,6 +7,7 @@
 
 namespace common\core;
 
+use common\MyException;
 use OSS\Core\OssException;
 use OSS\OssClient;
 use Yii;
@@ -311,6 +312,12 @@ class F
         return Yii::$app->basePath . '/web/store/uploadFiles/';
     }
 
+    //上传文件的目录
+    public static function originalFile()
+    {
+        return Yii::$app->basePath . '/web/store/excel/';
+    }
+
     /**
      * 生成订单号统一规则
      * @param $prefix
@@ -547,6 +554,36 @@ class F
 
         }
         return $signedUrl;
+    }
+
+	//文件上传到oss
+    public static function uploadFileToOss($localPath)
+    {
+        $extStr = explode('.', $localPath);
+        $ext = $extStr[count($extStr)-1];
+        $strArr = explode('/', $localPath);
+        $fileName = $strArr[count($strArr)-1];
+
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+
+        $object = $fileName;
+
+
+        $filePath = $localPath;
+
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+
+        //上传到七牛
+        $re['filepath'] = F::getOssImagePath($object);
+        return $re;
     }
     
     // 图片地址转换
