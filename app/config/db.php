@@ -3,9 +3,9 @@ switch (YII_ENV) {
     case  "prod":
         return [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_test',
-            'username' => 'communitybrain',
-            'password' => 'communitybrain123!@#',
+            'dsn' => 'mysql:host=rm-bp1kfqjq40ese52br.mysql.rds.aliyuncs.com;dbname=microbrain_public',
+            'username' => 'xqwr_fy',
+            'password' => 'zhujia@1688',
             'charset' => 'utf8',
             'attributes' => [
                 PDO::ATTR_EMULATE_PREPARES => true,
