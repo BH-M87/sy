@@ -348,10 +348,12 @@ class XzTaskService extends BaseService
                 //删除执行任务的人,当前时间以后的
                 $deleteCondition = ['and', ['>', 'start_time', time()], ['user_id' => $difference2, 'task_template_id' => $id]];
                 StXzTask::deleteAll($deleteCondition);
-                //更新执行人员
-                $exec_users = implode(',', $newReceiveList);
-                $update['exec_users'] = $exec_users;
+
             }
+            
+            //更新执行人员
+            $exec_users = implode(',', $newReceiveList);
+            $update['exec_users'] = $exec_users;
             //更新联系电话
             $contact_mobile = PsCommon::get($data, 'contact_mobile');
             if ($contact_mobile) {
