@@ -41,6 +41,7 @@ class AliPayQrCodeService extends BaseService
         $result = MemberCardService::service()->getQrcode($params);
         if ($result['code'] = '10000') {
             $url = $result['qr_code_url'];
+            \Yii::info("export-url:".$url,'api');
         } else {
             throw new MyException('二维码获取失败');
         }
