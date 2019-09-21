@@ -44,19 +44,21 @@ class AliPayQrCodeService extends BaseService
         } else {
             throw new MyException('二维码获取失败');
         }
-//        $options = [
-//            'Content-Type: application/octet-stream'
-//        ];
-//        $imageData = Curl::getInstance(['CURLOPT_HTTPHEADER' => $options])->get($url);
-//        $filename = date('YmdHis') . mt_rand(1000, 9999);
-//        $imgUrl = self::createPng($imageData, $filename);
+        $options = [
+            'Content-Type: application/octet-stream'
+        ];
+        $imageData = Curl::getInstance(['CURLOPT_HTTPHEADER' => $options])->get($url);
+        $filename = date('YmdHis') . mt_rand(1000, 9999);
+        $imgUrl = self::createPng($imageData, $filename);
+        $fileRe = F::uploadFileToOss($imgUrl);
+        $downUrl = $fileRe['filepath'];
 //        //TODO 由于前端需要,图片暂时保存到本地,不进行图片处理了
 //        if ($is_down == 1) {
 //            $key_name = md5(uniqid(microtime(true), true)) . '.png';
 //            $imgUrl = UploadService::service()->saveQiniu($key_name, $imgUrl);
 //            return $imgUrl;
 //        }
-        return $url;
+        return $downUrl;
     }
 
     /**
