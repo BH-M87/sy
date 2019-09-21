@@ -158,7 +158,7 @@ class UserService extends BaseService
      */
     public function getUserNameById($id)
     {
-        return UserInfo::find()->select(['username'])->where(['id'=>$id])->asArray()->scalar();
+        return UserInfo::find()->select(['username'])->where(['user_id'=>$id])->asArray()->scalar();
     }
 
     /**
