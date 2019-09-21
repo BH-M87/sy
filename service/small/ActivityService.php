@@ -300,10 +300,12 @@ Class ActivityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
+        $appUser = PsAppUser::findOne($p['user_id']);
+
         $params['a_id'] = $p['id'];
         $params['user_id'] = $p['user_id'];
         $params['room_id'] = $p['room_id'];
-        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['avatar'] = !empty($appUser->avatar) ? $appUser->avatar : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
         $params['community_id'] = $roomInfo ['community_id'];
