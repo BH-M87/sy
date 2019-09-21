@@ -12,6 +12,7 @@ namespace service\door;
 use app\models\DoorRecord;
 use common\core\F;
 use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
 use service\common\CsvService;
 use service\rbac\OperateService;
@@ -115,6 +116,9 @@ class DoorRecordService extends BaseService
     public function export($params, $userInfo = [])
     {
         $result = $this->getList($params);
+        if (count($result['list']) < 1) {
+            throw new MyException('数据为空');
+        }
         $config = [
             ['title' => '开门时间', 'field' => 'open_times'],
             ['title' => '姓名', 'field' => 'user_name'],
