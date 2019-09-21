@@ -47,6 +47,7 @@ class StPartyTask extends BaseModel
             [['task_name'], 'string', 'max' => 30],
             [['is_location','expire_time_type'], 'in', 'range' => [1, 2],'message' => '{attribute}非法'],
             [['party_address'], 'string', 'max' => 50],
+            [['pioneer_value'], 'integer', 'min' => 1,'max' => 100],
             [['contact_name'], 'string', 'max' => 10],
             [['contact_phone'], 'string', 'max' => 12],
             [['operator_name'], 'string', 'max' => 20],
