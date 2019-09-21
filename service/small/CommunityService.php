@@ -40,7 +40,7 @@ Class CommunityService extends BaseService
 {
     // java路由
     public $urlJava= [
-        'addEvent' => '/event/addEvent', // 新增曝光台事件
+        'addEvent' => '/eventDing/addEvent', // 新增曝光台事件
         'dealDetail' => '/community/communityExposure/getExposureDealWithDetailById' // 处理结果
     ];
 
