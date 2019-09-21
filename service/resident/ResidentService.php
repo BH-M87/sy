@@ -796,6 +796,8 @@ class ResidentService extends BaseService
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
             PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_id' => $model['room_id'], 'identity_type' => [2, 3]]);
         }
+        // 同步到警务端
+        PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_user_id' => $id]);
         // 添加变更历史
         PsResidentHistory::model()->addHistory($model, ['id' => $userInfo['id'], 'name' => $userInfo['username']], true);
 

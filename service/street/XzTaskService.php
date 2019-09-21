@@ -722,7 +722,7 @@ class XzTaskService extends BaseService
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
-                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d",$value['check_at']) : "";//完成时间
+                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d H:i",$value['check_at']) : "";//完成时间
 
             }
         }else{
@@ -780,7 +780,8 @@ class XzTaskService extends BaseService
             throw new MyException('任务不存在');
         }
         //查看任务是否隐藏
-        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
+        $taskTemplate = StXzTaskTemplate::find()->where(['id'=>$detail['task_template_id']])->asArray()->one();
+        $status = $taskTemplate['status'];
         if($status == 2){
             throw new MyException('该任务不存在');
         }
@@ -797,7 +798,7 @@ class XzTaskService extends BaseService
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
-        $submit['check_images'] = implode(',',$data['check_images']);
+        $submit['check_images'] = !empty($data['check_images']) ? implode(',',$data['check_images']) : '';
         $submit['check_location_lon'] = $data['check_location_lon'];
         $submit['check_location_lat'] = $data['check_location_lat'];
         $submit['check_location'] = $data['check_location'];
@@ -805,7 +806,7 @@ class XzTaskService extends BaseService
         StXzTask::updateAll($submit,['id'=>$id]);
         $organization_type = $detail['organization_type'];
         $organization_id = $detail['organization_id'];
-        $content = $detail['check_content'];
+        $content = $detail['user_name']."完成".$this->type_info[$taskTemplate['task_type']]."了,快去看看把！";
         $type = 3;
         $related_id = $id;
         PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);

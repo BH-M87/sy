@@ -47,7 +47,7 @@ class StXzTaskForm extends BaseModel
             [['receive_user_list'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['detail','edit','delete','status','detail-user-list','submit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
-            [['check_content','check_images','check_location_lon','check_location_lat','check_location'], 'required','message' => '{attribute}不能为空!', 'on' => ['submit']],
+            [['check_content','check_location_lon','check_location_lat','check_location'], 'required','message' => '{attribute}不能为空!', 'on' => ['submit']],
             ['task_type', 'checkInterY', 'on'=>['add']],
             ['start_date', 'compare_time','on'=>['add']],
             ['end_date', 'compare_time', 'on'=>['add']],
