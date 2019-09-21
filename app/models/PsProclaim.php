@@ -19,7 +19,6 @@ class PsProclaim extends BaseModel
         return [
             [['title', 'proclaim_type', 'proclaim_cate', 'operator_id', 'operator_name'], 'required', 'message' => '{attribute}必填'],
             [['community_id', 'proclaim_type', 'proclaim_cate', 'operator_id', 'organization_type', 'organization_id', 'top_at'], 'integer', 'message'=> '{attribute}不是数字'],
-            [['proclaim_type','proclaim_cate'], 'in', 'range' => [1, 2, 3],'message' => '{attribute}不正确'],
             [['is_top'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确'],
             [['is_show'], 'in', 'range' => [1, 2],'message' => '{attribute}不正确'],
             ['img_url', 'string', 'length' => [1, 100], 'message' => '{attribute}长度不正确'],
