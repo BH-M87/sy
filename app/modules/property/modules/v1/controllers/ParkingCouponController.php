@@ -106,6 +106,7 @@ class ParkingCouponController extends BaseController
     public function actionDownCode()
     {
         $result = CouponService::service()->downCode($this->request_params);
+        \Yii::info("down-code-url:".json_encode($result),'api');
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {
