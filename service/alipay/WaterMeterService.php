@@ -349,7 +349,10 @@ class WaterMeterService extends  BaseService {
             'J'=> ['title'=>'错误原因','width'=>10,'data_type'=>'str','field'=>'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, 'Water', 'error');
-        return F::downloadUrl(2, $filename, 'error');
+        $filePath = F::originalFile().'error/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return $downUrl;
     }
 
     /**

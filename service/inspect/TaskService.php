@@ -228,7 +228,9 @@ class TaskService extends BaseService
             OperateService::addComm($userInfo, $operate);
         }
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'xunjianjilu');
-        $downUrl = F::downloadUrl($systemType, $filename, 'temp', 'xunjianjilu.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return ['down_url' => $downUrl];
     }
 
@@ -337,7 +339,9 @@ class TaskService extends BaseService
         }
 
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'yichangshuju');
-        $downUrl = F::downloadUrl($filename, 'temp', 'yichangshuju.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
 
         return ['down_url' => $downUrl];
     }

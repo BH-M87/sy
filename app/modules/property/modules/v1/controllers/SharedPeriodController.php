@@ -274,7 +274,9 @@ class SharedPeriodController extends BaseController
             'K' => ['title' => '应分摊总金额', 'width' => 18, 'data_type' => 'str', 'field' => 'shared_total'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'Shared');
-        $downUrl = F::downloadUrl($this->systemType, $filename, 'temp', 'Shared.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 

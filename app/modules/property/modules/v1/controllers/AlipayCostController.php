@@ -194,7 +194,10 @@ Class AlipayCostController extends BaseController
             ['title' => '欠费金额', 'field' => 'owe_entry_amount'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['data'], 'BillAmount');
-        return PsCommon::responseSuccess(["down_url" => F::downloadUrl($this->systemType, $filename, 'temp', 'BillAmount.csv')]);
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
     //账单列表的导出 导出明细数据
@@ -212,8 +215,9 @@ Class AlipayCostController extends BaseController
                 'E' => ['title' => '欠费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'owe_entry_amount', 'default' => '-'],
             ];
             $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
-            $url = F::downloadUrl($this->systemType, $fileName, 'temp', 'BillAmount.csv');
-
+            $filePath = F::originalFile().'temp/'.$fileName;
+            $fileRe = F::uploadFileToOss($filePath);
+            $url = $fileRe['filepath'];
             //保存日志
             $log = [
                 "community_id" => $data['community_id'],
@@ -457,7 +461,10 @@ Class AlipayCostController extends BaseController
             "operate_content" => $content,
         ];
         OperateService::addComm($this->user_info, $operate);
-        return PsCommon::responseSuccess(['down_url' => F::downloadUrl($this->systemType, $filename, 'temp', 'BillAmount.csv')]);
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
     //待生成列表-全部删除
@@ -823,7 +830,10 @@ Class AlipayCostController extends BaseController
                 break;
         }
         $filename = CsvService::service()->saveTempFile(1, $config, $result['data']['list'], 'JiaoFeiMingXi');
-        return PsCommon::responseSuccess(['down_url' => F::downloadUrl($this->systemType, $filename, 'temp', 'JiaoFeiMingXi.csv')]);
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
     //=================================================End收缴明细功能相关==============================================
 

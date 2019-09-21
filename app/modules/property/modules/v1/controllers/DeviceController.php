@@ -112,7 +112,9 @@ Class DeviceController extends BaseController
         OperateService::addComm($this->user_info, $operate);
 
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'zhongdashigu');
-        $downUrl  = F::downloadUrl($filename, 'temp', 'zhongdashigu.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
 
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
@@ -209,7 +211,9 @@ Class DeviceController extends BaseController
         OperateService::addComm($this->user_info, $operate);
 
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'shebeibaoyang');
-        $downUrl  = F::downloadUrl($filename, 'temp', 'shebeibaoyang.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
 
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
@@ -319,7 +323,9 @@ Class DeviceController extends BaseController
         OperateService::addComm($this->user_info, $operate);
 
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'shebei');
-        $downUrl  = F::downloadUrl($filename, 'temp', 'shebei.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
 
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
