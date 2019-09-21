@@ -416,7 +416,8 @@ class XzTaskService extends BaseService
             $detail['interval_y_desc'] = $interval_y_desc;
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
-            $detail['receive_user_list'] = StXzTask::find()->distinct()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
+            //$detail['receive_user_list'] = StXzTask::find()->distinct()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
+            $detail['receive_user_list'] = UserService::service()->getUserInfoByIdList($detail['exec_users']);
         } else {
             $detail = [];
         }
