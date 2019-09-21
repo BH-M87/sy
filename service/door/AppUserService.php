@@ -186,7 +186,7 @@ class AppUserService extends BaseService
                 $appUser->expires_in      = time() + $data['expires_in'];
                 $appUser->refresh_token   = $data['refresh_token'];
             }
-            $gender = $data['gender'] == "f" ? 2 : 1;
+            $gender = !empty($data['gender']) && $data['gender'] == "f" ? 2 : 1;
             $appUser->gender          = $gender;
             
             if ($appUser->save()) {
@@ -209,7 +209,7 @@ class AppUserService extends BaseService
                 $userRef = $data['user_ref'];
             }
 
-            $gender = $data['gender'] == "f" ? 2 : 1;
+            $gender = !empty($data['gender']) && $data['gender'] == "f" ? 2 : 1;
 
             $appUser = new PsAppUser();
             $appUser->nick_name       = $nickname;

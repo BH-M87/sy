@@ -20,6 +20,7 @@ use app\models\PsRepairMaterials;
 use app\models\PsRepairRecord;
 use app\models\SqwnUser;
 use common\core\F;
+use common\MyException;
 use service\alipay\BillService;
 use service\alipay\BillSmallService;
 use service\manage\CommunityService;
@@ -286,6 +287,9 @@ class RepairService extends BaseService
     public function export($params, $userInfo = [])
     {
         $result = $this->getRepairLists($params);
+        if (count($result['list']) < 1) {
+            throw new MyException('数据为空');
+        }
         if ($params['hard_type'] == 2) {
             $config = [
                 ['title' => '提交时间', 'field' => 'create_at'],

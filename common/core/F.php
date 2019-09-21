@@ -247,7 +247,7 @@ class F
     //获取完整链接，不带get参数
     public static function getAbsoluteUrl()
     {
-        $host = Yii::$app->request->getHostInfo();
+        $host = Yii::$app->params['api_host_url'];
         return $host;
     }
 
