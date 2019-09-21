@@ -287,15 +287,18 @@ class XzTaskService extends BaseService
             $saveData = [];
             foreach ($timeList as $key => $value) {
                 foreach ($userList as $k => $v) {
-                    $saveData['organization_type'][] = $organization_type;
-                    $saveData['organization_id'][] = $organization_id;
-                    $saveData['user_id'][] = $v['user_id'];
-                    $saveData['user_name'][] = $v['user_name'];
-                    $saveData['task_template_id'][] = $id;
-                    $saveData['start_time'][] = $value['start_time'];
-                    $saveData['end_time'][] = $value['end_time'];
-                    $saveData['status'][] = 1;
-                    $saveData['created_at'][] = time();
+                    $task = StXzTask::find()->where(['user_id'=> $v['user_id'],'task_template_id'=>$id,'start_time'=>$value['start_time'],'end_time'=>$value['end_time']])->asArray()->one();
+                    if(empty($task)){
+                        $saveData['organization_type'][] = $organization_type;
+                        $saveData['organization_id'][] = $organization_id;
+                        $saveData['user_id'][] = $v['user_id'];
+                        $saveData['user_name'][] = $v['user_name'];
+                        $saveData['task_template_id'][] = $id;
+                        $saveData['start_time'][] = $value['start_time'];
+                        $saveData['end_time'][] = $value['end_time'];
+                        $saveData['status'][] = 1;
+                        $saveData['created_at'][] = time();
+                    }
                 }
             }
             StXzTask::model()->batchInsert($saveData);
