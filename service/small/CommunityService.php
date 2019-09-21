@@ -303,7 +303,8 @@ Class CommunityService extends BaseService
             
             $arr_sum = !empty($arr) ? array_sum($arr) : 0;
             $r[0]['id'] = 0;
-            $r[0]['name'] = '全部('. $arr_sum .')';
+            $r[0]['name'] = '全部';
+            $r[0]['total'] = $arr_sum;
         }
 
         $type = EventTemplate::type(['type' => 1]);
@@ -313,7 +314,8 @@ Class CommunityService extends BaseService
                 $total = !empty($arr[$v['id']]) ? $arr[$v['id']] : 0;
 
                 $r[$k]['id'] = $v['id'];
-                $r[$k]['name'] = $v['name'] . '('. $total .')';
+                $r[$k]['name'] = $v['name'];
+                $r[$k]['total'] = $total;
             } else {
                 $v['subList'] = $typeChild = EventTemplate::typeChild(['parent_id' => $v['id']]);
                 $r[$k] = $v;
