@@ -319,7 +319,9 @@ class RepairService extends BaseService
             ];
         }
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
-        $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return $downUrl;
     }
 
