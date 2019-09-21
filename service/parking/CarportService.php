@@ -501,7 +501,9 @@ class CarportService extends BaseService
             ['title' => '身份证号码', 'field' => 'room_id_card_export', 'data_type' => 'str']
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $data, 'Chewei');
-        $downUrl = F::downloadUrl($filename, 'temp', 'Chewei.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         $operate = [
             "community_id" => $params["community_id"],
             "operate_menu" => "车位管理",

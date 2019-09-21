@@ -130,7 +130,9 @@ class DoorRecordService extends BaseService
             ['title' => '门卡卡号', 'field' => 'card_no'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'openRecord');
-        $downUrl = F::downloadUrl($filename, 'openRecord', 'OpenRecord.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         $operate = [
             "community_id" => $params["community_id"],
             "operate_menu" => "门禁管理",

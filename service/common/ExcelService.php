@@ -241,6 +241,7 @@ class ExcelService extends BaseService
             $newConfig[$columns[$i]] = $v;
             $i++;
         }
+
         return CsvService::service()->saveTempFile(1, array_values($newConfig), $this->errors, '', 'error');
     }
 

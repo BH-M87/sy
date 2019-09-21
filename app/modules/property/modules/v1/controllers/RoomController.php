@@ -397,6 +397,8 @@ class RoomController extends BaseController
 
             $error_url = "";
             if ($fail > 0) {
+
+
                 $error_url = F::downloadUrl($this->saveError($errorCsv), 'error');
             }
             //提交事务
@@ -864,7 +866,11 @@ class RoomController extends BaseController
         }
         $error_url = "";
         if ($fail > 0) {
-            $error_url = F::downloadUrl($this->systemType, $this->saveError($errorCsv), 'error');
+            $filename = $this->saveError($errorCsv);
+            $filePath = F::originalFile().'error/'.$filename;
+            $fileRe = F::uploadFileToOss($filePath);
+            $downUrl = $fileRe['filepath'];
+            $error_url = $downUrl;
         }
         $result = [
             'totals' => $success + $fail,

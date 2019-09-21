@@ -404,7 +404,9 @@ class PatrolController extends BaseController
             ['title' => '巡更状态', 'field' => 'status_des'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result, 'XunGeng');
-        $downUrl = F::downloadUrl($this->systemType, $filename, 'temp', 'XunGeng.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         $content = "巡更记录导出";
         $operate = [
             "community_id" => $this->request_params['community_id'],

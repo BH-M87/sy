@@ -576,8 +576,9 @@ class CarService extends BaseService
             ['title' => '结束时间', 'field' => 'carport_rent_end', 'data_type' => 'str']
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $carList, 'CheLiang');
-        $downUrl = F::downloadUrl($filename, 'temp', 'CheLiang.csv');
-
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         $operate = [
             "community_id" => $params["community_id"],
             "operate_menu" => "车辆管理",

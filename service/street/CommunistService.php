@@ -275,7 +275,10 @@ class CommunistService extends BaseService
         $fail =  ExcelService::service()->getErrorCount();
         $error_url = '';
         if($fail > 0 ){
-            $error_url = F::downloadUrl($filename, 'error', 'communistImportError.csv');
+            $filePath = F::originalFile().'error/'.$filename;
+            $fileRe = F::uploadFileToOss($filePath);
+            $downUrl = $fileRe['filepath'];
+            $error_url = $downUrl;
         }
         $result = [
             'success' => count($success),

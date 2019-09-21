@@ -612,7 +612,10 @@ class SharedPeriodService extends BaseService
             'F' => ['title' => '错误原因', 'width' => 35, 'data_type' => 'str', 'field' => 'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        return F::downloadUrl(2, $filename, 'error');
+        $filePath = F::originalFile().'error/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return $downUrl;
     }
 
     ///验证导入的公摊类型，公式类型，状态是否正确并获取对应id
