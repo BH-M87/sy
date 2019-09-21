@@ -1,10 +1,10 @@
 <?php
 $paramsEnvFile = 'params-' . $envData['YII_ENV'] . '.php';
 $params = array_merge(
+    //require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
+    //require(__DIR__ . '/' . $paramsEnvFile)
     require(__DIR__ . '/../../common/config/params.php'),
-    require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
-    require(__DIR__ . '/params.php'),
-    require(__DIR__ . '/' . $paramsEnvFile)
+    require(__DIR__ . '/params.php')
 );
 
 $config =  [
@@ -104,7 +104,7 @@ $config =  [
     'params' => $params,
 
 ];
-if (YII_ENV != 'master' && YII_ENV != 'release') {
+if (YII_ENV != 'prod' && YII_ENV != 'release') {
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',

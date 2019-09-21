@@ -570,5 +570,18 @@ class F
         }
         return $str;
     }
+
+    /**
+     * 只保留字符串首尾字符，隐藏中间用*代替（两个字符时只显示第一个）
+     * @param string $str 姓名
+     * @return string 格式化后的姓名
+     */
+    public static function substrCut($str)
+    {
+      $strlen = mb_strlen($str, 'utf-8');
+      $firstStr = mb_substr($str, 0, 1, 'utf-8');
+      $lastStr= mb_substr($str, -1, 1, 'utf-8');
+      return $strlen == 2 ? $firstStr . str_repeat('*', mb_strlen($str, 'utf-8') - 1) : $firstStr . str_repeat("*", $strlen - 2) . $lastStr;
+    }
 }
 

@@ -22,6 +22,7 @@ use service\BaseService;
 use service\basic_data\ResidentService;
 use service\basic_data\MemberService as BasicMemberService;
 use service\basic_data\RoomService;
+use service\common\AliSmsService;
 use service\common\SmsService;
 use Yii;
 
@@ -453,6 +454,15 @@ class FamilyManageService extends BaseService
             }
             $communityName = CommunityService::service()->getCommunityName($community_id);
             if (!PsCommon::isVirtualPhone($params['mobile'])){
+                $smsParams['templateCode'] = 'SMS_174278311';  //模板
+                $smsParams['mobile'] = $params['mobile'];      //手机号
+                //短信内容
+                $templateParams['name'] = $params['name'];
+                $templateParams['community_name'] = $communityName['name'];
+                $templateParams['resident_name'] = $roomUserInfo['name'];
+                $templateParams['resident_type'] = $identityTypeLabel;
+                $sms = AliSmsService::service($smsParams);
+                $sms->send($templateParams);
                 //SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
             }
             $trans->commit();

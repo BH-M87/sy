@@ -27,6 +27,7 @@ use service\basic_data\DoorPushService;
 use service\basic_data\RoomMqService;
 use service\common\AreaService;
 use service\common\SmsService;
+use service\common\AliSmsService;
 use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
@@ -673,7 +674,8 @@ class ResidentService extends BaseService
         }
         // 给住户发短信通知
         $communityName = PsCommunityModel::findOne($this->communityId)->name;
-        SmsService::service()->init(33, $psResidentAudit->mobile)->send([$communityName]);
+
+        AliSmsService::service(['templateCode' => 'SMS_165055077', 'mobile' => $psResidentAudit->mobile])->send(['community_name' => $communityName]);
 
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
@@ -794,6 +796,8 @@ class ResidentService extends BaseService
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
             PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_id' => $model['room_id'], 'identity_type' => [2, 3]]);
         }
+        // 同步到警务端
+        PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_user_id' => $id]);
         // 添加变更历史
         PsResidentHistory::model()->addHistory($model, ['id' => $userInfo['id'], 'name' => $userInfo['username']], true);
 

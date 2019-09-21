@@ -13,6 +13,7 @@ use app\models\StRemind;
 use app\models\StXzTask;
 use app\models\StXzTaskAttribute;
 use app\models\StXzTaskTemplate;
+use app\models\UserInfo;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -69,7 +70,7 @@ class XzTaskService extends BaseService
         $end_date = PsCommon::get($data, 'end_date');
         $model = StXzTaskTemplate::find()
             ->where(['organization_type'=>$user_info['node_type'],'organization_id'=>$user_info['dept_id']])
-            ->andFilterWhere(['name' => $name])
+            ->andFilterWhere(['like','name', $name])
             ->andFilterWhere(['task_attribute_id' => $task_attribute_id])
             ->andFilterWhere(['status' => $status])
             ->andFilterWhere(['task_type' => $task_type]);
@@ -102,6 +103,16 @@ class XzTaskService extends BaseService
             $end_date = PsCommon::get($data, 'end_date');
             $end_date = $end_date ? strtotime($end_date) : 0;
             $task_type = PsCommon::get($data, 'task_type', 1);
+            $now = strtotime(date("Y-m-d"));
+            if($start_date < $now){
+                throw new MyException('开始时间必须在今天以后');
+            }
+            if($start_date < $now){
+                throw new MyException('结束时间必须在今天以后');
+            }
+            if($start_date > $end_date){
+                throw new MyException('开始时间必须大于结束时间');
+            }
             if($task_type == 1){
                 $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
                 if (empty($timeList)) {
@@ -201,7 +212,7 @@ class XzTaskService extends BaseService
             //按天执行
             if ($interval_x == '1') {
                 $remainder = $i % $interval_x;//区余数，能整除表示满足条件
-                if ($remainder == 0) {
+                if ($remainder == 0  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -212,7 +223,7 @@ class XzTaskService extends BaseService
                 $w = date('w', $for_date);//计算当前日子是周几
                 $w = ($w == '0') ? '7' : $w;//将星期日做转换
                 $remainder = ($week - $w_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $w == $interval_y) {
+                if ($remainder == 0 && $w == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -222,7 +233,7 @@ class XzTaskService extends BaseService
                 $m = date('m', $for_date);//计算当前日子是几月
                 $d = ltrim(date('d', $for_date),'0');//计算当前日子是几号
                 $remainder = ($m - $m_start) % 1;//区余数，能整除表示满足条件
-                if ($remainder == 0 && $d == $interval_y) {
+                if ($remainder == 0 && $d == $interval_y  && $for_date >= $now) {
                     $return[] = $this->dealDateData($for_date);
                 }
             }
@@ -276,15 +287,18 @@ class XzTaskService extends BaseService
             $saveData = [];
             foreach ($timeList as $key => $value) {
                 foreach ($userList as $k => $v) {
-                    $saveData['organization_type'][] = $organization_type;
-                    $saveData['organization_id'][] = $organization_id;
-                    $saveData['user_id'][] = $v['user_id'];
-                    $saveData['user_name'][] = $v['user_name'];
-                    $saveData['task_template_id'][] = $id;
-                    $saveData['start_time'][] = $value['start_time'];
-                    $saveData['end_time'][] = $value['end_time'];
-                    $saveData['status'][] = 1;
-                    $saveData['created_at'][] = time();
+                    $task = StXzTask::find()->where(['user_id'=> $v['user_id'],'task_template_id'=>$id,'start_time'=>$value['start_time'],'end_time'=>$value['end_time']])->asArray()->one();
+                    if(empty($task)){
+                        $saveData['organization_type'][] = $organization_type;
+                        $saveData['organization_id'][] = $organization_id;
+                        $saveData['user_id'][] = $v['user_id'];
+                        $saveData['user_name'][] = $v['user_name'];
+                        $saveData['task_template_id'][] = $id;
+                        $saveData['start_time'][] = $value['start_time'];
+                        $saveData['end_time'][] = $value['end_time'];
+                        $saveData['status'][] = 1;
+                        $saveData['created_at'][] = time();
+                    }
                 }
             }
             StXzTask::model()->batchInsert($saveData);
@@ -335,16 +349,20 @@ class XzTaskService extends BaseService
             $difference2 = array_diff($oldReceiveList, $intersect);
             if ($difference2) {
                 //删除执行任务的人,当前时间以后的
-                $deleteCondition = ['and', ['>', 'start_time', time()], ['user_id' => $difference2, 'task_template_id' => $id]];
+                //$deleteCondition = ['and', ['>', 'start_time', time()], ['user_id' => $difference2, 'task_template_id' => $id]];
+                //只删除没有完成的任务
+                $deleteCondition = ['and',['!=','status',2],['user_id' => $difference2, 'task_template_id' => $id]];
                 StXzTask::deleteAll($deleteCondition);
-                //更新执行人员
-                $exec_users = implode(',', $newReceiveList);
-                $update['exec_users'] = $exec_users;
-                //更新联系电话
-                $contact_mobile = PsCommon::get($data, 'contact_mobile');
-                if ($contact_mobile) {
-                    $update['contact_mobile'] = $contact_mobile;
-                }
+
+            }
+
+            //更新执行人员
+            $exec_users = implode(',', $newReceiveList);
+            $update['exec_users'] = $exec_users;
+            //更新联系电话
+            $contact_mobile = PsCommon::get($data, 'contact_mobile');
+            if ($contact_mobile) {
+                $update['contact_mobile'] = $contact_mobile;
             }
             //更新附件
             $accessory = PsCommon::get($data, 'accessory_file');
@@ -379,6 +397,10 @@ class XzTaskService extends BaseService
             $detail['number'] = count(explode(',', $detail['exec_users']));
             $detail['status_desc'] = $this->status_info[$detail['status']];
             switch ($detail['exec_type']) {
+                case "1":
+                    $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
+                    $interval_y_desc = '';
+                    break;
                 case "2":
                     $exec_type_desc = $this->exec_type_info[$detail['exec_type']];
                     $week = F::getWeekChina($detail['interval_y']);
@@ -393,11 +415,12 @@ class XzTaskService extends BaseService
                     $exec_type_desc ='';
                     $interval_y_desc = '';
             }
-            $detail['exec_type_desc'] = $exec_type_desc;
+            $detail['exec_type_desc'] = $exec_type_desc ? $exec_type_desc."任务" : "";
             $detail['interval_y_desc'] = $interval_y_desc;
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
-            $detail['receive_user_list'] = StXzTask::find()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
+            //$detail['receive_user_list'] = StXzTask::find()->distinct()->select(['user_id','user_name'])->where(['task_template_id'=>$id])->asArray()->all();
+            $detail['receive_user_list'] = UserService::service()->getUserInfoByIdList(explode(',',$detail['exec_users']));
         } else {
             $detail = [];
         }
@@ -448,15 +471,15 @@ class XzTaskService extends BaseService
         $unfinishedNum = $finishedNum = $untreatedNum = $unstartNum = $totalNum = 0;
         foreach($userTaskList as $key =>$value){
             //待完成
-            if($value['start_time'] < $time && $value['end_time'] > $time){
+            if($value['start_time'] < $time && $value['end_time'] > $time && $value['status'] == 1){
                 $unfinishedNum ++;
             }
             //已处理
             if($value['status'] == 2){
                 $finishedNum ++;
             }
-            //未处理
-            if($value['status'] == 1){
+            //已过期
+            if($value['status'] == 1 && $value['end_time'] < $time){
                 $untreatedNum ++;
             }
             //未开始
@@ -707,7 +730,7 @@ class XzTaskService extends BaseService
                 }else{
                     $list[$key]['exec_type_desc'] ='';
                 }
-                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d",$value['check_at']) : "";//完成时间
+                $list[$key]['complete_time']  = !empty($value['check_at']) ? date("Y-m-d H:i",$value['check_at']) : "";//完成时间
 
             }
         }else{
@@ -765,7 +788,8 @@ class XzTaskService extends BaseService
             throw new MyException('任务不存在');
         }
         //查看任务是否隐藏
-        $status = StXzTaskTemplate::find()->select(['status'])->where(['id'=>$detail['task_template_id']])->asArray()->scalar();
+        $taskTemplate = StXzTaskTemplate::find()->where(['id'=>$detail['task_template_id']])->asArray()->one();
+        $status = $taskTemplate['status'];
         if($status == 2){
             throw new MyException('该任务不存在');
         }
@@ -782,7 +806,7 @@ class XzTaskService extends BaseService
         }
         $submit['status'] =2;
         $submit['check_content'] = $data['check_content'];
-        $submit['check_images'] = implode(',',$data['check_images']);
+        $submit['check_images'] = !empty($data['check_images']) ? implode(',',$data['check_images']) : '';
         $submit['check_location_lon'] = $data['check_location_lon'];
         $submit['check_location_lat'] = $data['check_location_lat'];
         $submit['check_location'] = $data['check_location'];
@@ -790,11 +814,60 @@ class XzTaskService extends BaseService
         StXzTask::updateAll($submit,['id'=>$id]);
         $organization_type = $detail['organization_type'];
         $organization_id = $detail['organization_id'];
-        $content = $detail['check_content'];
+        $content = $detail['user_name']."完成".$this->type_info[$taskTemplate['task_type']]."了,快去看看把！";
         $type = 3;
         $related_id = $id;
         PartyTaskService::service()->addStRemind($organization_type,$organization_id,$content,$type,$related_id);
         return "提交成功";
+    }
+
+    public function console_index()
+    {
+        $time = time();
+        $list = StXzTask::find()->alias('t')
+            ->leftJoin(['tt'=>StXzTaskTemplate::tableName()],'tt.id = t.task_template_id')
+            ->select(['t.user_id','tt.name'])
+            ->where(['t.status'=>1,'tt.status'=>1])
+            ->andWhere(['<','t.start_time',$time])
+            ->andWhere(['>','t.end_time',$time])
+            ->asArray()->all();
+        $newList = [];
+        if($list){
+            foreach($list as $key=>$value){
+                if(empty($newList[$value['user_id']])){
+                    $newList[$value['user_id']]['user_id'] = $value['user_id'];
+                    $newList[$value['user_id']]['title'][] = $value['name'];
+                }else{
+                    $newList[$value['user_id']]['title'][] = $value['name'];
+                }
+            }
+        }
+        if($newList){
+            foreach ($newList as $k=>$v){
+                $dingId = UserInfo::find()->select(['ding_user_id'])->where(['user_id'=>$v['user_id']])->asArray()->scalar();
+                $title = [];
+                foreach ($v['title'] as $a=>$b){
+                    $title[] = "任务".($a+1)."名称：".$b;
+                }
+                if($this->checkUser($v['user_id'])){
+                    DingMessageService::service()->sendTaskMessage($title,[$dingId]);
+                }
+
+            }
+
+        }
+    }
+
+    public function checkUser($user_id)
+    {
+        if(YII_ENV != 'prod'){
+            $array = ['136','211'];
+            if(in_array($user_id,$array)){
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
 
 

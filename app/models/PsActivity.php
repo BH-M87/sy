@@ -135,6 +135,8 @@ class PsActivity extends BaseModel
             $m->andWhere(['<=', 'start_time', time()])->andWhere(['>=', 'end_time', time()]);
         } else if ($status == 2) { // 已结束
             $m->andWhere(['<', 'end_time', time()]);
+        } else if ($status == 4) { // 未开始
+            $m->andWhere(['>', 'start_time', time()]);
         }
 
         $totals = $m->count();

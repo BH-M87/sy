@@ -21,6 +21,7 @@ include_once dirname(__DIR__,2)."/app/models/UserInfo.php";
 class TaskController extends ConsoleController
 {
 
+    //因crontab 不能执行废弃
     public function actionIndex()
     {
         $time = time();
@@ -62,7 +63,7 @@ class TaskController extends ConsoleController
     public function checkUser($user_id)
     {
         if(YII_ENV != 'prod'){
-            $array = ['136'];
+            $array = ['136','211'];
             if(in_array($user_id,$array)){
                 return true;
             }

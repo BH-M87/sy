@@ -24,7 +24,7 @@ class UserService extends BaseService
      */
     public function getUserInfoByIdList($idList)
     {
-        return  UserInfo::find()->select(['id as user_id','username as user_name'])->where(['id'=>$idList])->asArray()->all();
+        return  UserInfo::find()->select(['user_id','username as user_name'])->where(['user_id'=>$idList])->asArray()->all();
     }
 
     /**
@@ -158,7 +158,7 @@ class UserService extends BaseService
      */
     public function getUserNameById($id)
     {
-        return UserInfo::find()->select(['username'])->where(['id'=>$id])->asArray()->scalar();
+        return UserInfo::find()->select(['username'])->where(['user_id'=>$id])->asArray()->scalar();
     }
 
     /**

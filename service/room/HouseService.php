@@ -1013,6 +1013,7 @@ Class HouseService extends BaseService
             return PsCommon::responseFailed('该房屋下已存在该标签');
         }
         $model = new PsLabelsRela();
+        $model->community_id = PsCommunityRoominfo::findOne($room_id)->community_id;
         $model->labels_id = $label_id;
         $model->data_id = $room_id;
         $model->data_type = 1;

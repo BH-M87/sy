@@ -109,7 +109,7 @@ class CarService extends BaseService
             'couponTime' => 0,
         ];
 
-        if (YII_ENV == 'master') {
+        if (YII_ENV == 'prod') {
             $result = IotParkingService::service()->applyCalculationFee($data);
         } else {
             //测试环境伪造费用
