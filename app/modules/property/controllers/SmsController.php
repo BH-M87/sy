@@ -23,4 +23,14 @@ Class SmsController extends CoreController
         $code = $sms->send($templateParams);
         print_r($code);
     }
+
+    //短信验证码验证
+    public function actionValid()
+    {
+        $params['templateCode'] = 'SMS_152160101';  //模板
+        $params['mobile'] = '15257187454';      //手机号
+        $code = '123456';       //验证码
+        $result = AliSmsService::service($params)->valid($code);
+        print_r($result);
+    }
 }
