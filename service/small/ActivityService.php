@@ -94,7 +94,7 @@ Class ActivityService extends BaseService
                 $v['picture'] = F::ossImagePath($v['picture']);
                 $v['start_time'] = !empty($v['start_time']) ? date('Y-m-d', $v['start_time']) : '';
                 $v['join_end'] = !empty($v['join_end']) ? date('Y-m-d H:i', $v['join_end']) : '';
-                $v['type_msg'] = PsActivity::$type[$v['type']];
+                $v['type_msg'] = $v['type'] == 4 ? PsActivity::$activity_type['activity_type'] : PsActivity::$type[$v['type']];
                 $v['status'] = $v['end_time'] < time() ? 2 : $v['status'];
                 $v['status_msg'] = PsActivity::$status[$v['status']];
 
