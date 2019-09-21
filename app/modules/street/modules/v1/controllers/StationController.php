@@ -38,6 +38,8 @@ class StationController extends BaseController
 
     public function actionEdit()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $this->request_params['station'] = $this->request_params['name'];
         $this->request_params['status'] = F::value($this->request_params, 'status', 1);
         $valid = PsCommon::validParamArr(new StStation(), $this->request_params, 'edit');
