@@ -165,6 +165,8 @@ Class CommunityService extends BaseService
                 return $this->success(['list' => [], 'total' => 0]);
             }
 
+            $param['status'] = $param['status'] == 3 ? 3 : [1,2]; // 待处理 显示待处理和已处理数据
+
             unset($param['room_id']); // 判断房屋是否认证用 筛选不用这个参数
         }
         $m = $this->_searchExposure($param)
@@ -212,7 +214,7 @@ Class CommunityService extends BaseService
             ->filterWhere(['=', 'A.app_user_id', PsCommon::get($param, 'user_id')])
             ->andFilterWhere(['=', 'A.event_parent_type_id', PsCommon::get($param, 'parent_type')])
             ->andFilterWhere(['=', 'A.event_child_type_id', PsCommon::get($param, 'child_type')])
-            ->andFilterWhere(['=', 'A.status', PsCommon::get($param, 'status')])
+            ->andFilterWhere(['in', 'A.status', PsCommon::get($param, 'status')])
             ->andFilterWhere(['=', 'A.room_id', PsCommon::get($param, 'room_id')])
             ->andFilterWhere(['=', 'A.community_id', PsCommon::get($param, 'community_id')])
             ->andFilterWhere(['>=', 'A.created_at', $start_at])
