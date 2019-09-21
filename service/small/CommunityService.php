@@ -179,6 +179,7 @@ Class CommunityService extends BaseService
                 $v['status_msg'] = PsCommunityExposure::status($v['status']);
                 $v['parent_type_desc'] = EventTemplate::findOne($v['event_parent_type_id'])->title;
                 $v['child_type_desc'] = EventTemplate::findOne($v['event_child_type_id'])->title;
+                $v['type_desc'] = $v['parent_type_desc'];
                 $image_1 = PsCommunityExposureImage::find()->select('image_url')->where(['community_exposure_id' => $v['id'], 'type' => 1])->asArray()->all();
                 $v['image_url'] = F::ossImagePath(array_column($image_1, 'image_url'));
                 $v['name'] =  CommunityService::service()->_hideName($v['name']);
