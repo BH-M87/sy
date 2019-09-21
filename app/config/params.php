@@ -64,4 +64,12 @@ $data['appKey'] = 'dingvxqretqs7uduiovc';
 $data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
 $data['agent_id'] = 281128929;
 
+if (YII_ENV == "prod") {
+    $data['api_host_url'] = 'https://sqwn-fy-web.elive99.com';
+} else if (YII_ENV == "test" || YII_ENV == "release")  {
+    $data['api_host_url'] = 'https://sqwr.elive99.com';
+} else {
+    $data['api_host_url'] = Yii::$app->request->getHostInfo();
+}
+
 return $data;
