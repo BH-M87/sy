@@ -22,6 +22,10 @@ use yii\grid\GridView;
                     'header' => '公司名称'
                 ],
                 [
+                    'attribute' => 'alipay_account',
+                    'header' => '支付宝账号'
+                ],
+                [
                     'attribute' => 'link_name',
                     'header' => '联系人'
                 ],

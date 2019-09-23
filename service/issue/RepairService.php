@@ -322,7 +322,6 @@ class RepairService extends BaseService
         $filePath = F::originalFile().'temp/'.$filename;
         $fileRe = F::uploadFileToOss($filePath);
         $downUrl = $fileRe['filepath'];
-        $downUrl = str_replace("http","https", $downUrl);
         \Yii::info("export-url:".$downUrl,'api');
         return $downUrl;
     }
