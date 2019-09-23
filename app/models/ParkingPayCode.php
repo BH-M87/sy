@@ -18,7 +18,7 @@ use Yii;
  * @property string $qr_code 二维码地址
  * @property int $created_at 添加时间
  */
-class ParkingPayCode extends \yii\db\ActiveRecord
+class ParkingPayCode extends BaseModel
 {
     /**
      * {@inheritdoc}
