@@ -21,6 +21,7 @@ class DoorController extends BaseController
     //保存呼叫记录
     public function actionCallRecord()
     {
+        var_dump($this->params);die;
         if (empty($this->params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
