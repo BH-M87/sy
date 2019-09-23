@@ -7,8 +7,8 @@ use yii\grid\GridView;
 <section class="content">
     <!-- Default box -->
     <div class="box-footer">
-        <a href="/index.php/property/v1/company-h5/add"><button type="button"  class="btn btn-primary">添加公司</button></a>
-        <a href="/index.php/property/v1/company-h5/bound"><button type="button"  class="btn btn-primary">绑定小区</button></a>
+        <a href="/company-h5/add"><button type="button"  class="btn btn-primary">添加公司</button></a>
+        <a href="/company-h5/bound"><button type="button"  class="btn btn-primary">绑定小区</button></a>
     </div>
     <div class="box">
         <?=

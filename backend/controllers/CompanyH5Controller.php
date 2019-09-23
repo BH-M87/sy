@@ -5,21 +5,20 @@
  * Date: 2019/1/31
  * Time: 11:19
  */
-namespace app\modules\property\modules\v1\controllers;
-use app\models\PsPropertyAlipay;
-use app\models\PsPropertyAlipayInfo;
-use app\models\PsPropertyCompany;
+namespace backend\controllers;
 use common\core\F;
 use common\MyException;
 use Yii;
 use yii\web\Controller;
 use yii\data\Pagination;
 use yii\data\ActiveDataProvider;
-
+use backend\models\PsPropertyAlipayInfo;
+use backend\models\PsPropertyAlipay;
+use backend\models\PsPropertyCompany;
 
 class CompanyH5Controller extends Controller
 {
-    public $layout = "main";
+    public $enableCsrfValidation = false;
 
     public function actionIndex()
     {
@@ -44,7 +43,6 @@ class CompanyH5Controller extends Controller
             return $this->render('add');
         } else {
             $params = $_POST;
-
             $tran = \Yii::$app->getDb()->beginTransaction();
             try {
                 $company = new PsPropertyCompany();
