@@ -193,12 +193,12 @@ class StPartyTask extends BaseModel
             $v['station_name'] = $station->station;
             $v['station_status'] = $station->status == 1 ? '显示中' : '已隐藏';
             $v['claim_count'] = StPartyTaskStation::find()->alias('sts')
-                ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
                 ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
-                ->andFilterWhere(['sc.is_del' => 1])
+                ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+                ->andWhere(['sc.is_del' => 1])
                 ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
                 ->andFilterWhere(['st.organization_type' => $param['organization_type'] ?? null])
-                ->where(['sts.task_id' => $v['id']])->count();
+                ->andFilterWhere(['sts.task_id' => $v['id']])->count();
             if ($v['expire_time_type'] == 2) {
                 if ($v['expire_time'] < time()) {
                     $v['expire_time'] = '已过期';
