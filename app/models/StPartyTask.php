@@ -181,18 +181,24 @@ class StPartyTask extends BaseModel
         }
         $data['list'] = $model->asArray()->all();
         if (!empty($data['list'])) {
-            self::afterList($data['list']);
+            self::afterList($data['list'],$param);
         }
         return $data;
     }
 
-    public static function afterList(&$data)
+    public static function afterList(&$data,$param)
     {
         foreach ($data as &$v) {
             $station = StStation::find()->where(['id' => $v['station_id']])->one();
             $v['station_name'] = $station->station;
             $v['station_status'] = $station->status == 1 ? '显示中' : '已隐藏';
-            $v['claim_count'] = StPartyTaskStation::find()->where(['task_id' => $v['id']])->count();
+            $v['claim_count'] = StPartyTaskStation::find()->alias('sts')
+                ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
+                ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
+                ->andWhere(['sc.is_del' => 1])
+                ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
+                ->andFilterWhere(['st.organization_type' => $param['organization_type'] ?? null])
+                ->andFilterWhere(['sts.task_id' => $v['id']])->count();
             if ($v['expire_time_type'] == 2) {
                 if ($v['expire_time'] < time()) {
                     $v['expire_time'] = '已过期';

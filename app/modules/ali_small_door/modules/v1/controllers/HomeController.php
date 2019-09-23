@@ -97,6 +97,17 @@ class HomeController extends UserBaseController
         return $this->dealReturnResult($result);
     }
 
+    /**
+     * @api 取消蒙层指导
+     * @return array
+     */
+    public function actionUserGuide()
+    {
+        $app_user_id = PsCommon::get($this->params, 'user_id');
+        $result = HomeService::service()->userGuide($app_user_id);
+        return self::dealReturnResult($result);
+    }
+
 
 
 
