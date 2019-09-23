@@ -15,11 +15,11 @@
     <div class="box box-info">
         <form class="form-horizontal" id="community-add-form" method="post" action = "/company-h5/bound">
             <div class="box-header with-border">
-                <h3 class="box-title">开通小区</h3>
+                <h3 class="box-title">绑定小区</h3>
             </div>
             <div class="box-body">
                 <div class="form-group">
-                    <label for="inputPassword3" class="col-sm-2 control-label">小区</label>
+                    <label for="inputPassword3" class="col-sm-2 control-label">公司</label>
                     <div class="col-sm-10">
                         <select id="supplier-select" class="form-control select2" name="pro_id" required>
                             <option value="1" selected disabled style="display: none;">请选择物业公司</option>
