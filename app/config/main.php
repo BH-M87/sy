@@ -98,6 +98,10 @@ $config =  [
         //街道相关
         'street' => [
             'class' => 'app\modules\street\Module'
+        ],
+        //硬件接入
+        'hard_ware_butt' => [
+            'class' => 'app\modules\hard_ware_butt\Module'
         ]
 
     ],
