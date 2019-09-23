@@ -133,7 +133,7 @@ class PioneerRanKingService extends BaseService
         $params['organization_id'] = $communist['organization_id'];
         $params['organization_type'] = $communist['organization_type'];
         $data = StPartyTaskStation::getOrderList($params);
-        $user_top = StPartyTaskStation::getUserTop($communist['id']);
+        $user_top = StPartyTaskStation::getUserTop($communist['id'],true,$params);
         $data['user'] = $user_top[0] ?? null;
         return $data;
     }
@@ -150,7 +150,9 @@ class PioneerRanKingService extends BaseService
     {
         $communist = PartyTaskService::service()->checkUser($params['user_id']);
         $params['communist_id'] = $communist['id'];
-        $user_info = StPartyTaskStation::getUserTop($communist['id'],false);
+        $params['organization_id'] = $communist['organization_id'];
+        $params['organization_type'] = $communist['organization_type'];
+        $user_info = StPartyTaskStation::getUserTop($communist['id'],false,$params);
         $info_list = $this->getInfoList($params);
         $info_list['grade_order'] = $user_info[0]['grade_order'];
         $info_list['name'] = $user_info[0]['name'];
