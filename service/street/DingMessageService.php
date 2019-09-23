@@ -105,8 +105,13 @@ class DingMessageService extends BaseService
                 $data['agent_id'] = \Yii::$app->params['agent_id'];
                 $data['userid_list'] = $value."";
                 $data['msg'] = json_encode($msgdData);
-                $res = Curl::getInstance()->post($url,$data);
-                \Yii::info("dingReturn-".$value.":".$res,"api");
+                if($value){
+                    $res = Curl::getInstance()->post($url,$data);
+                    \Yii::info("dingReturn-".$value.":".$res,"api");
+                }else{
+                    \Yii::info("dingError:钉钉id为空".json_encode($msgdData),"api");
+                }
+
             }
         }
     }
