@@ -212,19 +212,25 @@ class PartyTaskService extends BaseService
     {
         $task_count = StPartyTask::find()->where(['organization_type' => $params['organization_type'],'organization_id' => $params['organization_id']])->count();
         $data['history'] = StPartyTaskStation::find()->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
+            ->andFilterWhere(['sc.is_del' => 1])
+            ->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
         $data['today'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['<' ,'sts.create_at' ,strtotime(date('Y-m-d',time()).' 23:59')])
+            ->andFilterWhere(['sc.is_del' => 1])
+            ->andWhere(['<' ,'sts.create_at' ,strtotime(date('Y-m-d',time()).' 23:59')])
             ->andWhere(['>' ,'sts.create_at' ,strtotime(date('Y-m-d',time()).' 00:00')])
             ->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])
             ->count();
         $data['cancel'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.status' => 4])->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
+            ->andFilterWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.status' => 4])->andWhere(['st.organization_type' => $params['organization_type'],'st.organization_id' => $params['organization_id']])->count();
         $data['avg'] = empty($data['history']) ? '0' : number_format($data['history'] / $task_count,1);
         return $data;
     }
@@ -241,25 +247,35 @@ class PartyTaskService extends BaseService
         if (empty($param['id'])) throw new MyException('ID不能为空');
         $data['total'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])
+            ->andWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])
             ->count();
         $data['no_completed'] =StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.status' => 1 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+            ->andWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.status' => 1 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         $data['audit'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.status' => 2 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+            ->andWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.status' => 2 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         $data['ok'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.status' => 3 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+            ->andWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.status' => 3 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         $data['cancel'] = StPartyTaskStation::find()
             ->alias('sts')
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->leftJoin('st_party_task as st', 'st.id = sts.task_id')
-            ->where(['sts.status' => 4 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
+            ->andWhere(['sc.is_del' => 1])
+            ->andWhere(['sts.status' => 4 ,'sts.task_id' => $param['id']])->andWhere(['st.organization_type' => $param['organization_type'],'st.organization_id' => $param['organization_id']])->count();
         return $data;
     }
 
