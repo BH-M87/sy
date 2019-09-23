@@ -369,6 +369,7 @@ class CouponService extends BaseService
                 ];
             }
         }
+
         $new_data['list'] = $info;
         $new_data['totals'] = $totals;
         return $this->success($new_data);
