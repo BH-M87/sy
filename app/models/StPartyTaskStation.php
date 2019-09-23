@@ -68,12 +68,14 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      */
     public static function getList($param,$page=true)
     {
-        $model = self::find()->filterWhere(['status' => $param['status'] ?? null])
-            ->andFilterWhere(['communist_id' => $param['communist_id'] ?? null])
-            ->andFilterWhere(['task_id' => $param['id'] ?? null])
-            ->andFilterWhere(['<=','create_at',$param['end'] ?? null])
-            ->andFilterWhere(['>=','create_at',$param['start'] ?? null]);
-        $model->orderBy([ 'create_at' => SORT_DESC]);
+        $model = self::find()->alias('sts')->filterWhere(['status' => $param['status'] ?? null])
+            ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
+            ->andFilterWhere(['sts.communist_id' => $param['communist_id'] ?? null])
+            ->andFilterWhere(['sts.task_id' => $param['id'] ?? null])
+            ->andFilterWhere(['sc.is_del' => 1])
+            ->andFilterWhere(['<=','sts.create_at',$param['end'] ?? null])
+            ->andFilterWhere(['>=','sts.create_at',$param['start'] ?? null]);
+        $model->orderBy([ 'sts.create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
