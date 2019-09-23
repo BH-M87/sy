@@ -6,11 +6,12 @@
  * For: 门禁
  */
 
-namespace app\modules\hard_ware_butt\controllers;
+namespace app\modules\hard_ware_butt\modules\v1\controllers;
 
 
 use app\models\DoorRecordForm;
 use app\models\PsMember;
+use app\modules\hard_ware_butt\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
 use service\basic_data\DoorExternalService;
@@ -21,7 +22,6 @@ class DoorController extends BaseController
     //保存呼叫记录
     public function actionCallRecord()
     {
-        var_dump($this->params);die;
         if (empty($this->params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }

@@ -8,8 +8,8 @@
 namespace service\basic_data;
 
 use app\models\DoorDevices;
-use app\models\ParkingSupplierCommunity;
-use app\models\ParkingSuppliers;
+use app\models\IotSupplierCommunity;
+use app\models\IotSuppliers;
 
 Class BaseService extends \service\BaseService
 {
@@ -29,7 +29,7 @@ Class BaseService extends \service\BaseService
     {
         $res = '';
         if($communityId){
-            $res = ParkingSupplierCommunity::find()->select(['supplier_id'])->where(['community_id'=>$communityId, 'supplier_type' => 2])->scalar();
+            $res = IotSupplierCommunity::find()->select(['supplier_id'])->where(['community_id'=>$communityId, 'supplier_type' => 2])->scalar();
         }
         return $res;
     }
@@ -40,14 +40,14 @@ Class BaseService extends \service\BaseService
         $res = '';
         if($communityId){
             $res = DoorDevices::find()->alias('d')
-                ->leftJoin(['s'=>ParkingSuppliers::tableName()],'d.supplier_id = s.id')
+                ->leftJoin(['s'=>IotSuppliers::tableName()],'d.supplier_id = s.id')
                 ->where(['d.community_id'=>$communityId, 'd.status' => 1])
                 ->select(['s.supplier_name'])
                 ->column();
             //如果还没添加设备，就去判断小区跟设备厂商的关联表
             if(empty($res)){
-                $res = ParkingSupplierCommunity::find()->alias('sc')
-                    ->leftJoin(['s'=>ParkingSuppliers::tableName()],'sc.supplier_id = s.id')
+                $res = IotSupplierCommunity::find()->alias('sc')
+                    ->leftJoin(['s'=>IotSuppliers::tableName()],'sc.supplier_id = s.id')
                     ->where(['sc.community_id'=>$communityId,'supplier_type'=>2])
                     ->select(['s.supplier_name'])
                     ->column();
@@ -61,12 +61,12 @@ Class BaseService extends \service\BaseService
     {
 
         if($communityId != 'test'){
-            $res = ParkingSupplierCommunity::find()->alias('sc')
+            $res = IotSupplierCommunity::find()->alias('sc')
                 ->leftJoin('parking_suppliers s','sc.supplier_id = s.id')
                 ->select(['s.id','s.name'])
                 ->where(['sc.community_id'=>$communityId, 'sc.supplier_type' => $type])->asArray()->all();
         }else{
-            $res = ParkingSupplierCommunity::find()->alias('sc')
+            $res = IotSupplierCommunity::find()->alias('sc')
                 ->leftJoin('parking_suppliers s','sc.supplier_id = s.id')
                 ->select(['s.id','s.name'])
                 ->where(['sc.supplier_type' => $type])->asArray()->all();
@@ -77,18 +77,18 @@ Class BaseService extends \service\BaseService
     //根据id获取供应商名称
     public function getSupplierNameById($id)
     {
-        return ParkingSuppliers::find()->select(['name'])->where(['id'=>$id])->scalar();
+        return IotSuppliers::find()->select(['name'])->where(['id'=>$id])->scalar();
     }
 
     //根据id获取供应商标识
     public function getSupplierSignById($id)
     {
-        return ParkingSuppliers::find()->select(['supplier_name'])->where(['id'=>$id])->scalar();
+        return IotSuppliers::find()->select(['supplier_name'])->where(['id'=>$id])->scalar();
     }
 
     public function getSupplierProductSn($supplier_id)
     {
-        return ParkingSuppliers::find()->select(['productSn'])->where(['id'=>$supplier_id])->asArray()->scalar();
+        return IotSuppliers::find()->select(['productSn'])->where(['id'=>$supplier_id])->asArray()->scalar();
     }
 
     /**
@@ -105,16 +105,16 @@ Class BaseService extends \service\BaseService
     {
         //因为二维码的时候一个设备厂商只能生成一个二维码，所以只拿一个productSn,edit by zq 2019-7-12
         if($functionCode){
-            $res = ParkingSupplierCommunity::find()->alias('sc')
-                ->leftJoin(['s'=>ParkingSuppliers::tableName()],'s.id = sc.supplier_id')
+            $res = IotSupplierCommunity::find()->alias('sc')
+                ->leftJoin(['s'=>IotSuppliers::tableName()],'s.id = sc.supplier_id')
                 ->where(['sc.community_id'=>$communityId])
                 ->andWhere(['<>','s.productSn',''])
                 ->andFilterWhere(['s.functionCode'=>1])
                 ->select(['s.productSn'])->orderBy('sc.created_at asc')->asArray()->column();
             $result = !empty($res) ? $res[0] : '';//todo 获取最早接入的设备厂商productSn,后续根据iot需求修改
         }else{
-            $res = ParkingSupplierCommunity::find()->alias('sc')
-                ->leftJoin(['s'=>ParkingSuppliers::tableName()],'s.id = sc.supplier_id')
+            $res = IotSupplierCommunity::find()->alias('sc')
+                ->leftJoin(['s'=>IotSuppliers::tableName()],'s.id = sc.supplier_id')
                 ->where(['sc.community_id'=>$communityId])
                 ->andWhere(['<>','s.productSn','']);
             if($functionFace){
@@ -142,7 +142,7 @@ Class BaseService extends \service\BaseService
     {
         $res = '';
         if($community_id && $supplier_id){
-            $res = ParkingSupplierCommunity::find()->select(['auth_code'])->where(['community_id'=>$community_id,'supplier_id'=>$supplier_id])->scalar();
+            $res = IotSupplierCommunity::find()->select(['auth_code'])->where(['community_id'=>$community_id,'supplier_id'=>$supplier_id])->scalar();
         }
         return $res;
     }
@@ -153,7 +153,7 @@ Class BaseService extends \service\BaseService
     {
         $res = '';
         if($community_id && $supplier_id){
-            $res = ParkingSupplierCommunity::find()->select(['auth_code'])->where(['community_id'=>$community_id,'supplier_id'=>$supplier_id, 'supplier_type' => 2])->scalar();
+            $res = IotSupplierCommunity::find()->select(['auth_code'])->where(['community_id'=>$community_id,'supplier_id'=>$supplier_id, 'supplier_type' => 2])->scalar();
         }
         return $res;
     }
@@ -246,13 +246,13 @@ Class BaseService extends \service\BaseService
         if(empty($supplier_type)){
             $supplier_type = [1,2];
         }
-        $return = ParkingSupplierCommunity::find()
+        $return = IotSupplierCommunity::find()
             ->select(['sync_datacenter'])
             ->where(['community_id'=> $community_id, 'supplier_id' => $supplier_id,'supplier_type'=>$supplier_type])
             ->scalar();
         //如果门禁或者道闸没有单独的配置，就默认查找全部的
         if(empty($return)){
-            $return = ParkingSupplierCommunity::find()
+            $return = IotSupplierCommunity::find()
                 ->select(['sync_datacenter'])
                 ->where(['community_id'=> $community_id, 'supplier_id' => $supplier_id])
                 ->scalar();

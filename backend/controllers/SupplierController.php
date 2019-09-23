@@ -18,6 +18,8 @@ use yii\data\ActiveDataProvider;
 class SupplierController extends Controller
 {
     public $layout = "main";
+    public $enableCsrfValidation = false;
+
     public function actionIndex()
     {
         $model = new IotSuppliers();
@@ -152,7 +154,7 @@ class SupplierController extends Controller
             comm.name as community_name,ps.name as supplier_name')
             ->alias('pc')
             ->leftJoin('ps_community comm','pc.community_id = comm.id')
-            ->leftJoin('parking_suppliers ps', 'pc.supplier_id = ps.id')
+            ->leftJoin('iot_suppliers ps', 'pc.supplier_id = ps.id')
             ->where("1=1");
         if ($communityName) {
             $query->andWhere(['like', 'comm.name', $communityName]);
