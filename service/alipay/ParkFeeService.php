@@ -10,6 +10,7 @@ namespace service\alipay;
 use app\modules\small\services\BillSmallService;
 use common\core\ali\AopEncrypt;
 use common\core\F;
+use common\MyException;
 use service\small\MemberService;
 use common\core\Curl;
 use common\core\PsCommon;
@@ -32,7 +33,7 @@ class ParkFeeService extends BaseService
         if (!PsCommon::isCarLicense(str_replace(' ', '', $reqArr['plate_number']))) {
             return "车牌号输入有误!";
         }
-        //TODO 调用open-api接口
+
         $res = $this->getfeeByPlateNumber($reqArr['plate_number']);
         if (!is_array($res)) {
             return $res;
@@ -237,6 +238,7 @@ class ParkFeeService extends BaseService
      */
     private function getfeeByPlateNumber($plateNumber)
     {
+        throw new MyException('硬件缴费未接入');
         $data_send['plate_number'] = $plateNumber;
         $res = CarService::service()->freeInfo($data_send);
         if ($res['code'] == 1) {
