@@ -30,6 +30,7 @@ $data['fczl_aes_secret'] = "EBG7v29Z3B4+DYuGk1a0ww==";
 $data['edoor_app_id'] = '2019031663543853';
 $data['edoor_alipay_public_key_file'] = $basePath."/common/rsa_files/edoor/alipay_public.txt";
 $data['edoor_rsa_private_key_file'] = $basePath."/common/rsa_files/edoor/rsa_private.txt";
+$data['edoor_aes_secret'] = "Glu/dZr2xWDPCAiFAcZkCw==";
 
 // 党建引领小程序
 $data['djyl_app_id'] = '2019082866552086';

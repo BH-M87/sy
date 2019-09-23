@@ -54,6 +54,33 @@ Class DownloadController extends BaseController
 //        }
     }
 
+    public function actionDownloadImg()
+    {
+        $filename = PsCommon::get($this->request_params, 'file_path');
+        $file_size = filesize($filename);
+        $fp = fopen($filename, "r");
+
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="图片.jpg"');
+        header( 'Content-Length: ' . filesize ( $filename) );
+        header( 'Cache-Control: max-age=0' );
+        header("Accept-Ranges: bytes");
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Pragma: public');
+        $fp = fopen ( $filename, 'r' );
+        while ( ! feof ( $fp ) ) {
+            $buffer = fread ( $fp, 10 );
+            ob_flush ();
+            flush ();
+            echo $buffer;
+        }
+        ob_flush ();
+        flush ();
+        ob_clean ();
+        fclose ( $fp );die;
+    }
+
     private function _getDir($type)
     {
         switch ($type) {

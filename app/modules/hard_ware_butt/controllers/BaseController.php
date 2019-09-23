@@ -1,6 +1,9 @@
 <?php
 namespace app\modules\hard_ware_butt\controllers;
+use app\models\IotSupplierCommunity;
+use app\models\ParkingLot;
 use common\core\F;
+use common\core\PsCommon;
 use yii\web\Controller;
 use Yii;
 
@@ -52,35 +55,35 @@ class BaseController extends Controller
         $this->authCode = Yii::$app->request->getHeaders()->get('authCode');
 
         if (!$this->authCode) {
-            die(F::responseFailed('authCode 不能为空!'));
+            die(PsCommon::responseFailed('authCode 不能为空!'));
         }
         //对接iot系统的时候,authCode传固定的
         if($this->authCode == 'iot123456'){
             $lotCode = !empty($this->params['lotCode']) ? $this->params['lotCode'] : (!empty($this->params['parkNumber']) ? $this->params['parkNumber'] : '');
             if(empty($lotCode)){
-                die(F::responseFailed('车场lotCode不能为空！'));
+                die(PsCommon::responseFailed('车场lotCode不能为空！'));
             }
             $lotInfo = ParkingLot::find()
                 ->where(['park_code'=>$lotCode])
                 ->andWhere(['status'=>1])
                 ->asArray()->one();
             if (!$lotInfo) {
-                die(F::responseFailed('该车场还没跟小区绑定!'));
+                die(PsCommon::responseFailed('该车场还没跟小区绑定!'));
             }
-            $model = ParkingSupplierCommunity::find()
+            $model = IotSupplierCommunity::find()
                 ->select(['community_id', 'supplier_id', 'open_alipay_parking', 'interface_type'])
                 ->where(['community_id' => $lotInfo['community_id'],'supplier_id' => $lotInfo['supplier_id']])
                 ->asArray()
                 ->one();
         }else{
             //根据authCode 查看小区
-            $model = ParkingSupplierCommunity::find()
+            $model = IotSupplierCommunity::find()
                 ->select(['community_id', 'supplier_id', 'open_alipay_parking', 'interface_type'])
                 ->where(['auth_code' => $this->authCode])
                 ->asArray()
                 ->one();
             if (!$model) {
-                die(F::responseFailed('authCode 不存在!'));
+                die(PsCommon::responseFailed('authCode 不存在!'));
             }
         }
 
@@ -104,11 +107,11 @@ class BaseController extends Controller
 
         //必传参数是否完成
         if (!$this->_sign || !$this->_rand || !$this->_timeStamp || !$this->_openKey) {
-            die(F::responseFailed('请求公共参数不完整!'));
+            die(PsCommon::responseFailed('请求公共参数不完整!'));
         }
 
         if (!in_array($this->_openKey, $this->_allowOpenKey)) {
-            die(F::responseFailed('openKey 不合法!'));
+            die(PsCommon::responseFailed('openKey 不合法!'));
         }
 
         //验证签名
@@ -116,7 +119,7 @@ class BaseController extends Controller
         if ($this->_sign == $sign) {
             return true;
         } else {
-            die(F::responseFailed('签名验证失败!'));
+            die(PsCommon::responseFailed('签名验证失败!'));
         }
     }
 }

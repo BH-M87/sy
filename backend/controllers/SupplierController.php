@@ -6,10 +6,9 @@
  * Time: 11:19
  */
 namespace backend\controllers;
-use app\models\ParkingPushConfig;
-use app\models\ParkingSupplierCommunity;
-use app\models\ParkingSuppliers;
-use app\models\PsCommunityModel;
+use backend\models\IotSupplierCommunity;
+use backend\models\IotSuppliers;
+use backend\models\PsCommunityModel;
 use service\basic_data\IotNewService;
 use service\basic_data\PushConfigService;
 use service\basic_data\SupplierService;
@@ -21,9 +20,9 @@ class SupplierController extends Controller
     public $layout = "main";
     public function actionIndex()
     {
-        $model = new ParkingSuppliers();
+        $model = new IotSuppliers();
         $dataProvider = new ActiveDataProvider([
-            'query' => ParkingSuppliers::find()->orderBy('id desc'),
+            'query' => IotSuppliers::find()->orderBy('id desc'),
             'pagination' => [
                 'pageSize' => 20,
             ],
@@ -42,7 +41,8 @@ class SupplierController extends Controller
                 die("供应商id不能为空！");
             }
 
-            $model = ParkingSuppliers::find()->where(['id' => $id])->asArray()->one();
+            
+            $model = IotSuppliers::find()->where(['id' => $id])->asArray()->one();
             return $this->render('update', [
                 'model' => $model
             ]);
@@ -67,7 +67,7 @@ class SupplierController extends Controller
             if (!$mobile) {
                 die("供应商联系人电话不能为空！");
             }
-            $model = ParkingSuppliers::findOne($id);
+            $model = IotSuppliers::findOne($id);
             $model->name = $name;
             $model->contactor = $contactor;
             $model->mobile = $mobile;
@@ -87,7 +87,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSuppliers::findOne($id);
+        $model = IotSuppliers::findOne($id);
         if (!$model) {
             die("供应商不存在！");
         }
@@ -123,7 +123,7 @@ class SupplierController extends Controller
             if (!$supplier_name) {
                 die("供应商标识不能为空！");
             }
-            $model = new ParkingSuppliers();
+            $model = new IotSuppliers();
             $model->name = $name;
             $model->contactor = $contactor;
             $model->mobile = $mobile;
@@ -147,7 +147,7 @@ class SupplierController extends Controller
         $supplierName = !empty($_POST['supplier_name']) ? $_POST['supplier_name'] : '';
         $authCode = !empty($_POST['auth_code']) ? $_POST['auth_code'] : '';
         $supplierType = !empty($_POST['supplier_type']) ? $_POST['supplier_type'] : '';
-        $query = ParkingSupplierCommunity::find()
+        $query = IotSupplierCommunity::find()
             ->select('pc.id, pc.auth_code, pc.auth_at, pc.interface_type, pc.supplier_type,pc.created_at,
             comm.name as community_name,ps.name as supplier_name')
             ->alias('pc')
@@ -173,10 +173,10 @@ class SupplierController extends Controller
                 'pageSize' => 20,
             ],
         ]);
-        $model = new ParkingSupplierCommunity();
+        $model = new IotSupplierCommunity();
 
         //查询所有供应商
-        $suppliers = ParkingSuppliers::find()
+        $suppliers = IotSuppliers::find()
             ->select(['name'])
             ->orderBy('id desc')
             ->asArray()
@@ -211,7 +211,7 @@ class SupplierController extends Controller
             $req['open_alipay_parking'] = !empty($_POST['open_alipay_parking']) ? $_POST['open_alipay_parking'] : '';
 
             //查询是否存在
-            $model = ParkingSupplierCommunity::find()
+            $model = IotSupplierCommunity::find()
                 ->where(['supplier_id' => $req['supplier_id'], 'community_id' => $req['community_id'],
                     'supplier_type' => $req['supplier_type']])
                 ->asArray()
@@ -228,7 +228,7 @@ class SupplierController extends Controller
             }
         } else {
             //查询所有供应商
-            $suppliers = ParkingSuppliers::find()
+            $suppliers = IotSuppliers::find()
                 ->select(['name', 'id'])
                 ->orderBy('id desc')
                 ->asArray()
@@ -255,7 +255,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSupplierCommunity::findOne($id);
+        $model = IotSupplierCommunity::findOne($id);
         if (!$model) {
             die("小区开通记录不存在！");
         }
@@ -273,7 +273,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSupplierCommunity::findOne($id);
+        $model = IotSupplierCommunity::findOne($id);
         if (!$model) {
             die("小区开通记录不存在！");
         }
@@ -295,7 +295,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSupplierCommunity::findOne($id);
+        $model = IotSupplierCommunity::findOne($id);
         if (!$model) {
             die("小区开通记录不存在！");
         }
@@ -314,7 +314,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSupplierCommunity::findOne($id);
+        $model = IotSupplierCommunity::findOne($id);
         if (!$model) {
             die("小区开通记录不存在！");
         }
@@ -333,7 +333,7 @@ class SupplierController extends Controller
         if (!$id) {
             die("供应商id不能为空！");
         }
-        $model = ParkingSupplierCommunity::findOne($id);
+        $model = IotSupplierCommunity::findOne($id);
         if (!$model) {
             die("小区开通记录不存在！");
         }
@@ -354,7 +354,7 @@ class SupplierController extends Controller
             $aesKey = !empty($_POST['aes_key']) ? $_POST['aes_key'] : '';
             $callBackTag = !empty($_POST['call_back_tag']) ? $_POST['call_back_tag'] : '';
 
-            $checkedCommunity = ParkingSupplierCommunity::find()->where(['id' => $id])->asArray()->one();
+            $checkedCommunity = IotSupplierCommunity::find()->where(['id' => $id])->asArray()->one();
             if (!$checkedCommunity) {
                 echo "<script>alert('注册失败，小区暂未开通');window.location.href='/supplier/communitys';</script>";
             }
@@ -429,7 +429,7 @@ class SupplierController extends Controller
             if (!$id) {
                 die("供应商id不能为空！");
             }
-            $checkedCommunity = ParkingSupplierCommunity::find()->where(['id' => $id])->asArray()->one();
+            $checkedCommunity = IotSupplierCommunity::find()->where(['id' => $id])->asArray()->one();
             if (!$checkedCommunity) {
                 die("小区暂未开通！");
             }
@@ -442,7 +442,7 @@ class SupplierController extends Controller
                 ->one();
 
             //查询所有供应商
-            $suppliers = ParkingSuppliers::find()
+            $suppliers = IotSuppliers::find()
                 ->select(['name', 'id'])
                 ->orderBy('id desc')
                 ->asArray()
