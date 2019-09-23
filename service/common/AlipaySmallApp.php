@@ -28,6 +28,7 @@ Class AlipaySmallApp
                 $this->_aop->appId = Yii::$app->params['edoor_app_id'];
                 $publicFile = Yii::$app->params['edoor_alipay_public_key_file'];
                 $privateFile = Yii::$app->params['edoor_rsa_private_key_file'];
+                $this->_aes_secret = Yii::$app->params['edoor_aes_secret'];
                 break;
             case "fczl":
                 $this->_aop->appId = Yii::$app->params['fczl_app_id'];
