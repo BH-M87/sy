@@ -11,6 +11,7 @@ use common\MyException;
 use OSS\Core\OssException;
 use OSS\OssClient;
 use Yii;
+use yii\base\Model;
 use yii\helpers\FileHelper;
 use yii\web\HttpException;
 
@@ -636,6 +637,39 @@ class F
       $firstStr = mb_substr($str, 0, 1, 'utf-8');
       $lastStr= mb_substr($str, -1, 1, 'utf-8');
       return $strlen == 2 ? $firstStr . str_repeat('*', mb_strlen($str, 'utf-8') - 1) : $firstStr . str_repeat("*", $strlen - 2) . $lastStr;
+    }
+
+    /**
+     * 验证传入参数
+     * @param $model //对象实例
+     * @param $data //验证数据
+     * @param $scenario //验证场景
+     * @return array
+     */
+    public static function validParamArr(Model $model, $data, $scenario)
+    {
+        if (!empty($data)) {
+            $model->setScenario($scenario);
+            $datas["data"] = $data;
+            $model->load($datas, "data");
+            if ($model->validate()) {
+                return [
+                    "status" => true,
+                    "data" => $data
+                ];
+            } else {
+                $errorMsg = array_values($model->errors);
+                return [
+                    "status" => false,
+                    'errorMsg' => $errorMsg[0][0]
+                ];
+            }
+        } else {
+            return [
+                "status" => false,
+                'errorMsg' => "未接受到有效数据"
+            ];
+        }
     }
 }
 

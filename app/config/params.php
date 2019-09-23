@@ -18,6 +18,9 @@ $data['external_invoke_small_address_park'] = $data['host_name'].'/property/v1/n
 //临时停车二维码地址
 $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
 
+$data['auth_to_us_url'] = 'https://openauth.alipay.com/oauth2/appToAppAuth.htm?app_id=2016120904056631&redirect_uri=https://sqwn-fy-web.elive99.com/property/v1/cplife/get-scan-auth-token?t=1';
+
+
 //小程序配置
 $data['fczl_app_id'] = '2019071165794353';
 $data['fczl_alipay_public_key_file'] = $basePath."/common/rsa_files/fczl/alipay_public.txt";
