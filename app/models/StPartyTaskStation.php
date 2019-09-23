@@ -191,7 +191,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $data = $model->asArray()->all();
         if (!empty($data)) {
             if ($type) {
-                self::afterOrderList($data);
+                self::afterOrderList($data,$params);
             }
         }
         return $data;
@@ -220,6 +220,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      */
     public static function afterOrderList(&$data,$param = null)
     {
+        var_dump($data);exit;
         $top = self::getTop($data[0]['id'],$param);
         foreach ($data as &$v) {
             $v['top'] = $top++; //算排名
