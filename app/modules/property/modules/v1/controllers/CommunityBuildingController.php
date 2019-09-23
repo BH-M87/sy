@@ -194,8 +194,8 @@ class CommunityBuildingController extends BaseController
         $config['file_name'] = ExcelService::service()->generateFileName('Building');
         $url = ExcelService::service()->export($resultData, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
-        
-        $filePath = F::originalFile().'temp/'.$fileName;
+
+        $filePath = F::originalFile().'temp/'.date('Y-m-d').'/'.$fileName;
         $fileRe = F::uploadFileToOss($filePath);
         $downUrl = $fileRe['filepath'];
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
