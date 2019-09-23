@@ -401,10 +401,9 @@ class CouponService extends BaseService
 
         $savePath = F::imagePath('parking-coupon-code');
         $logo = \Yii::$app->basePath .'/web/img/lyllogo.png';//二维码中间的logo
-        $url = 'alipays://platformapi/startapp?appId=2017091308707970&page=pages/park/reviceCoupon/reviceCoupon&query='.urlencode("couponId={$data['id']}");;
-        $re = QrcodeService::service()->generateCommCodeImage($savePath, $url, $data['id'], $logo);
-        print_r($re);exit;
-        $filename = "dd";
+        $appId = \Yii::$app->params['fczl_app_id'];
+        $url = "alipays://platformapi/startapp?appId={$appId}&page=pages/park/reviceCoupon/reviceCoupon&query=".urlencode("couponId={$data['id']}");;
+        $filename = QrcodeService::service()->generateCommCodeImage($savePath, $url, $data['id'], $logo);
         return $this->success(['down_url' => $filename]);
     }
 
