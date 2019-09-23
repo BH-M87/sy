@@ -406,8 +406,9 @@ class CouponService extends BaseService
         $appId = \Yii::$app->params['fczl_app_id'];
         $url = "alipays://platformapi/startapp?appId={$appId}&page=pages/park/reviceCoupon/reviceCoupon&query=".urlencode("couponId={$data['id']}");;
         $filename = QrcodeService::service()->generateCommCodeImage($savePath, $url, $data['id'], $logo);
-        $data['file_path'] = $filename;
-        return $this->success(['down_url' => Yii::$app->params['api_host_url'] . 'property/download/download-img?data=' . json_encode($data)]);
+        //$data['file_path'] = $filename;
+        $dataRe['id'] = $data['id'];
+        return $this->success(['down_url' => \Yii::$app->params['api_host_url'] . '/property/download/download-img?data=' . json_encode($dataRe)]);
     }
 
     /**

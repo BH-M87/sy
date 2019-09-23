@@ -56,7 +56,9 @@ Class DownloadController extends BaseController
 
     public function actionDownloadImg()
     {
-        $filename = PsCommon::get($this->request_params, 'file_path');
+        $id = PsCommon::get($this->request_params, 'id');
+        $savePath = F::imagePath('parking-coupon-code');
+        $filename = $savePath.$id.'.png';
         $file_size = filesize($filename);
         $fp = fopen($filename, "r");
 
