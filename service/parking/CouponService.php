@@ -15,6 +15,7 @@ use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
+use service\common\QrcodeService;
 use yii\db\Query;
 
 class CouponService extends BaseService
@@ -397,8 +398,12 @@ class CouponService extends BaseService
             $name = $model->money . '金额';
         }
         $desc = $name . '停车抵扣券';
-        $filename = AliPayQrCodeService::createQrCode('pages/park/reviceCoupon/reviceCoupon', "couponId=" . $model->id, $desc);
 
+        $savePath = F::imagePath('parking-coupon-code');
+        $logo = \Yii::$app->basePath .'/web/img/lyllogo.png';//二维码中间的logo
+        $appId = \Yii::$app->params['fczl_app_id'];
+        $url = "alipays://platformapi/startapp?appId={$appId}&page=pages/park/reviceCoupon/reviceCoupon&query=".urlencode("couponId={$data['id']}");;
+        $filename = QrcodeService::service()->generateCommCodeImage($savePath, $url, $data['id'], $logo);
         return $this->success(['down_url' => $filename]);
     }
 
