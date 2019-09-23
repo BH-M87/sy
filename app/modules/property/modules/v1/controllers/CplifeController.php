@@ -34,7 +34,6 @@ class CplifeController extends Controller
             $typeId = AliTokenService::service()->getTypeId($t, $nonce);
             if($typeId) {
                 $r = AliTokenService::service()->addToken($t, $typeId, $result);//添加ps_ali_token记录
-                AlipayApplyService::service()->endApply($nonce);
                 if($r) {
                     return '恭喜，授权成功';
                 }
