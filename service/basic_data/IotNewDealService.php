@@ -14,6 +14,8 @@ use app\models\PsCommunityRoominfo;
 use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsRoomVistors;
+use common\core\F;
+use service\door\VisitorService;
 use service\producer\MqProducerService;
 
 class IotNewDealService extends BaseService
