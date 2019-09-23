@@ -171,11 +171,12 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
      * 获取个人排名
      * @author yjh
      * @param $communist_id
+     * @param $params
      * @param $type true 获取排名 false不获取
      * @return array|\yii\db\ActiveRecord|null
      * @throws \yii\db\Exception
      */
-    public static function getUserTop($communist_id,$type = true)
+    public static function getUserTop($communist_id,$type = true,$params = [])
     {
         $model = self::find()
             ->alias('sts')
@@ -183,6 +184,8 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->leftJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->andFilterWhere(['sts.status' => 3])
             ->andFilterWhere(['sts.communist_id' => $communist_id])
+            ->andFilterWhere(['sc.organization_id' => $params['organization_id'] ?? null])
+            ->andFilterWhere(['sc.organization_type' => $params['organization_type'] ?? null])
             ->groupBy('communist_id')
             ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
         $data = $model->asArray()->all();
