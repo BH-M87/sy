@@ -95,5 +95,27 @@ class HomeService extends BaseService
         return KeyService::service()->open_door($user_id,$device_no,$supplier_name,$roomId);
     }
 
+    /**
+     * @api 取消蒙层指导
+     * @return array
+     */
+    public function userGuide($app_user_id)
+    {
+        if (empty($app_user_id)) {
+            return $this->failed('用户编号不能为空');
+        }
+        $model = PsAppUser::find()->where(['id' => $app_user_id])->one();
+        if ($model) {
+            $model->is_guide = 2;
+            if ($model->save()) {
+                return $this->success();
+            } else {
+                return $this->failed('操作失败');
+            }
+        } else {
+            return $this->failed('用户不存在');
+        }
+    }
+
 
 }
