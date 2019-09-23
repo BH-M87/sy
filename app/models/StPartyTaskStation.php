@@ -106,6 +106,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['st.station_id' => $param['station_id'] ?? null])
             ->andFilterWhere(['st.organization_type' => $param['organization_type'] ?? null])
             ->andFilterWhere(['st.organization_id' => $param['organization_id'] ?? null])
+            ->andFilterWhere(['sc.is_del' => 1])
             ->andFilterWhere(['like', 'name', $param['communist_name'] ?? null])
             ->andFilterWhere(['like', 'mobile', $param['communist_mobile'] ?? null])
             ->andFilterWhere(['like', 'task_name', $param['task_name'] ?? null]);
@@ -145,6 +146,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sc.organization_id' => $param['organization_id']])
             ->andFilterWhere(['sc.organization_type' => $param['organization_type']])
             ->andFilterWhere(['sts.status' => 3])
+            ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
             ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
         if ($page) {
@@ -186,6 +188,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sts.communist_id' => $communist_id])
             ->andFilterWhere(['sc.organization_id' => $params['organization_id'] ?? null])
             ->andFilterWhere(['sc.organization_type' => $params['organization_type'] ?? null])
+            ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
             ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
         $data = $model->asArray()->all();
@@ -249,6 +252,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sts.status' => 3])
             ->andFilterWhere(['sc.organization_id' => $param['organization_id'] ?? null])
             ->andFilterWhere(['sc.organization_type' => $param['organization_type'] ?? null])
+            ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
             ->orderBy([ 'total_score' => SORT_DESC,'task_count' => SORT_DESC]);
         $result = self::find()->select('(@xh := @xh + 1) as top,a.*')->from(['a' => $a_model])->asArray()->all();
