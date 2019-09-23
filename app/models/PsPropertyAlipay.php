@@ -29,6 +29,7 @@ use yii\db\ActiveRecord;
 class PsPropertyAlipay extends BaseModel
 {
 
+    public $nonce = '';
     public static $type_desc = [
         '1' => '不动产管理-物业管理',
     ];
