@@ -55,7 +55,7 @@ class UploadController extends BaseController
             throw new MyException($e->getMessage());
         }
 
-        //上传到七牛
+        //上传到oss
         $re['filepath'] = F::getOssImagePath($object);
         $re['key_name'] = $object;
         return F::apiSuccess($re);
