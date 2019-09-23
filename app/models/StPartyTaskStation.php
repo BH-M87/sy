@@ -191,7 +191,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
         $data = $model->asArray()->all();
         if (!empty($data)) {
             if ($type) {
-                self::afterOrderList($data);
+                self::afterOrderList($data,$params);
             }
         }
         return $data;
