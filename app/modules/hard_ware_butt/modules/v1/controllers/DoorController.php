@@ -10,11 +10,13 @@ namespace app\modules\hard_ware_butt\modules\v1\controllers;
 
 
 use app\models\DoorRecordForm;
+use app\models\IotSuppliers;
 use app\models\PsMember;
 use app\modules\hard_ware_butt\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
 use service\basic_data\DoorExternalService;
+use service\basic_data\IotNewService;
 use service\basic_data\PhotosService;
 
 class DoorController extends BaseController
@@ -52,5 +54,42 @@ class DoorController extends BaseController
             'community_id' => $this->communityId,
         ]);
         return PsCommon::responseSuccess();
+    }
+
+    public function actionSync()
+    {
+        $list = IotNewService::service()->getProductSn();
+        if($list['code'] == 1){
+            if(!empty($list['data'])){
+                foreach($list['data'] as $key =>$value){
+                    $model = IotSuppliers::find()->where(['productSn'=>$value['productSn']])->one();
+                    if($model){
+                        $updateDate['functionFace'] = $value['functionFace'];
+                        $updateDate['functionBlueTooth'] = $value['functionBluetooth'];
+                        $updateDate['functionCode'] = $value['functionCode'];
+                        $updateDate['functionPassword'] = $value['functionPassword'];
+                        $updateDate['functionCard'] = $value['functionCard'];
+                        IotSuppliers::updateAll($updateDate,['productSn'=>$value['productSn']]);
+                    }else{
+                        $model = new IotSuppliers();
+                        $model->name = $value['productName'];
+                        $model->contactor = "java";
+                        $model->mobile = '18768177608';
+                        $model->type = $value['deviceType'] == 1 ? 1: 2;
+                        $model->supplier_name = 'iot-new';
+                        $model->productSn = $value['productSn'];
+                        $model->functionFace = $value['functionFace'];
+                        $model->functionBlueTooth = $value['functionBluetooth'];
+                        $model->functionCode = $value['functionCode'];
+                        $model->functionPassword = $value['functionPassword'];
+                        $model->functionCard = $value['functionCard'];
+                        $model->created_at = time();
+                        if(!$model->save()){
+                            \Yii::info("productSn:{$value['productSn']} error:{$model->getErrors()}",'api');
+                        }
+                    }
+                }
+            }
+        }
     }
 }
