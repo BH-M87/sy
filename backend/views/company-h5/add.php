@@ -2,7 +2,7 @@
 ?>
 <div class="col-md-8">
     <div class="box box-info">
-        <form class="form-horizontal" method="post" action = "/index.php/property/v1/company-h5/add">
+        <form class="form-horizontal" method="post" action = "/company-h5/add">
             <div class="box-header with-border">
                 <h3 class="box-title">添加物业公司</h3>
             </div>
