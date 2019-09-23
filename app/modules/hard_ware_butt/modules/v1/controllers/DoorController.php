@@ -21,6 +21,7 @@ use service\basic_data\PhotosService;
 
 class DoorController extends BaseController
 {
+    public $enableAction = ['sync'];
     //保存呼叫记录
     public function actionCallRecord()
     {
