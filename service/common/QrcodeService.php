@@ -69,7 +69,7 @@ Class QrcodeService extends BaseService {
      * @param string $logoUrl 小区logo图片地址
      * @return string
      */
-    public function generateCommCodeImage($savePath, $url, $commId, $logoUrl, $commObject = null)
+    public function generateCommCodeImage($savePath, $url, $commId, $logoUrl)
     {
         $imgUrl = "";
 
@@ -87,15 +87,12 @@ Class QrcodeService extends BaseService {
 
         if (file_exists($savePath . $img_name)) {
             chmod($savePath . $img_name, 0755);
-            //图片上传到七牛
+
             $key_name = md5(uniqid(microtime(true), true)) . '.png';
             $new_file = $savePath . $img_name;
-            $imgUrl = UploadService::service()->saveQiniu($key_name, $new_file);
-        }
+            //图片上传到oss
 
-        if ($imgUrl && $commObject) {
-            $commObject->code_image = $imgUrl;
-            $commObject->save();
+            $imgUrl = UploadService::service()->saveQiniu($key_name, $new_file);
         }
 
         return $imgUrl;

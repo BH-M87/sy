@@ -556,7 +556,7 @@ class F
         return $signedUrl;
     }
 
-	//文件上传到oss
+	//文件上传到oss，用于导入导出及错误文件下载
     public static function uploadFileToOss($localPath)
     {
         $extStr = explode('.', $localPath);
@@ -570,8 +570,6 @@ class F
         $bucket = \Yii::$app->params['oss_bucket'];
 
         $object = $fileName;
-
-
         $filePath = $localPath;
 
         try{
@@ -580,8 +578,27 @@ class F
         } catch(OssException $e) {
             throw new MyException($e->getMessage());
         }
-
         //上传到七牛
+        $re['filepath'] = F::getOssImagePath($object);
+        return $re;
+    }
+
+    public static function uploadToOss($localPath, $keyName)
+    {
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+        $object = $keyName;
+        $filePath = $localPath;
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+
+        //上传到oss
         $re['filepath'] = F::getOssImagePath($object);
         return $re;
     }
