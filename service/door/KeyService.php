@@ -8,6 +8,9 @@
  */
 namespace service\door;
 
+use app\models\DoorDevices;
+use app\models\DoorDeviceUnit;
+use app\models\IotSuppliers;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
 use app\models\PsCommunityModel;
@@ -16,6 +19,7 @@ use app\models\PsMember;
 use app\models\PsRoomUser;
 use service\BaseService;
 use Yii;
+use yii\db\Expression;
 use yii\db\Query;
 
 class KeyService extends BaseService
@@ -158,24 +162,33 @@ class KeyService extends BaseService
     }
 
     //全部钥匙列表
-    public function get_key_list($roomId,$type = 'all')
+    public function get_key_list($roomId,$type='all')
     {
-        $url_send = $this->getOpenDoorUrl('inner/v1/key/keys');
-        $data['room_id'] = $roomId;
-        $data['type'] = $type;
-        $data['community_id'] = 'test';
-        $data['unit_id'] = PsCommunityRoominfo::find()
-            ->select('unit_id')
-            ->where(['id' => $roomId])
-            ->scalar();
-        $params['data'] = json_encode($data);
-        $result =  $this->apiPost($url_send, $params,false,false);//Curl::getInstance()->post($url_send,$params);
-        if($result['errCode'] == '0'){
-            $a = $result['data'] ? $result['data'] : [];
-            return $this->success($a);
-        }else{
-            return $this->failed($result['errMsg']);
+        $unitId = PsCommunityRoominfo::find()->select('unit_id')->where(['id' => $roomId])->scalar();
+        $result = KeyService::service()->get_device_by_unit($unitId, $roomId,$type);
+        return $this->success($result);
+    }
+
+    //根据单元获取设备id和名称
+    public function get_device_by_unit($unit_id,$room_id,$type = 'all')
+    {
+        if(empty($unit_id)){
+            return [];
         }
+        if($type =='all'){
+            $type = '';
+        }
+        return DoorDeviceUnit::find()->alias('du')
+            ->rightJoin(['d'=>DoorDevices::tableName()],'d.id=du.devices_id')
+            ->leftJoin(['ps'=>IotSuppliers::tableName()],'ps.id=d.supplier_id')
+            ->leftJoin('ps_community as c','c.id = d.community_id')
+            ->select(['ps.supplier_name',
+                'd.name as device_name','d.id as device_id','d.device_id as device_no','d.community_id',
+                'c.name as community_name',
+                'concat(d.id,"-'.$room_id.'") as kid', new Expression($room_id.' as room_id')])
+            ->where(['du.unit_id'=>$unit_id])
+            ->andFilterWhere(['d.open_type'=>$type])
+            ->asArray()->all();
     }
 
     //获取常用钥匙
