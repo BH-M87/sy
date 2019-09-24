@@ -236,7 +236,7 @@ class ProclaimService extends BaseService
                 ->filterWhere(['=', 'B.community_id', $p['community_id']])
                 ->orFilterWhere(['=', 'A.community_id', $p['community_id']])
                 ->andWhere(['A.is_show' => 2])
-                ->orderBy('is_top desc, top_at desc, show_at desc')->asArray()->all();
+                ->orderBy('A.is_top desc, A.top_at desc, A.show_at desc')->asArray()->all();
             if (!empty($proclaim)) {
                 foreach ($proclaim as &$p) {
                     $p['show_at'] = !empty($p['show_at']) ? date('Y-m-d H:i', $p['show_at']) : '';
