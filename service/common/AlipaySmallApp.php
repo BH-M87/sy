@@ -129,10 +129,10 @@ Class AlipaySmallApp
                 $query['sign'] = str_replace(" ", '+', $query['sign']);
                 $query['response'] = str_replace(" ", '+', $query['response']);
                 $signData = "\"{$query['response']}\"";
-                $signRes = $this->_aop->verify($signData, $query['sign'], $this->_aop->alipayrsaPublicKey, $query['sign_type']);
-                if (!$signRes) {
-                    throw new MyException('验签失败，请检查验签配置是否正确');
-                }
+//                $signRes = $this->_aop->verify($signData, $query['sign'], $this->_aop->alipayrsaPublicKey, $query['sign_type']);
+//                if (!$signRes) {
+//                    throw new MyException('验签失败，请检查验签配置是否正确');
+//                }
                 //解密
                 $res = AopEncrypt::decrypt($query['response'], $this->_aes_secret);
                 $result = json_decode($res, true);
