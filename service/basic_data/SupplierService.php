@@ -10,7 +10,7 @@ namespace service\basic_data;
 
 use app\models\DoorSendRequest;
 use backend\models\IotSupplierCommunity;
-use backend\models\IotSuppliers;
+use app\models\IotSuppliers;
 use common\core\F;
 use service\producer\MqProducerService;
 use yii\base\Exception;
