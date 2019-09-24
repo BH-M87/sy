@@ -76,6 +76,16 @@ class AopRedirect {
         return null;
     }
 
+    public function setNotifyUrl($notifyUrl)
+    {
+        $this->notifyUrl = $notifyUrl;
+    }
+
+    public function setReturnUrl($returnUrl)
+    {
+        $this->returnUrl = $returnUrl;
+    }
+
     /**
      * 页面提交
      * @param $method
