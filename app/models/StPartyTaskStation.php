@@ -151,7 +151,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sts.status' => 3])
             ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
-            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
+            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC,'sts.update_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
@@ -193,7 +193,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sc.organization_type' => $params['organization_type'] ?? null])
             ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
-            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC]);
+            ->orderBy([ 'grade_order' => SORT_DESC,'task_count' => SORT_DESC,'sts.update_at' => SORT_DESC]);
         $data = $model->asArray()->all();
         if (!empty($data)) {
             if ($type) {
@@ -257,7 +257,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->andFilterWhere(['sc.organization_type' => $param['organization_type'] ?? null])
             ->andFilterWhere(['sc.is_del' => 1])
             ->groupBy('communist_id')
-            ->orderBy([ 'total_score' => SORT_DESC,'task_count' => SORT_DESC]);
+            ->orderBy([ 'total_score' => SORT_DESC,'task_count' => SORT_DESC,'sts.update_at' => SORT_DESC]);
         $result = self::find()->select('(@xh := @xh + 1) as top,a.*')->from(['a' => $a_model])->asArray()->all();
         $found_key = array_search($id, array_column($result, 'id'));
         $top = $result[$found_key]['top'];
