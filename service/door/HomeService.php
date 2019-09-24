@@ -8,13 +8,13 @@
 namespace service\door;
 
 use app\models\PsAppUser;
+use app\models\PsMember;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
 use service\qiniu\UploadService;
-use service\resident\MemberService;
 use service\resident\ResidentService;
 
 class HomeService extends BaseService
@@ -67,6 +67,7 @@ class HomeService extends BaseService
         $mac = PsCommon::get($params, 'mac');
         return MemberService::service()->doorIndexData($appUserId, $communityId, $roomId,$mac);
     }
+
 
     //获取biz_id
     public function get_biz_id($user_id)
@@ -132,7 +133,8 @@ class HomeService extends BaseService
      */
     public function getFaceList($appUserId, $roomId)
     {
-        $memberId = MemberService::service()->getMemberId($appUserId);
+
+        $memberId = \service\resident\MemberService::service()->getMemberId($appUserId);
         if (!$memberId) {
             return $this->failed('用户不存在');
         }
