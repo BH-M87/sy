@@ -6,7 +6,7 @@ use common\core\F;
 class PsProclaim extends BaseModel
 {
     public static $proclaim_type = ['1' => '通知', '2' => '新闻', '3' => '公告', '4' => '社区公约', '5' => '三务公开', 
-        '6' => '政策法规', '7' => '网上办事', '8' => '保障信息', '9' => '其他信息'];
+        '6' => '政策法规', '7' => '网上办事', '8' => '保障信息', '9' => '智慧课堂', '19' => '其他信息'];
     public static $proclaim_cate = ['1' => '文字', '2' => '新闻', '3' => '图文新闻'];
 
     public static function tableName()
@@ -127,6 +127,31 @@ class PsProclaim extends BaseModel
                 ->select('B.name as xqOrgName, B.event_community_no as xqOrgCode')
                 ->leftJoin('ps_community B', 'B.id = A.community_id')
                 ->where(['proclaim_id' => $v['id']])->asArray()->all();
+        }
+    }
+
+    // 公告类型
+    public static function type($p)
+    {
+        $arr = self::$proclaim_type;
+        
+        $i = $j = 0;
+        foreach ($arr as $id => $name) {
+            if ($id > 3) {
+                $street[$i]['id'] = $id;
+                $street[$i]['name'] = $name;
+                $i++;
+            } else {
+                $property[$j]['id'] = $id;
+                $property[$j]['name'] = $name;
+                $j++;
+            }
+        }
+
+        if ($p['systemType'] == 'street') { // 街道
+            return $street;
+        } else {
+            return $property;
         }
     }
 }

@@ -9,6 +9,7 @@ namespace service\resident;
 use app\models\DoorLastVisit;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
+use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
@@ -519,7 +520,7 @@ Class MemberService extends BaseService
 
     // 获取小程序首页默认房屋
     //TODO 优化！！！！！一个方法查询了十几条sql，不合理！！
-    public function doorIndexData($appUserId, $communityId, $roomId)
+    public function doorIndexData($appUserId, $communityId, $roomId,$mac)
     {
         $result = [
             'member_id' => 0,
@@ -628,7 +629,7 @@ Class MemberService extends BaseService
             ->distinct()
             ->from('door_device_unit du')
             ->rightJoin('door_devices d','d.id = du.devices_id')
-            ->rightJoin('parking_suppliers supplier','supplier.id = d.supplier_id')
+            ->rightJoin('iot_suppliers supplier','supplier.id = d.supplier_id')
             ->where(['du.unit_id' => $unitId])
             ->column();
         // 根据供应商判断这个用户是否有扫码、访客密码、住户密码、反扫码的权限
