@@ -800,7 +800,7 @@ class VisitorService extends BaseService
             $templateParams['start_date'] = $data[2];
             $templateParams['end_date'] = $data[3];
             $templateParams['community_name'] = $data[4];
-            $templateParams['url'] = $data[5];
+            $templateParams['code'] = str_replace('https://t.zje.com/','',$data[5]);
             $sms = AliSmsService::service($smsParams);
             $res = $sms->send($templateParams);
         }
@@ -812,14 +812,14 @@ class VisitorService extends BaseService
     {
         $res = '';
         if($data){
-            $smsParams['templateCode'] = 'SMS_174278311';  //模板
+            $smsParams['templateCode'] = 'SMS_174810699';  //模板
             $smsParams['mobile'] = $data[5];      //手机号
             //短信内容
             $templateParams['name'] = $data[0];
             $templateParams['start_date'] = $data[1];
             $templateParams['end_date'] = $data[2];
             $templateParams['community_name'] = $data[3];
-            $templateParams['url'] = $data[4];
+            //$templateParams['code'] = str_replace('https://t.zje.com/','',$data[4]);
             $sms = AliSmsService::service($smsParams);
             $res = $sms->send($templateParams);
         }
