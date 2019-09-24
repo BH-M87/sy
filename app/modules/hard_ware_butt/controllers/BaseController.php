@@ -32,6 +32,7 @@ class BaseController extends Controller
     private $_sign;
     private $_openSecret = 'zjy123#@!';
     private $_allowOpenKey = ['test1', 'test2', 'hemu', 'fushi', 'deliyun', 'dahua', 'dinaike'];
+    public $enableAction;
 
 
     public function beforeAction($action)
@@ -46,7 +47,10 @@ class BaseController extends Controller
 
         $this->page = !empty($this->params['page']) ? $this->params['page'] : 1;
         $this->rows = !empty($this->params['rows']) ? $this->params['rows'] : 10;
-
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (!empty($this->enableAction) && in_array($action->id, $this->enableAction)) {
+            return true;
+        }
         //签名校验
         $this->_rand = Yii::$app->request->getHeaders()->get('rand');
         $this->_timeStamp = Yii::$app->request->getHeaders()->get('timeStamp');

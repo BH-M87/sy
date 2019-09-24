@@ -9,9 +9,7 @@ namespace service\common;
 
 use common\core\ali\AopEncrypt;
 use common\core\ali\AopRedirect;
-use common\core\Security;
 use common\MyException;
-use service\door\MemberService;
 use Yii;
 
 Class AlipaySmallApp

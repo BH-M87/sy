@@ -11,6 +11,8 @@ namespace service\parking;
 use app\models\ParkingCarport;
 use app\models\ParkingCarportRenew;
 use app\models\ParkingCars;
+use app\models\ParkingCoupon;
+use app\models\ParkingCouponRecord;
 use app\models\ParkingLot;
 use app\models\ParkingUserCarport;
 use app\models\ParkingUsers;
@@ -778,5 +780,23 @@ class CarService extends BaseService
             $info['park_code'] = ParkingLot::find()->select(['park_code'])->where(['id' => $lastLotId])->asArray()->scalar();
         }
         return $info;
+    }
+
+    //使用优惠卷
+    public function useCoupon($coupon_code)
+    {
+        if($coupon_code){
+            $coupon_code_list = explode(',',$coupon_code);
+            if($coupon_code_list){
+                foreach($coupon_code_list as $k =>$v){
+                    //更新优惠卷记录表
+                    ParkingCouponRecord::updateAll(['status'=>2,'closure_time'=>time()],['coupon_code'=>$v]);
+                    //查找优惠卷id
+                    $coupon_id = ParkingCouponRecord::find()->select(['coupon_id'])->where(['coupon_code'=>$v])->asArray()->scalar();
+                    //更新优惠卷活动表的核销数量
+                    ParkingCoupon::updateAllCounters(['amount_use'=>1],['id'=>$coupon_id]);
+                }
+            }
+        }
     }
 }
