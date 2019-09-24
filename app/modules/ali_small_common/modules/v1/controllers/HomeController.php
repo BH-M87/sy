@@ -66,18 +66,19 @@ class HomeController extends UserBaseController
     public function actionGetMobile()
     {
 //        $response = [
-//            'response' => 'd7fljwCemlm4bXL63CeK2UZzIlsiq\/+uf6JAtmQtTs5v+KqJHXu1Fah9jqGNe3TlumEIWLV12pCoQoBwaJrJ6Q==',
-//            'sign' => 'MrXCkVwlBpXN+SkJJZNKER60OyZEaEFA+m6uQAZnzj3gHHt96PUdI5PyMvTYdZpXZahbW57KPcHTWsB1Cz+\/CBTEhEf6DFNCuySKZxkRXbVd861G\/0xVpn2Vwy8kzcfUKGZIH6YHgrcFOx\/D5ztWrar+OECHQu9WivyEduxwarkD85OEo5V3XPUOfMhMn8FcpKLBligGmi2X3WCZc5rNqPN9Y0DE7lM0aKKeGKmyMzuXMmEA9xJXoZLVStTZrQOqWWfL7D11xG7TbBCcGLzfzcE27UqBObj\/qLUlN0MBzSmfYOt7ifXtn1PRNjHod65J1iJM5KjIabi1SY9PW8TRbA=='
+//            'response' => 'wbdgoxVy0Ly3qbdc\/lgb5S4dnY\/siEekLowkhspGI1\/f5rL0wlasyJKD4NdXq3jAmvwevYqsAGxFHJtKDWpMLw==',
+//            'sign' => 'O6GLXhpqrnpDb4RGxSNeI\/bH8BxSqKV6vefSef4D+eJwxmJdhu0EB3LzuY44srpzP7CGzmx5YoQWI+AtefHUePTPkPDeec30oftHDgb4PTr3lJqzRnp9d1CC6i2eyRnhhOzrq9acDDCzQbiZnQLiOyKeTVcjdPLrfaPr0tC\/nTv28kzxftgAfFd6ESHmkUJwUlE68oZaMnC1AwVIUAD5kN1gP5GDwsFFdKvVuaTie4cGKi18tc56LReAW9CkMCvpMoOwXQCFm841lvcTAfaM8erUDqdH3h9g2az0CKrJrwy\/p8hcx9Jh3Db2JZfD7FhMmufIERbC1GHB4yBwP4+tXQ=='
 //        ];
 //
-//        $data['user_id'] = 18;
+//        $data['user_id'] = 23;
 //        $data['encrypt_str'] = json_encode($response);
-//        $data['system_type'] = 'fczl';
+//        $data['system_type'] = 'djyl';
 //        echo  json_encode($data);exit;
 
 //        set_error_handler(null);
 //        set_exception_handler(null);
         $userId = F::value($this->params, 'user_id');
+
         $encryptStr = F::value($this->params, 'encrypt_str');
         $system_type = F::value($this->params, 'system_type','edoor');
 
