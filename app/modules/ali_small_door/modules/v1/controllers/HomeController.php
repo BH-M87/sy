@@ -12,10 +12,8 @@ namespace app\modules\ali_small_door\modules\v1\controllers;
 use app\modules\ali_small_door\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
-use service\alipay\AliTokenService;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
-use service\resident\MemberService;
 
 class HomeController extends UserBaseController
 {
