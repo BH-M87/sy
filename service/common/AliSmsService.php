@@ -78,7 +78,7 @@ Class AliSmsService extends BaseService
 
         if ($result['Code'] == 'OK') {
             $this->setCache($this->duplicateTime, 1);
-            return $this->captchaCode;
+            return true;
         }
         throw new MyException(Code::$codes[Code::SMS_SEND_FAILED], '短信发送失败(' . $result['Message'] . ')');
     }

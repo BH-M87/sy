@@ -14,6 +14,7 @@ use app\modules\ali_small_door\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
 use service\common\AlipaySmallApp;
+use service\common\AliSmsService;
 use service\common\SmsService;
 use service\door\VisitorService;
 
@@ -159,6 +160,7 @@ class VisitorController extends UserBaseController
         if (!empty($result['code']) &&  $result['code'] == 1) { // 访客新增成功发送短信
             $data = VisitorService::service()->visitorMsg(['user_id' => $user_id, 'id' => $result['data']['id'],'system_type'=>$system_type]);
             //$re = SmsService::service()->init(41, $data[6])->send($data);
+            VisitorService::service()->sendMessage($data);
             return F::apiSuccess();
         }
 
@@ -187,7 +189,8 @@ class VisitorController extends UserBaseController
         if(strlen($data[6]) > 11){
             $data[6] = preg_replace("/\D/", '',$data[6]);
         }
-        $re = SmsService::service()->init(41, $data[6])->send($data);
+        $re = VisitorService::service()->sendMessage($data);
+        //$re = SmsService::service()->init(41, $data[6])->send($data);
         if ($re === true) {
             PsRoomVistors::updateAll(['is_msg' => 1], ['id' => $id]); // 短信发送成功 更新is_msg字段
             return F::apiSuccess();
@@ -219,7 +222,8 @@ class VisitorController extends UserBaseController
             if(strlen($data[5]) > 11){
                 $data[5] = preg_replace("/\D/", '',$data[5]);
             }
-            $re = SmsService::service()->init(37, $data[5])->send($data);
+            VisitorService::service()->cancelMessage($data);
+            //$re = SmsService::service()->init(37, $data[5])->send($data);
             return F::apiSuccess();
         }
 

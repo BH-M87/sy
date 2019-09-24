@@ -46,6 +46,13 @@ $config =  [
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
+                    'categories' => ['iot-request'],
+                    'logFile' => '@app/runtime/logs/iot-request.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
+                [
+                    'class' => 'yii\log\FileTarget',
                     'categories' => ['smallapp'],
                     'logFile' => '@app/runtime/logs/smallapp.log',
                     'levels' => ['info'],

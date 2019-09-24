@@ -18,6 +18,7 @@ use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use service\BaseService;
+use service\basic_data\IotNewService;
 use Yii;
 use yii\db\Expression;
 use yii\db\Query;
@@ -187,7 +188,6 @@ class KeyService extends BaseService
                 'c.name as community_name',
                 'concat(d.id,"-'.$room_id.'") as kid', new Expression($room_id.' as room_id')])
             ->where(['du.unit_id'=>$unit_id])
-            ->andFilterWhere(['d.open_type'=>$type])
             ->asArray()->all();
     }
 
@@ -316,10 +316,12 @@ class KeyService extends BaseService
         $member_id = $this->getMemberByUser($user_id);
         //$isAuth = PsRoomUser::find()->where(['room_id' => $room_id, 'member_id' => $member_id, 'status' => PsRoomUser::AUTH])->exists();
         //查找这个房屋下是否存在这个住户的认证房屋，存在的情况下才可以开门，用户类型传到java，edit by zq 2019-4-23
-        $isAuth = PsRoomUser::find()->select(['identity_type'])->where(['room_id' => $room_id, 'member_id' => $member_id, 'status' => PsRoomUser::AUTH])->asArray()->scalar();
-        if (!$isAuth) {
+        $roomUserInfo = PsRoomUser::find()->select(['identity_type','community_id'])->where(['room_id' => $room_id, 'member_id' => $member_id, 'status' => PsRoomUser::AUTH])->asArray()->one();
+        if (!$roomUserInfo) {
             return $this->failed('服务不可用');
         }
+        $user_type = $roomUserInfo['identity_type'];
+        $communityId = $roomUserInfo['community_id'];
         //表示这个用户已经编辑过常用钥匙
         $model = PsMember::find()
             ->select(['mobile', 'id'])
@@ -340,15 +342,17 @@ class KeyService extends BaseService
                 ->one();
             $data['room_no'] = $roomInfo['out_room_id'];
             $data['unit_id'] = $roomInfo['unit_id'];
-            $data['user_type'] = $isAuth;
+            $data['user_type'] = $user_type;
         }
-
-
-        $data['community_id'] = 'test';//小区id必传
-        $paramsData['data'] = json_encode($data);
-
-        //$result =  $this->apiPost($url_send,$paramsData,false,false);
         //todo 调用java远程开门接口开门
+        $communityInfo = PsCommunityModel::find()->where(['id'=>$communityId])->asArray()->one();
+        $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
+        $postData['communityNo'] = $communityInfo['community_no'];
+        $postData['roomNo'] = $data['room_no'];
+        $postData['userId'] = $data['member_id'];
+        $postData['deviceNo'] = $data['device_no'];
+        $postData['userType'] = $data['user_type'];
+        $result = IotNewService::service()->openDoor($postData);
         if($result['errCode'] == '0'){
             return $this->success($result['data']);
         } else {

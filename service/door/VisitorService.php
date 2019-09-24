@@ -27,6 +27,7 @@ use common\MyException;
 use service\alipay\AlipayBillService;
 use service\BaseService;
 use service\basic_data\DoorPushService;
+use service\common\AliSmsService;
 use service\common\CsvService;
 use service\qiniu\UploadService;
 use service\rbac\OperateService;
@@ -784,6 +785,45 @@ class VisitorService extends BaseService
         $reData['id'] = $visitirId;
         $reData['qrcode'] = $qrcode; // 返回报文 api去生成二维码
         return $reData;
+    }
+
+    //邀请访客跟重发短信
+    public function sendMessage($data)
+    {
+        $res = '';
+        if($data){
+            $smsParams['templateCode'] = 'SMS_174810613';  //模板
+            $smsParams['mobile'] = $data[6];      //手机号
+            //短信内容
+            $templateParams['name'] = $data[0];
+            $templateParams['resident_name'] = $data[1];
+            $templateParams['start_date'] = $data[2];
+            $templateParams['end_date'] = $data[3];
+            $templateParams['community_name'] = $data[4];
+            $templateParams['url'] = $data[5];
+            $sms = AliSmsService::service($smsParams);
+            $res = $sms->send($templateParams);
+        }
+        return $res;
+    }
+
+    //取消预约短信
+    public function cancelMessage($data)
+    {
+        $res = '';
+        if($data){
+            $smsParams['templateCode'] = 'SMS_174278311';  //模板
+            $smsParams['mobile'] = $data[5];      //手机号
+            //短信内容
+            $templateParams['name'] = $data[0];
+            $templateParams['start_date'] = $data[1];
+            $templateParams['end_date'] = $data[2];
+            $templateParams['community_name'] = $data[3];
+            $templateParams['url'] = $data[4];
+            $sms = AliSmsService::service($smsParams);
+            $res = $sms->send($templateParams);
+        }
+        return $res;
     }
 
 }
