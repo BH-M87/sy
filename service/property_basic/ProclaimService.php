@@ -22,6 +22,11 @@ use app\models\PsLifeBroadcastRecord;
 
 class ProclaimService extends BaseService
 {
+    public function type($p)
+    {
+        return PsProclaim::type($p);
+    }
+
     // 公告 新增
     public function add($p, $scenario = 'add')
     {
