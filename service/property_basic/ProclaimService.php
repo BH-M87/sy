@@ -230,8 +230,13 @@ class ProclaimService extends BaseService
         }
       
         if ($p['type'] != 2) { // 物业公共 物业后台添加 小区公告
-            $proclaim = PsProclaim::find()->select('id, title, content, img_url, show_at, proclaim_type as type, proclaim_cate as cate')->where(['community_id' => $p['community_id'], 'is_show' => 2])
-                ->orderBy('show_at desc')->asArray()->all();
+            $proclaim = PsProclaim::find()->alias('A')
+                ->select('distinct(A.id), A.title, A.content, A.img_url, A.show_at, A.proclaim_type as type, A.proclaim_cate as cate')
+                ->leftJoin('ps_proclaim_community B', 'A.id = B.proclaim_id')
+                ->filterWhere(['=', 'B.community_id', $p['community_id']])
+                ->orFilterWhere(['=', 'A.community_id', $p['community_id']])
+                ->andWhere(['A.is_show' => 2])
+                ->orderBy('is_top desc, top_at desc, show_at desc')->asArray()->all();
             if (!empty($proclaim)) {
                 foreach ($proclaim as &$p) {
                     $p['show_at'] = !empty($p['show_at']) ? date('Y-m-d H:i', $p['show_at']) : '';

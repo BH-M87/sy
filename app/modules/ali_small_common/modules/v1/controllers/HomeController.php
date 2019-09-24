@@ -65,8 +65,18 @@ class HomeController extends UserBaseController
     //解析手机号
     public function actionGetMobile()
     {
-        set_error_handler(null);
-        set_exception_handler(null);
+//        $response = [
+//            'response' => 'd7fljwCemlm4bXL63CeK2UZzIlsiq\/+uf6JAtmQtTs5v+KqJHXu1Fah9jqGNe3TlumEIWLV12pCoQoBwaJrJ6Q==',
+//            'sign' => 'MrXCkVwlBpXN+SkJJZNKER60OyZEaEFA+m6uQAZnzj3gHHt96PUdI5PyMvTYdZpXZahbW57KPcHTWsB1Cz+\/CBTEhEf6DFNCuySKZxkRXbVd861G\/0xVpn2Vwy8kzcfUKGZIH6YHgrcFOx\/D5ztWrar+OECHQu9WivyEduxwarkD85OEo5V3XPUOfMhMn8FcpKLBligGmi2X3WCZc5rNqPN9Y0DE7lM0aKKeGKmyMzuXMmEA9xJXoZLVStTZrQOqWWfL7D11xG7TbBCcGLzfzcE27UqBObj\/qLUlN0MBzSmfYOt7ifXtn1PRNjHod65J1iJM5KjIabi1SY9PW8TRbA=='
+//        ];
+//
+//        $data['user_id'] = 18;
+//        $data['encrypt_str'] = json_encode($response);
+//        $data['system_type'] = 'fczl';
+//        echo  json_encode($data);exit;
+
+//        set_error_handler(null);
+//        set_exception_handler(null);
         $userId = F::value($this->params, 'user_id');
         $encryptStr = F::value($this->params, 'encrypt_str');
         $system_type = F::value($this->params, 'system_type','edoor');
@@ -90,7 +100,8 @@ class HomeController extends UserBaseController
             //保存ps_member 与app_user_id 的关联关系
             MemberService::service()->saveMemberAppUser($memberId, $userId, $system_type, $mobile);
         } else {
-            throw new MyException("用户保存失败");
+            return F::apiFailed("用户保存失败！");
+
         }
         $res['user_id'] = $userId;
         $res['mobile'] = $mobile;

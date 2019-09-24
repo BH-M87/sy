@@ -145,6 +145,7 @@ class StPartyTaskStation extends \yii\db\ActiveRecord
             ->innerJoin('st_communist as sc', 'sc.id = sts.communist_id')
             ->filterWhere(['or', ['like', 'name', $param['contact_name'] ?? null], ['like', 'mobile', $param['contact_name'] ?? null]])
             ->andFilterWhere(['>','sts.create_at',$param['start']])
+            ->andFilterWhere(['<','sts.create_at',$param['end']])
             ->andFilterWhere(['sc.organization_id' => $param['organization_id']])
             ->andFilterWhere(['sc.organization_type' => $param['organization_type']])
             ->andFilterWhere(['sts.status' => 3])
