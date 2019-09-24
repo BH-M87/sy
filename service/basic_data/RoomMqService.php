@@ -848,9 +848,8 @@ class RoomMqService extends \service\basic_data\BaseService
             'visitTime'=>$visit_time,//访客预约开始时间
             'exceedTime'=>$userExpired//访客预约结束时间
         ];
-        $tmpService  = PushDataService::service()->init(2);
+        /*$tmpService  = PushDataService::service()->init(2);
         $syncSet = $this->getSyncDatacenter($communityId,$supplierId);
-
         if ($syncSet) {
             $tmppPushData = $tmpPushData;
             unset($tmppPushData['userList']);
@@ -881,7 +880,7 @@ class RoomMqService extends \service\basic_data\BaseService
             if (!$re) {
                 return $this->failed("mq 连接失败");
             }
-        }
+        }*/
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
             if($this->checkIsMaster($communityId)){
@@ -898,14 +897,13 @@ class RoomMqService extends \service\basic_data\BaseService
                     $tmpPushData['faceData'] = $base64_img;
                     return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
                 }else{
-                    IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
+                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
                 }
             }
-            return $this->success();
-
+            //return $this->success();
         }
 
-        file_put_contents("face_url.txt","supplierData1:".$communityId."-supplierId:".$supplierId."-supplierSign:".$supplierSign."\r\n",FILE_APPEND);
+        /*file_put_contents("face_url.txt","supplierData1:".$communityId."-supplierId:".$supplierId."-supplierSign:".$supplierSign."\r\n",FILE_APPEND);
         if(in_array('iot',$supplierSign)){
             //编辑人员信息传图片的时候不走swool推送，直接调用java接口，同步获取信息（人脸上传的时候用）,add by zq 2019-4-15
             if($faceUrl  && !$from){
@@ -952,7 +950,7 @@ class RoomMqService extends \service\basic_data\BaseService
                 }
             }
 
-        }
+        }*/
         return $this->success();
     }
 
