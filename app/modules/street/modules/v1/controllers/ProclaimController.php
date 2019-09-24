@@ -21,6 +21,16 @@ class ProclaimController extends BaseController
         return true;
     }
 
+    // 公告类型
+    public function actionType()
+    {
+        $this->request_params['systemType'] = 'street';
+        
+        $r = ProclaimService::service()->type($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 公告新增
     public function actionAdd()
     {
