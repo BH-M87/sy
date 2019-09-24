@@ -117,7 +117,7 @@ class HomeController extends UserBaseController
         if (!$roomId) {
             return PsCommon::responseAppFailed('当前房屋id不能为空');
         }
-        $result = MemberService::service()->getFaceList($app_user_id,$roomId);
+        $result = HomeService::service()->getFaceList($app_user_id,$roomId);
         return self::dealReturnResult($result);
     }
 

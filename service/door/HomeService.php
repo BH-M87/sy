@@ -8,9 +8,14 @@
 namespace service\door;
 
 use app\models\PsAppUser;
+use app\models\PsResidentAudit;
+use app\models\PsRoomUser;
 use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
 use service\qiniu\UploadService;
+use service\resident\MemberService;
+use service\resident\ResidentService;
 
 class HomeService extends BaseService
 {
@@ -116,6 +121,112 @@ class HomeService extends BaseService
             return $this->failed('用户不存在');
         }
     }
+
+    /**
+     * @api 人脸列表
+     * @date 2019/5/31
+     * @param $appUserId
+     * @param $roomId
+     * @return array
+     * @throws MyException
+     */
+    public function getFaceList($appUserId, $roomId)
+    {
+        $memberId = MemberService::service()->getMemberId($appUserId);
+        if (!$memberId) {
+            return $this->failed('用户不存在');
+        }
+        //获取当前房屋信息
+        $current = PsRoomUser::find()
+            ->alias('room_user')
+            ->select('room_user.id,room_user.identity_type, room_user.name, member.face_url,room_user.status')
+            ->innerJoin('ps_member member', 'member.id = room_user.member_id')
+            ->where(['room_user.room_id' => $roomId, 'room_user.member_id' => $memberId])
+            ->andWhere(['!=', 'room_user.status', 1])
+            ->orderBy('id desc')
+            ->asArray()
+            ->one();
+        if (!$current) {
+            $current = PsResidentAudit::find()
+                ->alias('resident')
+                ->select('resident.id,resident.identity_type, resident.name, member.face_url,resident.status')
+                ->innerJoin('ps_member member', 'member.id = resident.member_id')
+                ->where(['resident.room_id' => $roomId, 'resident.member_id' => $memberId])
+                ->andWhere(['!=', 'resident.status', 1])
+                ->orderBy('id desc')
+                ->asArray()
+                ->one();
+            $current['is_audit'] = 1;
+        } else {
+            $current['is_audit'] = 2;
+        }
+        if (!$current) {
+            throw new MyException('当前房屋信息不存在');
+        }
+        //家人和租客，只可以看到自己的头像
+        if ($current['identity_type'] != 1) {
+            $data = [];
+        } else {
+            //获取其他家人或者租客信息
+            $data = PsRoomUser::find()
+                ->alias('room_user')
+                ->select('room_user.member_id, room_user.name, room_user.identity_type,member.face_url')
+                ->where(['room_user.room_id' => $roomId, 'room_user.status' => [1, 2]])
+                ->leftJoin('ps_member member', 'member.id = room_user.member_id')
+                ->andWhere(['!=', 'room_user.member_id', $memberId])
+                ->orderBy('room_user.identity_type asc, room_user.status asc, room_user.id desc')
+                ->asArray()->all();
+        }
+        $info = self::transFormFaceInfo($memberId, $current, $data);
+        return $this->success($info);
+    }
+
+    /**
+     * @api 数据转换
+     * @date 2019/5/22
+     * @param $memberId
+     * @param $currentInfo
+     * @param $restsInfo
+     * @return array
+     */
+    protected static function transFormFaceInfo($memberId, $currentInfo, $restsInfo)
+    {
+        if ($currentInfo['is_audit'] == 1) {
+            $house_status = $currentInfo['status'] == 0 ? 5 : 6;
+        }
+        $info = [
+            'member_id' => (int)$memberId,
+            'face_url' => empty($currentInfo['face_url']) ? '' : $currentInfo['face_url'],
+            'identity_type' => (int)$currentInfo['identity_type'],
+            'name' => $currentInfo['name'],
+            'identity_type_label' => ResidentService::service()->identity_type[$currentInfo['identity_type']],
+            'house_status' => empty($house_status) ? $currentInfo['status'] : $house_status,
+        ];
+        if ($restsInfo) {
+            foreach ($restsInfo as $item) {
+                $data = [
+                    'member_id' => (int)$item['member_id'],
+                    'face_url' => empty($item['face_url']) ? '' : $item['face_url'],
+                    'identity_type' => (int)$item['identity_type'],
+                    'name' => $item['name'],
+                    'identity_type_label' => ResidentService::service()->identity_type[$item['identity_type']]
+                ];
+                if ($item['identity_type'] == 1) {
+                    $info['list'][] = $data;
+                } elseif ($item['identity_type'] == 2) {
+                    $info['people_list'][] = $data;
+                } elseif ($item['identity_type'] == 3) {
+                    $info['rent_list'][] = $data;
+                }
+            }
+        } else {
+            $info['list'] = [];
+            $info['people_list'] = [];
+            $info['rent_list'] = [];
+        }
+        return $info;
+    }
+
 
 
 }
