@@ -93,7 +93,7 @@ class LotService extends BaseService
         $model->lon = F::value($params,'lon', 0);
         $model->lat = F::value($params,'lat', 0);
         $model->location = F::value($params,'location', '');
-        $model->park_code = F::value($params,'parkCode', '');
+        $model->park_code = F::value($params,'parkCode', F::getCode('PK', YII_ENV.'_parkingcodes'));
         $model->iot_park_name = F::value($params,'parkName', '');
         $model->parkId = F::value($params,'parkId', '');
         $model->created_at = time();
