@@ -15,6 +15,7 @@ use common\core\PsCommon;
 use service\alipay\AliTokenService;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
+use service\resident\MemberService;
 
 class HomeController extends UserBaseController
 {
@@ -105,6 +106,18 @@ class HomeController extends UserBaseController
     {
         $app_user_id = PsCommon::get($this->params, 'user_id');
         $result = HomeService::service()->userGuide($app_user_id);
+        return self::dealReturnResult($result);
+    }
+
+    //人脸列表
+    public function actionFaceList()
+    {
+        $app_user_id = PsCommon::get($this->params, 'user_id');
+        $roomId = PsCommon::get($this->params,'room_id');
+        if (!$roomId) {
+            return PsCommon::responseAppFailed('当前房屋id不能为空');
+        }
+        $result = MemberService::service()->getFaceList($app_user_id,$roomId);
         return self::dealReturnResult($result);
     }
 
