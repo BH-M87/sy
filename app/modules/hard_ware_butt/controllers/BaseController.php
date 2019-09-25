@@ -37,6 +37,7 @@ class BaseController extends Controller
 
     public function beforeAction($action)
     {
+        return true;
         if (!parent::beforeAction($action)) return false;
         $this->requestType = Yii::$app->request->getMethod();
         if ($this->requestType == 'POST') {
