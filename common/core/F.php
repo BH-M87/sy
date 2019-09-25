@@ -537,12 +537,19 @@ class F
      * 根据图片key_name 获取图片可访问路径
      * @param $keyName
      */
-    public static function getOssImagePath($keyName)
+    public static function getOssImagePath($keyName, $type = '')
     {
-        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
-        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
-        $endpoint = \Yii::$app->params['oss_domain'];
-        $bucket = \Yii::$app->params['oss_bucket'];
+        if ($type == 'zjy') {
+            $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+            $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+            $endpoint = \Yii::$app->params['zjy_oss_domain'];
+            $bucket = \Yii::$app->params['zjy_oss_bucket'];
+        } else {
+            $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+            $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+            $endpoint = \Yii::$app->params['oss_domain'];
+            $bucket = \Yii::$app->params['oss_bucket'];
+        }
 
         // 设置URL的有效期为3600秒。
         $timeout = 3600;
@@ -556,6 +563,7 @@ class F
         }
         return $signedUrl;
     }
+
 
 	//文件上传到oss，用于导入导出及错误文件下载
     public static function uploadFileToOss($localPath)
@@ -670,6 +678,56 @@ class F
                 'errorMsg' => "未接受到有效数据"
             ];
         }
+    }
+
+
+    public static function trunsImg($url)
+    {
+        $url = str_replace("https://","http://",$url);
+        $filePath = F::qiniuImagePath().date('Y-m-d')."/";
+        if (!is_dir($filePath)) {//0755: rw-r--r--
+            mkdir($filePath, 0755, true);
+        }
+        $fileName = self::_generateName('jpg');
+        $newFile = $filePath."/".$fileName;
+        self::dlfile($url, $newFile);
+        $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['zjy_oss_domain'];
+        $bucket = \Yii::$app->params['zjy_oss_bucket'];
+        $object = $fileName;
+        $imgKeyData = '';
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $newFile);
+            $imgKeyData = $object;
+        } catch(OssException $e) {
+
+        }
+        return $imgKeyData;
+    }
+
+    public static function dlfile($file_url, $save_to)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_POST, 0);
+        curl_setopt($ch, CURLOPT_URL, $file_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $file_content = curl_exec($ch);
+        curl_close($ch);
+        $downloaded_file = fopen($save_to, 'w');
+        fwrite($downloaded_file, $file_content);
+        fclose($downloaded_file);
+    }
+
+    /**
+     * 创建新的文件名称(以时间区分)
+     */
+    public static function _generateName($ext)
+    {
+        list($msec, $sec) = explode(' ', microtime());
+        $msec = round($msec, 3) * 1000;//获取毫秒
+        return date('YmdHis') . $msec . rand(10,100) . '.' . $ext;
     }
 }
 

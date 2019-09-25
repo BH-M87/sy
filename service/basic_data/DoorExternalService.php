@@ -16,6 +16,7 @@ use app\models\DoorRecord;
 use app\models\IotSupplierCommunity;
 use app\models\PsRoomVistors;
 use common\core\Curl;
+use common\core\F;
 use common\MyException;
 use Yii;
 use yii\db\Query;
@@ -51,6 +52,11 @@ class DoorExternalService extends BaseService
         } else {
             $data['userName'] = !empty($data['userName']) ? $data['userName'] : '';
             $data['userName'] = ($data['openType'] == 7) ? "": $data['userName'];//访客密码开门的时候默认都是空
+        }
+
+        //图片处理
+        if (!empty($data['capturePhoto'])) {
+            $data['capturePhoto'] = F::trunsImg($data['capturePhoto']);
         }
 
         $model = new DoorRecord();
