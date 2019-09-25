@@ -17,12 +17,12 @@ class EventTemplate extends BaseModel
         $config = self::find()->alias('A')->leftJoin('event_template_config B', 'B.template_id = A.id')
             ->select('distinct(A.parent_id)')->where(['>', 'B.id', 0])
             ->asArray()->all();
-        $id = array_column($config, 'parent_id');
+        $id = !empty($config) ? array_column($config, 'parent_id') : [];
 
         $m = self::find()->select('id, title as name, parent_id')->where(['status' => 1])
             ->andFilterWhere(['=', 'type', $p['type']])
             ->andFilterWhere(['=', 'parent_id', $p['parent_id']])
-            ->andFilterWhere(['in', 'id', $id])
+            ->andWhere(['in', 'id', $id])
             ->asArray()->all();
 
         return $m;

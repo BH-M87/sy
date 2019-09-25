@@ -325,7 +325,7 @@ Class CommunityService extends BaseService
             }
         }
 
-        return $this->success($r);
+        return $this->success($r ?? []);
     }
 
     // -----------------------------------     小区评分     ------------------------------
