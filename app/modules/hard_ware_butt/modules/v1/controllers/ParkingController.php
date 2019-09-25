@@ -21,6 +21,7 @@ class ParkingController extends BaseController
     //入库记录同步
     public function actionEnter()
     {
+        \Yii::info("system:parking-record".'request:'.json_encode($this->params,JSON_UNESCAPED_UNICODE),'api');
         if (empty($this->params)) {
             echo PsCommon::responseFailed("未接受到有效数据");exit;
         }
@@ -47,6 +48,7 @@ class ParkingController extends BaseController
     //出库记录同步
     public function actionExit()
     {
+        \Yii::info("system:parking-record".'request:'.json_encode($this->params,JSON_UNESCAPED_UNICODE),'api');
         if (empty($this->params)) {
             echo PsCommon::responseFailed("未接受到有效数据");exit;
         }

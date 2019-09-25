@@ -25,6 +25,7 @@ class DoorController extends BaseController
     //保存呼叫记录
     public function actionCallRecord()
     {
+        \Yii::info("system:door-record".'request:'.json_encode($this->params,JSON_UNESCAPED_UNICODE),'api');
         if (empty($this->params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
