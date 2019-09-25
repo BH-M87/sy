@@ -8,11 +8,14 @@ namespace service\property_basic;
 
 use common\core\F;
 use common\core\PsCommon;
+
 use app\models\PsCommunityModel;
 use app\models\PsComplaint;
 use app\models\PsComplaintImages;
 use app\models\PsMember;
+
 use service\BaseService;
+use service\rbac\OperateService;
 
 Class ComplaintService extends BaseService
 {
@@ -41,13 +44,13 @@ Class ComplaintService extends BaseService
         return $model->find()->alias('t')
             ->leftJoin(['m' => PsMember::tableName()], 't.member_id=m.id')
             ->leftJoin(['c' => PsCommunityModel::tableName()], 't.community_id=c.id')
-            ->filterWhere([
+            ->filterWhere(['like', 'm.name', PsCommon::get($params, 'username')])
+            ->orFilterWhere(['like', 'm.mobile', PsCommon::get($params, 'username')])
+            ->andFilterWhere([
                 't.community_id' => PsCommon::get($params, 'community_id'),
                 't.status' => PsCommon::get($params, 'status'),
                 't.type' => PsCommon::get($params, 'type'),
-            ])
-            ->andFilterWhere(['like', 'm.name', PsCommon::get($params, 'username')])
-            ->andFilterWhere(['like', 'm.mobile', PsCommon::get($params, 'mobile')]);
+            ]);
     }
 
     /**
@@ -69,7 +72,7 @@ Class ComplaintService extends BaseService
         $result = [];
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
-            $v['hide_mobile'] = !empty($v['mobile'])?mb_substr($v['mobile'],0,3)."****".mb_substr($v['mobile'],-4):"";
+            $v['mobile'] = !empty($v['mobile'])?mb_substr($v['mobile'],0,3)."****".mb_substr($v['mobile'],-4):"";
             $v['type'] = PsCommon::get($this->types, $v['type'], []);
             $v['status'] = PsCommon::get($this->status, $v['status'], []);
             $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
@@ -136,6 +139,14 @@ Class ComplaintService extends BaseService
             return $this->failed('数据不存在');
         }
         $images = $this->findImages($id);
+        if (!empty($images)) {
+            $imageArr = [];
+            foreach ($images as $k => $v){
+                $tmpImgPath = F::getOssImagePath($v);
+                array_push($imageArr, $tmpImgPath);
+            }
+            $images = $imageArr;
+        }
         $data['images'] = $images;
         $data['type'] = PsCommon::get($this->types, $data['type'], []);
         $data['status'] = PsCommon::get($this->status, $data['status'], []);

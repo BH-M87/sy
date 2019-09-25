@@ -20,7 +20,7 @@ use Yii;
  * @property int $functionCard 是否支持门开开门功能，1支持，0不支持
  * @property int $created_at 添加时间
  */
-class IotSuppliers extends \app\models\BaseModel
+class IotSuppliers extends BaseModel
 {
     /**
      * {@inheritdoc}
@@ -36,10 +36,11 @@ class IotSuppliers extends \app\models\BaseModel
     public function rules()
     {
         return [
-            [['functionFace', 'functionBlueTooth', 'functionCode', 'functionPassword', 'functionCard', 'created_at'], 'integer'],
-            [['name', 'contactor', 'supplier_name'], 'string', 'max' => 20],
+            [['name', 'contactor', 'mobile', 'type'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['create', 'edit']],
+            [['type', 'created_at'], 'integer'],
+            [['name', 'contactor'], 'string', 'max' => 20],
             [['mobile'], 'string', 'max' => 15],
-            [['productSn'], 'string', 'max' => 40],
+            ['supplier_name','safe'],
         ];
     }
 
@@ -50,16 +51,10 @@ class IotSuppliers extends \app\models\BaseModel
     {
         return [
             'id' => 'ID',
-            'name' => 'Name',
-            'contactor' => 'Contactor',
-            'mobile' => 'Mobile',
-            'supplier_name' => 'Supplier Name',
-            'productSn' => 'Product Sn',
-            'functionFace' => 'Function Face',
-            'functionBlueTooth' => 'Function Blue Tooth',
-            'functionCode' => 'Function Code',
-            'functionPassword' => 'Function Password',
-            'functionCard' => 'Function Card',
+            'name' => '供应商名称',
+            'contactor' => '联系人',
+            'mobile' => '联系电话',
+            'type' => '供应商类型',
             'created_at' => 'Created At',
         ];
     }

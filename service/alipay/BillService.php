@@ -319,8 +319,6 @@ class BillService extends BaseService
         return $arr;
     }
 
-
-
     public function billShow($bill_id)
     {
         $where = " id=:id ";
@@ -684,7 +682,7 @@ class BillService extends BaseService
                 'bill_entry_amount' => $bill["bill_entry_amount"],
                 "release_day" => date("Ymd", $bill["acct_period_start"]),
                 "deadline" => '20991231',
-                "remark_str" => YII_ENV == 'master' ? "" : "zjy753",
+                "remark_str" => YII_ENV == 'prod' ? "" : "zjy753",
             ];
             $ids[] = $bill['id'];
         }
@@ -1065,34 +1063,6 @@ class BillService extends BaseService
                     throw new Exception('收款失败');
                 }
             }
-            //发送消息
-            $msgtem = [
-                'community_id' => $income['community_id'],
-                'id' => $income['room_id'],
-                'member_id' => 0,
-                'user_name' => '',
-                'create_user_type' => 2,
-
-                'remind_tmpId' => 3,
-                'remind_target_type' => 3,
-                'remind_auth_type' => 3,
-                'msg_type' => 1,
-
-                'msg_tmpId' => 3,
-                'msg_target_type' => 3,
-                'msg_auth_type' => 3,
-                'remind' =>[
-                    0 => ''
-                ],
-                'msg' => [
-                    0 => '',
-                    1 => $income['group'].$income['building'].$income['unit'].$income['room'],
-                    2 => '',
-                    3 => $data['gmt_payment'],
-                    4 => $bill_msg
-                ]
-            ];
-            MessageService::service()->addMessageTemplate($msgtem);
             $trans->commit();
             return $this->_response($data, 'success');
         } catch (Exception $e) {
@@ -1161,34 +1131,6 @@ class BillService extends BaseService
             }
             //删除退款过的支付宝账单
             AlipayBillService::service($community_no)->deleteBill($community_no, $del_arr);
-            //发送消息
-            $data = [
-                'community_id' => $incomeInfo['community_id'],
-                'id' => $incomeInfo['room_id'],
-                'member_id' => $incomeInfo['member_id'],
-                'user_name' => '',
-                'create_user_type' => 2,
-
-                'remind_tmpId' => 3,
-                'remind_target_type' => 3,
-                'remind_auth_type' => 3,
-                'msg_type' => 1,
-
-                'msg_tmpId' => 3,
-                'msg_target_type' => 3,
-                'msg_auth_type' => 3,
-                'remind' =>[
-                    0 => ''
-                ],
-                'msg' => [
-                    0 => '',
-                    1 => $incomeInfo['group'].$incomeInfo['building'].$incomeInfo['unit'].$incomeInfo['room'],
-                    2 => '',
-                    3 => $result['gmt_payment'],
-                    4 => $bill_msg
-                ]
-            ];
-            MessageService::service()->addMessageTemplate($data);
             return $this->_response($result, 'success');
         }elseif ($result['trade_status'] == 'WAIT_BUYER_PAY') {
             //Yii::$app->redis->lpush('error_notify', '初始状态,DD交易流水号：' . $result['out_trade_no'] . '|' . date("Y-m-d H:i", time()));
@@ -1209,6 +1151,13 @@ class BillService extends BaseService
         if (!$result) {
             //Yii::$app->redis->lpush('error_notify', '空数据' . '|' . date("Y-m-d H:i", time()));
             return $this->_response($result, 'fail', '空数据');
+        }
+        \Yii::info("--small-notify-content".json_encode($result), 'api');
+        $checkRe = AliCommonService::service()->notifyVerify($result);
+        if (!$checkRe) {
+            //记录支付宝验签失败
+            \Yii::info("--small notify sign verify fail", 'api');
+            die("fail");
         }
         //查询收款记录
         $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
@@ -1265,37 +1214,6 @@ class BillService extends BaseService
             BillService::service()->setPayRoomHistory($his);
             //删除退款过的支付宝账单
             AlipayBillService::service($community_no)->deleteBill($community_no, $del_arr);
-            //添加消息
-            //获取业主id
-            $member_name = $this->getMemberNameByUser($incomeInfo['member_id']);
-            $data = [
-                'community_id' => $incomeInfo['community_id'],
-                'id' => $incomeInfo['room_id'],
-                'member_id' => $incomeInfo['member_id'],
-                'user_name' => $member_name,
-                'create_user_type' => 2,
-
-                'remind_tmpId' => 3,
-                'remind_target_type' => 3,
-                'remind_auth_type' => 3,
-                'msg_type' => 1,
-
-                'msg_tmpId' => 3,
-                'msg_target_type' => 3,
-                'msg_auth_type' => 3,
-                'remind' =>[
-                    0 => $member_name
-                ],
-                'msg' => [
-                    0 => $member_name,
-                    1 => $his['room_address'],
-                    2 => $member_name,
-                    3 => $result['gmt_payment'],
-                    4 => $bill_msg
-                ]
-            ];
-            MessageService::service()->addMessageTemplate($data);
-
             return $this->_response($result, 'success');
         }elseif ($result['trade_status'] == 'WAIT_BUYER_PAY') {
             //Yii::$app->redis->lpush('error_notify', '初始状态,small交易流水号:' . $result['out_trade_no'] . '|' . date("Y-m-d H:i", time()));
@@ -1306,17 +1224,16 @@ class BillService extends BaseService
         }
     }
 
-
-
     /**
      * 小程序报事报修账单缴费回调
      */
     public function alipayNotifySmallRepair($data)
     {
+        \Yii::info("--alipay-notify-content".json_encode($data), 'api');
         $checkRe = AliCommonService::service()->notifyVerify($data);
         if (!$checkRe) {
             //记录支付宝验签失败
-            \Yii::info("--alipay notify sign verify fail", 'parking-fee');
+            \Yii::info("--alipay notify sign verify fail", 'api');
             die("fail");
         }
 
@@ -1334,42 +1251,9 @@ class BillService extends BaseService
                     Yii::$app->db->createCommand()->update('ps_repair_bill', $upData, "id=:id", [":id" => $bill['id']])->execute();
                     $pay['is_pay'] = 2;
                     Yii::$app->db->createCommand()->update('ps_repair', ['is_pay' => 2], "id=:id", [":id" => $bill['repair_id']])->execute();
-                    $status = 'success';
-
-                    //添加消息
-                    //获取业主id
-                    $repair = PsRepair::find()->where(['id' => $bill['repair_id']])->asArray()->one();
-                    $repairType = RepairType::find()->where(['id' => $repair['repair_type_id']])->asArray()->one();
-                    $member_name = $this->getMemberNameByUser($repair['member_id']);
-                    $data = [
-                        'community_id' => $bill['community_id'],
-                        'id' => $bill['repair_id'],
-                        'member_id' => $repair['member_id'],
-                        'user_name' => $member_name,
-                        'create_user_type' => 2,
-
-                        'remind_tmpId' => 4,
-                        'remind_target_type' => 4,
-                        'remind_auth_type' => 4,
-                        'msg_type' => 1,
-
-                        'msg_tmpId' => 4,
-                        'msg_target_type' => 4,
-                        'msg_auth_type' => 4,
-                        'remind' => [
-                            0 => '123456'
-                        ],
-
-                        'msg' => [
-                            0 => $repair['repair_no'],
-                            1 => $repairType['name'],
-                            2 => $bill['amount'],
-                            3 => '线上支付'
-                        ]
-                    ];
-                    MessageService::service()->addMessageTemplate($data);
                     die("success");
                 } else {
+                    \Yii::info("--alipay-notify-result".json_encode($result), 'api');
                     die("fail");
                 }
             } else {
@@ -1424,9 +1308,9 @@ class BillService extends BaseService
         $psRepairBill->property_company_id = $community->pro_company_id;
         $psRepairBill->order_no = $psRepair->repair_no;
         $psRepairBill->property_alipay_account = $preCompany->alipay_account;
-        $psRepairBill->materials_price = $materialsPrice;
-        $psRepairBill->other_charge = $otherCharge;
-        $psRepairBill->amount = $totalPrice;
+        $psRepairBill->materials_price = $materialsPrice ? $materialsPrice : 0;
+        $psRepairBill->other_charge = $otherCharge ? $otherCharge : 0;
+        $psRepairBill->amount = $totalPrice ? $totalPrice : 0;
         $psRepairBill->trade_no = "";
         $psRepairBill->pay_status = 0;
         $psRepairBill->create_at = time();

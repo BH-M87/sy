@@ -9,6 +9,8 @@
 
 namespace app\modules\qiniu\controllers;
 
+use OSS\Core\OssException;
+use OSS\OssClient;
 use Yii;
 use common\core\F;
 use common\core\PsCommon;
@@ -16,7 +18,6 @@ use service\qiniu\UploadService;
 
 Class UploadController extends BaseController
 {
-
     //富文本编辑器
     public function actionEditor()
     {
@@ -29,6 +30,11 @@ Class UploadController extends BaseController
             $result = json_encode($config);
             return $result;
         } else {//上传图片
+            $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+            $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+            $endpoint = \Yii::$app->params['oss_domain'];
+            $bucket = \Yii::$app->params['oss_bucket'];
+
             if (empty($_FILES['upfile'])) {
                 return PsCommon::responseFailed('未获取上传文件');
             }
@@ -44,11 +50,15 @@ Class UploadController extends BaseController
                 return PsCommon::responseFailed($r['msg']);
             }
             $local = $r['data'];
-            //上传到七牛
-            $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
-            if (!$re['filepath']) {
-                return PsCommon::responseFailed('七牛上传失败');
+            $object = $local['fileName'];
+            $filePath = $local['fileDir'] . $local['fileName'];
+            try{
+                $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+                $ossClient->uploadFile($bucket, $object, $filePath);
+            } catch(OssException $e) {
+                return PsCommon::responseFailed('图片上传失败');
             }
+
             $result['state'] = 'SUCCESS';
             $result['url'] = $local['fileName'];
             $result['title'] = $local['fileName'];
@@ -90,40 +100,12 @@ Class UploadController extends BaseController
     {
         $img = F::post('img');
         $type = Yii::$app->request->post('type', '');
-
-        if (!$img) {
-            return PsCommon::responseFailed('未获取上传文件');
+        $result = UploadService::service()->stream_image($img,$type);
+        if (!$result['code']) {
+            return PsCommon::responseFailed($result['msg']);
+        }else{
+            return PsCommon::responseSuccess($result['data']);
         }
-        //图片文件检测
-        $r = UploadService::service()->checkStreamImage($img);
-        if (!$r['code']) {
-            return PsCommon::responseFailed($r['msg']);
-        }
-        $imgArr = $r['data'];
-        $imgString = str_replace($imgArr['result'][1], '', $imgArr['characters']);
-        //上传到本地
-        $r = UploadService::service()->saveStreamLocal($imgString, 'jpg', F::qiniuImagePath());
-        if (!$r) {
-            return PsCommon::responseFailed($r['msg']);
-        }
-        $local = $r['data'];
-        //上传到七牛
-        $re['filepath'] = UploadService::service()->saveQiniu($local['fileName'], $local['fileDir'] . $local['fileName']);
-        if (!$re['filepath']) {
-            return PsCommon::responseFailed('七牛上传失败');
-        }
-        //本地模拟测试的时候没有parentDir字段，因此做了一个判断。add by zq 2019-4-25
-        $parentDir = !empty($local['parentDir']) ? $local['parentDir'] : '';
-        $re['localPath'] = 'front/original/' . $parentDir . '/' . $local['fileName'];
-        if (!empty($type) && $type == "face") {
-            //校验人脸照片
-            $body['data']['uri'] = $re['filepath'];
-            $res = UploadService::service()->checkExistFace('/v1/face/detect',json_encode($body));
-            if($res !== true){
-                return PsCommon::responseFailed($res);
-            }
-        }
-        return PsCommon::responseSuccess($re);
     }
 
     //上传版本更新，操作手册

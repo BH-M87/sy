@@ -9,54 +9,79 @@ use service\property_basic\ActivityService;
 
 class ActivityController extends BaseController
 {
-    public $repeatAction = ['add'];
+    public function beforeAction($action)
+    {
+        if (!parent::beforeAction($action)) {
+            return false;
+        }
+
+        $this->request_params['type'] = 1; // 1小区活动（物业端发起）
+        $this->request_params['operator_id'] = $this->user_info['id'];
+
+        return true;
+    }
 
     // 活动新增
     public function actionAdd()
     {
-        ActivityService::service()->addBackendActivity($this->request_params, $this->user_info);
-        PsCommon::responseSuccess();
-    }
+        $r = ActivityService::service()->add($this->request_params);
 
-    // 获取活动列表
-    public function actionList()
-    {
-        $data = ActivityService::service()->backendActivityList($this->request_params);
-        PsCommon::responseSuccess($data);
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
+        }
     }
 
     // 活动编辑
     public function actionEdit()
     {
-        ActivityService::service()->editBackendActivity($this->request_params, $this->user_info);
-        PsCommon::responseSuccess();
+        $r = ActivityService::service()->edit($this->request_params);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
+        } else {
+            return PsCommon::responseFailed($r['msg']);
+        }
+    }
+
+    // 获取活动列表
+    public function actionList()
+    {
+        $data = ActivityService::service()->list($this->request_params);
+
+        PsCommon::responseSuccess($data['data']);
     }
 
     // 活动删除
     public function actionDelete()
     {
-        ActivityService::service()->deleteBackendActivity($this->request_params, $this->user_info);
+        ActivityService::service()->delete($this->request_params);
+
         PsCommon::responseSuccess();
     }
 
     // 获取活动详情
     public function actionDetail()
     {
-        $result = ActivityService::service()->getBackendActivityOne($this->request_params);
+        $result = ActivityService::service()->detail($this->request_params);
+
         PsCommon::responseSuccess($result);
     }
 
     // 获取报名列表
     public function actionJoinList()
     {
-        $result = ActivityService::service()->getBackendActivityJoinList($this->request_params);
+        $result = ActivityService::service()->joinList($this->request_params);
+        
         PsCommon::responseSuccess($result);
     }
 
     // 置顶活动
     public function actionTop()
     {
-        $result = ActivityService::service()->topActivity($this->request_params, $this->user_info);
+        $result = ActivityService::service()->top($this->request_params);
+
         PsCommon::responseSuccess($result);
     }
 }

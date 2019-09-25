@@ -9,6 +9,7 @@ namespace service\resident;
 use app\models\DoorLastVisit;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
+use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
@@ -432,57 +433,7 @@ Class MemberService extends BaseService
         
         return $room_id;
     }
-    //小程序业主认证
-    public function authTo($params)
-    {
-        $m = MemberService::service()->saveMember(['mobile' => $params['mobile'], 'name' => $params['user_name']]);
-        $memberId = $m['data'];
-        //只要走过业主认证的(支付宝实名+支付宝未实名但修改后提交的)，姓名和手机号就不允许再更改
-        MemberService::service()->turnReal($memberId);
 
-        //绑定ps_app_user和ps_member
-        $one = PsAppMember::find()->where(['app_user_id' => $params['app_user_id']])->one();
-        if (!$one) {
-            $one = new PsAppMember();
-            $one->app_user_id = $params['app_user_id'];
-        }
-        $one->member_id = $memberId;
-        if (!$one->save()) {
-            return $this->failed('绑定手机号失败');
-        }
-        //更新授权的用户名称
-        PsAppUser::updateAll(['nick_name'=>$params['user_name'],'true_name'=>$params['user_name']],['id'=>$params['app_user_id']]);
-        //查询有无房屋
-        $hasRoomCommunitys = PsRoomUser::find()
-            ->select(['community_id'])
-            ->where(['name' => $params['user_name'], 'mobile' => $params['mobile']])
-            ->asArray()
-            ->column();
-        if ($hasRoomCommunitys) {
-            //将未认证的房屋都认证掉
-            $flag = PsRoomUser::updateAll(['status' => 2, 'auth_time' => time()],
-                ['status' => 1, 'name' => $params['user_name'], 'mobile' => $params['mobile']]);
-        } else {
-            //无房屋，判断是否有在申请中的房屋
-            $auditRoom = PsResidentAudit::find()
-                ->select(['id'])
-                ->where(['member_id' => $memberId])
-                ->asArray()
-                ->all();
-            if ($auditRoom) {
-                return $this->failed('房屋还在认证中', 50002);
-            } else {
-                return $this->failed('没有房屋', 50003);
-            }
-        }
-        $hasRoomCommunitys = array_unique($hasRoomCommunitys);
-        //认证成功后的，推送到监控页面，变更业主身份数据 @shenyang v4.4数据监控版本
-        foreach ($hasRoomCommunitys as $val) {
-            //todo
-            //WebSocketClient::getInstance()->send(MonitorService::MONITOR_RESIDENT, $val);
-        }
-        return $this->success();
-    }
 
     //获取首页数据
     public function homeData($params)
@@ -569,7 +520,7 @@ Class MemberService extends BaseService
 
     // 获取小程序首页默认房屋
     //TODO 优化！！！！！一个方法查询了十几条sql，不合理！！
-    public function doorIndexData($appUserId, $communityId, $roomId)
+    public function doorIndexData($appUserId, $communityId, $roomId,$mac)
     {
         $result = [
             'member_id' => 0,
@@ -678,7 +629,7 @@ Class MemberService extends BaseService
             ->distinct()
             ->from('door_device_unit du')
             ->rightJoin('door_devices d','d.id = du.devices_id')
-            ->rightJoin('parking_suppliers supplier','supplier.id = d.supplier_id')
+            ->rightJoin('iot_suppliers supplier','supplier.id = d.supplier_id')
             ->where(['du.unit_id' => $unitId])
             ->column();
         // 根据供应商判断这个用户是否有扫码、访客密码、住户密码、反扫码的权限

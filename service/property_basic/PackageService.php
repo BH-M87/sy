@@ -6,6 +6,7 @@
  */
 namespace service\property_basic;
 
+use service\room\RoomService;
 use Yii;
 use common\core\PsCommon;
 use app\models\PsCommunityRoominfo;
@@ -217,7 +218,7 @@ Class PackageService extends BaseService
         $sendData[] = $model->tracking_no;//运单号
         $sendData[] = $this->note[$model->note]['name'];
         //
-        if (YII_ENV == 'master' || YII_ENV == 'test' || YII_ENV == 'release') {//本地环境不发
+        if (YII_ENV == 'prod' || YII_ENV == 'test' || YII_ENV == 'release') {//本地环境不发
             SmsService::service()->init(21, $model->mobile)->send($sendData);
             $member = MemberService::service()->getInfo($model->mobile);
             if ($member) {

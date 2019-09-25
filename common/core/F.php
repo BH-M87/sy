@@ -7,7 +7,11 @@
 
 namespace common\core;
 
+use common\MyException;
+use OSS\Core\OssException;
+use OSS\OssClient;
 use Yii;
+use yii\base\Model;
 use yii\helpers\FileHelper;
 use yii\web\HttpException;
 
@@ -67,7 +71,13 @@ class F
     //empty
     public static function value($params, $name, $default = '')
     {
-        return !empty($params[$name]) ? trim($params[$name]) : $default;
+        if (!empty($params[$name])) {
+            if (is_array($params[$name])) {
+                return $params[$name];
+            }
+            return trim($params[$name]);
+        }
+        return $default;
     }
 
     //参数验证成功
@@ -239,7 +249,7 @@ class F
     //获取完整链接，不带get参数
     public static function getAbsoluteUrl()
     {
-        $host = Yii::$app->request->getHostInfo();
+        $host = Yii::$app->params['api_host_url'];
         return $host;
     }
 
@@ -301,6 +311,12 @@ class F
     public static function originalImage()
     {
         return Yii::$app->basePath . '/web/store/uploadFiles/';
+    }
+
+    //上传文件的目录
+    public static function originalFile()
+    {
+        return Yii::$app->basePath . '/web/store/excel/';
     }
 
     /**
@@ -480,6 +496,180 @@ class F
             return true;
         }
         return false;
+    }
+
+    /**
+     * 手机号脱敏
+     * @param $mobile
+     * @return string
+     */
+    public static function processMobile($mobile)
+    {
+        return substr($mobile, 0, 3).'****'.substr($mobile, -4);
+    }
+
+    /**
+     * 身份证号脱敏
+     * @param $mobile
+     * @return string
+     */
+    public static function processIdCard($idCard)
+    {
+        if (!empty($idCard)) {
+            return substr($idCard, 0, 6).'********'.substr($idCard, -4);
+        }
+        return '';
+    }
+
+    //因为小程序跟物业后台的返回类型不一样，因此在调用Exception的时候，小程序端需要设置一下smallStatus
+    public static $smallStatus = '';
+    public static function setSmallStatus()
+    {
+        return self::$smallStatus = 1;
+    }
+
+    public static function getSmallStatus()
+    {
+        return self::$smallStatus;
+    }
+
+    /**
+     * 根据图片key_name 获取图片可访问路径
+     * @param $keyName
+     */
+    public static function getOssImagePath($keyName)
+    {
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+
+        // 设置URL的有效期为3600秒。
+        $timeout = 3600;
+        $signedUrl = '';
+        try {
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            // 生成GetObject的签名URL。
+            $signedUrl = $ossClient->signUrl($bucket, $keyName, $timeout);
+        } catch (OssException $e) {
+
+        }
+        return $signedUrl;
+    }
+
+	//文件上传到oss，用于导入导出及错误文件下载
+    public static function uploadFileToOss($localPath)
+    {
+        $extStr = explode('.', $localPath);
+        $ext = $extStr[count($extStr)-1];
+        $strArr = explode('/', $localPath);
+        $fileName = $strArr[count($strArr)-1];
+
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+
+        $object = $fileName;
+        $filePath = $localPath;
+
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+        //上传到七牛
+        $re['filepath'] = F::getOssImagePath($object);
+        return $re;
+    }
+
+    public static function uploadToOss($localPath, $keyName)
+    {
+        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['oss_domain'];
+        $bucket = \Yii::$app->params['oss_bucket'];
+        $object = $keyName;
+        $filePath = $localPath;
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+
+        //上传到oss
+        $re['filepath'] = F::getOssImagePath($object);
+        return $re;
+    }
+    
+    // 图片地址转换
+    public static function ossImagePath($p)
+    {
+        if (is_array($p)) {
+            foreach ($p as $k => $v) {
+                $p[$k] = self::getOssImagePath($v);
+            }
+            return $p;
+        }
+        return self::getOssImagePath($p);
+    }
+
+    // 切割字符串，多余部分用...表示
+    public static function cutString($str, $limit)
+    {
+        $len = mb_strlen($str);
+        if ($len > $limit) {
+            return mb_substr($str, 0, $limit) . '...';
+        }
+        return $str;
+    }
+
+    /**
+     * 只保留字符串首尾字符，隐藏中间用*代替（两个字符时只显示第一个）
+     * @param string $str 姓名
+     * @return string 格式化后的姓名
+     */
+    public static function substrCut($str)
+    {
+      $strlen = mb_strlen($str, 'utf-8');
+      $firstStr = mb_substr($str, 0, 1, 'utf-8');
+      $lastStr= mb_substr($str, -1, 1, 'utf-8');
+      return $strlen == 2 ? $firstStr . str_repeat('*', mb_strlen($str, 'utf-8') - 1) : $firstStr . str_repeat("*", $strlen - 2) . $lastStr;
+    }
+
+    /**
+     * 验证传入参数
+     * @param $model //对象实例
+     * @param $data //验证数据
+     * @param $scenario //验证场景
+     * @return array
+     */
+    public static function validParamArr(Model $model, $data, $scenario)
+    {
+        if (!empty($data)) {
+            $model->setScenario($scenario);
+            $datas["data"] = $data;
+            $model->load($datas, "data");
+            if ($model->validate()) {
+                return [
+                    "status" => true,
+                    "data" => $data
+                ];
+            } else {
+                $errorMsg = array_values($model->errors);
+                return [
+                    "status" => false,
+                    'errorMsg' => $errorMsg[0][0]
+                ];
+            }
+        } else {
+            return [
+                "status" => false,
+                'errorMsg' => "未接受到有效数据"
+            ];
+        }
     }
 }
 

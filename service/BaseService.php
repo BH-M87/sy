@@ -1,6 +1,7 @@
 <?php
 namespace service;
 use app\models\IotSupplierCommunity;
+use app\models\IotSuppliers;
 use app\models\PsAppMember;
 use app\models\PsAppUser;
 use app\models\PsMember;
@@ -140,5 +141,43 @@ class BaseService {
             ->select(['supplier_id'])
             ->where(['community_id'=>$communityId, 'supplier_type' => $type])
             ->scalar();
+    }
+
+    /**
+     * 查询供应商sn
+     * @param $supplier_id
+     * @return false|null|string
+     */
+    public function getSupplierProductSn($supplier_id)
+    {
+        return IotSuppliers::find()->select(['productSn'])->where(['id'=>$supplier_id])->asArray()->scalar();
+    }
+
+    /**
+     * 获取同步标识，是否把数据同步到数据平台跟公安厅
+     * @param $community_id
+     * @param $supplier_id
+     * @param string $supplier_type
+     * $supplier_type 1道闸，2门禁，空全部
+     * @return false|null|string
+     */
+    public function getSyncDatacenter($community_id,$supplier_id,$supplier_type = '')
+    {
+        //根据供应商类型来区分是查找门禁还是道闸的同步类型 add by zq 2019-5-9
+        if(empty($supplier_type)){
+            $supplier_type = [1,2];
+        }
+        $return = IotSupplierCommunity::find()
+            ->select(['sync_datacenter'])
+            ->where(['community_id'=> $community_id, 'supplier_id' => $supplier_id,'supplier_type'=>$supplier_type])
+            ->scalar();
+        //如果门禁或者道闸没有单独的配置，就默认查找全部的
+        if(empty($return)){
+            $return = IotSupplierCommunity::find()
+                ->select(['sync_datacenter'])
+                ->where(['community_id'=> $community_id, 'supplier_id' => $supplier_id])
+                ->scalar();
+        }
+        return $return;
     }
 }

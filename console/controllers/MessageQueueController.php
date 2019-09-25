@@ -31,7 +31,7 @@ class MessageQueueController extends Controller
 
     public function actionSend()
     {
-        if (YII_ENV == "master"){
+        if (YII_ENV == "prod"){
             $queue = Mq::getQueue(QueueEnums::MESSAGE_QUEUE);
         }else{
             $queue = Mq::getQueue(QueueEnums::TEST_MESSAGE_QUEUE);

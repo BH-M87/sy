@@ -1,13 +1,13 @@
 <?php
 $paramsEnvFile = 'params-' . $envData['YII_ENV'] . '.php';
 $params = array_merge(
+    //require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
+    //require(__DIR__ . '/' . $paramsEnvFile)
     require(__DIR__ . '/../../common/config/params.php'),
-    require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
-    require(__DIR__ . '/params.php'),
-    require(__DIR__ . '/' . $paramsEnvFile)
+    require(__DIR__ . '/params.php')
 );
 
-return [
+$config =  [
     'id' => 'app-app',
     'basePath' => dirname(__DIR__),
     'controllerNamespace' => 'app\controllers',
@@ -17,7 +17,8 @@ return [
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-app',
-            'cookieValidationKey' => '',
+            'enableCsrfValidation' => false,
+            'cookieValidationKey' => true,
         ],
         'user' => [
             'identityClass' => 'common\models\User',
@@ -40,6 +41,20 @@ return [
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['api'],
                     'logFile' => '@app/runtime/logs/api.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['iot-request'],
+                    'logFile' => '@app/runtime/logs/iot-request.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['smallapp'],
+                    'logFile' => '@app/runtime/logs/smallapp.log',
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
@@ -86,8 +101,24 @@ return [
         //七牛上传
         'qiniu' => [
             'class' => 'app\modules\qiniu\Qiniu'
+        ],
+        //街道相关
+        'street' => [
+            'class' => 'app\modules\street\Module'
+        ],
+        //硬件接入
+        'hard_ware_butt' => [
+            'class' => 'app\modules\hard_ware_butt\Module'
         ]
 
     ],
     'params' => $params,
+
 ];
+if (YII_ENV != 'prod' && YII_ENV != 'release') {
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = [
+        'class' => 'yii\gii\Module',
+    ];
+}
+return $config;

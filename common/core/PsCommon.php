@@ -87,7 +87,7 @@ class PsCommon {
      */
     public static function corsFilter($origins, $allowAll = false)
     {
-        if (YII_ENV != 'master') {//本地/测试环境 postman测试的origin=chrome-extension://xxxx，需要排除掉
+        if (YII_ENV != 'prod') {//本地/测试环境 postman测试的origin=chrome-extension://xxxx，需要排除掉
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
             }
@@ -128,7 +128,7 @@ class PsCommon {
     public static function validSign($systemType)
     {
         return true;
-        if (YII_ENV != 'master') {//本地/测试环境 测试人员绕开验签
+        if (YII_ENV != 'prod') {//本地/测试环境 测试人员绕开验签
             if (Yii::$app->request->getHeaders()->get('Black-Hole') == 'zhujia360') {
                 return true;
             }
@@ -165,7 +165,7 @@ class PsCommon {
      * @param array $data
      * @return string
      */
-    public static function responseSuccess($data = [])
+    public static function responseSuccess($data = [],$object = true)
     {
         if (self::$log) {
             $log['action'] = Yii::$app->controller->action->getUniqueId();
@@ -173,8 +173,12 @@ class PsCommon {
             $log['data'] = F::request();
             Yii::info(json_encode($log, 320), 'api-success');
         }
-
-        return self::ajaxReturn(20000, $data, ['errorMsg' => '']);
+        if (empty($data) && $object) {
+            $reData = (object)$data;
+        } else {
+            $reData = $data;
+        }
+        return self::ajaxReturn(20000, $reData, ['errorMsg' => '']);
     }
 
     /**
@@ -190,7 +194,7 @@ class PsCommon {
             $log['data'] = F::request();
             Yii::info(json_encode($log, 320), 'api-failed');
         }
-        return self::ajaxReturn($code, [], ['errorMsg' => $msg]);
+        return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
     }
 
     /**
@@ -469,7 +473,7 @@ class PsCommon {
      */
     public static function propertyType($index = 0)
     {
-        $model = ['1' => '住宅', '2' => '商用'];
+        $model = ['1' => '居住物业', '2' => '商业物业','3'=>'工业物业'];
 
         if ($index) {
             return $model[$index];

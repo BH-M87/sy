@@ -45,13 +45,13 @@ class CommunityBuildingService extends BaseService
 
     }
 
-    public function getBuildingList($data)
+    public function getBuildList($data)
     {
         $list = PsCommunityBuilding::find()->select(['name as building_name', 'id as building_id'])->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id']])->orderBy('id desc')->asArray()->all();
         return $list;
     }
 
-    public function getUnitList($data)
+    public function getUnitsList($data)
     {
         $list = PsCommunityUnits::find()->select(['name as unit_name', 'id as unit_id'])->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id'], 'building_id' => $data['building_id']])->orderBy('id desc')->asArray()->all();
         return $list;
@@ -65,6 +65,11 @@ class CommunityBuildingService extends BaseService
             ->offset($offset)->limit($pageSize)
             ->orderBy('cu.id desc')
             ->asArray()->all();
+        if(!empty($list)){
+            foreach($list as $key =>$value){
+                $list[$key]['floor_num'] = PsCommon::get($value,'floor_num');
+            }
+        }
         return $list;
     }
 
@@ -200,15 +205,6 @@ class CommunityBuildingService extends BaseService
     public function addReturn($data,$userinfo=''){
         $res = $this->add($data);
         if ($res['code']) {
-            $content = "幢号:" . $data['building_name']."幢";
-            $content .= "单元:" . $data['unit_name'].'单元';
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼宇信息",
-                "operate_type" => "新增楼宇",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userinfo, $operate);
             return PsCommon::responseSuccess($res['data']);
         } else {
             return PsCommon::responseFailed($res['msg']);
@@ -303,15 +299,6 @@ class CommunityBuildingService extends BaseService
         //楼宇推送
         DoorPushService::service()->buildEdit($community_id, $unit->group_name, $unit->building_name,
             $unit->name, $group_code, $building_code, $unit_code, $unit->unit_no);
-        $content = "幢号:" . $unit->building_name;
-        $content .= "单元:" . $unit->name;
-        $operate = [
-            "community_id" =>$data['community_id'],
-            "operate_menu" => "楼宇信息",
-            "operate_type" => "编辑楼宇",
-            "operate_content" => $content,
-        ];
-        OperateService::addComm($userinfo, $operate);
         return PsCommon::responseSuccess($model->id);
     }
 
@@ -354,15 +341,7 @@ class CommunityBuildingService extends BaseService
         }
         if ($unit->delete()) {
             //楼宇删除推送
-            DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
-            $content = "单元:" . $unit->name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "楼宇信息",
-                "operate_type" => "删除楼宇",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userinfo, $operate);
+            //DoorPushService::service()->buildDelete($data['community_id'], $unit->unit_no);
             return PsCommon::responseSuccess("删除成功");
         } else {
             return PsCommon::responseFailed("删除失败");
@@ -479,16 +458,415 @@ class CommunityBuildingService extends BaseService
             if ($unitData) {
                 PsCommunityUnits::model()->batchInsert($unitData);
                 //数据推送
-                DoorPushService::service()->buildBatchAdd($community_id, $pushUnitData,$pushBuildInfo);
-                $operate = [
-                    "community_id" =>$data['community_id'],
-                    "operate_menu" => "楼宇信息",
-                    "operate_type" => "批量新增楼宇",
-                    "operate_content" => '',
-                ];
-                OperateService::addComm($userinfo, $operate);
+                //DoorPushService::service()->buildBatchAdd($community_id, $pushUnitData,$pushBuildInfo);
             }
             return PsCommon::responseSuccess("新增成功");
         }
     }
+
+
+    /***************社区微脑用的楼幢管理**********************/
+    private function buildingSearchDeal($data)
+    {
+        $community_id = $data['community_id'];
+        $model = PsCommunityBuilding::find()->alias('cb')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = cb.community_id')
+            ->where(['cb.community_id' => $community_id]);
+        if (!empty($data['building_name'])) {
+            $model = $model->andFilterWhere(['like','cb.name',$data['building_name']]);
+        }
+        return $model;
+    }
+
+    public function getBuildingList($data, $page, $pageSize)
+    {
+        $offset = ($page - 1) * $pageSize;
+        $list = $this->buildingSearchDeal($data)
+            ->select(['c.name as community_name', 'cb.*','cb.id as building_id','cb.name as building_name'])
+            ->offset($offset)->limit($pageSize)
+            ->orderBy('cb.id desc')
+            ->asArray()->all();
+        if(!empty($list)){
+            foreach($list as $key=>$value){
+                $list[$key]['longitude'] = (empty($value['longitude']) || $value['longitude'] == '0.000000') ? "": $value['longitude'];
+                $list[$key]['latitude'] = (empty($value['latitude']) || $value['latitude'] == '0.000000') ? "": $value['latitude'];
+                $list[$key]['floor_num'] = PsCommon::get($value,'floor_num');
+            }
+        }
+        $result['list'] = !empty($list) ? $list : [];
+        $result['totals'] = $this->buildingSearchDeal($data)->count();
+        return $result;
+    }
+
+    public function addBuilding($data,$userInfo = [])
+    {
+        $community_id = $data['community_id'];
+        $group_id = $data['group_id'];
+        $building_name = PsCommon::get($data,'building_name');
+        $unit_num = PsCommon::get($data,'unit_num',0);
+        $floor_num = PsCommon::get($data,'floor_num',0);
+        $orientation = PsCommon::get($data,'orientation');
+        $locations = PsCommon::get($data,'locations');
+        $longitude = PsCommon::get($data,'longitude','0');
+        $latitude = PsCommon::get($data,'latitude','0');
+        $nature = PsCommon::get($data,'nature',1);
+
+        //如果新增的时候苑期区没填，就默认放到住宅下面，如果住宅不存在就新建
+        if (empty($group_id)) {
+            $res = CommunityGroupService::service()->saveGroupDefault($community_id);
+            if ($res['code']) {
+                $group_id = $res['data'];
+            } else {
+                return PsCommon::responseFailed($res['msg']);
+            }
+        }
+        if($building_name){
+            $building_name .= '幢';
+        }
+
+        $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
+        if($building){
+            return PsCommon::responseFailed('该楼幢已经存在');
+        }
+
+        //苑期区名称
+        $group_info = PsCommunityGroups::find()->select(['name', 'code'])->where(['id' => $group_id])->asArray()->one();
+        $group_name = $group_info['name'];
+        $building_id = $this->getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude,$nature);
+
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            //新增单元
+            if($unit_num > 0){
+                for($i = 1;$i <= $unit_num; $i++){
+                    $unit_name = $i."单元";
+                    $unit_id = $this->saveUnit($community_id, $group_id, $group_name, $building_id, $building_name,$unit_name);
+                    if($unit_id <= 0){
+                        return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
+                    }
+                }
+            }
+            $transaction->commit();
+            return PsCommon::responseSuccess();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return PsCommon::responseFailed('保存失败'.$e);
+
+        }
+
+    }
+
+    //获取楼幢id
+    public function getBuildingId($community_id, $group_id, $group_name, $building_name, $unit_num, $floor_num, $orientation,$locations,$longitude,$latitude,$nature)
+    {
+        $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
+        if (!$building) {
+            $model = new PsCommunityBuilding();
+            $model->community_id = $community_id;
+            $model->name = $building_name;
+            $model->group_id = $group_id;
+            $model->group_name = $group_name;
+            $model->code = '0';
+            $model->building_code = PsCommon::getIncrStr('HOUSE_BUILDING',YII_ENV.'lyl:house-building');
+            $model->unit_num = $unit_num;
+            $model->floor_num = $floor_num;
+            $model->orientation = $orientation;
+            $model->locations = $locations;
+            $model->longitude = $longitude;
+            $model->latitude = $latitude;
+            $model->nature = $nature;
+            if ($model->save()) {
+                $building_id = $model->id;
+            } else {
+                return 0;
+            }
+        } else {
+            $building_id = $building['id'];
+        }
+        return $building_id;
+    }
+
+    //获取楼幢id
+    public function getBuildingIdByName($community_id, $group_id, $group_name, $building_name)
+    {
+        $building = PsCommunityBuilding::find()->where(['group_id'=>$group_id,'name'=>$building_name])->asArray()->one();
+        if (!$building) {
+            $model = new PsCommunityBuilding();
+            $model->community_id = $community_id;
+            $model->name = $building_name;
+            $model->group_id = $group_id;
+            $model->group_name = $group_name;
+            $model->code = '0';
+            $model->building_code = PsCommon::getIncrStr('HOUSE_BUILDING',YII_ENV.'lyl:house-building');
+            $model->unit_num = 0;
+            $model->floor_num = 0;
+            $model->orientation = '';
+            $model->locations = '';
+            $model->longitude = '0.000000';
+            $model->latitude = '0.000000';
+            $model->nature = '1';
+            if ($model->save()) {
+                $building_id = $model->id;
+            } else {
+                return 0;
+            }
+        } else {
+            $building_id = $building['id'];
+        }
+        return $building_id;
+    }
+
+    //保存单元信息
+    public function saveUnit($community_id, $group_id, $group_name, $building_id, $building_name,$unit_name)
+    {
+        $unit = PsCommunityUnits::find()->where(['building_id'=>$building_id,'name'=>$unit_name])->asArray()->one();
+        if($unit){
+            return -1;
+        }else{
+            //新增单元
+            $unit = new PsCommunityUnits();
+            $unit->community_id = $community_id;
+            $unit->group_id = $group_id;
+            $unit->group_name = $group_name;
+            $unit->building_id = $building_id;
+            $unit->building_name = $building_name;
+            $unit->name = $unit_name;
+            $pre = date('Ymd') . str_pad($community_id, 6, '0', STR_PAD_LEFT);
+            $unit->unit_no = PsCommon::getNoRepeatChar($pre, YII_ENV . 'roomUnitList');//unit_no生成规则
+            $unit->unit_code = PsCommon::getIncrStr('HOUSE_UNIT',YII_ENV.'lyl:house-unit');
+            $unit->code = '';
+            if ($unit->save()) {
+                //楼宇推送
+                //DoorPushService::service()->buildAdd($community_id, $unit->group_name, $unit->building_name, $unit->name, '', '', '', $unit->unit_no);
+                return $unit->id;
+            } else {
+                return 0;
+            }
+        }
+
+    }
+
+    //获取单元id
+    public function getUnitId($communityId,$group_id,$group,$building_id,$building,$unit)
+    {
+        $unitInfoByName = PsCommunityUnits::find()->where(['building_id'=>$building_id,'name'=>$unit])->asArray()->one();
+        if(empty($unitInfoByName)){
+            $unitId = $this->saveUnit($communityId,$group_id,$group,$building_id,$building,$unit);
+            //楼幢表的单元数量+1
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>1],['id'=>$building_id]);
+            $unitInfo['data'] = $unitId;
+        }else{
+            $unitInfo['data'] = $unitInfoByName['id'];
+        }
+    }
+    public function editBuilding($data,$userInfo = [])
+    {
+        $building_id = $data['building_id'];
+        $floor_num = PsCommon::get($data,'floor_num',0);
+        $orientation = PsCommon::get($data,'orientation');
+        $locations = PsCommon::get($data,'locations');
+        $longitude = PsCommon::get($data,'longitude',0);
+        $latitude = PsCommon::get($data,'latitude',0);
+        $nature = PsCommon::get($data,'nature',1);
+
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $buildingModel = PsCommunityBuilding::find()->where(['id'=>$building_id])->one();
+            if(empty($buildingModel)){
+                return PsCommon::responseFailed('楼幢不存在');
+            }
+            $buildingModel->floor_num = $floor_num;
+            $buildingModel->orientation = $orientation;
+            $buildingModel->locations = $locations;
+            $buildingModel->longitude = $longitude;
+            $buildingModel->latitude = $latitude;
+            $buildingModel->nature = $nature;
+            $buildingModel->save();
+            $transaction->commit();
+            return PsCommon::responseSuccess();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return PsCommon::responseFailed('编辑失败'.$e);
+
+        }
+    }
+
+    public function detailBuilding($data)
+    {
+        $building_id = PsCommon::get($data,'building_id',0);
+        $res = PsCommunityBuilding::find()->where(['id'=>$building_id])->asArray()->one();
+        if(empty($res)){
+            return PsCommon::responseFailed('楼幢不存在');
+        }
+        $res['building_name'] = $res['name'];
+        $res['longitude'] = (empty($res['longitude']) || $res['longitude'] == '0.000000') ? "": $res['longitude'];
+        $res['latitude'] = (empty($res['latitude']) || $res['latitude'] == '0.000000') ? "": $res['latitude'];
+        $res['floor_num'] = PsCommon::get($res,'floor_num');
+        return PsCommon::responseSuccess($res);
+    }
+
+    public function deleteBuilding($data,$userInfo=[])
+    {
+        $building_id = PsCommon::get($data,'building_id',0);
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $buildingModel = PsCommunityBuilding::find()->where(['id'=>$building_id])->one();
+            if(empty($buildingModel)){
+                return PsCommon::responseFailed('楼幢不存在');
+            }
+            $unitList = PsCommunityUnits::find()->select(['id'])->where(['building_id'=>$building_id])->asArray()->column();
+            //判断这个单元下面是否有房屋
+            $roomInfo = PsCommunityRoominfo::find()->where(['unit_id' => $unitList])->asArray()->one();
+            if ($roomInfo) {
+                return PsCommon::responseFailed("无挂靠房屋才可删除");
+            }
+            $building_name = $buildingModel->name;
+            $buildingModel->delete();
+            $transaction->commit();
+            return PsCommon::responseSuccess("删除成功");
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return PsCommon::responseFailed("删除失败");
+
+        }
+    }
+
+    public function exportBuilding($data)
+    {
+        $list = $this->buildingSearchDeal($data)
+            ->select(['c.name as community_name', 'cb.*','cb.id as building_id','cb.name as building_name'])
+            ->orderBy('cb.id desc')
+            ->asArray()->all();
+        if($list){
+            $arr = [];
+            foreach($list as $key => $value){
+                $arr[] = $value;
+            }
+            return $arr;
+        }
+        return [];
+    }
+
+    /***************社区微脑用的单元管理**********************/
+    private function unitSearchDeal($data)
+    {
+        //$community_id = $data['community_id'];
+        $building_id = $data['building_id'];
+        $model = PsCommunityUnits::find()->alias('cu')
+            ->leftJoin(['c' => PsCommunityModel::tableName()], 'c.id = cu.community_id')
+            ->where(['cu.building_id' => $building_id]);
+        return $model;
+    }
+
+    public function getUnitList($data, $page, $pageSize)
+    {
+        $offset = ($page - 1) * $pageSize;
+        $list = $this->unitSearchDeal($data)
+            ->select(['c.name as community_name', 'cu.*','cu.name as unit_name'])
+            ->offset($offset)->limit($pageSize)
+            ->orderBy('cu.id desc')
+            ->asArray()->all();
+        if(!empty($list)){
+            foreach($list as $key=>$value) {
+                $list[$key]['room_num'] =  PsCommunityRoominfo::find()->where(['unit_id'=>$value['id']])->count();
+            }
+        }else{
+            $list = [];
+        }
+        $result['list'] = $list;
+        $result['totals'] = $this->unitSearchDeal($data)->count();
+        return $result;
+    }
+
+    public function addUnit($data,$userInfo = [])
+    {
+        $community_id = PsCommon::get($data,'community_id',0);
+        $building_id = PsCommon::get($data,'building_id',0);
+        $unit_name = PsCommon::get($data,'unit_name');
+
+        $buildingInfo = PsCommunityBuilding::find()->where(['id'=>$building_id])->asArray()->one();
+        if(empty($buildingInfo)){
+            return PsCommon::responseFailed('楼幢不存在');
+        }
+
+        $group_id = $buildingInfo['group_id'];
+        $building_name = $buildingInfo['name'];
+        //苑期区名称
+        $group_info = PsCommunityGroups::find()->select(['name', 'code'])->where(['id' => $group_id])->asArray()->one();
+        $group_name = $group_info['name'];
+
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $unit_name .= "单元";
+            //新增单元
+            $unit_id = $this->saveUnit($community_id, $group_id, $group_name, $building_id, $building_name,$unit_name);
+            if($unit_id <= 0){
+                return PsCommon::responseFailed($building_name."下".$unit_name.'已存在');
+            }
+            //楼幢下面的单元数量加1
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>1],['id'=>$building_id]);
+            $transaction->commit();
+            return PsCommon::responseSuccess();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return PsCommon::responseFailed('保存失败'.$e);
+
+        }
+    }
+
+    public function detailUnit($data)
+    {
+        $unit_id = PsCommon::get($data,'unit_id',0);
+        $res = PsCommunityUnits::find()->where(['id'=>$unit_id])->asArray()->one();
+        if(empty($res)){
+            return PsCommon::responseFailed('楼幢不存在');
+        }
+        return PsCommon::responseSuccess($res);
+    }
+
+    public function deleteUnit($data,$userInfo = [])
+    {
+        $unit_id = PsCommon::get($data,'unit_id',0);
+        //yii2事物
+        $connection = \Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try {
+            $unitModel = PsCommunityUnits::find()->where(['id'=>$unit_id])->one();
+            if(empty($unitModel)){
+                return PsCommon::responseFailed('单元不存在');
+            }
+            //判断这个单元下面是否有房屋
+            $roomInfo = PsCommunityRoominfo::find()->where(['unit_id' => $unit_id])->asArray()->one();
+            if ($roomInfo) {
+                return PsCommon::responseFailed("无挂靠房屋才可删除");
+            }
+            $unit_name = $unitModel->name;
+            $building_name = $unitModel->building_name;
+            $unitModel->delete();
+            $building_id = $unitModel->building_id;
+            //楼幢下面的单元数量减一
+            PsCommunityBuilding::updateAllCounters(['unit_num'=>-1],['id'=>$building_id]);
+            $transaction->commit();
+            return PsCommon::responseSuccess("删除成功");
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            return PsCommon::responseFailed("删除失败");
+
+        }
+    }
+
+
+
+
+
+
+
 }

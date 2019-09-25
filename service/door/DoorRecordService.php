@@ -12,6 +12,7 @@ namespace service\door;
 use app\models\DoorRecord;
 use common\core\F;
 use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
 use service\common\CsvService;
 use service\rbac\OperateService;
@@ -90,7 +91,7 @@ class DoorRecordService extends BaseService
             $model = $model->andFilterWhere(['dr.room'=>$params['room']]);
         }
         $re['totals'] = $model->count();
-        $list = $model->offset((($params['page'] - 1) * $params['page']))
+        $list = $model->offset((($params['page'] - 1) * $params['rows']))
             ->limit($params['rows'])
             ->orderBy('dr.id desc')
             ->asArray()
@@ -115,6 +116,9 @@ class DoorRecordService extends BaseService
     public function export($params, $userInfo = [])
     {
         $result = $this->getList($params);
+        if (count($result['list']) < 1) {
+            throw new MyException('数据为空');
+        }
         $config = [
             ['title' => '开门时间', 'field' => 'open_times'],
             ['title' => '姓名', 'field' => 'user_name'],
@@ -126,7 +130,9 @@ class DoorRecordService extends BaseService
             ['title' => '门卡卡号', 'field' => 'card_no'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'openRecord');
-        $downUrl = F::downloadUrl($filename, 'openRecord', 'OpenRecord.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         $operate = [
             "community_id" => $params["community_id"],
             "operate_menu" => "门禁管理",

@@ -29,7 +29,6 @@ class PsRepair extends BaseModel
     public $repair_id;
     public $app_user_id;
     public $repair_status;
-    public $room_id;
 
     public static function tableName()
     {
@@ -42,13 +41,15 @@ class PsRepair extends BaseModel
     public function rules()
     {
         return [
+            [['community_id', 'room_id', 'member_id', 'appuser_id', 'repair_type_id', 'expired_repair_type', 'expired_repair_time',
+                'repair_from', 'created_id', 'operator_id', 'is_assign', 'is_pay', 'hard_type', 'hard_check_at', 'status', 'create_at', 'is_assign_again'], 'integer'],
             [['community_id','repair_type_id','repair_content','expired_repair_time'],'required','message'=>'{attribute}不能为空!','on'=>'create'],
             [['repair_content'], 'string', 'max' => 200, 'message'=>'{attribute}不能超过200个字符!', 'on' => 'create'],
             [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list']],
             [['repair_id'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['repair_content'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['community_id'],'required','message'=>'{attribute}不能为空','on'=>['statistic-status', 'statistic-channel','statistic-type','statistic-score']],
-            ['day', 'safe'],
+            [['day','created_username'], 'safe'],
             [['app_user_id', 'community_id', 'repair_status', 'room_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['small_list']],
             ['repair_status', 'in', 'range' => [1, 2, 3, 4, 5], 'message' => '{attribute}类型有误', 'on' => ['small_list']],
             [['repair_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['small_view']],

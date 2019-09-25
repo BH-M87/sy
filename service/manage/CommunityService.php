@@ -624,7 +624,7 @@ class CommunityService extends BaseService
      */
     public function getUserCommunitys($userId)
     {
-        $cackeKey = $this->_userCommunityCacheKey($userId);
+        $cackeKey = $this->_userCommunityCacheKey($userId);;
         if (!$data = Yii::$app->redis->get($cackeKey)) {
             if ($userId == 1) {//超级管理员，用来分配权限用的账号
                 $data = PsCommunityModel::find()->select('id, name')

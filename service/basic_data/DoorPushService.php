@@ -68,7 +68,10 @@ Class DoorPushService extends BaseService
             return true;
         }
         $name = $groupName . $buildingName . $unitName;
-        $code = $groupCode . "#" . $buildingCode . "#" . $unitCode;
+        $code = '';
+        if($groupCode && $buildingCode && $unitCode){
+            $code = $groupCode . "#" . $buildingCode . "#" . $unitCode;
+        }
         $buildData = [
             'community_id' => $communityId,
             'building_name' => $name,
@@ -389,8 +392,7 @@ Class DoorPushService extends BaseService
      * @param $userId     住户id
      * @return bool
      */
-    public function userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,
-                               $userType, $userSex, $userId)
+    public function userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone, $userType, $userSex, $userId)
     {
         $needPush = $this->isNeedPush($communityId);
         if ($needPush === false) {

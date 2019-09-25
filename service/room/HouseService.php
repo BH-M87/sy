@@ -6,14 +6,21 @@
  */
 namespace service\room;
 
+use app\models\ParkingCarport;
+use app\models\ParkingCars;
+use app\models\ParkingUserCarport;
+use app\models\ParkingUsers;
 use app\models\PsBillCost;
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
 use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsCommunityUnits;
+use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
+use app\models\PsRoomUser;
 use common\core\PsCommon;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
 use service\alipay\SharedService;
@@ -80,18 +87,29 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image','cr.orientation'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
+
         if ($list) {
             $list['floor_shared_id'] = $list['floor_shared_id'] ? SharedService::service()->getNameById($list['floor_shared_id']) : '';//楼层号
             $list['lift_shared_id'] = $list['lift_shared_id'] ? SharedService::service()->getNameById($list['lift_shared_id']) : 'X';//电梯编号
-            $label = PsRoomLabel::find()->select('label_id')->where(['room_id' => $list['id']])->asArray()->all();//标签id
+            //$label = PsRoomLabel::find()->select('label_id')->where(['room_id' => $list['id']])->asArray()->all();//标签id
+            $label = LabelsService::service()->getLabelInfoByRoomId($list['id']);
             if (!empty($label)) {
                 foreach ($label as $v) {
-                    $list['room_label_id'][] = $v['label_id'];
+                    $list['room_label_id'][] = $v['name'];
                 }
+                $list['labels'] = $label;
             }
+            $list['community_name'] =  PsCommunityModel::findOne($list['community_id'])->name;
+            $house_type = explode("|",$list['house_type']);
+            $list['house_type_room'] = $house_type[0];
+            $list['house_type_hall'] = $house_type[1];
+            $list['house_type_kitchen'] = $house_type[2];
+            $list['house_type_toilet'] = $house_type[3];
+            $list['delivery_time'] = !empty($list['delivery_time']) ? date('Y-m-d H:i:s',$list['delivery_time']) : '';
+            $list['own_age_limit'] = !empty($list['own_age_limit']) ? $list['own_age_limit'] : '';
             return ['list' => $list];
         }
 
@@ -157,15 +175,12 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            $label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
-            if ($label) {
-                $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
-                $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
-                if (empty($room_id)) {
-                    return ['list' => [], 'totals' => 0, "all_area" => 0];
-                }
-                $where .= " AND id in ($room_id)";
+            $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
+            if(empty($room_id_array)){
+                return ['list' => [], 'totals' => 0, "all_area" => 0];
             }
+            $room_id = implode(',',$room_id_array);
+            $where .= " AND id in ($room_id)";
         }
 
         $count = Yii::$app->db->createCommand("SELECT count(id) as total,sum(charge_area) as all_area FROM ps_community_roominfo WHERE " . $where, $params)->queryOne();
@@ -173,7 +188,6 @@ Class HouseService extends BaseService
         if ($count["total"] == 0) {
             $arr1 = ['totals' => 0, "all_area" => 0.00, 'list' => []];
             return $arr1;
-            exit;
         }
         $rows = empty($rows) ? 10 : $rows;
         $page = $page > ceil($count["total"] / $rows) ? ceil($count["total"] / $rows) : $page;
@@ -188,8 +202,8 @@ Class HouseService extends BaseService
         $unit_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = "  (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
-        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address 
-            FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)->queryAll();
+        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)
+            ->queryAll();
         return ['list' => $list, 'totals' => $count["total"], "all_area" => $count["all_area"]];
     }
 
@@ -337,6 +351,10 @@ Class HouseService extends BaseService
         $room_label_id = !empty($data->room_label_id) ? $data->room_label_id : '';        // 是否有标签
         $floor = !empty($data->floor) ? $data->floor : '';                     // 楼层
         $room_code = !empty($data->room_code) ? str_pad($data->room_code, 4, "0", STR_PAD_LEFT) : '';    // 室号code,前面补0，补齐4位
+        $delivery_time = !empty($data->delivery_time) ? $data->delivery_time : '0';//交房时间
+        $own_age_limit = !empty($data->own_age_limit) ? $data->own_age_limit : '0';//产权年限
+        $orientation = !empty($data->orientation) ? $data->orientation : '';//房屋朝向
+        $room_image = !empty($data->room_image) ? $data->room_image : '';//房屋图片
         $create_at = time();
         $coun = $this->_getFloatLength($floor_coe);
         if ($coun > 2) {
@@ -347,6 +365,9 @@ Class HouseService extends BaseService
                 return $this->failed("请选择电梯编号");
             }
         }
+        if(empty($floor)){
+            return $this->failed("楼层不能为空");
+        }
         $group = $data->group ? (preg_match("/^[0-9\#]*$/", $data->group) ? $group . '期' : $group) : '住宅'; // 房屋所在的组团名称
         $building = preg_match("/^[0-9\#]*$/", $data->building) ? $building . '幢' : $building;  // 房屋所在楼栋名称
         $unit = preg_match("/^[0-9\#]*$/", $data->unit) ? $unit . '单元' : $unit;       // 房屋所在单元名称
@@ -356,6 +377,13 @@ Class HouseService extends BaseService
         $communityInfo = PsCommunityModel::find()->select(['community_no','pro_company_id'])->where(['id'=>$community_id])->asArray()->one();
         $community_no = PsCommon::get($communityInfo,'community_no');
         $property_id = PsCommon::get($communityInfo,'pro_company_id');
+
+        //获取房屋户型
+        $house_type_room = !empty($data->house_type_room) ? $data->house_type_room : 0;
+        $house_type_hall = !empty($data->house_type_hall) ? $data->house_type_hall : 0;
+        $house_type_kitchen = !empty($data->house_type_kitchen) ? $data->house_type_kitchen : 0;
+        $house_type_toilet = !empty($data->house_type_toilet) ? $data->house_type_toilet : 0;
+        $house_type = $house_type_room.'|'.$house_type_hall.'|'.$house_type_kitchen.'|'.$house_type_toilet;
 
         if ($id) { // 修改房屋
             //查询房屋
@@ -371,32 +399,36 @@ Class HouseService extends BaseService
                         throw new Exception("标签错误");
                     }
                 } else {
-                    LabelsService::service()->deleteList(1, $id, 2);
+                    PsLabelsRela::deleteAll(['data_type'=>1,'data_id'=>$id]);
                 }
 
                 $updateData = [
-                    'floor_coe' => $floor_coe,
-                    'floor_shared_id' => $floor_shared_id,
-                    'lift_shared_id' => $is_elevator ? $lift_shared_id : 0,
-                    'is_elevator' => $is_elevator,
+                    'status' => $status,
+                    'property_type' => $property_type,
+                    'charge_area' => $charge_area,
+                    'orientation' => $orientation,
                     'floor' => $floor,
                     'room_code' => $room_code,
+                    'house_type'=>$house_type,
+                    'delivery_time'=>strtotime($delivery_time),
+                    'own_age_limit'=>$own_age_limit,
+                    'room_image'=>$room_image
                 ];
                 PsCommunityRoominfo::updateAll($updateData,['id'=>$id]);
                 //编辑数据推送
-                DoorPushService::service()->roomEdit($community_id, $roomInfo['unit_no'], $roomInfo['out_room_id'], $id, $roomInfo['room'], $room_code, $charge_area);
-                $operate = [
+                //DoorPushService::service()->roomEdit($community_id, $roomInfo['unit_no'], $roomInfo['out_room_id'], $id, $roomInfo['room'], $room_code, $charge_area);
+                /*$operate = [
                     "community_id" => $community_id,
                     "operate_menu" => "房屋管理",
                     "operate_type" => "编辑房屋",
                     "operate_content" => $address,
                 ];
-                OperateService::addComm($user_info, $operate);
+                OperateService::addComm($user_info, $operate);*/
                 $trans->commit();
-                //同步房屋数据到楼宇中心
+                /*//同步房屋数据到楼宇中心
                 if (!empty($roomInfo['roominfo_code'])) {
                     $this->postEditRoomApi(['roominfo_code' => $roomInfo['roominfo_code'], 'room' => $roomInfo['room'], 'floor' => $floor]);
-                }
+                }*/
             } catch (Exception $e) {
                 $trans->rollBack();
                 return $this->failed($e->getMessage());
@@ -444,6 +476,11 @@ Class HouseService extends BaseService
                 $roominfo->room_code = $room_code;
                 $roominfo->create_at = $create_at;
                 $roominfo->roominfo_code = PsCommon::getIncrStr('HOUSE_ROOMINFO',YII_ENV.'lyl:house-roominfo');
+                $roominfo->house_type = $house_type;
+                $roominfo->delivery_time = strtotime($delivery_time);
+                $roominfo->own_age_limit = $own_age_limit;
+                $roominfo->orientation = $orientation;
+                $roominfo->room_image = $room_image;
                 $roominfo->insert();
                 if (!empty($room_label_id)) {
                     if (!LabelsService::service()->addRelation($roominfo->id, $room_label_id, 1)) {
@@ -459,15 +496,15 @@ Class HouseService extends BaseService
 
             //房屋新增数据推送
             $roomModel = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
-            DoorPushService::service()->roomAdd($community_id, $bulidAddRe['unit_no'], $out_room_id, $roomModel['id'], $room, $room_code, $bulidAddRe['build_push'], $charge_area);
-            $operate = [
+           // DoorPushService::service()->roomAdd($community_id, $bulidAddRe['unit_no'], $out_room_id, $roomModel['id'], $room, $room_code, $bulidAddRe['build_push'], $charge_area);
+            /*$operate = [
                 "community_id" => $community_id,
                 "operate_menu" => "房屋管理",
                 "operate_type" => "新增房屋",
                 "operate_content" => $address,
             ];
 
-            OperateService::addComm($user_info, $operate);
+            OperateService::addComm($user_info, $operate);*/
             $batch_id = date("YmdHis", time()) . '1' . rand(1000, 9000);
             $data = [
                 'batch_id' => $batch_id,
@@ -541,12 +578,12 @@ Class HouseService extends BaseService
     {
         $list = RoomInfoService::service()->getRoomInfoByOutRoomId($out_room_id);
         if (!empty($list)) {
-            $exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
+            /*$exist = Yii::$app->db->createCommand("SELECT id FROM ps_bill where out_room_id = :out_room_id and is_del=1 and (trade_defend < 1 or trade_defend > 10)")
                 ->bindValue(':out_room_id', $out_room_id)
                 ->queryScalar();
             if ($exist) {
                 return $this->failed('该房屋有账单，不能直接删除！');
-            }
+            }*/
             $user_exist = Yii::$app->db->createCommand("SELECT id FROM ps_room_user where room_id = :room_id")
                 ->bindValue(':room_id', $list["id"])
                 ->queryScalar();
@@ -570,19 +607,19 @@ Class HouseService extends BaseService
                 ->queryScalar();
 
             $model = Yii::$app->db->createCommand()->delete('ps_community_roominfo', "out_room_id = '$out_room_id'")->execute();
-            $operate = [
+            /*$operate = [
                 "community_id" => $list["community_id"],
                 "operate_menu" => "房屋管理",
                 "operate_type" => "删除房屋",
                 "operate_content" => $list["address"],
             ];
-            OperateService::addComm($user_info, $operate);
+            OperateService::addComm($user_info, $operate);*/
             if ($model) {
                 //同步更新删除到楼宇中心
                 //$this->postDeleteRoomApi($list['roominfo_code']);
 
                 //删除房屋数据推送
-                DoorPushService::service()->roomDelete($list["community_id"], $out_room_id);
+                //DoorPushService::service()->roomDelete($list["community_id"], $out_room_id);
 
                 $batch_id = date("YmdHis", time()) . '2' . rand(1000, 9000);
                 $data = [
@@ -594,9 +631,9 @@ Class HouseService extends BaseService
                 //AlipayBillService::service($community_no)->deleteRoominfo($data);
                 //删除房屋下的水表跟电表，还有对应的抄表记录
                 $room_id = $list["id"];
-                Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
+                /*Yii::$app->db->createCommand()->delete('ps_water_meter', "room_id = {$room_id} ")->execute();
                 Yii::$app->db->createCommand()->delete('ps_electric_meter', "room_id = {$room_id} ")->execute();
-                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();
+                Yii::$app->db->createCommand()->delete('ps_water_record', "room_id = {$room_id} ")->execute();*/
             }
 
         }
@@ -651,16 +688,12 @@ Class HouseService extends BaseService
         }
         //标签处理
         if (!empty($data['room_label_id']) && is_array($data['room_label_id'])) {
-            $label = LabelsService::service()->checkLabel($data['room_label_id'], 1);
-            if ($label) {
-                $label_room = PsRoomLabel::find()->where(['in', 'label_id', $data['room_label_id']])->asArray()->all();
-                $room_id = implode(array_unique(array_column($label_room, 'room_id')), ',');
-                if (empty($room_id)) {
-                    return [];
-                }
-                $where .= " AND id in ($room_id)";
-
+            $room_id_array = PsLabelsRela::find()->select(['data_id'])->where(['labels_id'=>$data['room_label_id'],'data_type'=>1])->asArray()->column();
+            if (empty($room_id_array)) {
+                return [];
             }
+            $room_id = implode(',',$room_id_array);
+            $where .= " AND id in ($room_id)";
         }
         $order_arr = ["asc", "desc"];
         $group_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
@@ -669,15 +702,14 @@ Class HouseService extends BaseService
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = " (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
         $models = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, is_elevator, floor_coe, 
-            floor_shared_id, lift_shared_id, property_type, status, charge_area, intro, out_room_id, address, floor, room_code 
+            floor_shared_id, lift_shared_id, property_type, status, charge_area, intro, out_room_id, address, floor, room_code,orientation,delivery_time,own_age_limit,house_type 
             FROM ps_community_roominfo WHERE $where order by $order_by", $params)->queryAll();
         if ($models) {
             foreach ($models as $house) {
-                $label_room = PsRoomLabel::find()->select('name')
-                    ->innerJoin('ps_labels AS pl', 'pl.id = ps_room_label.label_id')->where(['ps_room_label.room_id' => $house['id']])
-                    ->asArray()->all();
+                $label_room = LabelsService::service()->getLabelByRoomId($house['id']);
                 if (!empty($label_room)) {
-                    $label_name = implode(array_unique(array_column($label_room, 'name')), ',');
+                    //$label_name = implode(array_unique(array_column($label_room, 'name')), ',');
+                    $label_name = implode(',',$label_room);
                     $house['label_name'] = $label_name;
                 } else {
                     $house['label_name'] = '';
@@ -685,6 +717,9 @@ Class HouseService extends BaseService
                 $house['is_elevator_msg'] = $house['is_elevator'] != 1 ? '否' : '是';
                 $house['floor_shared_msg'] = $house['floor_shared_id'] ? SharedService::service()->getNameById($house['floor_shared_id']) : '';
                 $house['lift_shared_msg'] = $house['lift_shared_id'] ? SharedService::service()->getNameById($house['lift_shared_id']) : 'X';
+                $house_type = explode('|',$house['house_type']);
+                $house['house_type'] = $house_type[0]."室".$house_type[1]."厅".$house_type[2]."厨".$house_type[3]."卫";
+                $house['delivery_time'] = !empty($house['delivery_time']) ? date("Y-m-d",$house['delivery_time']) : '';
                 $arr[] = $house;
             }
             return $arr;
@@ -935,5 +970,69 @@ Class HouseService extends BaseService
             }
         }
     }
+
+    // 关联住户--房屋详情用
+    public function relatedResidentForRoom($room_id)
+    {
+        $models = PsRoomUser::find()->where(['room_id' => $room_id, 'status' => [PsRoomUser::UN_AUTH, PsRoomUser::AUTH]]);
+        $list = $models->asArray()->all();
+        $total = $models->count();
+        foreach ($list as &$model) {
+            $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : 0;
+            $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
+            $model['identity_type_des'] = PsCommon::getIdentityType($model['identity_type'], 'key');
+            $model['status_desc'] = PsCommon::getIdentityStatus($model['status']);
+            $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
+            $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : $model['mobile'];
+        }
+        return ['list' => $list, 'total' => $total];
+    }
+
+    // 关联车辆--房屋详情用
+    public function relatedCar($room_id)
+    {
+        $models = ParkingUserCarport::find()->alias('B')
+            ->select('C.id, C.community_id, B.room_address, D.car_port_num, A.user_name, A.user_mobile, C.car_num, C.car_model')
+            ->leftJoin(['A'=>ParkingUsers::tableName()],'A.id = B.user_id')
+            ->leftJoin(['C'=>ParkingCars::tableName()],'C.id = B.car_id')
+            ->leftJoin(['D'=>ParkingCarport::tableName()],'D.id = B.carport_id')
+            ->where(['B.room_id'=>$room_id]);
+        $total = $models->count();
+        $model = $models->orderBy('id desc')->asArray()->all();
+        foreach ($model as &$v) {
+            $v['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
+        }
+
+        return ['list' => $model, 'total' => $total];
+    }
+
+    public function label_add($room_id,$label_id)
+    {
+        $model = PsLabelsRela::find()->where(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1])->asArray()->one();
+        if($model){
+            return PsCommon::responseFailed('该房屋下已存在该标签');
+        }
+        $model = new PsLabelsRela();
+        $model->community_id = PsCommunityRoominfo::findOne($room_id)->community_id;
+        $model->labels_id = $label_id;
+        $model->data_id = $room_id;
+        $model->data_type = 1;
+        $model->created_at = time();
+        $model->save();
+        return PsCommon::responseSuccess('新增成功');
+    }
+
+    public function label_delete($room_id,$label_id)
+    {
+        $model = PsLabelsRela::find()->where(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1])->asArray()->one();
+        if(empty($model)){
+            return PsCommon::responseFailed('该房屋下不存在该标签');
+        }
+
+        PsLabelsRela::deleteAll(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1]);
+        return PsCommon::responseSuccess('删除成功');
+
+    }
+
 
 }

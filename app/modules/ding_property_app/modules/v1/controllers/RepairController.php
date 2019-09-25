@@ -42,7 +42,8 @@ class RepairController extends UserBaseController
             return F::apiFailed('无权查看此小区！');
         }
         $rooms = RoomService::service()->getRoomsRelated($communityId);
-        return F::apiSuccess($rooms);
+        $re['list'] = $rooms;
+        return F::apiSuccess($re);
     }
 
     //发布报事报修
@@ -55,7 +56,6 @@ class RepairController extends UserBaseController
         $params['repair_content'] = F::value($this->request_params, 'repair_content', '');
         $params['contact_mobile'] = F::value($this->request_params, 'contact_mobile', '');
         $params['repair_imgs'] =  F::value($this->request_params, 'imgs', '');
-        $params['agentid'] =  F::value($this->request_params, 'agentid', '');
         $params['expired_repair_time'] = $params['expired_repair_time'] ? date("Y-m-d", $params['expired_repair_time']) : 0;
         $params['repair_from'] = 3;
 
@@ -122,10 +122,10 @@ class RepairController extends UserBaseController
         if (!$params['status']) {
             return F::apiFailed('请输入操作状态！');
         }
-        if (!in_array($params['status'], [RepairService::STATUS_UN_DO, RepairService::STATUS_REJECTED])) {
+        if (!in_array($params['status'], [1,2])) {
             return F::apiFailed('状态值错误！');
         }
-        if ($params['status'] == RepairService::STATUS_REJECTED && !$params['reason']) {
+        if ($params['status'] == 2 && !$params['reason']) {
             return F::apiFailed('请输入驳回原因！');
         }
         $result = RepairService::service()->acceptIssue($params, $this->userInfo);
@@ -160,7 +160,7 @@ class RepairController extends UserBaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result = RepairService::service()->assign($valid['data'], $this->userInfo);
-        if ($result === true) {
+        if (is_array($result)) {
             return F::apiSuccess($result);
         }
         return F::apiFailed($result);
@@ -205,7 +205,8 @@ class RepairController extends UserBaseController
         if ($params['status'] == 3 && $params['need_pay'] == 1 && empty($params['total_price'])) {
             return F::apiFailed('请填写收费金额！');
         }
-        $params['operator_id'] = $this->userInfo['id'];
+        $params['user_id'] = $this->userInfo['id'];
+
         $result = RepairService::service()->dingAddRecord($params, $this->userInfo);
         if ($result === true) {
             return F::apiSuccess($result);
@@ -219,13 +220,13 @@ class RepairController extends UserBaseController
         $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
         $params['repair_content'] = F::value($this->request_params, 'content', '');
         $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['operator_id'] = F::value($this->request_params, 'user_id', 0);
+        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
-        if (!$params['operator_id']) {
+        if (!$params['user_id']) {
             return F::apiFailed('请选择员工！');
         }
         $result = RepairService::service()->addRecord($params,$this->userInfo);
@@ -241,7 +242,7 @@ class RepairController extends UserBaseController
         $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
         $params['repair_content'] = F::value($this->request_params, 'content', '');
         $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['operator_id'] = F::value($this->request_params, 'user_id', 0);
+        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
         $params['amount'] = F::value($this->request_params, 'amount', 0);
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {

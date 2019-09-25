@@ -1,6 +1,7 @@
 <?php
 namespace service\small;
 
+use common\core\F;
 use common\core\PsCommon;
 
 use app\models\PsCommunityUnits;
@@ -13,8 +14,11 @@ use app\models\PsRoomUser;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
+use app\models\PsMember;
 use app\models\PsAppUser;
+use app\models\PsCommunityBuilding;
 
+use common\MyException;
 use service\message\MessageService;
 use service\BaseService;
 
@@ -26,13 +30,13 @@ class ComplaintService extends BaseService
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
         $type = !empty($params['type']) ? $params['type'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
-        if (!$community_id || !$type || !$app_user_id || !$room_id) {
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
+        if (!$community_id || !$type || !$user_id || !$room_id) {
             return $this->failed('参数错误！');
         }
 
         // 获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
+        $member_id = $this->getMemberByUser($user_id);
         // 获取小区名称
         $community = PsCommunityModel::find()->select('id, name')->where(['id' => $community_id])->asArray()->one();
         // 房屋地址
@@ -52,6 +56,7 @@ class ComplaintService extends BaseService
         $success['list'] = $data ?? [];
         $success['room_info'] = $address['address'];
         $success['community_name'] = $community['name'];
+
         return $this->success($success);
     }
 
@@ -70,12 +75,12 @@ class ComplaintService extends BaseService
         $result['id'] = $data['id'];
         $result['content'] = $data['content'];
         $result['status'] = $data['status'];
-        $result['status_label'] = PsCommon::$complaintStatus[$data['status']];
+        $result['status_label'] = PsComplaint::$status[$data['status']];
         $result['type'] = $data['type'];
         $result['handle_at'] = !empty($data['handle_at']) ? date('Y-m-d H:i', $data['handle_at']) : '';
         $result['handle_content'] = $data['handle_content'];
         $result['create_at'] = date('Y-m-d H:i', $data['create_at']);
-        $result['images'] = $imgList ?? [];
+        $result['images'] = F::ossImagePath(array_column($imgList, 'img'));
 
         return $this->success($result);
     }
@@ -86,9 +91,9 @@ class ComplaintService extends BaseService
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
         $type = !empty($params['type']) ? $params['type'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
         $content = !empty($params['content']) ? $params['content'] : '';
-        if (!$community_id || !$type || !$app_user_id || !$content || !$room_id) {
+        if (!$community_id || !$type || !$user_id || !$content || !$room_id) {
             return $this->failed('参数错误！');
         }
         if (!in_array($type, [1, 2])) {
@@ -96,7 +101,7 @@ class ComplaintService extends BaseService
         }
 
         // 获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
+        $member_id = $this->getMemberByUser($user_id);
         $member_name = $this->getMemberNameByUser($member_id);
 
         $model = new PsComplaint();
@@ -155,12 +160,12 @@ class ComplaintService extends BaseService
     {
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
         $id = !empty($params['id']) ? $params['id'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
-        if (!$community_id || !$id || !$app_user_id) {
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
+        if (!$community_id || !$id || !$user_id) {
             return $this->failed('参数错误！');
         }
         // 获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
+        $member_id = $this->getMemberByUser($user_id);
 
         $model = PsComplaint::find()->where(['id' => $id, 'member_id' => $member_id])->one();
         if (empty($model)) {
@@ -180,7 +185,7 @@ class ComplaintService extends BaseService
     {
         foreach ($data as &$item) {
             if (isset($item['create_at'])) {
-                $item['status_label'] = PsCommon::$complaintStatus[$item['status']];
+                $item['status_label'] = PsComplaint::$status[$item['status']];
                 $item['create_at'] = date('Y-m-d H:i', $item['create_at']);
             }
         }
@@ -210,8 +215,11 @@ class ComplaintService extends BaseService
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
         //获取幢id
-        $unit_id = PsCommunityRoominfo::model()->find()->select('unit_id')->where(['id' => $room_id])->scalar();
-        $buiding_id = PsCommunityUnits::model()->find()->select('building_id')->where(['id' => $unit_id, 'community_id' => $community_id])->scalar();
+        $room = PsCommunityRoominfo::findOne($room_id);
+        $buiding_id = '';
+        if(!empty($room)){
+            $buiding_id = PsCommunityBuilding::find()->select('id')->where(['group_name' => $room->group, 'community_id' => $community_id, 'name' => $room->building])->scalar();
+        }
         if (!empty($buiding_id)) {
             //获取管家信息
             $steward = PsSteWard::find()->alias('ward')->select(['ward.id','ward.name','ward.mobile','ward.evaluate','ward.praise'])
@@ -229,10 +237,10 @@ class ComplaintService extends BaseService
     public function stewardInfo($params)
     {
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
         $id = !empty($params['id']) ? $params['id'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
-        if (!$community_id || !$id || !$app_user_id) {
+        if (!$community_id || !$id || !$user_id) {
             return $this->failed('参数错误！');
         }
         // 获取管家信息
@@ -254,19 +262,19 @@ class ComplaintService extends BaseService
                 $label_list[] = $label;
             }
         }
-        $member_id = $this->getMemberByUser($app_user_id);
+        $member_id = $this->getMemberByUser($user_id);
         $roomUser = PsRoomUser::find()->select('status')->where(['room_id' => $room_id, 'member_id' => $member_id])->orderBy('status asc')->asArray()->one();
         $steward['is_auth'] = $roomUser['status']==2 ? 1 : 2; // 当前房屋是否认证 1已认证 2未认证
         $steward['label'] = $label_list;
         //获取好评差评参数
         $steward['label_params'] = $this->getStewardLabel();
         //获取用户当天有没有评价-好评
-        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
         $steward['praise_status'] = !empty($praise_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
         //获取用户当天有没有评价-差评
-        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
         $steward['review_status'] = !empty($review_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
-        $steward['params'] = ['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
+        $steward['params'] = ['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
         return $this->success($steward);
     }
 
@@ -287,11 +295,11 @@ class ComplaintService extends BaseService
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();
-        foreach ($resultAll as $result){
-            $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
-            $result['user_name'] = $this->substr_cut($result['user_name']);
-            $result['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $result['user_id']])->scalar();
-            $list[] = $result;
+        foreach ($resultAll as $v){
+            $v['create_at'] = date('Y-m-d H:i',$v['create_at']);
+            $v['user_name'] = $this->substr_cut(PsMember::userinfo($v['user_id'])['name']);
+            $v['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $v['user_id']])->scalar();
+            $list[] = $v;
         }
 
         return $this->success(['list'=>$list,'total'=>$total]);
@@ -301,7 +309,7 @@ class ComplaintService extends BaseService
     public function addSteward($params)
     {
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
         $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
         $label_id = !empty($params['label_id']) ? $params['label_id'] : '';
         $id = !empty($params['id']) ? $params['id'] : '';
@@ -310,10 +318,10 @@ class ComplaintService extends BaseService
 
         $page = !empty($params['page']) ? $params['page'] : 1;
         $rows = !empty($params['rows']) ? $params['rows'] : 10;
-        if (!$community_id || !$id || !$app_user_id || !$type || !$room_id || !$label_id) {
+        if (!$community_id || !$id || !$user_id || !$type || !$room_id || !$label_id) {
             return $this->failed('参数错误！'.json_encode($params));
         }
-        $userInfo = PsAppUser::find()->select(['nick_name','true_name','phone'])->where(['id' => $app_user_id])->asArray()->one();
+        $userInfo = PsAppUser::find()->select(['nick_name','true_name','phone'])->where(['id' => $user_id])->asArray()->one();
         if(empty($userInfo)){
             return $this->failed('用户不存在！');
         }
@@ -321,7 +329,7 @@ class ComplaintService extends BaseService
             return $this->failed("标签参数错误");
         }
         // 获取用户当天有没有评价
-        $status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>$type])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>$type])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
         if(!empty($status)){
             $msg = $type==1?'表扬':'批评';
             return $this->failed("您当天已".$msg);
@@ -335,7 +343,7 @@ class ComplaintService extends BaseService
         $model = new PsSteWardEvaluate();
         $model->user_name = !empty($userInfo['true_name'])?$userInfo['true_name']:$userInfo['nick_name'];
         $model->user_mobile = $userInfo['phone'];
-        $model->user_id = $app_user_id;
+        $model->user_id = $user_id;
         $model->room_id = $room_id;
         $model->community_id = $community_id;
         $model->steward_id = $id;
@@ -363,7 +371,7 @@ class ComplaintService extends BaseService
             }
             //发送消息
             //获取业主id
-            $member_id = $this->getMemberByUser($app_user_id);
+            $member_id = $this->getMemberByUser($user_id);
             $member_name = $this->getMemberNameByUser($member_id);
             $room_info = CommunityRoomService::getCommunityRoominfo($room_id);
             $data = [

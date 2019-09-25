@@ -14,11 +14,20 @@ use common\core\F;
 class UserBaseController extends BaseController
 {
     public $appUserId;
+    public $enableAction;
 
     public function beforeAction($action)
     {
         if(!parent::beforeAction($action)) return false;
-        $this->appUserId = F::value($this->params, 'app_user_id');
+        //不走token验证的接口，及download不走其他权限,小区ID 验证
+        if (!empty($this->enableAction) && in_array($action->id, $this->enableAction)) {
+            return true;
+        }
+        F::setSmallStatus();
+        $this->appUserId = F::value($this->params, 'user_id');
+        if (empty($this->appUserId)) {
+            $this->appUserId = F::value($this->params, 'app_user_id');
+        }
         if (!$this->appUserId) {
             return F::apiFailed('用户id不能为空！');
         }

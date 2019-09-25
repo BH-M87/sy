@@ -20,7 +20,6 @@ class MemberService extends BaseService
     //根据手机号查找会员
     public function getMemberByMobile($mobile, $select = '*')
     {
-
         return PsMember::find()
             ->select($select)
             ->where(['mobile' => $mobile])
@@ -47,6 +46,7 @@ class MemberService extends BaseService
             ->one();
     }
 
+
     //查找住户信息
     public function getRoomUserByMemberIdRoomId($memberId, $roomId)
     {
@@ -55,5 +55,18 @@ class MemberService extends BaseService
             ->where(['member_id' => $memberId, 'room_id' => $roomId])
             ->asArray()
             ->one();
+    }
+
+    //根据member_id 查找 app_user
+    public function getAppUserIdsByMemberId($memberId)
+    {
+        $appUserModel = PsAppMember::find()
+            ->select(['app_user_id'])
+            ->where(['member_id' => $memberId])
+            ->orderBy('id desc')
+            ->limit(1)
+            ->asArray()
+            ->one();
+        return $appUserModel['app_user_id'];
     }
 }

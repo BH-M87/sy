@@ -515,15 +515,15 @@ class RoomUserService extends BaseService
      */
     public function view($params)
     {
-        $communityId = F::get($params, 'community_id');
+        $communityId = PsCommon::get($params, 'community_id');
         if (empty($communityId)) {
             throw new MyException('小区id不能为空');
         }
-        $id = F::get($params, 'audit_record_id');
+        $id = PsCommon::get($params, 'audit_record_id');
         $type = 1;
         if (empty($id)) {
             $type = 2;
-            $id = F::get($params, 'rid');
+            $id = PsCommon::get($params, 'rid');
             if (empty($id)) {
                 throw new MyException('房屋id/审核id不能都为空');
             }
@@ -542,6 +542,14 @@ class RoomUserService extends BaseService
             $data['room_address'] = $result['group'] . $result['building'] . $result['unit'] . $result['room'];
             $data['identity_label'] = $result['identity_type_des'];
             $data['community_name'] = PsCommunityModel::find()->select(['name'])->where(['id' => $communityId])->asArray()->scalar();
+            if(!empty($data['images'])){
+                $images = [];
+                foreach($data['images'] as $key =>$value){
+                    $images[] = F::getOssImagePath($value);
+                }
+                $data['images'] = $images;
+            }
+
         }
         return $data;
     }
@@ -571,9 +579,11 @@ class RoomUserService extends BaseService
     //住户信息
     public static function showOne($id, $communityId)
     {
-        $data = PsRoomUser::find()
-            ->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status')
-            ->where(['id' => $id, 'community_id' => $communityId])->asArray()->one();
+        //->select('id, room_id, group, building, unit, room, name, mobile, card_no, identity_type, time_end, status,room_image as images')
+        $data = PsRoomUser::find()->alias('u')
+            ->leftJoin(['r'=>PsCommunityRoominfo::tableName()],'u.room_id = r.id')
+            ->select(['u.id','u.room_id','u.group','u.building','u.unit','u.room','u.name','u.mobile','u.card_no','u.identity_type','u.time_end','u.status','r.room_image as images'])
+            ->where(['u.id' => $id, 'u.community_id' => $communityId])->asArray()->one();
         if (!$data) return null;
         $data['time_end'] = $data['time_end'] ? date('Y-m-d', $data['time_end']) : '';
         $data['identity_type_des'] = TagLibrary::roomUser('identity_type')[$data['identity_type']];

@@ -21,7 +21,7 @@ use Yii;
  * @property int $created_at 发放时间
  * @property int $updated_at 更新时间
  */
-class ParkingCouponRecord extends \yii\db\ActiveRecord
+class ParkingCouponRecord extends BaseModel
 {
     /**
      * {@inheritdoc}
@@ -40,7 +40,6 @@ class ParkingCouponRecord extends \yii\db\ActiveRecord
             [['coupon_id'], 'required'],
             [['coupon_id', 'app_user_id', 'status', 'type', 'expired_time', 'closure_time', 'created_at', 'updated_at'], 'integer'],
             [['plate_number'], 'string', 'max' => 50],
-            [['orderId'], 'string', 'max' => 30],
             [['coupon_code'], 'string', 'max' => 16],
             [['note'], 'string', 'max' => 200],
         ];
@@ -57,7 +56,6 @@ class ParkingCouponRecord extends \yii\db\ActiveRecord
             'app_user_id' => 'App User ID',
             'plate_number' => 'Plate Number',
             'status' => 'Status',
-            'orderId' => 'Order ID',
             'coupon_code' => 'Coupon Code',
             'note' => 'Note',
             'type' => 'Type',

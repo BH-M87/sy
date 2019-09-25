@@ -1318,7 +1318,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'J' => ['title' => '错误原因', 'width' => 30, 'data_type' => 'str', 'field' => 'error', 'default' => '-'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        return F::downloadUrl(2, $filename, 'error');
+        $filePath = F::originalFile().'error/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return $downUrl;
     }
     //=================================================End账单列表导入功能相关==========================================
 
@@ -1555,7 +1558,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'I' => ['title' => '错误原因', 'width' => 10, 'data_type' => 'str', 'field' => 'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        return F::downloadUrl(2, $filename, 'error');
+        $filePath = F::originalFile().'error/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
+        return $downUrl;
     }
     //===============================================End账单列表批量收款功能相关========================================
 

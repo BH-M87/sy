@@ -22,6 +22,7 @@ use service\BaseService;
 use service\basic_data\ResidentService;
 use service\basic_data\MemberService as BasicMemberService;
 use service\basic_data\RoomService;
+use service\common\AliSmsService;
 use service\common\SmsService;
 use Yii;
 
@@ -143,7 +144,8 @@ class FamilyManageService extends BaseService
     {
         self::checkParams($params);
         if (empty($params['mobile'])) {
-            $mobile = PsCommon::generateVirtualPhone();
+            throw new MyException('手机号不能为空');
+            //$mobile = PsCommon::generateVirtualPhone();
         } else {
             $mobile = $params['mobile'];
         }
@@ -155,7 +157,6 @@ class FamilyManageService extends BaseService
         $params['mobile'] = $mobile;
 
         $userInfoArray = self::checkUserInfo($params['user_id'], $params['room_id'], $params);
-
         $member_id = $userInfoArray['member_id'];
         //验证房屋信息是否存在
         if (!empty($member_id)) {
@@ -236,9 +237,14 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
             }
             $model->member_id = $member_id;
             if (empty($model->member_id)){
@@ -383,7 +389,6 @@ class FamilyManageService extends BaseService
         $userInfo = $userInfoArray['userInfo'];
         $roomUserInfo = $userInfoArray['roomUserInfo'];
         $isAuth = ResidentService::service()->isAuthByNameMobile($community_id, $params['name'], $params['mobile']);
-
         $model = new PsRoomUser();
         $et = PsCommon::get($params, 'enter_time');
         $data['community_id'] = $roomUserInfo['community_id'];
@@ -419,9 +424,15 @@ class FamilyManageService extends BaseService
             }
             //更新已经实名认证的用户到member表当中
             if (!empty($userInfo)) {
-                $memberModel = new PsMember();
-                $memberModel->setAttributes($userInfo);
-                $memberModel->save();
+                $member = PsMember::find()->where(['mobile'=>$userInfo['mobile']])->asArray()->one();
+                if(empty($member)){
+                    $memberModel = new PsMember();
+                    $memberModel->setAttributes($userInfo);
+                    $memberModel->save();
+                }else{
+                    PsMember::updateAll(['name'=>$userInfo['name']],['mobile'=>$userInfo['mobile']]);
+                }
+
             }
             if (empty($member_id)) {
                 $trans->rollback();
@@ -431,7 +442,28 @@ class FamilyManageService extends BaseService
             $model->setAttributes($data);
             $result = $model->save();
             if (!$result) {
-                throw new MyException('新增住户失败');
+                throw new MyException('新增住户失败:'.$model->getFirstError('time_end'));
+            }
+            //发送短信
+            if ($params['identity_type'] == 2) {
+                $identityTypeLabel = '家人';
+            } elseif ($params['identity_type'] == 3) {
+                $identityTypeLabel = '租客';
+            } else {
+                $identityTypeLabel = '';
+            }
+            $communityName = CommunityService::service()->getCommunityName($community_id);
+            if (!PsCommon::isVirtualPhone($params['mobile'])){
+                $smsParams['templateCode'] = 'SMS_174278311';  //模板
+                $smsParams['mobile'] = $params['mobile'];      //手机号
+                //短信内容
+                $templateParams['name'] = $params['name'];
+                $templateParams['community_name'] = $communityName['name'];
+                $templateParams['resident_name'] = $roomUserInfo['name'];
+                $templateParams['resident_type'] = $identityTypeLabel;
+                $sms = AliSmsService::service($smsParams);
+                $sms->send($templateParams);
+                //SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
             }
             $trans->commit();
         } catch (\Exception $e) {
@@ -455,9 +487,9 @@ class FamilyManageService extends BaseService
             throw new MyException('用户不存在');
         }
         if (!empty($params['resident_id'])) {
-            return ResidentService::service()->removeChild($params['resident_id'], $memberId);
+            return $this->removeChild($params['resident_id'], $memberId);
         } else {
-            return ResidentService::service()->removeResiden($params['rid'], $memberId);
+            return $this->removeResiden($params['rid'], $memberId);
         }
     }
 

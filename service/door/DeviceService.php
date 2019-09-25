@@ -8,6 +8,7 @@
 namespace service\door;
 use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
+use app\models\PsCommunityUnits;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\SupplierService;
@@ -69,7 +70,8 @@ class DeviceService extends BaseService
             ];
         }
         $query = new Query();
-        $query->from('door_devices dd')
+        $query
+            ->from('door_devices dd')
             ->leftJoin('door_device_unit ddu', 'ddu.devices_id = dd.id')
             ->leftJoin('ps_community_units pcu', 'pcu.id = ddu.unit_id')
             ->leftJoin('iot_suppliers as is','is.id = dd.supplier_id')
@@ -79,6 +81,15 @@ class DeviceService extends BaseService
         }
         if (!empty($deviceIds)) {
             $query->andWhere(['dd.id' => $deviceIds]);
+        }
+        if (!empty($params['group'])) {
+            $query->andWhere(['pcu.group_name' => $params['group']]);
+        }
+        if (!empty($params['building'])) {
+            $query->andWhere(['pcu.building_name' => $params['building']]);
+        }
+        if (!empty($params['unit'])) {
+            $query->andWhere(['pcu.name' => $params['unit']]);
         }
         if (!empty($params['supplier_id'])) {
             $query->andWhere(['dd.supplier_id' => $params['supplier_id']]);
@@ -95,10 +106,13 @@ class DeviceService extends BaseService
         if (!empty($params['device_id'])) {
             $query->andWhere(['like', 'dd.device_id', $params['device_id']]);
         }
-        $re['totals'] = $query->count();
-        $query->select(['dd.*','is.name as supplier_name']);
+        $countQuery = $query->select('dd.id');
+        $command = $countQuery->createCommand();
+        $models = $command->queryAll();
+        $re['totals'] = count(array_unique(array_column($models, 'id')));
+        $query->select(['dd.*','is.name as supplier_name'])->distinct();
         $query->orderBy('dd.create_at desc');
-        $offset = ($params['page'] - 1) * $params['page'];
+        $offset = ($params['page'] - 1) * $params['rows'];
         $query->offset($offset)->limit($params['rows']);
 
         $command = $query->createCommand();
@@ -353,6 +367,57 @@ class DeviceService extends BaseService
         }
         $deviceIds = $query->asArray()->column();
         return $deviceIds;
+    }
+
+    /**
+     * 获取房屋数据
+     * @param $params
+     * @return array
+     */
+    public function getPerMissionList($params)
+    {
+        $boolean = false;
+        $list = PsCommunityUnits::find()
+            ->where(['community_id' => $params['community_id']])
+            ->andWhere(['!=', 'unit_no', ''])
+            ->asArray()
+            ->all();
+        $group_list = [];//苑期区数组
+        if($list){
+            $group = $building = [];
+            $building_list = [];//楼幢数组
+            foreach($list as $key=>$value){
+                $unit = [];//单元信息
+                //用名称分类
+                if(!in_array($value['group_id'],$group)){
+                    array_push($group,$value['group_id']);
+                    $group_list[$value['group_id']]['key'] = $value['group_id'];
+                    $group_list[$value['group_id']]['value'] = $value['group_id'];
+                    $group_list[$value['group_id']]['label'] = $value['group_name'];
+                    $group_list[$value['group_id']]['disabled'] = $boolean;
+                    $group_list[$value['group_id']]['children'] = [];
+                }
+                if(!in_array($value['building_id'],$building)){
+                    array_push($building,$value['building_id']);
+                    $building_list[$value['building_id']]['key'] = $value['group_id']."-".$value['building_id'];
+                    $building_list[$value['building_id']]['value'] = $value['building_id'];
+                    $building_list[$value['building_id']]['label'] = $value['building_name'];
+                    $building_list[$value['building_id']]['disabled'] = $boolean;
+                    $building_list[$value['building_id']]['children'] = [];
+                }
+                $unit = [
+                    'key'=>$value['group_id']."-".$value['building_id']."-".$value['id'],
+                    'value'=>$value['id'],'label'=>$value['name']
+                ];
+                $building_list[$value['building_id']]['children'][] = $unit;//将单元信息分配到幢下面
+                $group_list[$value['group_id']]['children'][$value['building_id']] = $building_list[$value['building_id']];//将幢分配到苑期区下面
+            }
+        }
+        sort($group_list);//排序去除key
+        foreach($group_list as $k =>$v){
+            sort($group_list[$k]['children']);//排序去除key
+        }
+        return $group_list;
     }
 
     //根据设备id获取其控制权限

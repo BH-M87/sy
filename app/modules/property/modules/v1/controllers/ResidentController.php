@@ -1,20 +1,20 @@
 <?php
-/**
- * User: ZQ
- * Date: 2019/8/21
- * Time: 11:05
- * For: 住户管理
- */
-
+// 住户管理
 namespace app\modules\property\modules\v1\controllers;
 
 require dirname(__DIR__, 6) . '/common/PhpExcel/PHPExcel.php';
+
+use Yii;
+use yii\db\Exception;
+use yii\rest\ViewAction;
+
+use common\core\F;
+use common\core\PsCommon;
+
 use app\models\PsLabels;
 use app\models\PsResidentFrom;
 use app\models\PsRoomUser;
-use app\modules\property\controllers\BaseController;
-use common\core\F;
-use common\core\PsCommon;
+
 use service\basic_data\RoomMqService;
 use service\common\ExcelService;
 use service\manage\CommunityService;
@@ -24,9 +24,8 @@ use service\resident\MemberService;
 use service\resident\ResidentService;
 use service\resident\RoomUserService;
 use service\room\RoomService;
-use yii\db\Exception;
-use Yii;
-use yii\rest\ViewAction;
+
+use app\modules\property\controllers\BaseController;
 
 class ResidentController extends BaseController
 {
@@ -39,29 +38,54 @@ class ResidentController extends BaseController
         return true;
     }
 
-    /*******已完成测试的方法********/
-    /**
-     * 获取小区下的所有住户列表
-     */
+    // 住户过期迁出 每分钟执行 */1 * * * * curl localhost:9003/property/v1/resident/move-out2
+    public function actionMoveOut2()
+    {
+        // 查询id出来，再执行更新，避免锁全表
+        $m = PsRoomUser::find()->where(['identity_type' => 3, 'status' => [1, 2]])
+            ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
+        
+        if (!empty($m)) {
+            foreach ($m as $v) {
+                // 迁出租客的时候会需要把这个人同时也在JAVA那边删除，因此直接调用迁出的service
+                $userInfo = ['id' => '1', 'username' => '系统操作'];
+                ResidentService::service()->moveOut($v->id, $userInfo, $v->community_id);
+            }
+        }
+    }
+
+    // 住户列表 迁入迁出
     public function actionList()
     {
         $result = ResidentService::service()->lists($this->request_params, $this->page, $this->pageSize);
         return PsCommon::responseAppSuccess($result);
     }
 
-    /**
-     * 详情
-     */
+    // 住户列表 审核 待审核
+    public function actionAuditList()
+    {
+        $result = ResidentService::service()->auditLists($this->request_params, $this->page, $this->pageSize);
+        return PsCommon::responseSuccess($result);
+    }
+
+    // 住户审核详情
+    public function actionAuditShow()
+    {
+        $result = ResidentService::service()->auditShow($this->request_params['id'], $this->communityId);
+        if (!$result) {
+            return PsCommon::responseFailed('数据不存在');
+        }
+        return PsCommon::responseSuccess($result);
+    }
+
+    // 详情
     public function actionShow()
     {
         $result = ResidentService::service($this->communityId)->show($this->request_params['id']);
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * 新增
-     * @return null|string
-     */
+    // 新增 {"room_id":"1","group":"张强测试区2","building":"1幢","unit":"1单元","room":"106室","name":"吴建阳","mobile":"18768143435","identity_type":"1","sex":"1","user_label_id":[1,2]}
     public function actionAdd()
     {
         $result = ResidentService::service()->add($this->request_params, $this->user_info);
@@ -71,10 +95,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 编辑
-     * @return null|string
-     */
+    // 编辑
     public function actionEdit()
     {
         $result = ResidentService::service()->edit($this->request_params, $this->user_info);
@@ -84,10 +105,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 删除住户
-     * @return null|string
-     */
+    // 删除住户
     public function actionDelete()
     {
         $result = ResidentService::service($this->communityId)->delete($this->request_params['id'], $this->user_info);
@@ -97,30 +115,26 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 迁入
-     * @return null|string
-     */
+    // 迁入
     public function actionMoveIn()
     {
         $type = $this->request_params['type'];
-        if ($type == 1) {
+        if ($type == 1) { // 迁出后迁入
             $result = ResidentService::service()->moveIn($this->request_params['id'], $this->request_params, $this->user_info);
-        } elseif ($type == 2) {
+        } elseif ($type == 2) { // 审核通过迁入
             $result = ResidentService::service()->pass($this->request_params['id'], $this->request_params, $this->user_info);
         } else {
             return PsCommon::responseFailed('type不存在');
         }
+
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
+
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 迁出
-     * @return null|string
-     */
+    // 迁出
     public function actionMoveOut()
     {
         $result = ResidentService::service()->moveOut($this->request_params['id'], $this->user_info);
@@ -130,10 +144,7 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 住户导出
-     * @return null|string
-     */
+    // 住户导出
     public function actionExport()
     {
         $valid = PsCommon::validParamArr(new PsResidentFrom(), $this->request_params, 'list');
@@ -173,39 +184,39 @@ class ResidentController extends BaseController
             'live_type' => ['title' => '居住类型', 'width' => 19, 'items' => ResidentService::service()->live_type],
             'id' => ['title' => 'ID(切勿修改)', 'width' => 19],
         ];
-        // $filename = CsvService::service()->saveTempFile(1, $config, $result, 'YeZhu');
+
         $config["save"] = true;
         $config['path'] = 'temp/' . date('Y-m-d');
         $config['file_name'] = ExcelService::service()->generateFileName('YeZhu');
         $url = ExcelService::service()->export($result, $config);
         $fileName = pathinfo($url, PATHINFO_BASENAME);
-        $downUrl = F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhu.xlsx');
+        $filePath = F::originalFile().'temp/'.date('Y-m-d').'/'.$fileName;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
-    /**
-     * 下载模版链接
-     * @return string
-     */
+    // 下载模版链接
     public function actionGetDown()
     {
         $downUrl = F::downloadUrl('import_resident_templates.xlsx', 'template', 'MoBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
-    /**
-     * 导入小区住户
-     */
+    // 导入住户
     public function actionImport()
     {
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
+
         if (!$r['code']) {
             return PsCommon::responseFailed($r['msg']);
         }
+
         $communityId = PsCommon::get($this->request_params, 'community_id');
         if (!$communityId) {
             return PsCommon::responseFailed('小区ID不能为空');
@@ -216,18 +227,16 @@ class ResidentController extends BaseController
             return PsCommon::responseFailed('小区不存在');
         }
 
-        $supplierId = RoomMqService::service()->getOpenApiSupplier($communityId, 2);
         $PHPExcel = $r['data'];
         $currentSheet = $PHPExcel->getActiveSheet();
 
         $sheetData = $currentSheet->toArray(null, false, false, true);
-        $residentDatas = $authMemberIds = [];//已认证的会员ID
+        $residentDatas = $authMemberIds = []; // 已认证的会员ID
         for ($i = 3; $i <= count($sheetData); $i++) {
             $val = $sheetData[$i];
-
             $residentDatas[] = [
                 "name" => !empty($val['A']) ? $val['A'] : '',
-                "mobile" => !empty($val['B']) ? $val['B'] : PsCommon::generateVirtualPhone(),
+                "mobile" => !empty($val['B']) ? $val['B'] : '',
                 "sex" => $val["C"],
                 "card_no" => $val["D"] ? $val["D"] : "",
                 "group" => $val["E"],
@@ -254,16 +263,17 @@ class ResidentController extends BaseController
             $nationNames[$na['name']] = $na['id'];
         }
         //标签
-        $labels = PsLabels::find()->select('id, name')->where(['community_id' => $communityId, 'label_type' => 2])
-            ->asArray()->all();
+        $labels = PsLabels::find()->select('id, name')->where(['community_id' => $communityId])
+            ->orWhere(['is_sys' => 2])->andWhere(['label_attribute' => 2])->asArray()->all();
         $labels = $labels ? $labels : [];
         $labelNames = [];
         foreach ($labels as $label) {
             $labelNames[$label['name']] = $label['id'];
         }
 
-        $allRooms = RoomService::service()->getAllRooms($communityId);//该小区所有的房屋
-        $allResidents = ResidentService::service()->getMobileNames($communityId);//该小区下已认证的住户手机号
+        $allRooms = RoomService::service()->getAllRooms($communityId); // 该小区所有的房屋
+        $allResidents = ResidentService::service()->getMobileNames($communityId); // 该小区下已认证的住户手机号
+
         foreach ($residentDatas as $residentData) {
             $r = ResidentService::service()->importCheck($residentData, $allRooms, $nationNames, $labelNames);
             if (!$r['code']) {
@@ -271,15 +281,23 @@ class ResidentController extends BaseController
                 continue;
             }
             $checkResult = $r['data'];
-            //房屋ID
+            // 房屋ID
             $roomId = $checkResult['room_id'];
-            //判断数据重复
+
+            // 判断数据重复
             if (!empty($allResidents[$roomId])) {
+
                 if (isset($allResidents[$roomId][$residentData['mobile']][$residentData['name']])) {
                     ExcelService::service()->setError($residentData, '手机号码已经在房屋下出现');
                     continue;
                 }
             }
+
+            if (empty($residentData['mobile'])) {
+                ExcelService::service()->setError($residentData, '手机号码不能为空');
+                continue;
+            }
+
             $memberArr = [
                 'name' => $residentData['name'],
                 "mobile" => $residentData["mobile"],
@@ -292,7 +310,6 @@ class ResidentController extends BaseController
                 continue;
             }
             $memberId = $member['data'];
-
 
             // wyf 20190515 新增 同一个人只能新增一套房间，审核失败（不能进行新增房屋），待审核（只能先审核）
             if (!empty($memberId)) {
@@ -339,26 +356,14 @@ class ResidentController extends BaseController
                 ExcelService::service()->setError($residentData, $resident_valid["errorMsg"]);
                 continue;
             }
-            //住户信息推送
-            if ($supplierId) {
-                $community_no = $community['community_no'];
-                $identity_type = $successArr['identity_type'];
-                $time_end = $successArr['time_end'];
-                $room_id = $successArr['room_id'];
-                $user_name = $successArr['name'];
-                $user_phone = $successArr['mobile'];
-                $sex = $successArr['sex'];
-                $card_no = $successArr['card_no'];
-                $label_name = !empty($residentData['label_name']) ? $residentData['label_name'] : [];
-                ResidentService::service()->syncRoomUserListToOpenApi($communityId, $community_no, $memberId, $identity_type, $time_end, $room_id, $user_name, $user_phone, $sex, $card_no, $label_name);
-            }
+
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
                 Yii::$app->db->createCommand()->insert('ps_room_user', $successArr)->execute();
                 $id = Yii::$app->db->getLastInsertID();
                 //标签处理
                 if (!empty($checkResult['label_id'])) {
-                    if (!LabelsService::service()->addRelation($id, $checkResult['label_id'], 2, true)) {
+                    if (!LabelsService::service()->addRelation($id, $checkResult['label_id'], 2)) {
                         throw new Exception('标签绑定错误');
                     }
                 }
@@ -377,21 +382,17 @@ class ResidentController extends BaseController
         if ($defeat_count > 0) {
             $error_url = $this->saveError();
         }
-        $operate = [
-            "community_id" => $data["community_id"],
-            "operate_menu" => "住户管理",
-            "operate_type" => "住户导入",
-            "operate_content" => '',
-        ];
+
         if ($authMemberIds) {
             MemberService::service()->turnReal($authMemberIds);
         }
-        OperateService::addComm($this->user_info, $operate);
+        
         $result = [
             'totals' => $success_count + $defeat_count,
             'success' => $success_count,
             'error_url' => $error_url
         ];
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -597,14 +598,14 @@ class ResidentController extends BaseController
     {
         $config["sheet_config"] = [
             'name' => ['title' => '姓名', 'width' => 10],
-            'mobile' => ['title' => '手机号', 'width' => 13],
+            'mobile' => ['title' => '手机号码', 'width' => 13],
             'sex' => ['title' => '性别', 'width' => 6, 'items' => ['男', '女']],
             'card_no' => ['title' => '身份证号', 'width' => 16],
-            'group' => ['title' => '苑/期/区', 'width' => 8],
-            'building' => ['title' => '幢', 'width' => 8],
+            'group' => ['title' => '区域', 'width' => 8],
+            'building' => ['title' => '楼栋', 'width' => 8],
             'unit' => ['title' => '单元', 'width' => 8],
-            'room' => ['title' => '室号', 'width' => 8],
-            'identity_type' => ['title' => '身份', 'width' => 8, "items" => ResidentService::service()->identity_type],
+            'room' => ['title' => '房号', 'width' => 8],
+            'identity_type' => ['title' => '住户身份', 'width' => 8, "items" => ResidentService::service()->identity_type],
         ];
         if ($type == 2) {
             $config["sheet_config"]['status'] = ['title' => '认证状态', 'width' => 8, "items" => PsCommon::getIdentityStatus()];
@@ -612,7 +613,7 @@ class ResidentController extends BaseController
         }
         $config['sheet_config']['time_end'] = ['title' => '有效期', 'width' => 13];
         $config["sheet_config"]['enter_time'] = ['title' => '入住时间', 'width' => 13];
-        $config["sheet_config"]['label_name'] = ['title' => '标签类型', 'width' => 13];
+        $config["sheet_config"]['label_name'] = ['title' => '住户标签', 'width' => 13];
         $config["sheet_config"]['nation'] = ['title' => '民族', 'width' => 13];
         $config["sheet_config"]['face'] = ['title' => '政治面貌', 'width' => 13, 'items' => ResidentService::service()->face];
         $config["sheet_config"]['marry_status'] = ['title' => '婚姻状态', 'width' => 13, 'items' => ResidentService::service()->marry_status];
@@ -640,10 +641,7 @@ class ResidentController extends BaseController
         return F::downloadUrl(date('Y-m-d') . '/' . $fileName, 'temp', 'YeZhuError.xlsx');
     }
 
-    /**
-     * 获取业主类型
-     * @return string
-     */
+    // 获取业主类型
     public function actionResidentType()
     {
         $model = PsCommon::getIdentityType();
@@ -654,20 +652,15 @@ class ResidentController extends BaseController
                 'value' => $val
             ];
         }
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * 详情相关房屋
-     * @return string
-     */
+    // 详情相关房屋
     public function actionRelatedHouse()
     {
-        $result = ResidentService::service($this->communityId)->relatedHouse(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)->relatedHouse($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -688,63 +681,35 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 相关住户
-     * @return string
-     */
+    // 相关住户
     public function actionRelatedResident()
     {
-        $result = ResidentService::service($this->communityId)->relatedResident(
-            $this->request_params['id'],
-            $this->page,
-            $this->pageSize
-        );
+        $result = ResidentService::service($this->communityId)
+            ->relatedResident($this->request_params['id'], $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
-
-
-    /**********todo 待审核数据还没，后期测试************/
-    /**
-     * 住户审核列表
-     * @return string
-     */
-    public function actionAuditList()
+    // 相关车辆
+    public function actionRelatedCar()
     {
-        $result = ResidentService::service()->auditLists($this->request_params, $this->page, $this->pageSize);
+        $result = ResidentService::service()->relatedCar($this->request_params, $this->page, $this->pageSize);
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * 住户审核详情
-     * @return null|string
-     */
-    public function actionAuditShow()
-    {
-        $result = ResidentService::service()->auditShow($this->request_params['id'], $this->communityId);
-        if (!$result) {
-            return PsCommon::responseFailed('数据不存在');
-        }
-        return PsCommon::responseSuccess($result);
-    }
-
-    /**
-     * 审核不通过
-     * @return null|string
-     */
+    // 审核不通过
     public function actionAuditNopass()
     {
-        $result = ResidentService::service($this->communityId)->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
+        $result = ResidentService::service($this->communityId)
+            ->nopass($this->request_params['id'], $this->request_params['message'], $this->user_info);
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
         return PsCommon::responseSuccess($result['data']);
     }
 
-    /**
-     * 审核bu通过删除
-     * @return null|string
-     */
+    // 审核不通过 删除
     public function actionAuditDelete()
     {
         $result = ResidentService::service()->auditDel($this->request_params['id'], $this->user_info);
@@ -753,8 +718,6 @@ class ResidentController extends BaseController
         }
         return PsCommon::responseSuccess($result['data']);
     }
-
-    /****todo 还未调试接口***/
 
     //新增投票-选择业主
     public function actionGetResident()
@@ -767,14 +730,14 @@ class ResidentController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    //获取下拉信息
+    // 获取基本下拉信息
     public function actionCommonOptionInfo()
     {
         $result = ResidentService::service()->getOption();
         return PsCommon::responseSuccess($result);
     }
 
-    //获取民族信息
+    // 获取民族信息
     public function actionGetNation()
     {
         $result['list'] = ResidentService::service()->getNation();

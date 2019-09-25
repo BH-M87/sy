@@ -55,7 +55,7 @@ class PsResidentAudit extends BaseModel
         return [
             [['community_id', 'member_id', 'room_id', 'name', 'mobile', 'identity_type'], 'required'],
             [['community_id', 'member_id', 'room_id', 'identity_type', 'time_end', 'status', 'create_at', 'accept_at',
-                'update_at', 'sex'], 'integer'],
+                'update_at', 'sex', 'unaccept_at'], 'integer'],
             [['images'], 'string'],
             [['operator'], 'safe'],
             [['name', 'operator_name'], 'string', 'max' => 50],

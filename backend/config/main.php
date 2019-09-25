@@ -2,9 +2,9 @@
 $paramsEnvFile = 'params-' . $envData['YII_ENV'] . '.php';
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
-    require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
-    require(__DIR__ . '/params.php'),
-    require(__DIR__ . '/' . $paramsEnvFile)
+    require(__DIR__ . '/params.php')
+    //require(__DIR__ . '/../../common/config/' . $paramsEnvFile),
+    //require(__DIR__ . '/' . $paramsEnvFile)
 );
 
 return [
@@ -17,7 +17,7 @@ return [
     'components' => [
         'request' => [
             'csrfParam' => '_csrf-app',
-            'cookieValidationKey' => '',
+            'cookieValidationKey' => 'sdf',
         ],
         'user' => [
             'identityClass' => 'common\models\User',

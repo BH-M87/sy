@@ -24,6 +24,7 @@ class PsHouseForm extends Model
     public $floor_shared_id;
     public $lift_shared_id;
     public $is_elevator;
+    public $floor;
 
     public function rules()
     {
@@ -33,13 +34,14 @@ class PsHouseForm extends Model
             [['community_id'], 'required', 'message' => '还没给您关联小区哦，请联系管理员', 'on' => ['create']],
 //            [['building', 'unit', 'room'], 'match', 'pattern' => '/^[A-Za-z0-9]+$/',
 //                'message' => '{attribute}只能是英文和数字', 'on' => ['create', 'import']],
-            ['group', 'string', 'max' => '15', 'on' => ['create', 'import']], 
-            ['building', 'string', 'max' => '20', 'on' => ['create', 'import']],
-            ['unit', 'string', 'max' => '20', 'on' => ['create', 'import']],
-            ['room', 'string', 'max' => '20', 'on' => ['create', 'import']],
-            [['status', 'property_type'], 'in', 'range' => [1, 2], 'on' => ['create',"import"], 'message' => '{attribute}只能是1或2'],
+            ['group', 'string', 'max' => '32', 'on' => ['create', 'import']],
+            ['building', 'string', 'max' => '32', 'on' => ['create', 'import']],
+            ['unit', 'string', 'max' => '32', 'on' => ['create', 'import']],
+            ['room', 'string', 'max' => '64', 'on' => ['create', 'import']],
+            [['status'], 'in', 'range' => [1, 2], 'on' => ['create',"import"], 'message' => '{attribute}只能是1或2'],
+            [['property_type'], 'in', 'range' => [1, 2,3], 'on' => ['create',"import"], 'message' => '{attribute}只能是1或2或3'],
             ['charge_area', 'number', 'on' => ['create', 'import']], 
-            ['intro', 'string', 'max' => '200', 'on' => ['create', 'import']],
+            ['floor', 'string', 'max' => '200', 'on' => ['create', 'import']],
             ['property_type', 'number', 'on' => ['create']], 
 
             ['status', 'number', 'on' => ['create']],
@@ -82,7 +84,8 @@ class PsHouseForm extends Model
             'page'           => '页码',
             'rows'           => '每页记录数',
             'out_room_id'    => '房屋编号',
-            'room_id'    => '房屋id',
+            'room_id'       => '房屋id',
+            'floor'         =>'楼层'
         ];
     }
 

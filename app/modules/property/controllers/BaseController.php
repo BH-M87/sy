@@ -7,6 +7,7 @@
 
 namespace app\modules\property\controllers;
 
+use common\MyException;
 use Yii;
 use common\core\F;
 use common\CoreController;
@@ -15,6 +16,7 @@ use service\manage\CommunityService;
 use service\rbac\GroupService;
 use service\rbac\MenuService;
 use service\rbac\UserService;
+
 
 Class BaseController extends CoreController
 {
@@ -48,8 +50,8 @@ Class BaseController extends CoreController
     public function init()
     {
         parent::init();
-        $origins = PsCommon::get(self::$allowOrigins, YII_ENV, []);
-        PsCommon::corsFilter($origins);
+//        $origins = PsCommon::get(self::$allowOrigins, YII_ENV, []);
+//        PsCommon::corsFilter($origins);
     }
 
     public function beforeAction($action)
@@ -57,91 +59,52 @@ Class BaseController extends CoreController
         if (!parent::beforeAction($action)) {
             return false;
         }
-
+        $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
         $this->communityId  = F::request('community_id');
+        $this->userId = F::request('user_id');
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
         $this->request_params['community_id'] = $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
-        //token验证
-        $token = !empty($_REQUEST['token']) ? $_REQUEST['token'] : '';
-        $token = substr($token, 0, 32);
-        $result = UserService::service()->getInfoByToken($token);
-        $this->user_info = !empty($result['data']) ? $result['data'] : [];
-        $this->userId = PsCommon::get($this->user_info, 'id', 0);
-        UserService::setUser($this->user_info);
-        if (!in_array($action->id, $this->enableAction)) {//验证token
-            if (!$result['code']) {
-                echo PsCommon::responseFailed($result['msg'], 50002);
-                return false;
-            }
-            if ($this->user_info['system_type'] != UserService::SYSTEM_PROPERTY) {//判断系统
-                echo PsCommon::responseFailed('token错误', 50002);
-                return false;
-            }
+        if ($action->id == 'move-out2') {
+            return true;
         }
 
-        //验证签名
-        if ($action->controller->id != 'download') {//下载文件不走签名
-            $checkMsg = PsCommon::validSign($this->systemType);
-            if ($checkMsg !== true) {
-                echo PsCommon::responseFailed($checkMsg);
-                return false;
+        //验证用户
+        if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
+            if (!$this->userId) {
+                throw new MyException('登录用户id不能为空');
             }
+            //$userInfo = UserService::service()->getUserById($this->userId);
+            $userInfo = \service\street\UserService::service()->getUserInfoById($this->userId);
+            $userInfo['mobile'] = $userInfo['mobile_number'];
+            $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
+            //token验证
+            $this->user_info = $userInfo;
+            $communityId = $this->communityId ? $this->communityId : $community_id[0];
+            $this->communityId = $communityId;
+            $this->request_params['community_id'] = $communityId;
+            UserService::setUser($this->user_info);
         }
 
         //不走token验证的接口，及download不走其他权限,小区ID 验证
-        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
+        if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download' || $action->controller->id == 'third-butt') {
             return true;
-        }
-        //菜单权限验证
-        $verifyAction = $action->getUniqueId();
-        $systemMenus = MenuService::service()->getMenuCache(!empty($this->user_info["system_type"]) ? $this->user_info["system_type"] : '');
-        $menu_ids = !empty($systemMenus[$verifyAction]) ? $systemMenus[$verifyAction] : [];
-        if (!empty($this->user_info) && $menu_ids) {
-            //分组是否有路由权限
-            if (!GroupService::service()->menuCheck($menu_ids, $this->user_info['group_id'])) {
-                echo PsCommon::responseFailed('权限不足');
-                return false;
-            }
         }
 
         //物业系统必传小区ID
         if (!in_array($action->id, $this->communityNoCheck)) {
             if (!$this->communityId) {
-                echo PsCommon::responseFailed('小区ID不能为空');
-                return false;
-            }
-            //小区权限判断
-            if (!CommunityService::service()->communityAuth($this->userId, $this->communityId)) {
-                echo PsCommon::responseFailed('没有小区权限');
-                return false;
+                throw new MyException('小区ID不能为空');
             }
         }
 
         //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
         if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
-            echo PsCommon::responseFailed('请勿重复请求，30s后重试');
-            return false;
+            throw new MyException('请勿重复请求，30s后重试');
         }
-
         return true;
-    }
-
-    public function afterAction($action, $result)
-    {
-//        if (in_array($action->id, $this->repeatAction)) {
-//            F::delRepeatCache();
-//        }
-//        if (in_array($action->id, $this->addLogAction)) {
-//            //说明需要记录日志
-//            $html  = "Request time:" . date('YmdHis') . "\r\n";
-//            $html .= "Request url:" . $action->id . "\r\n";
-//            $html .= "Request params:" . var_export($this->request_params, true) . "\r\n";
-//            $html .= "Response content:". var_export($result, true)."\r\n";
-//            F::addLog("import-batch.txt",$html);
-//        }
-        return parent::afterAction($action, $result);
     }
 }

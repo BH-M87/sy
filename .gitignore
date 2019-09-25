@@ -17,9 +17,6 @@ nbproject
 # windows thumbnail cache
 Thumbs.db
 
-# composer vendor dir
-/vendor
-
 # composer itself is not needed
 composer.phar
 composer.lock
@@ -38,4 +35,4 @@ phpunit.phar
 # ignore generated files
 /app/web/index.php
 /app/web/store
-.env
+#.env

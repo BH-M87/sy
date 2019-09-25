@@ -11,7 +11,9 @@ namespace service\issue;
 
 use app\models\PsRepair;
 use app\models\PsRepairType;
+use app\models\RepairType;
 use common\core\PsCommon;
+use common\MyException;
 use service\BaseService;
 use service\rbac\OperateService;
 
@@ -24,37 +26,52 @@ class RepairTypeService extends BaseService
         '3' => '三级类目',
     ];
 
+    //公共参数
+    public function getCommon()
+    {
+        $comm = [
+            'repair_type_level' =>  PsCommon::returnKeyValue(self::$Repair_Type_Level)
+        ];
+        return $comm;
+    }
+
     //获取报修类目列表
     public function getRepairTypeList($params)
     {
         $status = PsCommon::get($params, 'status');
-        $model = PsRepairType::find()
+        $query = PsRepairType::find()
             ->filterWhere([
                 'community_id' => PsCommon::get($params, 'community_id'),
             ]);
         if ($status) {
-            $model->andFilterWhere(['status' => $status]);
+            $query->andFilterWhere(['status' => $status]);
         }
-        $res = $model->orderBy('level,created_at desc')->asArray()->all();
-        if ($res) {
-            $result = self::getRepairTypesById(array_unique(array_column($res, 'parent_id')));
-            $count = count($res);
-            foreach ($res as $key => $value) {
+
+        $re['totals'] = $query->count();
+        $query->orderBy('level,created_at desc');
+        $offset = ($params['page'] - 1) * $params['rows'];
+        $query->offset($offset)->limit($params['rows']);
+        $list = $query->asArray()->all();
+        if ($list) {
+            $result = self::getRepairTypesById(array_unique(array_column($list, 'parent_id')));
+            $count = count($list);
+            foreach ($list as $key => $value) {
                 foreach ($result as $k => $v) {
                     if ($value['parent_id'] == $v['id']) {
-                        $res[$key]['parent_name'] = $v;
+                        $list[$key]['parent_name'] = $v;
                     }
                 }
                 if ($value['parent_id'] == '0') {
-                    $res[$key]['parent_name'] = [];
+                    $list[$key]['parent_name'] = [];
                 }
-                $res[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
-                $res[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
-                $res[$key]['cid'] = $count;
+                $list[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
+                $list[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
+                $list[$key]['cid'] = $count;
                 $count--;
             }
         }
-        return $res;
+        $re['list'] = $list;
+        return $re;
     }
 
     //新增报修类目
@@ -90,6 +107,39 @@ class RepairTypeService extends BaseService
         ];
         OperateService::addComm($userInfo, $operate);
         return $mod->id;
+    }
+
+    //编辑报修类目
+    public function edit($params, $userInfo = [])
+    {
+        $params['created_at'] = time();
+        if ($params['parent_id']) {
+            $type_parent = PsRepairType::findOne($params['parent_id']);
+            if (!$type_parent) {
+                throw new MyException('父类id不存在');
+            }
+            $params['is_relate_room'] = $type_parent['is_relate_room'];//是否关联房屋只跟父类有关系
+        } else {
+            if (empty($params['is_relate_room'])) {
+                throw new MyException('请选择是否关联房屋');
+            }
+            //将这个类型下面的所有子类型的关联状态改成跟这个类型一致，批量更新
+            $type_associated = PsRepairType::find()->where(['parent_id' => $params['id']])->asArray()->all();
+            if ($type_associated) {
+                //批量更新多条数据
+                \Yii::$app->db->createCommand()->update(PsRepairType::tableName(), ['is_relate_room' => $params['is_relate_room']], "parent_id=:parent_id",
+                    [":parent_id" => $params["id"]]
+                )->execute();
+            }
+        }
+        $mod = PsRepairType::findOne(PsCommon::get($params, 'id', 0));
+        $mod->setAttributes($params);
+        if ($mod->save()) {
+            return true;
+        } else {
+            throw new MyException('编辑失败');
+        }
+
     }
 
     //编辑报修类目状态
@@ -157,8 +207,22 @@ class RepairTypeService extends BaseService
     //获取报修类目树
     public function getRepairTypeTree($params)
     {
+        $params['status'] = 1;
         $model = $this->getRepairTypeList($params);
-        return self::dealRepairType($model);
+        return self::dealRepairType($model['list']);
+    }
+
+    //小程序报修类目树，结构与后台不一样
+    public function getSmallAppRepairTypeTree($params)
+    {
+        $model = new RepairType();
+        $type_info = $model::find()
+            ->select('id, name, parent_id')
+            ->where(['status' => 1, 'community_id' => $params['community_id']])
+            ->asArray()
+            ->all();
+        $list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
+        return $list;
     }
 
     private function getRepairTypesById($idList)
@@ -184,5 +248,67 @@ class RepairTypeService extends BaseService
             ->asArray()
             ->scalar();
         return $relateRoom == 1 ? true : false;
+    }
+
+    /**
+     * @api 获取类型分类树
+     * @param $list
+     * @param string $pk 当前 id
+     * @param string $pid 父级 id
+     * @param string $child 定义下级key
+     * @param int $root 下级开始坐标
+     * @return array
+     */
+    private function _makeTree($list, $pk = 'id', $pid = 'parent_id', $child = 'child', $root = 0)
+    {
+        $tree = [];
+        $packData = [];
+        foreach ($list as $data) {
+            $packData[$data[$pk]] = $data;
+        }
+        foreach ($packData as $key => $val) {
+            if ($val[$pid] == $root) {
+                $tree[] = &$packData[$key];
+            } else {
+                $packData[$val[$pid]][$child][] = &$packData[$key];
+            }
+        }
+        return $tree;
+    }
+
+    /**
+     * 报事报修类型管理--获取类目--列表
+     * User zq to dingding1.0
+     * @param $params
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getRepairTypeLevelList($params)
+    {
+        $level = PsCommon::get($params, 'level');
+        $id = PsCommon::get($params, 'id');
+        switch ($level) {
+            case "1":
+                $levels = '1';
+                break;
+            case "2":
+                $levels = '1';
+                break;
+            case "3":
+                $levels = '2';
+                break;
+            default:
+                $levels = '1';
+        }
+        $mod = PsRepairType::find()
+            ->filterWhere([
+                'community_id' => PsCommon::get($params, 'community_id'),
+                'level' => $levels,
+            ]);
+        //剔除出入的id，防止修改类目的时候选到自己当前这个类目
+        if ($id) {
+            $mod->andFilterWhere(['not in', 'id', [$id]]);
+        }
+        $res = $mod->asArray()->all();
+        return $res;
     }
 }

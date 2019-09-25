@@ -31,6 +31,7 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $this->request_params["hard_type"] = 1;
+        $this->request_params['community_id'] = $this->communityId;
         $result = RepairService::service()->getRepairLists($this->request_params);
         return PsCommon::responseSuccess($result);
     }
@@ -59,11 +60,12 @@ class RepairController extends BaseController {
         $validData = $valid['data'];
         $validData['relate_room'] = $repair_type;
         $result = RepairService::service()->add($validData, $this->user_info);
-        if (!is_numeric($result)) {
+        if (!is_array($result)) {
             return PsCommon::responseFailed($result);
         }
         return PsCommon::responseSuccess($result);
     }
+
 
     //获取公共接口
     public function actionGetCommon()
@@ -115,7 +117,7 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $result = RepairService::service()->assign($valid['data'], $this->user_info);
-        if ($result === true) {
+        if (is_array($result)) {
             return PsCommon::responseSuccess($result);
         }
         return PsCommon::responseFailed($result);
@@ -132,6 +134,7 @@ class RepairController extends BaseController {
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
+        $data['user_id'] = $data['operator_id'];
         $result = RepairService::service()->addRecord($data,$this->user_info);
         if ($result === true) {
             return PsCommon::responseSuccess($result);
@@ -151,6 +154,10 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $data['is_pay'] = 2;
+        $data['user_id'] = $data['operator_id'];
+        $data['material_total_price'] = 0;
+        $data['total_price'] = $data['amount'];
+        $data['other_charge'] = 0;
         $result = RepairService::service()->makeComplete($data, $this->user_info);
         if ($result === true) {
             return PsCommon::responseSuccess($result);
@@ -278,6 +285,7 @@ class RepairController extends BaseController {
         }
         $this->request_params["hard_type"] = 2;
         $this->request_params["export"] = true;
+
         $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }

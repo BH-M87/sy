@@ -26,7 +26,7 @@ class PropertyService extends BaseService {
         $aop = [];
         $aop['appAuthToken'] = null;
         //停车使用未来社区应用
-        if (YII_ENV == 'master' || YII_ENV == 'release') {
+        if (YII_ENV == 'prod' || YII_ENV == 'release') {
             $aop['gatewayUrl']         = Yii::$app->params['gate_way_url'];
             $aop['appId']              = Yii::$app->params['property_isv_app_id'];
             $aop['alipayrsaPublicKey'] = file_get_contents(Yii::$app->params['property_isv_alipay_public_key_file']);
@@ -83,27 +83,29 @@ class PropertyService extends BaseService {
         $communityInfo = (new Query())
             ->select(['comm.id', 'comm.pro_company_id', 'comm.name', 'comm.phone', 'comm.community_no',
                 'comm.province_code', 'comm.address', 'comm.locations', 'comm.longitude','comm.latitude',
-                'comm.city_id', 'comm.district_code', 'life.name as life_name',
-                'life.app_id', 'life.status', 'life.id as life_id', 'life.logo as life_logo',
+                'comm.city_id', 'comm.district_code',
+                //'life.name as life_name', 'life.app_id', 'life.status', 'life.id as life_id', 'life.logo as life_logo',
                 'company.property_name', 'company.id as company_id', 'company.link_man','comm.house_type'
             ])
             ->from('ps_community comm')
-            ->leftJoin('ps_life_services life', 'life.community_id = comm.id')
             ->leftJoin('ps_property_company company', 'company.id = comm.pro_company_id')
             ->where(['comm.id' => $communityId])
             ->one();
         if ($communityInfo) {
             //生活号未上架
-            $communityInfo['life_id'] = $communityInfo['life_name'] = $communityInfo['life_logo'] = $communityInfo['app_id'] = $communityInfo['status'] = '';
+            //$communityInfo['life_id'] = $communityInfo['life_name'] = $communityInfo['life_logo'] = $communityInfo['app_id'] = $communityInfo['status'] = '';
             //查询省市
             $areaCodeInfo = (new Query())
                 ->select(['areaName'])
                 ->from('ps_area_ali')
                 ->where(['areaCode' => [$communityInfo['province_code'], $communityInfo['city_id'], $communityInfo['district_code']]])
                 ->all();
-            $communityInfo['province_name'] = $areaCodeInfo[0]['areaName'];
-            $communityInfo['city_name'] = $areaCodeInfo[1]['areaName'];
-            $communityInfo['district_name'] = $areaCodeInfo[2]['areaName'];
+            if($areaCodeInfo){
+                $communityInfo['province_name'] = $areaCodeInfo[0]['areaName'];
+                $communityInfo['city_name'] = $areaCodeInfo[1]['areaName'];
+                $communityInfo['district_name'] = $areaCodeInfo[2]['areaName'];
+            }
+
         }
         return $communityInfo;
     }

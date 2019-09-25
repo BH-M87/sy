@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ERROR);
 $envFile = __DIR__ . '/../../.env';
 if (!file_exists($envFile)) {
     die('environments file not exist');
@@ -18,9 +19,8 @@ require __DIR__ . '/../config/bootstrap.php';
 
 $config = yii\helpers\ArrayHelper::merge(
     require __DIR__ . '/../../common/config/main.php',
-    require __DIR__ . '/../../common/config/main-dev.php',
-    require __DIR__ . '/../config/main.php',
-    require __DIR__ . '/../config/main-dev.php'
+//    require __DIR__ . '/../../common/config/main-dev.php',
+    require __DIR__ . '/../config/main.php'
+//    require __DIR__ . '/../config/main-dev.php'
 );
-
 (new yii\web\Application($config))->run();

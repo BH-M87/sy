@@ -11,7 +11,6 @@ namespace app\modules\ding_property_app\controllers;
 
 use app\modules\ding_property_app\services\UserService;
 use common\core\F;
-//use service\rbac\UserService;
 
 class UserBaseController extends BaseController
 {
@@ -23,23 +22,9 @@ class UserBaseController extends BaseController
     public function beforeAction($action)
     {
         if(!parent::beforeAction($action)) return false;
-
-        $this->token = F::value($this->request_params, 'token');
-        if (!$this->token) {
-            return F::apiFailed('登录token不能为空！');
-        }
-
-        $re = UserService::service()->refreshToken($this->token);
-        $re = 1775;
-        if($re === false){
-            return F::apiFailed('token过期',50002);
-        }
-
-        $userInfo = UserService::service()->getUserById($re);
-
-
+        $userInfo = UserService::service()->getUserById($this->userId);
         $this->userInfo = $userInfo;
-        $this->userId = $re;
+        $this->userId = $userInfo['id'];
         $this->userMobile = $userInfo['mobile'];
         return true;
     }

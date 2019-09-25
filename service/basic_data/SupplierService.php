@@ -10,8 +10,7 @@ namespace service\basic_data;
 
 use app\models\DoorSendRequest;
 use app\models\IotSupplierCommunity;
-use app\models\ParkingSupplierCommunity;
-use app\models\ParkingSuppliers;
+use app\models\IotSuppliers;
 use common\core\F;
 use service\producer\MqProducerService;
 use yii\base\Exception;
@@ -31,14 +30,20 @@ class SupplierService extends BaseService
      */
     public function getSupplierList($communityId, $type)
     {
-        $res = IotSupplierCommunity::find()
-            ->alias('isc')
-            ->leftJoin('iot_suppliers is','isc.supplier_id = is.id')
-            ->select(['is.id','is.name'])
-            ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
+//        $res = IotSupplierCommunity::find()
+//            ->alias('isc')
+//            ->leftJoin('iot_suppliers is','isc.supplier_id = is.id')
+//            ->select(['is.id','is.name'])
+//            ->where(['isc.community_id'=>$communityId, 'isc.supplier_type' => $type])
+//            ->asArray()
+//            ->all();
+        //TODO 目前先全部放开
+        $res = IotSuppliers::find()
+            ->select(['id','name'])
             ->asArray()
             ->all();
-        return $res;
+        $supplierInfo['list'] = $res;
+        return $supplierInfo;
     }
 
     //发送间隔时间，分钟为单位
@@ -57,7 +62,7 @@ class SupplierService extends BaseService
 
     public function add($req)
     {
-        $supplier = new ParkingSuppliers();
+        $supplier = new IotSuppliers();
         $supplier->scenario = 'create';
         $req['created_at'] = time();
         $supplier->load($req, '');
@@ -84,7 +89,7 @@ class SupplierService extends BaseService
         }
 
         //查询绑定关系是否已经存在
-        $reData = ParkingSupplierCommunity::find()
+        $reData = IotSupplierCommunity::find()
             ->where(['supplier_id' => $req['supplier_id'], 'community_id' => $req['community_id']])
             ->andWhere(['supplier_type' => $req['supplier_type']])
             ->asArray()
@@ -92,7 +97,7 @@ class SupplierService extends BaseService
         if ($reData) {
             return $this->failed("小区与供应商的绑定关系已经存在");
         }
-        $model = new ParkingSupplierCommunity();
+        $model = new IotSupplierCommunity();
         $model->scenario = 'create';
         $req['auth_code'] = F::getCode('', 'supplierAuthCode', 6);
         $req['auth_at'] = $req['created_at'] = time();
@@ -127,7 +132,7 @@ class SupplierService extends BaseService
         }
 
         //查询绑定关系是否已经存在
-        $reData = ParkingSupplierCommunity::find()
+        $reData = IotSupplierCommunity::find()
             ->where(['supplier_id' => $supplierId, 'community_id' => $communityId])
             ->asArray()
             ->one();
@@ -170,7 +175,7 @@ class SupplierService extends BaseService
         $tmpPushData['requestId'] = $data['requestId'];
 
         //查询供应商
-        $supplierSign = ParkingSuppliers::find()
+        $supplierSign = IotSuppliers::find()
             ->select(['supplier_name'])
             ->where(['id' => $supplierId])
             ->asArray()
@@ -291,7 +296,7 @@ class SupplierService extends BaseService
      */
     public function buildDataInitOld($supplierId,$communityId,$syncSet,$community_no)
     {
-        $authCode = ParkingSupplierCommunity::find()
+        $authCode = IotSupplierCommunity::find()
             ->select(['auth_code'])
             ->where(['supplier_id' => $supplierId, 'community_id' => $communityId, 'supplier_type' => 2])
             ->asArray()
@@ -400,7 +405,7 @@ class SupplierService extends BaseService
             }
 
             if($supplierSign == 'iot'){
-                $authCode = ParkingSupplierCommunity::find()
+                $authCode = IotSupplierCommunity::find()
                     ->select(['auth_code'])
                     ->where(['supplier_id' => $supplierId, 'community_id' => $communityId, 'supplier_type' => 2])
                     ->asArray()
@@ -509,7 +514,7 @@ class SupplierService extends BaseService
         $supplierId = self::service()->getSupplier($communityId);
         $supplierSign = $this->getSupplierSignById($supplierId);
 
-        $authCode = ParkingSupplierCommunity::find()
+        $authCode = IotSupplierCommunity::find()
             ->select(['auth_code'])
             ->where(['supplier_id' => $supplierId, 'community_id' => $communityId, 'supplier_type' => 2])
             ->asArray()

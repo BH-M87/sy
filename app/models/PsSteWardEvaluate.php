@@ -3,7 +3,7 @@ namespace app\models;
 
 use Yii;
 
-use app\common\core\Regular;
+use common\core\Regular;
 
 class PsSteWardEvaluate extends BaseModel
 {

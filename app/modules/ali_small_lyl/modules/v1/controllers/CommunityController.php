@@ -29,12 +29,12 @@ class CommunityController extends BaseController
         $community_id = PsCommon::get($this->params, 'community_id');
 
         if (empty($community_id)) {
-            return PsCommon::responseAppSuccess([]);
+            return F::apiSuccess([]);
         }
 
         $result = PsCommunityModel::find()->select('city_id')->where(['id' => $community_id])->asArray()->one();
         
-        return PsCommon::responseAppSuccess($result);
+        return F::apiSuccess($result);
     }
 
     // 获取小区列表-包含定位信息
@@ -60,7 +60,7 @@ class CommunityController extends BaseController
     {
         $community_id = PsCommon::get($this->params, 'community_id');
         if (empty($community_id)) {
-            return PsCommon::responseAppFailed('小区编号不能为空');
+            return F::apiFailed('小区编号不能为空');
         }
 
         $data = CommunityServices::houseList($community_id);
@@ -74,7 +74,7 @@ class CommunityController extends BaseController
     {
         $building_id = PsCommon::get($this->params, 'building_id');
         if (empty($building_id)) {
-            return PsCommon::responseAppFailed('楼幢编号不能为空');
+            return F::apiFailed('楼幢编号不能为空');
         }
 
         $data = CommunityServices::RoomList($building_id);
@@ -88,7 +88,7 @@ class CommunityController extends BaseController
     {
         $room_id = PsCommon::get($this->params, 'room_id');
         if (empty($room_id)){
-            return PsCommon::responseAppFailed('房屋编号不能为空');
+            return F::apiFailed('房屋编号不能为空');
         }
         $result = RoomService::service()->getOwnView($room_id);
         return self::dealReturnResult($result);
@@ -125,12 +125,12 @@ class CommunityController extends BaseController
         $community_id = PsCommon::get($this->params, 'community_id');
 
         if (empty($user_id) && empty($community_id)) {
-            return PsCommon::responseAppSuccess([]);
+            return F::apiSuccess([]);
         }
 
-        $result = CommunityService::service()->exposureList($this->params);
+        $r = CommunityService::service()->exposureList($this->params);
 
-        return PsCommon::responseAppSuccess($result);
+        return self::dealReturnResult($r);
     }
 
     // 曝光台 详情
@@ -147,7 +147,7 @@ class CommunityController extends BaseController
         $userId = PsCommon::get($this->params, 'user_id');
 
         if (empty($userId)) {
-            return PsCommon::responseAppFailed("住户ID不能为空！");
+            return F::apiFailed("住户ID不能为空！");
         }
 
         $result = CommunityService::service()->exposureDelete($this->params);
@@ -195,7 +195,7 @@ class CommunityController extends BaseController
         $communityId = PsCommon::get($this->params, 'community_id');
 
         if (empty($communityId)) {
-            return PsCommon::responseAppFailed("小区不能为空");
+            return F::apiFailed("小区不能为空");
         }
 
         $result = CommunityService::service()->commentList($this->params);
@@ -212,7 +212,7 @@ class CommunityController extends BaseController
 
         $total = CommunityService::service()->commentTotal($this->params);
 
-        return PsCommon::responseAppSuccess(['total' => $total, 'list' => $arr]);
+        return F::apiSuccess(['total' => $total, 'list' => $arr]);
     }
 
     // -----------------------------------     小区话题     ------------------------------
@@ -231,12 +231,12 @@ class CommunityController extends BaseController
         $userId = PsCommon::get($this->params, 'user_id');
 
         if (empty($userId)) {
-            return PsCommon::responseAppFailed("住户ID不能为空！");
+            return F::apiFailed("住户ID不能为空！");
         }
 
         $result = CommunityService::service()->circleList($this->params);
 
-        return PsCommon::responseAppSuccess($result);
+        return F::apiSuccess($result);
     }
 
     // 小区话题详情
@@ -253,7 +253,7 @@ class CommunityController extends BaseController
         $userId = PsCommon::get($this->params, 'user_id');
 
         if (empty($userId)) {
-            return PsCommon::responseAppFailed("住户ID不能为空！");
+            return F::apiFailed("住户ID不能为空！");
         }
 
         $result = CommunityService::service()->circleDelete($this->params);
@@ -282,7 +282,7 @@ class CommunityController extends BaseController
     {
         $result = CommunityService::service()->circleUnreadTotal($this->params);
 
-        return PsCommon::responseAppSuccess($result);
+        return F::apiSuccess($result);
     }
 
     // 我收到的爱心列表 && 话题详情的点赞列表
@@ -290,7 +290,7 @@ class CommunityController extends BaseController
     {
         $result = CommunityService::service()->circleLove($this->params);
 
-        return PsCommon::responseAppSuccess($result);
+        return F::apiSuccess($result);
     }
 
     // 我的爱心列表 删除消息

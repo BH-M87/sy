@@ -13,6 +13,7 @@ use app\models\PsRepairAppraise;
 use app\models\PsRepairType;
 use common\core\PsCommon;
 use service\BaseService;
+use yii\db\Query;
 
 class RepairStatisticService extends BaseService
 {
@@ -42,15 +43,18 @@ class RepairStatisticService extends BaseService
     public function types($params)
     {
         $start_time = PsCommon::get($params, 'start', '');
-        $start = $start_time ? strtotime($start_time) : mktime(0, 0, 0, date('m'), 1, date('Y'));//本月第一天
+        $start = $start_time ? strtotime($start_time) : 0;//本月第一天
         $end_time = PsCommon::get($params, 'end', '');
-        $end = $end_time ? strtotime($end_time) : mktime(0, 0, 0, date('m'), date('d'), date('Y'));//今天凌晨0点
+        $end = $end_time ? strtotime($end_time) : 0;//今天凌晨0点
         $community_id = $params['community_id'];
         $model = PsRepair::find()->alias('t')
             ->leftJoin(['u' => PsRepairType::tableName()], 'u.id=t.repair_type_id')
             ->where(['t.community_id' => $community_id]);
-        if ($start && $end) {
-            $model->andFilterWhere(['between', 't.create_at', $start, $end]);
+        if ($start) {
+            $model->andWhere(['>=', 't.create_at',$start]);
+        }
+        if ($end) {
+            $model->andWhere(['<=', 't.create_at',$end]);
         }
         $list = $model->select("t.id,t.repair_type_id,u.name,u.id as uid")->asArray()->all();
         $return = $result = [];
@@ -83,16 +87,19 @@ class RepairStatisticService extends BaseService
     public function score($params)
     {
         $start_time = PsCommon::get($params, 'start', '');
-        $start = $start_time ? strtotime($start_time) : mktime(0, 0, 0, date('m'), 1, date('Y'));//本月第一天
+        $start = $start_time ? strtotime($start_time) : 0;//本月第一天
         $end_time = PsCommon::get($params, 'end', '');
-        $end = $end_time ? strtotime($end_time) : mktime(0, 0, 0, date('m'), date('d'), date('Y'));//今天凌晨0点
+        $end = $end_time ? strtotime($end_time) : 0; //今天凌晨0点
 
         $community_id = $params['community_id'];
         $model = PsRepair::find()->alias('t')
             ->leftJoin(['u' => PsRepairAppraise::tableName()], 'u.repair_id=t.id')
             ->where(['t.community_id' => $community_id]);
-        if ($start && $end) {
-            $model->andFilterWhere(['between', 'create_at', $start, $end]);
+        if ($start) {
+            $model->andWhere(['>=', 'create_at',$start]);
+        }
+        if ($end) {
+            $model->andWhere(['<=', 'create_at',$end]);
         }
         $list = $model->select("t.id,u.start_num")->asArray()->all();
         $star1 = $star2 = $star3 = $star4 = $star5 = 0;
@@ -136,11 +143,19 @@ class RepairStatisticService extends BaseService
 
     private function getOrderStatistic($community_id, $day, $type)
     {
-        $model = PsRepair::find()->where(["community_id" => $community_id]);
+        $query = new Query();
+        $query->from('ps_repair')->where(["community_id" => $community_id]);
         $start = strtotime(date('Y-m-d', strtotime('-1 ' . $day)) . " 00:00:00");
-        $end = strtotime(date('Y-m-d', strtotime('-1 day')) . " 23:59:59");
-        $model->andFilterWhere(['between', 'create_at', $start, $end]);
-        $list = $model->asArray()->all();
+        $end = strtotime(date('Y-m-d', time()) . " 23:59:59");
+        if ($start) {
+            $query->andWhere(['>=', 'create_at', $start]);
+        }
+        if ($end) {
+            $query->andWhere(['<=', 'create_at', $end]);
+        }
+        $command = $query->createCommand();
+        $list = $command->queryAll();
+
         $process = 0;   //待处理
         $confirm = 0;   //待确定
         $reject = 0;    //驳回
@@ -222,7 +237,7 @@ class RepairStatisticService extends BaseService
         if ($type == 'channel') {
             $return = compact('life', 'property', 'dingding', 'front', 'phone', 'reviews');
         }
-        $return['total_num'] = (int)$model->count();
+        $return['total_num'] = count($list);
         return $return;
     }
 

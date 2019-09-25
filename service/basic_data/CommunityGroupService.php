@@ -65,6 +65,7 @@ class CommunityGroupService extends BaseService {
         }
         //判断名称是否重复，新增用
         if ($type == 2) {
+            $group = preg_match("/^[0-9\#]*$/", $group) ? $group.'期' :  $group;
             return PsCommunityGroups::find()->where(['community_id' => $community_id, 'name' => $group])->asArray()->one();
         }
         //判断编码是否重复
@@ -79,17 +80,17 @@ class CommunityGroupService extends BaseService {
     {
         $group = $this->checkGroups($data['group_name'], 2, $data['community_id']);
         if (!empty($group)) {
-            return PsCommon::responseFailed('苑期区名称已存在');
+            return PsCommon::responseFailed('区域名称已存在');
         }
 
         $data['group_code'] = !empty($data['group_code']) ? $this->getFillZeroCode($data['group_code']): '';
         $group = $this->checkGroups($data['group_code'], 3, $data['community_id']);
         if (!empty($group)) {
-            return PsCommon::responseFailed("苑期区编码已存在");
+            return PsCommon::responseFailed("区域编码已存在");
         }
         $res = $this->saveGroup($data);
         if ($res['code']) {
-            $content = "区域名称:" . $data['group_name'];
+            /*$content = "区域名称:" . $data['group_name'];
             $content .= "区域code:" . $data['group_code'];
             $operate = [
                 "community_id" =>$data['community_id'],
@@ -97,7 +98,7 @@ class CommunityGroupService extends BaseService {
                 "operate_type" => "新增区域",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
             return PsCommon::responseSuccess($res['data']);
         } else {
             return PsCommon::responseFailed($res['msg']);
@@ -154,14 +155,14 @@ class CommunityGroupService extends BaseService {
         $model->community_id = $data['community_id'];
         $model->code = $data['group_code'];
         if ($model->save()) {
-            $content = "区域code:" . $data['group_code'];
+            /*$content = "区域code:" . $data['group_code'];
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "区域信息",
                 "operate_type" => "编辑区域",
                 "operate_content" => $content,
             ];
-            OperateService::addComm($userInfo, $operate);
+            OperateService::addComm($userInfo, $operate);*/
 
             return PsCommon::responseSuccess($model->id);
         } else {
@@ -192,20 +193,9 @@ class CommunityGroupService extends BaseService {
 
         $build = PsCommunityBuilding::find()->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id']])->asArray()->one();
         if ($build) {
-            return PsCommon::responseFailed("区域下无挂靠楼宇才可删除");
+            return PsCommon::responseFailed("区域下无挂靠楼栋才可删除");
         }
-
-        // 删除 楼宇中心数据
-        //TODO
         if ($group->delete()) {
-            $content = "区域名称:" . $group_name;
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "区域信息",
-                "operate_type" => "删除区域",
-                "operate_content" => $content,
-            ];
-            OperateService::addComm($userInfo, $operate);
             return PsCommon::responseSuccess("删除成功");
         } else {
             return PsCommon::responseFailed("删除失败");

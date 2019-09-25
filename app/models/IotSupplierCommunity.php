@@ -17,8 +17,11 @@ use Yii;
  * @property int $supplier_type 供应商类型 1道闸 2门禁
  * @property int $created_at 添加时间
  */
-class IotSupplierCommunity extends \app\models\BaseModel
+class IotSupplierCommunity extends BaseModel
 {
+    public $supplier_name;
+    public $community_name;
+
     /**
      * {@inheritdoc}
      */
@@ -33,6 +36,7 @@ class IotSupplierCommunity extends \app\models\BaseModel
     public function rules()
     {
         return [
+            [['supplier_id', 'community_id', 'interface_type', 'supplier_type'], 'required', 'message' => '{attribute}不能为空!', 'on' => ['create', 'edit']],
             [['supplier_id', 'community_id', 'auth_at', 'open_alipay_parking', 'interface_type', 'supplier_type', 'created_at'], 'integer'],
             [['auth_code'], 'string', 'max' => 255],
         ];
@@ -45,13 +49,13 @@ class IotSupplierCommunity extends \app\models\BaseModel
     {
         return [
             'id' => 'ID',
-            'supplier_id' => 'Supplier ID',
-            'community_id' => 'Community ID',
-            'auth_code' => 'Auth Code',
-            'auth_at' => 'Auth At',
+            'supplier_id' => '供应商id',
+            'community_id' => '小区id',
+            'auth_code' => '授权码',
+            'auth_at' => '授权时间',
             'open_alipay_parking' => 'Open Alipay Parking',
-            'interface_type' => 'Interface Type',
-            'supplier_type' => 'Supplier Type',
+            'interface_type' => '接入方式',
+            'supplier_type' => '供应商类型',
             'created_at' => 'Created At',
         ];
     }

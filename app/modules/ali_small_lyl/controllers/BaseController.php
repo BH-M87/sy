@@ -33,18 +33,21 @@ class BaseController extends Controller
         $this->params = !empty($params['data']) ? json_decode($params['data'],true) : [];
         $this->page = !empty($params['page']) ? $params['page'] : 1;
         $this->rows = !empty($params['rows']) ? $params['rows'] : 20;
+
+        \Yii::info("small-app"."controller:".Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'smallapp');
         return true;
     }
     
-    public function dealReturnResult($result)
+    public function dealReturnResult($r)
     {
-        if($result['code'] == 1){
-            return PsCommon::responseAppSuccess($result['data']);
+        if($r['code'] == 1){
+            return F::apiSuccess($r['data']);
         } else {
-            if (!empty($result['code'])) {
-                return PsCommon::responseAppFailed($result['msg'], $result['code']);
+            if (!empty($r['code'])) {
+                return F::apiFailed($r['msg'], $r['code']);
+
             }
-            return PsCommon::responseAppFailed($result['msg']);
+            return F::apiFailed($r['msg']);
         }
     }
 }

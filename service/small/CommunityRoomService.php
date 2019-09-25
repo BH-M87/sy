@@ -9,6 +9,7 @@
 namespace service\small;
 
 
+use app\models\PsCommunityModel;
 use common\core\Helpers;
 use common\core\Pinyin;
 use service\BaseService;
@@ -83,10 +84,11 @@ class CommunityRoomService extends BaseService
                 $info['list'] = $communityInfo;
             } else {
                 $info['list'] = $communityInfo;
+                $info['lat_info'] = [];
             }
         } else {
             $info['list'] = [];
-            //$info['lat_info'] = (new \stdClass());
+            $info['lat_info'] = [];
         }
         return $info;
     }

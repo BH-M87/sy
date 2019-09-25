@@ -195,7 +195,9 @@ class VoteController extends BaseController
         ];
 
         $filename = CsvService::service()->saveTempFile(1, $config, $models['list'], 'TouPiao');
-        $downUrl = F::downloadUrl($this->systemType, $filename, 'temp', 'TouPiao.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
@@ -350,7 +352,9 @@ class VoteController extends BaseController
             $data[] = $tmp;
         }
         $filename = CsvService::service()->saveTempFile(0, $header, $data, $prefix);
-        $downUrl = F::downloadUrl($this->systemType, $filename, 'temp', $prefix . '.csv');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $downUrl = $fileRe['filepath'];
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 

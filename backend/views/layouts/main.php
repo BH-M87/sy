@@ -89,7 +89,7 @@ AppAsset::register($this);
             <ul class="sidebar-menu" data-widget="tree">
                 <li class="treeview">
                     <a href="#">
-                        <i class="fa fa-dashboard"></i> <span>企业管理</span>
+                        <i class="fa fa-dashboard"></i> <span>微应用:企业管理</span>
                         <span class="pull-right-container">
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
@@ -101,7 +101,7 @@ AppAsset::register($this);
                 </li>
                 <li class="treeview">
                     <a href="#">
-                        <i class="fa fa-book"></i> <span>微应用管理</span>
+                        <i class="fa fa-book"></i> <span>微应用:管理</span>
                         <span class="pull-right-container">
                             <i class="fa fa-angle-left pull-right"></i>
                         </span>
@@ -109,6 +109,42 @@ AppAsset::register($this);
                     <ul class="treeview-menu">
                         <li><a href="/backend/application"><i class="fa fa-circle-o"></i> 微应用列表</a></li>
                         <li><a href="/backend/application-add"><i class="fa fa-circle-o"></i> 添加微应用</a></li>
+                    </ul>
+                </li>
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-dashboard"></i> <span>硬件:供应商管理</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="/supplier/index"><i class="fa fa-circle-o"></i> 供应商列表</a></li>
+                        <li><a href="/supplier/add"><i class="fa fa-circle-o"></i> 添加供应商</a></li>
+                    </ul>
+                </li>
+
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-book"></i> <span>硬件:入驻小区管理</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="/supplier/communitys"><i class="fa fa-circle-o"></i> 入驻小区列表</a></li>
+                        <li><a href="/supplier/community-add"><i class="fa fa-circle-o"></i> 添加小区</a></li>
+                    </ul>
+                </li>
+                <li class="treeview">
+                    <a href="#">
+                        <i class="fa fa-book"></i> <span>物业公司管理</span>
+                        <span class="pull-right-container">
+                            <i class="fa fa-angle-left pull-right"></i>
+                        </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="/company-h5/index"><i class="fa fa-circle-o"></i> 公司列表</a></li>
                     </ul>
                 </li>
             </ul>

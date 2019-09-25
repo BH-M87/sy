@@ -8,53 +8,6 @@ use phpDocumentor\Reflection\Types\Self_;
 use Yii;
 use yii\db\ActiveQuery;
 
-/**
- * This is the model class for table "ps_room_user".
- *
- * @property integer $id
- * @property integer $community_id
- * @property integer $room_id
- * @property integer $member_id
- * @property string $name
- * @property integer $sex
- * @property string $mobile
- * @property string $card_no
- * @property string $group
- * @property string $building
- * @property string $unit
- * @property string $room
- * @property integer $identity_type
- * @property integer $status
- * @property integer $auth_time
- * @property integer $time_end
- * @property integer $operator_id
- * @property string $operator_name
- * @property string $enter_time
- * @property string $reason
- * @property string $work_address
- * @property string $qq
- * @property string $wechat
- * @property string $email
- * @property string $telephone
- * @property string $emergency_contact
- * @property string $emergency_mobile
- * @property integer $nation
- * @property integer $face
- * @property integer $household_type
- * @property integer $marry_status
- * @property integer $household_province
- * @property integer $household_city
- * @property integer $household_area
- * @property string $household_address
- * @property string $residence_number
- * @property integer $live_type
- * @property integer $live_detail
- * @property integer $change_detail
- * @property string $change_before
- * @property string $change_after
- * @property integer $create_at
- * @property integer $update_at
- */
 class PsRoomUser extends BaseModel
 {
     const UN_AUTH = 1;//未认证
@@ -65,23 +18,17 @@ class PsRoomUser extends BaseModel
     const MOVE_IN = 1;//迁入
     const MOVE_OUT = 2;//迁出
 
-    /**
-     * @inheritdoc
-     */
     public static function tableName()
     {
         return 'ps_room_user';
     }
 
-    /**
-     * @inheritdoc
-     */
     public function rules()
     {
         return [
             [['community_id', 'room_id', 'member_id', 'name', 'mobile', 'group', 'building', 'unit', 'room', 'identity_type',
                 'status'], 'required'],
-            [['community_id', 'room_id', 'member_id', 'sex', 'identity_type', 'status', 'auth_time', 'time_end',
+            [['community_id', 'room_id', 'member_id', 'sex', 'identity_type', 'status', 'auth_time', 'time_end', 'out_time',
                 'operator_id', 'enter_time', 'nation', 'face', 'household_type', 'marry_status', 'household_province',
                 'household_city', 'household_area', 'live_type', 'live_detail', 'change_detail', 'create_at', 'update_at'
             ], 'integer'],
@@ -91,7 +38,8 @@ class PsRoomUser extends BaseModel
             ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '手机格式不正确'],
             [['group', 'building', 'unit', 'room'], 'string', 'max' => 64],
             [['reason', 'work_address', 'household_address', 'change_before', 'change_after'], 'string', 'max' => 255],
-            [['qq', 'telephone', 'emergency_mobile'], 'string', 'max' => 15],
+            [['telephone', 'emergency_mobile'], 'string', 'max' => 15],
+            [['qq'], 'string', 'max' => 30],
             [['wechat', 'email'], 'string', 'max' => 50],
             [['residence_number'], 'string', 'max' => 100],
             [['time_end'], 'timeCheck'],
@@ -101,15 +49,12 @@ class PsRoomUser extends BaseModel
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
     public function attributeLabels()
     {
         return [
             'id' => 'ID',
             'community_id' => '小区ID',
-            'room_id' => '房屋ID',
+            'room_id' => '房屋',
             'member_id' => '用户ID',
             'name' => '业主名称',
             'sex' => '性别',
@@ -188,7 +133,7 @@ class PsRoomUser extends BaseModel
     public function getRoomInfo()
     {
         return $this->hasOne(PsCommunityRoominfo::className(), ['id' => 'room_id'])
-            ->select(['id', 'charge_area', 'status', 'property_type']);
+            ->select(['id', 'charge_area', 'floor', 'status', 'property_type', 'out_room_id']);
     }
 
     /*
@@ -316,6 +261,13 @@ class PsRoomUser extends BaseModel
         return $result;
     }
 
-
+    public static function getCount($p)
+    {
+        return self::find()->select('distinct(mobile)')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andWhere(['in', 'status', [1,2]])
+            ->andFilterWhere(['identity_type' => $p['identity_type']])
+            ->andFilterWhere(['time_end' => $p['time_end']])->count();
+    }
 
 }
