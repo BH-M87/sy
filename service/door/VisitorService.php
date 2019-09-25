@@ -185,10 +185,14 @@ class VisitorService extends BaseService
         $data[] = $community_name . $model['group'] . $model['building'] . $model['unit'] . $model['room'];
         //todo 生成一个支付宝小程序的链接地址，用于短信里面直接跳转，edit by zq 2019-4-19
         $index="index";
+        $appId = \Yii::$app->params['fczl_app_id'];
         if(!empty($param['system_type']) && $param['system_type']=='edoor'){
             $index="edoor";
+            $appId = \Yii::$app->params['edoor_app_id'];
         }
-        $url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
+        //$url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
+        //直接生成支付宝链接
+        $url = "alipays://platformapi/startapp?appId=".$appId."&page=pages/visitorPass/visitorPass&query=".$param['id'];
         $data[] = $this->getShortUrl2($url).' '; // 加空格 不然ios手机会把后面的都当成是链接部分
         $data[] = $model['vistor_mobile'];
 
