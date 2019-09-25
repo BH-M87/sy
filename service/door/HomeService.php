@@ -27,11 +27,11 @@ class HomeService extends BaseService
         } else {
             //支付宝实名认证的用户直接是认证了
             if($result['is_certified'] == "1" || $params['is_certified']=='T'){
-                if (!empty($params['phone']) && in_array($systemType, ['edoor', 'fczl'])) {
+                if (!empty($params['mobile']) && in_array($systemType, ['edoor', 'fczl'])) {
                     //业主认证需要的参数
                     $responseData['app_user_id'] = $result['id'];
-                    $responseData['mobile'] = $params['phone'];
-                    $responseData['user_name'] = $params['true_name'];
+                    $responseData['mobile'] = $params['mobile'];
+                    $responseData['user_name'] = $params['user_name'];
                     $responseData['sex'] = $result['sex'];
                     //自动走一遍业主认证
                     MemberService::service()->authTo($responseData);

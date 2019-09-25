@@ -155,16 +155,16 @@ class AppUserService extends BaseService
                 $appUser->id_card = $data['id_card'];
             }
 
-            if (!empty($data['phone'])) {
-                $appUser->phone = $data['phone'];
+            if (!empty($data['mobile'])) {
+                $appUser->phone = $data['mobile'];
             }
 
-            if (!empty($data['true_name'])) {
-                $appUser->true_name = !empty($appUser->true_name) ? $appUser->true_name : $data['true_name'];
+            if (!empty($data['user_name'])) {
+                $appUser->true_name = !empty($appUser->true_name) ? $appUser->true_name : $data['user_name'];
             }
 
-            if (!empty($data['nickName'])) {
-                $appUser->nick_name = $data['nickName'];
+            if (!empty($data['nick_name'])) {
+                $appUser->nick_name = $data['nick_name'];
             }
 
             if (!empty($data['is_certified'])) {
@@ -218,12 +218,12 @@ class AppUserService extends BaseService
                 $appUser->id_card = $data['id_card'];
             }
 
-            if (!empty($data['true_name'])) {
-                $appUser->true_name = $data['true_name'];
+            if (!empty($data['user_name'])) {
+                $appUser->true_name = $data['user_name'];
             }
 
-            if (!empty($data['phone'])) {
-                $appUser->phone = $data['phone'];
+            if (!empty($data['mobile'])) {
+                $appUser->phone = $data['mobile'];
             }
 
             if (!empty($data['is_certified'])) {

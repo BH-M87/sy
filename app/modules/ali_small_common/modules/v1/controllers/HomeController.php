@@ -66,11 +66,11 @@ class HomeController extends UserBaseController
     public function actionGetMobile()
     {
 //        $response = [
-//            'response' => 'wbdgoxVy0Ly3qbdc\/lgb5S4dnY\/siEekLowkhspGI1\/f5rL0wlasyJKD4NdXq3jAmvwevYqsAGxFHJtKDWpMLw==',
-//            'sign' => 'O6GLXhpqrnpDb4RGxSNeI\/bH8BxSqKV6vefSef4D+eJwxmJdhu0EB3LzuY44srpzP7CGzmx5YoQWI+AtefHUePTPkPDeec30oftHDgb4PTr3lJqzRnp9d1CC6i2eyRnhhOzrq9acDDCzQbiZnQLiOyKeTVcjdPLrfaPr0tC\/nTv28kzxftgAfFd6ESHmkUJwUlE68oZaMnC1AwVIUAD5kN1gP5GDwsFFdKvVuaTie4cGKi18tc56LReAW9CkMCvpMoOwXQCFm841lvcTAfaM8erUDqdH3h9g2az0CKrJrwy\/p8hcx9Jh3Db2JZfD7FhMmufIERbC1GHB4yBwP4+tXQ=='
+//            'response' => 'wbdgoxVy0Ly3qbdc\/lgb5S4dnY\/siEekLowkhspGI1+Gz7ltROIMTTg0Bhi0lFAux+PhgaAzV57CruD4+Ij04Q==',
+//            'sign' => 'Zk9lkopfgwpCIEjbMV8Ys4I6\/2S7LZuAmGaEbRWHiH0CLK36Kx8ZBmxiKpuDUPA4I7ZUiABc0FXW5nTk98bGlWrXrKPeFSbibKZJm7JMelLvj6egaBGcCfi+n0gzXLrAyxiONALIDubbFNFIuDViJgEY207KSrsiPmkz18\/aEWyMOSEphdXNDSmvtrhmbWpgX9QvpKPoqxEjhAFUBxk2EdTPnMFko1VY5WaaJcxeB4id4m19ZJIdD50\/RTPmYHi26xxTce+px3abR6rJ7MYdovIDuopkx4lEhxkOFobYi6QI1jVb7E1UyAJs\/ibUNrYGCqegGADb32jf7ViDpY9QQw=='
 //        ];
 //
-//        $data['user_id'] = 23;
+//        $data['user_id'] = 24;
 //        $data['encrypt_str'] = json_encode($response);
 //        $data['system_type'] = 'djyl';
 //        echo  json_encode($data);exit;
@@ -93,6 +93,7 @@ class HomeController extends UserBaseController
         //获取支付宝会员信息
         $service = new AlipaySmallApp($system_type);
         $mobile = $service->decryptData($encryptStr);
+
         //保存用户
         $params['mobile'] = $mobile;
         $memberSave = \service\door\MemberService::service()->saveMember($params);
