@@ -690,11 +690,11 @@ class F
         }
         $fileName = self::_generateName('jpg');
         $newFile = $filePath."/".$fileName;
-//        $filesize=abs(filesize($newFile));
-//        if ($filesize <= 0) {
-//            return '';
-//        }
         self::dlfile($url, $newFile);
+        $filesize = abs(filesize($newFile));
+        if ($filesize <= 0) {
+            return '';
+        }
         $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
         $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
         $endpoint = \Yii::$app->params['zjy_oss_domain'];
