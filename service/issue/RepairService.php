@@ -809,7 +809,6 @@ class RepairService extends BaseService
             } else {
                 $repairArr["status"] = self::STATUS_CHECKED_FALSE;
             }
-            $repairArr["status"] = self::STATUS_CHECKED;
             $repairArr["operator_id"] = $userInfo["id"];
             $repairArr["operator_name"] = $userInfo["truename"];
             $connection->createCommand()->update('ps_repair',
