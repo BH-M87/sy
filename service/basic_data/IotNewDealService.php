@@ -15,6 +15,7 @@ use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsRoomVistors;
 use common\core\F;
+use service\door\VisitorOpenService;
 use service\door\VisitorService;
 use service\producer\MqProducerService;
 
@@ -409,7 +410,7 @@ class IotNewDealService extends BaseService
      */
     public function getVisitorInfo($data,$type = '')
     {
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         $userType = RoomService::service()->findRoomUserById($data['room_id'],$data['member_id']);
         $params['userId'] = $data['member_id'];
         $params['communityNo'] = $unitInfo['community_no'];

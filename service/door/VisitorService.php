@@ -27,6 +27,7 @@ use common\MyException;
 use service\alipay\AlipayBillService;
 use service\BaseService;
 use service\basic_data\DoorPushService;
+use service\basic_data\IotNewDealService;
 use service\common\AliSmsService;
 use service\common\CsvService;
 use service\qiniu\UploadService;
@@ -657,6 +658,7 @@ class VisitorService extends BaseService
     // 加
     public function visitorAdd($data)
     {
+
         //获取这个房屋下面所有的供应商
         $room_id = $data['room_id'];
         $roomInfo = PsCommunityRoominfo::find()->where(['id'=>$room_id])->asArray()->one();
@@ -671,8 +673,12 @@ class VisitorService extends BaseService
             //不存在二维码供应商
             //throw new MyException('设备不支持');
         }
-        $getPassRe = $this->getQrCode($roomInfo,$data);
-        return $this->success($getPassRe['data']);
+        $data['community_id'] = $community_id;
+        $data['member_id'] = PsAppMember::find()->select('member_id')->where(['app_user_id'=>$data['user_id']])->asArray()->scalar();
+        $data['productSn'] = IotNewDealService::service()->getSupplierProductSnByCommunityId($community_id);
+        $getPassRe = IotNewDealService::service()->dealVisitorToIot($data,'add');
+        //$getPassRe = $this->getQrCode($roomInfo,$data);
+        return $this->success($getPassRe);
 
     }
 
