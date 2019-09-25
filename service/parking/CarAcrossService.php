@@ -56,6 +56,8 @@ class CarAcrossService extends BaseService
         $total = $this->outListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['in_capture_photo'] = $v['in_capture_photo'] ? F::getOssImagePath($v['in_capture_photo'], 'zjy') : '';
+            $v['out_capture_photo'] = $v['out_capture_photo'] ? F::getOssImagePath($v['out_capture_photo'], 'zjy') : '';
             $v['car_type'] = F::value($this->carTypes, $v['car_type']-1, []);
             $v['in_time'] = date('Y-m-d H:i:s', $v['in_time']);
             $v['out_time'] = date('Y-m-d H:i:s', $v['out_time']);
@@ -102,6 +104,8 @@ class CarAcrossService extends BaseService
         $total = $this->inListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['in_capture_photo'] = $v['in_capture_photo'] ? F::getOssImagePath($v['in_capture_photo'], 'zjy') : '';
+            $v['out_capture_photo'] = $v['out_capture_photo'] ? F::getOssImagePath($v['out_capture_photo'], 'zjy') : '';
             $v['car_type'] = F::value($this->carTypes, $v['car_type']-1, []);
             $time = $v['in_time'];
             $parkTime = intval((time() - $time) / 60);//分钟
