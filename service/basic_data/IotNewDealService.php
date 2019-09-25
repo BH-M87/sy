@@ -110,7 +110,7 @@ class IotNewDealService extends BaseService
                     $postData['sendDate'] = 0;
                     $postData['parkType'] = 'roomusertoiot';
                 }
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'add';
@@ -143,7 +143,7 @@ class IotNewDealService extends BaseService
                     }
                 }
                 $paramData['userList'] = $userInfos;
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'addBatch';
@@ -178,7 +178,7 @@ class IotNewDealService extends BaseService
                 $paramData['sendNum'] = 0;
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 break;
             case "edit-face":
                 $postData = [
@@ -247,7 +247,7 @@ class IotNewDealService extends BaseService
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
                 //$paramData['deviceInfo'] = F::get($paramData,'deviceInfo',[]);
-                //return IotNewService::service()->roomUserDelete($paramData);
+                return IotNewService::service()->roomUserDelete($paramData);
                 break;
             default:
                 return $this->failed('接口类型不存在');

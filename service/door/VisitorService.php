@@ -235,11 +235,8 @@ class VisitorService extends BaseService
         $userSex = $model['sex'];
         $visitor_id = $model['id'];
         $this->dealVisitor($roomId,$communityId,$userName, $userPhone,$userSex, $visitor_id);
-        if (PsRoomVistors::updateAll(['is_cancel' => 1], ['id' => $param['id']])) {
-            return $this->success();
-        }
-
-        return $this->failed();
+        PsRoomVistors::updateAll(['is_cancel' => 1], ['id' => $param['id']]);
+        return $this->success();
     }
 
     //处理访客信息
@@ -254,12 +251,9 @@ class VisitorService extends BaseService
         $buildingNo = $roomInfo['unit_no'];
         $roomNo = $roomInfo['out_room_id'];
         //同步删除iot
-        //DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone, 4, $userSex, $visitor_id);
+        DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,4, $userSex, $visitor_id);
         PsRoomVistors::updateAll(['sync'=>1],['id'=>$visitor_id]);
     }
-
-
-
 
 
     // 删除
@@ -273,11 +267,8 @@ class VisitorService extends BaseService
         if ($model['member_id'] != $member_id) {
             return $this->failed("没有权限删除此数据！");
         }
-        if (PsRoomVistors::updateAll(['is_del' => 1], ['id' => $param['id']])) {
-            return $this->success();
-        }
-
-        return $this->failed();
+        PsRoomVistors::updateAll(['is_del' => 1], ['id' => $param['id']]);
+        return $this->success();
     }
 
     /**
