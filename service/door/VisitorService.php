@@ -677,6 +677,9 @@ class VisitorService extends BaseService
             //不存在二维码供应商
             //throw new MyException('设备不支持');
         }
+        $data['app_user_id'] = $data['user_id'];
+        $data['start_time'] = strtotime($data['start_time']);
+        $data['end_time'] = strtotime($data['end_time']);
         $data['community_id'] = $community_id;
         $data['member_id'] = PsAppMember::find()->select('member_id')->where(['app_user_id'=>$data['user_id']])->asArray()->scalar();
         $data['productSn'] = IotNewDealService::service()->getSupplierProductSnByCommunityId($community_id);
