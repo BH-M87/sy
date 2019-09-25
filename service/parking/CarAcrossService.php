@@ -18,6 +18,8 @@ use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
+use OSS\Core\OssException;
+use OSS\OssClient;
 
 class CarAcrossService extends BaseService
 {
@@ -54,6 +56,8 @@ class CarAcrossService extends BaseService
         $total = $this->outListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['in_capture_photo'] = $v['in_capture_photo'] ? F::getOssImagePath($v['in_capture_photo'], 'zjy') : '';
+            $v['out_capture_photo'] = $v['out_capture_photo'] ? F::getOssImagePath($v['out_capture_photo'], 'zjy') : '';
             $v['car_type'] = F::value($this->carTypes, $v['car_type']-1, []);
             $v['in_time'] = date('Y-m-d H:i:s', $v['in_time']);
             $v['out_time'] = date('Y-m-d H:i:s', $v['out_time']);
@@ -100,6 +104,8 @@ class CarAcrossService extends BaseService
         $total = $this->inListCount($params);
         $i = $total - ($page-1)*$pageSize;
         foreach ($data as $v) {
+            $v['in_capture_photo'] = $v['in_capture_photo'] ? F::getOssImagePath($v['in_capture_photo'], 'zjy') : '';
+            $v['out_capture_photo'] = $v['out_capture_photo'] ? F::getOssImagePath($v['out_capture_photo'], 'zjy') : '';
             $v['car_type'] = F::value($this->carTypes, $v['car_type']-1, []);
             $time = $v['in_time'];
             $parkTime = intval((time() - $time) / 60);//分钟
@@ -256,6 +262,11 @@ class CarAcrossService extends BaseService
         $data['car_type'] = PsCommon::get($req, 'carType', 0);
         $data['car_type'] = $data['car_type'] > 0 ? $data['car_type'] : 2;
         $data['in_capture_photo'] = PsCommon::get($req, 'capturePhoto', '');
+
+        //图片处理
+        if ($data['in_capture_photo']) {
+            $data['in_capture_photo'] = F::trunsImg($data['in_capture_photo']);
+        }
         $data['user_id'] = 0;
         $data['in_gate_id'] = '';
         $data['in_address'] = PsCommon::get($req, 'arriveDeviceName');
@@ -446,6 +457,11 @@ class CarAcrossService extends BaseService
         $data['lot_name'] = PsCommon::get($req, 'lotName');
         $data['car_type'] = PsCommon::get($req, 'carType', 2);
         $data['out_capture_photo'] = PsCommon::get($req, 'capturePhoto', '');
+        //图片处理
+        if ($data['out_capture_photo']) {
+            $data['out_capture_photo'] = F::trunsImg($data['out_capture_photo']);
+        }
+
         //春江花园的数据做特殊处理，add by zq 2019-5-27
         $fy_communitys = ['580','583','584','587','593'];
         //查找入场记录
@@ -702,5 +718,6 @@ class CarAcrossService extends BaseService
             ->one();
         return $deviceInfo;
     }
+
 
 }

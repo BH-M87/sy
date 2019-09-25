@@ -803,8 +803,12 @@ class RepairService extends BaseService
                 'operator_id' => $userInfo["id"],
                 'operator_name' => $userInfo["truename"],
             ])->execute();
-
-            $repairArr["status"] = self::STATUS_CHECKED;
+            if ($params['status'] == 1) {
+                //复核通过
+                $repairArr["status"] = self::STATUS_CHECKED;
+            } else {
+                $repairArr["status"] = self::STATUS_CHECKED_FALSE;
+            }
             $repairArr["operator_id"] = $userInfo["id"];
             $repairArr["operator_name"] = $userInfo["truename"];
             $connection->createCommand()->update('ps_repair',

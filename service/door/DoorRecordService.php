@@ -98,6 +98,7 @@ class DoorRecordService extends BaseService
             ->all();
         $deviceTypeDescArr = DeviceService::service()->_pass_type;
         foreach ($list as $k => $value) {
+            $list[$k]['capture_photo'] = $value['capture_photo'] ? F::getOssImagePath($value['capture_photo'], 'zjy') : '';
             $list[$k]['room_address'] = $value['group'].$value['building'].$value['unit'].$value['room'];
             $list[$k]['open_type'] = PsCommon::getKeyValue($value['open_type'],$this->_open_door_type);
             $list[$k]['open_type_desc'] = $list[$k]['open_type']['value'];

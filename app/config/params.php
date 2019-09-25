@@ -50,6 +50,12 @@ $data['oss_secret_key_id'] = 'yWQNFSfw2Yxo3AeKiHYAlS5UH6MOOF';
 $data['oss_bucket'] = 'micro-brain-bucket';
 $data['oss_domain'] = 'http://oss-cn-shanghai.aliyuncs.com';
 
+//oss文件上传使用筑家易oss账号
+$data['zjy_oss_access_key_id'] = 'LTAIRMyJgmFU2NnA';
+$data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
+$data['zjy_oss_bucket'] = 'sqwn-fy';
+$data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
+
 /******物业收费应用配置*****/
 //测试环境先用未来社区进行测试
 $data['gate_way_url']   = 'https://openapi.alipay.com/gateway.do';

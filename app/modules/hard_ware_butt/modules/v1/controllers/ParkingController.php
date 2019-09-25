@@ -13,6 +13,7 @@ use app\models\ParkingAcrossForm;
 use app\modules\hard_ware_butt\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
+
 use service\parking\CarAcrossService;
 
 class ParkingController extends BaseController
@@ -69,6 +70,5 @@ class ParkingController extends BaseController
         CarAcrossService::service()->exitData($data);
         return PsCommon::responseSuccess();
     }
-
 
 }

@@ -43,9 +43,9 @@ class RepairStatisticService extends BaseService
     public function types($params)
     {
         $start_time = PsCommon::get($params, 'start', '');
-        $start = $start_time ? strtotime($start_time) : 0;//本月第一天
+        $start = $start_time ? strtotime($start_time. " 00:00:00") : 0;//本月第一天
         $end_time = PsCommon::get($params, 'end', '');
-        $end = $end_time ? strtotime($end_time) : 0;//今天凌晨0点
+        $end = $end_time ? strtotime($end_time." 23:59:59") : 0;//今天凌晨0点
         $community_id = $params['community_id'];
         $model = PsRepair::find()->alias('t')
             ->leftJoin(['u' => PsRepairType::tableName()], 'u.id=t.repair_type_id')
@@ -87,9 +87,9 @@ class RepairStatisticService extends BaseService
     public function score($params)
     {
         $start_time = PsCommon::get($params, 'start', '');
-        $start = $start_time ? strtotime($start_time) : 0;//本月第一天
+        $start = $start_time ? strtotime($start_time. " 00:00:00") : 0;//本月第一天
         $end_time = PsCommon::get($params, 'end', '');
-        $end = $end_time ? strtotime($end_time) : 0; //今天凌晨0点
+        $end = $end_time ? strtotime($end_time." 23:59:59") : 0; //今天凌晨0点
 
         $community_id = $params['community_id'];
         $model = PsRepair::find()->alias('t')
