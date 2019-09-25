@@ -267,14 +267,14 @@ Class MemberService extends BaseService
         $member->face_url = $faceUrl;
         if ($member->save()) {
             //数据推送
-            $identityType = !empty($roomInfo['identity_type']) ? $roomInfo['identity_type'] : 1;
+            /*$identityType = !empty($roomInfo['identity_type']) ? $roomInfo['identity_type'] : 1;
             $timeEnd = time() + 100 * 365 * 86400;
             if ($roomInfo['identity_type'] == 3 && $roomInfo['time_end']) {//租客
                 $timeEnd = $roomInfo['time_end'];
             }
             DoorPushService::service()->userEdit($communityId, $roomInfo['unit_no'], $roomInfo['out_room_id'],
                 $roomInfo['name'], $roomInfo['mobile'], $identityType, $roomInfo['sex'], $memberId, $faceUrl, $timeEnd,$roomInfo['face'],
-                '','','','','');
+                '','','','','');*/
             return $this->success();
         } else {
             $errors = array_values($member->getErrors());

@@ -45,7 +45,7 @@ class MemberCardService extends BaseService
 
         switch ($type){
             case 'edoor'://筑家易智能门禁
-                $this->template_id = $this->door_template_id;
+                $this->template_id = $this->edoor_template_id;
                 $alipayPublicKey = file_get_contents(Yii::$app->params['edoor_alipay_public_key_file']);
                 $rsaPrivateKey = file_get_contents(Yii::$app->params['edoor_rsa_private_key_file']);
                 $alipayLifeService = new IsvLifeService(Yii::$app->params['edoor_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
@@ -56,7 +56,7 @@ class MemberCardService extends BaseService
                 $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);
                 $alipayLifeService = new IsvLifeService(Yii::$app->params['fczl_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
                 break;
-            default://邻易联
+            default://富春智联
                 $this->template_id = $this->fczl_template_id;
                 $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
                 $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);

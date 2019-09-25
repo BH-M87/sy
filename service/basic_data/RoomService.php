@@ -12,6 +12,7 @@ namespace service\basic_data;
 use app\models\PsCommunityRoominfo;
 use app\models\PsRoomUser;
 use service\BaseService;
+use yii\db\Query;
 
 class RoomService extends BaseService
 {
@@ -120,6 +121,17 @@ class RoomService extends BaseService
     public function getInfo($roomId) {
         return PsCommunityRoominfo::find()->select('id, group, building, unit, room')
             ->where(['id' => $roomId])->asArray()->one();
+    }
+
+    //根据房屋ID查找住户信息
+    public function findRoomUserById($roomId,$member_id)
+    {
+        $query = new Query();
+        $query->select("user.identity_type");
+        $query->from("ps_room_user user");
+        $query->where(['user.room_id'=>$roomId,'user.member_id'=>$member_id,'user.status'=>[1,2]]);
+        $model = $query->scalar();
+        return $model;
     }
 
 

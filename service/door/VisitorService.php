@@ -27,6 +27,7 @@ use common\MyException;
 use service\alipay\AlipayBillService;
 use service\BaseService;
 use service\basic_data\DoorPushService;
+use service\basic_data\IotNewDealService;
 use service\common\AliSmsService;
 use service\common\CsvService;
 use service\qiniu\UploadService;
@@ -184,10 +185,14 @@ class VisitorService extends BaseService
         $data[] = $community_name . $model['group'] . $model['building'] . $model['unit'] . $model['room'];
         //todo 生成一个支付宝小程序的链接地址，用于短信里面直接跳转，edit by zq 2019-4-19
         $index="index";
+        $appId = \Yii::$app->params['fczl_app_id'];
         if(!empty($param['system_type']) && $param['system_type']=='edoor'){
             $index="edoor";
+            $appId = \Yii::$app->params['edoor_app_id'];
         }
-        $url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
+        //$url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
+        //直接生成支付宝链接
+        $url = "alipays://platformapi/startapp?appId=".$appId."&page=pages/visitorPass/visitorPass&query=".$param['id'];
         $data[] = $this->getShortUrl2($url).' '; // 加空格 不然ios手机会把后面的都当成是链接部分
         $data[] = $model['vistor_mobile'];
 
@@ -235,11 +240,8 @@ class VisitorService extends BaseService
         $userSex = $model['sex'];
         $visitor_id = $model['id'];
         $this->dealVisitor($roomId,$communityId,$userName, $userPhone,$userSex, $visitor_id);
-        if (PsRoomVistors::updateAll(['is_cancel' => 1], ['id' => $param['id']])) {
-            return $this->success();
-        }
-
-        return $this->failed();
+        PsRoomVistors::updateAll(['is_cancel' => 1], ['id' => $param['id']]);
+        return $this->success();
     }
 
     //处理访客信息
@@ -254,12 +256,9 @@ class VisitorService extends BaseService
         $buildingNo = $roomInfo['unit_no'];
         $roomNo = $roomInfo['out_room_id'];
         //同步删除iot
-        //DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone, 4, $userSex, $visitor_id);
+        //DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,4, $userSex, $visitor_id);
         PsRoomVistors::updateAll(['sync'=>1],['id'=>$visitor_id]);
     }
-
-
-
 
 
     // 删除
@@ -273,11 +272,8 @@ class VisitorService extends BaseService
         if ($model['member_id'] != $member_id) {
             return $this->failed("没有权限删除此数据！");
         }
-        if (PsRoomVistors::updateAll(['is_del' => 1], ['id' => $param['id']])) {
-            return $this->success();
-        }
-
-        return $this->failed();
+        PsRoomVistors::updateAll(['is_del' => 1], ['id' => $param['id']]);
+        return $this->success();
     }
 
     /**
@@ -666,6 +662,7 @@ class VisitorService extends BaseService
     // 加
     public function visitorAdd($data)
     {
+
         //获取这个房屋下面所有的供应商
         $room_id = $data['room_id'];
         $roomInfo = PsCommunityRoominfo::find()->where(['id'=>$room_id])->asArray()->one();
@@ -680,8 +677,15 @@ class VisitorService extends BaseService
             //不存在二维码供应商
             //throw new MyException('设备不支持');
         }
-        $getPassRe = $this->getQrCode($roomInfo,$data);
-        return $this->success($getPassRe['data']);
+        $data['app_user_id'] = $data['user_id'];
+        $data['start_time'] = strtotime($data['start_time']);
+        $data['end_time'] = strtotime($data['end_time']);
+        $data['community_id'] = $community_id;
+        $data['member_id'] = PsAppMember::find()->select('member_id')->where(['app_user_id'=>$data['user_id']])->asArray()->scalar();
+        $data['productSn'] = IotNewDealService::service()->getSupplierProductSnByCommunityId($community_id);
+        $getPassRe = IotNewDealService::service()->dealVisitorToIot($data,'add');
+        //$getPassRe = $this->getQrCode($roomInfo,$data);
+        return $this->success($getPassRe);
 
     }
 
