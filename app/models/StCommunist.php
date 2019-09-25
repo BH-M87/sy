@@ -57,7 +57,7 @@ class StCommunist extends BaseModel
         return [
             [['sex', 'type', 'station_id', 'pioneer_value', 'operator_id',
                 'create_at', 'is_authentication', 'user_id', 'is_del', 'organization_type'], 'integer'],
-            [['branch', 'job'], 'string', 'max' => 30, 'on' => ['add', 'edit'], 'message' => '{attribute}最多30个字！'],
+            [['branch', 'job'], 'string', 'max' => 50, 'on' => ['add', 'edit'], 'message' => '{attribute}最多50个字！'],
             [['mobile'], 'string', 'max' => 13],
             [['image'], 'string', 'max' => 200],
             [['operator_name'], 'string', 'max' => 20],
