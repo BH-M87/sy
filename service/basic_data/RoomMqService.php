@@ -991,7 +991,7 @@ class RoomMqService extends \service\basic_data\BaseService
             'userSex' => $userSex,
             'userId' => $userId,
         ];
-        $tmpService  = PushDataService::service()->init(2);
+        /*$tmpService  = PushDataService::service()->init(2);
         $syncSet = $this->getSyncDatacenter($communityId,$supplierId);
         if ($syncSet) {
             $tmppPushData = $tmpPushData;
@@ -1014,7 +1014,7 @@ class RoomMqService extends \service\basic_data\BaseService
             if (!$re) {
                 return $this->failed("mq 连接失败");
             }
-        }
+        }*/
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
             if($this->checkIsMaster($communityId)){
@@ -1025,14 +1025,14 @@ class RoomMqService extends \service\basic_data\BaseService
                 }
             }else{
                 if($tmpPushData['userList'][0]['userType'] == 4){
-                    IotNewDealService::service()->dealVisitorToIot($tmpPushData,'cancel');
+                    return IotNewDealService::service()->dealVisitorToIot($tmpPushData,'cancel');
                 }else{
-                    IotNewDealService::service()->dealUserToIot($tmpPushData,'del');
+                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'del');
                 }
             }
-            return $this->success();
+            //return $this->success();
         }
-        if(in_array('iot',$supplierSign)){
+        /*if(in_array('iot',$supplierSign)){
             $data = $tmpService->setWaitRequestData($tmpPushData);
             if ($data === false) {
                 return $this->failed("数据添加失败");
@@ -1044,7 +1044,7 @@ class RoomMqService extends \service\basic_data\BaseService
             } catch (Exception $e) {
                 return $this->failed("swool 连接失败");
             }
-        }
+        }*/
         return $this->success();
     }
 

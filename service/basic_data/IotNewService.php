@@ -10,6 +10,7 @@ namespace service\basic_data;
 
 use common\core\Curl;
 use common\core\F;
+use common\core\PsCommon;
 use yii\db\Query;
 
 class IotNewService extends BaseService
@@ -99,7 +100,7 @@ class IotNewService extends BaseService
         if(!empty($postArray)){
             $postData = [];
             foreach($postArray as $key){
-                $data = F::get($paramData,$key);
+                $data = PsCommon::get($paramData,$key);
                 if(!empty($data) || $check){
                     $postData[$key] = $data;
                 }else{

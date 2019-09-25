@@ -382,7 +382,7 @@ Class DoorPushService extends BaseService
 
     /**
      * 住户删除推送
-     * @param $communityId
+     * $communityId
      * @param $buildingNo 楼宇编号，系统唯一不重复编号
      * @param $roomNo     房屋编号，系统唯一不重复编号
      * @param $userName   住户姓名
