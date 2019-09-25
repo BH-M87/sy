@@ -125,7 +125,7 @@ class CommunityController extends BaseController
         $community_id = PsCommon::get($this->params, 'community_id');
 
         if (empty($user_id) && empty($community_id)) {
-            return F::apiSuccess([]);
+            return F::apiSuccess(['list' => [], 'total' => 0]);
         }
 
         $r = CommunityService::service()->exposureList($this->params);
