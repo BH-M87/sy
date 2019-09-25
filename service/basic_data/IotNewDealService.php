@@ -321,10 +321,10 @@ class IotNewDealService extends BaseService
                 $postData['enterModel'] = 0;//todo 入场模式0不自动放行，1自动放行
                 $postData['exitModel'] = 0;//todo 出场模式 0不收费，1收费
                 $postData['productSn'] = $data['productSn'];
-                $res = IotNewService::service()->visitorAdd($postData);
+                /*$res = IotNewService::service()->visitorAdd($postData);
                 if($res['code'] != 1){
                     return $res;
-                }
+                }*/
                 $return['id'] = $visitorInfo['id'];
                 $return['qrcode'] = '';
                 return $this->success($return);

@@ -256,7 +256,7 @@ class VisitorService extends BaseService
         $buildingNo = $roomInfo['unit_no'];
         $roomNo = $roomInfo['out_room_id'];
         //同步删除iot
-        DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,4, $userSex, $visitor_id);
+        //DoorPushService::service()->userDelete($communityId, $buildingNo, $roomNo, $userName, $userPhone,4, $userSex, $visitor_id);
         PsRoomVistors::updateAll(['sync'=>1],['id'=>$visitor_id]);
     }
 
