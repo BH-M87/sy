@@ -166,6 +166,7 @@ class AopRedirect {
             $log .= "Request url:" . $requestUrl . PHP_EOL;
             $log .= "Request content:" . var_export($apiParas, true) . PHP_EOL;
             $log .= "Request token:" . $appInfoAuthtoken . PHP_EOL;
+            $log .= "Response content:". var_export($respObject, true)."\r\n";
             $this->addLog($method, $log);
         }
         return $respObject;
