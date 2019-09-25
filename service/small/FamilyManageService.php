@@ -211,7 +211,8 @@ class FamilyManageService extends BaseService
         $userModel = $userInfoArray['userModel'];
         $userInfo = $userInfoArray['userInfo'];
 
-        if ($model->identity_type == 1 || $model->identity_type == 2) {
+        $identity_type = PsCommon::get($params, 'identity_type',0);
+        if ($identity_type == 1 || $identity_type == 2) {
             //业主或者家人，有效期变更为长期
             $model->time_end = 0;
         } else {
