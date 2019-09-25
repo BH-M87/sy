@@ -171,7 +171,7 @@ Class BaseService extends \service\BaseService
     //如果传入是时间不是时间戳，那么将之转化
     public function dealTime($time)
     {
-        if(!is_int($time)){
+        if(!is_numeric($time)){
             //将传入的时间转成当天的23时59分39秒
             $time1 = strtotime($time);
             $time2 = date('Y-m-d',$time1)." 23:59:59";
