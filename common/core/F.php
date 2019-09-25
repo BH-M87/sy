@@ -683,6 +683,7 @@ class F
 
     public static function trunsImg($url)
     {
+        $trueUrl = $url;
         $url = str_replace("https://","http://",$url);
         $filePath = F::qiniuImagePath().date('Y-m-d')."/";
         if (!is_dir($filePath)) {//0755: rw-r--r--
@@ -693,7 +694,8 @@ class F
         self::dlfile($url, $newFile);
         $filesize = abs(filesize($newFile));
         if ($filesize <= 0) {
-            return '';
+            //如果图片地址不能下载的话，就默认返回原图地址
+            return $trueUrl;
         }
         $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
         $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
