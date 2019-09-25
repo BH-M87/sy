@@ -61,6 +61,7 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : '10086';
         switch($type){
             case "add":
                 //住户新增
@@ -294,12 +295,12 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
-
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : '10086';
         switch($type){
             case "add":
                 //访客新增预约
                 $visitorInfo = $this->getVisitorInfo($data,1);
-                $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
+                $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id,没有就写死
                 $postData['communityNo'] = $visitorInfo['communityNo'];
                 $postData['communityName'] = $visitorInfo['communityName'];
                 $postData['gardenName'] = $visitorInfo['group'];
@@ -447,6 +448,7 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : '10086';
         switch($type){
             case "add":
                 $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
