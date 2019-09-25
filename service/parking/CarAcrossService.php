@@ -265,7 +265,7 @@ class CarAcrossService extends BaseService
 
         //图片处理
         if ($data['in_capture_photo']) {
-            $data['in_capture_photo'] = $this->trunsImg($data['in_capture_photo']);
+            $data['in_capture_photo'] = F::trunsImg($data['in_capture_photo']);
         }
         $data['user_id'] = 0;
         $data['in_gate_id'] = '';
@@ -459,7 +459,7 @@ class CarAcrossService extends BaseService
         $data['out_capture_photo'] = PsCommon::get($req, 'capturePhoto', '');
         //图片处理
         if ($data['out_capture_photo']) {
-            $data['out_capture_photo'] = $this->trunsImg($data['out_capture_photo']);
+            $data['out_capture_photo'] = F::trunsImg($data['out_capture_photo']);
         }
 
         //春江花园的数据做特殊处理，add by zq 2019-5-27
@@ -719,53 +719,5 @@ class CarAcrossService extends BaseService
         return $deviceInfo;
     }
 
-    public function trunsImg($url)
-    {
-        $url = str_replace("https://","http://",$url);
-        $filePath = F::qiniuImagePath().date('Y-m-d')."/";
-        if (!is_dir($filePath)) {//0755: rw-r--r--
-            mkdir($filePath, 0755, true);
-        }
-        $fileName = $this->_generateName('jpg');
-        $newFile = $filePath."/".$fileName;
-        $this->dlfile($url, $newFile);
-        $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
-        $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
-        $endpoint = \Yii::$app->params['zjy_oss_domain'];
-        $bucket = \Yii::$app->params['zjy_oss_bucket'];
-        $object = $fileName;
-        $imgKeyData = '';
-        try{
-            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
-            $ossClient->uploadFile($bucket, $object, $newFile);
-            $imgKeyData = $object;
-        } catch(OssException $e) {
-
-        }
-        return $imgKeyData;
-    }
-
-    private function dlfile($file_url, $save_to)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_POST, 0);
-        curl_setopt($ch, CURLOPT_URL, $file_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $file_content = curl_exec($ch);
-        curl_close($ch);
-        $downloaded_file = fopen($save_to, 'w');
-        fwrite($downloaded_file, $file_content);
-        fclose($downloaded_file);
-    }
-
-    /**
-     * 创建新的文件名称(以时间区分)
-     */
-    private function _generateName($ext)
-    {
-        list($msec, $sec) = explode(' ', microtime());
-        $msec = round($msec, 3) * 1000;//获取毫秒
-        return date('YmdHis') . $msec . rand(10,100) . '.' . $ext;
-    }
 
 }
