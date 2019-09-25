@@ -98,7 +98,7 @@ class StewardService extends BaseService
         $count = $stewatd->count();
         if ($count > 0) {
             $list = $stewatd->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
-            $this->getGroupBuildingInfo($list, $params['building_id'] ?? []);
+            $this->getGroupBuildingInfo($list, []);
         }
 
         return ['list' => $list ?? [], 'totals' => $count];
@@ -110,7 +110,8 @@ class StewardService extends BaseService
         foreach ($data as $k => &$v) {
             $building = PsSteWardRelat::find()->alias('s')->select('b.name,b.id,b.group_name,b.group_id')
                 ->innerJoin(['b' => PsCommunityBuilding::tableName()], 'b.id = s.data_id')
-                ->where(['s.steward_id' => $v['id'], 's.data_type' => 1])->filterWhere(['data_id' => $building_id])->asArray()->all();
+                ->where(['s.steward_id' => $v['id'], 's.data_type' => 1])
+                ->filterWhere(['data_id' => $building_id])->asArray()->all();
             $v['building_info'] = $building;
             $v['sex_desc'] = PsSteWard::$sex_info[$v['sex']];
             $v['praise_rate'] = $this->getPraiseRate($v['evaluate'], $v['praise']);
