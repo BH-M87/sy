@@ -444,7 +444,7 @@ class MemberService extends BaseService
         $member->face_url = $faceUrl;
         //查询这个用户所有的房屋，add by zq 2019-5-29
         if($roomInfo){
-            /*$value = $roomInfo;
+            $value = $roomInfo;
             //数据推送
             $timeEnd = time() + 100 * 365 * 86400;
             if(!empty($value['identity_type'])){
@@ -461,7 +461,7 @@ class MemberService extends BaseService
                         return $this->failed("人脸解析失败，请重新上传");
                     }
                 }
-            }*/
+            }
         }
         //加入推送队列，将住户的所有房屋全都推送一次
         \Yii::$app->redis->rpush(YII_ENV.'faceurllist', $memberId);

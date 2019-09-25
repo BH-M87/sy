@@ -9,7 +9,7 @@
 namespace service\basic_data;
 
 use app\models\DoorSendRequest;
-use backend\models\IotSupplierCommunity;
+use app\models\IotSupplierCommunity;
 use app\models\IotSuppliers;
 use common\core\F;
 use service\producer\MqProducerService;
@@ -39,7 +39,7 @@ class SupplierService extends BaseService
 //            ->all();
         //TODO 目前先全部放开
         $res = IotSuppliers::find()
-            ->select('id,name')
+            ->select(['id','name'])
             ->asArray()
             ->all();
         $supplierInfo['list'] = $res;
