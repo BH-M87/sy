@@ -14,6 +14,7 @@ use common\core\F;
 use common\core\PsCommon;
 use service\common\AlipaySmallApp;
 use service\door\HomeService;
+use service\alipay\MemberCardService;
 
 class HomeController extends UserBaseController
 {
@@ -118,8 +119,15 @@ class HomeController extends UserBaseController
         $result = HomeService::service()->getFaceList($app_user_id,$roomId);
         return self::dealReturnResult($result);
     }
+    
+    // 会员卡开卡
+    public function actionOpenCard()
+    {
+        $data['user_id'] = PsCommon::get($this->params, 'user_id');
+        $data['type'] = 'edoor';
 
+        $result = MemberCardService::service()->cardOpen($data);
 
-
-
+        return self::dealReturnResult($result);
+    }
 }
