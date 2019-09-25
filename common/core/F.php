@@ -718,10 +718,16 @@ class F
         curl_setopt($ch, CURLOPT_URL, $file_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $file_content = curl_exec($ch);
+        $curl_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        $downloaded_file = fopen($save_to, 'w');
-        fwrite($downloaded_file, $file_content);
-        fclose($downloaded_file);
+        if ($curl_code == 200) {
+            $downloaded_file = fopen($save_to, 'w');
+            fwrite($downloaded_file, $file_content);
+            fclose($downloaded_file);
+            //echo '连接成功，状态码：' . $curl_code;
+        } else {
+            //echo '连接失败，状态码：' . $curl_code;
+        }
     }
 
     /**
