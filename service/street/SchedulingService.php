@@ -20,8 +20,10 @@ class SchedulingService extends BaseService
         $scheduleData = StScheduling::find()
             ->alias('st')
             ->leftJoin('user_info u','st.user_id = u.user_id')
+            ->leftJoin('user', 'st.user_id = user.id')
             ->select('st.id, st.user_id, u.username as user_name, st.user_type, u.mobile_number as user_mobile, st.day_type, u.profile_image as user_photo')
             ->where(['st.organization_type' => $params['organization_type'], 'st.organization_id' => $params['organization_id']])
+            ->andWhere(['!=', 'user.status', 3])
             ->asArray()
             ->all();
         return $this->_processData($scheduleData);
