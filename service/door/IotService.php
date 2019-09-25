@@ -74,7 +74,7 @@ class IotService extends BaseService
         $params['userId'] = $data['member_id'];
 
         //根据房屋，住户查询相关信息
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         $params['communityNo'] = $unitInfo['community_no'];
         $params['buildingNo'] = $unitInfo['unit_no'];
         $params['roomNo'] = $unitInfo['out_room_id'];
@@ -109,7 +109,7 @@ class IotService extends BaseService
         $url = '/rest/door/generateQRCode';
         $params['userId'] = $data['member_id'];
         //根据房屋，住户查询相关信息
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         $params['communityNo'] = $unitInfo['community_no'];
         $params['buildingNo'] = $unitInfo['unit_no'];
         $params['roomNo'] = $unitInfo['out_room_id'];
@@ -146,7 +146,7 @@ class IotService extends BaseService
     {
         $url = '/rest/door/generateQRCode';
         $params['userId'] = $data['member_id'];
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         $params['communityNo'] = $unitInfo['community_no'];
         $params['buildingNo'] = $unitInfo['unit_no'];
         $params['roomNo'] = $unitInfo['out_room_id'];
@@ -224,7 +224,7 @@ class IotService extends BaseService
     public function visitorAdd($data)
     {
         // 根据房屋，住户查询相关信息
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         // 密码
         $params['userId'] = $data['member_id'];
         $params['communityNo'] = $unitInfo['community_no'];

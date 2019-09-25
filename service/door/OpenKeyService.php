@@ -590,7 +590,7 @@ class OpenKeyService extends BaseService
             $syncSet = $this->getSyncDatacenter($communityId,$supplierId);
             if($syncSet){
                 $tmpService  = PushDataService::service()->init(2);
-                $unitInfo = RoomService::service()->getUnitByRoomId($data);
+                $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
                 $tmppPushData = [
                     'actionType' => 'add',
                     'sendNum' => 0,

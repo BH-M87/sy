@@ -15,6 +15,7 @@ use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsRoomVistors;
 use common\core\F;
+use service\door\VisitorOpenService;
 use service\door\VisitorService;
 use service\producer\MqProducerService;
 
@@ -60,6 +61,7 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : 10086;
         switch($type){
             case "add":
                 //住户新增
@@ -110,7 +112,7 @@ class IotNewDealService extends BaseService
                     $postData['sendDate'] = 0;
                     $postData['parkType'] = 'roomusertoiot';
                 }
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'add';
@@ -143,7 +145,7 @@ class IotNewDealService extends BaseService
                     }
                 }
                 $paramData['userList'] = $userInfos;
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'addBatch';
@@ -178,7 +180,7 @@ class IotNewDealService extends BaseService
                 $paramData['sendNum'] = 0;
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
-                //return IotNewService::service()->roomUserAdd($paramData);
+                return IotNewService::service()->roomUserAdd($paramData);
                 break;
             case "edit-face":
                 $postData = [
@@ -247,7 +249,7 @@ class IotNewDealService extends BaseService
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
                 //$paramData['deviceInfo'] = F::get($paramData,'deviceInfo',[]);
-                //return IotNewService::service()->roomUserDelete($paramData);
+                return IotNewService::service()->roomUserDelete($paramData);
                 break;
             default:
                 return $this->failed('接口类型不存在');
@@ -293,12 +295,12 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
-
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : 10086;
         switch($type){
             case "add":
                 //访客新增预约
                 $visitorInfo = $this->getVisitorInfo($data,1);
-                $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
+                $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id,没有就写死
                 $postData['communityNo'] = $visitorInfo['communityNo'];
                 $postData['communityName'] = $visitorInfo['communityName'];
                 $postData['gardenName'] = $visitorInfo['group'];
@@ -409,7 +411,7 @@ class IotNewDealService extends BaseService
      */
     public function getVisitorInfo($data,$type = '')
     {
-        $unitInfo = RoomService::service()->getUnitByRoomId($data);
+        $unitInfo = VisitorOpenService::service()->getUnitByRoomId($data);
         $userType = RoomService::service()->findRoomUserById($data['room_id'],$data['member_id']);
         $params['userId'] = $data['member_id'];
         $params['communityNo'] = $unitInfo['community_no'];
@@ -446,6 +448,7 @@ class IotNewDealService extends BaseService
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
+        $communityInfo['pro_company_id'] = !empty($communityInfo['pro_company_id']) ? $communityInfo['pro_company_id'] : 10086;
         switch($type){
             case "add":
                 $postData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
