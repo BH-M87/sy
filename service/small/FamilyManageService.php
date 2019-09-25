@@ -211,10 +211,12 @@ class FamilyManageService extends BaseService
         $userModel = $userInfoArray['userModel'];
         $userInfo = $userInfoArray['userInfo'];
 
-        if ($model->identity_type == 1 || $model->identity_type == 2) {//业主或者家人，有效期变更为长期
+        if ($model->identity_type == 1 || $model->identity_type == 2) {
+            //业主或者家人，有效期变更为长期
             $model->time_end = 0;
         } else {
-            $timeEnd = PsCommon::get($params, 'time_end');
+            //$params['time_end'] = PsCommon::get($params, 'expired_time');
+            $timeEnd = PsCommon::get($params, 'expired_time');
             $timeEnd = $timeEnd ? strtotime($timeEnd . " 23:59:59") : 0;
             $model->time_end = (integer)$timeEnd;
         }
