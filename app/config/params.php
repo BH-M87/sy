@@ -69,10 +69,6 @@ if (YII_ENV == "dev" || YII_ENV == "test") {
     $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/sqwn/rsa_private.txt";
 }
 
-$data['appKey'] = 'dingvxqretqs7uduiovc';
-$data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
-$data['agent_id'] = 281128929;
-
 //iot新接口参数
 $data['iotNewAppKey'] = 'community';
 $data['iotNewAppSecret'] = '9f1bbb1b06797a3541c4ab5afafbaf6c';
@@ -81,14 +77,26 @@ if (YII_ENV == "prod") {
     $data['api_host_url'] = 'https://sqwn-fy-web.elive99.com';
     //iot接口地址
     $data['iotNewUrl'] = 'https://gateway-api.zje.com';
+    //钉钉相关配置
+    $data['appKey'] = 'dingvxqretqs7uduiovc';
+    $data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
+    $data['agent_id'] = 281128929;
 } else if (YII_ENV == "test" || YII_ENV == "release")  {
     $data['api_host_url'] = 'https://sqwr.elive99.com';
     //iot接口地址
     $data['iotNewUrl'] = 'http://101.37.135.54:8844';
+    //钉钉相关配置
+    $data['appKey'] = 'dingrxn2bgp2ngekcak5';
+    $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
+    $data['agent_id'] = 290532532;
 } else {
     $data['api_host_url'] = Yii::$app->request->getHostInfo();
     //iot接口地址
     $data['iotNewUrl'] = 'http://101.37.135.54:8844';
+    //钉钉相关配置
+    $data['appKey'] = 'dingrxn2bgp2ngekcak5';
+    $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
+    $data['agent_id'] = 290532532;
 }
 
 return $data;
