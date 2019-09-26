@@ -192,7 +192,7 @@ class PsCommon {
             $log['action'] = Yii::$app->controller->action->getUniqueId();
             $log['msg'] = $msg;
             $log['data'] = F::request();
-            Yii::info(json_encode($log, 320), 'api-failed');
+            Yii::info(json_encode($log, 320), 'api');
         }
         return self::ajaxReturn($code, (object)[], ['errorMsg' => $msg]);
     }

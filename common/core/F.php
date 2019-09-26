@@ -125,7 +125,7 @@ class F
             'data' => (object)[],
             'errMsg' => $msg
         ];
-        Yii::info(json_encode($msg, 320), 'api-failed');
+        Yii::info(json_encode($msg, 320), 'api');
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         Yii::$app->response->content = json_encode($data, JSON_UNESCAPED_UNICODE);
         Yii::$app->response->send();
