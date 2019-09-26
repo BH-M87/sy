@@ -42,6 +42,7 @@ Class ActivityService extends BaseService
     public function list($p)
     {
         // 小程序的列表 有该小区权限的组织发的活动都要展示
+        $p['small'] = 1; // 标记小程序
         $p['organization_id'] = DepartmentCommunity::getCode($p['community_id']);
 
         $m = PsActivity::getList($p);

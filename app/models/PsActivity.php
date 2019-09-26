@@ -147,14 +147,14 @@ class PsActivity extends BaseModel
             } else {
                 $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             }
-            self::afterList($list);
+            self::afterList($list, $p);
         }
 
         return ['list' => $list ?? [], 'totals' => $totals];
     }
 
     // 列表结果格式化
-    public static function afterList(&$list)
+    public static function afterList(&$list, $p)
     {
         foreach ($list as &$v) {
             $v['status'] = self::status($v);
@@ -170,8 +170,15 @@ class PsActivity extends BaseModel
             $v['people_list'] = $enroll;
             $avatar_arr = [];
             if (!empty($enroll)) {
-                foreach ($enroll as $val) {
-                    $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                foreach ($enroll as $k => $val) {
+                    if (!empty($p['small'])) {
+                        if ($k < 3) {
+                            $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                        }
+                    } else {
+                        $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                    }
+                    
                 }
             }
             $v['join_info'] = $avatar_arr;
