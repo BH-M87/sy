@@ -691,12 +691,16 @@ class F
         }
         $fileName = self::_generateName('jpg');
         $newFile = $filePath."/".$fileName;
-        self::dlfile($url, $newFile);
+        $re = self::dlfile($url, $newFile);
+        if (!$re) {
+            return '';
+        }
         $filesize = abs(filesize($newFile));
         if ($filesize <= 0) {
             //如果图片地址不能下载的话，就默认返回原图地址
             return '';
         }
+
         $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
         $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
         $endpoint = \Yii::$app->params['zjy_oss_domain'];
@@ -708,7 +712,6 @@ class F
             $ossClient->uploadFile($bucket, $object, $newFile);
             $imgKeyData = $object;
         } catch(OssException $e) {
-
         }
         return $imgKeyData;
     }
@@ -726,8 +729,10 @@ class F
             $downloaded_file = fopen($save_to, 'w');
             fwrite($downloaded_file, $file_content);
             fclose($downloaded_file);
+            return true;
             //echo '连接成功，状态码：' . $curl_code;
         } else {
+            return false;
             //echo '连接失败，状态码：' . $curl_code;
         }
     }
