@@ -26,7 +26,7 @@ class BaseController extends Controller
 
         F::setSmallStatus();//钉钉端设置这个参数返回errCode
         $params = F::request();
-        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params),'api');
+        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params),'smallapp');
         if(empty($params['user_id'])){
             throw new MyException('用户id不能为空');
         }
