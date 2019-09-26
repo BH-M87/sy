@@ -601,6 +601,7 @@ class CarAcrossService extends BaseService
         $model->out_address = $data['out_address'];
         $model->out_time = $data['out_time'];
         $model->out_capture_photo = $data['out_capture_photo'];
+        $model->out_capture_photo_old = $data['out_capture_photo_old'];
         $model->amount = $data['amount'];
         //优惠费用和最终实际支付费用的记录
         if($orderId){
