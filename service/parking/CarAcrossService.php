@@ -261,8 +261,9 @@ class CarAcrossService extends BaseService
         $data['lot_name'] = PsCommon::get($req, 'lotName');
         $data['car_type'] = PsCommon::get($req, 'carType', 0);
         $data['car_type'] = $data['car_type'] > 0 ? $data['car_type'] : 2;
-        $data['in_capture_photo'] = PsCommon::get($req, 'capturePhoto', '');
-
+        $capturePhoto = PsCommon::get($req, 'capturePhoto', '');
+        $data['in_capture_photo'] = $capturePhoto;
+        $data['in_capture_photo_old'] = $capturePhoto;
         //图片处理
         if ($data['in_capture_photo']) {
             $data['in_capture_photo'] = F::trunsImg($data['in_capture_photo']);
@@ -456,7 +457,9 @@ class CarAcrossService extends BaseService
         $data['lot_code'] = PsCommon::get($req, 'lotCode');
         $data['lot_name'] = PsCommon::get($req, 'lotName');
         $data['car_type'] = PsCommon::get($req, 'carType', 2);
-        $data['out_capture_photo'] = PsCommon::get($req, 'capturePhoto', '');
+        $capturePhoto = PsCommon::get($req, 'capturePhoto', '');
+        $data['out_capture_photo'] = $capturePhoto;
+        $data['out_capture_photo_old'] = $capturePhoto;
         //图片处理
         if ($data['out_capture_photo']) {
             $data['out_capture_photo'] = F::trunsImg($data['out_capture_photo']);
