@@ -50,7 +50,6 @@ class CarAcrossService extends BaseService
             ->orderBy('out_time desc')
             ->offset(($page - 1) * $pageSize)->limit($pageSize)
             ->asArray()->all();
-        var_dump($data);die;
         $result = [];
         $total = $this->outListCount($params);
         $i = $total - ($page-1)*$pageSize;
