@@ -466,7 +466,7 @@ class CarAcrossService extends BaseService
         }
 
         //春江花园的数据做特殊处理，add by zq 2019-5-27
-        $fy_communitys = ['580','583','584','587','593'];
+        $fy_communitys = ['37','38','39','40','41'];
         //查找入场记录
         if($orderId){
             $model = ParkingAcrossRecord::find()->where(['supplier_id' => $data['supplier_id'],
