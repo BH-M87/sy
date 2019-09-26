@@ -19,6 +19,7 @@ use app\models\PsActivity;
 use app\models\PsActivityEnroll;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
+use app\models\DepartmentCommunity;
 
 Class ActivityService extends BaseService
 {
@@ -35,6 +36,16 @@ Class ActivityService extends BaseService
         }
 
         return $arr;
+    }
+
+    // 获取活动列表
+    public function list($p)
+    {
+        // 小程序的列表 有该小区权限的组织发的活动都要展示
+        $p['organization_id'] = DepartmentCommunity::getCode($p['community_id']);
+
+        $m = PsActivity::getList($p);
+        return $m;
     }
 
     // 活动 搜索
