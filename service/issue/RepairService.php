@@ -338,7 +338,8 @@ class RepairService extends BaseService
     public function add($params, $userInfo = [], $useAs = '')
     {
         $model = new PsRepair();
-        if ($params['relate_room']) {
+
+        if ($useAs == 'small' && !empty($params['room_id'])) {
             //关联房屋的验证
             $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
                 $params['building'], $params['unit'], $params['room']);
@@ -347,6 +348,17 @@ class RepairService extends BaseService
             }
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+        } else {
+            if ($params['relate_room']) {
+                //关联房屋的验证
+                $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
+                    $params['building'], $params['unit'], $params['room']);
+                if (!$roomInfo) {
+                    return "房屋不存在";
+                }
+                $model->room_id = $roomInfo['id'];
+                $model->room_address = $params['group'] . $params['building'] . $params['unit'] . $params['room'];
+            }
         }
 
         if ($useAs == 'small') {
