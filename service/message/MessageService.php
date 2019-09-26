@@ -107,14 +107,14 @@ class MessageService extends BaseService
         if (!in_array($type, [1, 2, 3, 4])) {
             return "消息类型有误";
         }
-        return true;
-        /*if (!empty($appointUserArray)) {
+        if (!empty($appointUserArray)) {
             $uidArray = $appointUserArray;
         } else {
-            $uidArray = $this->handleUserInfo($params['community_id'], $auth_type);//获取有权限的用户信息
-            if (!$uidArray) {
-                return false;
-            }
+//            $uidArray = $this->handleUserInfo($params['community_id'], $auth_type);//获取有权限的用户信息
+//            if (!$uidArray) {
+//                return false;
+//            }
+            $uidArray = ['133','238'];
         }
         $userInfo = $uidArray;
         MessagePushService::service()->add(
@@ -128,7 +128,7 @@ class MessageService extends BaseService
             $params['create_user_type'],
             $userInfo
         );
-        return true;*/
+        return true;
     }
 
     /**
