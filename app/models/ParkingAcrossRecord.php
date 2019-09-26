@@ -18,10 +18,12 @@ use Yii;
  * @property string $in_address 入口道闸名称
  * @property int $in_time 入场时间
  * @property string $in_capture_photo 入场抓拍图片
+ * @property string $in_capture_photo_old 设备传过来的原图片地址
  * @property int $out_gate_id 出口道闸id
  * @property string $out_address 出口道闸
  * @property int $out_time 出场时间
  * @property string $out_capture_photo 出场抓拍图片
+ * @property string $out_capture_photo_old 设备传过来的原图片地址
  * @property string $amount 需缴纳的停车费用
  * @property string $discount_amount 优惠金额
  * @property string $pay_amount 实际支付的金额
@@ -63,6 +65,7 @@ class ParkingAcrossRecord extends BaseModel
             [['supplier_id', 'community_id', 'car_num', 'car_type', 'out_gate_id', 'out_time', 'lot_code'], 'required',
                 'message' => '{attribute}不能为空!', 'on' => 'exit'],
             [['in_capture_photo', 'out_capture_photo', 'in_address', 'out_address'], 'string', 'max' => 255],
+            [['in_capture_photo_old', 'out_capture_photo_old'], 'string', 'max' => 255],
             [['plate_type', 'plate_color', 'plate_color_str', 'car_color', 'car_color_str', 'car_sub_type', 'car_logo'], 'string', 'max' => 20],
         ];
     }
@@ -85,10 +88,12 @@ class ParkingAcrossRecord extends BaseModel
             'in_address' => '入场地址',
             'in_time' => '入场时间',
             'in_capture_photo' => '入场图片',
+            'in_capture_photo_old' => '设备传过来的原图片地址',
             'out_gate_id' => '出场设备id',
             'out_address' => '出场地址',
             'out_time' => '出场时间',
             'out_capture_photo' => '出场图片',
+            'out_capture_photo_old' => '设备传过来的原图片地址',
             'amount' => '停车费用',
             'park_time' => '停车时长',
             'lot_code' => '停车场编号',

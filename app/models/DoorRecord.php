@@ -11,6 +11,7 @@ use Yii;
  * @property int $community_id 小区id
  * @property int $supplier_id 供应商id
  * @property string $capture_photo 抓拍图片
+ * $@property string $capture_photo_old 设备传过来的原图片地址
  * @property int $open_type 开门方式 1 人脸开门， 2 蓝牙开门， 3 密码开门, 4 钥匙开门, 5 门卡开门，6 扫码开门, 7 临时密码 8二维码开门
  * @property int $open_time 开门时间
  * @property string $user_name 用户姓名
@@ -56,6 +57,7 @@ class DoorRecord extends BaseModel
             [['community_id', 'supplier_id', 'open_type', 'open_time', 'user_type', 'room_id', 'coat_color', 'coat_type', 'trousers_color', 'trousers_type', 'has_hat', 'has_bag', 'device_type', 'create_at'], 'integer'],
             [['open_time', 'create_at'], 'required'],
             [['capture_photo'], 'string', 'max' => 1000],
+            [['capture_photo_old'], 'string', 'max' => 800],
             [['user_name', 'card_no', 'device_name'], 'string', 'max' => 50],
             [['user_phone'], 'string', 'max' => 15],
             [['device_no'], 'string', 'max' => 80],
@@ -74,6 +76,7 @@ class DoorRecord extends BaseModel
             'community_id' => 'Community ID',
             'supplier_id' => 'Supplier ID',
             'capture_photo' => 'Capture Photo',
+            'capture_photo_old' => 'Capture Photo Old',
             'open_type' => 'Open Type',
             'open_time' => 'Open Time',
             'user_name' => 'User Name',
