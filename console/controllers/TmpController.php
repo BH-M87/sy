@@ -7,12 +7,15 @@
  */
 namespace console\controllers;
 
+use app\models\ParkingCars;
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityUnits;
+use common\core\F;
 
 include_once dirname(__DIR__,2)."/app/models/BaseModel.php";
 include_once dirname(__DIR__,2)."/app/models/PsCommunityBuilding.php";
 include_once dirname(__DIR__,2)."/app/models/PsCommunityUnits.php";
+include_once dirname(__DIR__,2)."/app/models/ParkingCars.php";
 
 
 class TmpController extends ConsoleController
