@@ -85,7 +85,7 @@ class CarService extends BaseService
             $query->andWhere(['like', 'car.car_num', $req['car_num']]);
         }
         $query->orderBy('car.id desc');
-        $re['totals'] = $query->select(['count(car.id) as num'])
+        $re['totals'] = $query->select(['count(distinct car.id) as num'])
             ->scalar();
         $list = $query->select('car.*, room.address, pc.car_port_num, pu.user_name, pu.user_mobile,comm.name as community_name')
             ->orderBy('car.id desc')

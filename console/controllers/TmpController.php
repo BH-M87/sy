@@ -38,4 +38,25 @@ class TmpController extends ConsoleController
             }
         }
     }
+
+    public function actionParkingCars()
+    {
+        $cars = \Yii::$app->db->createCommand("select * from parking_cars_copy order by id ASC")->queryAll();
+        foreach ($cars as $car) {
+            $carModel = new ParkingCars();
+            $carModel->community_id = 37;
+            $img = '';
+            //图片处理
+            if ($car['car_img']) {
+                $img = F::trunsImg($car['car_img']);
+            }
+            $carModel->car_num = $car['car_num'];
+            $carModel->images = $img;
+            $carModel->created_at = time();
+            if ($carModel->save()) {
+                echo $carModel->id.'--车牌号:'.$carModel->car_num."\r\n";
+            }
+        }
+
+    }
 }
