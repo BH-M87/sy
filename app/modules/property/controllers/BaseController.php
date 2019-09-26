@@ -64,7 +64,7 @@ Class BaseController extends CoreController
         $this->userId = F::request('user_id');
         \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
-        $this->request_params['community_id'] = $this->communityId;
+        $this->request_params['community_id'] = !empty($this->request_params['community_id']) ? $this->request_params['community_id'] : $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
@@ -83,7 +83,7 @@ Class BaseController extends CoreController
             $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
             //token验证
             $this->user_info = $userInfo;
-            $communityId = $this->communityId ? $this->communityId : $community_id[0];
+            $communityId = $this->request_params['community_id'] ? $this->request_params['community_id'] : $community_id[0];
             $this->communityId = $communityId;
             $this->request_params['community_id'] = $communityId;
             UserService::setUser($this->user_info);

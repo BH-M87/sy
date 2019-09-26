@@ -32,9 +32,9 @@ class MeterReadingService extends BaseService
         $cycle_model->period = strtotime($cycle_model->period);
         $cycle_model->meter_time = strtotime($cycle_model->meter_time);
         $cycle_model->created_at = time();
-        $cycle_model->save();
         $result = $callback($cycle_model);
         if ($result['code']) {
+            $cycle_model->save();
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "抄表管理",
@@ -120,9 +120,9 @@ class MeterReadingService extends BaseService
             return $this->failed($valid["errorMsg"]);
         }
         $where['page'] = $param['page'] ?? 1;
-        $where['row'] = $param['row'] ?? 10;
+        $where['row'] = $param['rows'] ?? 10;
         unset($param['page']);
-        unset($param['row']);
+        unset($param['rows']);
         $where['where'] = $param;
         $result = PsMeterCycle::getList($where);
         return $this->success($result);
