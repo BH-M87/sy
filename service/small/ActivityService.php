@@ -168,7 +168,7 @@ Class ActivityService extends BaseService
     	$model['end_time']['date'] = $end_date;
     	$model['end_time']['time'] = $end_time;
 
-        $enroll = PsActivityEnroll::find()->where(['a_id' => $model['id'], 'room_id' => $param['room_id'], 'user_id' => $param['user_id']])->asArray()->one();
+        $enroll = PsActivityEnroll::find()->where(['a_id' => $model['id'], 'room_id' => $param['room_id'], 'user_id' => $param['user_id']])->limit(5)->asArray()->one();
         $model['name'] = !empty($enroll['name']) ? $enroll['name'] : '';
         $model['mobile'] = !empty($enroll['mobile']) ? $enroll['mobile'] : '';
         $model['created_at'] = !empty($enroll['created_at']) ? date('Y-m-d H:i', $enroll['created_at']) : '';
@@ -459,7 +459,7 @@ Class ActivityService extends BaseService
         $m['end_time']['date'] = $end_date;
         $m['end_time']['time'] = $end_time;
 
-        $enroll = PsActivityEnroll::find()->select('avatar')->where(['a_id' => $m['id']])->orderBy('id')->asArray()->all();
+        $enroll = PsActivityEnroll::find()->select('avatar')->where(['a_id' => $m['id']])->orderBy('id')->limit(5)->asArray()->all();
         if (!empty($enroll)) {
             $avatar_arr = [];
             foreach ($enroll as $k => $v) {
