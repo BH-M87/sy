@@ -120,9 +120,9 @@ class MeterReadingService extends BaseService
             return $this->failed($valid["errorMsg"]);
         }
         $where['page'] = $param['page'] ?? 1;
-        $where['row'] = $param['row'] ?? 10;
+        $where['row'] = $param['rows'] ?? 10;
         unset($param['page']);
-        unset($param['row']);
+        unset($param['rows']);
         $where['where'] = $param;
         $result = PsMeterCycle::getList($where);
         return $this->success($result);

@@ -32,13 +32,11 @@ class CarAcrossService extends BaseService
     private function _searchOut($params)
     {
         $community_id = F::value($params, 'community_id');
-        $outTimeStart = !empty($params['out_time_start']) ? strtotime($params['out_time_start']) : 0;
-        $outTimeEnd = !empty($params['out_time_end']) ? strtotime($params['out_time_end'] . ' 23:59:59') : 0;
+        $outTimeStart = !empty($params['out_time_start']) ? strtotime($params['out_time_start']) : "";
+        $outTimeEnd = !empty($params['out_time_end']) ? strtotime($params['out_time_end'] . ' 23:59:59') : "";
         return ParkingAcrossRecord::find()
-            ->filterWhere([
-                'car_type' => F::value($params, 'car_type'),
-                'community_id' =>$community_id
-            ])
+            ->where(['community_id' =>$community_id])
+            ->andFilterWhere(['car_type'=> F::value($params, 'car_type')])
             ->andFilterWhere(['like', 'car_num', F::value($params, 'car_num')])
             ->andFilterWhere(['>=', 'amount', F::value($params, 'amount_min')])
             ->andFilterWhere(['<=', 'amount', F::value($params, 'amount_max')])
