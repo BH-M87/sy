@@ -2,6 +2,7 @@
 namespace service\alipay;
 
 use service\BaseService;
+use service\common\AliSmsService;
 use service\common\SmsService;
 use Yii;
 
@@ -80,7 +81,12 @@ class ReceiptService extends  BaseService {
         } else {
             $code = $model["code"];
         }
-        SmsService::service()->init(10, $mobile)->send([$code]);
+        $smsParams['templateCode'] = 'SMS_142105050';  //模板
+        $smsParams['mobile'] = $mobile;      //手机号
+        //短信内容
+        $templateParams['code'] = $code;
+        $sms = AliSmsService::service($smsParams);
+        $sms->send($templateParams);
     }
 
     /*
