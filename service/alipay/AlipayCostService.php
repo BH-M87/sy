@@ -20,6 +20,7 @@ use app\models\PsPhaseFormula;
 use service\basic_data\RoomService;
 use service\common\CsvService;
 use service\BaseService;
+use service\message\MessageService;
 use Yii;
 use common\core\PsCommon;
 use yii\db\Exception;
@@ -936,6 +937,30 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $success['err_msg'] = $err_msg ?? '';
         $params['total_money'] = $total_money;
         if (!empty($diff_arr) && count($diff_arr) > 0) {//确认有收款账单才新增收款记录
+            //发送消息
+            $tem = [
+                'community_id' => $params['community_id'],
+                'id' => 0,
+                'member_id' => $userinfo['id'],
+                'user_name' => $userinfo['truename'],
+                'create_user_type' => 1,
+
+                'remind_tmpId' => 16,
+                'remind_target_type' => 14,
+                'remind_auth_type' => 5,
+                'msg_type' => 2,
+
+                'msg_tmpId' => 16,
+                'msg_target_type' => 14,
+                'msg_auth_type' => 5,
+                'remind' =>[
+                    0 => '123456'
+                ],
+                'msg' => [
+                    0 => '123456'
+                ]
+            ];
+            MessageService::service()->addMessageTemplate($tem);
             $income_info = BillIncomeService::service()->billIncomeAdd($params, $diff_arr, $userinfo);
             $success['income_id'] = $income_info['data']['income_id'];
             //保存日志
