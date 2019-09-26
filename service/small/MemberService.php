@@ -34,7 +34,7 @@ use service\alipay\BillCostService;
 use service\alipay\MemberCardService;
 use service\BaseService;
 use service\door\KeyService;
-use service\property_basic\ActivityService;
+use service\small\ActivityService;
 use service\room\RoomService;
 use yii\db\Query;
 
@@ -468,34 +468,38 @@ class MemberService extends BaseService
             $record->save();
         }
 
-        // 小区活动 显示进行中和已结束的数据
-        $activity = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2], 'small' => 1]);
-        $result['activity'] = !empty($activity['code']) ? $activity['data']['list'] : [];
-        // 社区曝光台
-        $exposure = CommunityService::service()->exposureList(['community_id' => $params['community_id'], 'homePage' => 1]);
-        $exposure = $exposure['data'];
-        $result['exposure'] = $exposure['list'];
-        $result['exposure_total'] = $exposure['total'];
-        $result['exposure_avatar'] = $exposure['avatar'];
-        $result['hideMobile'] = PsCommon::hideMobile($result['mobile']);
-
-        if (!empty($news)) {
-            foreach ($news as $k => $v) {
-                if ($k <= 9) { // 前十条
-                    $news[$k]['show_at'] = !empty($v['show_at']) ? date('Y-m-d', $v['show_at']) : '';
-                } else {
-                    unset($news[$k]);
+        if (!empty($result['community_id'])) {
+            // 小区活动 显示进行中和已结束的数据
+            $result['activity'] = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2]])['list'];
+            // 社区曝光台
+            $exposure = CommunityService::service()->exposureList(['community_id' => $params['community_id'], 'homePage' => 1]);
+            $exposure = $exposure['data'];
+            $result['exposure'] = $exposure['list'];
+            $result['exposure_total'] = $exposure['total'];
+            $result['exposure_avatar'] = $exposure['avatar'];
+            if (!empty($news)) {
+                foreach ($news as $k => $v) {
+                    if ($k <= 9) { // 前十条
+                        $news[$k]['show_at'] = !empty($v['show_at']) ? date('Y-m-d', $v['show_at']) : '';
+                    } else {
+                        unset($news[$k]);
+                    }
                 }
-            }
 
-            $new_count = count($news);
-            if ($new_count % 2 == 1) { // 前端两条两条滚动 所以取双数
-                unset($news[$new_count - 1]);
-            }
+                $new_count = count($news);
+                if ($new_count % 2 == 1) { // 前端两条两条滚动 所以取双数
+                    unset($news[$new_count - 1]);
+                }
 
-            $result['news'] = $news;
+                $result['news'] = $news;
+            }
+        } else {
+            $result['activity'] = [];
+            $result['exposure'] = [];
+            $result['news'] = [];
         }
-
+        
+        $result['hideMobile'] = PsCommon::hideMobile($result['mobile']);
         unset($result['member_id']);
 
         return $this->success($result);

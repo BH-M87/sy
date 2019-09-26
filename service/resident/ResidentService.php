@@ -32,6 +32,7 @@ use service\label\LabelsService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\room\RoomService;
+use service\small\CommunityRoomService;
 
 class ResidentService extends BaseService
 {
@@ -1456,7 +1457,7 @@ class ResidentService extends BaseService
         //添加历史提交记录
         PsResidentHistory::model()->addHistory($model, $member);
         //新增消息
-        $room_info = \app\services\CommunityService::getCommunityRoominfo($params['room_id']);
+        $room_info = CommunityRoomService::getCommunityRoominfo($params['room_id']);
         $data = [
             'community_id' => $communityId,
             'id' => 0,
