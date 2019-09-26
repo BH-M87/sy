@@ -124,7 +124,8 @@ class ComplaintService extends BaseService
                 $modelImage->save();
             }
         }
-        //发送消息
+
+        // 发送消息
         $data = [
             'community_id' => $community_id,
             'id' => $model->id,
@@ -141,10 +142,10 @@ class ComplaintService extends BaseService
             'msg_target_type' => 9,
             'msg_auth_type' => 9,
             'remind' =>[
-                0 => $type==1?"投诉":"建议"
+                0 => $type == 1 ? "投诉" : "建议"
             ],
             'msg' => [
-                0 => $type==1?"投诉":"建议",
+                0 => $type == 1 ? "投诉" : "建议",
                 1 => $member_name,
                 2 => $content,
                 3 => date("Y-m-d H:i:s",time())
@@ -369,8 +370,7 @@ class ComplaintService extends BaseService
                 $rela->data_type=2;
                 $rela->save();
             }
-            //发送消息
-            //获取业主id
+            // 发送消息
             $member_id = $this->getMemberByUser($user_id);
             $member_name = $this->getMemberNameByUser($member_id);
             $room_info = CommunityRoomService::getCommunityRoominfo($room_id);
@@ -391,11 +391,11 @@ class ComplaintService extends BaseService
                 'msg_auth_type' => 11,
                 'remind' =>[
                     0 => $ward->name,
-                    1 => $type==1?"表扬":"批评"
+                    1 => $type == 1 ? "表扬" : "批评"
                 ],
                 'msg' => [
                     0 => $ward->name,
-                    1 => $type==1?"表扬":"批评",
+                    1 => $type == 1 ? "表扬" : "批评",
                     2 => $ward->name,
                     3 => $content,
                     4 => $member_name,

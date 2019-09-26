@@ -488,7 +488,7 @@ Class CommunityService extends BaseService
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
             ->where(['A.id' => $param['room_id']])->asArray()->one();
         if (!$roomInfo) {
             return $this->failed('房屋不存在！');
@@ -511,8 +511,7 @@ Class CommunityService extends BaseService
             return $this->failed($this->getError($model));
         }
 
-        // 发送消息 获取业主id
-        $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
+        // 发送消息
         $data = [
             'community_id' => $roomInfo['community_id'],
             'id' => 0,
@@ -534,13 +533,14 @@ Class CommunityService extends BaseService
             'msg' => [
                 0 => date("m",time()),
                 1 => $params['score'],
-                2 => $param['content'],
-                3 => $member_name,
-                4 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
+                2 => $params['content'],
+                3 => $member['name'],
+                4 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
                 5 => date("Y-m-d H:i:s",time())
             ]
         ];
         MessageService::service()->addMessageTemplate($data);
+
         if (!$model->save()) {
             return $this->failed($this->getError($model));
         }
@@ -640,7 +640,7 @@ Class CommunityService extends BaseService
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
             ->where(['A.id' => $param['room_id']])->asArray()->one();
         if (!$roomInfo) {
             return $this->failed('房屋不存在！');
@@ -677,8 +677,7 @@ Class CommunityService extends BaseService
                 }
             }
 
-            // 发送消息 获取业主id
-            $room_info = CommunityRoomService::getCommunityRoominfo($param['room_id']);
+            // 发送消息
             $data = [
                 'community_id' => $roomInfo['community_id'],
                 'id' => 0,
@@ -694,14 +693,12 @@ Class CommunityService extends BaseService
                 'msg_tmpId' => 13,
                 'msg_target_type' => 13,
                 'msg_auth_type' => 13,
-                'remind' =>[
-                    0 => $member_name
-                ],
+                'remind' =>[0 => $member['name']],
                 'msg' => [
-                    0 => $member_name,
+                    0 => $member['name'],
                     1 => $params['content'],
                     2 => $member_name,
-                    3 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
+                    3 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
                     4 => date("Y-m-d H:i:s",time())
                 ]
             ];

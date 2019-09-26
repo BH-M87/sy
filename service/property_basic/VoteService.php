@@ -386,6 +386,36 @@ class VoteService extends BaseService
                 $voteModel->totals = $voteModel->totals + 1;
                 $voteModel->save();
 
+                //发送消息
+                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
+                $data = [
+                    'community_id' => $communityId,
+                    'id' => $voteId,
+                    'member_id' => $memberId,
+                    'user_name' => $memberName,
+                    'create_user_type' => 2,
+
+                    'remind_tmpId' => 5,
+                    'remind_target_type' => 5,
+                    'remind_auth_type' => 5,
+                    'msg_type' => 1,
+
+                    'msg_tmpId' => 5,
+                    'msg_target_type' => 5,
+                    'msg_auth_type' => 5,
+                    'remind' =>[
+                        0 => $memberName
+                    ],
+                    'msg' => [
+                        0 => $memberName,
+                        1 => $voteModel['vote_name'],
+                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
+                        3 => $memberName,
+                        4 => date("Y-m-d H:i:s",time())
+                    ]
+                ];
+                MessageService::service()->addMessageTemplate($data);
+
                 return true;
             }
 

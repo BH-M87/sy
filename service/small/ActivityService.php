@@ -10,6 +10,7 @@ use common\core\PsCommon;
 
 use service\BaseService;
 use service\message\MessageService;
+use service\small\CommunityRommService;
 
 use app\models\PsAppUser;
 use app\models\PsAppMember;
@@ -230,14 +231,28 @@ Class ActivityService extends BaseService
     // 报名 取消
     public function joinCancel($param)
     {
-        $modelInfo = PsActivity::find()->where(['id' => $param['id'], 'is_del' => 1])->asArray()->one();
+        $m = PsActivity::find()->where(['id' => $param['id'], 'is_del' => 1])->asArray()->one();
 
-        if (empty($modelInfo)) {
+        if (empty($m)) {
             return $this->failed('活动不存在！');
         }
 
-        if ($modelInfo['status'] == 2 || $modelInfo['end_time'] < time()) {
+        if ($m['status'] == 2 || $m['end_time'] < time()) {
             return $this->failed('活动已结束不能取消！');
+        }
+
+        // 查询业主
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
+            return $this->failed('业主不存在！');
+        }
+
+        $roomInfo = PsCommunityRoominfo::find()->alias('A')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
+            ->where(['A.id' => $param['room_id']])->asArray()->one();
+        if (!$roomInfo) {
+            return $this->failed('房屋不存在！');
         }
 
         $trans = Yii::$app->getDb()->beginTransaction();
@@ -247,6 +262,39 @@ Class ActivityService extends BaseService
 
             if (!empty($model)) {
                 PsActivity::updateAllCounters(['join_number' => -1], ['id' => $param['id']]);
+            }
+
+            //发送消息
+            if ($m['type'] == 1) {//只有物业的活动才推送
+                $data = [
+                    'community_id' => $m['community_id'],
+                    'id' => $m['id'],
+                    'member_id' => $member['id'],
+                    'user_name' => $member['name'],
+                    'create_user_type' => 2,
+
+                    'remind_tmpId' => 10,
+                    'remind_target_type' => 10,
+                    'remind_auth_type' => 10,
+                    'msg_type' => 3,
+
+                    'msg_tmpId' => 18,
+                    'msg_target_type' => 10,
+                    'msg_auth_type' => 10,
+                    'remind' => [
+                        0 => $member['name'],
+                        1 => "取消"
+                    ],
+                    'msg' => [
+                        0 => $member['name'],
+                        1 => $m['title'],
+                        2 => $m['title'],
+                        3 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
+                        4 => $member['name'],
+                        5 => date("Y-m-d H:i:s", time())
+                    ]
+                ];
+                MessageService::service()->addMessageTemplate($data);
             }
 
             $trans->commit();
@@ -294,7 +342,7 @@ Class ActivityService extends BaseService
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
             ->where(['A.id' => $p['room_id']])->asArray()->one();
         if (!$roomInfo) {
             return $this->failed('房屋不存在！');
@@ -324,6 +372,39 @@ Class ActivityService extends BaseService
             }
 
             PsActivity::updateAllCounters(['join_number' => 1], ['id' => $p['id']]);
+
+            //发送消息 只有物业端的消息才推送
+            if ($m['type'] == 1) {
+                $data = [
+                    'community_id' => $m['community_id'],
+                    'id' => $m['id'],
+                    'member_id' => $member['id'],
+                    'user_name' => $member['name'],
+                    'create_user_type' => 2,
+
+                    'remind_tmpId' => 10,
+                    'remind_target_type' => 10,
+                    'remind_auth_type' => 10,
+                    'msg_type' => 3,
+
+                    'msg_tmpId' => 10,
+                    'msg_target_type' => 10,
+                    'msg_auth_type' => 10,
+                    'remind' => [
+                        0 => $member['name'],
+                        1 => "报名"
+                    ],
+                    'msg' => [
+                        0 => $member['name'],
+                        1 => $m['title'],
+                        2 => $m['title'],
+                        3 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
+                        4 => $member['name'],
+                        5 => date("Y-m-d H:i:s", time())
+                    ]
+                ];
+                MessageService::service()->addMessageTemplate($data);
+            }
 
             $trans->commit();
 
