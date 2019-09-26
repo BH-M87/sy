@@ -1255,19 +1255,23 @@ class BillService extends BaseService
 
 
                     //添加工作提醒
+                    //添加消息
+                    //获取业主id
                     $repair = PsRepair::find()->where(['id' => $bill['repair_id']])->asArray()->one();
                     $repairType = RepairType::find()->where(['id' => $repair['repair_type_id']])->asArray()->one();
-                    $memberName = $this->getMemberNameByUser($repair['member_id']);
-                    $data = [
+                    $member_name = $this->getMemberNameByUser($repair['member_id']);
+                    $msgData = [
                         'community_id' => $bill['community_id'],
                         'id' => $bill['repair_id'],
                         'member_id' => $repair['member_id'],
-                        'user_name' => $memberName,
+                        'user_name' => $member_name,
                         'create_user_type' => 2,
+
                         'remind_tmpId' => 4,
                         'remind_target_type' => 4,
                         'remind_auth_type' => 4,
                         'msg_type' => 1,
+
                         'msg_tmpId' => 4,
                         'msg_target_type' => 4,
                         'msg_auth_type' => 4,
@@ -1282,7 +1286,8 @@ class BillService extends BaseService
                             3 => '线上支付'
                         ]
                     ];
-                    MessageService::service()->addMessageTemplate($data);
+                    \Yii::info("--alipay-notify-send-msg".json_encode($msgData), 'api');
+                    MessageService::service()->addMessageTemplate($msgData);
                     die("success");
                 } else {
                     \Yii::info("--alipay-notify-result".json_encode($result), 'api');
