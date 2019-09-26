@@ -29,6 +29,7 @@ use service\BaseService;
 use service\basic_data\MemberService;
 use service\basic_data\RoomService;
 use service\common\CsvService;
+use service\message\MessageService;
 use service\rbac\OperateService;
 use yii\base\Exception;
 use yii\db\Query;
@@ -392,7 +393,56 @@ class RepairService extends BaseService
         //TODO 发送短信
         //TODO 发送站内消息
         if ($useAs != 'small') {
+            $msgData = [
+                'community_id' => $params['community_id'],
+                'id' => $model->id,
+                'member_id' => $userInfo['id'],
+                'user_name' => $userInfo['truename'],
+
+                'create_user_type' => 1,
+                'remind_tmpId' => 7,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 3,
+
+                'msg_type' => 2,
+                'msg_tmpId' => 7,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => $model->created_username
+                ],
+                'msg' => [
+                    0 => $model->repair_no,
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                ]
+            ];
+        } else {
+            $msgData = [
+                'community_id' => $params['community_id'],
+                'id' => $model->id,
+                'member_id' => $memberInfo['id'],
+                'user_name' => $memberInfo['name'],
+                'create_user_type' => 1,
+                'remind_tmpId' => 7,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 3,
+                'msg_type' => 2,
+                'msg_tmpId' => 7,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => $model->created_username
+                ],
+                'msg' => [
+                    0 => $model->repair_no,
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                ]
+            ];
         }
+        MessageService::service()->addMessageTemplate($msgData);
+
         $re['id'] = $model->id;
         return $re;
     }

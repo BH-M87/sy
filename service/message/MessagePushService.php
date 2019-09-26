@@ -50,11 +50,8 @@ class MessagePushService extends BaseService
             'updated_at' => time(),
             'userInfo' => $userInfo,
         ];
-        if (YII_ENV == "prod") {
-            MqProducerService::service()->messagePush($data);
-        } else {
-            MqProducerService::service()->testMessagePush($data);
-        }
+
+        MessageSendService::service()->addMessage($data);
         return true;
     }
 
