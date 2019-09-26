@@ -26,6 +26,8 @@ class BaseController extends Controller
 
         F::setSmallStatus();//钉钉端设置这个参数返回errCode
         $params = F::request();
+        \Yii::info("controller:",'smallapp');
+//        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params),'smallapp');
         if(empty($params['user_id'])){
             throw new MyException('用户id不能为空');
         }
@@ -40,9 +42,6 @@ class BaseController extends Controller
         $this->request_params['user_id'] = $this->user_id;
         $this->page = (integer)F::value($this->request_params, 'page', $this->page);
         $this->pageSize = (integer)F::value($this->request_params, 'rows', $this->pageSize);
-
-
-        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->request_params). "-user_id:".$this->user_id,'api');
 
         return true;
     }
