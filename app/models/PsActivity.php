@@ -8,6 +8,7 @@ use yii\behaviors\TimestampBehavior;
 use common\core\Regular;
 use common\MyException;
 
+use app\models\PsAppUser;
 use app\models\PsActivityEnroll;
 
 class PsActivity extends BaseModel
@@ -147,14 +148,14 @@ class PsActivity extends BaseModel
             } else {
                 $list = $m->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
             }
-            self::afterList($list);
+            self::afterList($list, $p);
         }
 
         return ['list' => $list ?? [], 'totals' => $totals];
     }
 
     // 列表结果格式化
-    public static function afterList(&$list)
+    public static function afterList(&$list, $p)
     {
         foreach ($list as &$v) {
             $v['status'] = self::status($v);
@@ -165,13 +166,21 @@ class PsActivity extends BaseModel
             $v['status_desc'] = self::$status[$v['status']];
             $v['type_desc'] = self::$type[$v['type']];
             $v['activity_type_desc'] = !empty($v['activity_type']) ? self::$activity_type[$v['activity_type']] : $v['type_desc'];
-            $enroll = PsActivityEnroll::find()->select('user_id, name as user_name, avatar')
+            $enroll = PsActivityEnroll::find()->select('A.user_id, A.name as user_name, B.avatar')->alias('A')->leftJoin('ps_app_user B', 'A.user_id = B.id')
                 ->where(['a_id' => $v['id']])->asArray()->all();
             $v['people_list'] = $enroll;
             $avatar_arr = [];
             if (!empty($enroll)) {
-                foreach ($enroll as $val) {
-                    $avatar_arr[] = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                foreach ($enroll as $k => $val) {
+                    $avatar = !empty($val['avatar']) ? $val['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+                    if (!empty($p['small'])) {
+                        if ($k < 3) {
+                            $avatar_arr[] = $avatar;
+                        }
+                    } else {
+                        $avatar_arr[] = $avatar;
+                    }
+                    
                 }
             }
             $v['join_info'] = $avatar_arr;
