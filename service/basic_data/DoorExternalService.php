@@ -63,6 +63,7 @@ class DoorExternalService extends BaseService
         $model->community_id = $data['community_id'];
         $model->supplier_id = $data['supplier_id'];
         $model->capture_photo = !empty($data['capturePhoto']) ? $data['capturePhoto'] : '';
+        $model->capture_photo_old = !empty($data['capturePhoto']) ? $data['capturePhoto'] : '';
         $model->open_type = !empty($data['openType']) && $data['openType'] > 0  ? $data['openType'] : 1;
         $model->open_time = $this->dealTime($data['openTime']);
         $model->user_name = !empty($data['userName']) ? $data['userName']: '';
