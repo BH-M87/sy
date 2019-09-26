@@ -695,7 +695,7 @@ class F
         $filesize = abs(filesize($newFile));
         if ($filesize <= 0) {
             //如果图片地址不能下载的话，就默认返回原图地址
-            return $trueUrl;
+            return '';
         }
         $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
         $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
