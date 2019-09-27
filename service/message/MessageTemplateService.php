@@ -38,6 +38,47 @@ class MessageTemplateService extends BaseService
         ['key' => '17', 'content' => '您有新的账单待核销，快去查看吧！'],//跳转到核销列表
         ['key' => '18', 'content' => '您有一条新的曝光需要处理，快去查看吧！'],//跳转到曝光台列表
     ];
+
+    protected $oldRemindTargetType = [
+        ['key' => 'userAuth', 'value' => '2'],
+        ['key' => 'userRoomBillPay', 'value' => '3'],
+        ['key' => 'repairIssuePay', 'value' => '4'],
+        ['key' => 'repairIssuePraise', 'value' => '15'],
+        ['key' => 'userVote', 'value' => '5'],
+        ['key' => 'userRoomCheck', 'value' => '6'],
+        ['key' => 'billCheck', 'value' => '16'], //账单复核
+        ['key' => 'repairIssueAdd', 'value' => '7'],
+        ['key' => 'repairIssueAssign', 'value' => '7'],
+        ['key' => 'repairIssueMarkHard', 'value' => '8'],
+        ['key' => 'repairIssueRecheck', 'value' => '14'],
+        ['key' => 'complainAdd', 'value' => '9'], //投诉建议提交
+        ['key' => 'userActivityJoin', 'value' => '10'],
+        ['key' => 'guanjiaPraise', 'value' => '11'],//管家评价
+        ['key' => 'communityPraise', 'value' => '12'],//小区评价
+        ['key' => 'communityDT', 'value' => '13'],//小区动态
+        ['key' => 'billChargeOff', 'value' => '17'],//账单核销
+    ];
+
+    protected $sqwnRemindTargetType = [
+        ['key' => 'userAuth', 'value' => '1'],
+        ['key' => 'userRoomBillPay', 'value' => '2'],
+        ['key' => 'repairIssuePay', 'value' => '3'],
+        ['key' => 'repairIssuePraise', 'value' => '4'],
+        ['key' => 'userVote', 'value' => '5'],
+        ['key' => 'userRoomCheck', 'value' => '6'],
+        ['key' => 'billCheck', 'value' => '7'], //账单复核
+        ['key' => 'repairIssueAdd', 'value' => '8'],
+        ['key' => 'repairIssueAssign', 'value' => '8'],
+        ['key' => 'repairIssueMarkHard', 'value' => '10'],
+        ['key' => 'repairIssueRecheck', 'value' => '11'],
+        ['key' => 'complainAdd', 'value' => '12'], //投诉建议提交
+        ['key' => 'userActivityJoin', 'value' => '13'],
+        ['key' => 'guanjiaPraise', 'value' => '14'],//管家评价
+        ['key' => 'communityPraise', 'value' => '15'],//小区评价
+        ['key' => 'communityDT', 'value' => '16'],//小区动态
+        ['key' => 'billChargeOff', 'value' => '17'],//账单核销
+    ];
+
     /**
      * @var array 消息中心模板
      */
@@ -179,6 +220,24 @@ class MessageTemplateService extends BaseService
             return "数据内容不存在";
         }
         return ['title' => $this->title, 'content' => $content];
+    }
+
+    public function transTargetType($oldTargetType)
+    {
+        $key = '';
+        foreach ($this->oldRemindTargetType as $typeList) {
+            if ($typeList['value'] == $oldTargetType) {
+                $key = $typeList['key'];
+            }
+        }
+        if ($key) {
+            foreach ($this->sqwnRemindTargetType as $typeList) {
+                if ($key == $typeList['key']) {
+                    return $typeList['value'];
+                }
+            }
+        }
+        return '100';
     }
 
     /**

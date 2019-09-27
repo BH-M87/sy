@@ -35,6 +35,7 @@ class MessagePushService extends BaseService
      */
     public function add($community_id, $messageInfo, $type, $target_type, $target_id, $member_id, $create_name, $create_user_type, $userInfo)
     {
+
         $data = [
             'community_id' => $community_id,
             'messageInfo' => $messageInfo,
@@ -50,11 +51,10 @@ class MessagePushService extends BaseService
             'updated_at' => time(),
             'userInfo' => $userInfo,
         ];
-        if (YII_ENV == "prod") {
-            MqProducerService::service()->messagePush($data);
-        } else {
-            MqProducerService::service()->testMessagePush($data);
-        }
+
+        //跳转类型转换
+        $data['target_type'] = MessageTemplateService::service()->transTargetType($target_type);
+        MessageSendService::service()->addMessage($data);
         return true;
     }
 

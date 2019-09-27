@@ -10,6 +10,7 @@ use common\core\PsCommon;
 
 use service\BaseService;
 use service\message\MessageService;
+use service\small\CommunityRommService;
 
 use app\models\PsAppUser;
 use app\models\PsAppMember;
@@ -18,6 +19,7 @@ use app\models\PsActivity;
 use app\models\PsActivityEnroll;
 use app\models\PsResidentAudit;
 use app\models\PsRoomUser;
+use app\models\DepartmentCommunity;
 
 Class ActivityService extends BaseService
 {
@@ -34,6 +36,17 @@ Class ActivityService extends BaseService
         }
 
         return $arr;
+    }
+
+    // 获取活动列表
+    public function list($p)
+    {
+        // 小程序的列表 有该小区权限的组织发的活动都要展示
+        $p['small'] = 1; // 标记小程序
+        $p['organization_id'] = DepartmentCommunity::getCode($p['community_id']);
+
+        $m = PsActivity::getList($p);
+        return $m;
     }
 
     // 活动 搜索
@@ -155,7 +168,7 @@ Class ActivityService extends BaseService
     	$model['end_time']['date'] = $end_date;
     	$model['end_time']['time'] = $end_time;
 
-        $enroll = PsActivityEnroll::find()->where(['a_id' => $model['id'], 'room_id' => $param['room_id'], 'user_id' => $param['user_id']])->asArray()->one();
+        $enroll = PsActivityEnroll::find()->where(['a_id' => $model['id'], 'room_id' => $param['room_id'], 'user_id' => $param['user_id']])->limit(5)->asArray()->one();
         $model['name'] = !empty($enroll['name']) ? $enroll['name'] : '';
         $model['mobile'] = !empty($enroll['mobile']) ? $enroll['mobile'] : '';
         $model['created_at'] = !empty($enroll['created_at']) ? date('Y-m-d H:i', $enroll['created_at']) : '';
@@ -230,14 +243,28 @@ Class ActivityService extends BaseService
     // 报名 取消
     public function joinCancel($param)
     {
-        $modelInfo = PsActivity::find()->where(['id' => $param['id'], 'is_del' => 1])->asArray()->one();
+        $m = PsActivity::find()->where(['id' => $param['id'], 'is_del' => 1])->asArray()->one();
 
-        if (empty($modelInfo)) {
+        if (empty($m)) {
             return $this->failed('活动不存在！');
         }
 
-        if ($modelInfo['status'] == 2 || $modelInfo['end_time'] < time()) {
+        if ($m['status'] == 2 || $m['end_time'] < time()) {
             return $this->failed('活动已结束不能取消！');
+        }
+
+        // 查询业主
+        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
+        if (!$member) {
+            return $this->failed('业主不存在！');
+        }
+
+        $roomInfo = PsCommunityRoominfo::find()->alias('A')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
+            ->where(['A.id' => $param['room_id']])->asArray()->one();
+        if (!$roomInfo) {
+            return $this->failed('房屋不存在！');
         }
 
         $trans = Yii::$app->getDb()->beginTransaction();
@@ -247,6 +274,39 @@ Class ActivityService extends BaseService
 
             if (!empty($model)) {
                 PsActivity::updateAllCounters(['join_number' => -1], ['id' => $param['id']]);
+            }
+
+            //发送消息
+            if ($m['type'] == 1) {//只有物业的活动才推送
+                $data = [
+                    'community_id' => $m['community_id'],
+                    'id' => $m['id'],
+                    'member_id' => $member['id'],
+                    'user_name' => $member['name'],
+                    'create_user_type' => 2,
+
+                    'remind_tmpId' => 10,
+                    'remind_target_type' => 10,
+                    'remind_auth_type' => 10,
+                    'msg_type' => 3,
+
+                    'msg_tmpId' => 18,
+                    'msg_target_type' => 10,
+                    'msg_auth_type' => 10,
+                    'remind' => [
+                        0 => $member['name'],
+                        1 => "取消"
+                    ],
+                    'msg' => [
+                        0 => $member['name'],
+                        1 => $m['title'],
+                        2 => $m['title'],
+                        3 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
+                        4 => $member['name'],
+                        5 => date("Y-m-d H:i:s", time())
+                    ]
+                ];
+                MessageService::service()->addMessageTemplate($data);
             }
 
             $trans->commit();
@@ -294,18 +354,18 @@ Class ActivityService extends BaseService
         }
 
         $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id')
+            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
             ->where(['A.id' => $p['room_id']])->asArray()->one();
         if (!$roomInfo) {
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::findOne($p['user_id']);
+        $avatar = PsAppUser::findOne($p['user_id'])->avatar;
 
         $params['a_id'] = $p['id'];
         $params['user_id'] = $p['user_id'];
         $params['room_id'] = $p['room_id'];
-        $params['avatar'] = !empty($appUser->avatar) ? $appUser->avatar : 'http://static.zje.com/2019041819483665978.png';
+        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
         $params['community_id'] = $roomInfo ['community_id'];
@@ -324,6 +384,39 @@ Class ActivityService extends BaseService
             }
 
             PsActivity::updateAllCounters(['join_number' => 1], ['id' => $p['id']]);
+
+            //发送消息 只有物业端的消息才推送
+            if ($m['type'] == 1) {
+                $data = [
+                    'community_id' => $m['community_id'],
+                    'id' => $m['id'],
+                    'member_id' => $member['id'],
+                    'user_name' => $member['name'],
+                    'create_user_type' => 2,
+
+                    'remind_tmpId' => 10,
+                    'remind_target_type' => 10,
+                    'remind_auth_type' => 10,
+                    'msg_type' => 3,
+
+                    'msg_tmpId' => 10,
+                    'msg_target_type' => 10,
+                    'msg_auth_type' => 10,
+                    'remind' => [
+                        0 => $member['name'],
+                        1 => "报名"
+                    ],
+                    'msg' => [
+                        0 => $member['name'],
+                        1 => $m['title'],
+                        2 => $m['title'],
+                        3 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
+                        4 => $member['name'],
+                        5 => date("Y-m-d H:i:s", time())
+                    ]
+                ];
+                MessageService::service()->addMessageTemplate($data);
+            }
 
             $trans->commit();
 
@@ -366,7 +459,7 @@ Class ActivityService extends BaseService
         $m['end_time']['date'] = $end_date;
         $m['end_time']['time'] = $end_time;
 
-        $enroll = PsActivityEnroll::find()->select('avatar')->where(['a_id' => $m['id']])->orderBy('id')->asArray()->all();
+        $enroll = PsActivityEnroll::find()->select('avatar')->where(['a_id' => $m['id']])->orderBy('id')->limit(5)->asArray()->all();
         if (!empty($enroll)) {
             $avatar_arr = [];
             foreach ($enroll as $k => $v) {
@@ -384,11 +477,7 @@ Class ActivityService extends BaseService
             $m['operator_name'] = $appUser['true_name'];
             if ($p['user_id'] != $m['operator_id']) { // 不是活动发布人 隐藏姓名
                 $lenth = strlen($appUser['true_name']);
-                if ($lenth <= 6) {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*';
-                } else {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*' . substr($appUser['true_name'], -3);
-                }
+                $m['operator_name'] = F::substrCut($appUser['true_name']);
             }
             $m['operator_head'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
         }

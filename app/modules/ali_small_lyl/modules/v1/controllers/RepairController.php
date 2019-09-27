@@ -53,6 +53,7 @@ class RepairController extends UserBaseController
         }
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
+        $validData['room_id'] = $roomIds;
         $result = RepairService::service()->add($validData, [], 'small');
 
         if (is_array($result)) {

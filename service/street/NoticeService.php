@@ -362,6 +362,9 @@ class NoticeService extends BaseService
     {
         //\Yii::info("dingDetail:".json_encode($data),"api");
         $detail = $this->detail($data);
+        if(empty($detail)){
+            throw new MyException("该消息已经被删除");
+        }
         $is_read = StNoticeUser::find()->select(['is_read'])->where(['notice_id'=>$data['id'],'receive_user_id'=>$data['user_id']])->asArray()->scalar();
         if($is_read == 1){
             //更新这条记录已读

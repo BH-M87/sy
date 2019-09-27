@@ -18,6 +18,7 @@ use app\models\PsRepairBill;
 use app\models\PsRepairBillMaterial;
 use app\models\PsRepairMaterials;
 use app\models\PsRepairRecord;
+use app\models\RepairType;
 use app\models\SqwnUser;
 use common\core\F;
 use common\MyException;
@@ -29,6 +30,7 @@ use service\BaseService;
 use service\basic_data\MemberService;
 use service\basic_data\RoomService;
 use service\common\CsvService;
+use service\message\MessageService;
 use service\rbac\OperateService;
 use yii\base\Exception;
 use yii\db\Query;
@@ -336,7 +338,8 @@ class RepairService extends BaseService
     public function add($params, $userInfo = [], $useAs = '')
     {
         $model = new PsRepair();
-        if ($params['relate_room']) {
+
+        if ($useAs == 'small' && !empty($params['room_id'])) {
             //关联房屋的验证
             $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
                 $params['building'], $params['unit'], $params['room']);
@@ -345,6 +348,17 @@ class RepairService extends BaseService
             }
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+        } else {
+            if ($params['relate_room']) {
+                //关联房屋的验证
+                $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
+                    $params['building'], $params['unit'], $params['room']);
+                if (!$roomInfo) {
+                    return "房屋不存在";
+                }
+                $model->room_id = $roomInfo['id'];
+                $model->room_address = $params['group'] . $params['building'] . $params['unit'] . $params['room'];
+            }
         }
 
         if ($useAs == 'small') {
@@ -392,7 +406,56 @@ class RepairService extends BaseService
         //TODO 发送短信
         //TODO 发送站内消息
         if ($useAs != 'small') {
+            $msgData = [
+                'community_id' => $params['community_id'],
+                'id' => $model->id,
+                'member_id' => $userInfo['id'],
+                'user_name' => $userInfo['truename'],
+
+                'create_user_type' => 1,
+                'remind_tmpId' => 7,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 3,
+
+                'msg_type' => 2,
+                'msg_tmpId' => 7,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => $model->created_username
+                ],
+                'msg' => [
+                    0 => $model->repair_no,
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                ]
+            ];
+        } else {
+            $msgData = [
+                'community_id' => $params['community_id'],
+                'id' => $model->id,
+                'member_id' => $memberInfo['id'],
+                'user_name' => $memberInfo['name'],
+                'create_user_type' => 1,
+                'remind_tmpId' => 7,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 3,
+                'msg_type' => 2,
+                'msg_tmpId' => 7,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => $model->created_username
+                ],
+                'msg' => [
+                    0 => $model->repair_no,
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                ]
+            ];
         }
+        MessageService::service()->addMessageTemplate($msgData);
+
         $re['id'] = $model->id;
         return $re;
     }
@@ -523,7 +586,36 @@ class RepairService extends BaseService
 //                SmsService::service()->init(11, $model["contact_mobile"])->send([$user['truename']]);
 //            }
 //            SmsService::service()->init(27, $user["mobile"])->send();
-            //TODO 钉消息，站内消息等处理
+            //TODO 钉消息
+            //发送站内消息
+            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
+            date_default_timezone_set('PRC');//强制设置时间
+            $info = [
+                'community_id' => $model['community_id'],
+                'id' => $params['repair_id'],
+                'member_id' => $params["user_id"],
+                'user_name' => $user['truename'],
+
+                'create_user_type' => 1,
+                'remind_tmpId' => 7,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 6,
+
+                'msg_type' => 2,
+                'msg_tmpId' => 7,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => $user['truename']
+                ],
+                'msg' => [
+                    0 => $model['repair_no'],
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', $now_time),
+                ],
+                'assign_id'=>[$params["user_id"]],
+            ];
+            MessageService::service()->addMessageTemplate($info);
             $transaction->commit();
             $re['releate_id'] = $params['repair_id'];
             return $re;
@@ -589,6 +681,7 @@ class RepairService extends BaseService
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
             $transaction->commit();
+
             return true;
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -671,7 +764,34 @@ class RepairService extends BaseService
             $connection->createCommand()->update('ps_repair',
                 $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
-            //TODO 发送钉消息，站内消息等
+            //TODO 发送钉消息
+            //发送站内消息
+            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
+            $info = [
+                'community_id' => $model['community_id'],
+                'id' => $params['repair_id'],
+                'member_id' => $userInfo["id"],
+                'user_name' => $userInfo["truename"],
+
+                'create_user_type' => 1,
+                'remind_tmpId' => 14,
+                'remind_target_type' => 7,
+                'remind_auth_type' => 7,
+
+                'msg_type' => 2,
+                'msg_tmpId' => 14,
+                'msg_target_type' => 7,
+                'msg_auth_type' => 3,
+                'remind' => [
+                    0 => "1213"
+                ],
+                'msg' => [
+                    0 => $model['repair_no'],
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                ],
+            ];
+            MessageService::service()->addMessageTemplate($info);
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -701,7 +821,34 @@ class RepairService extends BaseService
         ];
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $params["repair_id"]])->execute();
         if ($re) {
-            //TODO 发送站内消息
+            //发送站内消息
+            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
+            $info = [
+                'community_id' => $model['community_id'],
+                'id' => $params['repair_id'] ?? "",
+                'member_id' => $userInfo["id"],
+                'user_name' => $userInfo["truename"],
+
+                'create_user_type' => 1,
+                'remind_tmpId' => 8,
+                'remind_target_type' => 8,
+                'remind_auth_type' => 7,
+
+                'msg_type' => 2,
+                'msg_tmpId' => 8,
+                'msg_target_type' => 8,
+                'msg_auth_type' => 7,
+                'remind' => [
+                    0 => $userInfo["truename"]
+                ],
+                'msg' => [
+                    0 => $model['repair_no'],
+                    1 => $typeName ?? "",
+                    2 => date('Y-m-d H:i:s', time()),
+                    3 => $updateArr['hard_remark']
+                ],
+            ];
+            MessageService::service()->addMessageTemplate($info);
             return true;
         }
         return '系统错误,标记为疑难失败';
@@ -816,6 +963,9 @@ class RepairService extends BaseService
             )->execute();
 
             $transaction->commit();
+
+            //发送消息提醒
+
             return true;
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -1463,6 +1613,34 @@ class RepairService extends BaseService
             [":id" => $params["repair_id"]]
         )->execute();
         //TODO 发送站内消息
+        //发送消息
+        $typeName = RepairType::find()->select("name")->where(['id' => $repairInfo['repair_type_id']])->scalar();
+        $info = [
+            'community_id' => $repairInfo['community_id'],
+            'id' => $repairInfo["id"] ?? "",
+            'member_id' => $repairInfo["member_id"],
+            'user_name' => $repairInfo["room_username"],
+
+            'create_user_type' => 2,
+            'remind_tmpId' => 15,
+            'remind_target_type' => 4,
+            'remind_auth_type' => 3,
+
+            'msg_type' => 1,
+            'msg_tmpId' => 15,
+            'msg_target_type' => 4,
+            'msg_auth_type' => 3,
+            'remind' => [
+                0 => $repairInfo["room_username"]
+            ],
+            'msg' => [
+                0 => $repairInfo['repair_no'],
+                1 => $typeName ?? "",
+                2 => $params['content'] ?? "",
+                3 => date('Y-m-d H:i:s', time()),
+            ],
+        ];
+        MessageService::service()->addMessageTemplate($info);
         return true;
     }
 
@@ -1583,7 +1761,7 @@ class RepairService extends BaseService
         return PsRepair::find()
             ->alias('pr')
             ->select('pr.repair_no,pr.id,pr.status,pr.repair_type_id,pr.community_id,pr.contact_mobile,
-            pr.is_pay,pc.name community_name,pc.pro_company_id')
+            pr.is_pay,pc.name community_name,pr.member_id,pr.room_username,pc.pro_company_id')
             ->leftJoin('ps_community pc', 'pr.community_id = pc.id')
             ->where(['pr.id' => $id])
             ->asArray()

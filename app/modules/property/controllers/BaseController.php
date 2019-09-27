@@ -60,7 +60,11 @@ Class BaseController extends CoreController
             return false;
         }
         $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
-        $this->communityId  = F::request('community_id');
+        $communityId = F::request('community_id');
+        if (!$communityId) {
+            $communityId = F::request('communityId');
+        }
+        $this->communityId  = $communityId;
         $this->userId = F::request('user_id');
         \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
         $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
@@ -83,8 +87,11 @@ Class BaseController extends CoreController
             $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
             //token验证
             $this->user_info = $userInfo;
-            $communityId = $this->request_params['community_id'] ? $this->request_params['community_id'] : $community_id[0];
-            $this->communityId = $communityId;
+
+            $tmpcommunityId = $this->request_params['community_id'] ? $this->request_params['community_id'] : $community_id[0];
+            if (is_numeric($tmpcommunityId)) {
+                $this->communityId = $tmpcommunityId;
+            }
             $this->request_params['community_id'] = $communityId;
             UserService::setUser($this->user_info);
         }

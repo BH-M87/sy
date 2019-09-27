@@ -9,6 +9,7 @@
 namespace service\message;
 
 
+use app\models\PsMenus;
 use app\models\PsMessage;
 use app\models\PsMessageUser;
 use common\core\PsCommon;
@@ -24,24 +25,24 @@ class MessageService extends BaseService
     protected $type = [1 => '系统通知', 2 => '服务提醒', 3 => '互动提醒'];
     /**
      * @var array 权限类型:1.住户管理权限,2.账单管理权限,3.报修管理权限,4.投票权限的用户,5.账单复核权限,6.报修管理权限且对应为指派人,
-     * 7.有疑难问题权限,8.有报修管理且有按钮,9.投诉建议权限,10.小区活动权限,11.管家管理权限,12.服务评分权限,13.有邻里互动权限,14.账单核销权限
+     * 7.有疑难问题权限,8.有报修管理且有按钮,9.投诉建议权限,10.小区活动权限,11.管家管理权限,12.服务评分权限,13.有邻里互动权限,14.账单核销权限 15.曝光台
      */
     protected $auth_type = [
-        '1' => 'residentsManage',
-        '2' => 'billManage',
-        '3' => 'repair',
-        '4' => 'vote',
-        '5' => 'gatheringCheck',
-        '6' => '',//TODO 需要重新整理
-        '7' => 'hard',
-        '8' => 'property/repair/re-check-repair',//有复核按钮权限的
-        '9' => 'complaintManagement',
-        '10' => 'communityActivities',
-        '11' => 'butlerManage',
-        '12' => 'serviceValuation',
-        '13' => 'neighbourHood',
-        '14' => 'verification',
-        '15' => 'exposure',
+        '1' => '/basicFiles/basicData/residentInfo',
+        '2' => '/platform/propertyPlat2',
+        '3' => '/propertyService/sheet/repair',
+        '4' => '', //已去掉
+        '5' => '/platform/propertyPlat5',
+        '6' => '/propertyService/sheet/repair',
+        '7' => '/propertyService/sheet/hard',
+        '8' => '/propertyService/sheet/repair',//有复核按钮权限的
+        '9' => '/propertyService/suggest',
+        '10' => '/communityOperate/communityActivities',
+        '11' => '/propertyService/butlerManage',
+        '12' => '/communityOperate/serviceValuation',
+        '13' => '/communityOperate/neighbourHood',
+        '14' => '/platform/propertyPlat6',
+        '15' => '/communityOperate/exposure',
     ];
 
     /**
@@ -75,13 +76,13 @@ class MessageService extends BaseService
             $this->addMessage($remind, 4, $params['remind_target_type'], $params['remind_auth_type'], $params['assign_id']);
         }
         //消息中心
-        $info = $data;
-        $info['messageInfo'] = [
-            'tmpId' => $params['msg_tmpId'],
-            'tmpType' => 2,
-            'data' => $params['msg']
-        ];
-        $this->addMessage($info, $params['msg_type'], $params['msg_target_type'], $params['msg_auth_type'], $params['user_list'] ?? []);
+//        $info = $data;
+//        $info['messageInfo'] = [
+//            'tmpId' => $params['msg_tmpId'],
+//            'tmpType' => 2,
+//            'data' => $params['msg']
+//        ];
+//        $this->addMessage($info, $params['msg_type'], $params['msg_target_type'], $params['msg_auth_type'], $params['user_list'] ?? []);
     }
 
     /**
@@ -107,8 +108,7 @@ class MessageService extends BaseService
         if (!in_array($type, [1, 2, 3, 4])) {
             return "消息类型有误";
         }
-        return true;
-        /*if (!empty($appointUserArray)) {
+        if (!empty($appointUserArray)) {
             $uidArray = $appointUserArray;
         } else {
             $uidArray = $this->handleUserInfo($params['community_id'], $auth_type);//获取有权限的用户信息
@@ -128,7 +128,7 @@ class MessageService extends BaseService
             $params['create_user_type'],
             $userInfo
         );
-        return true;*/
+        return true;
     }
 
     /**
@@ -143,34 +143,37 @@ class MessageService extends BaseService
      */
     public function handleUserInfo($community_id, $type)
     {
+
         //获取有小区权限的用户信息
-        $userInfo = (new Query())->select('manage_id')
-            ->from('ps_user_community')->where(['community_id' => $community_id])
-            ->createCommand()
-            ->queryColumn();
-        if (empty($userInfo)) {
+        $mkey = $this->auth_type[$type];
+        if (!$mkey) {
             return [];
         }
-        if ($type == 8) {
-            $data = $this->auth_type[8];
-            $params['action'] = $data;
-        } else {
-            $data = $this->auth_type[$type];
-            $params['route'] = $data;
-        }
-        $params['userIds'] = $userInfo;
-        $result = UserService::service()->validatePermission($params);
-        if (!$result) {
-            $uidArray = [];
-            foreach ($result as $item) {
-                if ($item['authorised'] === 1) {
-                    $uidArray[] = $item['userId'];
-                }
-            }
-            return $uidArray;
-        } else {
+        $mId = PsMenus::find()
+            ->select('id')
+            ->where(['mkey' => $mkey, 'sys_code' => 'community'])
+            ->asArray()
+            ->scalar();
+        if (!$mId) {
             return [];
         }
+        $sql = "select b.user_id from (
+select 
+  a.*,
+  if(a.subNodetype = 7,
+  (select dr.dept_privs from department_role dr where dr.dept_id=a.dept_id),
+  (select dt.role_privs from department_role_template dt where dt.role_id=a.subNodetype))as 'privs'
+  from (
+    select 
+      dept_id,
+      user_id,
+      (select node_type from department where department.id = user_info.dept_id)as 'subNodetype'
+    from user_info 
+    where  xq_org_code= (select event_community_no  from ps_community where id=".$community_id.")
+  )a 
+)b where JSON_CONTAINS(b.privs,'".$mId."')";
+        $users = \Yii::$app->db->createCommand($sql)->queryColumn();
+        return $users;
     }
 
     /**

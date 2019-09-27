@@ -1239,6 +1239,7 @@ class BillService extends BaseService
 
         $tradeNo = !empty($data['trade_no']) ? $data['trade_no'] : '';
         $bill = PsRepairBill::find()->where(['trade_no' => $tradeNo])->asArray()->one();
+
         if (!empty($tradeNo) && !empty($bill)) {
             if($bill['pay_status'] == 0 ) {
                 $result = OrderService::service()->paySuccess($bill['order_no'], OrderService::PAY_ALIPAY, $data);
@@ -1251,6 +1252,42 @@ class BillService extends BaseService
                     Yii::$app->db->createCommand()->update('ps_repair_bill', $upData, "id=:id", [":id" => $bill['id']])->execute();
                     $pay['is_pay'] = 2;
                     Yii::$app->db->createCommand()->update('ps_repair', ['is_pay' => 2], "id=:id", [":id" => $bill['repair_id']])->execute();
+
+
+                    //添加工作提醒
+                    //添加消息
+                    //获取业主id
+                    $repair = PsRepair::find()->where(['id' => $bill['repair_id']])->asArray()->one();
+                    $repairType = RepairType::find()->where(['id' => $repair['repair_type_id']])->asArray()->one();
+                    $member_name = $this->getMemberNameByUser($repair['member_id']);
+                    $msgData = [
+                        'community_id' => $bill['community_id'],
+                        'id' => $bill['repair_id'],
+                        'member_id' => $repair['member_id'],
+                        'user_name' => $member_name,
+                        'create_user_type' => 2,
+
+                        'remind_tmpId' => 4,
+                        'remind_target_type' => 4,
+                        'remind_auth_type' => 4,
+                        'msg_type' => 1,
+
+                        'msg_tmpId' => 4,
+                        'msg_target_type' => 4,
+                        'msg_auth_type' => 4,
+                        'remind' => [
+                            0 => '123456'
+                        ],
+
+                        'msg' => [
+                            0 => $repair['repair_no'],
+                            1 => $repairType['name'],
+                            2 => $bill['amount'],
+                            3 => '线上支付'
+                        ]
+                    ];
+                    \Yii::info("--alipay-notify-send-msg".json_encode($msgData), 'api');
+                    MessageService::service()->addMessageTemplate($msgData);
                     die("success");
                 } else {
                     \Yii::info("--alipay-notify-result".json_encode($result), 'api');

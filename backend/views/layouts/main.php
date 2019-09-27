@@ -87,6 +87,7 @@ AppAsset::register($this);
             </div>
 
             <ul class="sidebar-menu" data-widget="tree">
+                <!--
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-dashboard"></i> <span>微应用:企业管理</span>
@@ -111,6 +112,7 @@ AppAsset::register($this);
                         <li><a href="/backend/application-add"><i class="fa fa-circle-o"></i> 添加微应用</a></li>
                     </ul>
                 </li>
+                -->
                 <li class="treeview">
                     <a href="#">
                         <i class="fa fa-dashboard"></i> <span>硬件:供应商管理</span>

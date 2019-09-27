@@ -58,6 +58,8 @@ class ParkingCarportController extends BaseController
      */
     public function actionAdd()
     {
+
+        $this->request_params['community_id'] = $this->communityId;
         $re = CarportService::service()->addCarportData($this->request_params, $this->user_info);
         if ($re === true) {
             return PsCommon::responseSuccess();
