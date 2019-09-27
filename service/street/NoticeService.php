@@ -100,9 +100,10 @@ class NoticeService extends BaseService
      */
     public function getUnReadInfoByNoticeId($id)
     {
-        $list = StNoticeUser::find()
-            ->select(['receive_user_id as user_id', 'receive_user_name as user_name'])
-            ->where(['notice_id' => $id, 'is_read' => 1])
+        $list = StNoticeUser::find()->alias('nu')
+            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name'])
+            ->innerJoin(['u'=>UserInfo::tableName()],'u.user_id = nu.receive_user_id')
+            ->where(['nu.notice_id' => $id, 'nu.is_read' => 1])
             ->asArray()->all();
         $result['un_read_num'] = count($list);
         $result['un_read_user_list'] = $list ? $list : [];
