@@ -44,7 +44,8 @@ class XzTaskService extends BaseService
                 $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
                 $list[$key]['task_attribute_desc'] = $task_attribute['name'];
                 $list[$key]['task_time'] = date('Y-m-d', $value['start_date']) . "到" . date('Y-m-d', $value['end_date']);
-                $list[$key]['number'] = count(explode(',', $value['exec_users']));
+                $exec_users = UserService::service()->getUserInfoByIdList(explode(',', $value['exec_users']));
+                $list[$key]['number'] = count($exec_users);
                 $list[$key]['status'] = $this->status_info[$value['status']];
             }
         } else {
