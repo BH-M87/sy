@@ -44,7 +44,8 @@ class XzTaskService extends BaseService
                 $task_attribute = $this->getAttributeInfo($value['task_attribute_id']);
                 $list[$key]['task_attribute_desc'] = $task_attribute['name'];
                 $list[$key]['task_time'] = date('Y-m-d', $value['start_date']) . "到" . date('Y-m-d', $value['end_date']);
-                $list[$key]['number'] = count(explode(',', $value['exec_users']));
+                $exec_users = UserService::service()->getUserInfoByIdList(explode(',', $value['exec_users']));
+                $list[$key]['number'] = count($exec_users);
                 $list[$key]['status'] = $this->status_info[$value['status']];
             }
         } else {
@@ -335,9 +336,15 @@ class XzTaskService extends BaseService
                 $interval_y = $templateInfo['interval_y'];
                 $start_date = $templateInfo['start_date'];
                 $end_date = $templateInfo['end_date'];
-                $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
-                if (empty($timeList)) {
-                    throw new MyException('任务日期内无执行该任务的日期');
+                if($templateInfo['task_type'] == 1){
+                    $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
+                    if (empty($timeList)) {
+                        throw new MyException('任务日期内无执行该任务的日期');
+                    }
+                }else{
+                    $time['start_time'] = strtotime($data['start_date']);
+                    $time['end_time'] = strtotime($data['end_date']." 23:59:59");
+                    $timeList[] = $time;
                 }
                 $userList = UserService::service()->getUserInfoByIdList($difference1);
                 if (empty($userList)) {
