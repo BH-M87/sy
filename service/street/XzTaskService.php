@@ -335,9 +335,15 @@ class XzTaskService extends BaseService
                 $interval_y = $templateInfo['interval_y'];
                 $start_date = $templateInfo['start_date'];
                 $end_date = $templateInfo['end_date'];
-                $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
-                if (empty($timeList)) {
-                    throw new MyException('任务日期内无执行该任务的日期');
+                if($templateInfo['task_type'] == 1){
+                    $timeList = $this->getTimeList($exec_type, $interval_y, $start_date, $end_date);
+                    if (empty($timeList)) {
+                        throw new MyException('任务日期内无执行该任务的日期');
+                    }
+                }else{
+                    $time['start_time'] = strtotime($data['start_date']);
+                    $time['end_time'] = strtotime($data['end_date']." 23:59:59");
+                    $timeList[] = $time;
                 }
                 $userList = UserService::service()->getUserInfoByIdList($difference1);
                 if (empty($userList)) {
