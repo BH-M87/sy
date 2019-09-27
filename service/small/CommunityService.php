@@ -494,14 +494,14 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsMember::find()->select('face_url, mobile, name')->where(['id' => $member['id']])->asArray()->one();
+        $avatar = PsAppUser::findOne($param['user_id'])->avatar;
 
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($appUser['face_url']) ? $appUser['face_url'] : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $appUser['name'];
-        $params['mobile'] = $appUser['mobile'];
+        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
+        $params['name'] = $member['name'];
+        $params['mobile'] = $member['mobile'];
         $params['score'] = $param['starIdx'];
         $params['content'] = $param['content'];
 
@@ -646,10 +646,12 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
+        $avatar = PsAppUser::findOne($param['user_id'])->avatar;
+
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
         $params['content'] = $param['content'];
@@ -901,11 +903,13 @@ Class CommunityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
+        $avatar = PsAppUser::findOne($param['user_id'])->avatar;
+
         $params['community_id'] = $roomInfo['community_id'];
         $params['room_id'] = $param['room_id'];
         $params['community_circle_id'] = $param['id'];
         $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($member['face_url']) ? $member['face_url'] : 'http://static.zje.com/2019041819483665978.png';
+        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
 
