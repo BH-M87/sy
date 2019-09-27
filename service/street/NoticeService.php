@@ -100,9 +100,10 @@ class NoticeService extends BaseService
      */
     public function getUnReadInfoByNoticeId($id)
     {
-        $list = StNoticeUser::find()
-            ->select(['receive_user_id as user_id', 'receive_user_name as user_name'])
-            ->where(['notice_id' => $id, 'is_read' => 1])
+        $list = StNoticeUser::find()->alias('nu')
+            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name'])
+            ->innerJoin(['u'=>UserInfo::tableName()],'u.user_id = nu.receive_user_id')
+            ->where(['nu.notice_id' => $id, 'nu.is_read' => 1])
             ->asArray()->all();
         $result['un_read_num'] = count($list);
         $result['un_read_user_list'] = $list ? $list : [];
@@ -361,6 +362,9 @@ class NoticeService extends BaseService
     {
         //\Yii::info("dingDetail:".json_encode($data),"api");
         $detail = $this->detail($data);
+        if(empty($detail)){
+            throw new MyException("该消息已经被删除");
+        }
         $is_read = StNoticeUser::find()->select(['is_read'])->where(['notice_id'=>$data['id'],'receive_user_id'=>$data['user_id']])->asArray()->scalar();
         if($is_read == 1){
             //更新这条记录已读

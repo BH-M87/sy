@@ -360,12 +360,12 @@ Class ActivityService extends BaseService
             return $this->failed('房屋不存在！');
         }
 
-        $appUser = PsAppUser::findOne($p['user_id']);
+        $avatar = PsAppUser::findOne($p['user_id'])->avatar;
 
         $params['a_id'] = $p['id'];
         $params['user_id'] = $p['user_id'];
         $params['room_id'] = $p['room_id'];
-        $params['avatar'] = !empty($appUser->avatar) ? $appUser->avatar : 'http://static.zje.com/2019041819483665978.png';
+        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
         $params['name'] = $member['name'];
         $params['mobile'] = $member['mobile'];
         $params['community_id'] = $roomInfo ['community_id'];
@@ -477,11 +477,7 @@ Class ActivityService extends BaseService
             $m['operator_name'] = $appUser['true_name'];
             if ($p['user_id'] != $m['operator_id']) { // 不是活动发布人 隐藏姓名
                 $lenth = strlen($appUser['true_name']);
-                if ($lenth <= 6) {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*';
-                } else {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*' . substr($appUser['true_name'], -3);
-                }
+                $m['operator_name'] = F::substrCut($appUser['true_name']);
             }
             $m['operator_head'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
         }

@@ -185,7 +185,10 @@ class AppUserService extends BaseService
             if($type == 1){
                 $appUser->expires_in      = time() + $data['expires_in'];
                 $appUser->refresh_token   = $data['refresh_token'];
+            }else{
+                $appUser->sync_ali = 1;//是否已经获取支付宝信息
             }
+
             $gender = !empty($data['gender']) && $data['gender'] == "f" ? 2 : 1;
             $appUser->gender          = $gender;
             
