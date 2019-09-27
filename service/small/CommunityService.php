@@ -64,7 +64,7 @@ Class CommunityService extends BaseService
         if (!($imageLength >= 1 && $imageLength <= 5)) {
             return $this->failed('图片最少一张最多五张！');
         }
- 
+
         // 查询业主
         $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
             ->select('B.*')->where(['A.app_user_id' => $p['user_id']])->asArray()->one();
@@ -110,6 +110,9 @@ Class CommunityService extends BaseService
 
             if (!empty($p['image_url'])) {
                 foreach ($p['image_url'] as $k => $v) {
+                    if (empty($v)) {
+                        return $this->failed('请上传图片！');
+                    }
                     $image = new PsCommunityExposureImage();
                     $image->community_exposure_id = $model->attributes['id'];
                     $image->image_url = $v;
