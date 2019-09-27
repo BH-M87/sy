@@ -477,11 +477,7 @@ Class ActivityService extends BaseService
             $m['operator_name'] = $appUser['true_name'];
             if ($p['user_id'] != $m['operator_id']) { // 不是活动发布人 隐藏姓名
                 $lenth = strlen($appUser['true_name']);
-                if ($lenth <= 6) {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*';
-                } else {
-                    $m['operator_name'] = substr($appUser['true_name'], 0, 3) . '*' . substr($appUser['true_name'], -3);
-                }
+                $m['operator_name'] = F::substrCut($appUser['true_name']);
             }
             $m['operator_head'] = !empty($appUser['avatar']) ? $appUser['avatar'] : 'http://static.zje.com/2019041819483665978.png';
         }
