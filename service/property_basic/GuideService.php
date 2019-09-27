@@ -64,9 +64,7 @@ Class GuideService extends BaseService
             ->asArray()->all();
         $result = [];
         foreach ($data as $v) {
-            if (!strstr($v['img_url'], 'http')) {
-                $v['img_url'] = F::ossImagePath($v['img_url']);
-            }
+            $v['img_url'] = F::ossImagePath($v['img_url']);
             $v['type'] = PsCommon::get($this->types, $v['type'], []);
             $v['status'] = PsCommon::get($this->status, $v['status'], []);
             $v['hours_start'] = $v['hours_start']>=10?$v['hours_start'].":00":"0".$v['hours_start'].":00";
@@ -142,9 +140,7 @@ Class GuideService extends BaseService
             return $this->failed('数据不存在');
         }
         
-        if (!strstr($data['img_url'], 'http')) {
-            $data['img_url'] = F::ossImagePath($data['img_url']);
-        }
+        $data['img_url'] = F::ossImagePath($data['img_url']);
         $data['type'] = PsCommon::get($this->types, $data['type'], []);
         $data['status'] = PsCommon::get($this->status, $data['status'], []);
 
