@@ -351,7 +351,7 @@ class MemberService extends BaseService
             ->leftJoin('ps_member B', 'B.id = A.member_id')
             ->select(['B.face_url', 'B.id as member_id', 'B.name', 'B.mobile', 'B.room_id as sel_room_id', 'B.is_real'])
             ->where(['A.app_user_id' => $params['app_user_id']])->asArray()->one();
-        $appUser = PsAppUser::find()->select('id, nick_name, avatar, phone, true_name, is_certified, biz_card_no, channel_user_id')->where(['id' => $params['app_user_id']])->asArray()->one();
+        $appUser = PsAppUser::find()->where(['id' => $params['app_user_id']])->asArray()->one();
         if(empty($memberInfo)){
             $resident['is_house'] =  2; // 至少有一个已认证的房屋 1有 2没有
             $resident['type'] = 0;
@@ -434,6 +434,7 @@ class MemberService extends BaseService
         $result['face_url'] = $appUser['avatar'];
         $result['mobile'] = $memberInfo['mobile'];
         $result['is_certified'] = $appUser['is_certified'];
+        $result['sync_ali'] = $appUser['sync_ali'];
         //获取管家数据
         $steward_params['community_id'] = $result['community_id'];
         $steward_params['room_id'] = $result['room_id'];
