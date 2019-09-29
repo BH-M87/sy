@@ -473,7 +473,7 @@ class MemberService extends BaseService
             // 小区活动 显示进行中和已结束的数据
             $result['activity'] = ActivityService::service()->list(['community_id' => $result['community_id'], 'status' => [1,2]])['list'];
             // 社区曝光台
-            $exposure = CommunityService::service()->exposureList(['community_id' => $params['community_id'], 'homePage' => 1]);
+            $exposure = CommunityService::service()->exposureList(['community_id' => $result['community_id'], 'homePage' => 1]);
             $exposure = $exposure['data'];
             $result['exposure'] = $exposure['list'];
             $result['exposure_total'] = $exposure['total'];
