@@ -151,10 +151,11 @@ class ParkingCarController extends BaseController
     //获取业主
     public function actionGetUsers()
     {
+        /* 说是去掉
         $valid = PsCommon::validParamArr(new ParkingCars(),$this->request_params,'users');
         if(!$valid["status"] ) {
             return PsCommon::responseFailed($valid["errorMsg"]);
-        }
+        }*/
         $res = CarService::service()->getUsers($this->request_params);
         return PsCommon::responseSuccess($res);
     }
