@@ -28,7 +28,7 @@ class ActivityController extends UserBaseController
     {
         $r = SmallActivityService::service()->list($this->params);
 
-        return self::dealReturnResult($r);
+        return F::apiSuccess($r);
     }
 
     // 活动 详情 {"room_id":"","user_id":"","id":"1"}
