@@ -67,6 +67,65 @@ class CommunityService extends BaseService
         '460200' => 'sanya'
     ];
 
+    public function guideImage()
+    {   //echo F::ossImagePath('2019092910041480231.jpg');die;
+        $tb = 'ps_guide1';
+        $m = Yii::$app->db->createCommand("SELECT * FROM '$tb'")->queryAll();
+        foreach ($m as $k => $v) {
+            $id = $v['id'];
+            $img_url = F::trunsImg($v['img_url']);
+            Yii::$app->db->createCommand("update '$tb' set img_url = '$img_url' where id = '$id'")->execute();
+        }
+        echo 1;die;
+    }
+
+    public function carLabelRela()
+    {
+        $m = Yii::$app->db->createCommand("SELECT A.label_id, B.mobile, A.created_at, A.data_id
+            FROM ps_member_car_label A left join ps_member_police B 
+            on A.data_id = B.id where A.community_id = 6 and A.data_type = 2")
+            ->queryAll();
+        foreach ($m as $k => $v) {
+            $data_id = $v['data_id'];
+            $community_id = 37;
+            $type = 1;
+            $labels_id = $v['label_id'];
+            $created_at = $v['created_at'];
+
+            $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => 3, 'created_at' => $created_at, 'community_id' => $community_id, 'type' => $type];
+        }
+
+        Yii::$app->db->createCommand()
+                    ->batchInsert('ps_labels_rela_inport', ['labels_id', 'data_id', 'data_type', 'created_at', 'community_id', 'type'], $insert)->execute();
+        echo 1;die;
+    }
+
+    public function inportLabelRela()
+    {
+        $m = Yii::$app->db->createCommand("SELECT A.label_id, B.mobile, A.created_at
+            FROM ps_member_car_label A left join ps_member_police B 
+            on A.data_id = B.id where A.community_id = 6 and A.data_type = 1")
+            ->queryAll();
+        foreach ($m as $k => $v) {
+            $mobile = $v['mobile'];
+            $room = Yii::$app->db->createCommand("SELECT id, community_id, status
+                FROM ps_room_user where mobile = '$mobile'")
+                ->queryOne();
+
+            $data_id = $room['id'];
+            $community_id = $room['community_id'];
+            $type = $room['status'];
+            $labels_id = $v['label_id'];
+            $created_at = $v['created_at'];
+
+            $insert[] = ['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => 2, 'created_at' => $created_at, 'community_id' => $community_id, 'type' => $type];
+        }
+
+        Yii::$app->db->createCommand()
+                    ->batchInsert('ps_labels_rela', ['labels_id', 'data_id', 'data_type', 'created_at', 'community_id', 'type'], $insert)->execute();
+        echo 1;die;
+    }
+
     /**
      * 添加小区
      * @param $data
