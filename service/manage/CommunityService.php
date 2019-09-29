@@ -70,11 +70,11 @@ class CommunityService extends BaseService
     public function guideImage()
     {   //echo F::ossImagePath('2019092910041480231.jpg');die;
         $tb = 'ps_guide1';
-        $m = Yii::$app->db->createCommand("SELECT * FROM '$tb' where id = 58")->queryAll();
+        $m = Yii::$app->db->createCommand("SELECT * FROM $tb where id = 58")->queryAll();
         foreach ($m as $k => $v) {
             $id = $v['id'];
             $img_url = F::trunsImg($v['img_url']);
-            Yii::$app->db->createCommand("update '$tb' set img_url = '$img_url' where id = '$id'")->execute();
+            Yii::$app->db->createCommand("update $tb set img_url = '$img_url' where id = '$id'")->execute();
         }
         echo 1;die;
     }
