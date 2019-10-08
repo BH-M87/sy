@@ -23,7 +23,6 @@ class UploadController extends BaseController
     //图片上传
     public function actionImage()
     {
-        \Yii::info("upload-image:request-time:".date("Y-m-d H:i:s",time()),'api');
         //图片文件检测
         if (empty($_FILES['file'])) {
             return F::apiFailed('未获取上传文件');
@@ -43,7 +42,6 @@ class UploadController extends BaseController
 
         //上传到本地
         $r = UploadService::service()->saveLocal($file, F::qiniuImagePath());
-        \Yii::info("upload-image:upload-local-time:".date("Y-m-d H:i:s",time()),'api');
         if (!$r['code']) {
             return F::apiFailed($r['msg']);
         }
@@ -56,7 +54,6 @@ class UploadController extends BaseController
         } catch(OssException $e) {
             throw new MyException($e->getMessage());
         }
-        \Yii::info("upload-image:upload-oss-time:".date("Y-m-d H:i:s",time()),'api');
 
         //上传到oss
         $re['filepath'] = F::getOssImagePath($object);
