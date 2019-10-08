@@ -14,6 +14,21 @@ class CommunityController extends BaseController
 {
     public $communityNoCheck = ['change'];
 
+    public function actionGuideImage()
+    {
+        $result = CommunityService::service()->guideImage();
+    }
+
+    public function actionCarLabelRela()
+    {
+        $result = CommunityService::service()->carLabelRela();
+    }
+
+    public function actionInportLabelRela()
+    {
+        $result = CommunityService::service()->inportLabelRela();
+    }
+
     // 2016-12-15 小区切换 {"pro_company_id":1}
     public function actionChange()
     {

@@ -91,8 +91,11 @@ class DoorRecordService extends BaseService
             $model = $model->andFilterWhere(['dr.room'=>$params['room']]);
         }
         $re['totals'] = $model->count();
-        $list = $model->offset((($params['page'] - 1) * $params['rows']))
-            ->limit($params['rows'])
+        if (empty($params['use_as'])) {
+            $model->offset((($params['page'] - 1) * $params['rows']))
+                ->limit($params['rows']);
+        }
+        $list = $model
             ->orderBy('dr.id desc')
             ->asArray()
             ->all();
@@ -116,6 +119,7 @@ class DoorRecordService extends BaseService
     //导出
     public function export($params, $userInfo = [])
     {
+        $params['use_as'] = 'export';
         $result = $this->getList($params);
         if (count($result['list']) < 1) {
             throw new MyException('数据为空');
