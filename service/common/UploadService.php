@@ -76,7 +76,7 @@ class UploadService extends BaseService
             return $this->failed('本地保存失败');
         }
         chmod($newFile, 0755);
-        $this->image_png_size_add($newFile,$newFile);
+        //$this->image_png_size_add($newFile,$newFile);
         return $this->success(['fileName' => $newFileName, 'fileDir' => $realDir, 'parentDir' => $parentDir]);
     }
 
