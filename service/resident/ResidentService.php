@@ -244,6 +244,17 @@ class ResidentService extends BaseService
             return $this->failed($r['msg']);
         }
 
+        /**  20190812 wyf add */
+        //获取当前手机号的member_id
+        if ($oldRoomUser != $mobile){
+            $checkMemberId = PsMember::find()->select('id')->where(['mobile'=>$mobile])->scalar();
+            if ($checkMemberId && $roomId){
+                // 验证修改的手机号是否存在待审核的房屋信息
+                \service\small\RoomUserService::checkResidentAudit($checkMemberId, $roomId,'');
+            }
+        }
+        /**  20190812 wyf edit */
+
         // edit by wenchao.feng -v phone_empty 20190805 增加验证，如果之前有上传人脸，那么人脸不能为空
         $memberModel = PsMember::findOne($roomUser['member_id']);
         if ($memberModel->face_url && empty($data['face_url'])) {
@@ -332,6 +343,23 @@ class ResidentService extends BaseService
                 throw new Exception("住户编辑失败:" . $this->getError($roomUser));
             }
 
+            //编辑推送数据只针对迁入用户，迁出用户不做处理 by zq 2019-2-15
+            if ($roomUser['status'] == 1 || $roomUser['status'] == 2) {
+                //住户编辑数据推送，如果编辑了手机号需要先删除旧的住户新增，重新新增
+                if ($isEditMobile) {
+                    $this->residentSync($oldRoomUser, 'delete');
+                    $this->residentSync($roomUser, 'add');
+                } else {
+                    //编辑住户的时候，如果这个住户是未认证的，并且修改了住户类型，那先调用删除，再新增
+                    if($roomUser['identity_type'] != $oldRoomUser['identity_type']){
+                        $this->residentSync($oldRoomUser, 'delete');
+                        $this->residentSync($roomUser, 'add');
+                    }else{
+                        $this->residentSync($roomUser, 'edit');
+                    }
+                }
+            }
+
             //日志
             $operate = [
                 "community_id" => $data["community_id"],
@@ -372,6 +400,7 @@ class ResidentService extends BaseService
         try {
             OperateService::addComm($user_info, $operate);
             PsLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]); // 删除住户所有标签关联关系
+            $this->residentSync($roomUser, 'delete');
             $roomUser->delete();
 
             $trans->commit();
@@ -678,6 +707,7 @@ class ResidentService extends BaseService
 
         AliSmsService::service(['templateCode' => 'SMS_165055077', 'mobile' => $psResidentAudit->mobile])->send(['community_name' => $communityName]);
 
+        $this->residentSync($psRoomUser, 'add');
         MemberService::service()->turnReal($psResidentAudit->member_id);
 
         PsResidentHistory::model()->addHistory($psRoomUser, ['id' => $operator['id'], 'name' => $operator['username']], true);
@@ -755,7 +785,7 @@ class ResidentService extends BaseService
 
         // 标签状态更新
         PsLabelsRela::updateAll(['type' => 1], ['data_type' => 2, 'data_id' => $id]);
-
+        $this->residentSync($model, 'add');
         MemberService::service()->turnReal($model['member_id']);
         //保存日志
         $log = [
@@ -786,7 +816,8 @@ class ResidentService extends BaseService
         }
         // 标签状态更新
         PsLabelsRela::updateAll(['type' => 3], ['data_type' => 2, 'data_id' => $id]);
-
+        //迁出以后做用户删除同步到第三方 by zq 2019-2-15
+        $this->residentSync($model, 'delete');
         // 业主迁出，则对应该房屋下所有的家人，租客都迁出，重新添加
         if ($model->identity_type == 1) {
             // 标签状态更新
@@ -796,6 +827,13 @@ class ResidentService extends BaseService
             PsRoomUser::updateAll(['status' => PsRoomUser::UNAUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::UN_AUTH]);
             PsRoomUser::updateAll(['status' => PsRoomUser::AUTH_OUT, 'out_time' => time()], ['room_id' => $model['room_id'], 'identity_type' => [2, 3], 'status' => PsRoomUser::AUTH]);
             PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_id' => $model['room_id'], 'identity_type' => [2, 3]]);
+
+            $all = PsRoomUser::find()->where(['room_id' => $model['room_id'], 'identity_type' => [2, 3]])->asArray()->all();
+            if(!empty($all)){
+                foreach ($all as $v) {
+                    $this->residentSync($v, 'delete');
+                }
+            }
         }
         // 同步到警务端
         PsResidentAuditInfo::updateAll(['change_type' => 2, 'status' => 4], ['room_user_id' => $id]);
@@ -996,7 +1034,7 @@ class ResidentService extends BaseService
                     return $this->failed('标签错误');
                 }
             }
-
+            $this->residentSync($model, 'add');
             return $this->success($model->toArray());
         }
         return $this->failed($this->getError($model));
@@ -1679,6 +1717,21 @@ class ResidentService extends BaseService
                 }
             }
 
+            //编辑住户类型的时候，身份类型发生变动，调用java接口的时候，就做一次删除老数据，新增住户 add by zq 20190807
+            if($identity_type != $model['identity_type']){
+                $old_model = $model;
+                $old_model->identity_type = $identity_type;
+                $this->residentSync($old_model, 'delete');
+                $model->identity_type = $params['identity_type'];
+                $this->residentSync($model, 'add');
+            }else{
+                $this->residentSync($model, 'edit');
+                /** 20190805 wyf start 要删除的旧手机号的member用户信息 */
+                if (!empty($need_del) && !empty($oldModel)){
+                    $this->residentSync($oldModel, 'delete');
+                }
+            }
+
             /** 20190805 wyf end 要删除的旧手机号的member用户信息 */
             return $this->success();
         }
@@ -1707,7 +1760,7 @@ class ResidentService extends BaseService
         if ($roomUser->status == PsRoomUser::AUTH) {
             return $this->failed('已认证状态无法删除');
         }
-
+        $this->residentSync($roomUser, 'delete');
         if ($roomUser->delete()) {
             return $this->success();
         }
@@ -1871,7 +1924,7 @@ class ResidentService extends BaseService
                 $communityName = CommunityService::service()->getCommunityName($communityId);
                 SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $parent['name'], $identityTypeLabel]);
             }
-
+            $this->residentSync($model, 'edit');
             return $this->success();
         }
         return $this->failed($this->getError($model));
@@ -1989,5 +2042,53 @@ class ResidentService extends BaseService
         ];
         $cacheName = YII_ENV . 'RoomUserList';
         Yii::$app->redis->rpush($cacheName, json_encode($userPushData));
+    }
+
+    //住户同步到第三方门禁平台
+    public function residentSync($roomUser, $type)
+    {
+        $supplierId = RoomMqService::service()->getOpenApiSupplier($roomUser['community_id'], 2);
+        if (!$supplierId) {
+            return true;
+        }
+        $identityType = !empty($roomUser['identity_type']) ? $roomUser['identity_type'] : 1;
+        //查询住户人脸头像
+        $faceUrl = PsMember::find()
+            ->select(['face_url'])
+            ->where(['id' => $roomUser['member_id']])
+            ->scalar();
+        $faceUrl = $faceUrl ? $faceUrl : '';
+        //住户过期时间
+        $timeEnd = time() + 100 * 365 * 86400;
+        if ($roomUser['identity_type'] == 3 && $roomUser['time_end']) {//租客
+            $timeEnd = $roomUser['time_end'];
+        }
+        $face = !empty($roomUser['face']) ? $roomUser['face'] : 0;//政治面貌
+        $roomInfo = RoomService::service()->getPushData($roomUser['room_id']);
+
+        if ($type == 'add') {//新增
+            //查找这个住户的所有标签，同步到富阳公安内网,add bu zq 2019-5-29
+            $label = PsLabels::find()->alias('l')
+                ->leftJoin(['lr'=>PsLabelsRela::tableName()],'lr.labels_id = l.id')
+                ->select(['l.name'])
+                ->where(['lr.data_id'=>$roomUser['id'],'lr.data_type'=>2])
+                ->column();
+            DoorPushService::service()->userAdd($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
+                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd,$face,
+                $roomUser['card_no'],$roomUser['status'],$roomUser['time_end'],$label);
+        } elseif ($type == 'edit') {//编辑
+            //查找这个住户的所有标签，同步到富阳公安内网,add bu zq 2019-5-29
+            $label = PsLabels::find()->alias('l')
+                ->leftJoin(['lr'=>PsLabelsRela::tableName()],'lr.labels_id = l.id')
+                ->select(['l.name'])
+                ->where(['lr.data_id'=>$roomUser['id'],'lr.data_type'=>2])
+                ->column();
+            DoorPushService::service()->userEdit($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
+                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id'], $faceUrl, $timeEnd,$face,
+                $roomUser['card_no'],$roomUser['status'],$roomUser['time_end'],'','',$label,1);
+        } elseif ($type == 'delete') {//删除
+            DoorPushService::service()->userDelete($roomUser["community_id"], $roomInfo['unit_no'], $roomInfo['out_room_id'],
+                $roomUser['name'], $roomUser['mobile'], $identityType, $roomUser['sex'], $roomUser['member_id']);
+        }
     }
 }

@@ -15,9 +15,11 @@ use app\models\PsCommunityUnits;
 use app\models\PsMember;
 use app\models\PsRoomVistors;
 use common\core\F;
+use common\core\PsCommon;
 use service\door\VisitorOpenService;
 use service\door\VisitorService;
 use service\producer\MqProducerService;
+use Yii;
 
 class IotNewDealService extends BaseService
 {
@@ -36,7 +38,7 @@ class IotNewDealService extends BaseService
     public function dealNameInfo($nameInfo,$name,$type)
     {
         if($type == 1){
-            $result = F::get($nameInfo,$name);
+            $result = PsCommon::get($nameInfo,$name);
         }else{
             $str=trim($nameInfo[$name]);
             if(empty($str)){return '';}
@@ -103,7 +105,7 @@ class IotNewDealService extends BaseService
                     $postData['faceUrl'] = $userList['faceUrl'];
                     $postData['visitTime'] = '';
                     $postData['exceedTime'] = '';
-                    //$postData['deviceInfo'] = F::get($paramData,'deviceInfo',[]);
+                    //$postData['deviceInfo'] = PsCommon::get($paramData,'deviceInfo',[]);
                     //IotNewService::service()->roomUserFace($postData);
                     $postData['community_id'] = $data['community_id'];
                     $postData['supplier_id'] = $data['supplier_id'];
@@ -112,7 +114,7 @@ class IotNewDealService extends BaseService
                     $postData['sendDate'] = 0;
                     $postData['parkType'] = 'roomusertoiot';
                 }
-                return IotNewService::service()->roomUserAdd($paramData);
+                //return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'add';
@@ -128,24 +130,24 @@ class IotNewDealService extends BaseService
                 $userInfos = [];
                 if($data['userList']){
                     foreach($data['userList'] as $key => $value){
-                        $userInfo['buildingNo'] = F::get($value,'buildingNo');
-                        $userInfo['roomNo'] =  F::get($value,'roomNo');
+                        $userInfo['buildingNo'] = PsCommon::get($value,'buildingNo');
+                        $userInfo['roomNo'] =  PsCommon::get($value,'roomNo');
                         $nameInfo = $this->getNameInfo($userInfo['roomNo']);
                         $userInfo['gardenName'] = $nameInfo['gardenName'];
                         $userInfo['buildingName'] = $nameInfo['buildingName'];
                         $userInfo['unitName'] = $nameInfo['unitName'];
                         $userInfo['roomName'] = $nameInfo['roomName'];
-                        $userInfo['userName'] = F::get($value,'userName');
-                        $userInfo['userPhone'] = F::get($value,'userPhone');
-                        $userInfo['userType'] = F::get($value,'userType');
-                        $userInfo['userSex'] = F::get($value,'userSex',1);
-                        $userInfo['userId'] = F::get($value,'userId');
-                        $userInfo['faceUrl'] = F::get($value,'faceUrl');
+                        $userInfo['userName'] = PsCommon::get($value,'userName');
+                        $userInfo['userPhone'] = PsCommon::get($value,'userPhone');
+                        $userInfo['userType'] = PsCommon::get($value,'userType');
+                        $userInfo['userSex'] = PsCommon::get($value,'userSex',1);
+                        $userInfo['userId'] = PsCommon::get($value,'userId');
+                        $userInfo['faceUrl'] = PsCommon::get($value,'faceUrl');
                         $userInfos[] = $userInfo;
                     }
                 }
                 $paramData['userList'] = $userInfos;
-                return IotNewService::service()->roomUserAdd($paramData);
+                //return IotNewService::service()->roomUserAdd($paramData);
                 $paramData['community_id'] = $data['community_id'];
                 $paramData['supplier_id'] = $data['supplier_id'];
                 $paramData['actionType'] = 'addBatch';
@@ -180,7 +182,7 @@ class IotNewDealService extends BaseService
                 $paramData['sendNum'] = 0;
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
-                return IotNewService::service()->roomUserAdd($paramData);
+                //return IotNewService::service()->roomUserAdd($paramData);
                 break;
             case "edit-face":
                 $postData = [
@@ -223,7 +225,7 @@ class IotNewDealService extends BaseService
                 $postData['faceData'] = !empty($data['faceData']) ? $data['faceData'] : $userList['faceUrl'];
                 $postData['faceUrl'] = $userList['faceUrl'];
 
-                //$postData['deviceInfo'] = F::get($paramData,'deviceInfo',[]);
+                //$postData['deviceInfo'] = PsCommon::get($paramData,'deviceInfo',[]);
                 return IotNewService::service()->roomUserFace($postData);
 
                 /*$postData['actionType'] = 'face';
@@ -236,10 +238,10 @@ class IotNewDealService extends BaseService
                 $paramData['tenantId'] = $communityInfo['pro_company_id'];//小区所属物业公司id
                 $paramData['communityNo'] = $communityInfo['community_no'];//小区编号
                 $userList = $data['userList'][0];
-                $paramData['buildingNo'] = F::get($userList,'buildingNo');
-                $paramData['roomNo'] = F::get($userList,'roomNo');
-                $paramData['userId'] = F::get($userList,'userId');
-                $paramData['userType'] = F::get($userList,'userType');
+                $paramData['buildingNo'] = PsCommon::get($userList,'buildingNo');
+                $paramData['roomNo'] = PsCommon::get($userList,'roomNo');
+                $paramData['userId'] = PsCommon::get($userList,'userId');
+                $paramData['userType'] = PsCommon::get($userList,'userType');
 
 
                 $paramData['community_id'] = $data['community_id'];
@@ -248,37 +250,21 @@ class IotNewDealService extends BaseService
                 $paramData['sendNum'] = 0;
                 $paramData['sendDate'] = 0;
                 $paramData['parkType'] = 'roomusertoiot';
-                //$paramData['deviceInfo'] = F::get($paramData,'deviceInfo',[]);
-                return IotNewService::service()->roomUserDelete($paramData);
+                //$paramData['deviceInfo'] = PsCommon::get($paramData,'deviceInfo',[]);
+                //return IotNewService::service()->roomUserDelete($paramData);
                 break;
             default:
                 return $this->failed('接口类型不存在');
         }
 
         if(!empty($paramData)){
-            $tmpService  = PushDataService::service()->init(2);
-            $data1 = $tmpService->setWaitRequestData($paramData);
-            if ($data1 === false) {
-                return $this->failed("数据添加失败");
-            }
-            $paramData['requestId'] = $data1['requestId'];
-            $re = MqProducerService::service()->basicDataPushToIot($paramData);
-            if (!$re) {
-                return $this->failed("mq 连接失败");
-            }
+            //todo 写入redis
+            Yii::$app->redis->rpush("IotMqData",json_encode($paramData));
         }
 
         if(!empty($postData)){
-            $tmpService  = PushDataService::service()->init(2);
-            $data2 = $tmpService->setWaitRequestData($postData);
-            if ($data2 === false) {
-                return $this->failed("数据添加失败");
-            }
-            $postData['requestId'] = $data2['requestId'];
-            $re = MqProducerService::service()->basicDataPushToIot($postData);
-            if (!$re) {
-                return $this->failed("mq 连接失败");
-            }
+            //todo 写入redis
+            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
         }
 
         return $this->success();
@@ -503,19 +489,8 @@ class IotNewDealService extends BaseService
                 return $this->failed('接口类型不存在');
         }
         if (!empty($postData)) {
-            $tmpService  = PushDataService::service()->init(2);
-            $data1 = $tmpService->setWaitRequestData($postData);
-            if ($data1 === false) {
-                $tmpData['request'] = $postData;
-                $tmpData['response'] = $data1;
-                \Yii::info('iot-response:'.json_encode($tmpData),'iot-request');
-                return $this->failed("数据添加失败");
-            }
-            $postData['requestId'] = $data1['requestId'];
-            $re = MqProducerService::service()->basicDataPushToIot($postData);
-            if (!$re) {
-                return $this->failed("mq 连接失败");
-            }
+            //todo 写入redis
+            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
         }
 
         return $this->success();
