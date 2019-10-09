@@ -59,7 +59,7 @@ class IotNewDealService extends BaseService
      * @param $type
      * @return array|bool|string
      */
-    public function dealUserToIot($data,$type)
+    public function dealUserToIot($data,$type,$status='')
     {
         $community_id = $data['community_id'];
         $communityInfo = PsCommunityModel::find()->where(['id'=>$community_id])->asArray()->one();
@@ -226,8 +226,9 @@ class IotNewDealService extends BaseService
                 $postData['faceUrl'] = $userList['faceUrl'];
 
                 //$postData['deviceInfo'] = PsCommon::get($paramData,'deviceInfo',[]);
-                return IotNewService::service()->roomUserFace($postData);
-
+                if($status){
+                    return IotNewService::service()->roomUserFace($postData);
+                }
                 /*$postData['actionType'] = 'face';
                 $postData['sendNum'] = 0;
                 $postData['sendDate'] = 0;

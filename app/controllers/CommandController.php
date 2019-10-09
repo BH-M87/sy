@@ -21,6 +21,8 @@ class CommandController extends Controller
 {
     //测试脚本
     public function actionTest(){
+        $list = Yii::$app->redis->lrange("IotMqData", 0, 99);
+        var_dump($list);die;
         echo 1112;
     }
 
@@ -127,7 +129,7 @@ class CommandController extends Controller
                         }
                         break;
                 }
-
+                Yii::$app->redis->lpop("IotMqData");
             }
         }
     }

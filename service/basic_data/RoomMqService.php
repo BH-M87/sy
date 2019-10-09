@@ -9,6 +9,7 @@
 namespace service\basic_data;
 
 use app\models\DoorSendRequest;
+use app\models\IotSupplierCommunity;
 use app\models\ParkingSupplierCommunity;
 use service\producer\MqProducerService;
 use yii\base\Exception;
@@ -739,11 +740,7 @@ class RoomMqService extends \service\basic_data\BaseService
         }
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
-            if($this->checkIsMaster($communityId)){
-                return IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
-            }else{
-                IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
-            }
+            IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
             return $this->success();
 
         }
@@ -865,7 +862,7 @@ class RoomMqService extends \service\basic_data\BaseService
             //小程序会传base64编码
             if($base64_img||$faceUrl){
                 $tmpPushData['faceData'] = $base64_img;
-                return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
+                return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face',1);
             }else{
                 return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
             }
@@ -947,7 +944,7 @@ class RoomMqService extends \service\basic_data\BaseService
 
     //查询小区是否开通硬件模块
     public function getOpenApiSupplier($communityId, $supplierType){
-        $supplierInfo = ParkingSupplierCommunity::find()
+        $supplierInfo = IotSupplierCommunity::find()
             ->select(['supplier_id', 'interface_type'])
             ->where(['community_id' => $communityId, 'supplier_type' => $supplierType])
             ->asArray()->one();
