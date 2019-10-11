@@ -37,7 +37,7 @@ class ReceiptService extends  BaseService {
     /*
      * 修改用户密码
      * */
-    public   static  function editPayPwd($user_id,$data ){
+    public static function editPayPwd($user_id,$data ){
         $model = self::getPayPwd($user_id);
         if( !empty($model)) {
             if( Yii::$app->security->validatePassword($data["old_pwd"],$model["password"])) {

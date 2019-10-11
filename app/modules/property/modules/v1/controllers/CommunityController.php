@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
+use app\models\PsCommunityModel;
 use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
@@ -163,5 +164,29 @@ class CommunityController extends BaseController
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
+    }
+
+    /**
+     * 添加社区微恼小区
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionCreateComm()
+    {
+        CommunityService::service()->addSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 编辑社区微恼小区
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionEditComm()
+    {
+        CommunityService::service()->editSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
     }
 }

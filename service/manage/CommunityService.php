@@ -8,6 +8,9 @@
 
 namespace service\manage;
 
+use app\models\Department;
+use app\models\PsAreaAli;
+use common\MyException;
 use service\alipay\AliTokenService;
 use service\BaseService;
 use common\core\F;
@@ -936,6 +939,141 @@ ORDER BY juli ASC LIMIT 1";
 //        $model->create_at = time();
 //        $model->update_at = time();
 //        $model->save();
+    }
+
+    //#####################社脑SN##########################
+
+    /**
+     * 添加小区
+     * @author yjh
+     * @param $data
+     * @return array|bool
+     * @throws MyException
+     */
+    public function addSnCommunity($data)
+    {
+        $data['build_time'] = !empty($data['build_time']) ? strtotime($data['build_time']) : '0';
+        $data['delivery_time'] = !empty($data['delivery_time']) ? strtotime($data['delivery_time']) : '0';
+        $data['acceptance_time'] = !empty($data['acceptance_time']) ? strtotime($data['acceptance_time']) : '0';
+        $data['right_start'] = !empty($data['right_start']) ? strtotime($data['right_start']) : '0';
+        $data['right_end'] = !empty($data['right_end']) ? strtotime($data['right_end']) : '0';
+        $data['register_time'] = !empty($data['register_time']) ? strtotime($data['register_time']) : '0';
+        if ($data['right_end'] < $data['right_start']) throw new MyException('产权终止时间不能小于起始时间');
+        $data['status'] = 1;
+        $community = new PsCommunityModel();
+        $community->validParamArr($data,'create');
+
+        //物业公司查询
+        $psCommany = PsPropertyCompany::findOne($data['pro_company_id']);
+        if (!$psCommany) {
+            throw new MyException('此物业公司不存在！');
+        }
+        if (preg_match('/^\d*$/', $data['name'])) {
+            throw new MyException('小区名称不能为纯数字！');
+        }
+        //判断小区是否已经存在
+        $communityInfo = PsCommunityModel::find()->select(['id'])->where(['name' => $data['name']])->one();
+        if ($communityInfo) {
+            throw new MyException('小区已经存在，不能重复添加');
+        }
+        //参数补充
+        $org_code = Department::find()->select('org_code')->where(['department_name' => $data['street_name'],'node_type' => 1])->one()['org_code'];
+        $communityNo = $this->getCommunityNo($org_code);
+        $community->community_no = $communityNo;
+        $pinyin = new Pinyin();
+        $province_name = PsAreaAli::find()->select('areaName')->where(['areaCode' => $data['province_code']])->one()['areaName'];
+        $community->province = $province_name;
+        $community->locations = $data['longitude'].'|'.$data['latitude'];
+        $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
+        $community->comm_type = '1';
+        $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
+        if ($community->save()) {
+            //添加默认报事报修类型
+            $this->addRepairType($community->id);
+            //添加默认社区公约
+            $this->addConvention($community->id);
+            return true;
+        } else {
+            $errorArr = array_values($community->getErrors());
+            throw new MyException($errorArr[0][0]);
+        }
+    }
+
+    /**
+     * 编辑小区
+     * @author yjh
+     * @param $data
+     * @return array|bool
+     * @throws MyException
+     */
+    public function editSnCommunity($data)
+    {
+        $data['build_time'] = !empty($data['build_time']) ? strtotime($data['build_time']) : '0';
+        $data['delivery_time'] = !empty($data['delivery_time']) ? strtotime($data['delivery_time']) : '0';
+        $data['acceptance_time'] = !empty($data['acceptance_time']) ? strtotime($data['acceptance_time']) : '0';
+        $data['right_start'] = !empty($data['right_start']) ? strtotime($data['right_start']) : '0';
+        $data['right_end'] = !empty($data['right_end']) ? strtotime($data['right_end']) : '0';
+        $data['register_time'] = !empty($data['register_time']) ? strtotime($data['register_time']) : '0';
+        if ($data['right_end'] < $data['right_start']) throw new MyException('产权终止时间不能小于起始时间');
+        if (empty($data['id'])) throw new MyException('小区ID不能为空');
+        $community = PsCommunityModel::find()->where(['id' => $data['id']])->one();
+        //判断小区是否已经存在
+        if (!$community) {
+            throw new MyException('小区ID错误');
+        }
+        $community->validParamArr($data,'edit');
+        //物业公司查询
+        $psCommany = PsPropertyCompany::findOne($data['pro_company_id']);
+        if (!$psCommany) {
+            throw new MyException('此物业公司不存在！');
+        }
+        if (preg_match('/^\d*$/', $data['name'])) {
+            throw new MyException('小区名称不能为纯数字！');
+        }
+        //参数补充
+        $pinyin = new Pinyin();
+        $province_name = PsAreaAli::find()->select('areaName')->where(['areaCode' => $data['province_code']])->one()['areaName'];
+        $community->province = $province_name;
+        $community->locations = $data['longitude'].'|'.$data['latitude'];
+        $community->pinyin = $pinyin->pinyin($data['name'], true) ? strtoupper($pinyin->pinyin($data['name'], true)) : '#';
+        $community->comm_type = '1';
+        $community->area_sign = isset(self::$areaCode[$data['city_id']]) ? self::$areaCode[$data['city_id']] : '';
+        if ($community->save()) {
+            return true;
+        } else {
+            $errorArr = array_values($community->getErrors());
+            throw new MyException($errorArr[0][0]);
+        }
+    }
+
+
+    /**
+     * 获取小区编码
+     * @author yjh
+     * @param $org_code
+     * @return string
+     * @throws MyException
+     */
+    public function getCommunityNo($org_code)
+    {
+        $redis = Yii::$app->redis;
+        $num = $redis->get('adsfads');
+        if($num){
+            $redis->set($org_code, 1);
+            $num = 1;
+        } else {
+            $redis->incr($org_code);
+            $num = $push_ali_bill+1;
+        }
+        $len = strlen($num);
+        if ($len == 4) {
+            $no = $org_code.$num;
+        } else if($len < 4) {
+            $no = str_repeat('0',4 - $len).$num;
+        } else {
+            throw new MyException('小区编码超出范围');
+        }
+        return $org_code.$no;
     }
 
 }
