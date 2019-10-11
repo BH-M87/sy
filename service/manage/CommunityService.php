@@ -1104,13 +1104,20 @@ ORDER BY juli ASC LIMIT 1";
     public function getCommunityNo($org_code)
     {
         $redis = Yii::$app->redis;
-        $num = $redis->get('adsfads');
-        if($num){
-            $redis->set($org_code, 1);
-            $num = 1;
+        $num = $redis->get($org_code);
+        if(!$num){
+            //如果redis数据丢失，需要从mysql重新获取
+            $community = PsCommunityModel::find()->where(['like', 'community_no', $org_code.'%', false])->orderBy('community_no desc')->one();
+            if (!$community) {
+                $redis->set($org_code, 1);
+                $num = 1;
+            } else {
+                $num = substr($community->community_no,-4)+1;
+                $redis->set($org_code, $num);
+            }
         } else {
             $redis->incr($org_code);
-            $num = $push_ali_bill+1;
+            $num = $num+1;
         }
         $len = strlen($num);
         if ($len == 4) {
