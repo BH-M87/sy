@@ -10,6 +10,7 @@ namespace service\manage;
 
 use app\models\Department;
 use app\models\PsAreaAli;
+use app\models\PsCommunityConvention;
 use common\MyException;
 use service\alipay\AliTokenService;
 use service\BaseService;
@@ -1046,6 +1047,52 @@ ORDER BY juli ASC LIMIT 1";
         }
     }
 
+    /**
+     * 修改状态
+     * @author yjh
+     * @param $data
+     * @throws MyException
+     */
+    public function editSnCommunityStatus($data)
+    {
+        if (empty($data['id'])) throw new MyException('小区ID不能为空');
+        $community = PsCommunityModel::find()->where(['id' => $data['id']])->one();
+        //判断小区是否已经存在
+        if (!$community) {
+            throw new MyException('小区ID错误');
+        }
+        $community->status = $community->status == '1' ? '2' : '1';
+        $community->save();
+    }
+
+    /**
+     * 删除小区
+     * @author yjh
+     * @param $data
+     * @throws Exception
+     * @throws MyException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function deleteSnCommunity($data)
+    {
+        if (empty($data['id'])) throw new MyException('小区ID不能为空');
+        $community = PsCommunityModel::find()->where(['id' => $data['id']])->one();
+        //判断小区是否已经存在
+        if (!$community) {
+            throw new MyException('小区ID错误');
+        }
+        $transaction = Yii::$app->getDb()->beginTransaction();
+        try {
+            PsRepairType::deleteAll(['community_id' => $community->id]);
+            PsCommunityConvention::deleteAll(['community_id' => $community->id]);
+            $community->delete();
+            $transaction->commit();
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
 
     /**
      * 获取小区编码

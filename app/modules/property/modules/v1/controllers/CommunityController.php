@@ -189,4 +189,31 @@ class CommunityController extends BaseController
         CommunityService::service()->editSnCommunity($this->request_params);
         return PsCommon::responseSuccess();
     }
+
+    /**
+     * 修改小区状态
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionEditStatus()
+    {
+        CommunityService::service()->editSnCommunityStatus($this->request_params);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 删除小区
+     * @author yjh
+     * @return string
+     * @throws \Throwable
+     * @throws \common\MyException
+     * @throws \yii\db\Exception
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteComm()
+    {
+        CommunityService::service()->deleteSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
+    }
 }
