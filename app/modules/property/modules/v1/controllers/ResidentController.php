@@ -44,7 +44,7 @@ class ResidentController extends BaseController
         // 查询id出来，再执行更新，避免锁全表
         $m = PsRoomUser::find()->where(['identity_type' => 3, 'status' => [1, 2]])
             ->andWhere(['>', 'time_end', 0])->andWhere(['<', 'time_end', time()])->all();
-        
+
         if (!empty($m)) {
             foreach ($m as $v) {
                 // 迁出租客的时候会需要把这个人同时也在JAVA那边删除，因此直接调用迁出的service
@@ -207,10 +207,10 @@ class ResidentController extends BaseController
     public function actionImport()
     {
         $data = $this->request_params;
+
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-
         $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
 
         if (!$r['code']) {
@@ -232,6 +232,7 @@ class ResidentController extends BaseController
 
         $sheetData = $currentSheet->toArray(null, false, false, true);
         $residentDatas = $authMemberIds = []; // 已认证的会员ID
+
         for ($i = 3; $i <= count($sheetData); $i++) {
             $val = $sheetData[$i];
             $residentDatas[] = [
@@ -380,13 +381,13 @@ class ResidentController extends BaseController
         $error_url = "";
         $defeat_count = ExcelService::service()->getErrorCount();
         if ($defeat_count > 0) {
-            $error_url = $this->saveError();
+            $error_url = $this->saveErrorNew();
         }
 
         if ($authMemberIds) {
             MemberService::service()->turnReal($authMemberIds);
         }
-        
+
         $result = [
             'totals' => $success_count + $defeat_count,
             'success' => $success_count,
@@ -567,10 +568,11 @@ class ResidentController extends BaseController
                 continue;
             }
         }
+
         $error_url = "";
         $defeat_count = ExcelService::service()->getErrorCount();
         if ($defeat_count > 0) {
-            $error_url = $this->saveError(2);
+            $error_url = $this->saveErrorNew(2);
         }
         $operate = [
             "community_id" => $data["community_id"],
@@ -589,6 +591,59 @@ class ResidentController extends BaseController
         ];
         return PsCommon::responseSuccess($result);
     }
+
+    /**
+     * 2019-11-12
+     * 写入错误文档
+     */
+    private function saveErrorNew($type = 1)
+    {
+        $config["sheet_config"] = [
+            'name' => ['title' => '姓名', 'width' => 10],
+            'mobile' => ['title' => '手机号码', 'width' => 13],
+            'sex' => ['title' => '性别', 'width' => 6, 'items' => ['男', '女']],
+            'card_no' => ['title' => '身份证号', 'width' => 16],
+            'group' => ['title' => '区域', 'width' => 8],
+            'building' => ['title' => '楼栋', 'width' => 8],
+            'unit' => ['title' => '单元', 'width' => 8],
+            'room' => ['title' => '房号', 'width' => 8],
+            'identity_type' => ['title' => '住户身份', 'width' => 8, "items" => ResidentService::service()->identity_type],
+        ];
+        if ($type == 2) {
+            $config["sheet_config"]['status'] = ['title' => '认证状态', 'width' => 8, "items" => PsCommon::getIdentityStatus()];
+            $config["sheet_config"]['auth_time'] = ['title' => '认证时间', 'width' => 13, 'default' => '-'];
+        }
+        $config['sheet_config']['time_end'] = ['title' => '有效期', 'width' => 13];
+        $config["sheet_config"]['enter_time'] = ['title' => '入住时间', 'width' => 13];
+        $config["sheet_config"]['label_name'] = ['title' => '住户标签', 'width' => 13];
+        $config["sheet_config"]['nation'] = ['title' => '民族', 'width' => 13];
+        $config["sheet_config"]['face'] = ['title' => '政治面貌', 'width' => 13, 'items' => ResidentService::service()->face];
+        $config["sheet_config"]['marry_status'] = ['title' => '婚姻状态', 'width' => 13, 'items' => ResidentService::service()->marry_status];
+        $config["sheet_config"]['household_type'] = ['title' => '户口类型', 'width' => 13, 'items' => ResidentService::service()->household_type];
+        $config["sheet_config"]['live_type'] = ['title' => '居住类型', 'width' => 19, 'items' => ResidentService::service()->live_type];
+        if ($type == 2) {
+            $config["sheet_config"]['id'] = ['title' => 'ID(切勿修改)', 'width' => 19];
+
+        }
+        $config["sheet_config"]['error'] = ['title' => '错误原因', 'width' => 19];
+
+        $config["save"] = true;
+        $config['path'] = 'temp/' . date('Y-m-d');
+        $config['file_name'] = ExcelService::service()->generateFileName('YeZhuError');
+        $columns = range('A', 'Z');
+        $sheetConfig = [];
+        $i = 0;
+        foreach ($config["sheet_config"] as $sc) {
+            $sheetConfig[$columns[$i]] = $sc;
+            $i++;
+        }
+        $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
+        $filePath = F::originalFile().'error/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        $error_url = $fileRe['filepath'];
+        return $error_url;
+    }
+
 
     /**
      * 2016-12-19

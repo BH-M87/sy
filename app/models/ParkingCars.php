@@ -46,7 +46,7 @@ class ParkingCars extends BaseModel
             [['car_num'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！'],
             [['images'], 'string', 'max' => 500],
             [['community_id'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['list']],
-            [['community_id', 'car_num', 'lot_id', 'carport_id', 'user_name'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['community_id', 'car_num'] , 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             ['user_mobile', 'match', 'pattern' => '/^1[0-9]{10}$/',
                 'message' => '{attribute}格式出错，必须是手机号码', 'on' => ['add', 'edit']],
             [['carport_rent_start', 'carport_rent_end'],

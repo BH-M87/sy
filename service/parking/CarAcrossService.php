@@ -9,6 +9,7 @@
 namespace service\parking;
 
 
+use app\models\ParkingAcross;
 use app\models\ParkingAcrossRecord;
 use app\models\ParkingCars;
 use app\models\ParkingDevices;
@@ -409,7 +410,8 @@ class CarAcrossService extends BaseService
             }
 
             $res['record_id'] = $mod->id;
-
+            $data['across_type'] = 1;
+            $this->saveRecord($data);
             return true;
         } else {
             $re = array_values($mod->getErrors());
@@ -435,6 +437,7 @@ class CarAcrossService extends BaseService
      */
     public function doExitData($req)
     {
+
         $openAlipayParking = $req['open_alipay_parking'];
         $interfaceType = $req['interface_type'];
         $data['supplier_id'] = $req['supplier_id'];
@@ -494,7 +497,7 @@ class CarAcrossService extends BaseService
         if($data['park_time'] < 0){
             throw new MyException('出场时间不能比入场时间晚');
         }
-
+        $this->saveExitRecord($data);
         if (!$model) {
             $model = new ParkingAcrossRecord();
             $model->supplier_id = $data['supplier_id'];
@@ -651,6 +654,8 @@ class CarAcrossService extends BaseService
                 }
             }
             $res['record_id'] = $model->id;
+
+            $data['across_type'] = 2;
             return true;
         } else {
             $re = array_values($model->getErrors());
@@ -721,5 +726,66 @@ class CarAcrossService extends BaseService
         return $deviceInfo;
     }
 
+    //车辆进入数据存入
+    public function saveRecord($req)
+    {
+        $data['supplier_id'] = $req['supplier_id'];
+        $data['community_id'] = $req['community_id'];
+        $data['order_id'] = $req['orderId'];
+        $data['car_num'] = $req['car_num'];
+        $data['car_type'] = $req['car_type'];
+        $data['across_type'] = 1;
+        $data['gate_id'] = $req['in_gate_id'];
+        $data['gate_address'] = $req['in_address'];
+        $data['created_at'] = $req['in_time'];
+        $data['capture_photo'] = $req['in_capture_photo'];
+        $data['capture_photo_old'] = $req['in_capture_photo_old'];
+        $data['device_num'] = $req['device_num'] ? $req['device_num'] : '';
+        $data['amount'] = $req['amount'] ? $req['amount'] : 0;
+        $data['discount_amount'] = $req['discount_amount'] ? $req['discount_amount'] : 0;
+        $data['pay_amount'] = $req['pay_amount'] ? $req['pay_amount'] : 0;
+        $data['park_time'] = $req['park_time'] ? $req['park_time'] : 0;
+        $data['lot_code'] = $req['lot_code'];
+        $data['plate_type'] = $req['plate_type'] ? $req['plate_type'] : '';
+        $data['plate_type_str'] = $req['plate_type_str'] ? $req['plate_type_str'] : '';
+        $data['plate_color'] = $req['plate_color'] ? $req['plate_color'] : '';
+        $data['plate_color_str'] = $req['plate_color_str'] ? $req['plate_color_str'] : '';
+        $data['car_color'] = $req['car_color'] ? $req['car_color'] : '';
+        $data['car_color_str'] = $req['car_color_str'] ? $req['car_color_str'] : '';
+        $data['car_sub_type'] = $req['car_sub_type'] ? $req['car_sub_type'] : '';
+        $data['car_logo'] = $req['car_logo'] ? $req['car_logo'] : '';
+        $model = new ParkingAcross();
+        $model->setAttributes($data);
+        $model->save();
+    }
+
+    public function saveExitRecord($req)
+    {
+        $data['supplier_id'] = $req['supplier_id'];
+        $data['community_id'] = $req['community_id'];
+        $data['car_num'] = $req['car_num'];
+        $data['car_type'] = $req['car_type'];
+        $data['across_type'] = 2;
+        $data['gate_id'] = $req['out_gate_id'] ? $req['out_gate_id'] : 0;
+        $data['gate_address'] = $req['out_address'];
+        $data['created_at'] = $req['out_time'];
+        $data['capture_photo'] = $req['out_capture_photo'];
+        $data['capture_photo_old'] = $req['out_capture_photo_old'];
+        $data['device_num'] = $req['out_device_num'] ? $req['out_device_num'] : '';
+        $data['amount'] = $req['amount'] ? $req['amount'] : 0;
+        $data['park_time'] = $req['park_time'] ? $req['park_time'] : 0;
+        $data['lot_code'] = $req['lot_code'];
+        $data['plate_type'] = $req['plate_type'] ? $req['plate_type'] : '';
+        $data['plate_type_str'] = $req['plate_type_str'] ? $req['plate_type_str'] : '';
+        $data['plate_color'] = $req['plate_color'] ? $req['plate_color'] : '';
+        $data['plate_color_str'] = $req['plate_color_str'] ? $req['plate_color_str'] : '';
+        $data['car_color'] = $req['car_color'] ? $req['car_color'] : '';
+        $data['car_color_str'] = $req['car_color_str'] ? $req['car_color_str'] : '';
+        $data['car_sub_type'] = $req['car_sub_type'] ? $req['car_sub_type'] : '';
+        $data['car_logo'] = $req['car_logo'] ? $req['car_logo'] : '';
+        $model = new ParkingAcross();
+        $model->setAttributes($data);
+        $model->save();
+    }
 
 }
