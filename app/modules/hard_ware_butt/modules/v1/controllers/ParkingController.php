@@ -83,7 +83,8 @@ class ParkingController extends BaseController
             ->leftJoin('parking_devices chud','chud.id = r.out_gate_id')
             ->where(['r.community_id' => ['37','38','39','40','41']])
             ->orderBy('r.id asc')
-            ->limit(1164,5000)
+            ->offset(33714)
+            ->limit(5000)
             ->asArray()
             ->all();
         foreach ($recordData as $key => $val) {
