@@ -10,6 +10,7 @@ namespace app\modules\hard_ware_butt\modules\v1\controllers;
 
 
 use app\models\ParkingAcrossForm;
+use app\models\ParkingAcrossRecord;
 use app\modules\hard_ware_butt\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
@@ -71,6 +72,35 @@ class ParkingController extends BaseController
         $data['data_type'] = "exit-data";
         CarAcrossService::service()->exitData($data);
         return PsCommon::responseSuccess();
+    }
+
+    public function actionSyncData()
+    {
+        $recordData = ParkingAcrossRecord::find()
+            ->select('r.*,rud.device_id as device_num,chud.device_id as out_device_num')
+            ->alias('r')
+            ->leftJoin('parking_devices rud','rud.id = r.in_gate_id')
+            ->leftJoin('parking_devices chud','chud.id = r.out_gate_id')
+            ->where(['r.community_id' => ['37','38','39','40','41']])
+            ->orderBy('r.id asc')
+            ->limit(1164,5000)
+            ->asArray()
+            ->all();
+        foreach ($recordData as $key => $val) {
+            //存入场记录
+            $enterData = $val;
+            $enterData['park_time'] = 0;
+            CarAcrossService::service()->saveRecord($enterData);
+
+            if ($val['out_time']) {
+                //存出场记录
+                $exitData = $val;
+                CarAcrossService::service()->saveExitRecord($exitData);
+            }
+            echo $val['id']."\r\n";
+        }
+        //浙A9DG99
+
     }
 
 }
