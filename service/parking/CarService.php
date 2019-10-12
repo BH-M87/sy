@@ -456,39 +456,43 @@ class CarService extends BaseService
                 $tmpCarData['room_id'] = $room['id'];
             }
             //查询车场
-            $lotInfo = ParkingLot::find()
-                ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
-                ->where(['name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
-                ->asArray()
-                ->one();
-            if (!$lotInfo) {
-                ExcelService::service()->setError($row, '车场不存在');
-                continue;
-            }
-
-            $tmpCarData['park_code'] = $lotInfo['park_code'];
-            $tmpCarData['lot_id'] = $lotInfo['id'];
-            $tmpCarData['lot_area_id'] = 0;
-            //查询车位
-            $carportInfo = ParkingCarport::find()
-                ->select(['id', 'car_port_status'])
-                ->where(['car_port_num' => trim($row['car_port_num']), 'lot_id' => $tmpCarData['lot_id']])
-                ->andWhere(['community_id' => $params['community_id']])
-                ->asArray()
-                ->one();
-            if (!$carportInfo) {
-                ExcelService::service()->setError($row, '车位不存在');
-                continue;
-            }
-
-            if (!in_array($carportInfo['car_port_status'], [2,4])) {
-                if (!$row['carport_rent_start'] || !$row['carport_rent_end']) {
-                    ExcelService::service()->setError($row, '租赁有效期不能为空');
+            if ($row['lot_name']) {
+                $lotInfo = ParkingLot::find()
+                    ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
+                    ->where(['name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
+                    ->asArray()
+                    ->one();
+                if (!$lotInfo) {
+                    ExcelService::service()->setError($row, '车场不存在');
                     continue;
                 }
             }
 
-            $tmpCarData['carport_id'] = $carportInfo['id'];
+            $tmpCarData['park_code'] = !empty($lotInfo['park_code']) ? $lotInfo['park_code'] : '';
+            $tmpCarData['lot_id'] = !empty($lotInfo['id']) ? $lotInfo['id'] : 0;
+            $tmpCarData['lot_area_id'] = 0;
+            $tmpCarData['carport_id'] = 0;
+            //查询车位
+            if ($tmpCarData['lot_id']) {
+                $carportInfo = ParkingCarport::find()
+                    ->select(['id', 'car_port_status'])
+                    ->where(['car_port_num' => trim($row['car_port_num']), 'lot_id' => $tmpCarData['lot_id']])
+                    ->andWhere(['community_id' => $params['community_id']])
+                    ->asArray()
+                    ->one();
+                if (!$carportInfo) {
+                    ExcelService::service()->setError($row, '车位不存在');
+                    continue;
+                }
+
+                if (!in_array($carportInfo['car_port_status'], [2, 4])) {
+                    if (!$row['carport_rent_start'] || !$row['carport_rent_end']) {
+                        ExcelService::service()->setError($row, '租赁有效期不能为空');
+                        continue;
+                    }
+                }
+                $tmpCarData['carport_id'] = $carportInfo['id'];
+            }
             $tmpCarData['community_id'] = $params['community_id'];
             $tmpCarData['room_address'] = '';
             if ($tmpCarData['room_id']) {
@@ -508,26 +512,41 @@ class CarService extends BaseService
             } else {
                 array_push($uniqueCarArr, $tmp);
             }
-            $tmp = ParkingUserCarport::find()
-                ->alias('tran')
-                ->leftJoin('parking_cars cars', 'cars.id = tran.car_id')
-                ->select(['tran.id'])
-                ->where(['cars.car_num' => $tmpCarData['car_num']])
-                ->andWhere(['tran.carport_id' => $tmpCarData['carport_id']])
+            //车牌重复判断
+            $tmp = ParkingCars::find()
+                ->where(['car_num' => $tmpCarData['car_num'], 'community_id' => $params['community_id']])
                 ->asArray()
                 ->one();
             if ($tmp) {
-                ExcelService::service()->setError($row, "数据重复，相同的车牌已跟车位绑定");
+                ExcelService::service()->setError($row, "数据重复，相同的车牌已经存在");
                 continue;
+            }
+
+
+            if ($tmpCarData['carport_id']) {
+                $tmp = ParkingUserCarport::find()
+                    ->alias('tran')
+                    ->leftJoin('parking_cars cars', 'cars.id = tran.car_id')
+                    ->select(['tran.id'])
+                    ->where(['cars.car_num' => $tmpCarData['car_num']])
+                    ->andWhere(['tran.carport_id' => $tmpCarData['carport_id']])
+                    ->asArray()
+                    ->one();
+                if ($tmp) {
+                    ExcelService::service()->setError($row, "数据重复，相同的车牌已跟车位绑定");
+                    continue;
+                }
             }
             $success[] = $tmpCarData;
         }
         $this->saveImport($success, $params['community_id']);
-        $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
         $fail =  ExcelService::service()->getErrorCount();
         $error_url = '';
         if($fail > 0 ){
-            $error_url = F::downloadUrl($filename, 'error', 'carportImportError.csv');
+            $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
+            $filePath = F::originalFile().'error/'.$filename;
+            $fileRe = F::uploadFileToOss($filePath);
+            $error_url = $fileRe['filepath'];
         }
         $result = [
             'success' => count($success),
@@ -543,17 +562,19 @@ class CarService extends BaseService
     {
         foreach ($arr as $key => $val) {
             //查看车位是否存在
-            $carPort = ParkingCarport::find()
-                ->where(['id' => $val['carport_id']])
-                ->one();
-            $val['carport_pay_type'] = 0;
-            if ($carPort->car_port_status == 2 || $carPort->car_port_status == 4) {
-                $val['carport_rent_start'] = '';
-                $val['carport_rent_end'] = '';
-                $val['carport_rent_price'] = 0;
-                $val['carport_pay_type'] = 1; //买断
-            } else {
-                $val['carport_pay_type'] = 2; //租赁
+            if ($val['carport_id']) {
+                $carPort = ParkingCarport::find()
+                    ->where(['id' => $val['carport_id']])
+                    ->one();
+                $val['carport_pay_type'] = 0;
+                if ($carPort->car_port_status == 2 || $carPort->car_port_status == 4) {
+                    $val['carport_rent_start'] = '';
+                    $val['carport_rent_end'] = '';
+                    $val['carport_rent_price'] = 0;
+                    $val['carport_pay_type'] = 1; //买断
+                } else {
+                    $val['carport_pay_type'] = 2; //租赁
+                }
             }
             $carReq['car_num'] = $val['car_num'];
             $carReq['community_id'] = $communityId;
@@ -565,11 +586,16 @@ class CarService extends BaseService
 
             //添加车主
             $userReq['community_id'] = $communityId;
-            $userReq['user_name'] = $val['user_name'];
-            $userReq['user_mobile'] = $val['user_mobile'];
-            list($userId, $error) = $this->_saveCarUserData($userReq);
-            $val['user_id'] = $userId;
-            list($carPortId, $error) = $this->_saveUserCarport($val);
+            if ($val['user_name'] && $val['user_mobile']) {
+                $userReq['user_name'] = $val['user_name'];
+                $userReq['user_mobile'] = $val['user_mobile'];
+                list($userId, $error) = $this->_saveCarUserData($userReq);
+                $val['user_id'] = !empty($userId) ? $userId : 0;
+            }
+            if ($val['carport_id']) {
+                list($carPortId, $error) = $this->_saveUserCarport($val);
+            }
+
         }
     }
 
@@ -764,10 +790,10 @@ class CarService extends BaseService
             'building' => ['title' => '楼栋'],
             'unit' => ['title' => '单元'],
             'room' => ['title' => '房号'],
-            'user_name' => ['title' => '车主姓名', 'rules' => ['required' => true]],
-            'user_mobile' => ['title' => '联系电话','rules' => ['required' => true]],
-            'lot_name' => ['title' => '所在停车场', 'rules' => ['required' => true]],
-            'car_port_num' => ['title' => '车位号', 'rules' => ['required' => true]],
+            'user_name' => ['title' => '车主姓名'],
+            'user_mobile' => ['title' => '联系电话'],
+            'lot_name' => ['title' => '所在停车场'],
+            'car_port_num' => ['title' => '车位号'],
             'car_model' => ['title' => '车辆型号'],
             'car_color' => ['title' => '车辆颜色'],
             'car_delivery' => ['title' => '车辆排量'],
