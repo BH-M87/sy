@@ -115,8 +115,6 @@ class CommunityGroupService extends BaseService {
         $model->code = $data['group_code'];
         $model->groups_code = PsCommon::getIncrStr('HOUSE_GROUP',YII_ENV.'lyl:house-group');
         if ($model->save()) {
-            // 同步到楼宇中心
-            //TODO
             return $this->success($model->id);
         } else {
             return $this->failed("新增失败");

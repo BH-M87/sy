@@ -4,7 +4,7 @@ namespace app\models;
 
 use Yii;
 
-class Department extends \yii\db\ActiveRecord
+class Department extends BaseModel
 {
     public static function tableName()
     {

@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
+use app\models\PsCommunityModel;
 use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
@@ -163,5 +164,56 @@ class CommunityController extends BaseController
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
+    }
+
+    /**
+     * 添加社区微恼小区
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionCreateComm()
+    {
+        CommunityService::service()->addSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 编辑社区微恼小区
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionEditComm()
+    {
+        CommunityService::service()->editSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 修改小区状态
+     * @author yjh
+     * @return string
+     * @throws \common\MyException
+     */
+    public function actionEditStatus()
+    {
+        CommunityService::service()->editSnCommunityStatus($this->request_params);
+        return PsCommon::responseSuccess();
+    }
+
+    /**
+     * 删除小区
+     * @author yjh
+     * @return string
+     * @throws \Throwable
+     * @throws \common\MyException
+     * @throws \yii\db\Exception
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteComm()
+    {
+        CommunityService::service()->deleteSnCommunity($this->request_params);
+        return PsCommon::responseSuccess();
     }
 }

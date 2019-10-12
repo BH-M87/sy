@@ -9,6 +9,7 @@
 namespace service\basic_data;
 
 use app\models\DoorSendRequest;
+use app\models\IotSupplierCommunity;
 use app\models\ParkingSupplierCommunity;
 use service\producer\MqProducerService;
 use yii\base\Exception;
@@ -646,7 +647,7 @@ class RoomMqService extends \service\basic_data\BaseService
             'faceData' => $faceUrl,//应JAVA需求再添加一个data字段
             'userExpiredTime' => $userExpired
         ];
-        $tmpService  = PushDataService::service()->init(2);
+        /*$tmpService  = PushDataService::service()->init(2);
         $syncSet = $this->getSyncDatacenter($communityId,$supplierId);
         if ($syncSet) {
             $tmppPushData = $tmpPushData;
@@ -677,33 +678,12 @@ class RoomMqService extends \service\basic_data\BaseService
             if (!$re) {
                 return $this->failed("mq 连接失败");
             }
-        }
+        }*/
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
-            //测试环境直接提示错误
-            if($this->checkIsMaster($communityId)){
-                return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-            }else{
-                IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-            }
+            IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
             return $this->success();
-
         }
-        //走iot老接口
-        if(in_array('iot',$supplierSign)){
-            $data = $tmpService->setWaitRequestData($tmpPushData);
-            if ($data === false) {
-                return $this->failed("数据添加失败");
-            }
-            $data = array_merge($data, $tmpPushData);
-            try {
-                $cli = new SwoolClient();
-                $cli->send($data);
-            } catch (Exception $e) {
-                return $this->failed("swool 连接失败");
-            }
-        }
-
         return $this->success();
     }
 
@@ -760,11 +740,7 @@ class RoomMqService extends \service\basic_data\BaseService
         }
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
-            if($this->checkIsMaster($communityId)){
-                return IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
-            }else{
-                IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
-            }
+            IotNewDealService::service()->dealUserToIot($tmpPushData,'addBatch');
             return $this->success();
 
         }
@@ -883,74 +859,14 @@ class RoomMqService extends \service\basic_data\BaseService
         }*/
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
-            if($this->checkIsMaster($communityId)){
-                //小程序会传base64编码
-                if($base64_img||$faceUrl){
-                    $tmpPushData['faceData'] = $base64_img;
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-                }else{
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-                }
+            //小程序会传base64编码
+            if($base64_img||$faceUrl){
+                $tmpPushData['faceData'] = $base64_img;
+                return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face',1);
             }else{
-                //小程序会传base64编码
-                if($base64_img||$faceUrl){
-                    $tmpPushData['faceData'] = $base64_img;
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-                }else{
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
-                }
+                return IotNewDealService::service()->dealUserToIot($tmpPushData,'edit-face');
             }
-            //return $this->success();
         }
-
-        /*file_put_contents("face_url.txt","supplierData1:".$communityId."-supplierId:".$supplierId."-supplierSign:".$supplierSign."\r\n",FILE_APPEND);
-        if(in_array('iot',$supplierSign)){
-            //编辑人员信息传图片的时候不走swool推送，直接调用java接口，同步获取信息（人脸上传的时候用）,add by zq 2019-4-15
-            if($faceUrl  && !$from){
-                //$tmpPushData['userList'][0]['faceData'] = $faceUrl;//兼容物业后台修改人员信息
-                //$tmpPushData['userList'][0]['faceUrl'] = $base64_img ? $base64_img : $faceUrl;//兼容物业后台修改人员信息
-                //应JAVA需求更新字段，add by zq 2019-5-30
-                $tmpPushData['userList'][0]['faceUrl'] = $faceUrl;//兼容物业后台修改人员信息
-                $tmpPushData['userList'][0]['faceData'] = $base64_img ? $base64_img : $faceUrl;//兼容物业后台修改人员信息
-                $authCode = ParkingSupplierCommunity::find()
-                    ->select(['auth_code'])
-                    ->where(['supplier_id' => $supplierId, 'community_id' => $communityId, 'supplier_type' => 2])
-                    ->asArray()
-                    ->scalar();
-                $params['authCode'] = $authCode;
-                $request_action = $tmpService->getActionName($tmpPushData['parkType'], $tmpPushData['actionType']);
-                $params['methodName'] = $request_action;
-                file_put_contents("face_url.txt","faceData1:".json_encode($tmpPushData)."\r\n",FILE_APPEND);
-                try {
-                    $req = $tmpPushData;
-                    unset($req['actionType']);
-                    unset($req['parkType']);
-                    unset($req['sendNum']);
-                    unset($req['sendDate']);
-                    unset($req['community_id']);
-                    unset($req['supplier_id']);
-                    $req['methodName'] = $request_action;
-                    file_put_contents("face_url.txt","faceData2:".json_encode($req)."\r\n",FILE_APPEND);
-                    $res = PushService::service()->init($params)->request($req);
-                    //file_put_contents("face_url.txt","face-request-data:".json_encode($req)."\r\n",FILE_APPEND);
-                } catch (Exception $e) {
-                    return $this->failed($e->getMessage());
-                }
-            }else{
-                $data = $tmpService->setWaitRequestData($tmpPushData);
-                if ($data === false) {
-                    return $this->failed("数据添加失败");
-                }
-                $data = array_merge($data, $tmpPushData);
-                try {
-                    $cli = new SwoolClient();
-                    $cli->send($data);
-                } catch (Exception $e) {
-                    return $this->failed("swool 连接失败");
-                }
-            }
-
-        }*/
         return $this->success();
     }
 
@@ -1017,40 +933,18 @@ class RoomMqService extends \service\basic_data\BaseService
         }*/
         //iot新版本接口 add by zq 2019-6-4
         if(in_array('iot-new',$supplierSign)){
-            if($this->checkIsMaster($communityId)){
-                if($tmpPushData['userList'][0]['userType'] == 4){
-                    return IotNewDealService::service()->dealVisitorToIot($tmpPushData,'cancel');
-                }else{
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'del');
-                }
+            if($tmpPushData['userList'][0]['userType'] == 4){
+                return IotNewDealService::service()->dealVisitorToIot($tmpPushData,'cancel');
             }else{
-                if($tmpPushData['userList'][0]['userType'] == 4){
-                    return IotNewDealService::service()->dealVisitorToIot($tmpPushData,'cancel');
-                }else{
-                    return IotNewDealService::service()->dealUserToIot($tmpPushData,'del');
-                }
+                return IotNewDealService::service()->dealUserToIot($tmpPushData,'del');
             }
-            //return $this->success();
         }
-        /*if(in_array('iot',$supplierSign)){
-            $data = $tmpService->setWaitRequestData($tmpPushData);
-            if ($data === false) {
-                return $this->failed("数据添加失败");
-            }
-            $data = array_merge($data, $tmpPushData);
-            try {
-                $cli = new SwoolClient();
-                $cli->send($data);
-            } catch (Exception $e) {
-                return $this->failed("swool 连接失败");
-            }
-        }*/
         return $this->success();
     }
 
     //查询小区是否开通硬件模块
     public function getOpenApiSupplier($communityId, $supplierType){
-        $supplierInfo = ParkingSupplierCommunity::find()
+        $supplierInfo = IotSupplierCommunity::find()
             ->select(['supplier_id', 'interface_type'])
             ->where(['community_id' => $communityId, 'supplier_type' => $supplierType])
             ->asArray()->one();
