@@ -19,6 +19,7 @@ use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsCommunityUnits;
 use app\models\PsMember;
+use app\models\PsRoomUser;
 use app\models\PsRoomVistors;
 use common\core\Curl;
 use common\core\F;
@@ -41,6 +42,16 @@ class VisitorService extends BaseService
         '1' => '未到访',
         '2' => '已到访',
         '3' => '已取消',
+    ];
+
+    public $reason_type_list = [
+        '1'=>'亲戚朋友',
+        '2'=>'中介看房',
+        '3'=>'搬家放行',
+        '4'=>'送货上门',
+        '5'=>'装修放行',
+        '6'=>'家政服务',
+        '9'=>'其他',
     ];
 
     public function getCommon()
@@ -509,7 +520,7 @@ class VisitorService extends BaseService
     {
         $app_user_id = !empty($data['app_user_id']) ? $data['app_user_id'] : '0';
         $reason_type = !empty($data['reason_type']) ? $data['reason_type'] : '9';
-        $reason = !empty($data['reason']) ? $data['reason'] : '';
+        $reason = !empty($data['content']) ? (!empty($data['reason']) ? $data['reason'] : '') : '';
         $qrcode = !empty($data['qrcode']) ? $data['qrcode'] : '';
         $vistor_name = !empty($data['vistor_name']) ? $data['vistor_name'] : '';
         $vistor_mobile = !empty($data['vistor_mobile']) ? $data['vistor_mobile'] : '';
@@ -517,38 +528,37 @@ class VisitorService extends BaseService
         $end_time = !empty($data['validityTime']) ? $data['validityTime'] : time() + 24*3600;
         $car_number = !empty($data['car_number']) ? $data['car_number'] : '';
         $sex = !empty($data['sex']) ? $data['sex'] : '1';
+        $people_num = !empty($data['people_num']) ? $data['people_num'] : '0';
 
-        $db = \Yii::$app->db;
-        $re = $db->createCommand('INSERT INTO `ps_room_vistors` (`room_id`,`community_id`,`group`,`building`,`unit`,
-            `room`,`member_id`,`vistor_type`,`start_time`,`end_time`,`code`,`qrcode`,`vistor_name`,`vistor_mobile`,
-            `reason_type`,`reason`,`status`,`app_user_id`,`created_at`,`car_number`,`sex`)
-            VALUES (:room_id,:community_id,:group,:building,:unit,
-                :room,:member_id,:vistor_type,:start_time,:end_time,:code,:qrcode,:vistor_name,:vistor_mobile,
-                :reason_type,:reason,:status,:app_user_id,:created_at,:car_number,:sex)', [
-            ':room_id' => $data['room_id'],
-            ':community_id' => $data['community_id'],
-            ':group' => $data['group'],
-            ':building' => $data['building'],
-            ':unit' => $data['unit'],
-            ':room' => $data['room'],
-            ':member_id' => $data['member_id'],
-            ':vistor_type' => 1,
-            ':start_time' => $start_time,
-            ':end_time' => $end_time,
-            ':code' => $data['password'],
-            ':qrcode' => $qrcode,
-            ':vistor_name' => $vistor_name,
-            ':vistor_mobile' => $vistor_mobile,
-            ':reason_type' => $reason_type,
-            ':reason' => $reason,
-            ':status' => 1,
-            ':app_user_id' => $app_user_id,
-            ':created_at' => time(),
-            'car_number'=>$car_number,
-            'sex'=>$sex
-        ])->execute();
+        $model = new PsRoomVistors();
+        $model->room_id = $data['room_id'];
+        $model->community_id = $data['community_id'];
+        $model->group = $data['group'];
+        $model->building = $data['building'];
+        $model->unit = $data['unit'];
+        $model->room = $data['room'];
+        $model->member_id = $data['member_id'];
+        $model->vistor_type = 1;
+        $model->start_time = $start_time;
+        $model->end_time = $end_time;
+        $model->code = $data['password'];
+        $model->qrcode = $qrcode;
+        $model->vistor_name =$vistor_name;
+        $model->vistor_mobile = $vistor_mobile;
+        $model->reason_type = $reason_type;
+        $model->reason = $reason;
+        $model->status = 1;
+        $model->app_user_id = $app_user_id;
+        $model->created_at = time();
+        $model->car_number = $car_number;
+        $model->sex = $sex;
+        $model->people_num = $people_num;
+        if($model->save()){
+            return $model->id;
+        }else{
+            return 0;
+        }
 
-        return $db->getLastInsertId();
     }
 
     // 保存 住户密码 二维码
@@ -617,9 +627,9 @@ class VisitorService extends BaseService
      * @param $pageSize
      * @return array
      */
-    public function visitorList($param, $page, $pageSize)
+    public function visitorList($param, $page, $pageSize,$member_id = '')
     {
-        $result = $this->_visitorSearch($param)
+        $result = $this->_visitorSearch($param,$member_id)
             ->select('id, vistor_name, vistor_mobile, start_time, end_time, passage_at, is_msg, status,car_number,sex,reason')
             ->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)
             ->asArray()->all();
@@ -644,9 +654,11 @@ class VisitorService extends BaseService
      * 列表搜索
      * @param $param
      */
-    private function _visitorSearch($param)
+    private function _visitorSearch($param,$member_id='')
     {
-        $member_id = $this->getMemberByUser($param['user_id']);
+        if(empty($member_id)){
+            $member_id = $this->getMemberByUser($param['user_id']);
+        }
         $typeL = PsCommon::get($param,'type');
         $type = ($typeL == 1) ? [1,3] : $typeL; // 过期也在未到访列表
         $room_id = PsCommon::get($param,'room_id');
@@ -675,17 +687,19 @@ class VisitorService extends BaseService
         $res = $this->getSupplierNameListByRoomId($community_id,$unit_id);
         if(empty($res)){
             //不存在二维码供应商
-            //throw new MyException('设备不支持');
+            throw new MyException('不存在二维码供应商');
         }
         $data['app_user_id'] = $data['user_id'];
         $data['start_time'] = strtotime($data['start_time']);
         $data['end_time'] = strtotime($data['end_time']);
         $data['community_id'] = $community_id;
-        $data['member_id'] = PsAppMember::find()->select('member_id')->where(['app_user_id'=>$data['user_id']])->asArray()->scalar();
+        if(empty($data['member_id'])){
+            $data['member_id'] = PsAppMember::find()->select('member_id')->where(['app_user_id'=>$data['user_id']])->asArray()->scalar();
+        }
         $data['productSn'] = IotNewDealService::service()->getSupplierProductSnByCommunityId($community_id);
-        $getPassRe = IotNewDealService::service()->dealVisitorToIot($data,'add');
+        return IotNewDealService::service()->dealVisitorToIot($data,'add');
         //$getPassRe = $this->getQrCode($roomInfo,$data);
-        return $this->success($getPassRe);
+        //return $this->success($getPassRe);
 
     }
 
@@ -829,5 +843,48 @@ class VisitorService extends BaseService
         }
         return $res;
     }
+
+    /****************************钉钉端访客相关service add by zq 2019-10-14********************************************/
+    public function getListForDing($param, $page, $pageSize,$mobile)
+    {
+        $data['room_id'] = $param['room_id'];
+        $data['type'] = PsCommon::get($param,'type');
+        $member_id = PsMember::find()->select(['id'])->where(['mobile'=>$mobile])->asArray()->scalar();
+        return $this->visitorList($data, $page, $pageSize,$member_id);
+    }
+
+    public function addForDing($param)
+    {
+        $data = $param;
+        if(empty($data['member_id'])){
+            throw new MyException('业主id不能为空');
+        }
+        return $this->visitorAdd($data);
+
+    }
+
+    public function getCommonDing()
+    {
+        //1亲戚朋友，2中介看房，3搬家放行，4送货上门，5装修放行，6家政服务，9其他
+        $reason_type_list = [];
+        if($this->reason_type_list){
+            foreach($this->reason_type_list as $key=>$value){
+                $a['key'] = $key;
+                $a['value'] = $value;
+                $reason_type_list[] = $a;
+            }
+        }
+        $data['reason_type'] = $reason_type_list;
+        return $data;
+    }
+
+    public function getUserListDing($param)
+    {
+        $room_id = PsCommon::get($param,'room_id');
+        $list = PsRoomUser::find()->select(['member_id as id','name'])
+            ->where(['roon_id'=>$room_id,'identity_type'=>1])->asArray()->all();
+        return $list;
+    }
+
 
 }
