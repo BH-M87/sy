@@ -1094,6 +1094,39 @@ ORDER BY juli ASC LIMIT 1";
         }
     }
 
+    public function getSnCommunityList($params)
+    {
+        if (!in_array($params['house_type'],[1,2,3]) && !empty($params['house_type'])) {
+            throw new MyException('小区类型错误');
+        }
+        return PsCommunityModel::getList($params);
+    }
+
+    public function getSnCommunityInfo($data)
+    {
+        if (empty($data['id'])) throw new MyException('小区ID不能为空');
+        $community = PsCommunityModel::find()->where(['id' => $data['id']])->asArray()->one();
+        //判断小区是否已经存在
+        if (!$community) {
+            throw new MyException('小区ID错误');
+        }
+        $city =  PsAreaAli::find()->where(['areaCode' => $community['city_id']])->asArray()->one();
+        $district =  PsAreaAli::find()->where(['areaCode' => $community['district_code']])->asArray()->one();
+        $community['province_name'] = $community['province'];
+        $community['city_name'] = $city['areaName'];
+        $community['area_name'] = $district['areaName'];
+        $community['build_time'] = !empty($community['build_time']) ? date('Y-m-d',$community['build_time']) : '无';
+        $community['delivery_time'] = !empty($community['delivery_time']) ? date('Y-m-d',$community['delivery_time']) : '无';
+        $community['acceptance_time'] = !empty($community['acceptance_time']) ? date('Y-m-d',$community['acceptance_time']) : '无';
+        $community['right_start'] = !empty($community['right_start']) ? date('Y-m-d',$community['right_start']) : '无';
+        $community['right_end'] = !empty($community['right_end']) ? date('Y-m-d',$community['right_end']) : '无';
+        $community['register_time'] = !empty($community['register_time']) ? date('Y-m-d',$community['register_time']) : '无';
+        $community['house_type_desc'] = PsCommunityModel::$house_type_desc[$community['house_type']];
+        $community['company_name'] = PsPropertyCompany::find()->where(['id' => $community['pro_company_id']])->one()['property_name'];
+        unset($community['province']);
+        return $community;
+    }
+
     /**
      * 获取小区编码
      * @author yjh
@@ -1129,5 +1162,7 @@ ORDER BY juli ASC LIMIT 1";
         }
         return $org_code.$no;
     }
+
+
 
 }

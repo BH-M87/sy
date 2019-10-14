@@ -23,13 +23,13 @@ use common\core\Regular;
 class PsCommunityModel extends BaseModel
 {
 
-    public $house_type_desc = [
+    public static $house_type_desc = [
         '1' => '普通小区',
         '2' => '安置小区',
         '3' => '老旧小区',
     ];
 
-    public $status_desc = [
+    public static $status_desc = [
         '1' => '启用',
         '2' => '禁用',
     ];
@@ -99,6 +99,43 @@ class PsCommunityModel extends BaseModel
             'register_time' => '登记时间',
             'create_at' => 'Create At',
         ];
+    }
+
+    public static function getList($param,$page = true)
+    {
+        $model = self::find()->andFilterWhere(['name' => $param['name'] ?? null])
+            ->andFilterWhere(['street_name' => $param['street_name'] ?? null])
+            ->andFilterWhere(['house_type' => $param['house_type'] ?? null])
+            ->andFilterWhere(['pro_company_id' => $param['pro_company_id'] ?? null])
+            ->andFilterWhere(['district_name'=> $param['district_name'] ?? null]);
+        $model->orderBy([ 'id' => SORT_DESC]);
+        if ($page) {
+            $page = !empty($param['page']) ? $param['page'] : 1;
+            $row = !empty($param['rows']) ? $param['rows'] : 10;
+            $page = ($page-1)*$row;
+            $count = $model->count();
+            $data['totals'] = $count;
+            $model->offset($page)->limit($row);
+        }
+        $data['list'] = $model->asArray()->all();
+        if (!empty($data['list'])) {
+            self::afterList($data['list']);
+        }
+        return $data;
+    }
+
+    public static function afterList(&$data)
+    {
+        foreach ($data as &$v) {
+            $task = StPartyTask::find()->where(['id' => $v['task_id']])->asArray()->one();
+            $city_name = PsAreaAli::find()->where(['areaCode' => $v['city_id']])->one()['areaName'];
+            $district_name = PsAreaAli::find()->where(['areaCode' => $v['district_code']])->one()['areaName'];
+            $v['street_info'] = $task['province'].$city_name.$district_name.$v['street_name'];
+            $v['link_info'] = $v['link_name'].$v['phone'];
+            $v['house_type'] = self::$house_type_desc[$v['house_type']];
+            $v['company_name'] = PsPropertyCompany::find()->where(['id' => $v['pro_company_id']])->one()['property_name'];
+            $v['create_at'] = date('Y-m-d H:i:s',$v['create_at']);
+        }
     }
 
     public function getProperty()
