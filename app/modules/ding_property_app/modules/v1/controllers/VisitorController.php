@@ -20,6 +20,10 @@ class VisitorController extends UserBaseController
     public function actionList()
     {
         $data = $this->request_params;
+        $room_id = PsCommon::get($this->request_params,'room_id');
+        if (empty($room_id)) {
+            throw new MyException("房屋id不能为空");
+        }
         $result = VisitorService::service()->getListForDing($data, $this->page, $this->pageSize,$this->userMobile);
         if ($result["code"]) {
             return F::apiSuccess($result["data"]);

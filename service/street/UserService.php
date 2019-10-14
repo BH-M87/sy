@@ -70,6 +70,26 @@ class UserService extends BaseService
         return $user_info;
     }
 
+    public function getManageUserInfoById($id)
+    {
+        $companyName = CompanyService::service()->getNameById($user['property_company_id']);
+        $user_info = [
+            'id' => $user['id'],
+            'property_company_id' => $user['companyId'],
+            'property_company_name' => $user['companyName'],
+            'username' => $user['loginName'],
+            'truename' => $user['userName'],
+            'mobile' => $user['userPhone'],
+            'system_type' => $user['system_type'] ,
+            'login_time'=>$user['lastLoginTime'],
+            'level' => $user['userType'],
+            'user_type' => $user['userType'],
+            'community_id' => CommunityService::service()->getUserCommunitys($user['id'])[0]['id']
+        ];
+
+        return $user_info;
+    }
+
     /**
      * 获取这个人的小区id权限列表
      * @param $node_type

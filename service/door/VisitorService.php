@@ -203,7 +203,9 @@ class VisitorService extends BaseService
         }
         //$url = 'https://' . $_SERVER['HTTP_HOST']  . $_SERVER['SCRIPT_NAME'] . "/door/show/{$index}?id=" . $param['id'];
         //直接生成支付宝链接
-        $url = "alipays://platformapi/startapp?appId=".$appId."&page=pages/visitorPass/visitorPass&query=".$param['id'];
+        $alisaQuery = "visit_id=".$param['id']."&visit_rand=".time();
+        $urlencode = urlencode($alisaQuery);
+        $url = "alipays://platformapi/startapp?appId=".$appId."&page=pages/visitorPass/visitorPass&query=".$urlencode;
         $data[] = $this->getShortUrl2($url).' '; // 加空格 不然ios手机会把后面的都当成是链接部分
         $data[] = $model['vistor_mobile'];
 
