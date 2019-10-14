@@ -79,7 +79,7 @@ class CarService extends BaseService
             $query->andWhere(['room.room' => $req['room']]);
         }
         if (!empty($req['user_name'])) {
-           $query->andFilterWhere(['or', ['like', 'pu.user_name', $req['user_name']], ['like', 'pu.user_mobile', $req['user_name']]]);
+            $query->andFilterWhere(['or', ['like', 'pu.user_name', $req['user_name']], ['like', 'pu.user_mobile', $req['user_name']]]);
         }
         if (!empty($req['car_num'])) {
             $query->andWhere(['like', 'car.car_num', $req['car_num']]);
@@ -119,6 +119,7 @@ class CarService extends BaseService
         $req['carport_rent_start'] = F::value($req,'carport_rent_start','');
         $req['carport_rent_end'] = F::value($req,'carport_rent_end','');
         $req['room_address'] = '';
+
         //校验数据
         $lotInfo = ParkingLot::find()
             ->where(['id' => $req['lot_id']])
@@ -161,15 +162,17 @@ class CarService extends BaseService
 
         //车位状态处理
         $req['carport_pay_type'] = 0;
-        if ($portInfo['car_port_status'] == 2 || $portInfo['car_port_status'] == 4) {
-            $req['carport_rent_start'] = '';
-            $req['carport_rent_end'] = '';
-            $req['carport_pay_type'] = 1; //买断
-        } else {
-            if (!$req['carport_rent_start'] || !$req['carport_rent_end']) {
-                return $this->failed('租赁有效期不能为空！');
+        if ($req['carport_id']) {
+            if ($portInfo['car_port_status'] == 2 || $portInfo['car_port_status'] == 4) {
+                $req['carport_rent_start'] = '';
+                $req['carport_rent_end'] = '';
+                $req['carport_pay_type'] = 1; //买断
+            } else {
+                if (!$req['carport_rent_start'] || !$req['carport_rent_end']) {
+                    return $this->failed('租赁有效期不能为空！');
+                }
+                $req['carport_pay_type'] = 2; //租赁
             }
-            $req['carport_pay_type'] = 2; //租赁
         }
 
         //新增
@@ -360,7 +363,8 @@ class CarService extends BaseService
                 ->select('name')
                 ->where(['id' => $carInfo['lot_id']])
                 ->scalar();
-        }
+            $carInfo['member_id'] = $carInfo['member_id'] ? $carInfo['member_id'] : '';
+            $carInfo['carport_id'] = $carInfo['carport_id'] ? $carInfo['carport_id'] : '';        }
         return $carInfo;
     }
 
@@ -441,6 +445,7 @@ class CarService extends BaseService
                 $tmpCarData['room_id'] = $room['id'];
             }
             //查询车场
+
             $lotInfo = ParkingLot::find()
                 ->select(['id', 'type', 'parent_id', 'park_code', 'supplier_id'])
                 ->where(['name' => trim($row['lot_name']), 'community_id' => $params['community_id']])
@@ -451,9 +456,11 @@ class CarService extends BaseService
                 continue;
             }
 
-            $tmpCarData['park_code'] = $lotInfo['park_code'];
-            $tmpCarData['lot_id'] = $lotInfo['id'];
+
+            $tmpCarData['park_code'] = !empty($lotInfo['park_code']) ? $lotInfo['park_code'] : '';
+            $tmpCarData['lot_id'] = !empty($lotInfo['id']) ? $lotInfo['id'] : 0;
             $tmpCarData['lot_area_id'] = 0;
+
             //查询车位
             $carportInfo = ParkingCarport::find()
                 ->select(['id', 'car_port_status'])
@@ -474,6 +481,7 @@ class CarService extends BaseService
             }
 
             $tmpCarData['carport_id'] = $carportInfo['id'];
+
             $tmpCarData['community_id'] = $params['community_id'];
             $tmpCarData['room_address'] = '';
             if ($tmpCarData['room_id']) {
@@ -508,11 +516,13 @@ class CarService extends BaseService
             $success[] = $tmpCarData;
         }
         $this->saveImport($success, $params['community_id']);
-        $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
         $fail =  ExcelService::service()->getErrorCount();
         $error_url = '';
         if($fail > 0 ){
-            $error_url = F::downloadUrl($filename, 'error', 'carportImportError.csv');
+            $filename = ExcelService::service()->saveErrorCsv($sheetConfig);
+            $filePath = F::originalFile().'error/'.$filename;
+            $fileRe = F::uploadFileToOss($filePath);
+            $error_url = $fileRe['filepath'];
         }
         $result = [
             'success' => count($success),
@@ -722,6 +732,7 @@ class CarService extends BaseService
         $user = ParkingUsers::find()
             ->where(['user_mobile' => $req['user_mobile']])
             ->one();
+
         if ($user) {
             if ($user->user_name != $req['user_name']) {
                 $user->user_name = $req['user_name'];

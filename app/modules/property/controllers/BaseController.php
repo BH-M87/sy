@@ -59,7 +59,7 @@ Class BaseController extends CoreController
         if (!parent::beforeAction($action)) {
             return false;
         }
-        $dataStr = !empty($_REQUEST['data']) ? $_REQUEST['data'] : '';
+        $dataStr = !empty(F::request('data')) ? F::request('data') : '';
         $communityId = F::request('community_id');
         if (!$communityId) {
             $communityId = F::request('communityId');
@@ -67,7 +67,7 @@ Class BaseController extends CoreController
         $this->communityId  = $communityId;
         $this->userId = F::request('user_id');
         \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
-        $this->request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
+        $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
         $this->request_params['community_id'] = !empty($this->request_params['community_id']) ? $this->request_params['community_id'] : $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
@@ -75,7 +75,6 @@ Class BaseController extends CoreController
         if ($action->id == 'move-out2') {
             return true;
         }
-
         //验证用户
         if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
             if (!$this->userId) {

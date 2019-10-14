@@ -78,7 +78,6 @@ Class BaseController extends CoreController
                 return false;
             }
         }
-        return true;
         //验证签名
         if ($action->controller->id != 'download') {//下载文件不走签名
             $checkMsg = PsCommon::validSign($this->systemType);

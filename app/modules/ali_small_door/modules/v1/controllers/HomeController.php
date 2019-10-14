@@ -19,6 +19,7 @@ use service\alipay\MemberCardService;
 class HomeController extends UserBaseController
 {
     public $enableAction = ['upload-ali-image'];
+
     //门禁小程序首页数据
     public function actionIndexData()
     {
