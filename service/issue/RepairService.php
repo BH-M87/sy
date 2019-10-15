@@ -761,6 +761,7 @@ class RepairService extends BaseService
             $repairModelArr["hard_type"] = 1;
             $repairModelArr["operator_id"] = $params["user_id"];
             $repairModelArr["operator_name"] = $user["truename"];
+            $repairModelArr["amount"] = !empty($params['amount']) ? $params['amount'] : 0;
             $connection->createCommand()->update('ps_repair',
                 $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
@@ -1145,21 +1146,21 @@ class RepairService extends BaseService
                 $models[$key]["price_desc"] = $model["price"] . MaterialService::$_unit_type[$model["price_unit"]];
                 $models[$key]["price_unit_desc"] = MaterialService::$_unit_type[$model["price_unit"]];
             }
+
+            //查询账单
+            $billModel = PsRepairBill::find()
+                ->select('amount,materials_price, other_charge, pay_type')
+                ->where(['repair_id' => $params['repair_id']])
+                ->asArray()
+                ->one();
+            return [
+                'amount' => $billModel ? $billModel['materials_price'] : 0,
+                'other_charge' => $billModel ? $billModel['other_charge'] : 0,
+                'pay_type' => $billModel ? $billModel['pay_type'] : 0,
+                'list' => $models
+            ];
         }
-
-        //查询账单
-        $billModel = PsRepairBill::find()
-            ->select('materials_price, other_charge, pay_type')
-            ->where(['repair_id' => $params['repair_id']])
-            ->asArray()
-            ->one();
-
-        return [
-            'amount' => $billModel ? $billModel['materials_price'] : 0,
-            'other_charge' => $billModel ? $billModel['other_charge'] : 0,
-            'pay_type' => $billModel ? $billModel['pay_type'] : 0,
-            'list' => $models
-        ];
+        return [];
     }
 
     //钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
@@ -1541,7 +1542,7 @@ class RepairService extends BaseService
         }
         //查询账单相关
         $repair_info['material_detail'] = [];
-        $repair_info['amount'] = "";
+
         $repair_info['other_charge'] = "";
         $repair_info['trade_no'] = $repair_info['trade_no'] ? $repair_info['trade_no'] : '';
 
