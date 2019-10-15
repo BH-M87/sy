@@ -39,7 +39,7 @@ class RecordMeterController extends BaseController
     public function actionGroupList()
     {
         //获取参数-组装参数
-        $params = WaterRoomService::service()->getParams($this->request_params,1);;
+        $params = WaterRoomService::service()->getParams($this->request_params,1);
         if ($params['errCode'] == 50001) {
             return F::apiFailed($params['errMsg']);
         }

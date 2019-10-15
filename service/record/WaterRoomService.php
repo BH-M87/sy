@@ -8,6 +8,8 @@
 
 namespace service\record;
 
+use app\models\PsCommunityBuilding;
+use app\models\PsCommunityGroups;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsMeterCycle;
@@ -169,21 +171,32 @@ class WaterRoomService extends BaseService
         $have_record = $this->_seatch($number)->select(['record.id'])->count();
         //根据苑期区查找幢列表
         if (empty($groups)) {
-            return $this->success(['list' => [], 'group_list' => [],'not_record'=>$not_record,'have_record'=>$have_record]);
+            return $this->success(['list' => [],'not_record'=>$not_record,'have_record'=>$have_record]);
         }
+        $data = [];
         foreach ($groups as $g) {
-            $reqArr['group_name'] = $g['group_name'];
             $buildings = $this->_seatch($reqArr)
                 ->select(['room.building as building_name'])
                 ->groupBy('room.building')
                 ->orderBy('(`building`+0) asc, `building` asc')
                 ->asArray()
                 ->all();
-            $building_data['group_name'] = $g['group_name'];
-            $building_data['building_list'] = $buildings;
-            $building_list[] = $building_data;
+            $building = [];
+            if (!empty($buildings)) {
+                foreach ($buildings as $b) {
+                    $building[] = [
+                        'id' => PsCommunityBuilding::find()->select('id')->where(['name' => $b['building_name'], 'community_id' => $communityId])->one()['id'],
+                        'title' => $b['building_name'],
+                    ];
+                }
+            }
+            $data[] = [
+                'id' => PsCommunityGroups::find()->select('id')->where(['name' => $g['group_name'],'community_id' => $communityId])->one()['id'],
+                'title' => $g['group_name'],
+                'children' => $building
+            ];
         }
-        return $this->success(['list' => $building_list, 'group_list' => $groups,'not_record'=>$not_record,'have_record'=>$have_record]);
+        return $this->success(['list' => $data, 'not_record'=>$not_record,'have_record'=>$have_record]);
     }
 
     /**

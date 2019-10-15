@@ -978,7 +978,7 @@ ORDER BY juli ASC LIMIT 1";
             throw new MyException('小区已经存在，不能重复添加');
         }
         //参数补充
-        $org_code = Department::find()->select('org_code')->where(['department_name' => $data['street_name'],'node_type' => 1])->one()['org_code'];
+        $org_code = Department::find()->select('org_code')->where(['department_name' => $data['district_name'],'node_type' => 2])->one()['org_code'];
         $communityNo = $this->getCommunityNo($org_code);
         $community->community_no = $communityNo;
         $pinyin = new Pinyin();
@@ -1094,6 +1094,39 @@ ORDER BY juli ASC LIMIT 1";
         }
     }
 
+    public function getSnCommunityList($params)
+    {
+        if (!in_array($params['house_type'],[1,2,3]) && !empty($params['house_type'])) {
+            throw new MyException('小区类型错误');
+        }
+        return PsCommunityModel::getList($params);
+    }
+
+    public function getSnCommunityInfo($data)
+    {
+        if (empty($data['id'])) throw new MyException('小区ID不能为空');
+        $community = PsCommunityModel::find()->where(['id' => $data['id']])->asArray()->one();
+        //判断小区是否已经存在
+        if (!$community) {
+            throw new MyException('小区ID错误');
+        }
+        $city =  PsAreaAli::find()->where(['areaCode' => $community['city_id']])->asArray()->one();
+        $district =  PsAreaAli::find()->where(['areaCode' => $community['district_code']])->asArray()->one();
+        $community['province_name'] = $community['province'];
+        $community['city_name'] = $city['areaName'];
+        $community['area_name'] = $district['areaName'];
+        $community['build_time'] = !empty($community['build_time']) ? date('Y-m-d',$community['build_time']) : '无';
+        $community['delivery_time'] = !empty($community['delivery_time']) ? date('Y-m-d',$community['delivery_time']) : '无';
+        $community['acceptance_time'] = !empty($community['acceptance_time']) ? date('Y-m-d',$community['acceptance_time']) : '无';
+        $community['right_start'] = !empty($community['right_start']) ? date('Y-m-d',$community['right_start']) : '无';
+        $community['right_end'] = !empty($community['right_end']) ? date('Y-m-d',$community['right_end']) : '无';
+        $community['register_time'] = !empty($community['register_time']) ? date('Y-m-d',$community['register_time']) : '无';
+        $community['house_type_desc'] = PsCommunityModel::$house_type_desc[$community['house_type']];
+        $community['company_name'] = PsPropertyCompany::find()->where(['id' => $community['pro_company_id']])->one()['property_name'];
+        unset($community['province']);
+        return $community;
+    }
+
     /**
      * 获取小区编码
      * @author yjh
@@ -1120,14 +1153,16 @@ ORDER BY juli ASC LIMIT 1";
             $num = $num+1;
         }
         $len = strlen($num);
-        if ($len == 4) {
-            $no = $org_code.$num;
-        } else if($len < 4) {
-            $no = str_repeat('0',4 - $len).$num;
+        if ($len == 3) {
+            $no = $num;
+        } else if($len < 3) {
+            $no = str_repeat('0',3 - $len).$num;
         } else {
             throw new MyException('小区编码超出范围');
         }
-        return $org_code.$no;
+        return $org_code.'00000'.$no;
     }
+
+
 
 }
