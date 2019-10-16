@@ -18,7 +18,7 @@ use service\alipay\MemberCardService;
 
 class HomeController extends UserBaseController
 {
-    public $enableAction = ['upload-ali-image'];
+    public $enableAction = ['upload-ali-image','get-biz-id'];
 
     //门禁小程序首页数据
     public function actionIndexData()
@@ -38,7 +38,7 @@ class HomeController extends UserBaseController
     //图片上传时前获取商户唯一标识
     public function actionGetBizId()
     {
-        $app_user_id = $this->appUserId;
+        $app_user_id = !empty($this->appUserId) ? $this->appUserId : '';
         $result = HomeService::service()->get_biz_id($app_user_id);
         return $this->dealReturnResult($result);
     }

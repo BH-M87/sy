@@ -224,9 +224,13 @@ class VisitorService extends BaseService
     // 短链接转化
     public function getShortUrl2($url)
     {
-        $curl = Curl::getInstance();
         $purl = 'http://116.62.92.115:106/short/generate';
-        $content = json_decode($curl->post($purl,['url'=>$url]), true);
+        $headers = [
+            "Content-Type: application/x-www-form-urlencoded; charset=utf-8",
+        ];
+        $a = new Curl(['CURLOPT_HTTPHEADER' => $headers]);
+        $b = $a->post($purl,['url'=>$url]);
+        $content = json_decode($b, true);
         if(!empty($content['code']) && $content['code'] ==1){
             return $content['data']['url'];
         }
@@ -543,7 +547,7 @@ class VisitorService extends BaseService
         $model->vistor_type = 1;
         $model->start_time = $start_time;
         $model->end_time = $end_time;
-        $model->code = $data['password'];
+        $model->code = $data['password']."";
         $model->qrcode = $qrcode;
         $model->vistor_name =$vistor_name;
         $model->vistor_mobile = $vistor_mobile;

@@ -10,6 +10,7 @@ namespace app\modules\manage\controllers;
 use common\core\PsCommon;
 use app\models\ProCompanyForm;
 use service\manage\AgentService;
+use service\manage\CompanyNewService;
 use service\manage\CompanyService;
 use service\manage\PackService;
 
@@ -204,5 +205,39 @@ Class CompanyController extends BaseController
     {
         $list = CompanyService::service()->getCompany($this->user_info);
         return PsCommon::responseSuccess($list);
+    }
+
+    ########################################社区微脑公司管理接口######################################################
+    //{"alipay_account":"1","link_man":"1","link_phone":"1","login_name":"1","property_name":"绿城","status":1}
+    public function actionCompanyList()
+    {
+        $this->request_params["agent_id"] = !empty($this->request_params["agent_id"]) ? $this->request_params["agent_id"] : $this->user_info["property_company_id"];
+        $resultData = CompanyNewService::service()->getList($this->request_params, $this->page, $this->pageSize);
+        return PsCommon::responseSuccess($resultData);
+    }
+
+    public function actionCompanyListNoPage()
+    {
+
+    }
+
+    public function actionCompanyAdd()
+    {
+
+    }
+
+    public function actionCompanyEdit()
+    {
+
+    }
+
+    public function actionCompanyDetail()
+    {
+
+    }
+
+    public function actionCompanyStatus()
+    {
+
     }
 }

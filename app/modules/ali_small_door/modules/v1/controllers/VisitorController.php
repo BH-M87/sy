@@ -20,7 +20,7 @@ use service\door\VisitorService;
 
 class VisitorController extends UserBaseController
 {
-
+    public $enableAction = ['visitor-index','visitor-qrcode','upload-ali-image','visitor-list','visitor-delete'];
     // 访客删除 {"user_id":"35","id":"753"}
     public function actionVisitorDelete()
     {

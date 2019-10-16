@@ -11,6 +11,7 @@ namespace service\street;
 
 use app\models\Department;
 use app\models\PsCommunityModel;
+use app\models\User;
 use app\models\UserInfo;
 use common\MyException;
 
@@ -72,19 +73,21 @@ class UserService extends BaseService
 
     public function getManageUserInfoById($id)
     {
-        $companyName = CompanyService::service()->getNameById($user['property_company_id']);
+        $companyName = '';
+        //$companyName = CompanyService::service()->getNameById($user['property_company_id']);
+        $userInfo = User::find()->where(['id'=>$id])->asArray()->all();
         $user_info = [
-            'id' => $user['id'],
-            'property_company_id' => $user['companyId'],
-            'property_company_name' => $user['companyName'],
-            'username' => $user['loginName'],
-            'truename' => $user['userName'],
-            'mobile' => $user['userPhone'],
-            'system_type' => $user['system_type'] ,
-            'login_time'=>$user['lastLoginTime'],
-            'level' => $user['userType'],
-            'user_type' => $user['userType'],
-            'community_id' => CommunityService::service()->getUserCommunitys($user['id'])[0]['id']
+            'id' => $id,
+            'property_company_id' => 0,
+            'property_company_name' => "",
+            'username' => $userInfo['username'],
+            'truename' => $userInfo['username'],
+            'mobile' => $userInfo['mobileNumber'],
+            'system_type' => 1 ,
+            'login_time'=>time(),
+            'level' => 1,
+            'user_type' => 2,
+            'community_id' => "0"
         ];
 
         return $user_info;
