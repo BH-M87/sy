@@ -177,9 +177,12 @@ class ResidentService extends BaseService
             $model['household_area_desc'] = PsCommon::get($psAreas, $model['household_area']);
             $model['identity_type_desc'] = $model['identity_type'] ? PsCommon::getIdentityType($model['identity_type'], 'key') : "-";
             $face = PsMember::find()->select('face_url')->where(['id' => $model['member_id']])->scalar();
+            if (strpos($face,"com") === false) {
+                $face = F::getOssImagePath($face);
+            }
             $model['face_url'] = $face ?? "";
         }
-        
+
         return $model;
     }
 
@@ -334,6 +337,15 @@ class ResidentService extends BaseService
             // 同步人脸
             $member = PsMember::findOne($roomUser->member_id);
             if (!empty($member) && !empty($data['face_url'])) {
+                if (strpos($data['face_url'],"com") === false) {
+                    $face = F::getOssImagePath($data['face_url']);
+                    //转换人脸上传
+                    if ($face) {
+                        $faceKey = F::trunsFaceImg($face);
+                        $face = \Yii::$app->params['zjy_oss_face_domain']."/".$faceKey;
+                    }
+                    $data['face_url'] = $face;
+                }
                 $member->face_url = $data['face_url'];
                 $member->save();
             }
@@ -976,10 +988,21 @@ class ResidentService extends BaseService
         $mobile = trim(PsCommon::get($data, 'mobile'));
         $name = trim(PsCommon::get($data, 'name'));
         $label_id = PsCommon::get($data, 'user_label_id');
+        $face_url = PsCommon::get($data, 'face_url', '');
 
         $r = $this->_addCheck($communityId, $roomId, $mobile, null, $name);
         if (!$r['code']) {
             return $this->failed($r['msg']);
+        }
+        //图片处理
+        if ($face_url && strpos($face_url,"com") === false) {
+            $face = F::getOssImagePath($face_url);
+            //转换人脸上传
+            if ($face) {
+                $faceKey = F::trunsFaceImg($face);
+                $face = \Yii::$app->params['zjy_oss_face_domain']."/".$faceKey;
+            }
+            $face_url = $face;
         }
 
         $r = MemberService::service()->saveMember([
@@ -987,7 +1010,7 @@ class ResidentService extends BaseService
             'mobile' => $mobile,
             'card_no' => PsCommon::get($data, 'card_no'),
             'sex' => !empty($data['sex']) ? $data['sex'] : 1,
-            'face_url' => PsCommon::get($data, 'face_url', '')
+            'face_url' => $face_url
         ]);
 
         if (!$r['code']) {

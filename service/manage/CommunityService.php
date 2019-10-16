@@ -978,7 +978,7 @@ ORDER BY juli ASC LIMIT 1";
             throw new MyException('小区已经存在，不能重复添加');
         }
         //参数补充
-        $org_code = Department::find()->select('org_code')->where(['department_name' => $data['street_name'],'node_type' => 1])->one()['org_code'];
+        $org_code = Department::find()->select('org_code')->where(['department_name' => $data['district_name'],'node_type' => 2])->one()['org_code'];
         $communityNo = $this->getCommunityNo($org_code);
         $community->community_no = $communityNo;
         $pinyin = new Pinyin();
@@ -1153,14 +1153,14 @@ ORDER BY juli ASC LIMIT 1";
             $num = $num+1;
         }
         $len = strlen($num);
-        if ($len == 4) {
-            $no = $org_code.$num;
-        } else if($len < 4) {
-            $no = str_repeat('0',4 - $len).$num;
+        if ($len == 3) {
+            $no = $num;
+        } else if($len < 3) {
+            $no = str_repeat('0',3 - $len).$num;
         } else {
             throw new MyException('小区编码超出范围');
         }
-        return $org_code.$no;
+        return $org_code.'00000'.$no;
     }
 
 
