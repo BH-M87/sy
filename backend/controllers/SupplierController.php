@@ -9,6 +9,7 @@ namespace backend\controllers;
 use backend\models\IotSupplierCommunity;
 use backend\models\IotSuppliers;
 use backend\models\PsCommunityModel;
+use backend\services\BackendService;
 use service\basic_data\IotNewService;
 use service\basic_data\PushConfigService;
 use service\basic_data\SupplierService;
@@ -222,7 +223,7 @@ class SupplierController extends Controller
                 die("此小区已开通");
             }
 
-            $result = SupplierService::service()->bindCommunity($req);
+            $result = BackendService::service()->bindCommunity($req);
             if ($result["code"]) {
                 return $this->redirect(['/supplier/communitys']);
             } else {
