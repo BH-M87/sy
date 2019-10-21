@@ -56,6 +56,10 @@ $data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
 $data['zjy_oss_bucket'] = 'sqwn-fy';
 $data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
+//人脸bucket
+$data['zjy_oss_face_bucket'] = 'sqwn-face';
+$data['zjy_oss_face_domain'] = 'https://sqwn-face.oss-cn-hangzhou.aliyuncs.com';
+
 /******物业收费应用配置*****/
 //测试环境先用未来社区进行测试
 $data['gate_way_url']   = 'https://openapi.alipay.com/gateway.do';

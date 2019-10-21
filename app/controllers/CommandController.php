@@ -14,6 +14,7 @@ use app\models\PsAppMember;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
+use common\core\PsCommon;
 use service\basic_data\IotNewService;
 use service\resident\ResidentService;
 use service\street\XzTaskService;
@@ -25,9 +26,8 @@ class CommandController extends Controller
 
     ##############################测试脚本############################################
     public function actionTest(){
-        $list = Yii::$app->redis->lrange("IotMqData", 0, 99);
+        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
         var_dump($list);die;
-        echo 1112;
     }
     //新增测试访客记录
     public function actionAddVisitor()
@@ -134,7 +134,7 @@ class CommandController extends Controller
     //iot相关数据的同步 */1 * * * * curl localhost:9003/command/iot-data
     public function actionIotData()
     {
-        $list = Yii::$app->redis->lrange("IotMqData", 0, 99);
+        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
         if(!empty($list)){
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
@@ -176,7 +176,7 @@ class CommandController extends Controller
                         break;
                 }
                 //从队列里面移除
-                Yii::$app->redis->lpop("IotMqData");
+                Yii::$app->redis->lpop("IotMqData_sqwn");
                 //如果操作失败了，就重新放到队列里面执行
                 if($res['code'] != 1){
                     $sendNum = PsCommon::get($dataInfo,'sendNum',0);
@@ -184,7 +184,7 @@ class CommandController extends Controller
                     if($sendNum < 3){
                         $dataInfo['sendNum'] += 1;//操作次数 +1
                         //重新丢回队列里面
-                        Yii::$app->redis->rpush("IotMqData",json_encode($dataInfo));
+                        Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($dataInfo));
                     }
                 }
             }

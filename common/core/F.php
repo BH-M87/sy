@@ -717,6 +717,40 @@ class F
         return $imgKeyData;
     }
 
+    //转换人脸图片，人脸图片公用空间处理
+    public static function trunsFaceImg($url)
+    {
+        $filePath = F::qiniuImagePath().date('Y-m-d')."/";
+        if (!is_dir($filePath)) {//0755: rw-r--r--
+            mkdir($filePath, 0755, true);
+        }
+        $fileName = self::_generateName('jpg');
+        $newFile = $filePath."/".$fileName;
+        $re = self::dlfile($url, $newFile);
+        if (!$re) {
+            return '';
+        }
+        $filesize = abs(filesize($newFile));
+        if ($filesize <= 0) {
+            //如果图片地址不能下载的话，就默认返回原图地址
+            return '';
+        }
+
+        $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['zjy_oss_domain'];
+        $bucket = \Yii::$app->params['zjy_oss_face_bucket'];
+        $object = $fileName;
+        $imgKeyData = '';
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $newFile);
+            $imgKeyData = $object;
+        } catch(OssException $e) {
+        }
+        return $imgKeyData;
+    }
+
     public static function dlfile($file_url, $save_to)
     {
         $ch = curl_init();

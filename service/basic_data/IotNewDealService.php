@@ -260,12 +260,12 @@ class IotNewDealService extends BaseService
 
         if(!empty($paramData)){
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($paramData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($paramData));
         }
 
         if(!empty($postData)){
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($postData));
         }
 
         return $this->success();
@@ -491,7 +491,7 @@ class IotNewDealService extends BaseService
         }
         if (!empty($postData)) {
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($postData));
         }
 
         return $this->success();

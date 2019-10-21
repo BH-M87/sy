@@ -81,7 +81,7 @@ class HomeService extends BaseService
     {
         /*图片转换为 base64格式编码*/
         $params['img'] = $img;
-        $res = UploadService::service()->stream_image($img);
+        $res = UploadService::service()->stream_image_oss($img);
         if ($res['code']) {
             $img_url = $res['data']['filepath'];//七牛的图片地址
             return KeyService::service()->upload_face($data['member_id'],$img_url,$data['room_id'],$img2);

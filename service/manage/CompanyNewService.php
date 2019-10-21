@@ -10,6 +10,7 @@ namespace service\manage;
 use common\core\F;
 use app\models\PsUser;
 use app\models\PsPropertyCompany;
+use common\core\PsCommon;
 use Yii;
 use yii\base\Exception;
 use yii\db\Query;
@@ -21,6 +22,7 @@ Class CompanyNewService extends BaseService
 {
     CONST COMPANY_TYPE_PROPERTY = 1;
 
+    //分页列表
     public function getList($reqArr, $page, $rows)
     {
         $query = new Query();
@@ -76,6 +78,92 @@ Class CompanyNewService extends BaseService
         }
         return ["list" => $models, 'totals' => $totals];
     }
+
+    //无分页列表
+    public function getListNoPage($userId)
+    {
+        $query = new Query();
+        $query->from("ps_property_company A")
+            ->leftJoin("user B", "A.user_id=B.id")
+            ->where(['A.user_id'=>$userId]);
+        $query->select(["A.id", "A.property_name as name"])
+            ->orderBy("A.create_at desc");
+        $list = $query->createCommand()->queryAll();
+        return $list ? $list : [];
+    }
+
+    /**
+     * 启用/停用物业公司*/
+    public function onOff($propertyId, $status)
+    {
+        $pro = Yii::$app->db->createCommand("select * from ps_property_company where id =:id ",
+            ["id" => $propertyId])
+            ->queryOne();
+        if (empty($pro)) {
+            return $this->failed("物业公司不存在");
+        }
+        if ($pro["status"] == $status) {
+            return $this->failed("物业公司已" . ($status == 1 ? "启用" : "禁用"));
+        }
+        Yii::$app->db->createCommand()->update('ps_property_company', ['status' => $status], ["id" => $propertyId])->execute();
+        return $this->success();
+    }
+
+    /**
+     * 查看物业公司
+     */
+    public function proShow($propertyId)
+    {
+        $query = new Query();
+        $query->from("ps_property_company A")
+            ->leftJoin("user B", "A.user_id=B.id")
+            ->where(["A.id" => $propertyId]);
+        $query->select(["A.id", "A.property_name", "A.mcc_code", "A.agent_id",
+            "A.property_type", "A.link_man", "A.link_phone", "A.status", 'A.alipay_account', 'A.business_license',
+            "A.create_at", "A.business_img", "A.business_img_local", "A.email",
+            "A.user_id", "B.username as login_name",
+            "A.login_phone"]);
+        $model = $query->createCommand()->queryOne();
+        if (!empty($model)) {
+            $model['login_name'] = !empty($model['login_name']) ? $model['login_name'] : "";
+            $model['login_phone'] = !empty($model['login_phone']) ? $model['login_phone'] : "";
+            $model['is_bind_user'] = $model['user_id'] > 0 ? "1" : "0";
+            $model['property_type_label'] = $this->getTypeNameById($model['property_type']);
+            $model['create_at'] = date('Y-m-d', $model['create_at']);
+            if ($model['property_type'] == 1 && $model['user_id'] > 0) {
+            }
+            $model["mcc_code_name"] = $this->getMcNameByCode($model['mcc_code']);
+        }
+        return $model;
+    }
+
+    //根据key值获取公司类型名称
+    public function getTypeNameById($id)
+    {
+        $typeList = $this->propertyTypeList();
+        foreach ($typeList as $key => $val) {
+            if ($val['key'] == $id) {
+                return $val['value'];
+            }
+        }
+        return "";
+    }
+
+    //根据key值获取类目名称
+    public function getMcNameByCode($code)
+    {
+        $codeList = $this->mccodeList();
+        foreach ($codeList as $key => $val) {
+            if ($val['key'] == $code) {
+                return $val['value'];
+            }
+        }
+        return "";
+    }
+
+
+
+
 
     public function getCommunity($propertyId)
     {
@@ -179,26 +267,6 @@ Class CompanyNewService extends BaseService
             'status' => $data['status']
         ];
         $this->_saveCompany($companyArr, $data["property_id"]);
-        return $this->success();
-    }
-
-    /**
-     * 启用/停用物业公司*/
-    public function onOff($propertyId, $status)
-    {
-        $pro = Yii::$app->db->createCommand("select * from ps_property_company where id =:id ",
-            ["id" => $propertyId])
-            ->queryOne();
-        if (empty($pro)) {
-            return $this->failed("物业公司不存在");
-        }
-        if ($pro["status"] == $status) {
-            return $this->failed("物业公司已" . ($status == 1 ? "启用" : "禁用"));
-        }
-        Yii::$app->db->createCommand()->update('ps_property_company', ['status' => $status], ["id" => $propertyId])->execute();
-        if ($pro['user_id'] != 0) {
-            Yii::$app->db->createCommand()->update('ps_user', ['is_enable' => $status], ["id" => $pro['user_id']])->execute();
-        }
         return $this->success();
     }
 
@@ -353,37 +421,6 @@ Class CompanyNewService extends BaseService
 //        return $total > 0 ? false : true;
     }
 
-    /**
-     * 查看物业公司
-     */
-    public function proShow($propertyId)
-    {
-        $query = new Query();
-        $query->from("ps_property_company A")
-            ->leftJoin("user B", "A.user_id=B.id")
-            ->where(["A.id" => $propertyId]);
-        $query->select(["A.id", "A.property_name", "A.mcc_code", "A.agent_id",
-            "A.property_type", "A.link_man", "A.link_phone", "A.status", 'A.alipay_account', 'A.business_license',
-            "A.create_at", "A.business_img", "A.business_img_local", "A.email",
-            "A.user_id", "B.username as login_name",
-            "A.login_phone"]);
-        $model = $query->createCommand()->queryOne();
-//        $query = new Query();
-//        $model = $query->select(["*"])->from("ps_property_company")->where(["id"=>$propertyId])->one();
-        if (!empty($model)) {
-            $model['login_name'] = !empty($model['login_name']) ? $model['login_name'] : "";
-            $model['login_phone'] = !empty($model['login_phone']) ? $model['login_phone'] : "";
-            $model['is_bind_user'] = $model['user_id'] > 0 ? "1" : "0";
-            $model['property_type_label'] = CompanyService::getTypeNameById($model['property_type']);
-            $model['create_at'] = date('Y-m-d', $model['create_at']);
-            if ($model['property_type'] == 1 && $model['user_id'] > 0) {
-                //$model['packs'] = PackService::service()->getGroupPack($model["group_id"]);
-            }
-            $model["mcc_code_name"] = $this->getMcNameByCode($model['mcc_code']);
-        }
-        return $model;
-    }
-
     public function proUserShow($userId)
     {
         $query = new Query();
@@ -396,7 +433,6 @@ Class CompanyNewService extends BaseService
         }
         return $model;
     }
-
 
     public function getUserPro($id)
     {
@@ -476,29 +512,6 @@ Class CompanyNewService extends BaseService
         return $types;
     }
 
-    //根据key值获取类目名称
-    public function getMcNameByCode($code)
-    {
-        $codeList = $this->mccodeList();
-        foreach ($codeList as $key => $val) {
-            if ($val['key'] == $code) {
-                return $val['value'];
-            }
-        }
-        return "";
-    }
-
-    //根据key值获取公司类型名称
-    public function getTypeNameById($id)
-    {
-        $typeList = $this->propertyTypeList();
-        foreach ($typeList as $key => $val) {
-            if ($val['key'] == $id) {
-                return $val['value'];
-            }
-        }
-        return "";
-    }
 
     /**
      * 根据物业公司ID，获取物业公司名称
