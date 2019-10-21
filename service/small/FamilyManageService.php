@@ -13,6 +13,7 @@ use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\PsMember;
 use app\models\PsResidentAudit;
+use app\models\PsResidentAuditInfo;
 use app\models\PsRoomUser;
 use common\core\PsCommon;
 use common\core\Regular;
@@ -468,6 +469,24 @@ class FamilyManageService extends BaseService
                 $sms->send($templateParams);
                 //SmsService::service()->init(32, $params['mobile'])->send([$params['name'], $communityName['name'], $roomUserInfo['name'], $identityTypeLabel]);
             }
+
+            //存入一条数据到 警务审核表中 ps_resident_audit_info
+            $auditModel = new PsResidentAuditInfo();
+            $auditModel->room_user_id = $model->id;
+            $auditModel->name = $data['name'];
+            $auditModel->sex = $data['sex'];
+            $auditModel->mobile = $data['mobile'];
+            $auditModel->card_no = $params['card_no'];
+            $auditModel->identity_type = $data['identity_type'];
+            $auditModel->time_end = $data['time_end'];
+            $auditModel->community_id = $community_id;
+            $auditModel->community_name = $communityName['name'];
+            $auditModel->room_id = $data['room_id'];
+            $auditModel->room_address = $data['group'].$data['building'].$data['unit'].$data['room'];
+            $auditModel->change_type = 1;
+            $auditModel->status = 1;
+            $auditModel->create_at = $auditModel->update_at = date("Y-m-d H:i:s",time());
+            $auditModel->save();
             $trans->commit();
         } catch (\Exception $e) {
             $trans->rollback();

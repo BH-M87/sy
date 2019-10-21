@@ -366,7 +366,7 @@ class MemberService extends BaseService
                 }
                 //支持电子钥匙的开门方式
                 if (strpos($value['open_door_type'], '4') !== false){
-                    $responseData['is_key'] = true;
+                    $responseData['is_key'] = false;//true;//大华设备没有远程开门
                     $link_key_name[] = $value['name'];
                 }
                 //支持蓝牙的开门方式
@@ -389,7 +389,7 @@ class MemberService extends BaseService
                     $responseData['is_password'] = false;
                 }
                 if (in_array($key, $visitor_pwd)) {
-                    $responseData['is_visitor'] = false;
+                    $responseData['is_visitor'] = true;
                 }
             }
         }

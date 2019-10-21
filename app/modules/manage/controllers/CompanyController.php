@@ -10,6 +10,7 @@ namespace app\modules\manage\controllers;
 use common\core\PsCommon;
 use app\models\ProCompanyForm;
 use service\manage\AgentService;
+use service\manage\CompanyNewService;
 use service\manage\CompanyService;
 use service\manage\PackService;
 
@@ -204,5 +205,89 @@ Class CompanyController extends BaseController
     {
         $list = CompanyService::service()->getCompany($this->user_info);
         return PsCommon::responseSuccess($list);
+    }
+
+    ########################################社区微脑公司管理接口######################################################
+    //{"data":{"name":"","province_code":"","city_code":"","area_code":"","user":""},"user_id":1}
+    public function actionCompanyList()
+    {
+        $resultData = CompanyNewService::service()->getList($this->request_params, $this->page, $this->pageSize);
+        return PsCommon::responseSuccess($resultData);
+    }
+    //{"data":{},"user_id":1}
+    public function actionCompanyListNoPage()
+    {
+        $resultData = CompanyNewService::service()->getListNoPage($this->userId);
+        return PsCommon::responseSuccess($resultData);
+    }
+
+    public function actionCompanyAdd()
+    {
+        $valid = PsCommon::validParamArr(new ProCompanyForm(), $this->request_params, 'create');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        if ($this->request_params["property_type"] == 1 && empty($this->request_params["login_phone"])) {
+            return PsCommon::responseFailed('关联手机号号不能为空');
+        }
+        $this->request_params["agent_id"] = $this->request_params["agent_id"] ? $this->request_params["agent_id"] : $this->user_info["property_company_id"];
+        $result = CompanyNewService::service()->addCompany($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result["data"]);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
+
+    public function actionCompanyEdit()
+    {
+        $propertyId = PsCommon::get($this->request_params, 'property_id');
+        if (!$propertyId) {
+            return PsCommon::responseFailed('物业公司id不能为空！');
+        }
+        $valid = PsCommon::validParamArr(new ProCompanyForm(), $this->request_params, 'create');
+        if (!$valid["status"]) {
+            return PsCommon::responseFailed($valid["errorMsg"]);
+        }
+        if ($this->request_params["property_type"] == 1 && empty($this->request_params["login_phone"])) {
+            return PsCommon::responseFailed('关联手机号号不能为空');
+        }
+        $this->request_params["agent_id"] = $this->request_params["agent_id"] ? $this->request_params["agent_id"] : $this->user_info["property_company_id"];
+        $result = CompanyNewService::service()->editCompany($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess();
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
+
+    //{"data":{"id":1},"user_id":1}
+    public function actionCompanyDetail()
+    {
+        $propertyId = PsCommon::get($this->request_params, 'id');
+        if (!$propertyId) {
+            return PsCommon::responseFailed('物业公司id不能为空！');
+        }
+        $result = CompanyNewService::service()->proShow($propertyId);
+        return PsCommon::responseSuccess($result);
+    }
+
+    //{"data":{"id":"","status":""}}
+    public function actionCompanyStatus()
+    {
+        $propertyId = PsCommon::get($this->request_params, 'id');
+        if (!$propertyId) {
+            return PsCommon::responseFailed('物业公司id不能为空！');
+        }
+        $status = PsCommon::get($this->request_params, 'status');
+        if (!$status) {
+            return PsCommon::responseFailed('状态值不能为空！');
+        }
+        $result = CompanyNewService::service()->onOff($propertyId, $status);
+        if ($result['code']) {
+            return PsCommon::responseSuccess();
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
     }
 }

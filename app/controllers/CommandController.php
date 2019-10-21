@@ -10,7 +10,11 @@ namespace app\controllers;
 
 
 use app\models\IotSuppliers;
+use app\models\PsAppMember;
+use app\models\PsMember;
 use app\models\PsRoomUser;
+use common\core\Curl;
+use common\core\PsCommon;
 use service\basic_data\IotNewService;
 use service\resident\ResidentService;
 use service\street\XzTaskService;
@@ -19,12 +23,53 @@ use Yii;
 
 class CommandController extends Controller
 {
-    //测试脚本
+
+    ##############################测试脚本############################################
     public function actionTest(){
-        $list = Yii::$app->redis->lrange("IotMqData", 0, 99);
+        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
         var_dump($list);die;
-        echo 1112;
     }
+    //新增测试访客记录
+    public function actionAddVisitor()
+    {
+        $list = PsAppMember::find()->alias('m')
+            ->select(['m.app_user_id','ru.room_id'])
+            ->leftJoin(['ru'=>PsRoomUser::tableName()],'m.member_id = ru.member_id')
+            ->where(['ru.community_id'=>[37,38,39,40,41]])
+            ->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                if(YII_ENV == "prod"){
+                    $id = rand(76661,76671);
+                }else{
+                    $id = rand(101020,101049);
+                }
+                $visitor = PsMember::find()->where(['id'=>$id])->asArray()->one();
+                if($visitor){
+                    $postData['room_id']=$value['room_id'];
+                    $postData['user_id']=$value['app_user_id'];
+                    $postData['vistor_name']=$visitor['name'];
+                    $postData['vistor_mobile']=$visitor['mobile'];
+                    $day = rand(1,9);
+                    $start_date = date("Y-m-d H:i",time()-3600*24*$day);
+                    $end_date = date("Y-m-d H:i",time()-3600*24*$day+3600);
+                    $postData['start_time']=$start_date;
+                    $postData['end_time']=$end_date;
+                    $postData['car_number']='';
+                    $postData['system_type']='edoor';
+                    if(YII_ENV == "prod"){
+                        $url = "https://sqwn-fy-web.elive99.com/ali_small_door/v1/visitor/visitor-add";
+                    }else{
+                        $url = "http://www.api_basic_sqwn.com/ali_small_door/v1/visitor/visitor-add";
+                    }
+                    $post['data'] = json_encode($postData);
+                    Curl::getInstance()->post($url,$post);
+                }
+            }
+        }
+    }
+
+    ##############################在用脚本############################################
 
     //同步iot的供应商到数据库 0 0 * * * curl localhost:9003/command/sync
     public function actionSync()
@@ -89,50 +134,65 @@ class CommandController extends Controller
     //iot相关数据的同步 */1 * * * * curl localhost:9003/command/iot-data
     public function actionIotData()
     {
-        $list = Yii::$app->redis->lrange("IotMqData", 0, 99);
-        if(empty($list)){
+        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+        if(!empty($list)){
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
                 $parkType = $dataInfo['parkType'];
                 $actionType = $dataInfo['actionType'];
+                $res = ['code'=>1, 'data'=>[]];
                 switch($parkType){
                     case "roomusertoiot":
                         switch ($actionType){
                             case "add":
-                                IotNewService::service()->roomUserAdd($dataInfo);//住户新增
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户新增
                                 break;
                             case "face":
-                                IotNewService::service()->roomUserFace($dataInfo);//住户人脸录入
+                                $res = IotNewService::service()->roomUserFace($dataInfo);//住户人脸录入
                                 break;
                             case "addBatch":
-                                IotNewService::service()->roomUserAdd($dataInfo);//住户批量新增
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户批量新增
                                 break;
                             case "edit":
-                                IotNewService::service()->roomUserAdd($dataInfo);//住户编辑
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户编辑
                                 break;
                             case "del":
-                                IotNewService::service()->roomUserDelete($dataInfo);//住户删除
+                                $res = IotNewService::service()->roomUserDelete($dataInfo);//住户删除
                                 break;
                         }
                         break;
                     case "devicetoiot":
                         switch ($actionType){
                             case "add":
-                                IotNewService::service()->deviceAdd($dataInfo);//设备新增
+                                $res = IotNewService::service()->deviceAdd($dataInfo);//设备新增
                                 break;
                             case "edit":
-                                IotNewService::service()->deviceEdit($dataInfo);//设备编辑
+                                $res = IotNewService::service()->deviceEdit($dataInfo);//设备编辑
                                 break;
                             case "del":
-                                IotNewService::service()->deviceDeleteTrue($dataInfo);//设备删除
+                                $res = IotNewService::service()->deviceDeleteTrue($dataInfo);//设备删除
                                 break;
                         }
                         break;
                 }
-                Yii::$app->redis->lpop("IotMqData");
+                //从队列里面移除
+                Yii::$app->redis->lpop("IotMqData_sqwn");
+                //如果操作失败了，就重新放到队列里面执行
+                if($res['code'] != 1){
+                    $sendNum = PsCommon::get($dataInfo,'sendNum',0);
+                    //如果超过3次了，就不再放回队列里面
+                    if($sendNum < 3){
+                        $dataInfo['sendNum'] += 1;//操作次数 +1
+                        //重新丢回队列里面
+                        Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($dataInfo));
+                    }
+                }
             }
         }
+
     }
+
+
 
 
 }

@@ -9,6 +9,9 @@
 namespace service\qiniu;
 
 use common\core\PsCommon;
+use common\MyException;
+use OSS\Core\OssException;
+use OSS\OssClient;
 use Yii;
 use common\core\Curl;
 use common\core\F;
@@ -315,6 +318,41 @@ Class UploadService extends BaseService
                 return $this->failed($res);
             }
         }
+        return $this->success($re);
+    }
+
+    public function stream_image_oss($img)
+    {
+        if (!$img) {
+            return PsCommon::responseFailed('未获取上传文件');
+        }
+        //图片文件检测
+        $r = $this->checkStreamImage($img);
+        if (!$r['code']) {
+            return $this->failed($r['msg']);
+        }
+        $imgArr = $r['data'];
+        $imgString = str_replace($imgArr['result'][1], '', $imgArr['characters']);
+        //上传到本地
+        $r = $this->saveStreamLocal($imgString, 'jpg', F::qiniuImagePath());
+        if (!$r) {
+            return $this->failed($r['msg']);
+        }
+        $local = $r['data'];
+        $object = $local['fileName'];
+        $filePath = $local['fileDir'] . $local['fileName'];
+        $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['zjy_oss_domain'];
+        $bucket = \Yii::$app->params['zjy_oss_face_bucket'];
+
+        try{
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+        $re = \Yii::$app->params['zjy_oss_face_domain']."/".$object;
         return $this->success($re);
     }
 

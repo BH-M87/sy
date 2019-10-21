@@ -11,6 +11,7 @@ namespace service\street;
 
 use app\models\Department;
 use app\models\PsCommunityModel;
+use app\models\User;
 use app\models\UserInfo;
 use common\MyException;
 
@@ -67,6 +68,28 @@ class UserService extends BaseService
         //根据所属的组织，查找拥有的小区权限
         $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
         $user_info['truename'] = $user_info['username'];
+        return $user_info;
+    }
+
+    public function getManageUserInfoById($id)
+    {
+        $companyName = '';
+        //$companyName = CompanyService::service()->getNameById($user['property_company_id']);
+        $userInfo = User::find()->where(['id'=>$id])->asArray()->all();
+        $user_info = [
+            'id' => $id,
+            'property_company_id' => 0,
+            'property_company_name' => "",
+            'username' => $userInfo['username'],
+            'truename' => $userInfo['username'],
+            'mobile' => $userInfo['mobileNumber'],
+            'system_type' => 1 ,
+            'login_time'=>time(),
+            'level' => 1,
+            'user_type' => 2,
+            'community_id' => "0"
+        ];
+
         return $user_info;
     }
 

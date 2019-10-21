@@ -260,12 +260,12 @@ class IotNewDealService extends BaseService
 
         if(!empty($paramData)){
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($paramData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($paramData));
         }
 
         if(!empty($postData)){
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($postData));
         }
 
         return $this->success();
@@ -308,10 +308,10 @@ class IotNewDealService extends BaseService
                 $postData['enterModel'] = 0;//todo 入场模式0不自动放行，1自动放行
                 $postData['exitModel'] = 0;//todo 出场模式 0不收费，1收费
                 $postData['productSn'] = $data['productSn'];
-                /*$res = IotNewService::service()->visitorAdd($postData);
+                $res = IotNewService::service()->visitorAdd($postData);
                 if($res['code'] != 1){
                     return $res;
-                }*/
+                }
                 $return['id'] = $visitorInfo['id'];
                 $return['qrcode'] = '';
                 return $this->success($return);
@@ -491,7 +491,7 @@ class IotNewDealService extends BaseService
         }
         if (!empty($postData)) {
             //todo 写入redis
-            Yii::$app->redis->rpush("IotMqData",json_encode($postData));
+            Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($postData));
         }
 
         return $this->success();

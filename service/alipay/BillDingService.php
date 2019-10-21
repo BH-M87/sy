@@ -8,6 +8,8 @@
 
 namespace service\alipay;
 
+use app\models\PsCommunityBuilding;
+use app\models\PsCommunityGroups;
 use common\core\PsCommon;
 use app\models\PsBill;
 use app\models\PsBillIncome;
@@ -104,15 +106,27 @@ class BillDingService extends BaseService
         $groups = PsCommunityRoominfo::find()->select(['`group` as group_name'])->groupBy("`group`")->orderBy('id asc')->where(['community_id' => $communityId])->asArray()->all();
         //根据苑期区查找幢列表
         if (empty($groups)) {
-            return $this->success(['list' => [], 'group_list' => []]);
+            return $this->success(['list' => []]);
         }
+        $data = [];
         foreach ($groups as $g) {
             $buildings = PsCommunityRoominfo::find()->groupBy("`building`")->select(['`building` as building_name'])->orderBy('(`building`+0) asc, `building` asc')->where(['community_id' => $communityId, "`group`" => $g['group_name']])->asArray()->all();
-            $building_data['group_name'] = $g['group_name'];
-            $building_data['building_list'] = $buildings;
-            $building_list[] = $building_data;
+            $building = [];
+            if (!empty($buildings)) {
+                foreach ($buildings as $b) {
+                    $building[] = [
+                        'id' => PsCommunityBuilding::find()->select('id')->where(['name' => $b['building_name'], 'community_id' => $communityId])->one()['id'],
+                        'title' => $b['building_name'],
+                    ];
+                }
+            }
+            $data[] = [
+                'id' => PsCommunityGroups::find()->select('id')->where(['name' => $g['group_name'],'community_id' => $communityId])->one()['id'],
+                'title' => $g['group_name'],
+                'children' => $building
+            ];
         }
-        return $this->success(['list' => $building_list, 'group_list' => $groups]);
+        return $this->success(['list' => $data]);
     }
 
     /**

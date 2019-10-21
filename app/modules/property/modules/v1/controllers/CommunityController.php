@@ -216,4 +216,16 @@ class CommunityController extends BaseController
         CommunityService::service()->deleteSnCommunity($this->request_params);
         return PsCommon::responseSuccess();
     }
+
+    public function actionGetCommList()
+    {
+        $data = CommunityService::service()->getSnCommunityList($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
+
+    public function actionGetCommInfo()
+    {
+        $data = CommunityService::service()->getSnCommunityInfo($this->request_params);
+        return PsCommon::responseSuccess($data);
+    }
 }
