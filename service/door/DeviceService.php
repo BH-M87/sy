@@ -11,6 +11,7 @@ use app\models\DoorDeviceUnit;
 use app\models\PsCommunityUnits;
 use common\core\PsCommon;
 use service\BaseService;
+use service\basic_data\IotNewDealService;
 use service\basic_data\SupplierService;
 use service\rbac\OperateService;
 use yii\db\Query;
@@ -164,6 +165,13 @@ class DeviceService extends BaseService
             $permissions = $this->addPermission($community_id,$id,$data['permissions']);
             $data['permissions'] = $permissions;
             //TODO 数据推送
+            $supplierSign = IotNewDealService::service()->getSupplierSignById($supplier_id);
+            if($supplierSign == 'iot-new'){
+                $data['productSn'] = $this->getSupplierProductSn($supplier_id);
+                $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($community_id,$supplier_id);
+                IotNewDealService::service()->dealDeviceToIot($data,'add');
+            }
+
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "门禁设备管理",
@@ -211,6 +219,13 @@ class DeviceService extends BaseService
             $permissions = $this->addPermission($community_id,$data['id'],$data['permissions']);
             $data['permissions'] = $permissions;
             //TODO 数据推送
+            //iot新版本接口 add by zq 2019-6-4
+            $supplierSign = IotNewDealService::service()->getSupplierSignById($supplier_id);
+            if($supplierSign == 'iot-new') {
+                $data['productSn'] = $this->getSupplierProductSn($supplier_id);
+                $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($community_id, $supplier_id);
+                IotNewDealService::service()->dealDeviceToIot($data, 'edit');
+            }
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "门禁设备管理",
@@ -273,6 +288,12 @@ class DeviceService extends BaseService
         }
         if ($model->delete()) {
             //TODO 数据推送
+            //iot新版本接口 add by zq 2019-6-4
+            $supplier_id = $model->supplier_id;
+            $supplierSign = IotNewDealService::service()->getSupplierSignById($supplier_id);
+            if($supplierSign == 'iot-new'){
+                IotNewDealService::service()->dealDeviceToIot($data,'del');
+            }
             $operate = [
                 "community_id" =>$data['community_id'],
                 "operate_menu" => "门禁设备管理",
