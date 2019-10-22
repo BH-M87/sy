@@ -87,7 +87,7 @@ class OrganizationService extends BaseService
         $re['lat'] = $model->lat;
         $re['member_num'] = $model->member_num;
         $re['created_at'] = $model->create_at ? date("Y-m-d H:i", $model->create_at) : '';
-        $re['build_time'] = $model->org_build_time ? date("Y-m-d", $model->org_build_time) : '';
+        $re['org_build_time'] = $model->org_build_time ? date("Y-m-d", $model->org_build_time) : '';
         return $re;
     }
 
