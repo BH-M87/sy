@@ -299,11 +299,18 @@ class ResidentController extends BaseController
                 continue;
             }
 
+            $sex = 0;
+            if ($residentData["sex"] == "男") {
+                $sex = 1;
+            } elseif ($residentData["sex"] == "女") {
+                $sex = 2;
+            }
+
             $memberArr = [
                 'name' => $residentData['name'],
                 "mobile" => $residentData["mobile"],
                 'card_no' => $residentData["card_no"] ? $residentData["card_no"] : "",
-                'sex' => $residentData['sex'] ? ($residentData["sex"] == "男" ? 1 : 2) : 1,
+                'sex' => $sex,
             ];
             $member = MemberService::service()->saveMember($memberArr);
             if (!$member['code']) {
@@ -333,7 +340,7 @@ class ResidentController extends BaseController
                 'member_id' => $memberId,
                 "name" => $residentData["name"],
                 "mobile" => $residentData["mobile"],
-                "sex" => $residentData["sex"] == "女" ? "2" : "1",
+                "sex" => $sex,
                 "card_no" => $residentData["card_no"],
                 "group" => $residentData["group"],
                 "building" => $residentData["building"],
