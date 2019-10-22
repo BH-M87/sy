@@ -120,6 +120,7 @@ class ResidentService extends BaseService
             ->offset(($page - 1) * $rows)->limit($rows)
             ->asArray()->all();
         foreach ($models as $key => $model) {
+            $models[$key]['sex'] = $model['sex'] ? $model['sex'] : '';
             $models[$key]['card_no'] = F::processIdCard($model['card_no']);
             $models[$key]['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
             $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
