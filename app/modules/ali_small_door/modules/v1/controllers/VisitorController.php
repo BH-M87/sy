@@ -67,7 +67,7 @@ class VisitorController extends UserBaseController
         $imgStr = strtr($externInfo['imgStr'], '-_', '+/');
         $imgStr1 = 'data:image/jpg;base64,'.$imgStr;
         $result = VisitorService::service()->upload_face($this->params,$imgStr1,$imgStr);
-        return $this->dealResult($result);
+        return self::dealReturnResult($result);
     }
 
     //获取访客二维码
