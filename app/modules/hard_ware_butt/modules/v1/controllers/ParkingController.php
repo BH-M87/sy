@@ -11,6 +11,9 @@ namespace app\modules\hard_ware_butt\modules\v1\controllers;
 
 use app\models\ParkingAcrossForm;
 use app\models\ParkingAcrossRecord;
+use app\models\ParkingLot;
+use app\models\ParkingSituation;
+use app\models\PsCommunityModel;
 use app\modules\hard_ware_butt\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
@@ -102,6 +105,45 @@ class ParkingController extends BaseController
         }
         //浙A9DG99
 
+    }
+
+    public function actionSituation()
+    {
+        $lotCode = PsCommon::get($this->params,'lotCode');//车场编号
+        $community_id = $this->communityId;//小区id
+        $community_no = PsCommunityModel::find()->select(['event_community_no'])->where(['id'=>$community_id])->asArray()->scalar();
+        if(empty($community_no)){
+            return PsCommon::responseFailed("小区No不存在");
+        }
+        $lot_id = ParkingLot::find()->select(['id'])->where(['park_code'=>$lotCode])->asArray()->scalar();
+        if(empty($lot_id)){
+            return PsCommon::responseFailed("车场Code不存在");
+        }
+        $model = ParkingSituation::find()->where(['community_id'=>$community_id,'lot_id'=>$lot_id])->asArray()->one();
+        $data = [
+            'guestBerthNum'=> PsCommon::get($this->params,'guestBerthNum',0),
+            'guestRemainNum'=> PsCommon::get($this->params,'guestRemainNum',0),
+            'monthlyBerthNum'=> PsCommon::get($this->params,'monthlyBerthNum',0),
+            'monthlyRemainNum'=> PsCommon::get($this->params,'monthlyRemainNum',0),
+            'totBerthNum'=> PsCommon::get($this->params,'totBerthNum',0),
+            'totRemainNum'=> PsCommon::get($this->params,'totRemainNum',0),
+        ];
+        if($model){
+            ParkingSituation::updateAll($data,['community_id'=>$community_id,'lot_id'=>$lot_id]);
+            return PsCommon::responseSuccess("修改成功");
+        }else{
+            $data['community_id'] = $community_id;
+            $data['community_no'] = $community_no;
+            $data['lot_id'] = $lot_id;
+            $data['park_code'] = $lotCode;
+            $s = new ParkingSituation();
+            $s->setAttributes($data);
+            if($s->save(false)){
+                return PsCommon::responseSuccess("保存成功");
+            }else{
+                return PsCommon::responseFailed("保存失败");
+            }
+        }
     }
 
 }
