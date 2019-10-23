@@ -111,7 +111,7 @@ class ParkingController extends BaseController
     {
         $lotCode = PsCommon::get($this->params,'lotCode');//车场编号
         $community_id = $this->communityId;//小区id
-        $community_no = PsCommunityModel::find()->select(['community_no'])->where(['id'=>$community_id])->asArray()->scalar();
+        $community_no = PsCommunityModel::find()->select(['event_community_no'])->where(['id'=>$community_id])->asArray()->scalar();
         if(empty($community_no)){
             return PsCommon::responseFailed("小区No不存在");
         }
