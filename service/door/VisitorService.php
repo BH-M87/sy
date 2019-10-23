@@ -511,7 +511,7 @@ class VisitorService extends BaseService
         $end_time = date("Y-m-d H:i:s",$visitorInfo->end_time);
         $res = DoorPushService::service()->userEdit($communityId, $roomInfo['unit_no'], $roomInfo['out_room_id'], $name, $mobile, 4, $sex, $visitor_id, $faceUrl, $end_time,0, '','','',$base64_img,$start_time);
         $backData = json_decode($res,true);
-        if($backData['code'] != 20000){
+        if($res && $res['code'] != 1){
             return $this->failed("人脸解析失败，请重新上传");
         }
         if ($visitorInfo->save()) {
