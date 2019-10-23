@@ -132,9 +132,13 @@ class ParkingController extends BaseController
             ParkingSituation::updateAll($data,['community_id'=>$community_id,'lot_id'=>$lot_id]);
             return PsCommon::responseSuccess("修改成功");
         }else{
+            $data['community_id'] = $community_id;
+            $data['community_no'] = $community_no;
+            $data['lot_id'] = $lot_id;
+            $data['park_code'] = $lotCode;
             $s = new ParkingSituation();
             $s->setAttributes($data);
-            if($s->save()){
+            if($s->save(false)){
                 return PsCommon::responseSuccess("保存成功");
             }else{
                 return PsCommon::responseFailed("保存失败");
