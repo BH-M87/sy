@@ -120,6 +120,7 @@ class ResidentService extends BaseService
             ->offset(($page - 1) * $rows)->limit($rows)
             ->asArray()->all();
         foreach ($models as $key => $model) {
+            $models[$key]['sex'] = $model['sex'] ? $model['sex'] : '';
             $models[$key]['card_no'] = F::processIdCard($model['card_no']);
             $models[$key]['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : PsCommon::hideMobile($model['mobile']);
             $models[$key]['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '长期';
@@ -290,7 +291,7 @@ class ResidentService extends BaseService
                     'name' => PsCommon::get($data, 'name'),
                     'mobile' => PsCommon::get($data, 'mobile'),
                     'card_no' => PsCommon::get($data, 'card_no'),
-                    'sex' => !empty($data['sex']) ? $data['sex'] : 1,
+                    'sex' => !empty($data['sex']) ? $data['sex'] : 0,
                     'face_url' => PsCommon::get($data, 'face_url', '')
                 ]);
                 if (!$member['code']) {
@@ -1009,7 +1010,7 @@ class ResidentService extends BaseService
             'name' => $name,
             'mobile' => $mobile,
             'card_no' => PsCommon::get($data, 'card_no'),
-            'sex' => !empty($data['sex']) ? $data['sex'] : 1,
+            'sex' => !empty($data['sex']) ? $data['sex'] : 0,
             'face_url' => $face_url
         ]);
 
@@ -1028,7 +1029,7 @@ class ResidentService extends BaseService
         $model = new PsRoomUser();
         $et = PsCommon::get($data, 'enter_time');
         $data['enter_time'] = $et ? strtotime($et) : 0;
-        $data['sex'] = !empty($data['sex']) ? $data['sex'] : 1;
+        $data['sex'] = !empty($data['sex']) ? $data['sex'] : 0;
         $data['member_id'] = $memberId;
         $data['operator_id'] = PsCommon::get($userInfo, 'id');
         $data['operator_name'] = PsCommon::get($userInfo, 'truename');
