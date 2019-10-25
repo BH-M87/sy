@@ -57,6 +57,7 @@ class StOrganization extends BaseModel
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
             [['lat','lon'], 'safe'],
             ['member_num', 'number', 'min'=>1, 'max'=>9999, 'integerOnly'=>true,'tooSmall'=>'{attribute}只允许1-9999之间的正整数!', 'tooBig'=>'{attribute}只允许1-9999之间的正整数!', 'on' => ['add', 'edit']],
+            [['org_build_time'], 'validateTime', 'on' => ['add', 'edit']],
         ];
     }
 
@@ -85,4 +86,14 @@ class StOrganization extends BaseModel
             'create_at' => 'Create At',
         ];
     }
+
+    public function validateTime($attribute, $params)
+    {
+        $orgBuildTime = $this->org_build_time;
+        $compareTime = strtotime(date('Y-m-d',strtotime('+1 day')));
+        if ($orgBuildTime >= $compareTime) {
+            $this->addError($attribute, "成立时间不能晚于当天时间");
+        }
+    }
+
 }
