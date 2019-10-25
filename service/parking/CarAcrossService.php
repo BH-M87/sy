@@ -128,6 +128,9 @@ class CarAcrossService extends BaseService
      */
     public function parkTimeFormat($minutes)
     {
+        if($minutes <= 0){
+            return '0分钟';
+        }
         $str = '';
         $day = intval($minutes / (60 * 24));
         if ($day) {
