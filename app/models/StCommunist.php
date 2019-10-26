@@ -37,7 +37,7 @@ class StCommunist extends BaseModel
     public static $type_desc = [
         1 => '在职党员',
         2 => '在册党员',
-        3 => '发展党员',
+        3 => '预备党员',
         4 => '其他',
     ] ;
 
