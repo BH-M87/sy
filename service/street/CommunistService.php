@@ -317,8 +317,8 @@ class CommunistService extends BaseService
             'mobile' => ['title' => '手机号', 'rules' => ['required' => true]],
             'sex' => ['title' => '性别','rules' => ['required' => true]],
             'type' => ['title' => '党员类型','rules' => ['required' => true]],
-            'birth_time' => ['title' => '出生日期', 'rules' => ['required' => true]],
-            'join_party_time' => ['title' => '入党日期', 'rules' => ['required' => true]],
+            'birth_time' => ['title' => '出生日期'],
+            'join_party_time' => ['title' => '入党日期'],
             'formal_time' => ['title' => '转正日期'],
             'job' => ['title' => '党内职务']
         ];
