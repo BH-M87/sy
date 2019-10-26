@@ -446,7 +446,6 @@ class RoomController extends BaseController
         try {
             for ($j = 3; $j <= count($sheetData); $j++) {
                 $val = $sheetData[$j];
-                $val['A'] = trim((string)$val['A']) ? trim((string)$val['A']) : '住宅';    // 房屋所在的组团名称
                 $row = $excel->format($val, $sheetConfig);//整行数据
                 $errors = $excel->valid($row, $sheetConfig);
                 if ($errors) {//验证出错
