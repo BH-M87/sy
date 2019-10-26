@@ -25,7 +25,7 @@ class CommunistService extends BaseService
     public $_types = [
         1 => ['id' => 1, 'name' => '在职党员'],
         2 => ['id' => 2, 'name' => '在册党员'],
-        3 => ['id' => 3, 'name' => '发展党员'],
+        3 => ['id' => 3, 'name' => '预备党员'],
         4 => ['id' => 4, 'name' => '其他'],
     ];
 
