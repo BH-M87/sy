@@ -202,7 +202,8 @@ Class HouseService extends BaseService
         $unit_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $room_sort = !empty($data["order_sort"]) && in_array($data["order_sort"], $order_arr) ? $data["order_sort"] : "asc";
         $order_by = "  (`group`+0) " . $group_sort . ", `group` " . $group_sort . ",(building+0) " . $building_sort . ",building " . $building_sort . ", (`unit`+0) " . $unit_sort . ",unit " . $unit_sort . ", (`room`+0) " . $room_sort . ",room " . $room_sort;
-        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor FROM ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)
+        $list = Yii::$app->db->createCommand("SELECT id, `group`, building, unit, room, floor_coe, floor_shared_id, lift_shared_id,is_elevator, property_type, status,charge_area, intro, out_room_id, address,floor FROM
+ ps_community_roominfo WHERE $where order by $order_by limit $limit,$rows", $params)
             ->queryAll();
         return ['list' => $list, 'totals' => $count["total"], "all_area" => $count["all_area"]];
     }
