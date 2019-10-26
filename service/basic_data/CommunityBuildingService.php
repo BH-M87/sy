@@ -656,11 +656,12 @@ class CommunityBuildingService extends BaseService
             $unitId = $this->saveUnit($communityId,$group_id,$group,$building_id,$building,$unit);
             //楼幢表的单元数量+1
             PsCommunityBuilding::updateAllCounters(['unit_num'=>1],['id'=>$building_id]);
-            $unitInfo['data'] = $unitId;
         }else{
-            $unitInfo['data'] = $unitInfoByName['id'];
+            $unitId = $unitInfoByName['id'];
         }
+        return $unitId;
     }
+
     public function editBuilding($data,$userInfo = [])
     {
         $building_id = $data['building_id'];
