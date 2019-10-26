@@ -159,6 +159,7 @@ class ResidentService extends BaseService
                 }
             }
             //edit by wenchao.feng 虚拟手机号处理
+            $model['sex'] = $model['sex'] ? $model['sex'] : '';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? "" : $model['mobile'];
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
             $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '0';
