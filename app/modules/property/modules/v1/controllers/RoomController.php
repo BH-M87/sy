@@ -493,27 +493,28 @@ class RoomController extends BaseController
                 $buildingData['unit_name'] = $unit;
                 $group_id = PsCommunityGroups::find()->select('id')->where(['community_id' => $communityId, 'name' => $group])->asArray()->scalar();
                 //todo 跟产品确认，如果苑期区，楼幢，单元不存在，就不能导入房屋
-                if(empty($group_id)){
-                    $fail++;
-                    $errorCsv[$fail] = $val;
-                    $errorCsv[$fail]["error"] = "这个苑期区不存在，请先去新增".$group;
-                    continue;
-                }
-                $building_id = PsCommunityBuilding::find()->select('id')->where(['group_id' => $group_id, 'name' => $building])->asArray()->scalar();
-                if(empty($building_id)){
-                    $fail++;
-                    $errorCsv[$fail] = $val;
-                    $errorCsv[$fail]["error"] = "这个楼幢不存在，请先去新增".$building;
-                    continue;
-                }
-                $unitId = PsCommunityUnits::find()->select('id')->where(['group_id' => $group_id, 'building_id'=>$building_id,'name' => $unit])->asArray()->scalar();
-                if(empty($unitId)){
-                    $fail++;
-                    $errorCsv[$fail] = $val;
-                    $errorCsv[$fail]["error"] = "这个单元不存在，请先去新增".$unit;
-                    continue;
-                }
-                /*// 没有苑期区就新增一个
+//                if(empty($group_id)){
+//                    $fail++;
+//                    $errorCsv[$fail] = $val;
+//                    $errorCsv[$fail]["error"] = "这个苑期区不存在，请先去新增".$group;
+//                    continue;
+//                }
+//                $building_id = PsCommunityBuilding::find()->select('id')->where(['group_id' => $group_id, 'name' => $building])->asArray()->scalar();
+//                if(empty($building_id)){
+//                    $fail++;
+//                    $errorCsv[$fail] = $val;
+//                    $errorCsv[$fail]["error"] = "这个楼幢不存在，请先去新增".$building;
+//                    continue;
+//                }
+//                $unitId = PsCommunityUnits::find()->select('id')->where(['group_id' => $group_id, 'building_id'=>$building_id,'name' => $unit])->asArray()->scalar();
+//                if(empty($unitId)){
+//                    $fail++;
+//                    $errorCsv[$fail] = $val;
+//                    $errorCsv[$fail]["error"] = "这个单元不存在，请先去新增".$unit;
+//                    continue;
+//                }
+
+                //没有苑期区就新增一个
                 if (empty($group_id)) {
                     $groupData['community_id'] = $communityId;
                     $groupData['group_name'] = $group;
@@ -525,7 +526,7 @@ class RoomController extends BaseController
                 //获取楼幢id
                 $building_id = CommunityBuildingService::service()->getBuildingIdByName($communityId,$group_id,$group,$building);
                 //获取单元id
-                $unitId = CommunityBuildingService::service()->getUnitId($communityId,$group_id,$group,$building_id,$building,$unit);*/
+                $unitId = CommunityBuildingService::service()->getUnitId($communityId,$group_id,$group,$building_id,$building,$unit);
 
                 //excel表数据去重
                 if (in_array($address, $uniqueRoomInfo)) {
