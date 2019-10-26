@@ -421,8 +421,10 @@ class RoomController extends BaseController
     public function actionImport()
     {
         set_time_limit(0);
+        $excel = ExcelService::service();
+        $sheetConfig = $this->_getSheetConfig();
         //上传文件检测
-        $r = ExcelService::service()->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
+        $r = $excel->excelUploadCheck(PsCommon::get($_FILES, 'file'), 1000, 2);
         if (empty($r['code'])) {
             return PsCommon::responseFailed(PsCommon::get($r, 'msg'));
         }
@@ -444,6 +446,15 @@ class RoomController extends BaseController
         try {
             for ($j = 3; $j <= count($sheetData); $j++) {
                 $val = $sheetData[$j];
+                $row = $excel->format($val, $sheetConfig);//整行数据
+                $errors = $excel->valid($row, $sheetConfig);
+                if ($errors) {//验证出错
+                    $fail++;
+                    $errorCsv[$fail] = $val;
+                    $errorCsv[$fail]["error"] = implode(' ; ', $errors);
+                    continue;
+                }
+
                 $val['N'] = !empty($val['N']) ? sprintf("%04d", (string)$val['N']) : '';
                 $group = $val['A'] ? trim((string)$val['A']) : '住宅';    // 房屋所在的组团名称
                 $building = trim((string)$val['B']);                     // 房屋所在楼栋名称
@@ -661,6 +672,25 @@ class RoomController extends BaseController
             'error_url' => $error_url
         ];
         return PsCommon::responseSuccess($result);
+    }
+
+    private function _getSheetConfig()
+    {
+        return [
+            'group' => ['title' => '所属区域', 'rules' => ['required' => true]],
+            'building_name' => ['title' => '所属楼栋', 'rules' => ['required' => true]],
+            'unit_name' => ['title' => '所属单元', 'rules' => ['required' => true]],
+            'room' => ['title' => '房号', 'rules' => ['required' => true]],
+            'charge_area' => ['title' => '房屋面积','rules' => ['required' => true]],
+            'orientation' => ['title' => '房屋朝向'],
+            'delivery_time' => ['title' => '交房时间'],
+            'own_age_limit' => ['title' => '产权年限'],
+            'floor' => ['title' => '所在楼层','rules' => ['required' => true]],
+            'status' => ['title' => '房屋状态','rules' => ['required' => true]],
+            'property_type' => ['title' => '物业类型','rules' => ['required' => true]],
+            'house_type' => ['title' => '房屋户型'],
+            'house_labels' => ['title' => '房屋标签'],
+        ];
     }
 
     /**
