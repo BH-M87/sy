@@ -9,13 +9,18 @@
 namespace app\controllers;
 
 
+use app\models\DoorDevices;
+use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
 use app\models\PsAppMember;
+use app\models\PsDevice;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
 use common\core\PsCommon;
+use service\basic_data\IotNewDealService;
 use service\basic_data\IotNewService;
+use service\door\DeviceService;
 use service\resident\ResidentService;
 use service\street\XzTaskService;
 use yii\web\Controller;
@@ -191,6 +196,37 @@ class CommandController extends Controller
         }
 
     }
+
+    //查找指定小区的设备列表，同步到iot
+    public function actionSyncDevice()
+    {
+        $community_id = ['48','49'];
+        $list = DoorDevices::find()->where(['du.community_id'=>$community_id])->asArray()->all();
+        if($list){
+            $userInfo["id"] = '1';
+            $userInfo["truename"] = '张强';
+            $userInfo["mobile"] = '18768177608';
+            $supplier_id = 4;
+            foreach($list as $key=>$value){
+                $data['name'] = $value['name'];
+                $data['type'] = $value['type'];
+                $data['device_id'] = $value['device_id'];
+                $data['supplier_id'] = $supplier_id;
+                $data['community_id'] = $value['community_id'];
+                $permissions = DoorDeviceUnit::find()->select(['unit_id'])->where(['devices_id'=>$value['id']])->asArray()->column();
+                $data['permissions'] = $permissions ? implode(",",$permissions) : [];
+                $data['productSn'] = IotNewDealService::service()->getSupplierProductSn($supplier_id);
+                $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($community_id,$supplier_id);
+                var_dump($data);die;
+                IotNewDealService::service()->dealDeviceToIot($data,'add');
+            }
+            //$result = DeviceService::service()->deviceAdd($allData, $userInfo);
+
+        }
+
+    }
+
+
 
 
 
