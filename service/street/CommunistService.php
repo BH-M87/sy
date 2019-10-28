@@ -25,7 +25,7 @@ class CommunistService extends BaseService
     public $_types = [
         1 => ['id' => 1, 'name' => '在职党员'],
         2 => ['id' => 2, 'name' => '在册党员'],
-        3 => ['id' => 3, 'name' => '发展党员'],
+        3 => ['id' => 3, 'name' => '预备党员'],
         4 => ['id' => 4, 'name' => '其他'],
     ];
 
@@ -317,8 +317,8 @@ class CommunistService extends BaseService
             'mobile' => ['title' => '手机号', 'rules' => ['required' => true]],
             'sex' => ['title' => '性别','rules' => ['required' => true]],
             'type' => ['title' => '党员类型','rules' => ['required' => true]],
-            'birth_time' => ['title' => '出生日期', 'rules' => ['required' => true]],
-            'join_party_time' => ['title' => '入党日期', 'rules' => ['required' => true]],
+            'birth_time' => ['title' => '出生日期'],
+            'join_party_time' => ['title' => '入党日期'],
             'formal_time' => ['title' => '转正日期'],
             'job' => ['title' => '党内职务']
         ];

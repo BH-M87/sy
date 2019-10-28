@@ -37,7 +37,7 @@ class StCommunist extends BaseModel
     public static $type_desc = [
         1 => '在职党员',
         2 => '在册党员',
-        3 => '发展党员',
+        3 => '预备党员',
         4 => '其他',
     ] ;
 
@@ -63,12 +63,11 @@ class StCommunist extends BaseModel
             [['operator_name'], 'string', 'max' => 20],
             [['name'], 'string', 'max' => 10, 'message' => '{attribute}最多10个字！','on' => ['add', 'edit']],
             [['organization_type','organization_id'],'required', 'message' => '{attribute}不能为空', 'on' => ['add']],
-            [['name', 'mobile', 'sex', 'birth_time_date', 'join_party_time_date', 'branch', 'type'],
+            [['name', 'mobile', 'sex', 'branch', 'type'],
                 'required', 'message' => '{attribute}不能为空', 'on' => ['add', 'edit']],
             ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式不正确', 'on' => ['add', 'edit']],
             [['birth_time_date','join_party_time_date', 'formal_time_date'], 'date','format'=>'yyyy-MM-dd', 'message'=>'{attribute}格式不正确!', 'on' => ['add', 'edit']],
             [['sex'],'in','range'=>[1,2], 'message' => '{attribute}只能是1或2','on' => ['add', 'edit']],
-            [['join_party_time','formal_time'], 'validateTime', 'on' => ['add', 'edit']],
             [['name','birth_time', 'join_party_time', 'formal_time','branch', 'job', 'organization_id'], 'safe'],
             [['id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['edit','delete','view']],
         ];
