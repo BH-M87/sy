@@ -130,6 +130,8 @@ class CommandController extends Controller
             ->where(['cr.community_id'=>$community_id])->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
+                //删除房屋标签
+                PsLabelsRela::deleteAll(['data_type' => 1, 'data_id' => $value['id']]);
                 //删除苑期区
                 PsCommunityGroups::deleteAll(['id'=>$value['group_id']]);
                 //删除楼幢
