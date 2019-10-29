@@ -14,6 +14,7 @@ use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
 use app\models\PsAppMember;
 use app\models\PsDevice;
+use app\models\PsLabelsRela;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
@@ -201,11 +202,8 @@ class CommandController extends Controller
     public function actionSyncDevice()
     {
         $community_id = ['48','49'];
-        $list = DoorDevices::find()->where(['du.community_id'=>$community_id])->asArray()->all();
+        $list = DoorDevices::find()->where(['community_id'=>$community_id])->asArray()->all();
         if($list){
-            $userInfo["id"] = '1';
-            $userInfo["truename"] = '张强';
-            $userInfo["mobile"] = '18768177608';
             $supplier_id = 4;
             foreach($list as $key=>$value){
                 $data['name'] = $value['name'];
@@ -217,13 +215,30 @@ class CommandController extends Controller
                 $data['permissions'] = $permissions ? implode(",",$permissions) : [];
                 $data['productSn'] = IotNewDealService::service()->getSupplierProductSn($supplier_id);
                 $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($community_id,$supplier_id);
-                var_dump($data);die;
+                //添加设备到IOT
                 IotNewDealService::service()->dealDeviceToIot($data,'add');
             }
-            //$result = DeviceService::service()->deviceAdd($allData, $userInfo);
-
         }
 
+    }
+
+    //批量删除小区下的住户
+    public function actionDeleteRoomUser()
+    {
+        //$community_id = ["101","102"];
+        $community_id = ["37"];
+        $list = PsRoomUser::find()->where(['community_id'=>$community_id])->limit(2)->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                $id = $value['id'];
+                //删除标签
+                PsLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]); // 删除住户所有标签关联关系
+                //删除java对应的住户
+                ResidentService::service()->residentSync($value, 'delete');
+                //删除住户
+                PsRoomUser::deleteAll(['id'=>$id]);
+            }
+        }
     }
 
 
