@@ -14,6 +14,7 @@ use app\models\DoorDeviceUnit;
 use app\models\DoorKey;
 use app\models\IotSuppliers;
 use service\BaseService;
+use service\basic_data\IotNewDealService;
 use yii\db\Expression;
 
 class OpenKeyService extends BaseService
@@ -481,10 +482,10 @@ class OpenKeyService extends BaseService
         //iot新版本接口 add by zq 2019-6-4
         $communityId = $data['community_id'];
         //获取只拥有二维码功能的第一个接入的产品productSn
-        $data['productSn'] = $this->getSupplierProductSnByCommunityId($communityId,'','',1);//这个供应商只能返回一个
-        $supplierSign = ParkingSuppliers::find()->select('supplier_name')->where(['productSn'=>$data['productSn']])->asArray()->scalar();//todo 开门获取二维码，目前只传了小区id，没传设备供应商
+        $data['productSn'] = IotNewDealService::service()->getSupplierProductSnByCommunityId($communityId,'','',1);//这个供应商只能返回一个
+        $supplierSign = IotSuppliers::find()->select('supplier_name')->where(['productSn'=>$data['productSn']])->asArray()->scalar();//todo 开门获取二维码，目前只传了小区id，没传设备供应商
         if(in_array('iot-new',$res['supplier_name'])){
-            if($this->checkIsMaster($communityId)){
+            if(IotNewDealService::service()->checkIsMaster($communityId)){
                 return IotNewDealService::service()->dealVisitorToIot($data,'user_qrcode');
             }else{
                 return IotNewDealService::service()->dealVisitorToIot($data,'user_qrcode');

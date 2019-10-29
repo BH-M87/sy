@@ -9,13 +9,19 @@
 namespace app\controllers;
 
 
+use app\models\DoorDevices;
+use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
 use app\models\PsAppMember;
+use app\models\PsDevice;
+use app\models\PsLabelsRela;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
 use common\core\PsCommon;
+use service\basic_data\IotNewDealService;
 use service\basic_data\IotNewService;
+use service\door\DeviceService;
 use service\resident\ResidentService;
 use service\street\XzTaskService;
 use yii\web\Controller;
@@ -65,6 +71,48 @@ class CommandController extends Controller
                     $post['data'] = json_encode($postData);
                     Curl::getInstance()->post($url,$post);
                 }
+            }
+        }
+    }
+
+    //查找指定小区的设备列表，同步到iot
+    public function actionSyncDevice()
+    {
+        $community_id = ['48','49'];
+        $list = DoorDevices::find()->where(['community_id'=>$community_id])->asArray()->all();
+        if($list){
+            $supplier_id = 4;
+            foreach($list as $key=>$value){
+                $data['name'] = $value['name'];
+                $data['type'] = $value['type'];
+                $data['device_id'] = $value['device_id'];
+                $data['supplier_id'] = $supplier_id;
+                $data['community_id'] = $value['community_id'];
+                $permissions = DoorDeviceUnit::find()->select(['unit_id'])->where(['devices_id'=>$value['id']])->asArray()->column();
+                $data['permissions'] = $permissions ? implode(",",$permissions) : [];
+                $data['productSn'] = IotNewDealService::service()->getSupplierProductSn($supplier_id);
+                $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($community_id,$supplier_id);
+                //添加设备到IOT
+                IotNewDealService::service()->dealDeviceToIot($data,'add');
+            }
+        }
+
+    }
+
+    //批量删除小区下的住户
+    public function actionDeleteRoomUser()
+    {
+        $community_id = ["101","102"];
+        $list = PsRoomUser::find()->where(['community_id'=>$community_id])->limit(2)->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                $id = $value['id'];
+                //删除标签
+                PsLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]); // 删除住户所有标签关联关系
+                //删除java对应的住户
+                ResidentService::service()->residentSync($value, 'delete');
+                //删除住户
+                PsRoomUser::deleteAll(['id'=>$id]);
             }
         }
     }
@@ -191,8 +239,6 @@ class CommandController extends Controller
         }
 
     }
-
-
-
+    
 
 }
