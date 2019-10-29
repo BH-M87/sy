@@ -169,9 +169,17 @@ class CommandController extends Controller
 
     public function actionSyncFaceUser()
     {
-        $community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
-        $list = PsRoomUser::find()->where(['community_id'=>$community_id])
-            ->andFilterWhere(['id'=>164517])
+        $community_id = ["20","23"];
+        //$community_id = ["42","44"];
+        //$community_id = ["47","48"];
+        //$community_id = ["65","70"];
+        //$community_id = ["89","107"];
+        //$community_id = ["108"];
+        //$community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
+        $list = PsRoomUser::find()->alias('ru')
+            ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
+            ->where(['ru.community_id'=>$community_id])
+            ->andWhere(['<>','m.face_url',''])
             ->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
