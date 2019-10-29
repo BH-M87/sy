@@ -103,6 +103,29 @@ class CommandController extends Controller
 
     }
 
+    //查找指定小区的设备列表，同步到iot
+    public function actionSyncDeviceEdit()
+    {
+        $list = DoorDevices::find()->where("1=1")->orderBy("id desc")->asArray()->all();
+        if($list){
+            $supplier_id = 4;
+            foreach($list as $key=>$value){
+                $data['name'] = $value['name'];
+                $data['type'] = $value['type'];
+                $data['device_id'] = $value['device_id'];
+                $data['supplier_id'] = $supplier_id;
+                $data['community_id'] = $value['community_id'];
+                $permissions = DoorDeviceUnit::find()->select(['unit_id'])->where(['devices_id'=>$value['id']])->asArray()->column();
+                $data['permissions'] = $permissions ? implode(",",$permissions) : [];
+                $data['productSn'] = IotNewDealService::service()->getSupplierProductSn($supplier_id);
+                $data['authCode'] = IotNewDealService::service()->getAuthCodeNew($value['community_id'],$supplier_id);
+                //添加设备到IOT
+                IotNewDealService::service()->dealDeviceToIot($data,'edit');
+            }
+        }
+
+    }
+
     //批量删除小区下的住户
     public function actionDeleteRoomUser()
     {
