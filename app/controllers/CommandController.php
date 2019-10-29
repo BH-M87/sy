@@ -103,7 +103,7 @@ class CommandController extends Controller
     public function actionDeleteRoomUser()
     {
         $community_id = ["101","102"];
-        $list = PsRoomUser::find()->where(['community_id'=>$community_id])->limit(2)->asArray()->all();
+        $list = PsRoomUser::find()->where(['community_id'=>$community_id])->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
                 $id = $value['id'];
@@ -239,6 +239,6 @@ class CommandController extends Controller
         }
 
     }
-    
+
 
 }
