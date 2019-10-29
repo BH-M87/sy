@@ -167,6 +167,19 @@ class CommandController extends Controller
         }
     }
 
+    public function actionSyncFaceUser()
+    {
+        $community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
+        $list = PsRoomUser::find()->where(['community_id'=>$community_id])
+            ->andFilterWhere(['id'=>164517])
+            ->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                ResidentService::service()->residentSync($value, 'edit');
+            }
+        }
+    }
+
     ##############################在用脚本############################################
 
     //同步iot的供应商到数据库 0 0 * * * curl localhost:9003/command/sync
