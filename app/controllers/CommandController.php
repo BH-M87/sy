@@ -13,6 +13,10 @@ use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
 use app\models\PsAppMember;
+use app\models\PsCommunityBuilding;
+use app\models\PsCommunityGroups;
+use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityUnits;
 use app\models\PsDevice;
 use app\models\PsLabelsRela;
 use app\models\PsMember;
@@ -113,6 +117,27 @@ class CommandController extends Controller
                 ResidentService::service()->residentSync($value, 'delete');
                 //删除住户
                 PsRoomUser::deleteAll(['id'=>$id]);
+            }
+        }
+    }
+
+    public function actionDeleteRoom()
+    {
+        $community_id = ["101","102"];
+        $list = PsCommunityRoominfo::find()->alias('cr')
+            ->leftJoin(['cu'=>PsCommunityUnits::tableName()],'cu.id = cr.unit_id')
+            ->select(['cu.group_id','cu.building_id','cr.unit_id','cr.id'])
+            ->where(['cr.community_id'=>$community_id])->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                //删除苑期区
+                PsCommunityGroups::deleteAll(['id'=>$value['group_id']]);
+                //删除楼幢
+                PsCommunityBuilding::deleteAll(['id'=>$value['building_id']]);
+                //删除单元
+                PsCommunityUnits::deleteAll(['id'=>$value['unit_id']]);
+                //删除房屋
+                PsCommunityRoominfo::deleteAll(['id'=>$value['id']]);
             }
         }
     }
