@@ -39,6 +39,11 @@ class CommandController extends Controller
         $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
         var_dump($list);die;
     }
+
+    public function actionTest2(){
+        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 99);
+        var_dump($list);die;
+    }
     //新增测试访客记录
     public function actionAddVisitor()
     {
@@ -169,24 +174,21 @@ class CommandController extends Controller
 
     public function actionSyncFaceUser()
     {
-        $community_id = ["20","23"];
-        //$community_id = ["42","44"];
-        //$community_id = ["47","48"];
-        //$community_id = ["65","70"];
-        //$community_id = ["89","107"];
-        //$community_id = ["108"];
+        $community_id = ["89","107","108"];
         //$community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
         $list = PsRoomUser::find()->alias('ru')
             ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
             ->where(['ru.community_id'=>$community_id])
-            ->andWhere(['<>','m.face_url',''])
             ->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
-                ResidentService::service()->residentSync($value, 'edit');
+                Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                //ResidentService::service()->residentSync($value, 'edit');
             }
         }
     }
+
+
 
     ##############################在用脚本############################################
 
@@ -309,6 +311,17 @@ class CommandController extends Controller
             }
         }
 
+    }
+
+    //iot人脸数据下发
+    public function actionIotFace(){
+        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 99);
+        if($list){
+            foreach($list as $key=>$value){
+                $dataInfo = json_decode($value,true);
+                ResidentService::service()->residentSync($dataInfo, 'edit');
+            }
+        }
     }
 
 
