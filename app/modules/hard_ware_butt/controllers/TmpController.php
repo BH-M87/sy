@@ -12,12 +12,23 @@ namespace app\modules\hard_ware_butt\controllers;
 use app\models\ParkingCars;
 use app\models\ParkingUserCarport;
 use app\models\ParkingUsers;
+use app\models\PsAppMember;
+use app\models\PsCommunityExposure;
+use app\models\PsCommunityExposureImage;
+use common\core\Curl;
 use common\core\F;
+use phpDocumentor\Reflection\Types\Null_;
 use service\common\ExcelService;
 use yii\web\Controller;
 
 class TmpController extends Controller
 {
+    // java路由
+    public $urlJava= [
+        'addEvent' => '/eventDing/addEvent', // 新增曝光台事件
+        'dealDetail' => '/community/communityExposure/getExposureDealWithDetailById' // 处理结果
+    ];
+
     public $enableCsrfValidation = false;
 
     public function actionImportCar()
@@ -79,5 +90,51 @@ class TmpController extends Controller
             }
             echo $params['plate_no']."--小区--".$communityId."\r\n";
         }
+    }
+
+    //修复曝光台事件
+    public function actionXfExposureData()
+    {
+        $exposureData = PsCommunityExposure::find()
+            ->select('e.*,c.name as community_name')
+            ->alias('e')
+            ->leftJoin('ps_community c','c.id = e.community_id')
+            ->where(['event_no' => NULL])
+            ->asArray()
+            ->all();
+        foreach ($exposureData as $v) {
+            $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
+                ->select('B.*')->where(['A.app_user_id' => $v['app_user_id']])->asArray()->one();
+            if (!$member) {
+                echo "业主不存在";die;
+            }
+            //查询图片
+            $imgs = PsCommunityExposureImage::find()
+                ->select('image_url')
+                ->where(['community_exposure_id' => $v['id']])
+                ->asArray()
+                ->column();
+            // 处理结果 调Java接口
+            $data = [
+                'title' => $v['title'],
+                'description' => $v['describe'],
+                'eventFrom' => 2,
+                'eventTime' => $v['created_at'],
+                'eventType' => $v['event_child_type_id'],
+                'imageUrl' => $imgs,
+                'reportAddress' => $v['address'],
+                'address' => $v['address'],
+                'userId' => $member['id'],
+                'xqName' => $v['community_name'],
+                'xqOrgCode' => $v['event_community_no']
+            ];
+            $event = Curl::getInstance()->post(\Yii::$app->params['java_domain'].$this->urlJava['addEvent'], json_encode($data), true);
+            \Yii::info("tmp-add-event".'request:'.json_encode($data).'---result'.$event,'smallapp');
+            $model = PsCommunityExposure::findOne($v['id']);
+            $model->event_no = json_decode($event, true)['data'];
+            $reData = $model->save();
+            \Yii::info("tmp-add-event".'---insert-result'.$reData,'smallapp');
+        }
+
     }
 }
