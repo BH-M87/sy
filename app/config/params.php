@@ -85,6 +85,7 @@ if (YII_ENV == "prod") {
     $data['appKey'] = 'dingvxqretqs7uduiovc';
     $data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
     $data['agent_id'] = 281128929;
+    $data['java_domain'] = 'http://192.168.9.159:8888/';
 } else if (YII_ENV == "test" || YII_ENV == "release")  {
     $data['api_host_url'] = 'https://sqwr.elive99.com';
     //iot接口地址
@@ -93,6 +94,7 @@ if (YII_ENV == "prod") {
     $data['appKey'] = 'dingrxn2bgp2ngekcak5';
     $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
     $data['agent_id'] = 290532532;
+    $data['java_domain'] = 'http://47.103.151.121:8888/';
 } else {
     $data['api_host_url'] = Yii::$app->request->getHostInfo();
     //iot接口地址
@@ -101,6 +103,7 @@ if (YII_ENV == "prod") {
     $data['appKey'] = 'dingrxn2bgp2ngekcak5';
     $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
     $data['agent_id'] = 290532532;
+    $data['java_domain'] = 'http://47.103.151.121:8888/';
 }
 
 return $data;
