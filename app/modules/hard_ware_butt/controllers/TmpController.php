@@ -12,13 +12,18 @@ namespace app\modules\hard_ware_butt\controllers;
 use app\models\ParkingCars;
 use app\models\ParkingUserCarport;
 use app\models\ParkingUsers;
+
 use app\models\PsAppMember;
 use app\models\PsCommunityExposure;
 use app\models\PsCommunityExposureImage;
 use common\core\Curl;
+
+use app\models\PsRoomUser;
+
 use common\core\F;
 use phpDocumentor\Reflection\Types\Null_;
 use service\common\ExcelService;
+use yii\db\mssql\PDO;
 use yii\web\Controller;
 
 class TmpController extends Controller
@@ -92,6 +97,7 @@ class TmpController extends Controller
         }
     }
 
+
     //修复曝光台事件
     public function actionXfExposureData()
     {
@@ -137,4 +143,50 @@ class TmpController extends Controller
         }
 
     }
+
+    public function actionImportYezhu()
+    {
+        $file = $_FILES['file'];
+        $excel = ExcelService::service();
+        $sheet = $excel->loadFromImport($file);
+        $totals = $sheet->getHighestRow();//总条数
+        $importDatas = $sheet->toArray(null, false, false, true);
+        $insertSql = "insert  into `ps_tmp_room_user`(`card_no`,`mobile`) VALUES";
+        foreach ($importDatas as $v) {
+            $cardNo = $v['A'];
+            $mobile = $v['B'];
+            $insertSql .= "('{$cardNo}','{$mobile}'),";
+        }
+        $insertSql = substr($insertSql, 0, -1);
+        $re = \Yii::$app->getDb()->createCommand($insertSql)->execute();
+        var_dump($re);exit;
+//        if ($zwpdo->exec($insertSql)) {
+//            $doUpdate = true;
+//            echo $i."插入成功". "\r\n";
+//            break;
+//        };
+    }
+
+
+    public function actionUpdateUser()
+    {
+        $sql = "SELECT b.room_user_id,b.xqcard_no,b.tcard_no,b.mobile,b.community_id,b.`name`,b.yzname
+from (
+SELECT pu.card_no xqcard_no, t.card_no tcard_no,pu.mobile,pu.community_id,m.`name`,pu.`name` as yzname,pu.id as room_user_id
+from ps_room_user pu LEFT JOIN
+ps_tmp_room_user t ON pu.mobile = t.mobile
+LEFT JOIN ps_community m on m.id = pu.community_id
+ORDER BY t.id desc) as b
+WHERE b.xqcard_no = \"\" and b.tcard_no != ''
+ORDER BY b.community_id DESC";
+        $re = \Yii::$app->getDb()->createCommand($sql)->queryAll();
+
+        foreach ($re as $v) {
+            $updateSql = 'update ps_room_user set card_no="'.$v['tcard_no'].'" where id='.$v['room_user_id'];
+            $re = \Yii::$app->getDb()->createCommand($updateSql)->execute();
+            echo $re."\r\n";
+        }
+    }
+
+
 }
