@@ -136,6 +136,7 @@ Class CommunityService extends BaseService
                 'xqOrgCode' => $community->event_community_no,
             ];
             $event = Curl::getInstance()->post(Yii::$app->params['java_domain'].$this->urlJava['addEvent'], json_encode($data), true);
+            \Yii::info("add-event".'request:'.json_encode($data).'---result'.$event,'smallapp');
             $model->event_no = json_decode($event, true)['data'];
             $model->save();
 
