@@ -129,7 +129,7 @@ class TmpController extends Controller
                 'xqOrgCode' => $v['event_community_no']
             ];
             $event = Curl::getInstance()->post(\Yii::$app->params['java_domain'].$this->urlJava['addEvent'], json_encode($data), true);
-            \Yii::info("tmp-add-event".'request-url:'.\Yii::$app->params['java_domain'].$this->urlJava['addEvent'].'request:'.json_encode($data).'---result'.$event,'smallapp');
+            \Yii::info("tmp-add-event".'request-url:'.\Yii::$app->params['java_domain'].$this->urlJava['addEvent'].' request-params:'.json_encode($data,JSON_UNESCAPED_UNICODE).'---result'.$event,'smallapp');
             $model = PsCommunityExposure::findOne($v['id']);
             $model->event_no = json_decode($event, true)['data'];
             $reData = $model->save();
