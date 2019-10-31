@@ -25,6 +25,8 @@ use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
 use service\alipay\SharedService;
 use service\BaseService;
+use service\basic_data\CommunityBuildingService;
+use service\basic_data\CommunityGroupService;
 use service\basic_data\DoorPushService;
 use service\rbac\OperateService;
 use service\label\LabelsService;
@@ -1033,6 +1035,47 @@ Class HouseService extends BaseService
         PsLabelsRela::deleteAll(['labels_id'=>$label_id,'data_id'=>$room_id,'data_type'=>1]);
         return PsCommon::responseSuccess('删除成功');
 
+    }
+
+
+    /**
+     * 通过小区获取到单元
+     * @author yjh
+     * @param $community_id
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getGroupsUnits($community_id)
+    {
+        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);
+        if ($groups) {
+            foreach ($groups as &$g) {
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => 460]);
+                $g['building_list'] = [];
+                if ($buildings) {
+                    $g['building_list'] = $buildings;
+                    foreach ($g['building_list'] as &$b) {
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $g['building_id']]);
+                        $b['unit_list'] = [];
+                        if ($units) {
+                            $b['unit_list'] = $units;
+                        }
+                    }
+                }
+            }
+        }
+        return $groups;
+    }
+
+    /**
+     * 社区微恼基础资料
+     * @author yjh
+     * @param $data
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getRoomList($data)
+    {
+        $list = PsCommunityUnits::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        return $list;
     }
 
 
