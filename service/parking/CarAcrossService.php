@@ -522,35 +522,37 @@ class CarAcrossService extends BaseService
 
             //查询设备信息
             $inGateId = 0;
-            //设备id不传的时候用设备名称去记录设备信息
-            if($orderId && $data['in_address'] == 'iotDevice'){
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'],$data['in_address']);
-                if (!$deviceInfo) {
-                    //保存设备信息
-                    $tmpData['deviceNum'] = $data['in_device_num'];
-                    $tmpData['deviceName'] = $data['in_address'];
-                    $tmpData['community_id'] = $data['community_id'];
-                    $tmpData['supplier_id'] = $data['supplier_id'];
-                    DeviceService::service()->addData($tmpData);
-                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'], $data['in_address']);
-                }
-            }else{
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
-                if (!$deviceInfo) {
-                    //保存设备信息
-                    $tmpData['deviceNum'] = $data['in_device_num'];
-                    $tmpData['deviceName'] = $data['in_address'];
-                    $tmpData['community_id'] = $data['community_id'];
-                    $tmpData['supplier_id'] = $data['supplier_id'];
-                    DeviceService::service()->addData($tmpData);
+            //当入场设备存在的时候才去新增设备
+            if($data['in_device_num']){
+                //设备id不传的时候用设备名称去记录设备信息
+                if($orderId && $data['in_address'] == 'iotDevice'){
+                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'],$data['in_address']);
+                    if (!$deviceInfo) {
+                        //保存设备信息
+                        $tmpData['deviceNum'] = $data['in_device_num'];
+                        $tmpData['deviceName'] = $data['in_address'];
+                        $tmpData['community_id'] = $data['community_id'];
+                        $tmpData['supplier_id'] = $data['supplier_id'];
+                        DeviceService::service()->addData($tmpData);
+                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'], $data['in_address']);
+                    }
+                }else{
                     $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                    if (!$deviceInfo) {
+                        //保存设备信息
+                        $tmpData['deviceNum'] = $data['in_device_num'];
+                        $tmpData['deviceName'] = $data['in_address'];
+                        $tmpData['community_id'] = $data['community_id'];
+                        $tmpData['supplier_id'] = $data['supplier_id'];
+                        DeviceService::service()->addData($tmpData);
+                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                    }
                 }
             }
 
-            $inGateId = $deviceInfo['id'];
             $model->user_id = $userId;
             $model->car_type = $carType;
-            $model->in_gate_id = $inGateId;
+            $model->in_gate_id = !empty($deviceInfo) ? $deviceInfo['id'] : 0;
             $model->in_address = $data['in_address'];
             $model->in_time = $data['in_time'];
             $model->lot_code = $data['lot_code'];

@@ -26,10 +26,10 @@ class ParkingAcrossForm extends Model
     {
         return [
             [['carNum', 'arriveDeviceNum', 'arriveDeviceName', 'arriveTime', 'lotCode'],
-                'required','message'=>'{attribute}不能为空!','on'=>['enter', 'exit']],
+                'required','message'=>'{attribute}不能为空!','on'=>['enter']],
             ['arriveTime','date','format'=>'yyyy-MM-dd HH:mm:ss',
                 'message' => '{attribute}格式有误', 'on'=>['enter', 'exit']],
-            [['leaveDeviceNum', 'leaveDeviceName', 'leaveTime'],
+            [['carNum','lotCode','leaveDeviceNum', 'leaveDeviceName', 'leaveTime'],
                 'required', 'message'=>'{attribute}不能为空!', 'on' => 'exit'],
 
             ['leaveTime','date','format'=>'yyyy-MM-dd HH:mm:ss',
