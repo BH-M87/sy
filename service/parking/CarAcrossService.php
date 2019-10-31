@@ -500,7 +500,7 @@ class CarAcrossService extends BaseService
         if($data['park_time'] < 0){
             throw new MyException('出场时间不能比入场时间晚');
         }
-        $this->saveExitRecord($data);
+        //$this->saveExitRecord($data);
         if (!$model) {
             $model = new ParkingAcrossRecord();
             $model->supplier_id = $data['supplier_id'];
@@ -522,36 +522,39 @@ class CarAcrossService extends BaseService
 
             //查询设备信息
             $inGateId = 0;
-            //设备id不传的时候用设备名称去记录设备信息
-            if($orderId && $data['in_address'] == 'iotDevice'){
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'],$data['in_address']);
-                if (!$deviceInfo) {
-                    //保存设备信息
-                    $tmpData['deviceNum'] = $data['in_device_num'];
-                    $tmpData['deviceName'] = $data['in_address'];
-                    $tmpData['community_id'] = $data['community_id'];
-                    $tmpData['supplier_id'] = $data['supplier_id'];
-                    DeviceService::service()->addData($tmpData);
-                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'], $data['in_address']);
-                }
-            }else{
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
-                if (!$deviceInfo) {
-                    //保存设备信息
-                    $tmpData['deviceNum'] = $data['in_device_num'];
-                    $tmpData['deviceName'] = $data['in_address'];
-                    $tmpData['community_id'] = $data['community_id'];
-                    $tmpData['supplier_id'] = $data['supplier_id'];
-                    DeviceService::service()->addData($tmpData);
+            $deviceInfo = '';
+            //当入场设备存在的时候才去新增设备
+            if($data['in_device_num']){
+                //设备id不传的时候用设备名称去记录设备信息
+                if($orderId && $data['in_address'] == 'iotDevice'){
+                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'],$data['in_address']);
+                    if (!$deviceInfo) {
+                        //保存设备信息
+                        $tmpData['deviceNum'] = $data['in_device_num'];
+                        $tmpData['deviceName'] = $data['in_address'];
+                        $tmpData['community_id'] = $data['community_id'];
+                        $tmpData['supplier_id'] = $data['supplier_id'];
+                        DeviceService::service()->addData($tmpData);
+                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'], $data['in_address']);
+                    }
+                }else{
                     $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                    if (!$deviceInfo) {
+                        //保存设备信息
+                        $tmpData['deviceNum'] = $data['in_device_num'];
+                        $tmpData['deviceName'] = $data['in_address'];
+                        $tmpData['community_id'] = $data['community_id'];
+                        $tmpData['supplier_id'] = $data['supplier_id'];
+                        DeviceService::service()->addData($tmpData);
+                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                    }
                 }
             }
 
-            $inGateId = $deviceInfo['id'];
             $model->user_id = $userId;
             $model->car_type = $carType;
-            $model->in_gate_id = $inGateId;
-            $model->in_address = $data['in_address'];
+            $model->in_gate_id = !empty($deviceInfo) ? $deviceInfo['id'] : 0;
+            $model->in_address = !empty($deviceInfo) ? $data['in_address'] : "";
             $model->in_time = $data['in_time'];
             $model->lot_code = $data['lot_code'];
             $model->created_at = time();
@@ -621,25 +624,6 @@ class CarAcrossService extends BaseService
         }
         $model->park_time = $data['park_time'];
         if ($model->save()) {
-            //增加推送到队列
-            //$supplierSign = \door\modules\inner\modules\v1\services\RoomService::service()->getSupplierSignById($data['supplier_id']);
-            //iot湖州项目需要同步到公安内网-edit by wenchao.feng 2019-1-25
-            //数据同步到公安内网只用$syncSet参数来同步--add by zq 2019-3-12
-            $syncSet = $this->getSyncDatacenter($data['community_id'],$data['supplier_id']);
-            if($syncSet){
-                $data['syncSet'] = $syncSet;
-                //$this->setEnterMq($data);
-                //$this->setExitMq($data);
-            }
-
-            //数据同步到大屏数据展示
-            $tmpReq['type'] = 1;
-            $tmpReq['community_id'] = $data['community_id'];
-            $tmpReq['car_num'] = $data['car_num'];
-            $tmpReq['device_name'] = $data['out_address'];
-            $tmpReq['in'] = false;
-            $tmpReq['time'] = $data['out_time'];
-            //ParkingAcrossService::service()->syncDataToApi($tmpReq);
 
             //开通支付宝停车缴费功能并是外部车辆
             if ($lotInfo['alipay_park_id'] && $model->car_type == 2) {
@@ -657,7 +641,6 @@ class CarAcrossService extends BaseService
                 }
             }
             $res['record_id'] = $model->id;
-
             $data['across_type'] = 2;
             return true;
         } else {
