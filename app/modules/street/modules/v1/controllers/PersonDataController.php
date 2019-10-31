@@ -9,6 +9,8 @@
 namespace app\modules\street\modules\v1\controllers;
 
 
+use service\street\BasicDataService;
+
 class PersonDataController extends BaseController
 {
     //列表
@@ -26,6 +28,10 @@ class PersonDataController extends BaseController
     //公共接口
     public function actionGetCommon()
     {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
+        print_r($this->request_params);exit;
+        BasicDataService::service()->getLabelRelaData(1);
 
     }
 
