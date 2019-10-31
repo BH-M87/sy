@@ -555,7 +555,7 @@ class CarAcrossService extends BaseService
             $model->car_type = $carType;
             $model->in_gate_id = !empty($deviceInfo) ? $deviceInfo['id'] : 0;
             $model->in_address = !empty($deviceInfo) ? $data['in_address'] : "";
-            $model->in_time = !empty($deviceInfo) ? $data['in_time'] : "";
+            $model->in_time = $data['in_time'];
             $model->lot_code = $data['lot_code'];
             $model->created_at = time();
         }
