@@ -83,7 +83,10 @@ class DoorExternalService extends BaseService
         $model->has_hat = !empty($data['hasHat']) ? $data['hasHat'] : 0;
         $model->has_bag = !empty($data['hasBag']) ? $data['hasBag'] : 0;
         $model->device_type = $deviceInfo['device_type'] ? $deviceInfo['device_type'] : 0;
-
+        //访客记录里面记录访客id
+        if($visitor_id){
+            $model->visitor_id = $visitor_id;
+        }
         if ($data['openType'] == 5) {
             //门卡开门，查询门卡
             $cardInfo = DoorCard::find()
