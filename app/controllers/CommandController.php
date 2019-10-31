@@ -174,7 +174,7 @@ class CommandController extends Controller
 
     public function actionSyncFaceUser()
     {
-        $community_id = ["89","107","108"];
+        $community_id = ["47"];
         //$community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
         $list = PsRoomUser::find()->alias('ru')
             ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
@@ -320,6 +320,8 @@ class CommandController extends Controller
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
                 ResidentService::service()->residentSync($dataInfo, 'edit');
+                //从队列里面移除
+                Yii::$app->redis->lpop("IotFaceUser_sqwn");
             }
         }
     }
