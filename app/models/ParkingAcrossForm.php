@@ -34,7 +34,7 @@ class ParkingAcrossForm extends Model
 
             ['leaveTime','date','format'=>'yyyy-MM-dd HH:mm:ss',
                 'message' => '{attribute}格式有误', 'on'=>['exit']],
-            ['leaveTime', 'compareTime', 'on' => 'exit']
+            //['leaveTime', 'compareTime', 'on' => 'exit']
         ];
     }
 
