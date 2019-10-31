@@ -1163,6 +1163,14 @@ ORDER BY juli ASC LIMIT 1";
         return $org_code.'00000'.$no;
     }
 
+    public function getCommunityIdByCode($code)
+    {
+       $code = PsCommunityModel::find()->select('id')->where(['event_community_no' => $code])->one()['id'];
+       if (!$code) {
+           throw new MyException('小区code错误');
+       }
+       return $code;
+    }
 
 
 }

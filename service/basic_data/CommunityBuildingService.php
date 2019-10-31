@@ -47,13 +47,13 @@ class CommunityBuildingService extends BaseService
 
     public function getBuildList($data)
     {
-        $list = PsCommunityBuilding::find()->select(['name as building_name', 'id as building_id'])->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityBuilding::find()->select(['name as building_name', 'id as building_id'])->filterWhere(['community_id' => $data['community_id'] ?? null, 'group_id' => $data['group_id']])->orderBy('id desc')->asArray()->all();
         return $list;
     }
 
     public function getUnitsList($data)
     {
-        $list = PsCommunityUnits::find()->select(['name as unit_name', 'id as unit_id'])->where(['community_id' => $data['community_id'], 'group_id' => $data['group_id'], 'building_id' => $data['building_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityUnits::find()->select(['name as unit_name', 'id as unit_id'])->filterWhere(['community_id' => $data['community_id'] ?? null, 'group_id' => $data['group_id'] ?? null, 'building_id' => $data['building_id']])->orderBy('id desc')->asArray()->all();
         return $list;
     }
 
