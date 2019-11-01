@@ -9,6 +9,8 @@
 namespace app\modules\street\modules\v1\controllers;
 
 
+use app\models\PsMember;
+use common\core\PsCommon;
 use service\street\BasicDataService;
 
 class PersonDataController extends BaseController
@@ -30,9 +32,8 @@ class PersonDataController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
-        print_r($this->request_params);exit;
-        BasicDataService::service()->getLabelRelaData(1);
-
+        $labels = BasicDataService::service()->getLabelCommon($this->request_params['organization_id'],2);
+        return PsCommon::responseSuccess($labels);
     }
 
     //人行记录

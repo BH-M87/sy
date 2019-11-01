@@ -9,7 +9,10 @@
 namespace app\modules\street\modules\v1\controllers;
 
 
+use app\models\Department;
+use common\core\F;
 use common\core\PsCommon;
+use service\street\BasicDataService;
 use service\street\LabelsService;
 
 
@@ -112,14 +115,16 @@ class LabelController extends BaseController
         $data_id = $this->request_params['data_id'];
         $labels_id = $this->request_params['labels_id'];
         $data_type = $this->request_params['data_type'];
+
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
 
         $result = LabelsService::service()->addRelation($data_id, $labels_id, $data_type,$this->user_info['node_type'],$this->user_info['dept_id']);
-        if (!empty($result)) {
+        if ($result['code']) {
             return PsCommon::responseSuccess();
         }
-        return PsCommon::responseFailed('标签关系已存在');
+
+        return PsCommon::responseFailed($result['msg']);
     }
 
     // 删除 标签关联关系
@@ -134,4 +139,18 @@ class LabelController extends BaseController
             return PsCommon::responseFailed($result["msg"]);
         }
     }
+
+    //按照标签统计
+    public function actionStatistics()
+    {
+        $this->request_params['organization_type'] = $this->user_info['node_type'];
+        $this->request_params['organization_id'] = $this->user_info['dept_id'];
+        $streetCode = F::value($this->request_params, 'street_code', '');
+
+        if ($this->request_params['organization_type'] == 0) {
+            //区县账号，只查询系统内置标签
+        }
+    }
+
+
 }

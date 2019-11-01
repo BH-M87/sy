@@ -9,6 +9,7 @@
 namespace service\street;
 use app\models\ParkingCars;
 use app\models\PsCommunityRoominfo;
+use app\models\PsMember;
 use app\models\PsRoomUser;
 use app\models\StLabels;
 use app\models\StLabelsRela;
@@ -169,59 +170,107 @@ class LabelsService extends BaseService
     // 添加 关联数据
     public function addRelation($data_id, $labels_id, $data_type,$organization_type,$organization_id)
     {
-        if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
-            $type = 1;
-            switch ($data_type) {
-                case '1': // 1 房屋
-                    $m = PsCommunityRoominfo::findOne($data_id);
-                    break;
-                case '3': // 3 车辆
-                    $m = ParkingCars::findOne($data_id);
-                    break;
-                default: // 2 住户
-                    $m = PsRoomUser::findOne($data_id);
-                    $type = $m->status;
-                    break;
-            }
-
-            $trans = \Yii::$app->getDb()->beginTransaction();
-            try {
-                if (is_array($labels_id)) { // 批量添加标签关联关系
-                    StLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
-                    foreach ($labels_id as $v) {
-                        $insert[] = ['organization_type' => $organization_type, 'organization_id' => $organization_id,'labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'type' => $type];
-                    }
-                } else { // 单个添加标签关联关系
-                    $rela = StLabelsRela::find()->where(['labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type])->asArray()->all();
-                    if (!empty($rela)) {
-                        return false;
-                    }
-                    $insert[] = ['organization_type' => $organization_type, 'organization_id' => $organization_id,'labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'type' => $type];
-                }
-                Yii::$app->db->createCommand()
-                    ->batchInsert('st_labels_rela', ['organization_type','organization_id','labels_id', 'data_id', 'data_type', 'created_at', 'type'], $insert)->execute();
-
-                $trans->commit();
-            } catch (\Exception $e) {
-                $trans->rollBack();
-                return $this->failed($e->getMessage());
-            }
-
-            return true;
+        if (!$data_id) {
+            return $this->failed('关联记录id不能为空');
         }
-        return false;
+        if (!$data_type) {
+            return $this->failed('标签属性不能为空');
+        }
+        if (!$labels_id) {
+            return $this->failed('标签id不能为空');
+        }
+        if (!in_array($data_type, [1,2,3])) {
+            return $this->failed('标签属性值不合法');
+        }
+        $type = 1;
+        switch ($data_type) {
+            case '1': // 1 房屋
+                $m = PsCommunityRoominfo::findOne($data_id);
+                break;
+            case '3': // 3 车辆
+                $m = ParkingCars::findOne($data_id);
+                break;
+            default: // 2 住户
+                $m = PsMember::findOne($data_id);
+                break;
+        }
+        if (!$m) {
+            return $this->failed('数据不存在');
+        }
+
+        $trans = \Yii::$app->getDb()->beginTransaction();
+        try {
+            if (is_array($labels_id)) { // 批量添加标签关联关系
+                StLabelsRela::deleteAll(['data_type' => $data_type, 'data_id' => $data_id]);
+                foreach ($labels_id as $v) {
+                    $labelModel = StLabels::findOne($v);
+                    if (!$labelModel) {
+                        return $this->failed('标签不存在');
+                    }
+                    //标签关系已存在
+                    $relaModel = StLabelsRela::find()
+                        ->where(['labels_id' => $v, 'data_type' => $data_type, 'data_id' => $data_id, 'organization_id' => $organization_id])
+                        ->asArray()
+                        ->one();
+                    if ($relaModel) {
+                        return $this->failed('标签关联关系已存在');
+                    }
+                    $insert[] = ['organization_type' => $organization_type, 'organization_id' => $organization_id,'labels_id' => $v, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'type' => $type];
+                }
+            } else { // 单个添加标签关联关系
+                $labelModel = StLabels::findOne($labels_id);
+                if (!$labelModel) {
+                    return $this->failed('标签不存在');
+                }
+                //标签关系已存在
+                $relaModel = StLabelsRela::find()
+                    ->where(['labels_id' => $labels_id, 'data_type' => $data_type, 'data_id' => $data_id, 'organization_id' => $organization_id])
+                    ->asArray()
+                    ->one();
+                if ($relaModel) {
+                    return $this->failed('标签关联关系已存在');
+                }
+
+                $insert[] = ['organization_type' => $organization_type, 'organization_id' => $organization_id,'labels_id' => $labels_id, 'data_id' => $data_id, 'data_type' => $data_type, 'created_at' => time(), 'type' => $type];
+            }
+            Yii::$app->db->createCommand()
+                ->batchInsert('st_labels_rela', ['organization_type','organization_id','labels_id', 'data_id', 'data_type', 'created_at', 'type'], $insert)->execute();
+            $trans->commit();
+            return $this->success();
+        } catch (\Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
+
     }
 
     // 删除 关联数据
     public function deleteRelation($param)
     {
-        $rela = StLabelsRela::find()->where(['data_type' => $param['data_type'], 'data_id' => $param['data_id'], 'labels_id' => $param['labels_id']])->asArray()->one();
+        if (!$param['data_id']) {
+            return $this->failed('关联记录id不能为空');
+        }
+        if (!$param['data_type']) {
+            return $this->failed('标签属性不能为空');
+        }
+        if (!$param['labels_id']) {
+            return $this->failed('标签id不能为空');
+        }
+        if (!in_array($param['data_type'], [1,2,3])) {
+            return $this->failed('标签属性值不合法');
+        }
+        $rela = StLabelsRela::find()
+            ->where(['data_type' => $param['data_type'], 'data_id' => $param['data_id'], 'labels_id' => $param['labels_id']])
+            ->andWhere(['organization_id' => $param['organization_id']])
+            ->asArray()
+            ->one();
 
         if (empty($rela)) {
             return $this->failed('标签关系不存在');
         }
 
-        $model = StLabelsRela::deleteAll(['data_type' => $param['data_type'], 'data_id' => $param['data_id'], 'labels_id' => $param['labels_id']]);
+        $model = StLabelsRela::deleteAll(['data_type' => $param['data_type'], 'data_id' => $param['data_id'],
+            'labels_id' => $param['labels_id'], 'organization_id' => $param['organization_id']]);
         if (!empty($model)) {
             return $this->success();
         }

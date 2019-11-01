@@ -44,6 +44,7 @@ class UserService extends BaseService
             throw new MyException("用户不存在！");
         }
 
+        $user_info['department_id'] = $user_info['dept_id'];
         if ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
@@ -64,6 +65,8 @@ class UserService extends BaseService
                 throw new MyException("用户组织不存在！");
             }
             $user_info['dept_id'] = $orgCode;
+        } elseif ($user_info['node_type'] == 0) {
+            $user_info['dept_id'] = $user_info['org_code'];
         }
         //根据所属的组织，查找拥有的小区权限
         $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
