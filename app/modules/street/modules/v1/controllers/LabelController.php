@@ -143,13 +143,18 @@ class LabelController extends BaseController
     //按照标签统计
     public function actionStatistics()
     {
-        $this->request_params['organization_type'] = $this->user_info['node_type'];
-        $this->request_params['organization_id'] = $this->user_info['dept_id'];
         $streetCode = F::value($this->request_params, 'street_code', '');
-
-        if ($this->request_params['organization_type'] == 0) {
-            //区县账号，只查询系统内置标签
+        $dataType = F::value($this->request_params, 'search_type', '');
+        if (!$dataType) {
+            return PsCommon::responseFailed('查询类型不能为空');
         }
+
+        if ($this->user_info['node_type'] == 1) {
+            //当前登录账号为街道账号，默认无搜索条件，查询当前街道数据
+            $streetCode = $this->user_info['dept_id'];
+        }
+        $labelList = BasicDataService::service()->getLabelStatistics($streetCode, $dataType, $this->user_info['node_type']);
+        return PsCommon::responseSuccess($labelList);
     }
 
 

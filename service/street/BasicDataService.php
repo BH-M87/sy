@@ -54,6 +54,7 @@ class BasicDataService extends BaseService
     }
 
     /**
+     * 根据java小区编码获取小区id
      * @param $communityCode
      * @return false|int|null|string
      */
@@ -67,19 +68,50 @@ class BasicDataService extends BaseService
         return $communityId ? $communityId : 0;
     }
 
+    /**
+     * 根据区县编码获取街道编码
+     * @param $parentCode
+     * @return array
+     */
+    public function getStreetCodeByParentCode($parentCode)
+    {
+        $parentId = Department::find()
+            ->select('id')
+            ->where(['org_code' => $parentCode])
+            ->asArray()
+            ->scalar();
+        if ($parentId) {
+            $streetCodes = Department::find()
+                ->select('org_code')
+                ->where(['parent_id' => $parentId, 'node_type' => 1])
+                ->asArray()
+                ->column();
+            return $streetCodes;
+        }
+        return [];
+    }
 
-    public function getLabelCommon($streetCode, $dataType)
+    public function getLabelStatistics($streetCode, $dataType, $nodeType)
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
         //查询所有标签
-        $labels = StLabels::find()
-            ->select('id,name,label_type')
-            ->where(['label_attribute' => $dataType, 'is_delete' => 1])
-            ->andWhere(['or', ['=', 'is_sys', 2], ['=','organization_id',$streetCode]])
-            ->orderBy('is_sys asc')
-            ->asArray()
-            ->all();
+        if ($nodeType == 0 && empty($streetCode)) {
+            $labels = StLabels::find()
+                ->select('id,name,label_type')
+                ->where(['label_attribute' => $dataType, 'is_delete' => 1, 'is_sys' => 2])
+                ->orderBy('is_sys asc')
+                ->asArray()
+                ->all();
+        } else {
+            $labels = StLabels::find()
+                ->select('id,name,label_type')
+                ->where(['label_attribute' => $dataType, 'is_delete' => 1])
+                ->andWhere(['or', ['=', 'is_sys', 2], ['=','organization_id',$streetCode]])
+                ->orderBy('is_sys asc')
+                ->asArray()
+                ->all();
+        }
         $label['daily'] = [];
         $label['focus'] = [];
         $label['care'] = [];
