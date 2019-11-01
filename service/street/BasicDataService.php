@@ -7,12 +7,11 @@
  */
 
 namespace service\street;
-
+use app\models\Department;
 use app\models\DepartmentCommunity;
 use app\models\PsCommunityModel;
-use app\models\PsLabels;
-use app\models\PsLabelsRela;
 use app\models\StLabels;
+use app\models\StLabelsRela;
 
 class BasicDataService extends BaseService
 {
@@ -51,6 +50,7 @@ class BasicDataService extends BaseService
     }
 
     /**
+     * 根据java小区编码获取小区id
      * @param $communityCode
      * @return false|int|null|string
      */
@@ -64,17 +64,50 @@ class BasicDataService extends BaseService
         return $communityId ? $communityId : 0;
     }
 
-
-    public function getLabelCommon($streetCode, $statisticType)
+    /**
+     * 根据区县编码获取街道编码
+     * @param $parentCode
+     * @return array
+     */
+    public function getStreetCodeByParentCode($parentCode)
     {
-        //查询所有标签
-        $labels = PsLabels::find()
-            ->select('id,name,label_type')
-            ->where(['label_attribute' => $statisticType, 'organization_type'=>1,
-                'organization_id'=> $streetCode, 'is_delete' => 1])
-            ->orderBy('is_sys asc')
+        $parentId = Department::find()
+            ->select('id')
+            ->where(['org_code' => $parentCode])
             ->asArray()
-            ->all();
+            ->scalar();
+        if ($parentId) {
+            $streetCodes = Department::find()
+                ->select('org_code')
+                ->where(['parent_id' => $parentId, 'node_type' => 1])
+                ->asArray()
+                ->column();
+            return $streetCodes;
+        }
+        return [];
+    }
+
+    public function getLabelStatistics($streetCode, $dataType, $nodeType)
+    {
+        //查询所有标签统计
+        $tjData = $this->getLabelRelaData($streetCode, $dataType);
+        //查询所有标签
+        if ($nodeType == 0 && empty($streetCode)) {
+            $labels = StLabels::find()
+                ->select('id,name,label_type')
+                ->where(['label_attribute' => $dataType, 'is_delete' => 1, 'is_sys' => 2])
+                ->orderBy('is_sys asc')
+                ->asArray()
+                ->all();
+        } else {
+            $labels = StLabels::find()
+                ->select('id,name,label_type')
+                ->where(['label_attribute' => $dataType, 'is_delete' => 1])
+                ->andWhere(['or', ['=', 'is_sys', 2], ['=','organization_id',$streetCode]])
+                ->orderBy('is_sys asc')
+                ->asArray()
+                ->all();
+        }
         $label['daily'] = [];
         $label['focus'] = [];
         $label['care'] = [];
@@ -84,39 +117,93 @@ class BasicDataService extends BaseService
                 $label['daily'][] = [
                     'label_id' => $l['id'],
                     'label_name' => $l['name'],
-                    'label_number' => 0
+                    'label_number' => !empty($tjData[$l['id']]) ? $tjData[$l['id']] : 0
                 ];
             } elseif ($l['label_type'] == 2) {
                 //重点关注
                 $label['focus'][] = [
                     'label_id' => $l['id'],
                     'label_name' => $l['name'],
-                    'label_number' => 0
+                    'label_number' => !empty($tjData[$l['id']]) ? $tjData[$l['id']] : 0
                 ];
             } elseif ($l['label_type'] == 3) {
                 //关怀对象
                 $label['care'][] = [
                     'label_id' => $l['id'],
                     'label_name' => $l['name'],
-                    'label_number' => 0
+                    'label_number' => !empty($tjData[$l['id']]) ? $tjData[$l['id']] : 0
                 ];
             } else {
                 continue;
             }
         }
 
+        $label = $this->addAllLabel($label);
+        return $label;
     }
 
-    public function getLabelRelaData($streetCode, $statisticType)
+    public function getLabelRelaData($streetCode, $dataType)
     {
-        $data = PsLabelsRela::find()
-           ->select('count(*) as num,labels_id')
-           ->where(['organization_type' => 1,'organization_id' => $streetCode,'data_type' => $statisticType])
-           ->groupBy('labels_id')
-           ->asArray()
-           ->all();
-        print_r($data);exit;
+        $returnData = [];
+        $data = StLabelsRela::find()
+            ->alias('slr')
+            ->leftJoin('ps_member m','m.id = slr.data_id')
+            ->select('count(*) as num,slr.labels_id')
+            ->where(['slr.organization_type' => 1,'slr.organization_id' => $streetCode,'slr.data_type' => $dataType])
+            ->andWhere(['!=','m.id',''])
+            ->groupBy('slr.labels_id')
+            ->asArray()
+            ->all();
+        foreach ($data as $k => $v) {
+            $returnData[$v['labels_id']] = $v['num'];
+        }
+        return $returnData;
+    }
 
+    public function getStreetCodeByDistinctId($departmentId)
+    {
+        return Department::find()
+            ->select('org_code')
+            ->where(['parent_id' => $departmentId])
+            ->asArray()
+            ->column();
+    }
+
+    //增加全部标签
+    private function addAllLabel($labels)
+    {
+        if (!empty($labels['daily'])) {
+            $dailyNum = 0;
+            foreach ($labels['daily'] as $v) {
+                $dailyNum += $v['label_number'];
+            }
+            $tmp['label_id'] = -1;
+            $tmp['label_name'] = "全部";
+            $tmp['label_number'] = $dailyNum;
+            array_unshift($labels['daily'], $tmp);
+        }
+        if (!empty($labels['focus'])) {
+            $focusNum = 0;
+            foreach ($labels['focus'] as $v) {
+                $focusNum += $v['label_number'];
+            }
+            $tmp['label_id'] = -2;
+            $tmp['label_name'] = "全部";
+            $tmp['label_number'] = $focusNum;
+            array_unshift($labels['focus'], $tmp);
+        }
+
+        if (!empty($labels['care'])) {
+            $careNum = 0;
+            foreach ($labels['care'] as $v) {
+                $careNum += $v['label_number'];
+            }
+            $tmp['label_id'] = -3;
+            $tmp['label_name'] = "全部";
+            $tmp['label_number'] = $careNum;
+            array_unshift($labels['care'], $tmp);
+        }
+        return $labels;
     }
 
     /**

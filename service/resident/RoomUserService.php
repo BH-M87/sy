@@ -108,4 +108,14 @@ class RoomUserService extends BaseService
         }
         return $status;
     }
+
+    public function getRoomUserList($params)
+    {
+        return PsRoomUser::getList($params,'mobile,name,sex,identity_type,status,auth_time,card_no,identity_type,time_end,auth_time');
+    }
+
+    public function getRoomIdList($member_id)
+    {
+        return PsRoomUser::find()->select('room_id')->where(['member_id' => $member_id])->column();
+    }
 }

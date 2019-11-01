@@ -1078,5 +1078,22 @@ Class HouseService extends BaseService
         return $list;
     }
 
+    /**
+     * 获取房屋详情
+     * @author yjh
+     * @param $id
+     * @return mixed
+     */
+    public function getRoomDetail($id)
+    {
+        $detail['info'] = PsCommunityRoominfo::find()->select(['room_id as room_no','own_age_limit','id','room_image','house_type','orientation','status','delivery_time','property_type','community_id','group','building','unit','floor','charge_area'])->where(['id' => $id])->asArray()->one();
+        $detail['info']['community_name'] = PsCommunityModel::find()->select('name')->where(['id' => $detail['info']['community_id']])->one()['name'];
+        $detail['info']['property_type'] = PsCommon::propertyType($detail['info']['property_type']);
+        $detail['info']['delivery_time'] = !empty($detail['info']['delivery_time']) ? date('Y-m-d',$detail['info']['delivery_time']) : '';
+        $detail['label_list'] = LabelsService::service()->getLabelInfoByRoomId($detail['info']['id']);
+        return $detail;
+    }
+
+
 
 }

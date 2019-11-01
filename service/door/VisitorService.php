@@ -67,7 +67,13 @@ class VisitorService extends BaseService
     {
         $model = PsRoomVistors::find()->alias("room")
             ->leftJoin("ps_member member", "room.member_id=member.id")
-            ->where(['room.community_id' => $params['community_id']]);
+            ->filterWhere(['room.community_id' => $params['community_id'] ?? null]);
+        if (!empty($params['member_id'])){
+            $model->andFilterWhere(['room.member_id'=>$params['member_id']]);
+        }
+        if (!empty($params['room_id'])){
+            $model->andFilterWhere(['room.room_id'=>$params['room_id']]);
+        }
         if(!empty($params['group'])){
             $model->andFilterWhere(['room.group'=>$params['group']]);
         }
@@ -111,7 +117,7 @@ class VisitorService extends BaseService
         $re['total'] = $model->count();
         $model->select('room.id, room.vistor_name,room.sex,room.vistor_mobile,room.start_time,room.end_time,room.car_number,
         room.is_cancel,room.`group`,room.building,room.unit,room.room,room.reason,room.passage_at,
-        member.name as member_name,room.status');
+        member.name as member_name,room.status,room.car_number');
         if (empty($params['use_as'])) {
             $model->offset((($params['page'] - 1) * $params['rows']))->limit($params['rows']);
         }
