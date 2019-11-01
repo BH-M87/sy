@@ -63,6 +63,12 @@ class CarService extends BaseService
         if (!empty($req['community_id'])) {
             $query->andWhere(['car.community_id' => $req['community_id']]);
         }
+        if (!empty($req['room_id'])) {
+            $query->andWhere(['puc.room_id' => $req['room_id']]);
+        }
+        if (!empty($req['member_id'])) {
+            $query->andWhere(['puc.member_id' => $req['member_id']]);
+        }
         if (!empty($req['lot_id'])) {
             $query->andWhere(['pc.lot_id' => $req['lot_id']]);
         }
