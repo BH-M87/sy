@@ -43,8 +43,9 @@ class UserService extends BaseService
         if (!$user_info) {
             throw new MyException("用户不存在！");
         }
-
-        if ($user_info['node_type'] == 1) {
+        if($user_info['node_type'] == 0){
+            $user_info['dept_id'] = $user_info['qx_org_code'];
+        } elseif ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
             $user_info['dept_id'] = $user_info['sq_org_code'];
@@ -102,8 +103,18 @@ class UserService extends BaseService
     public function getCommunityList($node_type,$dept_id)
     {
         switch($node_type){
+            case "0":
+                //查找这个区县的id
+                $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
+                //找到这个街道下面所有的街道id
+                $jiedao = Department::find()->select(['id'])->where(['parent_id'=>$id,'department_level'=>2])->asArray()->column();
+                //找到这个街道下面所有的社区id
+                $shequ = Department::find()->select(['id'])->where(['parent_id'=>$jiedao,'department_level'=>3])->asArray()->column();
+                //找到这些社区下面所有的小区code
+                $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
+                break;
             case "1":
-                //查找这个接到的id
+                //查找这个街道的id
                 $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
                 //找到这个街道下面所有的社区id
                 $shequ = Department::find()->select(['id'])->where(['parent_id'=>$id,'department_level'=>3])->asArray()->column();
@@ -111,7 +122,7 @@ class UserService extends BaseService
                 $department = Department::find()->select(['org_code'])->where(['parent_id'=>$shequ,'department_level'=>4])->asArray()->column();
                 break;
             case "2":
-                //查找这个接到的id
+                //查找这个社区的id
                 $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
                 //找到这个社区下面所有的小区code
                 $department = Department::find()->select(['org_code'])->where(['parent_id'=>$id,'department_level'=>4])->asArray()->column();
@@ -208,6 +219,46 @@ class UserService extends BaseService
             $orgCode = $model['org_code'];
         }
         return $orgCode;
+    }
+
+    //根据区县的code查找街道的code
+    public function getStreetCodeByCounty($dept_id)
+    {
+        //查找这个区县的id
+        $id = Department::find()->select(['id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
+        //找到这个街道下面所有的街道org_code
+        return Department::find()->select(['org_code'])->where(['parent_id'=>$id,'node_type'=>1])->asArray()->column();
+    }
+
+    //根据社区的code查找街道的code
+    public function getStreetCodeByDistrict($dept_id)
+    {
+        //查找这个社区所属的街道的id
+        $id = Department::find()->select(['parent_id'])->where(['org_code'=>$dept_id])->asArray()->scalar();
+        //找到这个街道下面所有的街道org_code
+        return Department::find()->select(['org_code'])->where(['id'=>$id,'node_type'=>1])->asArray()->column();
+    }
+
+    //处理搜索小区
+    public function dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo)
+    {
+        //根据小区code查找对应的小区id
+        if($community_code){
+            return $this->getCommunityList(6,$community_code);
+        }
+        //根据社区code查找对应的小区id
+        if($district_code){
+            return $this->getCommunityList(2,$community_code);
+        }
+        //根据街道code查找对应的小区id
+        if($street_code){
+            return $this->getCommunityList(1,$community_code);
+        }
+        if($userInfo){
+            return $this->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
+        }
+        return [];
+
     }
 
 

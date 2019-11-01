@@ -14,23 +14,28 @@ use service\street\CarDataService;
 
 class CarDataController extends BaseController
 {
+    //获取列表
     public function actionList()
     {
-        $result = CarDataService::service()->getList($this->request_params);
+        $result = CarDataService::service()->getList($this->request_params,$this->page,$this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
+    //获取详情
     public function actionDetail()
     {
 
-    }
-
-    public function actionDetailInfo()
-    {
-
+        $result = CarDataService::service()->getDetail($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     public function actionDayReport()
+    {
+        $result = CarDataService::service()->getDayReport($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
+    public function actionDayReportInfo()
     {
 
     }
