@@ -160,6 +160,11 @@ class BasicDataService extends BaseService
         return $returnData;
     }
 
+    /**
+     * 根据社区编码查询街道编码
+     * @param $departmentId
+     * @return array
+     */
     public function getStreetCodeByDistinctId($departmentId)
     {
         return Department::find()
@@ -251,6 +256,47 @@ class BasicDataService extends BaseService
             $labelIdList = array_unique(array_merge($label,$label_id,$label1,$label2,$label3));
         }
         return $labelIdList;
+    }
+
+    /**
+     * 获取某类型下的所有标签id
+     * @param $type
+     * @param $attribute
+     * @param null $streetCode
+     * @return array
+     */
+    public function getLabelByType($type, $attribute, $streetCode = null)
+    {
+        if ($streetCode) {
+            $labels = StLabels::find()
+                ->select('id')
+                ->where(['label_attribute' => $attribute, 'label_type' => $type, 'is_delete' => 1])
+                ->andWhere(['or', ['=', 'is_sys', 2], ['=','organization_id',$streetCode]])
+                ->asArray()
+                ->column();
+        } else {
+            $labels = StLabels::find()
+                ->select('id')
+                ->where(['label_attribute' => $attribute, 'label_type' => $type, 'is_delete' => 1])
+                ->andWhere(['is_sys', 2])
+                ->asArray()
+                ->column();
+        }
+        return $labels;
+    }
+
+    /**
+     * 根据小区编码获取部门层级详情
+     * @param $communityCode
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getDepartInfoByCommunityCode($communityCode)
+    {
+       return DepartmentCommunity::find()
+            ->select('jd_org_code', 'sq_org_code', 'qx_org_code')
+            ->where(['xq_orgcode' => $communityCode])
+            ->asArray()
+            ->one();
     }
 
 
