@@ -41,6 +41,11 @@ class AnswerController extends UserBaseController
         PsCommon::responseSuccess();
     }
 
+    /**
+     * 排行榜
+     * @author yjh
+     * @throws MyException
+     */
     public function actionGetTop()
     {
         if (empty($this->params['user_id'])) throw new MyException('用户id不能为空');
