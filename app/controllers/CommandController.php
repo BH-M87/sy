@@ -313,9 +313,9 @@ class CommandController extends Controller
 
     }
 
-    //iot人脸数据下发
+    //iot人脸数据下发 * * * * * curl localhost:9003/command/iot-data
     public function actionIotFace(){
-        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 1);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
