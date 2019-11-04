@@ -500,7 +500,7 @@ class CarAcrossService extends BaseService
         if($data['park_time'] < 0){
             throw new MyException('出场时间不能比入场时间晚');
         }
-        //$this->saveExitRecord($data);
+        $this->saveExitRecord($data);
         if (!$model) {
             $model = new ParkingAcrossRecord();
             $model->supplier_id = $data['supplier_id'];
