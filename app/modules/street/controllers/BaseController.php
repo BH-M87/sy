@@ -57,7 +57,6 @@ class BaseController extends Controller
         }
         $this->user_id  = F::request('user_id');
         $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
-
         //不走token验证的接口，及download不走其他权限,小区ID 验证
         if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
             return true;
