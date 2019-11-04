@@ -12,6 +12,7 @@ use app\models\DepartmentCommunity;
 use app\models\PsCommunityModel;
 use app\models\StLabels;
 use app\models\StLabelsRela;
+use app\models\StRecordReport;
 
 class BasicDataService extends BaseService
 {
@@ -256,6 +257,32 @@ class BasicDataService extends BaseService
             $labelIdList = array_unique(array_merge($label,$label_id,$label1,$label2,$label3));
         }
         return $labelIdList;
+    }
+
+    /**
+     * 获取今天之前x天的车/人数据
+     * @param $id       车/人的id
+     * @param int $type 1=车，2=人
+     * @param int $day  多少天的数据
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getDayReport($id,$type = 1,$day = 30)
+    {
+        $start_time = strtotime(date("Y-m-d 00:00:00"));//今天开始时间
+        $data = [];
+        for($i =1;$i<=$day;$i ++){
+            $res = StRecordReport::find()->select(['day','num','data_id as id'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])->asArray()->one();
+            if($res){
+                $data[] = $res;
+            }else{
+                $a['day'] = date("Y-m-d",$start_time);
+                $a['num'] = 0;
+                $a['id'] = 0;
+                $data[] = $a;
+            }
+            $start_time -= 3600*24;
+        }
+        return $data;
     }
 
     /**

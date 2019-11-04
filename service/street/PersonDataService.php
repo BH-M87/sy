@@ -29,10 +29,10 @@ class PersonDataService extends BaseService
         if ($params['community_code']) {
             $searchCommunityIds[0] = BasicDataService::service()->getCommunityIdByCommunityCode($params['community_code']);
             $communityIds = array_intersect($communityIds, $searchCommunityIds);
-        } elseif (empty($params['community_code']) && empty($params['street_code']) && params['district_code']) {
+        } elseif (empty($params['community_code']) && empty($params['street_code']) && $params['district_code']) {
             $searchCommunityIds = BasicDataService::service()->getCommunityIdByDistrictCode($params['district_code']);
             $communityIds = array_intersect($communityIds, $searchCommunityIds);
-        } elseif (empty($params['community_code']) && empty(params['district_code']) && $params['street_code']) {
+        } elseif (empty($params['community_code']) && empty($params['district_code']) && $params['street_code']) {
             $searchCommunityIds = BasicDataService::service()->getCommunityIdByStreetCode($params['street_code']);
             $communityIds = array_intersect($communityIds, $searchCommunityIds);
         }

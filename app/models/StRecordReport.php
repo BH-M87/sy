@@ -31,8 +31,7 @@ class StRecordReport extends \yii\db\ActiveRecord
     {
         return [
             [['type', 'num', 'data_id'], 'integer'],
-            [['day'], 'required'],
-            [['day'], 'safe'],
+            [['day'], 'string', 'max' => 20],
             [['time'], 'string', 'max' => 11],
         ];
     }
