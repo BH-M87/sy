@@ -12,6 +12,7 @@ namespace app\controllers;
 use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
 use app\models\IotSuppliers;
+use app\models\ParkingAcross;
 use app\models\PsAppMember;
 use app\models\PsCommunityBuilding;
 use app\models\PsCommunityGroups;
@@ -33,7 +34,9 @@ use Yii;
 
 class CommandController extends Controller
 {
-
+    const IOT_FACE_USER = "IotFaceUser_sqwn";//人脸住户数据同步
+    //const CAR_RECORD_REPORT = "car_record_report";//车进出记录同步
+    //const DOOR_RECORD_REPORT = "door_record_report";//人出行记录同步
     ##############################测试脚本############################################
     public function actionTest(){
         $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
@@ -41,7 +44,7 @@ class CommandController extends Controller
     }
 
     public function actionTest2(){
-        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 99);
         var_dump($list);die;
     }
     //新增测试访客记录
@@ -149,6 +152,7 @@ class CommandController extends Controller
         }
     }
 
+    //删除房屋
     public function actionDeleteRoom()
     {
         $community_id = ["101","102"];
@@ -172,6 +176,7 @@ class CommandController extends Controller
         }
     }
 
+    //同步指定小区人脸住户
     public function actionSyncFaceUser()
     {
         $community_id = ["47"];
@@ -182,13 +187,11 @@ class CommandController extends Controller
             ->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
-                Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                Yii::$app->redis->rpush(self::IOT_FACE_USER,json_encode($value));
                 //ResidentService::service()->residentSync($value, 'edit');
             }
         }
     }
-
-
 
     ##############################在用脚本############################################
 
@@ -315,13 +318,13 @@ class CommandController extends Controller
 
     //iot人脸数据下发
     public function actionIotFace(){
-        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 99);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
                 ResidentService::service()->residentSync($dataInfo, 'edit');
                 //从队列里面移除
-                Yii::$app->redis->lpop("IotFaceUser_sqwn");
+                Yii::$app->redis->lpop(self::IOT_FACE_USER);
             }
         }
     }

@@ -14,7 +14,10 @@ use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
 use app\models\DoorRecord;
 use app\models\IotSupplierCommunity;
+use app\models\ParkingCars;
+use app\models\PsMember;
 use app\models\PsRoomVistors;
+use app\models\StRecordReport;
 use common\core\Curl;
 use common\core\F;
 use common\MyException;
@@ -156,48 +159,12 @@ class DoorExternalService extends BaseService
         }
         $model->create_at = time();
         if($model->save()){
-            //增加推送到队列
-            $supplierSign = $this->getSupplierSignById($data['supplier_id']);
-            $syncSet = IotSupplierCommunity::find()
-                ->select(['sync_datacenter'])
-                ->where(['community_id'=> $data['community_id'], 'supplier_id' => $data['supplier_id']])
-                ->scalar();
-            //iot湖州项目需要同步到公安内网-edit by wenchao.feng 2019-1-25
-            //数据同步到公安内网只用$syncSet参数来同步--add by zq 2019-3-12
-            if ($syncSet) {
-                $setTmpData = $data;
-                $setTmpData['syncSet'] = $syncSet;
-                $setTmpData['user_type'] = $model->user_type;
-                $setTmpData['out_room_id'] = $outRoomId;
-                PhotosService::service()->setMq($setTmpData);
-                $bigDataArray = ['493','580'];//线上小区
-                $bigDataArray2 = ['220','147'];//测试环境小区
-                $check = false;
-                if(YII_ENV == 'master' && in_array($data['community_id'],$bigDataArray)){
-                    $check = true;
-                }
-                if(YII_ENV == 'test' && in_array($data['community_id'],$bigDataArray2)){
-                    $check = true;
-                }
-                if($check){
-                    //春江花苑的数据做特殊处理，同步到大数据平台
-                    //$this->pushDataToBigData($data['community_id'],$model->user_phone,$model->open_time,$deviceInfo['device_type']);
-                }
-
+            //统计住户的进出记录
+            if(!$visitor_id){
+                //保存记录的时候，统计数据+1
+                $this->saveToRecordReport(1,$model->open_time,$model->user_phone);
             }
             if ($model->user_type != 0) {
-                //TODO 看后面怎么改，此次先调用 api方法
-                $url = \Yii::$app->params['api_host'] . '/webapp/api/send-open-door-data';
-                //throw new Exception($url);
-                /*Curl::getInstance()->post($url, [
-                    'community_id' => $data['community_id'],
-                    'identity_type' => $model->user_type,
-                    'user_name' => $model->user_name,
-                    'open_time' => $model->open_time
-                ]);*/
-                //推送数据过来的时候根据开门时间保存相应的统计记录
-                //PhotosService::service()->save_report_people($data);
-
                 PhotosService::service()->updateVisitor($data,$visitor); // 更新访客信息 已到访
             }
             return true;
@@ -206,74 +173,47 @@ class DoorExternalService extends BaseService
         }
     }
 
-    //同步数据到大数据
-    private function pushDataToBigData($community_id,$user_phone,$open_time,$device_type)
+    //对进出记录进行统计处理
+    public function saveToRecordReport($type,$time,$v)
     {
-        $communityNo = PropertyService::service()->getCommunityNoById($community_id);
-        $url = Yii::$app->params['bigDataUrl'].'/warining/v1/api/push-waring-door';
-        $secret = Yii::$app->params['bigDataSecret'];
-        $data['community_no'] = $communityNo;
-        $data['user_phone'] = $user_phone;
-        $data['open_time'] = $open_time;
-        if($device_type == 2){
-            $person_way_out = 'out';
-        }else{
-            $person_way_out = 'in';
-        }
-        $data['person_way_out'] = $person_way_out;
-        ksort($data);
-        $params['data'] = $data;
-        $params['rand'] = "".rand(10000,99999);
-        $params['timestamp'] = "".time();
-        ksort($params);
-        $this->writeLog('push-error-1.log',"post-data-secret:".$secret);
-        $this->writeLog('push-error-1.log',"post-data-md5-data:".json_encode($params,320));
-        $this->writeLog('push-error-1.log',"post-data-md5-1:".md5(json_encode($params,320)));
-        $params['sign'] = md5(md5(json_encode($params,320)).$secret);
-        $params['data'] = json_encode($data);//加密用的数组，重新赋值，转json
-        $this->writeLog('push-error-1.log', "post-data:".json_encode($params));
-        if($user_phone){
-            $this->writeLog('push-error-1.log', "url:".$url);
-            $res = Curl::getInstance()->post($url,$params);
-            $this->writeLog('push-error-1.log', "result:".$res);
-        }
-
-    }
-
-    private function writeLog($file, $content, $type = FILE_APPEND)
-    {
-        $today    = date("Y-m-d", time());
-        $savePath = \Yii::$app->basePath . DIRECTORY_SEPARATOR. 'runtime'. DIRECTORY_SEPARATOR . 'door-record-logs' . DIRECTORY_SEPARATOR . $today . DIRECTORY_SEPARATOR;
-        if (FileHelper::createDirectory($savePath, 0777)) {
-            if (!file_exists($savePath.$file)) {
-                file_put_contents($savePath.$file, $content, $type);
-                chmod($savePath.$file, 0777);//第一次创建文件，设置777权限
-            } else {
-                file_put_contents($savePath.$file, $content, $type);
+        //人行记录
+        if($type == 1){
+            $st_day = date("Y-m-d",$time);
+            $st_time = strtotime($st_day." 00:00:00");//获取当前时间0点的时间戳
+            $st_data_id = PsMember::find()->select(['id'])->where(['mobile'=>$v])->asArray()->scalar();
+            $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
+            if($res){
+                StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
+            }else{
+                $model = new StRecordReport();
+                $model->type = $type;
+                $model->day = $st_day;
+                $model->time = $st_time;
+                $model->num = 1;
+                $model->data_id = $st_data_id;
+                $model->save();
             }
-            return true;
-        }
-        return false;
-    }
 
-    /**
-     * 绑定信息推送
-     * @author yjh
-     * @param $params
-     */
-    public function sendWarning($params)
-    {
-        return true;
-        $data = [
-            'open_time' => $params['open_time'],
-            'member_id'=>$params['member_id'],
-            'device_name' =>$params['device_name'],
-            'room_id' => $params['room_id'],
-            'community_id' => $params['community_id'],
-            'photo' => !empty($params['photo']) ? $params['photo'] : '',
-        ];
-        $url = \Yii::$app->params['api_host'] . '/webapp/api/send-warning-message';
-        Curl::getInstance()->post($url, $data);
+        }
+        //车行记录
+        if($type == 2){
+            $st_day = date("Y-m-d",$time);
+            $st_time = strtotime($st_day." 00:00:00");//获取当前时间0点的时间戳
+            $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v])->asArray()->scalar();
+            $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
+            if($res){
+                StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
+            }else{
+                $model = new StRecordReport();
+                $model->type = $type;
+                $model->day = $st_day;
+                $model->time = $st_time;
+                $model->num = 1;
+                $model->data_id = $st_data_id;
+                $model->save();
+            }
+        }
+
     }
 
     /**
@@ -295,6 +235,5 @@ class DoorExternalService extends BaseService
             ->one();
         return $model;
     }
-
 
 }

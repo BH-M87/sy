@@ -21,6 +21,7 @@ use common\MyException;
 use service\BaseService;
 use OSS\Core\OssException;
 use OSS\OssClient;
+use service\basic_data\DoorExternalService;
 
 class CarAcrossService extends BaseService
 {
@@ -500,7 +501,7 @@ class CarAcrossService extends BaseService
         if($data['park_time'] < 0){
             throw new MyException('出场时间不能比入场时间晚');
         }
-        //$this->saveExitRecord($data);
+        $this->saveExitRecord($data);
         if (!$model) {
             $model = new ParkingAcrossRecord();
             $model->supplier_id = $data['supplier_id'];
@@ -743,6 +744,8 @@ class CarAcrossService extends BaseService
         $model = new ParkingAcross();
         $model->setAttributes($data);
         $model->save();
+        //保存记录的时候，统计数据+1
+        DoorExternalService::service()->saveToRecordReport(2,$data['created_at'],$req['car_num']);
     }
 
     public function saveExitRecord($req)
@@ -772,6 +775,8 @@ class CarAcrossService extends BaseService
         $model = new ParkingAcross();
         $model->setAttributes($data);
         $model->save();
+        //保存记录的时候，统计数据+1
+        DoorExternalService::service()->saveToRecordReport(2,$data['created_at'],$req['car_num']);
     }
 
 
