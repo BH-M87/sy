@@ -76,7 +76,6 @@ class PersonDataController extends BaseController
         if (!$id) {
             return PsCommon::responseFailed("用户id不能为空");
         }
-        //TODO
         $result = PersonDataService::service()->getDayReport($id);
         return PsCommon::responseSuccess($result);
     }
@@ -104,7 +103,7 @@ class PersonDataController extends BaseController
             return PsCommon::responseFailed("用户id不能为空");
         }
         //TODO
-        $result = PersonDataService::service()->getDayReport($id);
+        $result = PersonDataService::service()->getTravelReport($id);
         return PsCommon::responseSuccess($result);
     }
 

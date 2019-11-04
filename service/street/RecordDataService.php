@@ -61,7 +61,7 @@ class RecordDataService extends BaseService
             //处理一车一档详情
             foreach ($list as $key =>$value) {
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
-                $value['label'] = LabelsService::service()->getLabelInfoByRoomId($value['member_id']);
+                $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
                 $newList[] = $value;
             }
         }
@@ -92,7 +92,7 @@ class RecordDataService extends BaseService
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
             $model->leftJoin(['slr'=>StLabelsRela::tableName()],'slr.data_id = m.id')
-                ->where(['slr.data_type'=>3,'slr.labels_id'=>$labelId]);
+                ->where(['slr.data_type'=>2,'slr.labels_id'=>$labelId]);
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);

@@ -1115,7 +1115,12 @@ class RoomController extends BaseController
     //获取苑期区列表--无分页
     public function actionGetGroup()
     {
-        $community_id = PsCommon::get($this->request_params,'community_id');
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
         $list = PsCommunityGroups::find()
             ->select(['name'])
             ->where(['community_id' => $community_id])
