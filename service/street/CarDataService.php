@@ -26,6 +26,7 @@ class CarDataService extends BaseService
     //获取搜索列表
     public function getSearchList($params,$userInfo)
     {
+
         $roomId = PsCommon::get($params,"room_id",0);//关联房屋
         $carNum = PsCommon::get($params,"car_num");//车牌号
         $userName = PsCommon::get($params,"member_name");//车主姓名
@@ -103,7 +104,11 @@ class CarDataService extends BaseService
     //统一处理返回数据
     public function dealDetail($params,$type = '')
     {
+
         $car_id = PsCommon::get($params,"id",0);
+        if(empty($car_id)){
+            $car_id = PsCommon::get($params,"car_id",0);
+        }
         $detail['car_id'] = $car_id;
         $detail['car_num'] = PsCommon::get($params,"car_num");
         $car_image = PsCommon::get($params,"images");
@@ -112,11 +117,29 @@ class CarDataService extends BaseService
             $car_image = F::getOssImagePath($car_image,'zje');
         }
         $detail['car_image'] = $car_image;
-        $detail['plate_type_str'] = PsCommon::get($params,"car_model");
-        $detail['car_color_str'] = PsCommon::get($params,"car_color");
-        //获取这个车辆下的所有标签
-        $detail['label_list'] = LabelsService::service()->getLabelInfoByCarId($car_id);
+
+
+        if($type == "record-list"){
+            $detail['car_img'] = $detail['car_image'];
+            $detail['car_number'] = $detail['car_num'];
+            //获取这个车辆下的所有标签
+            $detail['label'] = LabelsService::service()->getLabelInfoByCarId($car_id);
+            $detail['open_time'] = PsCommon::get($params,"open_time");
+            $detail['open_type'] = PsCommon::get($params,"open_type");
+            $detail['open_addrss'] = PsCommon::get($params,"open_addrss");
+            $detail['park_time'] = $this->dealParkingTime(PsCommon::get($params,"park_time",0));
+        }
+        if($type == "list"){
+            $detail['plate_type_str'] = PsCommon::get($params,"car_model");
+            $detail['car_color_str'] = PsCommon::get($params,"car_color");
+            //获取这个车辆下的所有标签
+            $detail['label_list'] = LabelsService::service()->getLabelInfoByCarId($car_id);
+        }
         if($type == "detail"){
+            $detail['plate_type_str'] = PsCommon::get($params,"car_model");
+            $detail['car_color_str'] = PsCommon::get($params,"car_color");
+            //获取这个车辆下的所有标签
+            $detail['label_list'] = LabelsService::service()->getLabelInfoByCarId($car_id);
             $userInfo = ParkingUserCarport::find()->alias('puc')
                 ->innerJoin(['pu'=>ParkingUsers::tableName()],'pu.id = puc.user_id')
                 ->innerJoin(['pcr'=>PsCommunityRoominfo::tableName()],'pcr.id = puc.room_id')
@@ -129,6 +152,7 @@ class CarDataService extends BaseService
             $detail['room_address'] = PsCommon::get($userInfo,"room_address");
             $detail['community_name'] = PsCommon::get($userInfo,"community_name");
         }
+
         return $detail;
     }
 
