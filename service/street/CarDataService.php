@@ -139,7 +139,7 @@ class CarDataService extends BaseService
      */
     public function getDetail($params)
     {
-        $id = PsCommon::get($params,"id",0);
+        $id = PsCommon::get($params,"car_id",0);
         $detail = ParkingCars::find()->where(['id'=>$id])->asArray()->one();
         return $this->dealDetail($detail,"detail");
 
@@ -148,19 +148,19 @@ class CarDataService extends BaseService
     //获取今天之前30天的时间数组
     public function getDayReport($params)
     {
-        $id = PsCommon::get($params,'id',0);
+        $id = PsCommon::get($params,'car_id',0);
         return BasicDataService::service()->getDayReport($id,1,30);
     }
 
     //返回出行规律图
     public function getTravelReport($params)
     {
-        $id = PsCommon::get($params,'id',0);
+        $id = PsCommon::get($params,'car_id',0);
         $list = BasicDataService::service()->getDayReport($id,1,30);
         $data = [];
         if($list){
-            $data['week'] = array_slice($list,0,6);
-            $data['half-month'] = array_slice($list,0,14);
+            $data['week'] = array_slice($list,0,7);
+            $data['half-month'] = array_slice($list,0,15);
             $data['month'] = $list;
         }
         return $data;
@@ -191,7 +191,7 @@ class CarDataService extends BaseService
     //获取记录的详情
     public function getDayReportInfo($params)
     {
-        $id = PsCommon::get($params,'id',0);
+        $id = PsCommon::get($params,'car_id',0);
         $day = PsCommon::get($params,'day');
         $start_time = strtotime($day." 00:00:00");//一天的开始时间
         $end_time = strtotime($day." 23:59:59");//一天的结束时间
@@ -201,8 +201,8 @@ class CarDataService extends BaseService
             ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
             ->select(['pa.*','c.name as community_name'])
             ->where(['pa.car_num'=>$car_num])
-            ->andWhere(['>=','pa.created_at',$start_time])
-            ->andWhere(['<','pa.created_at',$end_time])
+            ->andFilterWhere(['>=','pa.created_at',$start_time])
+            ->andFilterWhere(['<','pa.created_at',$end_time])
             ->asArray()->all();
         $newList = [];
         if($list){

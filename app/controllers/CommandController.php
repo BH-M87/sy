@@ -193,6 +193,7 @@ class CommandController extends Controller
         }
     }
 
+
     ##############################在用脚本############################################
 
     //同步iot的供应商到数据库 0 0 * * * curl localhost:9003/command/sync
