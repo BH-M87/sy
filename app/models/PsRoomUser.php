@@ -32,6 +32,25 @@ class PsRoomUser extends BaseModel
         '4' => '已认证迁出',
     ];
 
+    public static $face_desc = [
+        '1' => '党员',
+        '2' => '团员',
+        '3' => '群众'
+    ];
+
+    public static $marry_status_desc = [
+        '1' => '已婚',
+        '2' => '未婚',
+        '3' => '离异',
+        '4' => '分居',
+        '5' => '丧偶',
+    ];
+
+    public static $household_type_desc = [
+        '1' => '非农业户口',
+        '2' => '农业户口'
+    ];
+
     public static function tableName()
     {
         return 'ps_room_user';

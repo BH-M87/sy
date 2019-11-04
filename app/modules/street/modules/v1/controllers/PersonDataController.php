@@ -60,25 +60,52 @@ class PersonDataController extends BaseController
     //详情
     public function actionView()
     {
+        $id = F::value($this->request_params, 'id', 0);
+        if (!$id) {
+            return PsCommon::responseFailed("用户id不能为空");
+        }
 
+        $result = PersonDataService::service()->view($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
     //人行记录
     public function actionAcrossDayReport()
     {
-
+        $id = F::value($this->request_params, 'id', 0);
+        if (!$id) {
+            return PsCommon::responseFailed("用户id不能为空");
+        }
+        //TODO
+        $result = PersonDataService::service()->getDayReport($id);
+        return PsCommon::responseSuccess($result);
     }
 
     //人行记录每天详情
     public function actionAcrossDayDetail()
     {
-
+        $id = F::value($this->request_params, 'id', 0);
+        if (!$id) {
+            return PsCommon::responseFailed("用户id不能为空");
+        }
+        $day = F::value($this->request_params, 'day', '');
+        if (!$day) {
+            return PsCommon::responseFailed("查询日期不能为空");
+        }
+        $result = PersonDataService::service()->getAcrossDayDetail($this->request_params,$this->page,$this->pageSize);
+        return PsCommon::responseSuccess($result);
     }
 
     //人行记录规律图
     public function actionAcrossLineStatistic()
     {
-
+        $id = F::value($this->request_params, 'id', 0);
+        if (!$id) {
+            return PsCommon::responseFailed("用户id不能为空");
+        }
+        //TODO
+        $result = PersonDataService::service()->getDayReport($id);
+        return PsCommon::responseSuccess($result);
     }
 
     //关联家人
