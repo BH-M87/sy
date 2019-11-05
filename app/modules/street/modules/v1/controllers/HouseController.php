@@ -67,11 +67,14 @@ class HouseController extends BaseController
         if (empty($this->request_params['id'])) throw new MyException('ID不能为空');
         if (!in_array($this->request_params['type'],[1,2])) throw new MyException('type错误');
         if ($this->request_params['type'] == 2) {
-            $param['room_id'] = $this->request_params['id'];
+            $this->request_params['room_id'] = $this->request_params['id'];
         } else {
-            $param['room_id'] = RoomUserService::service()->getRoomIdList($this->request_params['id']);
+            $this->request_params['room_id'] = RoomUserService::service()->getRoomIdList($this->request_params['id']);
+            if (empty($this->request_params['room_id'])) {
+                throw new MyException('该用户没有任何房屋');
+            }
         }
-        $result = RoomUserService::service()->getRoomUserList($param);
+        $result = RoomUserService::service()->getRoomUserList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -87,11 +90,11 @@ class HouseController extends BaseController
         if (empty($this->request_params['id'])) throw new MyException('ID不能为空');
         if (!in_array($this->request_params['type'],[1,2])) throw new MyException('type错误');
         if ($this->request_params['type'] == 2) {
-            $param['room_id'] = $this->request_params['id'];
+            $this->request_params['room_id'] = $this->request_params['id'];
         } else {
-            $param['member_id'] = $this->request_params['id'];
+            $this->request_params['member_id'] = $this->request_params['id'];
         }
-        $result = CarService::service()->getList($param);
+        $result = CarService::service()->getList($this->request_params);
         foreach ($result['list'] as &$v) {
             $v['car_id'] = $v['id'];
             $v['car_images'] = F::getOssImagePath($v['images'][0]);
