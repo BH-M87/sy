@@ -52,4 +52,16 @@ class AnswerController extends UserBaseController
         $result = AnswerService::service()->getTopInfo($this->params);
         PsCommon::responseSuccess($result);
     }
+
+    public function actionGetList()
+    {
+        $result = AnswerService::service()->getList();
+        PsCommon::responseSuccess($result);
+    }
+
+    public function actionGetTime()
+    {
+        $result = AnswerService::service()->getTime();
+        PsCommon::responseSuccess($result);
+    }
 }
