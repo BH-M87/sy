@@ -5,3 +5,7 @@ CREATE TABLE `answer` (
 `created_at`  int(11) NOT NULL DEFAULT 0 ,
 PRIMARY KEY (`id`)
 );
+
+ALTER TABLE `answer`
+ADD COLUMN `app_user_id`  int(11) NOT NULL COMMENT 'app_user表id' AFTER `id`;
+
