@@ -62,6 +62,7 @@ class RecordDataService extends BaseService
             foreach ($list as $key =>$value) {
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
                 $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
+                $value['user_phone'] = substr($value['user_phone'],0,3)."****".substr($value['user_phone'],7,4);
                 $newList[] = $value;
             }
         }
@@ -124,7 +125,8 @@ class RecordDataService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $model = $this->getDoorSearchList($params,$userInfo);
-        return $model->select(['dr.id as record_id','m.id as member_id','m.face_url','dr.open_time','dr.open_type','dr.device_name','dr.card_no as card_number','dr.room_id'])
+        return $model->select(['dr.id as record_id','m.id as member_id','m.face_url','dr.open_time','dr.open_type','dr.device_name','dr.card_no as card_number','dr.room_id',
+            'm.name as user_name','m.mobile as user_phone'])
             ->offset($offset)->limit($pageSize)
             ->orderBy("dr.id desc")
             ->asArray()->all();
