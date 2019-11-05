@@ -23,6 +23,7 @@ use app\models\PsLabelsRela;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
+use common\core\F;
 use common\core\PsCommon;
 use service\basic_data\IotNewDealService;
 use service\basic_data\IotNewService;
@@ -46,6 +47,13 @@ class CommandController extends Controller
     public function actionTest2(){
         $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 99);
         var_dump($list);die;
+    }
+
+    public function actionTest3()
+    {
+        $request = F::request();
+        $id = PsCommon::get($request,"id",0);
+        echo date("Y-m-d H:i:s")."-传入的id:".$id;
     }
     //新增测试访客记录
     public function actionAddVisitor()
