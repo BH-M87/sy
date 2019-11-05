@@ -6,11 +6,11 @@ use common\core\F;
 use common\MyException;
 use service\door\DoorRecordService;
 use service\door\VisitorService;
-use service\label\LabelsService;
 use service\parking\CarService;
 use service\resident\RoomUserService;
 use service\room\HouseService;
 use common\core\PsCommon;
+use service\street\LabelsService;
 
 class HouseController extends BaseController
 {
