@@ -277,7 +277,7 @@ class BasicDataService extends BaseService
             }else{
                 $a['day'] = date("Y-m-d",$start_time);
                 $a['num'] = 0;
-                $a['id'] = 0;
+                $a['id'] = $i;
                 $data[] = $a;
             }
             $start_time -= 3600*24;
