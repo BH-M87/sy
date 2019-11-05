@@ -29,20 +29,25 @@ class CarDataController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //获取近30天的记录
     public function actionDayReport()
     {
         $result = CarDataService::service()->getDayReport($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
+    //获取记录的详情
     public function actionDayReportInfo()
     {
-
+        $result = CarDataService::service()->getDayReportInfo($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
-    public function actionDayDetail()
+    //获取近7、15、30天的出行记录
+    public function actionTravelReport()
     {
-
+        $result = CarDataService::service()->getTravelReport($this->request_params);
+        return PsCommon::responseSuccess($result);
     }
 
 }

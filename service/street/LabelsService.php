@@ -297,6 +297,16 @@ class LabelsService extends BaseService
         return $list ? $list : [];
     }
 
+    //根据住户id获取这个住户下的所有标签id和名称
+    public function getLabelInfoByMemberId($member_id)
+    {
+        $list = StLabelsRela::find()->alias('lr')
+            ->leftJoin(['l'=>StLabels::tableName()],'l.id = lr.labels_id')
+            ->select(['l.id','l.name','l.label_type'])
+            ->where(['lr.data_id'=>$member_id,'lr.data_type'=>2,'l.is_delete'=>1])->asArray()->all();
+        return $list ? $list : [];
+    }
+
     //根据车辆id获取这个车辆下的所有标签id和名称
     public function getLabelInfoByCarId($carId)
     {
