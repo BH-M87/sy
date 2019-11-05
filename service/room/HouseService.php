@@ -1074,7 +1074,7 @@ Class HouseService extends BaseService
      */
     public function getRoomList($data)
     {
-        $list = PsCommunityUnits::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
         return $list;
     }
 
