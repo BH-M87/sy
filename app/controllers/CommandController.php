@@ -22,6 +22,7 @@ use app\models\PsLabelsRela;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use common\core\Curl;
+use common\core\F;
 use common\core\PsCommon;
 use service\basic_data\IotNewDealService;
 use service\basic_data\IotNewService;
@@ -172,18 +173,23 @@ class CommandController extends Controller
         }
     }
 
+    //用不小区住户数据
     public function actionSyncFaceUser()
     {
-        $community_id = ["47"];
+        $request = F::request();//住户传入数据
+        $community_id = PsCommon::get($request,"community_id",0);
         //$community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
-        $list = PsRoomUser::find()->alias('ru')
-            ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
-            ->where(['ru.community_id'=>$community_id])
-            ->asArray()->all();
-        if($list){
-            foreach($list as $key=>$value){
-                Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
-                //ResidentService::service()->residentSync($value, 'edit');
+        if($community_id){
+            $list = PsRoomUser::find()->alias('ru')
+                ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
+                ->select(['ru.*'])
+                ->where(['ru.community_id'=>$community_id])
+                ->asArray()
+                ->all();
+            if($list){
+                foreach($list as $key=>$value){
+                    Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                }
             }
         }
     }
