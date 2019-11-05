@@ -122,7 +122,7 @@ class CarDataService extends BaseService
             $detail['car_number'] = substr_replace(PsCommon::get($params,"car_num"),'****',4,4);
             //获取这个车辆下的所有标签
             $detail['label'] = LabelsService::service()->getLabelInfoByCarId($car_id);
-            $detail['open_time'] = PsCommon::get($params,"open_time");
+            $detail['open_time'] = date("Y-m-d H:i:s",PsCommon::get($params,"open_time"));
             $detail['open_type'] = PsCommon::get($params,"open_type");
             $detail['open_addrss'] = PsCommon::get($params,"open_addrss");
             $detail['park_time'] = $this->dealParkingTime(PsCommon::get($params,"park_time",0));
