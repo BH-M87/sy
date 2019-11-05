@@ -3,7 +3,9 @@ namespace service\small;
 
 use app\models\Answer;
 use app\models\PsAppMember;
+use app\models\PsAppUser;
 use app\models\PsMember;
+use common\core\F;
 use common\MyException;
 use Yii;
 use service\BaseService;
@@ -60,11 +62,52 @@ Class AnswerService extends BaseService
         ],
         [
             'problem' => '我国每年的“119”消防宣传活动日是( )',
-            'answer' => ['A、纵火罪','B、失火罪','C、玩忽职守罪'],
+            'answer' => [' A、11月9日','B、1月19日','C、9月11日 '],
+            'right' => 'A',
+            'type' => '1'
+        ],
+        [
+            'problem' => '遇到火灾时，正确的做法是( )',
+            'answer' => ['A、沉着、冷静，迅速正确逃生','B、不用着急，等待消防队救援','C、迅速坐电梯逃生'],
+            'right' => 'A',
+            'type' => '1'
+        ],
+        [
+            'problem' => '如果睡觉时被烟火呛醒，正确的逃生方式是( )',
+            'answer' => ['A、立即寻找逃生通道，迅速逃生','B、往床底下钻','C、穿好衣服再走'],
+            'right' => 'A',
+            'type' => '1'
+        ],
+        [
+            'problem' => '发生火灾后，如何正确报火警( )',
+            'answer' => ['A、讲清着火单位、详细地址、着火物质及火势大小','B、讲清着火单位、详细地址、着火物质及火势大小，是否有人被困，留下报警人 姓名及联系方式 ','C、告知着火方位后迅速挂断电话，返回火场'],
             'right' => 'B',
             'type' => '1'
         ],
-
+        [
+            'problem' => '单位发生火灾，你首先应( )',
+            'answer' => ['A、及时拨打119火警电话并通知单位消防负责人','B、先自行扑救，救不了时再报火警','C、只拨打单位内部报警电话，不拨打119火警电话'],
+            'right' => 'A',
+            'type' => '1'
+        ],
+        [
+            'problem' => '谎报火警是违法行为。谎报火警的，最高可以处( )日拘留',
+            'answer' => ['A、3','B、5','C、8','D、10'],
+            'right' => 'D',
+            'type' => '1'
+        ],
+        [
+            'problem' => '公安消防队扑救火灾是否收取费用( )',
+            'answer' => ['A、收取成本费用','B、按照出动车辆数和扑救时间收费','C、对单位收费，对个人不收费','D、不收取任何费用'],
+            'right' => 'D',
+            'type' => '1'
+        ],
+        [
+            '个人损坏、挪用或擅自拆除、停用消防设施、器材，埋压、圈占、遮挡消火栓的， 处( )处罚',
+            'answer' => ['A、警告或五百元以下罚款','B、十日以下行政拘留','C、劳动教养'],
+            'right' => 'A',
+            'type' => '1'
+        ],
     ];
 
     public $judge_answer_list = [
@@ -106,6 +149,54 @@ Class AnswerService extends BaseService
         ],
         [
             'problem' => '法人单位的法定代表人或者非法人单位的主要负责人是单位的消防安全责任人，对本单位的消防安全工作全面负责',
+            'answer' => ['true','false'],
+            'right' => 'true',
+            'type' => '2'
+        ],
+        [
+            'problem' => '当单位的安全出口上锁、遮挡，或者占用、堆放物品影响疏散通道畅通时，单位应当责令有关人员当场改正并督促落实',
+            'answer' => ['true','false'],
+            'right' => 'true',
+            'type' => '2'
+        ],
+        [
+            'problem' => '着火后应自己先扑救，无法灭火时再打"119"',
+            'answer' => ['true','false'],
+            'right' => 'false',
+            'type' => '2'
+        ],
+        [
+            'problem' => '扔掉烟头两小时后再着火可以不用负责任',
+            'answer' => ['true','false'],
+            'right' => 'false',
+            'type' => '2'
+        ],
+        [
+            'problem' => '设置禁火标志的部位不能使用明火，但不限制吸烟',
+            'answer' => ['true','false'],
+            'right' => 'false',
+            'type' => '2'
+        ],
+        [
+            'problem' => '公共娱乐场所内严禁带入和存放易燃易爆物品',
+            'answer' => ['true','false'],
+            'right' => 'true',
+            'type' => '2'
+        ],
+        [
+            'problem' => '商住楼内的公共娱乐场所与居民住宅可以共用一个安全出口',
+            'answer' => ['true','false'],
+            'right' => 'false',
+            'type' => '2'
+        ],
+        [
+            'problem' => '公安消防队扑救火灾，不向发生火灾的单位、个人收取任何费用',
+            'answer' => ['true','false'],
+            'right' => 'true',
+            'type' => '2'
+        ],
+        [
+            'problem' => '灯具的开关、插座和照明器靠近可燃物时，应采取隔热、散热等保护措施',
             'answer' => ['true','false'],
             'right' => 'true',
             'type' => '2'
@@ -159,6 +250,9 @@ Class AnswerService extends BaseService
      */
     public function addGrade($params)
     {
+        if (strtotime($this->end) < time()) {
+            throw new MyException('活动已截止');
+        }
         $member = $this->getUserInfo($params);
         $answer = Answer::find()->where(['member_id' => $member['id']])->one();
         if ($answer) {
@@ -167,6 +261,7 @@ Class AnswerService extends BaseService
         $answer = new Answer();
         $answer->member_id = $member['id'];
         $answer->grade = $params['grade'];
+        $answer->app_user_id = $params['user_id'];
         $answer->created_at = time();
         $answer->save();
     }
@@ -184,6 +279,15 @@ Class AnswerService extends BaseService
         try {
             $member = $this->getUserInfo($params);
             $user = $this->getUserTop($member['id']);
+            $own['avatar'] = '';
+            if (!empty($user['app_user_id'])) {
+               $app_user = PsAppUser::find()->where(['id' => $user['app_user_id']])->one();
+               $own['avatar'] = $app_user['avatar'];
+            }
+            if (!empty($user['member_id'])) {
+                $member = PsMember::find()->where(['id' => $user['member_id']])->one();
+                $own['name'] = $member['name'];
+            }
             $own['top'] = $user['top'];
             $own['grade'] = $user['grade'];
         } catch (MyException $e) {
@@ -191,6 +295,12 @@ Class AnswerService extends BaseService
             $own['grade'] = 0;
         }
         $list = $this->getTopList(20);
+        foreach ($list as &$v) {
+            $app_user = PsAppUser::find()->where(['id' => $v['app_user_id']])->one();
+            $member = PsMember::find()->where(['id' => $v['member_id']])->one();
+            $v['name'] = F::processUserName($member['name']);
+            $v['avatar'] = $app_user['avatar'];
+        }
         return ['list' => $list,'own' => $own];
     }
 
@@ -209,7 +319,7 @@ Class AnswerService extends BaseService
         if ($found_key !== false) {
             return $all[$found_key];
         } else {
-            return ['top' => 0,'grade' => 0];
+            return ['top' => 0,'grade' => 0,'app_user_id' => 0,'member_id' => 0];
         }
     }
 
@@ -221,7 +331,7 @@ Class AnswerService extends BaseService
      */
     public function getTopList($limit = false)
     {
-        $all = Answer::find()->orderBy('grade desc,created_at desc');
+        $all = Answer::find()->orderBy('grade desc,created_at desc,app_user_id,member_id');
         if ($limit) {
             $all = $all->limit($limit)->asArray()->all();
         } else {
