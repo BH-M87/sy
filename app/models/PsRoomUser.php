@@ -313,8 +313,12 @@ class PsRoomUser extends BaseModel
      */
     public static function getList($param,$select = '*',$page=true)
     {
-        $model = self::find()->select($select)->andFilterWhere(['room_id' => $param['room_id'] ?? null]);
-        $model->orderBy([ 'create_at' => SORT_DESC]);
+        $model = self::find()
+            ->alias('u')
+            ->select($select)
+            ->leftJoin('ps_community c','c.id = u.community_id')
+            ->andFilterWhere(['u.room_id' => $param['room_id'] ?? null]);
+        $model->orderBy([ 'u.create_at' => SORT_DESC]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
