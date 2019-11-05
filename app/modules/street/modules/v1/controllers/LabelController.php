@@ -14,6 +14,7 @@ use common\core\F;
 use common\core\PsCommon;
 use service\street\BasicDataService;
 use service\street\LabelsService;
+use service\street\UserService;
 
 
 class LabelController extends BaseController
@@ -152,6 +153,9 @@ class LabelController extends BaseController
         if ($this->user_info['node_type'] == 1) {
             //当前登录账号为街道账号，默认无搜索条件，查询当前街道数据
             $streetCode = $this->user_info['dept_id'];
+        }
+        if ($this->user_info['node_type'] == 2 && !$streetCode) {
+            $this->request_params['street_code'] = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
         }
         $labelList = BasicDataService::service()->getLabelStatistics($streetCode, $dataType, $this->user_info['node_type']);
         return PsCommon::responseSuccess($labelList);
