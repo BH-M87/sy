@@ -24,15 +24,21 @@ class PersonDataController extends BaseController
         //登录者身份区县，街道，社区
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
-
         $this->request_params['street_code'] = F::value($this->request_params, 'street_code', '');
         $this->request_params['district_code'] = F::value($this->request_params, 'district_code', '');
+
+        if (!in_array($this->user_info['node_type'], [0, 1, 2])) {
+            return PsCommon::responseFailed("无此查看权限");
+        }
+
+        //街道
         if ($this->user_info['node_type'] == 1) {
             if ($this->request_params['street_code'] && $this->request_params['street_code'] != $this->user_info['dept_id']) {
                 return PsCommon::responseFailed("无此街道的数据查看权限");
             }
             $this->request_params['street_code'] = $this->user_info['dept_id'];
         }
+        //社区
         if ($this->user_info['node_type'] == 2) {
             $this->request_params['district_code'] = $this->user_info['dept_id'];
             $this->request_params['street_code'] = UserService::service()->getStreetCodeByDistrict($this->request_params['district_code']);
