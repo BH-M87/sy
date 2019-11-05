@@ -121,7 +121,7 @@ class CarDataService extends BaseService
 
         if($type == "record-list"){
             $detail['car_img'] = $detail['car_image'];
-            $detail['car_number'] = $detail['car_num'];
+            $detail['car_number'] = substr_replace($detail['car_num'],'****',4,4);
             //获取这个车辆下的所有标签
             $detail['label'] = LabelsService::service()->getLabelInfoByCarId($car_id);
             $detail['open_time'] = PsCommon::get($params,"open_time");
