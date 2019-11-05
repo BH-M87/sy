@@ -71,7 +71,7 @@ class HouseController extends BaseController
         } else {
             $this->request_params['room_id'] = RoomUserService::service()->getRoomIdList($this->request_params['id']);
             if (empty($this->request_params['room_id'])) {
-                throw new MyException('该用户没有任何房屋');
+                return PsCommon::responseSuccess([]);
             }
         }
         $result = RoomUserService::service()->getRoomUserList($this->request_params);
