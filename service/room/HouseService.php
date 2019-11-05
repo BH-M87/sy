@@ -1049,12 +1049,12 @@ Class HouseService extends BaseService
         $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);
         if ($groups) {
             foreach ($groups as &$g) {
-                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => 460]);
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']]);
                 $g['building_list'] = [];
                 if ($buildings) {
                     $g['building_list'] = $buildings;
                     foreach ($g['building_list'] as &$b) {
-                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $g['building_id']]);
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']]);
                         $b['unit_list'] = [];
                         if ($units) {
                             $b['unit_list'] = $units;
@@ -1074,7 +1074,7 @@ Class HouseService extends BaseService
      */
     public function getRoomList($data)
     {
-        $list = PsCommunityUnits::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
         return $list;
     }
 

@@ -73,6 +73,14 @@ class PersonDataService extends BaseService
         if ($memberIds) {
             $query->andWhere(['u.member_id' => $memberIds]);
         }
+        if ($params['member_name']) {
+            $query->andWhere(['or', ['like', 'm.name', $params['member_name']], ['like','m.mobile',$params['member_name']]]);
+        }
+        if ($params['card_no']) {
+            $query->andWhere(['like','u.card_no',$params['card_no']]);
+        }
+
+
         $reData['totals'] = $query->select('m.id')->count();
         $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,m.face_url')
             ->offset((($page - 1) * $rows))
@@ -130,7 +138,7 @@ class PersonDataService extends BaseService
             ->one();
         if ($userInfo) {
             $userInfo['card_no'] = $userInfo['card_no'] ? F::processIdCard($userInfo['card_no']) : '';
-            $userInfo['identity_type'] = [
+            $userInfo['identity'] = [
                 'id' => $userInfo['identity_type'],
                 'name' => PsRoomUser::$identity_type[$userInfo['identity_type']]
             ];
