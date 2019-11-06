@@ -287,7 +287,8 @@ class BasicDataService extends BaseService
         $start_time = strtotime(date("Y-m-d 00:00:00"));//今天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
-            $res = StRecordReport::find()->select(['day','num','data_id as id'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])->asArray()->one();
+            $res = StRecordReport::find()->select(['day','num','data_id as id'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])
+                ->asArray()->one();
             if($res){
                 $data[] = $res;
             }else{
@@ -298,6 +299,7 @@ class BasicDataService extends BaseService
             }
             $start_time -= 3600*24;
         }
+
         return $data;
     }
 
