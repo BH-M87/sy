@@ -66,6 +66,7 @@ class PersonDataService extends BaseService
         $query = PsRoomUser::find()
             ->alias('u')
             ->leftJoin('ps_member m', 'm.id = u.member_id')
+            ->leftJoin('ps_community c', 'c.id = u.community_id')
             ->groupBy('u.member_id');
         $query->where("1=1");
         if ($communityIds) {
@@ -82,7 +83,7 @@ class PersonDataService extends BaseService
         }
 
         $reData['totals'] = $query->select('m.id')->count();
-        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,m.face_url')
+        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,c.name as community_name, u.group,u.building,u.unit,u.room,m.face_url')
             ->offset((($page - 1) * $rows))
             ->limit($rows)
             ->orderBy('u.id desc')
@@ -91,7 +92,7 @@ class PersonDataService extends BaseService
         foreach ($list as $key => $val) {
             $list[$key]['mobile'] = F::processMobile($val['mobile']);
             $list[$key]['card_no'] = F::processIdCard($val['card_no']);
-            $list[$key]['address'] = $val['group'].$val['building'].$val['unit'].$val['room'];
+            $list[$key]['address'] = $val['community_name'].$val['group'].$val['building'].$val['unit'].$val['room'];
 
             //查询所有标签
             $list[$key]['label'] = $this->getMemberLabels($val['id']);
