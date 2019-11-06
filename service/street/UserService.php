@@ -328,6 +328,7 @@ class UserService extends BaseService
 
     }
 
+    //处理通知通报详情返回的人员列表
     public function dealReturnReceiveUserList($receive_user_list)
     {
 
@@ -343,6 +344,7 @@ class UserService extends BaseService
                 $list[$key] = $a;
             }
 
+            //对分组进行数据处理
             foreach ($newList as $k=>$v) {
                 $res = $this->getUserInfoNum($k,$v,$list,$newList);
                 if($res){
