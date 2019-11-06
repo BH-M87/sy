@@ -111,7 +111,7 @@ class RoomUserService extends BaseService
 
     public function getRoomUserList($params)
     {
-        return PsRoomUser::getList($params,'u.mobile,u.name,u.sex,u.identity_type,u.status,
+        return PsRoomUser::getList($params,'u.member_id,u.mobile,u.name,u.sex,u.identity_type,u.status,
         u.auth_time,u.card_no,u.identity_type,u.time_end,u.auth_time,u.group,u.building,u.unit,u.room,c.name as community_name');
     }
 
