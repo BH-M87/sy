@@ -45,7 +45,7 @@ class UserService extends BaseService
         }
 
         if($user_info['node_type'] == 0){
-            $user_info['dept_id'] = $user_info['qx_org_code'];
+            $user_info['dept_id'] = $user_info['org_code'];
         } elseif ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
@@ -301,7 +301,19 @@ class UserService extends BaseService
                             $userIdList = UserInfo::find()->select(['user_id'])->where(['sq_org_code'=>$d['org_code']])->asArray()->column();
                             break;
                         case "3":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['ga_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "4":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['xf_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "5":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['cg_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "6":
                             $userIdList = UserInfo::find()->select(['user_id'])->where(['xq_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "7":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['org_code'=>$d['org_code']])->asArray()->column();
                             break;
                     }
                     //合并数组，并去重
@@ -314,6 +326,137 @@ class UserService extends BaseService
         }
         return $newList;
 
+    }
+
+    public function dealReturnReceiveUserList($receive_user_list)
+    {
+
+        $list = [];
+        if($receive_user_list){
+            $newList = [];
+            foreach ($receive_user_list as $key =>$value) {
+                //把所有的人分类，分到对应的部门下面去
+                $newList[$value['org_name']][] = $value;
+                $a['user_id'] = $value['user_id']."-p";
+                $a['user_name'] = $value['user_name'];
+                $a['org_name'] = $value['org_name'];
+                $list[$key] = $a;
+            }
+
+            foreach ($newList as $k=>$v) {
+                $res = $this->getUserInfoNum($k,$v,$list,$newList);
+                if($res){
+                    $p['user_id'] = $res."-d";
+                    $p['user_name'] = $k;
+                    $p['org_name'] = "";
+                    $list[] = $p;
+                }
+            }
+        }
+
+        return $list;
+    }
+
+    public function getUserInfoNum($k,$v,$list= [],$allList = [])
+    {
+        //查找这个部门的信息
+        $d = Department::find()->where(['department_name'=>$k])->asArray()->one();
+        $u = UserInfo::find()->where(['org_name'=>$k])->asArray()->one();
+        //查找直属这个部门下面的人数
+        $count = UserInfo::find()->where(['org_name'=>$k])->count();
+        $departId = $d['id'];//部门id
+        switch($d['node_type']){
+            case "0":
+                //查找这个街道下面所有的街道
+                $s = UserInfo::find()->where(['qx_org_code'=>$u['qx_org_code'],'node_type'=>1])->groupBy('jd_org_code')->asArray()->all();
+                if($s){
+                    $res_count = 0;
+                    foreach($s as $key=>$value){
+                        $res = $this->getUserInfoNum($value['org_name'],$allList[$value['org_name']],$list,$allList);
+                        if($res){
+                            $res_count ++;
+                        }
+                    }
+                    //如果这个社区下面，每个小区下面的人全选了，并且这个社区下面的人全选了，那就表示这个社区全选
+                    if($res_count == count($s) && $count == count($v)){
+                        $list[] = $departId;
+                        return $departId;
+                    }
+                }
+                break;
+            case "1":
+                //查找这个街道下面所有的警务，消防，城管，社区
+                $s1 = UserInfo::find()->where(['jd_org_code'=>$u['jd_org_code'],'node_type'=>2])->groupBy('sq_org_code')->asArray()->all();
+                $s2 = UserInfo::find()->where(['jd_org_code'=>$u['jd_org_code'],'node_type'=>3])->groupBy('cg_org_code')->asArray()->all();
+                $s3 = UserInfo::find()->where(['jd_org_code'=>$u['jd_org_code'],'node_type'=>4])->groupBy('xf_org_code')->asArray()->all();
+                $s4 = UserInfo::find()->where(['jd_org_code'=>$u['jd_org_code'],'node_type'=>5])->groupBy('ga_org_code')->asArray()->all();
+                $s = array_merge($s1,$s2,$s3,$s4);
+                if($s){
+                    $res_count = 0;
+                    foreach($s as $key=>$value){
+                        $res = $this->getUserInfoNum($value['org_name'],$allList[$value['org_name']],$list,$allList);
+                        if($res){
+                            $res_count ++;
+                        }
+                    }
+                    //如果这个社区下面，每个小区下面的人全选了，并且这个社区下面的人全选了，那就表示这个社区全选
+                    if($res_count == count($s) && $count == count($v)){
+                        $list[] = $departId;
+                        return $departId;
+                    }
+                }
+                break;
+            case "2":
+                //查找社区下面的小区
+                $s = UserInfo::find()->select(['org_name'])->where(['sq_org_code'=>$u['sq_org_code'],'node_type'=>6])->groupBy('xq_org_code')->asArray()->all();
+                if($s){
+                    $res_count = 0;
+                    foreach($s as $key=>$value){
+                        $res = $this->getUserInfoNum($value['org_name'],$allList[$value['org_name']],$list,$allList);
+                        if($res){
+                            $res_count ++;
+                        }
+                    }
+                    //如果这个社区下面，每个小区下面的人全选了，并且这个社区下面的人全选了，那就表示这个社区全选
+                    if($res_count == count($s) && $count == count($v)){
+                        $list[] = $departId;
+                        return $departId;
+                    }
+                }
+                break;
+            case "3":
+                if($count == count($v)){
+                    $list[] = $departId;
+                    return $departId;
+                }
+                break;
+            case "4":
+                if($count == count($v)){
+                    $list[] = $departId;
+                    return $departId;
+                }
+                break;
+            case "5":
+                if($count == count($v)){
+                    $list[] = $departId;
+                    return $departId;
+                }
+                break;
+            case "6":
+                //如果这个小区下面的人全选了，就返回小区部门id
+                //var_dump($count);var_dump($v);var_dump($u);die;
+                if($count == count($v)){
+                    $list[] = $departId;
+                    return $departId;
+                }
+                break;
+            case "7":
+                if($count == count($v)){
+                    $list[] = $departId;
+                    return $departId;
+                }
+                break;
+        }
     }
 
 
