@@ -88,7 +88,7 @@ class RecordDataService extends BaseService
         $card_number = PsCommon::get($params,"card_number");//门卡卡号
 
         $model = DoorRecord::find()->alias("dr")
-            ->leftJoin(['m'=>PsMember::tableName()],'dr.user_phone = m.mobile');
+            ->innerJoin(['m'=>PsMember::tableName()],'dr.user_phone = m.mobile');
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
@@ -98,7 +98,6 @@ class RecordDataService extends BaseService
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
         $model->andWhere(['dr.community_id'=>$community_id]);
-
         if($start_time && $end_time){
             $start = strtotime($start_time." 00:00:00");
             $end = strtotime($end_time." 23:59:59");
