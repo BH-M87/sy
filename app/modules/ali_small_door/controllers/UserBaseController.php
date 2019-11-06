@@ -18,6 +18,8 @@ class UserBaseController extends BaseController
 
     public function beforeAction($action)
     {
+        \Yii::info("controller:".\Yii::$app->controller->id."action:".$action->id.'request:'.json_encode($this->params),'smallapp');
+
         if(!parent::beforeAction($action)) return false;
         //不走token验证的接口，及download不走其他权限,小区ID 验证
         if (!empty($this->enableAction) && in_array($action->id, $this->enableAction)) {

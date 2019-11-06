@@ -48,14 +48,16 @@ class UploadController extends BaseController
         $local = $r['data'];
         $object = $local['fileName'];
         $filePath = $local['fileDir'] . $local['fileName'];
+
+        //上传到oss
         try{
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $ossClient->uploadFile($bucket, $object, $filePath);
+            @unlink($filePath);
         } catch(OssException $e) {
             throw new MyException($e->getMessage());
         }
 
-        //上传到oss
         $re['filepath'] = F::getOssImagePath($object);
         $re['key_name'] = $object;
         return F::apiSuccess($re);

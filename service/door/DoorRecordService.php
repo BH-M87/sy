@@ -110,7 +110,7 @@ class DoorRecordService extends BaseService
             $list[$k]['open_times'] = $value['open_time'] ? date("Y-m-d H:i:s",$value['open_time']) : '';
             $list[$k]['deviceType'] = $value['device_type'];
             $list[$k]['deviceTypeDesc'] = !empty($deviceTypeDescArr[$value['device_type']]) ? $deviceTypeDescArr[$value['device_type']] : '';
-            $list[$k]['user_phone'] = $value['user_phone'];
+            $list[$k]['user_phone'] = $value['user_phone'] ? F::processMobile($value['user_phone']) : '';
         }
         $re['list'] = $list;
         return $re;
