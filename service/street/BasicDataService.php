@@ -92,6 +92,7 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
+
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
             $labels = StLabels::find()
@@ -146,10 +147,17 @@ class BasicDataService extends BaseService
     public function getLabelRelaData($streetCode, $dataType)
     {
         $returnData = [];
-        $data = StLabelsRela::find()
-            ->alias('slr')
-            ->leftJoin('ps_member m','m.id = slr.data_id')
-            ->select('count(*) as num,slr.labels_id')
+        $query = StLabelsRela::find()
+            ->alias('slr');
+        if ($dataType == 1) {
+            $query->leftJoin('ps_community_roominfo m','m.id = slr.data_id');
+        } elseif($dataType == 2) {
+            $query->leftJoin('ps_member m','m.id = slr.data_id');
+        } else {
+            $query->leftJoin('parking_cars m','m.id = slr.data_id');
+        }
+
+        $data = $query->select('count(*) as num,slr.labels_id')
             ->where(['slr.organization_type' => 1,'slr.organization_id' => $streetCode,'slr.data_type' => $dataType])
             ->andWhere(['!=','m.id',''])
             ->groupBy('slr.labels_id')
