@@ -55,15 +55,22 @@ class HomeController extends UserBaseController
             return F::apiFailed("人脸采集任务标识码不能为空！");
         }
         $bizType = F::value($this->params, 'biz_type', 1);
+
+        \Yii::info("face-upload".json_encode($this->params),'smallapp');
+
         //查询人脸采集结果
         $service = new AlipaySmallApp('edoor');
         $r = $service->getZolozIdentification($bizId, $zimId, $bizType);
+
+        \Yii::info("face-upload-res".$r,'smallapp');
         if (empty($r)) {
             return F::apiFailed("人脸特征值查询失败！");
         }
         if ($r['code'] != 10000) {
             return F::apiFailed($r['sub_msg']);
         }
+
+
         $externInfo = json_decode($r['extern_info'], true);
         $imgStr = strtr($externInfo['imgStr'], '-_', '+/');
         $imgStr1 = 'data:image/jpg;base64,'.$imgStr;
