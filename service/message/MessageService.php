@@ -171,7 +171,7 @@ select
     from user_info 
     where  xq_org_code= (select event_community_no  from ps_community where id=".$community_id.")
   )a 
-)b where JSON_CONTAINS(b.privs,'".$mId."')";
+)b where json_extract_c(b.privs,'".$mId."')";
         $users = \Yii::$app->db->createCommand($sql)->queryColumn();
         return $users;
     }
