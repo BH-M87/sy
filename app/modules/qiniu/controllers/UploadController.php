@@ -55,6 +55,7 @@ Class UploadController extends BaseController
             try{
                 $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
                 $ossClient->uploadFile($bucket, $object, $filePath);
+                @unlink($filePath);
             } catch(OssException $e) {
                 return PsCommon::responseFailed('图片上传失败');
             }

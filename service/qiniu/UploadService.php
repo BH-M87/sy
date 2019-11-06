@@ -346,9 +346,10 @@ Class UploadService extends BaseService
         $endpoint = \Yii::$app->params['zjy_oss_domain'];
         $bucket = \Yii::$app->params['zjy_oss_face_bucket'];
 
-        try{
+        try {
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $ossClient->uploadFile($bucket, $object, $filePath);
+            @unlink($filePath);
         } catch(OssException $e) {
             throw new MyException($e->getMessage());
         }
