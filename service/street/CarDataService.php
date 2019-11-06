@@ -46,9 +46,28 @@ class CarDataService extends BaseService
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
         $model->andWhere(['pc.community_id'=>$community_id]);
+        $group = PsCommon::get($params,"group");
+        $building = PsCommon::get($params,"building");
+        $unit = PsCommon::get($params,"unit");
         if($roomId){
             $model->andFilterWhere(['puc.room_id'=>$roomId]);
         }
+        //如果只搜索到单元，则获取这个单元下面所有的房屋
+        if($unit){
+            $roomId =PsCommunityRoominfo::find()->select(['id'])->where(['unit'=>$unit])->asArray()->column();
+            $model->andFilterWhere(['puc.room_id'=>$roomId]);
+        }
+        //如果只搜索到楼幢，则获取这个楼幢下面所有的房屋
+        if($building){
+            $roomId =PsCommunityRoominfo::find()->select(['id'])->where(['building'=>$building])->asArray()->column();
+            $model->andFilterWhere(['puc.room_id'=>$roomId]);
+        }
+        //如果只搜索到苑期区，则获取这个苑期区下面所有的房屋
+        if($group){
+            $roomId =PsCommunityRoominfo::find()->select(['id'])->where(['group'=>$group])->asArray()->column();
+            $model->andFilterWhere(['puc.room_id'=>$roomId]);
+        }
+
         if($carNum){
             $model->andFilterWhere(['like','pc.car_num',$carNum]);
         }

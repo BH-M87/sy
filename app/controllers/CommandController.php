@@ -184,19 +184,24 @@ class CommandController extends Controller
         }
     }
 
-    //同步指定小区人脸住户
+
+    //用不小区住户数据
     public function actionSyncFaceUser()
     {
-        $community_id = ["47"];
+        $request = F::request();//住户传入数据
+        $community_id = PsCommon::get($request,"community_id",0);
         //$community_id = ["20","23","42","44","47","48","65","70","89","107","108"];
-        $list = PsRoomUser::find()->alias('ru')
-            ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
-            ->where(['ru.community_id'=>$community_id])
-            ->asArray()->all();
-        if($list){
-            foreach($list as $key=>$value){
-                Yii::$app->redis->rpush(self::IOT_FACE_USER,json_encode($value));
-                //ResidentService::service()->residentSync($value, 'edit');
+        if($community_id){
+            $list = PsRoomUser::find()->alias('ru')
+                ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
+                ->select(['ru.*'])
+                ->where(['ru.community_id'=>$community_id])
+                ->asArray()
+                ->all();
+            if($list){
+                foreach($list as $key=>$value){
+                    Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                }
             }
         }
     }
@@ -325,9 +330,9 @@ class CommandController extends Controller
 
     }
 
-    //iot人脸数据下发
+    //iot人脸数据下发 * * * * * curl localhost:9003/command/iot-data
     public function actionIotFace(){
-        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 99);
+        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 1);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);

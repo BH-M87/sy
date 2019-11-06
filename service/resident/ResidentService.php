@@ -159,7 +159,9 @@ class ResidentService extends BaseService
                 }
             }
             //edit by wenchao.feng 虚拟手机号处理
+            $model['sex'] = $model['sex'] ? $model['sex'] : '';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? "" : $model['mobile'];
+            //$model['mobile'] = $model['mobile'] ? F::processMobile($model['mobile']): '';
             $model['enter_time'] = $model['enter_time'] ? date('Y-m-d', $model['enter_time']) : '';
             $model['time_end'] = $model['time_end'] ? date('Y-m-d', $model['time_end']) : '0';
             $model['auth_time'] = $model['auth_time'] > 0 ? date("Y-m-d H:i:s", $model['auth_time']) : "-";
@@ -512,6 +514,7 @@ class ResidentService extends BaseService
             $model['status_desc'] = PsCommon::getIdentityStatus($model['status']);
             $model['auth_time'] = $model['auth_time'] ? date('Y-m-d H:i:s', $model['auth_time']) : '-';
             $model['mobile'] = PsCommon::isVirtualPhone($model['mobile']) ? '' : $model['mobile'];
+            $model['mobile'] = $model['mobile'] ? F::processMobile($model['mobile']) : '';
         }
 
         return ['list' => $data, 'total' => $total];

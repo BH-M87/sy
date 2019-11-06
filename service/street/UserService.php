@@ -251,11 +251,11 @@ class UserService extends BaseService
         }
         //根据社区code查找对应的小区id
         if($district_code){
-            return $this->getCommunityList(2,$community_code);
+            return $this->getCommunityList(2,$district_code);
         }
         //根据街道code查找对应的小区id
         if($street_code){
-            return $this->getCommunityList(1,$community_code);
+            return $this->getCommunityList(1,$street_code);
         }
         if($userInfo){
             return $this->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
