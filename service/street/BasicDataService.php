@@ -232,8 +232,7 @@ class BasicDataService extends BaseService
         $labelIdList = [];
         if($label_id) {
             $label1 = $label2 = $label3 = [];
-            //所有车辆的内置标签
-            $label = StLabels::find()->where(['label_attribute'=>3,'is_sys'=>2,'is_delete'=>1])->asArray()->column();
+            $label = [];
             //街道code为空的时候，查看当前账号是区县还是街道的
             if(empty($street_code)){
                 //是区县账号
@@ -249,18 +248,26 @@ class BasicDataService extends BaseService
                     $streetData = UserService::service()->getStreetCodeByDistrict($userInfo['dept_id']);
                     $street_code = $streetData[0];
                 }
+
+
             }
             //如果“日常画像”勾选了全部，查找当前账号所属组织的全部街道标签
             if(in_array("-1",$label_id)){
                 $label1 = StLabels::find()->where(['label_attribute'=>3,'label_type'=>1,'is_delete'=>1,'organization_type'=>1,'is_sys'=>1,'organization_id'=>$street_code])->asArray()->column();
+                //所有车辆的内置标签
+                $label = StLabels::find()->where(['label_attribute'=>3,'is_sys'=>2,'is_delete'=>1])->asArray()->column();
             }
             //如果“重点关注”勾选了全部，查找当前账号所属组织的全部街道标签
             if(in_array("-2",$label_id)){
                 $label2 = StLabels::find()->where(['label_attribute'=>3,'label_type'=>2,'is_delete'=>1,'organization_type'=>1,'is_sys'=>1,'organization_id'=>$street_code])->asArray()->column();
+                //所有车辆的内置标签
+                $label = StLabels::find()->where(['label_attribute'=>3,'is_sys'=>2,'is_delete'=>1])->asArray()->column();
             }
             //如果“关怀对象”勾选了全部，查找当前账号所属组织的全部街道标签
             if(in_array("-3",$label_id)){
                 $label3 = StLabels::find()->where(['label_attribute'=>3,'label_type'=>3,'is_delete'=>1,'organization_type'=>1,'is_sys'=>1,'organization_id'=>$street_code])->asArray()->column();
+                //所有车辆的内置标签
+                $label = StLabels::find()->where(['label_attribute'=>3,'is_sys'=>2,'is_delete'=>1])->asArray()->column();
             }
             //合并数组，并且删除重复字段
             $labelIdList = array_unique(array_merge($label,$label_id,$label1,$label2,$label3));

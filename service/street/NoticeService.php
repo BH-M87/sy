@@ -204,6 +204,9 @@ class NoticeService extends BaseService
     {
         //新增加的发送对象
         $newReceiveList = PsCommon::get($data, 'receive_user_list', []);
+        //对接收到的人和部门进行处理
+        $newReceiveList = UserService::service()->dealReceiveUserList($newReceiveList);
+
         $id = $data['id'];
         $noticeUserInfo = $this->getUserInfoByNoticeId($id);
         //原先存在的发送对象
@@ -246,7 +249,9 @@ class NoticeService extends BaseService
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
         if($detail){
             $detail['type_info'] = ['id'=>$detail['type'],'name'=>$this->type_info[$detail['type']]];
-            $detail['receive_user_list'] = $this->getUserInfoByNoticeId($id);
+            $receive_user_list = $this->getUserInfoByNoticeId($id);
+            //$detail['receive_user_list_old'] = $receive_user_list;
+            $detail['receive_user_list'] = UserService::service()->dealReturnReceiveUserList($receive_user_list);
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
             $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);
