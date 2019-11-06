@@ -178,7 +178,8 @@ class LabelController extends BaseController
 
         if ($this->user_info['node_type'] == 2) {
             $this->request_params['organization_type'] = 1;
-            $this->request_params['organization_id'] = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
         }
         $result = LabelsService::service()->deleteRelation($this->request_params);
         if ($result['code']) {
@@ -202,7 +203,8 @@ class LabelController extends BaseController
             $streetCode = $this->user_info['dept_id'];
         }
         if ($this->user_info['node_type'] == 2 && !$streetCode) {
-            $this->request_params['street_code'] = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $streetData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['street_code'] = $streetData[0];
         }
         $labelList = BasicDataService::service()->getLabelStatistics($streetCode, $dataType, $this->user_info['node_type']);
         return PsCommon::responseSuccess($labelList);

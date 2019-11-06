@@ -41,7 +41,8 @@ class PersonDataController extends BaseController
         //社区
         if ($this->user_info['node_type'] == 2) {
             $this->request_params['district_code'] = $this->user_info['dept_id'];
-            $this->request_params['street_code'] = UserService::service()->getStreetCodeByDistrict($this->request_params['district_code']);
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['street_code'] = $streetCodeData[0];
         }
 
         $this->request_params['community_code'] = F::value($this->request_params, 'community_code', '');
