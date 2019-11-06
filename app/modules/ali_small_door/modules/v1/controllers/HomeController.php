@@ -56,13 +56,12 @@ class HomeController extends UserBaseController
         }
         $bizType = F::value($this->params, 'biz_type', 1);
 
-        \Yii::info("face-upload".json_encode($this->params),'smallapp');
+        file_put_contents("aaa.txt",json_encode($this->params)."\r\n",FILE_APPEND);
 
         //查询人脸采集结果
         $service = new AlipaySmallApp('edoor');
         $r = $service->getZolozIdentification($bizId, $zimId, $bizType);
-
-        \Yii::info("face-upload-res".$r,'smallapp');
+        file_put_contents("face-upload-res",$r."\r\n",FILE_APPEND);
         if (empty($r)) {
             return F::apiFailed("人脸特征值查询失败！");
         }
