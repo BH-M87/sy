@@ -71,6 +71,9 @@ class UserService extends BaseService
         }
         //根据所属的组织，查找拥有的小区权限
         $user_info['community_id'] = $this->getCommunityList($user_info['node_type'],$user_info['dept_id']);
+        if ($user_info['node_type'] == 6) {
+            $user_info['property_company_id'] = PsCommunityModel::find()->where(['id' => $user_info['community_id'][0]])->one()['pro_company_id'];
+        }
         $user_info['truename'] = $user_info['username'];
         return $user_info;
     }
