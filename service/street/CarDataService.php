@@ -203,7 +203,7 @@ class CarDataService extends BaseService
         $data = [];
         if($list){
             $data['week'] = array_slice($list,0,7);
-            $data['half-month'] = array_slice($list,0,15);
+            $data['halfMonth'] = array_slice($list,0,15);
             $data['month'] = $list;
         }
         return $data;

@@ -246,7 +246,8 @@ class BasicDataService extends BaseService
                 }
                 //社区账号
                 if($userInfo['node_type'] == 2){
-                    $street_code = UserService::service()->getStreetCodeByDistrict($userInfo['dept_id']);
+                    $streetData = UserService::service()->getStreetCodeByDistrict($userInfo['dept_id']);
+                    $street_code = $streetData[0];
                 }
             }
             //如果“日常画像”勾选了全部，查找当前账号所属组织的全部街道标签

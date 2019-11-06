@@ -26,6 +26,7 @@ class PersonDataService extends BaseService
         $searchCommunityIds = [];
         //查询登录账号的小区列表
         $communityIds = UserService::service()->getCommunityList($params['organization_type'], $params['organization_id']);
+
         if ($params['community_code']) {
             $searchCommunityIds[0] = BasicDataService::service()->getCommunityIdByCommunityCode($params['community_code']);
             $communityIds = array_intersect($communityIds, $searchCommunityIds);
@@ -80,7 +81,6 @@ class PersonDataService extends BaseService
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
 
-
         $reData['totals'] = $query->select('m.id')->count();
         $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,m.face_url')
             ->offset((($page - 1) * $rows))
@@ -94,7 +94,7 @@ class PersonDataService extends BaseService
             $list[$key]['address'] = $val['group'].$val['building'].$val['unit'].$val['room'];
 
             //查询所有标签
-            $list[$key]['label'] = $this->getMemberLabels($val['id'], $params['street_code']);
+            $list[$key]['label'] = $this->getMemberLabels($val['id']);
 
         }
         $reData['list'] = $list;
@@ -109,7 +109,7 @@ class PersonDataService extends BaseService
             ->leftJoin('st_labels l','l.id = lr.labels_id')
             ->where(['lr.data_id' => $memberId, 'lr.data_type' => 2]);
          if ($steetCode) {
-             $query->andWhere(['l.organization_id' => $steetCode]);
+             $query->andWhere(['lr.organization_id' => $steetCode]);
          }
 
          return $query->asArray()
