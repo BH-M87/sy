@@ -267,5 +267,54 @@ class UserService extends BaseService
 
     }
 
+    /**
+     * 返回全部的人员，目前最高级别是区县
+     * 如果是全选街道就传街道id-d
+     * 如果是单选人员就传人员id-p
+     * add by zq 2019-11-6
+     * @param $receive_user_list
+     * @return array
+     */
+    public function dealReceiveUserList($receive_user_list)
+    {
+        $newList = [];
+        if($receive_user_list){
+            foreach($receive_user_list as $key=>$value){
+                $a = explode("-",$value);
+                //添加的是人员id
+                if($a[1] == "p"){
+                    $newList[] = $a[0];
+                }
+                //添加的是部门Id
+                if($a[1] == "d"){
+                    $d = Department::find()->where(['id'=>$a[0]])->asArray()->one();
+                    $userIdList =[];
+                    //todo 因为目前没有做权限的校验，所以这里直接查这个部门下所有的人员，后续得根据权限做修改
+                    switch($d['node_type']){
+                        case "0":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['qx_org_code'=>$d['org_code']])->andWhere(['<>','admin_type',1])->asArray()->column();
+                            break;
+                        case "1":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['jd_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "2":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['sq_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                        case "3":
+                            $userIdList = UserInfo::find()->select(['user_id'])->where(['xq_org_code'=>$d['org_code']])->asArray()->column();
+                            break;
+                    }
+                    //合并数组，并去重
+                    $newList = array_unique(array_merge($newList,$userIdList));
+                    //重新排序
+                    sort($newList);
+                }
+            }
+
+        }
+        return $newList;
+
+    }
+
 
 }

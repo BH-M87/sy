@@ -51,6 +51,12 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
         $result = LabelsService::service()->list($this->request_params);
         return PsCommon::responseSuccess($result);
     }
@@ -60,6 +66,12 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
         $result = LabelsService::service()->show($this->request_params);
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
@@ -74,6 +86,13 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
+
         $result = LabelsService::service()->delete($this->request_params);
         if ($result['code']) {
             return PsCommon::responseSuccess();
@@ -88,6 +107,12 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
         $result = LabelsService::service()->labelAttribute($this->request_params);
         return PsCommon::responseSuccess($result);
     }
@@ -97,6 +122,12 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
         $result = LabelsService::service()->labelType($this->request_params);
         return PsCommon::responseSuccess($result);
     }
@@ -106,6 +137,12 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
         $result = LabelsService::service()->differenceList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
@@ -120,7 +157,12 @@ class LabelController extends BaseController
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
 
-        $result = LabelsService::service()->addRelation($data_id, $labels_id, $data_type,$this->user_info['node_type'],$this->user_info['dept_id']);
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+            $this->request_params['organization_id'] = $streetCodeData[0];
+        }
+        $result = LabelsService::service()->addRelation($data_id, $labels_id, $data_type,$this->request_params['organization_type'],$this->request_params['organization_id']);
         if ($result['code']) {
             return PsCommon::responseSuccess();
         }
@@ -133,6 +175,11 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+
+        if ($this->user_info['node_type'] == 2) {
+            $this->request_params['organization_type'] = 1;
+            $this->request_params['organization_id'] = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
+        }
         $result = LabelsService::service()->deleteRelation($this->request_params);
         if ($result['code']) {
             return PsCommon::responseSuccess();

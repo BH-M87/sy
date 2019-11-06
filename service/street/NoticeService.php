@@ -110,7 +110,6 @@ class NoticeService extends BaseService
         return $result;
     }
 
-
     /**
      * 新增通知通报
      * @param $data
@@ -126,6 +125,8 @@ class NoticeService extends BaseService
             $id = $this->addNotice($data, $user_info);
             //每个发送对象，发送一个信息
             $receive_user_list = PsCommon::get($data, 'receive_user_list', []);
+            //对接收到的人和部门进行处理
+            $receive_user_list = UserService::service()->dealReceiveUserList($receive_user_list);
             $result = $this->addNoticeUser($receive_user_list, $id);
             $transaction->commit();
             return $result;
