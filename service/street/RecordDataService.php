@@ -125,7 +125,7 @@ class RecordDataService extends BaseService
         $offset = ($page - 1) * $pageSize;
         $model = $this->getDoorSearchList($params,$userInfo);
         return $model->select(['dr.id as record_id','m.id as member_id','m.face_url','dr.open_time','dr.open_type','dr.device_name','dr.card_no as card_number','dr.room_id',
-            'dr.user_name as user_name','m.mobile as user_phone'])
+            'dr.user_name','m.mobile as user_phone'])
             ->offset($offset)->limit($pageSize)
             ->orderBy("dr.id desc")
             ->asArray()->all();
