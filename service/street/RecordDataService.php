@@ -102,8 +102,8 @@ class RecordDataService extends BaseService
         if($start_time && $end_time){
             $start = strtotime($start_time." 00:00:00");
             $end = strtotime($end_time." 23:59:59");
-            $model->andFilterWhere(['>=','dr.created_at',$start])
-                ->andFilterWhere(['<','dr.created_at',$end]);
+            $model->andFilterWhere(['>=','dr.open_time',$start])
+                ->andFilterWhere(['<','dr.open_time',$end]);
         }
 
         if($user){
