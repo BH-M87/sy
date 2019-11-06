@@ -93,4 +93,26 @@ class ParkingAcross extends BaseModel
             'created_at' => 'Created At',
         ];
     }
+
+    public static function getList($param,$page=true)
+    {
+        $model = self::find()->alias('pa')
+            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
+            ->select(['pa.*','c.name as community_name'])
+            ->where(['pa.car_num'=>$param['car_num']])
+            ->andFilterWhere(['>=','pa.created_at',$param['start_time']])
+            ->andFilterWhere(['<','pa.created_at',$param['end_time']]);
+//        $model->orderBy([ 'st.create_at' => SORT_DESC]);
+        if ($page) {
+            $page = !empty($param['page']) ? $param['page'] : 1;
+            $row = !empty($param['rows']) ? $param['rows'] : 10;
+            $page = ($page-1)*$row;
+            $count = $model->count();
+            $data['totals'] = $count;
+            $model->offset($page)->limit($row);
+        }
+        $data['list'] = $model->asArray()->all();
+        return $data;
+    }
+
 }

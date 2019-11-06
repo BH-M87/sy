@@ -236,20 +236,14 @@ class CarDataService extends BaseService
     {
         $id = PsCommon::get($params,'car_id',0);
         $day = PsCommon::get($params,'day');
-        $start_time = strtotime($day." 00:00:00");//一天的开始时间
-        $end_time = strtotime($day." 23:59:59");//一天的结束时间
-        $car_num = ParkingCars::find()->select(['car_num'])->where(['id'=>$id])->asArray()->scalar();
+        $params['start_time'] = strtotime($day." 00:00:00");//一天的开始时间
+        $params['end_time'] = strtotime($day." 23:59:59");//一天的结束时间
+        $params['car_num'] = ParkingCars::find()->select(['car_num'])->where(['id'=>$id])->asArray()->scalar();
         //当天的具体记录
-        $list = ParkingAcross::find()->alias('pa')
-            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
-            ->select(['pa.*','c.name as community_name'])
-            ->where(['pa.car_num'=>$car_num])
-            ->andFilterWhere(['>=','pa.created_at',$start_time])
-            ->andFilterWhere(['<','pa.created_at',$end_time])
-            ->asArray()->all();
+        $data = ParkingAcross::getList($params);
         $newList = [];
-        if($list){
-            foreach ($list as $key => $value) {
+        if($data['list']){
+            foreach ($data['list'] as $key => $value) {
                 //处理时间
                 $newList[$key]['id'] = $id;
                 $newList[$key]['car_img'] = F::getOssImagePath($value['capture_photo']);
@@ -260,7 +254,7 @@ class CarDataService extends BaseService
                 $newList[$key]['community_name'] = $value['community_name'];
             }
         }
-        return $newList;
+        return ['list' => $newList,'totals' => $data['totals']];
     }
 
 
