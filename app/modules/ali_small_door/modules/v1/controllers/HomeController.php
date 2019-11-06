@@ -56,7 +56,7 @@ class HomeController extends UserBaseController
         }
         $bizType = F::value($this->params, 'biz_type', 1);
 
-        file_put_contents("aaa.txt",json_encode($this->params)."\r\n",FILE_APPEND);
+        file_put_contents("aaa.txt","ddddd".json_encode($this->params)."\r\n",FILE_APPEND);
 
         //查询人脸采集结果
         $service = new AlipaySmallApp('edoor');
