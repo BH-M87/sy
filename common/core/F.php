@@ -711,6 +711,7 @@ class F
         try{
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $ossClient->uploadFile($bucket, $object, $newFile);
+            @unlink($newFile);
             $imgKeyData = $object;
         } catch(OssException $e) {
         }
@@ -745,6 +746,7 @@ class F
         try{
             $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
             $ossClient->uploadFile($bucket, $object, $newFile);
+            @unlink($newFile);
             $imgKeyData = $object;
         } catch(OssException $e) {
         }
