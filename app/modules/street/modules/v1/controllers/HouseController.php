@@ -23,7 +23,7 @@ class HouseController extends BaseController
      */
     public function actionGetGroupsUnits()
     {
-        if (empty($this->request_params['community_id'])) throw new MyException('小区ID不能为空');
+        if (empty($this->request_params['community_id'])) throw new MyException('请选择小区');
         $result = HouseService::service()->getGroupsUnits($this->request_params['community_id']);
         return PsCommon::responseSuccess($result);
     }
