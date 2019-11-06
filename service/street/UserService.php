@@ -44,9 +44,7 @@ class UserService extends BaseService
             throw new MyException("用户不存在！");
         }
 
-        if($user_info['node_type'] == 0){
-            $user_info['dept_id'] = $user_info['org_code'];
-        } elseif ($user_info['node_type'] == 1) {
+        if ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
             $user_info['dept_id'] = $user_info['sq_org_code'];
