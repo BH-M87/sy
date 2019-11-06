@@ -26,6 +26,7 @@ class PersonDataService extends BaseService
         $searchCommunityIds = [];
         //查询登录账号的小区列表
         $communityIds = UserService::service()->getCommunityList($params['organization_type'], $params['organization_id']);
+
         if ($params['community_code']) {
             $searchCommunityIds[0] = BasicDataService::service()->getCommunityIdByCommunityCode($params['community_code']);
             $communityIds = array_intersect($communityIds, $searchCommunityIds);

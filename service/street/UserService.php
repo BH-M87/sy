@@ -45,7 +45,7 @@ class UserService extends BaseService
         }
 
         if($user_info['node_type'] == 0){
-            $user_info['dept_id'] = $user_info['qx_org_code'];
+            $user_info['dept_id'] = $user_info['org_code'];
         } elseif ($user_info['node_type'] == 1) {
             $user_info['dept_id'] = $user_info['jd_org_code'];
         } elseif ($user_info['node_type'] == 2) {
