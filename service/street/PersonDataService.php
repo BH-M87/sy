@@ -238,13 +238,13 @@ class PersonDataService extends BaseService
         if($list){
             $data['week'] = array_slice($list,0,7);
             $sortColumn = array_column($data['week'],'id');
-            array_multisort($sortColumn,SORT_DESC,$data['week']);
+            array_multisort($sortColumn,SORT_ASC,$data['week']);
             $data['halfMonth'] = array_slice($list,0,15);
             $sortColumn = array_column($data['halfMonth'],'id');
-            array_multisort($sortColumn,SORT_DESC,$data['halfMonth']);
+            array_multisort($sortColumn,SORT_ASC,$data['halfMonth']);
             $data['month'] = $list;
             $sortColumn = array_column($data['month'],'id');
-            array_multisort($sortColumn,SORT_DESC,$data['month']);
+            array_multisort($sortColumn,SORT_ASC,$data['month']);
         }
         return $data;
     }

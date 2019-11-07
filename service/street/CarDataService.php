@@ -200,11 +200,19 @@ class CarDataService extends BaseService
     {
         $id = PsCommon::get($params,'car_id',0);
         $list = BasicDataService::service()->getDayReport($id,1,30);
+        //var_dump($list);die;
         $data = [];
         if($list){
+            //sort($list);
             $data['week'] = array_slice($list,0,7);
+            $sortColumn = array_column($data['week'],'day');
+            array_multisort($sortColumn,SORT_ASC,$data['week']);
             $data['halfMonth'] = array_slice($list,0,15);
+            $sortColumn = array_column($data['halfMonth'],'day');
+            array_multisort($sortColumn,SORT_ASC,$data['halfMonth']);
             $data['month'] = $list;
+            $sortColumn = array_column($data['month'],'day');
+            array_multisort($sortColumn,SORT_ASC,$data['month']);
         }
         return $data;
     }
@@ -232,7 +240,7 @@ class CarDataService extends BaseService
     }
 
     //获取记录的详情
-    public function getDayReportInfo($params)
+    public function getDayReportInfo($params,$page, $pageSize)
     {
         $id = PsCommon::get($params,'car_id',0);
         $day = PsCommon::get($params,'day');
