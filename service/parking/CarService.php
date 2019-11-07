@@ -256,7 +256,7 @@ class CarService extends BaseService
         }
 
         //图片处理
-        if (strpos('aliyuncs.com', $req['images']) !== false) {
+        if (strpos($req['images'], 'aliyuncs.com') !== false) {
             $req['images'] = $carInfo['images'];
         }
         //查看车位是否已绑定其他车辆
