@@ -313,6 +313,7 @@ class BasicDataService extends BaseService
      */
     public function getLabelByType($type, $attribute, $streetCode = null)
     {
+
         if ($streetCode) {
             $labels = StLabels::find()
                 ->select('id')
@@ -324,7 +325,7 @@ class BasicDataService extends BaseService
             $labels = StLabels::find()
                 ->select('id')
                 ->where(['label_attribute' => $attribute, 'label_type' => $type, 'is_delete' => 1])
-                ->andWhere(['is_sys', 2])
+                ->andWhere(['is_sys' => 2])
                 ->asArray()
                 ->column();
         }
