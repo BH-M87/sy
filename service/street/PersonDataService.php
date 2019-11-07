@@ -152,7 +152,7 @@ class PersonDataService extends BaseService
             ->asArray()
             ->one();
         if ($userInfo) {
-            $userInfo['card_no'] = $userInfo['card_no'] ? F::processIdCard($userInfo['card_no']) : '';
+            $userInfo['card_no'] = $userInfo['card_no'] ? $userInfo['card_no'] : '';
             $userInfo['identity'] = [
                 'id' => $userInfo['identity_type'],
                 'name' => PsRoomUser::$identity_type[$userInfo['identity_type']]
