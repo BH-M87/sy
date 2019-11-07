@@ -1045,15 +1045,15 @@ Class HouseService extends BaseService
      */
     public function getGroupsUnits($community_id)
     {
-        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);
+        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id],'asc');
         if ($groups) {
             foreach ($groups as &$g) {
-                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']]);
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']],'asc');
                 $g['building_list'] = [];
                 if ($buildings) {
                     $g['building_list'] = $buildings;
                     foreach ($g['building_list'] as &$b) {
-                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']]);
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']],'asc');
                         $b['unit_list'] = [];
                         if ($units) {
                             $b['unit_list'] = $units;
@@ -1073,7 +1073,7 @@ Class HouseService extends BaseService
      */
     public function getRoomList($data)
     {
-        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->asArray()->all();
         return $list;
     }
 
