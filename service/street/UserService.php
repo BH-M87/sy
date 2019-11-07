@@ -461,9 +461,18 @@ class UserService extends BaseService
     }
 
     //获取小区公告小区数量
-    public function getProclaimCommunityIdList()
+    public function getProclaimCommunityIdList($list)
     {
-
+        $receiveList = [];
+        if($list){
+            foreach($list as $key=>$value){
+                $departInfo = Department::find()->where(['org_code'=>$value])->asArray()->one();
+                $communityIdList= $this->getCommunityList($departInfo['node_type'],$value);
+                $receiveList = array_merge($receiveList,$communityIdList);
+                sort($receiveList);
+            }
+        }
+        return $receiveList;
     }
 
 
