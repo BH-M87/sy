@@ -211,7 +211,7 @@ class PersonDataService extends BaseService
                 'id' => !empty($val['open_type']) ? $val['open_type'] : '',
                 'name' => !empty($val['open_type']) ? DoorRecordService::service()->_open_door_type[$val['open_type']] : '',
             ];
-            $list[$key]['room_address'] = $val['group'].$val['building'].$val['unit'].$val['name'];
+            $list[$key]['room_address'] = $val['group'].$val['building'].$val['unit'].$val['room'];
             unset($list[$key]['group']);
             unset($list[$key]['building']);
             unset($list[$key]['unit']);
