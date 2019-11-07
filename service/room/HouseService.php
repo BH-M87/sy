@@ -19,6 +19,7 @@ use app\models\PsCommunityUnits;
 use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
 use app\models\PsRoomUser;
+use common\core\F;
 use common\core\PsCommon;
 use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
@@ -1085,6 +1086,9 @@ Class HouseService extends BaseService
     public function getRoomDetail($id)
     {
         $detail['info'] = PsCommunityRoominfo::find()->select(['room_id as room_no','own_age_limit','id','room_image','house_type','orientation','status','delivery_time','property_type','community_id','group','building','unit','floor','charge_area','room'])->where(['id' => $id])->asArray()->one();
+        if (!empty($detail['info']['room_image'])) {
+            $detail['info']['room_image'] = F::getOssImagePath($detail['info']['room_image']);
+        }
         $detail['info']['community_name'] = PsCommunityModel::find()->select('name')->where(['id' => $detail['info']['community_id']])->one()['name'];
         $detail['info']['property_type'] = PsCommon::propertyType($detail['info']['property_type']);
         $detail['info']['delivery_time'] = !empty($detail['info']['delivery_time']) ? date('Y-m-d',$detail['info']['delivery_time']) : '';
