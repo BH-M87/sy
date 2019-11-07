@@ -164,7 +164,7 @@ class PersonDataService extends BaseService
             ];
             $userInfo['household_address'] = $userInfo['household_address'] ? $userInfo['household_address'] : '';
             $userInfo['address'] = $userInfo['community_name'].$userInfo['group'].
-                $userInfo['building'].$userInfo['unit'].$userInfo['name'];
+                $userInfo['building'].$userInfo['unit'].$userInfo['room'];
             $userInfo['qq'] = $userInfo['qq'] ? $userInfo['qq'] : '';
             $userInfo['wechat'] = $userInfo['wechat'] ? $userInfo['wechat'] : '';
             $userInfo['email'] = $userInfo['email'] ? $userInfo['email'] : '';
@@ -239,9 +239,11 @@ class PersonDataService extends BaseService
             $data['week'] = array_slice($list,0,7);
             $sortColumn = array_column($data['week'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['week']);
+
             $data['halfMonth'] = array_slice($list,0,15);
             $sortColumn = array_column($data['halfMonth'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['halfMonth']);
+
             $data['month'] = $list;
             $sortColumn = array_column($data['month'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['month']);

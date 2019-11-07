@@ -284,7 +284,7 @@ class BasicDataService extends BaseService
      */
     public function getDayReport($id,$type = 1,$day = 30)
     {
-        $start_time = strtotime(date("Y-m-d 00:00:00"));//今天开始时间
+        $start_time = strtotime(date("Y-m-d 00:00:00")) - 86400;//昨天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
             $res = StRecordReport::find()->select(['day','num','data_id as id'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])

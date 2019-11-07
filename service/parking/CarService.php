@@ -359,6 +359,7 @@ class CarService extends BaseService
         if ($carInfo) {
             $carInfo['created_at'] = $carInfo['created_at'] ? date("Y-m-d H:i", $carInfo['created_at']) : '';
             $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
+            $carInfo['images_key'] = $carInfo['images'];
             if ($carInfo['images']) {
                 $tmpImg = [];
                 foreach ($carInfo['images'] as $val) {
@@ -366,6 +367,7 @@ class CarService extends BaseService
                 }
                 $carInfo['images'] = $tmpImg;
             }
+
             $carInfo['carport_rent_start'] = $carInfo['carport_rent_start'] ? date("Y-m-d", $carInfo['carport_rent_start']) : '';
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
             $carInfo['car_delivery'] = $carInfo['car_delivery'] > 0 ? $carInfo['car_delivery'] : '';
