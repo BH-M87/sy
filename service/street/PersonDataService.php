@@ -64,6 +64,8 @@ class PersonDataService extends BaseService
                 ->column();
         }
 
+
+
         $query = PsMember::find()
             ->alias('m')
             ->leftJoin('ps_room_user u', 'u.member_id = m.id')
@@ -81,14 +83,15 @@ class PersonDataService extends BaseService
         if ($params['card_no']) {
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
-
         $reData['totals'] = $query->select('m.id')->count();
         $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,c.name as community_name, u.group,u.building,u.unit,u.room,m.face_url')
             ->offset((($page - 1) * $rows))
             ->limit($rows)
-            ->orderBy('u.id desc')
+            ->groupBy('u.member_id')
+            ->orderBy('m.id desc')
             ->asArray()
             ->all();
+
         foreach ($list as $key => $val) {
             $list[$key]['mobile'] = F::processMobile($val['mobile']);
             $list[$key]['card_no'] = F::processIdCard($val['card_no']);
