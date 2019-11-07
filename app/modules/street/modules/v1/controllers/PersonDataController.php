@@ -55,7 +55,7 @@ class PersonDataController extends BaseController
         $this->request_params['card_no'] = F::value($this->request_params, 'card_no', '');
         $this->request_params['label_id'] = F::value($this->request_params, 'label_id', []);
 
-        $result = PersonDataService::service()->getList($this->request_params,$this->page,$this->pageSize);
+        $result = PersonDataService::service()->getList($this->request_params,$this->page,$this->pageSize,$this->user_info);
         if($result) {
             return PsCommon::responseSuccess($result);
         } else {

@@ -18,7 +18,7 @@ use service\door\DoorRecordService;
 class PersonDataService extends BaseService
 {
     //人员
-    public function getList($params, $page, $rows)
+    public function getList($params, $page, $rows,$userInfo)
     {
         $reData['list'] = [];
         $reData['totals'] = 0;
@@ -42,7 +42,7 @@ class PersonDataService extends BaseService
         }
 
         //标签搜索条件处理
-        $labels = [];
+        /*$labels = [];
         if (array_search(-1,$params['label_id']) !== false) {
             //查询日常画像所有标签
             $labels = BasicDataService::service()->getLabelByType(1, 2, $params['street_code']);
@@ -53,7 +53,8 @@ class PersonDataService extends BaseService
             //查询关怀对象所有标签
             $labels = BasicDataService::service()->getLabelByType(3, 2, $params['street_code']);
         }
-        $params['label_id'] = array_merge($params['label_id'], $labels);
+        //$params['label_id'] = array_merge($params['label_id'], $labels);*/
+        $params['label_id'] = BasicDataService::service()->dealSearchLabel($params['label_id'],$params['street_code'],$userInfo);
         $memberIds = [];
         if ($params['label_id']) {
             $memberIds = StLabelsRela::find()
