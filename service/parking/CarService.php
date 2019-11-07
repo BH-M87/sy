@@ -358,8 +358,8 @@ class CarService extends BaseService
             ->one();
         if ($carInfo) {
             $carInfo['created_at'] = $carInfo['created_at'] ? date("Y-m-d H:i", $carInfo['created_at']) : '';
-            $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
             $carInfo['images_key'] = $carInfo['images'];
+            $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
             if ($carInfo['images']) {
                 $tmpImg = [];
                 foreach ($carInfo['images'] as $val) {
