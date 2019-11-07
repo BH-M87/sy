@@ -127,7 +127,7 @@ class RecordDataService extends BaseService
         return $model->select(['dr.id as record_id','m.id as member_id','m.face_url','dr.open_time','dr.open_type','dr.device_name','dr.card_no as card_number','dr.room_id',
             'dr.user_name','m.mobile as user_phone'])
             ->offset($offset)->limit($pageSize)
-            ->orderBy("dr.id desc")
+            ->orderBy("dr.open_time desc")
             ->asArray()->all();
     }
 
@@ -215,7 +215,7 @@ class RecordDataService extends BaseService
         return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images',
             'pa.created_at as open_time','pa.across_type as open_type','pa.gate_address as open_addrss','pa.park_time'])
             ->offset($offset)->limit($pageSize)
-            ->orderBy("pa.id desc")
+            ->orderBy("pa.created_at desc")
             ->asArray()->all();
     }
 

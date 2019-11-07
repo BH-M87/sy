@@ -19,6 +19,7 @@ use app\models\PsCommunityUnits;
 use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
 use app\models\PsRoomUser;
+use common\core\F;
 use common\core\PsCommon;
 use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
@@ -1044,15 +1045,15 @@ Class HouseService extends BaseService
      */
     public function getGroupsUnits($community_id)
     {
-        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);
+        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id],'asc');
         if ($groups) {
             foreach ($groups as &$g) {
-                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']]);
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']],'asc');
                 $g['building_list'] = [];
                 if ($buildings) {
                     $g['building_list'] = $buildings;
                     foreach ($g['building_list'] as &$b) {
-                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']]);
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']],'asc');
                         $b['unit_list'] = [];
                         if ($units) {
                             $b['unit_list'] = $units;
@@ -1072,7 +1073,7 @@ Class HouseService extends BaseService
      */
     public function getRoomList($data)
     {
-        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->asArray()->all();
         return $list;
     }
 
@@ -1084,7 +1085,10 @@ Class HouseService extends BaseService
      */
     public function getRoomDetail($id)
     {
-        $detail['info'] = PsCommunityRoominfo::find()->select(['room_id as room_no','own_age_limit','id','room_image','house_type','orientation','status','delivery_time','property_type','community_id','group','building','unit','floor','charge_area'])->where(['id' => $id])->asArray()->one();
+        $detail['info'] = PsCommunityRoominfo::find()->select(['room_id as room_no','own_age_limit','id','room_image','house_type','orientation','status','delivery_time','property_type','community_id','group','building','unit','floor','charge_area','room'])->where(['id' => $id])->asArray()->one();
+        if (!empty($detail['info']['room_image'])) {
+            $detail['info']['room_image'] = F::getOssImagePath($detail['info']['room_image']);
+        }
         $detail['info']['community_name'] = PsCommunityModel::find()->select('name')->where(['id' => $detail['info']['community_id']])->one()['name'];
         $detail['info']['property_type'] = PsCommon::propertyType($detail['info']['property_type']);
         $detail['info']['delivery_time'] = !empty($detail['info']['delivery_time']) ? date('Y-m-d',$detail['info']['delivery_time']) : '';

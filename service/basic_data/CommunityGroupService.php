@@ -29,12 +29,12 @@ class CommunityGroupService extends BaseService {
 
     }
 
-    public function getGroupList($data)
+    public function getGroupList($data,$order = 'desc')
     {
         $list = PsCommunityGroups::find()
             ->select(['id as group_id', 'name as group_name'])
             ->where(['community_id' => $data['community_id']])
-            ->orderBy('id desc')
+            ->orderBy('id '.$order)
             ->asArray()->all();
         return $list;
     }

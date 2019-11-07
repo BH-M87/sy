@@ -239,11 +239,9 @@ class PersonDataService extends BaseService
             $data['week'] = array_slice($list,0,7);
             $sortColumn = array_column($data['week'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['week']);
-
             $data['halfMonth'] = array_slice($list,0,15);
             $sortColumn = array_column($data['halfMonth'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['halfMonth']);
-
             $data['month'] = $list;
             $sortColumn = array_column($data['month'],'id');
             array_multisort($sortColumn,SORT_DESC,$data['month']);
