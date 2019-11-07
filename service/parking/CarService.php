@@ -254,6 +254,11 @@ class CarService extends BaseService
         if (!$portInfo) {
             return $this->failed('车位不存在！');
         }
+
+        //图片处理
+        if (strpos('aliyuncs.com', $req['images']) !== false) {
+            $req['images'] = $carInfo['images'];
+        }
         //查看车位是否已绑定其他车辆
 //        $carportCarInfo = ParkingUserCarport::find()
 //            ->where(['carport_id' => $req['carport_id']])
