@@ -81,7 +81,7 @@ class PersonDataService extends BaseService
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
         $reData['totals'] = $query->select('m.id')->count();
-        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,m.face_url')
+        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,u.community_id,m.face_url')
             ->offset((($page - 1) * $rows))
             ->limit($rows)
             ->groupBy('u.member_id')
