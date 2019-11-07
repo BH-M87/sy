@@ -28,7 +28,7 @@ use service\BaseService;
 use service\basic_data\CommunityBuildingService;
 use service\basic_data\CommunityGroupService;
 use service\basic_data\DoorPushService;
-use service\street\LabelsService;
+use service\label\LabelsService;
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
