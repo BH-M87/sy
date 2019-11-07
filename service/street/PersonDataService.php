@@ -42,19 +42,24 @@ class PersonDataService extends BaseService
         }
 
         //标签搜索条件处理
-        /*$labels = [];
+        $labels = [];
         if (array_search(-1,$params['label_id']) !== false) {
             //查询日常画像所有标签
             $labels = BasicDataService::service()->getLabelByType(1, 2, $params['street_code']);
-        } elseif (array_search(-2,$params['label_id']) !== false) {
+            $params['label_id'] = array_merge($params['label_id'], $labels);
+        }
+        if (array_search(-2,$params['label_id']) !== false) {
             //查询重点关注所有标签
             $labels = BasicDataService::service()->getLabelByType(2, 2, $params['street_code']);
-        } elseif (array_search(-3,$params['label_id']) !== false) {
+            $params['label_id'] = array_merge($params['label_id'], $labels);
+        }
+        if (array_search(-3,$params['label_id']) !== false) {
             //查询关怀对象所有标签
             $labels = BasicDataService::service()->getLabelByType(3, 2, $params['street_code']);
+            $params['label_id'] = array_merge($params['label_id'], $labels);
         }
-        //$params['label_id'] = array_merge($params['label_id'], $labels);*/
-        $params['label_id'] = BasicDataService::service()->dealSearchLabel($params['label_id'],$params['street_code'],$userInfo,2);
+        //$params['label_id'] = array_merge($params['label_id'], $labels);
+        //$params['label_id'] = BasicDataService::service()->dealSearchLabel($params['label_id'],$params['street_code'],$userInfo,2);
         $memberIds = [];
         if ($params['label_id']) {
             $memberIds = StLabelsRela::find()
