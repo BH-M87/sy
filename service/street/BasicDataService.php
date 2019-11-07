@@ -157,9 +157,14 @@ class BasicDataService extends BaseService
             $query->leftJoin('parking_cars m','m.id = slr.data_id');
         }
 
+        $query->select('count(*) as num,slr.labels_id')
+            ->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
+            ->andWhere(['!=','m.id','']);
+        if ($streetCode) {
+            $query->andWhere(['slr.organization_id' => $streetCode]);
+        }
+        $query->groupBy('slr.labels_id');
         $data = $query->select('count(*) as num,slr.labels_id')
-            ->where(['slr.organization_type' => 1,'slr.organization_id' => $streetCode,'slr.data_type' => $dataType])
-            ->andWhere(['!=','m.id',''])
             ->groupBy('slr.labels_id')
             ->asArray()
             ->all();
@@ -313,6 +318,7 @@ class BasicDataService extends BaseService
      */
     public function getLabelByType($type, $attribute, $streetCode = null)
     {
+
         if ($streetCode) {
             $labels = StLabels::find()
                 ->select('id')
@@ -324,7 +330,7 @@ class BasicDataService extends BaseService
             $labels = StLabels::find()
                 ->select('id')
                 ->where(['label_attribute' => $attribute, 'label_type' => $type, 'is_delete' => 1])
-                ->andWhere(['is_sys', 2])
+                ->andWhere(['is_sys' => 2])
                 ->asArray()
                 ->column();
         }

@@ -206,9 +206,8 @@ class LabelController extends BaseController
             $streetData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
             $this->request_params['street_code'] = $streetData[0];
         }
+
         $labelList = BasicDataService::service()->getLabelStatistics($streetCode, $dataType, $this->user_info['node_type']);
         return PsCommon::responseSuccess($labelList);
     }
-
-
 }

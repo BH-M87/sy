@@ -66,8 +66,7 @@ class PersonDataService extends BaseService
 
         $query = PsMember::find()
             ->alias('m')
-            ->leftJoin('ps_room_user u', 'u.member_id = m.id')
-            ->leftJoin('ps_community c', 'c.id = u.community_id');
+            ->leftJoin('ps_room_user u', 'u.member_id = m.id');
         $query->where("1=1");
         if ($communityIds) {
             $query->andWhere(['u.community_id' => $communityIds]);
@@ -81,18 +80,33 @@ class PersonDataService extends BaseService
         if ($params['card_no']) {
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
+        $query->groupBy('u.member_id');
 
         $reData['totals'] = $query->select('m.id')->count();
-        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,c.name as community_name, u.group,u.building,u.unit,u.room,m.face_url')
+        $list = $query->select('m.id,m.mobile,u.card_no,m.name as member_name,u.group,u.building,u.unit,u.room,u.community_id,m.face_url')
             ->offset((($page - 1) * $rows))
             ->limit($rows)
-            ->orderBy('u.id desc')
+            ->orderBy('m.id desc')
             ->asArray()
             ->all();
+
         foreach ($list as $key => $val) {
+            //查询最新的ps_room_user
+            $tmpQurey = PsRoomUser::find()
+                ->alias('u')
+                ->select('u.card_no,u.group,u.building,u.unit,u.room,c.name as community_name')
+                ->leftJoin('ps_community c', 'c.id = u.community_id')
+                ->where(['u.member_id' => $val['id']]);
+            if ($communityIds) {
+                $tmpQurey->andWhere(['u.community_id' => $communityIds]);
+            }
+            $tmpInfo = $tmpQurey->orderBy('u.id desc')
+                ->limit(1)
+                ->asArray()
+                ->one();
+            $list[$key]['card_no'] = $tmpInfo['card_no'] ? F::processIdCard($tmpInfo['card_no']) : '';
             $list[$key]['mobile'] = F::processMobile($val['mobile']);
-            $list[$key]['card_no'] = F::processIdCard($val['card_no']);
-            $list[$key]['address'] = $val['community_name'].$val['group'].$val['building'].$val['unit'].$val['room'];
+            $list[$key]['address'] = $tmpInfo['community_name'].$tmpInfo['group'].$tmpInfo['building'].$tmpInfo['unit'].$tmpInfo['room'];
 
             //查询所有标签
             $list[$key]['label'] = $this->getMemberLabels($val['id']);
@@ -138,7 +152,7 @@ class PersonDataService extends BaseService
             ->asArray()
             ->one();
         if ($userInfo) {
-            $userInfo['card_no'] = $userInfo['card_no'] ? F::processIdCard($userInfo['card_no']) : '';
+            $userInfo['card_no'] = $userInfo['card_no'] ? $userInfo['card_no'] : '';
             $userInfo['identity'] = [
                 'id' => $userInfo['identity_type'],
                 'name' => PsRoomUser::$identity_type[$userInfo['identity_type']]

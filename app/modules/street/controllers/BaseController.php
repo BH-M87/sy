@@ -64,6 +64,7 @@ class BaseController extends Controller
         if (!empty($this->request_params['community_code'])) {
             $this->request_params['community_id'] = CommunityService::service()->getCommunityIdByCode($this->request_params['community_code']);
         }
+
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;

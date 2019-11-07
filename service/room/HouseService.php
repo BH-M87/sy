@@ -396,6 +396,11 @@ Class HouseService extends BaseService
                 return $this->failed("此房屋不存在");
             }
 
+            //图片处理
+            if (strpos($room_image, 'aliyuncs.com') !== false) {
+                $room_image = $roomInfo['room_image'];
+            }
+
             $trans = Yii::$app->getDb()->beginTransaction();
             try {
                 if (!empty($room_label_id)) {
