@@ -43,7 +43,7 @@ class RoomInfoService extends BaseService
     {
         return PsCommunityRoominfo::find()
             ->alias('room')
-            ->select(['room.out_room_id', 'room.room', 'room.room_code', 'unit.unit_no', 'roominfo_code'])
+            ->select(['room.out_room_id', 'room.room', 'room.room_code','room.room_image', 'unit.unit_no', 'roominfo_code'])
             ->leftJoin('ps_community_units unit', 'unit.id = room.unit_id')
             ->where(['room.id' => $id])
             ->asArray()
