@@ -91,12 +91,15 @@ class PersonDataService extends BaseService
 
         foreach ($list as $key => $val) {
             //查询最新的ps_room_user
-            $tmpInfo = PsRoomUser::find()
+            $tmpQurey = PsRoomUser::find()
                 ->alias('u')
                 ->select('u.card_no,u.group,u.building,u.unit,u.room,c.name as community_name')
                 ->leftJoin('ps_community c', 'c.id = u.community_id')
-                ->where(['u.member_id' => $val['id']])
-                ->orderBy('u.id desc')
+                ->where(['u.member_id' => $val['id']]);
+            if ($communityIds) {
+                $tmpQurey->andWhere(['u.community_id' => $communityIds]);
+            }
+            $tmpInfo = $tmpQurey->orderBy('u.id desc')
                 ->limit(1)
                 ->asArray()
                 ->one();
