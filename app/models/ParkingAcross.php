@@ -113,7 +113,7 @@ class ParkingAcross extends BaseModel
             $data['totals'] = $count;
             $model->offset($page)->limit($row);
         }
-        $data['list'] = $model->asArray()->all();
+        $data['list'] = $model->orderBy('pa.created_at desc')->asArray()->all();
         return $data;
     }
 
