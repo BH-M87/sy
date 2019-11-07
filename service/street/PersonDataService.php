@@ -96,6 +96,8 @@ class PersonDataService extends BaseService
                 ->select('u.card_no,u.group,u.building,u.unit,u.room,c.name as community_name')
                 ->leftJoin('ps_community c', 'c.id = u.community_id')
                 ->where(['u.member_id' => $val['id']])
+                ->orderBy('u.id desc')
+                ->limit(1)
                 ->asArray()
                 ->one();
             $list[$key]['card_no'] = $tmpInfo['card_no'] ? F::processIdCard($tmpInfo['card_no']) : '';
