@@ -28,7 +28,7 @@ use service\BaseService;
 use service\basic_data\CommunityBuildingService;
 use service\basic_data\CommunityGroupService;
 use service\basic_data\DoorPushService;
-use service\street\LabelsService;
+use service\label\LabelsService;
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
@@ -88,7 +88,8 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image','cr.orientation'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image',
+                'cr.orientation'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
 
@@ -111,6 +112,7 @@ Class HouseService extends BaseService
             $list['house_type_toilet'] = $house_type[3];
             $list['delivery_time'] = !empty($list['delivery_time']) ? date('Y-m-d H:i:s',$list['delivery_time']) : '';
             $list['own_age_limit'] = !empty($list['own_age_limit']) ? $list['own_age_limit'] : '';
+            $list['room_image'] = $list['room_image'] ? F::getOssImagePath($list['room_image']) : '';
             return ['list' => $list];
         }
 
@@ -1045,15 +1047,15 @@ Class HouseService extends BaseService
      */
     public function getGroupsUnits($community_id)
     {
-        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);
+        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id],'asc');
         if ($groups) {
             foreach ($groups as &$g) {
-                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']]);
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']],'asc');
                 $g['building_list'] = [];
                 if ($buildings) {
                     $g['building_list'] = $buildings;
                     foreach ($g['building_list'] as &$b) {
-                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']]);
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']],'asc');
                         $b['unit_list'] = [];
                         if ($units) {
                             $b['unit_list'] = $units;
@@ -1073,7 +1075,7 @@ Class HouseService extends BaseService
      */
     public function getRoomList($data)
     {
-        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->asArray()->all();
         return $list;
     }
 
