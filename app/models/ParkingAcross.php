@@ -97,8 +97,10 @@ class ParkingAcross extends BaseModel
     public static function getList($param,$page=true)
     {
         $model = self::find()->alias('pa')
-            ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
-            ->select(['pa.*','c.name as community_name'])
+            ->innerJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
+            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num')
+            ->innerJoin(['puc'=>ParkingUserCarport::tableName()],'puc.car_id = pc.id')
+            ->select(['pa.*','c.name as community_name','puc.room_address'])
             ->where(['pa.car_num'=>$param['car_num']])
             ->andFilterWhere(['>=','pa.created_at',$param['start_time']])
             ->andFilterWhere(['<','pa.created_at',$param['end_time']]);

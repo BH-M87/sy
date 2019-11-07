@@ -39,7 +39,7 @@ class CarDataController extends BaseController
     //获取记录的详情
     public function actionDayReportInfo()
     {
-        $result = CarDataService::service()->getDayReportInfo($this->request_params,$this->page,$this->pageSize);
+        $result = CarDataService::service()->getDayReportInfo($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 

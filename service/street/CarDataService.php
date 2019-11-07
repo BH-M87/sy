@@ -240,7 +240,7 @@ class CarDataService extends BaseService
     }
 
     //获取记录的详情
-    public function getDayReportInfo($params,$page, $pageSize)
+    public function getDayReportInfo($params)
     {
         $id = PsCommon::get($params,'car_id',0);
         $day = PsCommon::get($params,'day');
@@ -260,6 +260,7 @@ class CarDataService extends BaseService
                 $newList[$key]['address'] = $value['gate_address'];
                 $newList[$key]['park_time'] = !empty($value['park_time']) ? $this->dealParkingTime($value['park_time']) : 0;
                 $newList[$key]['community_name'] = $value['community_name'];
+                $newList[$key]['room_address'] = $value['room_address'];
             }
         }
         return ['list' => $newList,'totals' => $data['totals']];
