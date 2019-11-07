@@ -359,6 +359,7 @@ class UserService extends BaseService
         return $list;
     }
 
+    //处理住户数据的人数
     public function getUserInfoNum($k,$v,$list= [],$allList = [])
     {
         //查找这个部门的信息
@@ -459,6 +460,12 @@ class UserService extends BaseService
                 }
                 break;
         }
+    }
+
+    //获取小区公告小区数量
+    public function getProclaimCommunityIdList()
+    {
+
     }
 
 
