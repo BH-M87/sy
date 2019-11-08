@@ -75,9 +75,9 @@ class PersonDataService extends BaseService
                 ->column();
         }
 
-        $query = PsMember::find()
-            ->alias('m')
-            ->leftJoin('ps_room_user u', 'u.member_id = m.id');
+        $query = PsRoomUser::find()
+            ->alias('u')
+            ->leftJoin('ps_member m', 'm.id = u.member_id');
         $query->where("1=1");
         if ($communityIds) {
             $query->andWhere(['u.community_id' => $communityIds]);
