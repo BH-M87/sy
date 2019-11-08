@@ -105,6 +105,12 @@ class HouseController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 关联访客
+     * @author yjh
+     * @return string
+     * @throws MyException
+     */
     public function actionGetVisitorList()
     {
         if (empty($this->request_params['id'])) throw new MyException('ID不能为空');
@@ -120,7 +126,6 @@ class HouseController extends BaseController
             $v['visitor_status'] = $v['status'] == 2 ? '1' : '2';
             $v['start_time'] = !empty($v['start_time']) ? date('Y-m-d',$v['start_time']) : '';
             $v['end_time'] = !empty($v['end_time']) ? date('Y-m-d',$v['end_time']) : '';
-            $v['passage_at'] = !empty($v['passage_at']) ? date('Y-m-d',$v['passage_at']) : '';
             $v['door_record_list'] = DoorRecordService::service()->getVisitorRecord($v['id']);
             $v['visitor_id'] = $v['id'];
             unset($v['car_number']);
