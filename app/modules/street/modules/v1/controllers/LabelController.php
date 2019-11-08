@@ -137,12 +137,19 @@ class LabelController extends BaseController
     {
         $this->request_params['organization_type'] = $this->user_info['node_type'];
         $this->request_params['organization_id'] = $this->user_info['dept_id'];
+        $streetCode = F::value($this->request_params, 'street_code', '');
 
         if ($this->user_info['node_type'] == 2) {
             $this->request_params['organization_type'] = 1;
             $streetCodeData = UserService::service()->getStreetCodeByDistrict($this->user_info['dept_id']);
-            $this->request_params['organization_id'] = $streetCodeData[0];
+            $streetCode =  $streetCodeData[0];
         }
+
+        if ($this->user_info['node_type'] == 1) {
+            $streetCode = $this->request_params['organization_id'];
+        }
+
+        $this->request_params['street_code'] = $streetCode;
         $result = LabelsService::service()->differenceList($this->request_params);
         return PsCommon::responseSuccess($result);
     }

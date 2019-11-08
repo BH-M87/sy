@@ -11,6 +11,7 @@ namespace app\controllers;
 
 use app\models\DoorDevices;
 use app\models\DoorDeviceUnit;
+use app\models\DoorRecord;
 use app\models\IotSuppliers;
 use app\models\ParkingAcross;
 use app\models\PsAppMember;
@@ -26,6 +27,7 @@ use app\models\StLabelsRela;
 use common\core\Curl;
 use common\core\F;
 use common\core\PsCommon;
+use service\basic_data\DoorExternalService;
 use service\basic_data\IotNewDealService;
 use service\basic_data\IotNewService;
 use service\door\DeviceService;
@@ -36,19 +38,34 @@ use Yii;
 
 class CommandController extends Controller
 {
-    const IOT_FACE_USER = "IotFaceUser_sqwn";//人脸住户数据同步
+    const IOT_FACE_USER = YII_PROJECT.YII_ENV."IotFaceUser_sqwn";//人脸住户数据同步
     //const CAR_RECORD_REPORT = "car_record_report";//车进出记录同步
     //const DOOR_RECORD_REPORT = "door_record_report";//人出行记录同步
+    const RECORD_SYNC_DOOR = "record_sync_door";//人行出入记录同步
+    const RECORD_SYNC_CAR = "record_sync_car";//车行出入记录同步
     ##############################测试脚本############################################
     public function actionTest(){
-        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+        $request = F::request();//住户传入数据
+        $type = PsCommon::get($request,"type",1);
+        switch($type){
+            case "1":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
+                break;
+            case "2":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_FACE_USER, 0, 99);
+                break;
+            case "3":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 99);
+                break;
+            case "4":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
+                break;
+            default:
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
+        }
         var_dump($list);die;
     }
 
-    public function actionTest2(){
-        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 99);
-        var_dump($list);die;
-    }
 
     public function actionTest3()
     {
@@ -200,7 +217,7 @@ class CommandController extends Controller
                 ->all();
             if($list){
                 foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV."IotFaceUser_sqwn",json_encode($value));
                 }
             }
         }
@@ -229,6 +246,66 @@ class CommandController extends Controller
             }
         }
     }
+
+
+    //用不小区住户数据
+    public function actionSyncRecordDoor()
+    {
+        $request = F::request();//住户传入数据
+        $day = PsCommon::get($request,"day");
+        if($day){
+            $start_time = strtotime($day." 00:00:00");
+            $end_time = strtotime($day." 23:59:59");
+            $flag = true;
+            $page = 1;
+            $pageSize = 1000;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                if($list){
+                    echo $page;
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
+                }
+            }
+        }
+
+    }
+
+    //用不小区住户数据
+    public function actionSyncRecordCar()
+    {
+        $request = F::request();//住户传入数据
+        $day = PsCommon::get($request,"day");
+        if($day){
+            $start_time = strtotime($day." 00:00:00");
+            $end_time = strtotime($day." 23:59:59");
+            $flag = true;
+            $page = 1;
+            $pageSize = 1000;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                if($list){
+                    echo $page;
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
+                }
+            }
+        }
+    }
+
+
 
 
     ##############################在用脚本############################################
@@ -296,7 +373,7 @@ class CommandController extends Controller
     //iot相关数据的同步 */1 * * * * curl localhost:9003/command/iot-data
     public function actionIotData()
     {
-        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
         if(!empty($list)){
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
@@ -338,7 +415,7 @@ class CommandController extends Controller
                         break;
                 }
                 //从队列里面移除
-                Yii::$app->redis->lpop("IotMqData_sqwn");
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV."IotMqData_sqwn");
                 //如果操作失败了，就重新放到队列里面执行
                 if($res['code'] != 1){
                     $sendNum = PsCommon::get($dataInfo,'sendNum',0);
@@ -346,7 +423,7 @@ class CommandController extends Controller
                     if($sendNum < 3){
                         $dataInfo['sendNum'] += 1;//操作次数 +1
                         //重新丢回队列里面
-                        Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($dataInfo));
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV."IotMqData_sqwn",json_encode($dataInfo));
                     }
                 }
             }
@@ -356,7 +433,7 @@ class CommandController extends Controller
 
     //iot人脸数据下发 * * * * * curl localhost:9003/command/iot-data
     public function actionIotFace(){
-        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 1);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotFaceUser_sqwn", 0, 1);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
@@ -367,5 +444,42 @@ class CommandController extends Controller
         }
     }
 
+    //人行数据同步
+    public function actionRecordSyncDoor()
+    {
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 99);
+        if($list){
+            foreach($list as $key=>$value){
+                $dataInfo = json_decode($value,true);
+                //逻辑处理
+                $time = $dataInfo['open_time'];
+                $mobile = $dataInfo['user_phone'];
+                if($mobile){
+                    DoorExternalService::service()->saveToRecordReport(2,$time,$mobile);
+                }
+                //从队列里面移除
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR);
+            }
+        }
+    }
+
+    //车行数据同步
+    public function actionRecordSyncCar()
+    {
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
+        if($list){
+            foreach($list as $key=>$value){
+                $dataInfo = json_decode($value,true);
+                //逻辑处理
+                $time = $dataInfo['created_at'];
+                $car_num = $dataInfo['car_num'];
+                if($car_num){
+                    DoorExternalService::service()->saveToRecordReport(1,$time,$car_num);
+                }
+                //从队列里面移除
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR);
+            }
+        }
+    }
 
 }

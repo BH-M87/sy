@@ -43,7 +43,7 @@ class BasicDataService extends BaseService
         $communityIds = DepartmentCommunity::find()
             ->alias('dc')
             ->select('comm.id')
-            ->leftJoin('ps_community comm', 'comm.event_community_no = dc.sq_org_code')
+            ->leftJoin('ps_community comm', 'comm.event_community_no = dc.xq_orgcode')
             ->where(['dc.sq_org_code' => $districtCode])
             ->asArray()
             ->column();
@@ -92,6 +92,7 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
+
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
             $labels = StLabels::find()
@@ -156,20 +157,41 @@ class BasicDataService extends BaseService
             $query->innerJoin('parking_cars m','m.id = slr.data_id');
             $query->innerJoin('parking_user_carport puc','puc.car_id = slr.data_id');
         }
-
-        $query->select('count(*) as num,slr.labels_id')
-            ->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
+        $query->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
             ->andWhere(['!=','m.id','']);
+
         if ($streetCode) {
             $query->andWhere(['slr.organization_id' => $streetCode]);
         }
         $query->groupBy('slr.labels_id');
-        $data = $query->select('count(*) as num,slr.labels_id')
+        $data = $query->select('slr.labels_id')
             ->groupBy('slr.labels_id')
             ->asArray()
             ->all();
-        foreach ($data as $k => $v) {
-            $returnData[$v['labels_id']] = $v['num'];
+        foreach ($data as $key => $val) {
+//            $sql = "SELECT DISTINCT slr.data_id FROM st_labels_rela slr
+// WHERE slr.labels_id = {$val['labels_id']}";
+            $sql = "SELECT DISTINCT slr.data_id FROM st_labels_rela slr";
+
+            if ($dataType == 1) {
+                $sql .= " left join ps_community_roominfo m on m.id = slr.data_id";
+            } elseif($dataType == 2) {
+                $sql .= " left join ps_member m on m.id = slr.data_id";
+            } else {
+                $sql .= " left join parking_cars m on m.id = slr.data_id";
+            }
+
+            $sql .= " where slr.organization_type = 1 and slr.data_type = {$dataType} and m.id !='' ";
+            $sql .= " and slr.labels_id = {$val['labels_id']}";
+
+            if ($streetCode) {
+                $sql .= " and slr.organization_id = {$streetCode}";
+            }
+            $sql .= " and slr.type in (1,2)";
+
+            $command = \Yii::$app->db->createCommand($sql);
+            $labelData = $command->queryAll();
+            $returnData[$val['labels_id']] = count($labelData);
         }
         return $returnData;
     }

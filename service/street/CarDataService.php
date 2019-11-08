@@ -34,9 +34,12 @@ class CarDataService extends BaseService
         $street_code = PsCommon::get($params,"street_code");
         $district_code = PsCommon::get($params,"district_code");
         $community_code = PsCommon::get($params,"community_code");
-        $model = ParkingUserCarport::find()->alias("puc")
+        /*$model = ParkingUserCarport::find()->alias("puc")
             ->innerJoin(['pu'=>ParkingUsers::tableName()],'pu.id = puc.user_id')
-            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.id = puc.car_id');
+            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.id = puc.car_id');*/
+        $model = ParkingCars::find()->alias("pc")
+            ->leftJoin(['puc'=>ParkingUserCarport::tableName()],'pc.id = puc.car_id')
+            ->leftJoin(['pu'=>ParkingUsers::tableName()],'pu.id = puc.user_id');
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
