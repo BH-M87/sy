@@ -105,6 +105,12 @@ class HouseController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    /**
+     * 关联访客
+     * @author yjh
+     * @return string
+     * @throws MyException
+     */
     public function actionGetVisitorList()
     {
         if (empty($this->request_params['id'])) throw new MyException('ID不能为空');
