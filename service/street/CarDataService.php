@@ -136,7 +136,7 @@ class CarDataService extends BaseService
         $car_image = PsCommon::get($params,"images");
         if($car_image){
             //根据oss上的key获取图片的具体地址
-            $car_image = F::getOssImagePath($car_image);
+            $car_image = F::getOssImagePath($car_image, 'zjy');
         }
         $detail['car_image'] = $car_image;
         if($type == "record-list"){
