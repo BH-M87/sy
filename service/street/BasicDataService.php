@@ -92,6 +92,7 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
+        print_r($tjData);exit;
 
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
@@ -146,9 +147,6 @@ class BasicDataService extends BaseService
 
     public function getLabelRelaData($streetCode, $dataType)
     {
-
-
-
         $returnData = [];
         $query = StLabelsRela::find()
             ->alias('slr');
@@ -160,23 +158,38 @@ class BasicDataService extends BaseService
             $query->innerJoin('parking_cars m','m.id = slr.data_id');
             $query->innerJoin('parking_user_carport puc','puc.car_id = slr.data_id');
         }
-
-        $query->select('count(*) as num,slr.labels_id')
-            ->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
+        $query->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
             ->andWhere(['!=','m.id','']);
+
         if ($streetCode) {
             $query->andWhere(['slr.organization_id' => $streetCode]);
         }
         $query->groupBy('slr.labels_id');
-        $data = $query->select('count(*) as num,slr.labels_id')
+        $data = $query->select('slr.labels_id')
             ->groupBy('slr.labels_id')
             ->asArray()
             ->all();
 
-
-
-        foreach ($data as $k => $v) {
-            $returnData[$v['labels_id']] = $v['num'];
+        foreach ($data as $key => $val) {
+            $tmpquery = StLabelsRela::find()
+                ->alias('slr');
+            if ($dataType == 1) {
+                $tmpquery->leftJoin('ps_community_roominfo m','m.id = slr.data_id');
+            } elseif($dataType == 2) {
+                $tmpquery->leftJoin('ps_member m','m.id = slr.data_id');
+            } else {
+                $tmpquery->innerJoin('parking_cars m','m.id = slr.data_id');
+                $tmpquery->innerJoin('parking_user_carport puc','puc.car_id = slr.data_id');
+            }
+            $tmpquery->where(['slr.organization_type' => 1,'slr.data_type' => $dataType])
+                ->andWhere(['!=','m.id','']);
+            $tmpquery->andWhere(['slr.labels_id' => $val['labels_id']]);
+            if ($streetCode) {
+                $tmpquery->andWhere(['slr.organization_id' => $streetCode]);
+            }
+            $tmpquery->select('count(*) as num')->groupBy('slr.data_id');
+            $tmpData = $tmpquery->asArray()->one();
+            $returnData[$val['labels_id']] = $tmpData['num'];
         }
         return $returnData;
     }
