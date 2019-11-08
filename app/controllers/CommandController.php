@@ -257,13 +257,21 @@ class CommandController extends Controller
             if($day){
                 $start_time = strtotime($day." 00:00:00");
                 $end_time = strtotime($day." 23:59:59");
-                $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->asArray()->all();
-            }else{
-                $list = DoorRecord::find()->asArray()->all();
-            }
-            if($list){
-                foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                $flag = true;
+                $page = 1;
+                $pageSize = 1000;
+                while($flag){
+                    $offset = ($page-1)*$pageSize;
+                    $limit = $pageSize;
+                    $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                    if($list){
+                        foreach($list as $key=>$value){
+                            Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                        }
+                        $page ++;
+                    }else{
+                        $flag = false;
+                    }
                 }
             }
         }
@@ -271,13 +279,21 @@ class CommandController extends Controller
             if($day){
                 $start_time = strtotime($day." 00:00:00");
                 $end_time = strtotime($day." 23:59:59");
-                $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->asArray()->all();
-            }else{
-                $list = ParkingAcross::find()->asArray()->all();
-            }
-            if($list){
-                foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+                $flag = true;
+                $page = 1;
+                $pageSize = 1000;
+                while($flag){
+                    $offset = ($page-1)*$pageSize;
+                    $limit = $pageSize;
+                    $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                    if($list){
+                        foreach($list as $key=>$value){
+                            Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                        }
+                        $page ++;
+                    }else{
+                        $flag = false;
+                    }
                 }
             }
         }
