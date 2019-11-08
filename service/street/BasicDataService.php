@@ -185,8 +185,8 @@ class BasicDataService extends BaseService
             if ($streetCode) {
                 $sql .= " and slr.organization_id = {$streetCode}";
             }
-            //$sql .= " and slr.type in (1,2)";
-          
+            $sql .= " and slr.type in (1,2)";
+
             $command = \Yii::$app->db->createCommand($sql);
             $labelData = $command->queryAll();
 
