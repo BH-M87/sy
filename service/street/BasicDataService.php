@@ -92,7 +92,6 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
-
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
             $labels = StLabels::find()
@@ -154,7 +153,8 @@ class BasicDataService extends BaseService
         } elseif($dataType == 2) {
             $query->leftJoin('ps_member m','m.id = slr.data_id');
         } else {
-            $query->leftJoin('parking_cars m','m.id = slr.data_id');
+            $query->innerJoin('parking_cars m','m.id = slr.data_id');
+            $query->innerJoin('parking_user_carport puc','puc.car_id = slr.data_id');
         }
 
         $query->select('count(*) as num,slr.labels_id')
