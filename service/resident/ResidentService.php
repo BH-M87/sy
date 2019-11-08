@@ -1,6 +1,7 @@
 <?php
 namespace service\resident;
 
+use app\models\StLabelsRela;
 use Yii;
 use yii\db\Exception;
 
@@ -801,6 +802,9 @@ class ResidentService extends BaseService
 
         // 标签状态更新
         PsLabelsRela::updateAll(['type' => 1], ['data_type' => 2, 'data_id' => $id]);
+
+        //更新街道标签
+        StLabelsRela::updateAll(['type' => 1],['data_type' => 2, 'data_id' => $model->member_id]);
         $this->residentSync($model, 'add');
         MemberService::service()->turnReal($model['member_id']);
         //保存日志
@@ -832,6 +836,17 @@ class ResidentService extends BaseService
         }
         // 标签状态更新
         PsLabelsRela::updateAll(['type' => 3], ['data_type' => 2, 'data_id' => $id]);
+
+        //查询此人还有没有其他房屋
+        $qrUserData = PsRoomUser::find()
+            ->where(['member_id' => $model->member_id])
+            ->andWhere(['status' => [1,2]])
+            ->asArray()
+            ->all();
+        if (!$qrUserData) {
+            StLabelsRela::updateAll(['type' => 3],['data_type' => 2, 'data_id' => $model->member_id]);
+        }
+
         //迁出以后做用户删除同步到第三方 by zq 2019-2-15
         $this->residentSync($model, 'delete');
         // 业主迁出，则对应该房屋下所有的家人，租客都迁出，重新添加
