@@ -43,7 +43,7 @@ class BasicDataService extends BaseService
         $communityIds = DepartmentCommunity::find()
             ->alias('dc')
             ->select('comm.id')
-            ->leftJoin('ps_community comm', 'comm.event_community_no = dc.sq_org_code')
+            ->leftJoin('ps_community comm', 'comm.event_community_no = dc.xq_orgcode')
             ->where(['dc.sq_org_code' => $districtCode])
             ->asArray()
             ->column();
