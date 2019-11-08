@@ -91,6 +91,7 @@ class PersonDataService extends BaseService
         if ($params['card_no']) {
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
+        $query->andWhere(['u.status' => [1,2]]);
         $query->groupBy('u.member_id');
 
         $reData['totals'] = $query->select('m.id')->count();

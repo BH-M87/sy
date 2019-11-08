@@ -92,6 +92,7 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
+
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
             $labels = StLabels::find()
@@ -145,6 +146,9 @@ class BasicDataService extends BaseService
 
     public function getLabelRelaData($streetCode, $dataType)
     {
+
+
+
         $returnData = [];
         $query = StLabelsRela::find()
             ->alias('slr');
@@ -168,6 +172,9 @@ class BasicDataService extends BaseService
             ->groupBy('slr.labels_id')
             ->asArray()
             ->all();
+
+
+
         foreach ($data as $k => $v) {
             $returnData[$v['labels_id']] = $v['num'];
         }
