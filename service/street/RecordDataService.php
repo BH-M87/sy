@@ -177,7 +177,7 @@ class RecordDataService extends BaseService
         $car_type = PsCommon::get($params,"car_type");//车辆类别，车辆属性
 
         $model = ParkingAcross::find()->alias("pa")
-            ->leftJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num');
+            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num');
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){

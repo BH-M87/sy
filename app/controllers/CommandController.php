@@ -216,7 +216,13 @@ class CommandController extends Controller
                 $model->organization_id = '330111001000';
                 $model->labels_id = $value['labels_id'];
                 $model->type = $value['type'];
-                $model->data_id = $value['data_id'];
+                //住户的时候去查找ps_room_user找到member_id
+                if($value['data_type'] == 2){
+                    $member_id = PsRoomUser::find()->select(['member_id'])->where(['id'=>$value['data_id']])->asArray()->scalar();
+                    $model->data_id = $member_id;
+                }else{
+                    $model->data_id = $value['data_id'];
+                }
                 $model->data_type = $value['data_type'];
                 $model->created_at = $value['created_at'];
                 $model->save();
