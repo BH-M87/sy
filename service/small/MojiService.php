@@ -79,7 +79,7 @@ class MojiService extends BaseService
         if(empty($community_id)){
             return [];
         }
-        $w = \Yii::$app->redis->get('weather_'.$type.'_'.$community_id);
+        $w = \Yii::$app->redis->get(YII_PROJECT.YII_ENV.'weather_'.$type.'_'.$community_id);
         if($w){
             $weather = json_decode($w,true);
             if($weather['time'] > time()){
@@ -88,14 +88,14 @@ class MojiService extends BaseService
                 $data = $this->getMojiWeather($lon,$lat);
                 $weather['time'] = time() + 7200;
                 $weather['data'] = $data;
-                \Yii::$app->redis->set('weather_'.$type.'_'.$community_id,json_encode($weather));
+                \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'weather_'.$type.'_'.$community_id,json_encode($weather));
                 return $data;
             }
         }else{
             $data = $this->getMojiWeather($lon,$lat);
             $weather['time'] = time() + 7200;
             $weather['data'] = $data;
-            \Yii::$app->redis->set('weather_'.$type.'_'.$community_id,json_encode($weather));
+            \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'weather_'.$type.'_'.$community_id,json_encode($weather));
             return $data;
         }
     }
@@ -126,7 +126,7 @@ class MojiService extends BaseService
         if(empty($community_id)){
             return [];
         }
-        $w = \Yii::$app->redis->get('suggest_'.$type.'_'.$community_id);
+        $w = \Yii::$app->redis->get(YII_PROJECT.YII_ENV.'suggest_'.$type.'_'.$community_id);
         if($w){
             $weather = json_decode($w,true);
             if($weather['time'] > time()){
@@ -135,14 +135,14 @@ class MojiService extends BaseService
                 $data = $this->getMojiSuggest($lon,$lat);
                 $weather['time'] = time() + 7200;
                 $weather['data'] = $data;
-                \Yii::$app->redis->set('suggest_'.$type.'_'.$community_id,json_encode($weather));
+                \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'suggest_'.$type.'_'.$community_id,json_encode($weather));
                 return $data;
             }
         }else{
             $data = $this->getMojiSuggest($lon,$lat);
             $weather['time'] = time() + 7200;
             $weather['data'] = $data;
-            \Yii::$app->redis->set('suggest_'.$type.'_'.$community_id,json_encode($weather));
+            \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'suggest_'.$type.'_'.$community_id,json_encode($weather));
             return $data;
         }
     }
@@ -175,7 +175,7 @@ class MojiService extends BaseService
         if(empty($community_id)){
             return [];
         }
-        $w = \Yii::$app->redis->get('limit_'.$type.'_'.$community_id);
+        $w = \Yii::$app->redis->get(YII_PROJECT.YII_ENV.'limit_'.$type.'_'.$community_id);
         if($w){
             $weather = json_decode($w,true);
             if($weather['time'] > time()){
@@ -184,14 +184,14 @@ class MojiService extends BaseService
                 $data = $this->getMojiLimit($lon,$lat);
                 $weather['time'] = time() + 7200;
                 $weather['data'] = $data;
-                \Yii::$app->redis->set('limit_'.$type.'_'.$community_id,json_encode($weather));
+                \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'limit_'.$type.'_'.$community_id,json_encode($weather));
                 return $data;
             }
         }else{
             $data = $this->getMojiLimit($lon,$lat);
             $weather['time'] = time() + 7200;
             $weather['data'] = $data;
-            \Yii::$app->redis->set('limit_'.$type.'_'.$community_id,json_encode($weather));
+            \Yii::$app->redis->set(YII_PROJECT.YII_ENV.'limit_'.$type.'_'.$community_id,json_encode($weather));
             return $data;
         }
     }
