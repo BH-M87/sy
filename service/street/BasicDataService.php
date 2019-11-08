@@ -92,7 +92,6 @@ class BasicDataService extends BaseService
     {
         //查询所有标签统计
         $tjData = $this->getLabelRelaData($streetCode, $dataType);
-        print_r($tjData);exit;
 
         //查询所有标签
         if ($nodeType == 0 && empty($streetCode)) {
