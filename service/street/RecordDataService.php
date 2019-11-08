@@ -98,6 +98,8 @@ class RecordDataService extends BaseService
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
         $model->andWhere(['dr.community_id'=>$community_id]);
+        //访客开门记录不展示
+        $model->andWhere(['dr.user_type'=>[1,2,3]]);
         if($start_time && $end_time){
             $start = strtotime($start_time." 00:00:00");
             $end = strtotime($end_time." 23:59:59");
