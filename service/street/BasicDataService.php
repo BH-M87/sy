@@ -169,8 +169,6 @@ class BasicDataService extends BaseService
             ->asArray()
             ->all();
         foreach ($data as $key => $val) {
-//            $sql = "SELECT DISTINCT slr.data_id FROM st_labels_rela slr
-// WHERE slr.labels_id = {$val['labels_id']}";
             $sql = "SELECT DISTINCT slr.data_id FROM st_labels_rela slr";
 
             if ($dataType == 1) {
@@ -187,10 +185,11 @@ class BasicDataService extends BaseService
             if ($streetCode) {
                 $sql .= " and slr.organization_id = {$streetCode}";
             }
-            $sql .= " and slr.type in (1,2)";
-
+            //$sql .= " and slr.type in (1,2)";
+          
             $command = \Yii::$app->db->createCommand($sql);
             $labelData = $command->queryAll();
+
             $returnData[$val['labels_id']] = count($labelData);
         }
         return $returnData;
