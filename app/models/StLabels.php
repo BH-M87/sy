@@ -121,7 +121,7 @@ class StLabels extends BaseModel
                 ->asArray()->all();
         } else {
             return self::find()->select('id, name')
-                ->where(['organization_id' => $param['steet_code']])
+                ->where(['organization_id' => $param['street_code']])
                 ->orWhere(['is_sys' => 2])
                 ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
                 ->andWhere(['is_delete' => 1])
