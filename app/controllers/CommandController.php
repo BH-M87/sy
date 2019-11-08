@@ -247,41 +247,65 @@ class CommandController extends Controller
         }
     }
 
+
     //用不小区住户数据
-    public function actionSyncRecord()
+    public function actionSyncRecordDoor()
     {
         $request = F::request();//住户传入数据
-        $type = PsCommon::get($request,"type",1);
         $day = PsCommon::get($request,"day");
-        if($type == 1){
-            if($day){
-                $start_time = strtotime($day." 00:00:00");
-                $end_time = strtotime($day." 23:59:59");
-                $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->asArray()->all();
-            }else{
-                $list = DoorRecord::find()->asArray()->all();
-            }
-            if($list){
-                foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+        if($day){
+            $start_time = strtotime($day." 00:00:00");
+            $end_time = strtotime($day." 23:59:59");
+            $flag = true;
+            $page = 1;
+            $pageSize = 1000;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                if($list){
+                    echo $page;
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
                 }
             }
         }
-        if($type == 2){
-            if($day){
-                $start_time = strtotime($day." 00:00:00");
-                $end_time = strtotime($day." 23:59:59");
-                $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->asArray()->all();
-            }else{
-                $list = ParkingAcross::find()->asArray()->all();
-            }
-            if($list){
-                foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+
+    }
+
+    //用不小区住户数据
+    public function actionSyncRecordCar()
+    {
+        $request = F::request();//住户传入数据
+        $day = PsCommon::get($request,"day");
+        if($day){
+            $start_time = strtotime($day." 00:00:00");
+            $end_time = strtotime($day." 23:59:59");
+            $flag = true;
+            $page = 1;
+            $pageSize = 1000;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
+                if($list){
+                    echo $page;
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
                 }
             }
         }
     }
+
+
 
 
     ##############################在用脚本############################################
