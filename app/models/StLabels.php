@@ -112,7 +112,7 @@ class StLabels extends BaseModel
 
     public static function getDropDown($param)
     {
-        if (!$param['steet_code']) {
+        if (!$param['street_code']) {
             return self::find()->select('id, name')
                 ->where(['is_sys' => 2])
                 ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
