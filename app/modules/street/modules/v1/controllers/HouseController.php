@@ -120,7 +120,6 @@ class HouseController extends BaseController
             $v['visitor_status'] = $v['status'] == 2 ? '1' : '2';
             $v['start_time'] = !empty($v['start_time']) ? date('Y-m-d',$v['start_time']) : '';
             $v['end_time'] = !empty($v['end_time']) ? date('Y-m-d',$v['end_time']) : '';
-            $v['passage_at'] = !empty($v['passage_at']) ? date('Y-m-d',$v['passage_at']) : '';
             $v['door_record_list'] = DoorRecordService::service()->getVisitorRecord($v['id']);
             $v['visitor_id'] = $v['id'];
             unset($v['car_number']);
