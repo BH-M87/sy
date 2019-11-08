@@ -1100,7 +1100,7 @@ Class HouseService extends BaseService
         $detail['info']['community_name'] = PsCommunityModel::find()->select('name')->where(['id' => $detail['info']['community_id']])->one()['name'];
         $detail['info']['property_type'] = PsCommon::propertyType($detail['info']['property_type']);
         $detail['info']['delivery_time'] = !empty($detail['info']['delivery_time']) ? date('Y-m-d',$detail['info']['delivery_time']) : '';
-        $detail['info']['own_age_limit'] = $detail['info']['own_age_limit'] > 0 ? $detail['info']['own_age_limit'] : '无';
+        $detail['info']['own_age_limit'] = $detail['info']['own_age_limit'] > 0 ? $detail['info']['own_age_limit'] : '';
         $detail['label_list'] = StreetLabelService::service()->getLabelInfoByRoomId($detail['info']['id']);
         return $detail;
     }

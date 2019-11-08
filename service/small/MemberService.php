@@ -600,7 +600,7 @@ class MemberService extends BaseService
      */
     public function saveMemberAppUser($memberId, $appUserId, $systemType, $mobile)
     {
-        if ($systemType == "djyl") {
+        if ($systemType == "djyl" || $systemType == "saas") {
             $model = PsAppMember::find()
                 ->where(['app_user_id' => $appUserId, 'member_id' => $memberId])
                 ->one();

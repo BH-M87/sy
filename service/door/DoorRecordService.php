@@ -162,7 +162,7 @@ class DoorRecordService extends BaseService
                 'id' => $v['open_type'],
                 'name' => $this->_open_door_type[$v['open_type']]
             ];
-            $v['enter_time'] = !empty($v['open_time']) ? date('Y-m-d',$v['open_time']) : '';
+            $v['enter_time'] = !empty($v['open_time']) ? date('Y-m-d H:i:s',$v['open_time']) : '';
             $v['leave_time'] =  '';
             unset($v['open_time']);
         }

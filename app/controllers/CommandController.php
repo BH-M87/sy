@@ -36,12 +36,12 @@ use Yii;
 
 class CommandController extends Controller
 {
-    const IOT_FACE_USER = "IotFaceUser_sqwn";//人脸住户数据同步
+    const IOT_FACE_USER = YII_PROJECT.YII_ENV."IotFaceUser_sqwn";//人脸住户数据同步
     //const CAR_RECORD_REPORT = "car_record_report";//车进出记录同步
     //const DOOR_RECORD_REPORT = "door_record_report";//人出行记录同步
     ##############################测试脚本############################################
     public function actionTest(){
-        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
         var_dump($list);die;
     }
 
@@ -200,7 +200,7 @@ class CommandController extends Controller
                 ->all();
             if($list){
                 foreach($list as $key=>$value){
-                    Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
+                    Yii::$app->redis->rpush(YII_PROJECT.YII_ENV."IotFaceUser_sqwn",json_encode($value));
                 }
             }
         }
@@ -296,7 +296,7 @@ class CommandController extends Controller
     //iot相关数据的同步 */1 * * * * curl localhost:9003/command/iot-data
     public function actionIotData()
     {
-        $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
         if(!empty($list)){
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
@@ -338,7 +338,7 @@ class CommandController extends Controller
                         break;
                 }
                 //从队列里面移除
-                Yii::$app->redis->lpop("IotMqData_sqwn");
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV."IotMqData_sqwn");
                 //如果操作失败了，就重新放到队列里面执行
                 if($res['code'] != 1){
                     $sendNum = PsCommon::get($dataInfo,'sendNum',0);
@@ -346,7 +346,7 @@ class CommandController extends Controller
                     if($sendNum < 3){
                         $dataInfo['sendNum'] += 1;//操作次数 +1
                         //重新丢回队列里面
-                        Yii::$app->redis->rpush("IotMqData_sqwn",json_encode($dataInfo));
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV."IotMqData_sqwn",json_encode($dataInfo));
                     }
                 }
             }
@@ -356,7 +356,7 @@ class CommandController extends Controller
 
     //iot人脸数据下发 * * * * * curl localhost:9003/command/iot-data
     public function actionIotFace(){
-        $list = Yii::$app->redis->lrange("IotFaceUser_sqwn", 0, 1);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotFaceUser_sqwn", 0, 1);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);

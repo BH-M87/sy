@@ -112,13 +112,23 @@ class StLabels extends BaseModel
 
     public static function getDropDown($param)
     {
-        return self::find()->select('id, name')
-            ->where(['organization_id' => $param['organization_id']])
-            ->orWhere(['is_sys' => 2])
-            ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
-            ->andWhere(['is_delete' => 1])
-            ->orderBy('id desc')
-            ->asArray()->all();
+        if (!$param['steet_code']) {
+            return self::find()->select('id, name')
+                ->where(['is_sys' => 2])
+                ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
+                ->andWhere(['is_delete' => 1])
+                ->orderBy('id desc')
+                ->asArray()->all();
+        } else {
+            return self::find()->select('id, name')
+                ->where(['organization_id' => $param['steet_code']])
+                ->orWhere(['is_sys' => 2])
+                ->andFilterWhere(['=', 'label_attribute', PsCommon::get($param, 'label_attribute')])
+                ->andWhere(['is_delete' => 1])
+                ->orderBy('id desc')
+                ->asArray()->all();
+        }
+
     }
 
     // 标签属性
