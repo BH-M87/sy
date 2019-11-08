@@ -86,7 +86,7 @@ class CarDataService extends BaseService
         $offset = ($page - 1) * $pageSize;
         $model = $this->getSearchList($params,$userInfo);
         return $model->select(['pc.id','pc.car_num','pc.car_model','pc.car_color','pc.images','pu.user_name','pu.user_mobile'])
-            ->groupBy("puc.car_id")
+            ->groupBy("pc.id")
             ->offset($offset)->limit($pageSize)
             ->asArray()->all();
     }
@@ -95,7 +95,7 @@ class CarDataService extends BaseService
     public function getCarTotal($params,$userInfo)
     {
         $model = $this->getSearchList($params,$userInfo);
-        return $model->groupBy("puc.car_id")->count();
+        return $model->groupBy("pc.id")->count();
     }
 
     /**
