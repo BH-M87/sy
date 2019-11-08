@@ -265,6 +265,7 @@ class CommandController extends Controller
                     $limit = $pageSize;
                     $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->limit($limit)->offset($offset)->asArray()->all();
                     if($list){
+                        echo $page;
                         foreach($list as $key=>$value){
                             Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
                         }
@@ -287,6 +288,7 @@ class CommandController extends Controller
                     $limit = $pageSize;
                     $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
                     if($list){
+                        echo $page;
                         foreach($list as $key=>$value){
                             Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
                         }
