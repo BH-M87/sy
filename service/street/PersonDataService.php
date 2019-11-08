@@ -73,6 +73,9 @@ class PersonDataService extends BaseService
                 ->andWhere(['data_type' => 2])
                 ->asArray()
                 ->column();
+            if (empty($memberIds)) {
+                return $reData;
+            }
         }
 
         $query = PsRoomUser::find()
