@@ -75,9 +75,9 @@ class PersonDataService extends BaseService
                 ->column();
         }
 
-        $query = PsMember::find()
-            ->alias('m')
-            ->leftJoin('ps_room_user u', 'u.member_id = m.id');
+        $query = PsRoomUser::find()
+            ->alias('u')
+            ->leftJoin('ps_member m', 'm.id = u.member_id');
         $query->where("1=1");
         if ($communityIds) {
             $query->andWhere(['u.community_id' => $communityIds]);
@@ -91,6 +91,7 @@ class PersonDataService extends BaseService
         if ($params['card_no']) {
             $query->andWhere(['like','u.card_no',$params['card_no']]);
         }
+        $query->andWhere(['u.status' => [1,2]]);
         $query->groupBy('u.member_id');
 
         $reData['totals'] = $query->select('m.id')->count();
