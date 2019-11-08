@@ -77,10 +77,10 @@ $paramsConfig['test'] = [
         'host_name' => 'https://test-saas.elive99.com',
         'small_app' => [
             //合并小程序
-            'fczl_app_id' => '2019101068202999',
+            'fczl_app_id' => '2019103168778211',
             'fczl_alipay_public_key_file' => $basePath."/common/rsa_files/saas/alipay_public.txt",
             'fczl_rsa_private_key_file' => $basePath."/common/rsa_files/saas/rsa_private.txt",
-            'fczl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
+            'fczl_aes_secret' => 'Kmlrm+BP2EL5OpDkmfN/GA==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => 'http://47.103.151.121:8819/',
@@ -171,11 +171,11 @@ $paramsConfig['prod'] = [
     'saas' => [
         'host_name' => 'https://sqwn-saas.elive99.com',
         'small_app' => [
-            //党建小程序
-            'saas_app_id' => '2019101068202999',
-            'saas_alipay_public_key_file' => $basePath."/common/rsa_files/saas/alipay_public.txt",
-            'saas_rsa_private_key_file' => $basePath."/common/rsa_files/saas/rsa_private.txt",
-            'saas_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
+            //合并小程序
+            'fczl_app_id' => '2019103168778211',
+            'fczl_alipay_public_key_file' => $basePath."/common/rsa_files/saas/alipay_public.txt",
+            'fczl_rsa_private_key_file' => $basePath."/common/rsa_files/saas/rsa_private.txt",
+            'fczl_aes_secret' => 'Kmlrm+BP2EL5OpDkmfN/GA==',
         ],
         'iotNewUrl' => 'https://gateway-api.zje.com',
         //待定
