@@ -22,6 +22,7 @@ use app\models\PsDevice;
 use app\models\PsLabelsRela;
 use app\models\PsMember;
 use app\models\PsRoomUser;
+use app\models\StLabelsRela;
 use common\core\Curl;
 use common\core\F;
 use common\core\PsCommon;
@@ -184,7 +185,6 @@ class CommandController extends Controller
         }
     }
 
-
     //用不小区住户数据
     public function actionSyncFaceUser()
     {
@@ -202,6 +202,30 @@ class CommandController extends Controller
                 foreach($list as $key=>$value){
                     Yii::$app->redis->rpush("IotFaceUser_sqwn",json_encode($value));
                 }
+            }
+        }
+    }
+
+    //同步标签数据
+    public function actionSyncStLabel(){
+        $list = PsLabelsRela::find()->asArray()->all();
+        if($list){
+            foreach($list as $key=>$value){
+                $model = new StLabelsRela();
+                $model->organization_type = '1';
+                $model->organization_id = '330111001000';
+                $model->labels_id = $value['labels_id'];
+                $model->type = $value['type'];
+                //住户的时候去查找ps_room_user找到member_id
+                if($value['data_type'] == 2){
+                    $member_id = PsRoomUser::find()->select(['member_id'])->where(['id'=>$value['data_id']])->asArray()->scalar();
+                    $model->data_id = $member_id;
+                }else{
+                    $model->data_id = $value['data_id'];
+                }
+                $model->data_type = $value['data_type'];
+                $model->created_at = $value['created_at'];
+                $model->save();
             }
         }
     }
