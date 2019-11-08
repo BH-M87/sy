@@ -19,10 +19,10 @@ Class TmpController extends Controller
     }
 
     //用不小区住户数据
-    public function actionSyncRecordCar()
+    public function actionSyncRecordCar($day = '')
     {
         $request = F::request();//住户传入数据
-        $day = PsCommon::get($request,"day");
+        //$day = PsCommon::get($request,"day");
         if($day){
             $start_time = strtotime($day." 00:00:00");
             $end_time = strtotime($day." 23:59:59");
