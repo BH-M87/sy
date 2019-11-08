@@ -181,8 +181,10 @@ class RecordDataService extends BaseService
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
-            $model->leftJoin(['slr'=>StLabelsRela::tableName()],'slr.data_id = pc.id')
-                ->where(['slr.data_type'=>3,'slr.labels_id'=>$labelId]);
+            /*$model->innerJoin(['slr'=>StLabelsRela::tableName()],'slr.data_id = pc.id')
+                ->where(['slr.data_type'=>3,'slr.labels_id'=>$labelId]);*/
+            $car_id = StLabelsRela::find()->select(['data_id'])->distinct()->where(['data_type'=>3,'labels_id'=>$labelId])->asArray()->column();
+            $model->andWhere(['pc.id'=>$car_id]);
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
