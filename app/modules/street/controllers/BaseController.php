@@ -12,6 +12,7 @@ namespace app\modules\street\controllers;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
+use service\manage\CommunityService;
 use service\street\UserService;
 use yii\base\Controller;
 
@@ -54,14 +55,16 @@ class BaseController extends Controller
         if (!parent::beforeAction($action)) {
             return false;
         }
-
         $this->user_id  = F::request('user_id');
         $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
-
         //不走token验证的接口，及download不走其他权限,小区ID 验证
         if (in_array($action->id, $this->enableAction) || $action->controller->id == 'download') {
             return true;
         }
+        if (!empty($this->request_params['community_code'])) {
+            $this->request_params['community_id'] = CommunityService::service()->getCommunityIdByCode($this->request_params['community_code']);
+        }
+
         $this->request_params['user_id'] = $this->user_id;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;

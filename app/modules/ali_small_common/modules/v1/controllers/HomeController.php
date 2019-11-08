@@ -22,7 +22,6 @@ use service\street\PartyTaskService;
 
 class HomeController extends UserBaseController
 {
-
     public $enableAction = ['auth','get-weather-info','common','save-member'];
     //用户授权
     public function actionAuth()
@@ -65,18 +64,6 @@ class HomeController extends UserBaseController
     //解析手机号
     public function actionGetMobile()
     {
-//        $response = [
-//            'response' => 'wbdgoxVy0Ly3qbdc\/lgb5S4dnY\/siEekLowkhspGI1+Gz7ltROIMTTg0Bhi0lFAux+PhgaAzV57CruD4+Ij04Q==',
-//            'sign' => 'Zk9lkopfgwpCIEjbMV8Ys4I6\/2S7LZuAmGaEbRWHiH0CLK36Kx8ZBmxiKpuDUPA4I7ZUiABc0FXW5nTk98bGlWrXrKPeFSbibKZJm7JMelLvj6egaBGcCfi+n0gzXLrAyxiONALIDubbFNFIuDViJgEY207KSrsiPmkz18\/aEWyMOSEphdXNDSmvtrhmbWpgX9QvpKPoqxEjhAFUBxk2EdTPnMFko1VY5WaaJcxeB4id4m19ZJIdD50\/RTPmYHi26xxTce+px3abR6rJ7MYdovIDuopkx4lEhxkOFobYi6QI1jVb7E1UyAJs\/ibUNrYGCqegGADb32jf7ViDpY9QQw=='
-//        ];
-//
-//        $data['user_id'] = 24;
-//        $data['encrypt_str'] = json_encode($response);
-//        $data['system_type'] = 'djyl';
-//        echo  json_encode($data);exit;
-
-//        set_error_handler(null);
-//        set_exception_handler(null);
         $userId = F::value($this->params, 'user_id');
 
         $encryptStr = F::value($this->params, 'encrypt_str');
@@ -107,7 +94,7 @@ class HomeController extends UserBaseController
         }
         $res['user_id'] = $userId;
         $res['mobile'] = $mobile;
-        if ($system_type == "djyl") {
+        if ($system_type == "djyl" || $system_type == "saas") {
             $checkUser = CommunistService::service()->getUser($res['user_id']);
             $res['is_communist'] = $checkUser ? 1 : 0;
         }
@@ -162,9 +149,4 @@ class HomeController extends UserBaseController
         $result = SelfService::service()->get_common($user_id,$type);
         return self::dealReturnResult($result);
     }
-
-
-
-
-
 }

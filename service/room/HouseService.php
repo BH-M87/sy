@@ -19,15 +19,17 @@ use app\models\PsCommunityUnits;
 use app\models\PsLabelsRela;
 use app\models\PsRoomLabel;
 use app\models\PsRoomUser;
+use common\core\F;
 use common\core\PsCommon;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use service\alipay\AlipayBillService;
 use service\alipay\AliTokenService;
 use service\alipay\SharedService;
 use service\BaseService;
+use service\basic_data\CommunityBuildingService;
+use service\basic_data\CommunityGroupService;
 use service\basic_data\DoorPushService;
-use service\rbac\OperateService;
 use service\label\LabelsService;
+use service\street\LabelsService as StreetLabelService;
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
@@ -87,7 +89,8 @@ Class HouseService extends BaseService
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu' => PsCommunityUnits::tableName()], 'cu.id = cr.unit_id')
             ->select(['cr.id', 'cr.charge_area', 'cr.community_id', 'cr.group', 'cr.building', 'cr.unit', 'cr.room', 'cr.floor_coe', 'cr.floor_shared_id', 'cr.lift_shared_id',
-                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image','cr.orientation'])
+                'cr.is_elevator', 'cr.address', 'cr.intro', 'cr.property_type', 'cr.status', 'cr.floor', 'cr.room_code', 'cu.id as unit_id', 'cu.building_id', 'cu.group_id','cr.house_type','cr.delivery_time','cr.own_age_limit','cr.room_image',
+                'cr.orientation'])
             ->where(['out_room_id' => $out_room_id])
             ->asArray()->one();
 
@@ -110,6 +113,7 @@ Class HouseService extends BaseService
             $list['house_type_toilet'] = $house_type[3];
             $list['delivery_time'] = !empty($list['delivery_time']) ? date('Y-m-d H:i:s',$list['delivery_time']) : '';
             $list['own_age_limit'] = !empty($list['own_age_limit']) ? $list['own_age_limit'] : '';
+            $list['room_image'] = $list['room_image'] ? F::getOssImagePath($list['room_image']) : '';
             return ['list' => $list];
         }
 
@@ -391,6 +395,11 @@ Class HouseService extends BaseService
             $roomInfo = RoomInfoService::service()->getRoomInfoLeftUnit($id);
             if (!$roomInfo) {
                 return $this->failed("此房屋不存在");
+            }
+
+            //图片处理
+            if (strpos($room_image, 'aliyuncs.com') !== false) {
+                $room_image = $roomInfo['room_image'];
             }
 
             $trans = Yii::$app->getDb()->beginTransaction();
@@ -1034,6 +1043,68 @@ Class HouseService extends BaseService
         return PsCommon::responseSuccess('删除成功');
 
     }
+
+
+    /**
+     * 通过小区获取到单元
+     * @author yjh
+     * @param $community_id
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getGroupsUnits($community_id)
+    {
+        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id],'asc');
+        if ($groups) {
+            foreach ($groups as &$g) {
+                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => $g['group_id']],'asc');
+                $g['building_list'] = [];
+                if ($buildings) {
+                    $g['building_list'] = $buildings;
+                    foreach ($g['building_list'] as &$b) {
+                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $b['building_id']],'asc');
+                        $b['unit_list'] = [];
+                        if ($units) {
+                            $b['unit_list'] = $units;
+                        }
+                    }
+                }
+            }
+        }
+        return $groups;
+    }
+
+    /**
+     * 社区微恼基础资料
+     * @author yjh
+     * @param $data
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getRoomList($data)
+    {
+        $list = PsCommunityRoominfo::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->asArray()->all();
+        return $list;
+    }
+
+    /**
+     * 获取房屋详情
+     * @author yjh
+     * @param $id
+     * @return mixed
+     */
+    public function getRoomDetail($id)
+    {
+        $detail['info'] = PsCommunityRoominfo::find()->select(['room_id as room_no','own_age_limit','id','room_image','house_type','orientation','status','delivery_time','property_type','community_id','group','building','unit','floor','charge_area','room'])->where(['id' => $id])->asArray()->one();
+        if (!empty($detail['info']['room_image'])) {
+            $detail['info']['room_image'] = F::getOssImagePath($detail['info']['room_image']);
+        }
+        $detail['info']['community_name'] = PsCommunityModel::find()->select('name')->where(['id' => $detail['info']['community_id']])->one()['name'];
+        $detail['info']['property_type'] = PsCommon::propertyType($detail['info']['property_type']);
+        $detail['info']['delivery_time'] = !empty($detail['info']['delivery_time']) ? date('Y-m-d',$detail['info']['delivery_time']) : '';
+        $detail['info']['own_age_limit'] = $detail['info']['own_age_limit'] > 0 ? $detail['info']['own_age_limit'] : '';
+        $detail['label_list'] = StreetLabelService::service()->getLabelInfoByRoomId($detail['info']['id']);
+        return $detail;
+    }
+
 
 
 }

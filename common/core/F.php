@@ -510,6 +510,21 @@ class F
     }
 
     /**
+     * Notes: 用户名脱敏
+     * Author: J.G.N
+     * Date: 2019/7/27 16:25
+     * @param $mobile
+     * @return string
+     */
+    public static function processUserName($str){
+        if(mb_strlen($str)==2){
+            return mb_substr($str, 0, 1, 'utf-8').'*';
+        }else{
+            return mb_substr($str, 0, 1, 'utf-8').'*'. mb_substr($str, -1, 1, 'utf-8');
+        }
+    }
+
+    /**
      * 身份证号脱敏
      * @param $mobile
      * @return string

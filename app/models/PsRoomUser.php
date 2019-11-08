@@ -2,6 +2,7 @@
 
 namespace app\models;
 
+use common\core\F;
 use common\core\PsCommon;
 use common\core\Regular;
 use phpDocumentor\Reflection\Types\Self_;
@@ -17,6 +18,38 @@ class PsRoomUser extends BaseModel
 
     const MOVE_IN = 1;//迁入
     const MOVE_OUT = 2;//迁出
+
+    public static $identity_type = [
+        '1' => '业主',
+        '2' => '家人',
+        '3' => '租客',
+    ];
+
+    public static $status_desc = [
+        '1' => '迁入未认证',
+        '2' => '迁入已认证',
+        '3' => '未认证迁出',
+        '4' => '已认证迁出',
+    ];
+
+    public static $face_desc = [
+        '1' => '党员',
+        '2' => '团员',
+        '3' => '群众'
+    ];
+
+    public static $marry_status_desc = [
+        '1' => '已婚',
+        '2' => '未婚',
+        '3' => '离异',
+        '4' => '分居',
+        '5' => '丧偶',
+    ];
+
+    public static $household_type_desc = [
+        '1' => '非农业户口',
+        '2' => '农业户口'
+    ];
 
     public static function tableName()
     {
@@ -270,4 +303,53 @@ class PsRoomUser extends BaseModel
             ->andFilterWhere(['time_end' => $p['time_end']])->count();
     }
 
+    /**
+     * 获取列表
+     * @author yjh
+     * @param $param
+     * @param bool $page
+     * @param string $select
+     * @return mixed
+     */
+    public static function getList($param,$select = '*',$page=true)
+    {
+        $model = self::find()
+            ->alias('u')
+            ->select($select)
+            ->leftJoin('ps_community c','c.id = u.community_id')
+            ->andFilterWhere(['u.room_id' => $param['room_id'] ?? null]);
+        $model->orderBy([ 'u.create_at' => SORT_DESC]);
+        if ($page) {
+            $page = !empty($param['page']) ? $param['page'] : 1;
+            $row = !empty($param['rows']) ? $param['rows'] : 10;
+            $page = ($page-1)*$row;
+            $count = $model->count();
+            $data['totals'] = $count;
+            $model->offset($page)->limit($row);
+        }
+        $data['list'] = $model->asArray()->all();
+        if (!empty($data['list'])) {
+            self::afterList($data['list']);
+        }
+        return $data;
+    }
+
+    public static function afterList(&$data)
+    {
+        foreach ($data as &$v) {
+            $v['mobile'] = F::processMobile($v['mobile']);
+            $v['card_no'] = F::processIdCard($v['card_no']);
+            $v['expired_time'] = $v['time_end'] != 0 ? date('Y-m-d',$v['time_end']) : '长期有效';
+            $v['identity'] = [
+                'id' => $v['identity_type'],
+                'name' => self::$identity_type[$v['identity_type']]
+            ];
+            $v['auth_status'] = self::$status_desc[$v['status']];
+            $v['auth_time'] = $v['auth_time'] != 0 ? date('Y-m-d',$v['auth_time']) : '';
+            $v['member_name'] = $v['name'];
+            unset($v['status']);
+            unset($v['time_end']);
+            unset($v['identity_type']);
+        }
+    }
 }

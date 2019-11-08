@@ -63,6 +63,12 @@ class CarService extends BaseService
         if (!empty($req['community_id'])) {
             $query->andWhere(['car.community_id' => $req['community_id']]);
         }
+        if (!empty($req['room_id'])) {
+            $query->andWhere(['puc.room_id' => $req['room_id']]);
+        }
+        if (!empty($req['member_id'])) {
+            $query->andWhere(['puc.member_id' => $req['member_id']]);
+        }
         if (!empty($req['lot_id'])) {
             $query->andWhere(['pc.lot_id' => $req['lot_id']]);
         }
@@ -248,6 +254,11 @@ class CarService extends BaseService
         if (!$portInfo) {
             return $this->failed('车位不存在！');
         }
+
+        //图片处理
+        if (strpos($req['images'], 'aliyuncs.com') !== false) {
+            $req['images'] = $carInfo['images'];
+        }
         //查看车位是否已绑定其他车辆
 //        $carportCarInfo = ParkingUserCarport::find()
 //            ->where(['carport_id' => $req['carport_id']])
@@ -352,7 +363,16 @@ class CarService extends BaseService
             ->one();
         if ($carInfo) {
             $carInfo['created_at'] = $carInfo['created_at'] ? date("Y-m-d H:i", $carInfo['created_at']) : '';
+            $carInfo['images_key'] = $carInfo['images'];
             $carInfo['images'] = $carInfo['images'] ? explode(',', $carInfo['images']) : [];
+            if ($carInfo['images']) {
+                $tmpImg = [];
+                foreach ($carInfo['images'] as $val) {
+                    array_push($tmpImg, F::getOssImagePath($val));
+                }
+                $carInfo['images'] = $tmpImg;
+            }
+
             $carInfo['carport_rent_start'] = $carInfo['carport_rent_start'] ? date("Y-m-d", $carInfo['carport_rent_start']) : '';
             $carInfo['carport_rent_end'] = $carInfo['carport_rent_end'] ? date("Y-m-d", $carInfo['carport_rent_end']) : '';
             $carInfo['car_delivery'] = $carInfo['car_delivery'] > 0 ? $carInfo['car_delivery'] : '';

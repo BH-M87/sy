@@ -1,0 +1,61 @@
+[1mdiff --git a/service/room/HouseService.php b/service/room/HouseService.php[m
+[1mindex 0204ae8f..46f9a9ce 100755[m
+[1m--- a/service/room/HouseService.php[m
+[1m+++ b/service/room/HouseService.php[m
+[36m@@ -25,6 +25,8 @@[m [muse service\alipay\AlipayBillService;[m
+ use service\alipay\AliTokenService;[m
+ use service\alipay\SharedService;[m
+ use service\BaseService;[m
+[32m+[m[32muse service\basic_data\CommunityBuildingService;[m
+[32m+[m[32muse service\basic_data\CommunityGroupService;[m
+ use service\basic_data\DoorPushService;[m
+ use service\rbac\OperateService;[m
+ use service\label\LabelsService;[m
+[36m@@ -1036,4 +1038,46 @@[m [mClass HouseService extends BaseService[m
+     }[m
+ [m
+ [m
+[32m+[m[32m    /**[m
+[32m+[m[32m     * 通过小区获取到单元[m
+[32m+[m[32m     * @author yjh[m
+[32m+[m[32m     * @param $community_id[m
+[32m+[m[32m     * @return array|\yii\db\ActiveRecord[][m
+[32m+[m[32m     */[m
+[32m+[m[32m    public function getGroupsUnits($community_id)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        $groups = CommunityGroupService::service()->getGroupList(['community_id' => $community_id]);[m
+[32m+[m[32m        if ($groups) {[m
+[32m+[m[32m            foreach ($groups as &$g) {[m
+[32m+[m[32m                $buildings = CommunityBuildingService::service()->getBuildList(['group_id' => 460]);[m
+[32m+[m[32m                var_dump($buildings);exit;[m
+[32m+[m[32m                $g['building_list'] = [];[m
+[32m+[m[32m                if ($buildings) {[m
+[32m+[m[32m                    $g['building_list'] = $buildings;[m
+[32m+[m[32m                    foreach ($buildings as &$b) {[m
+[32m+[m[32m                        $units = CommunityBuildingService::service()->getUnitsList(['building_id' => $g['building_id']]);[m
+[32m+[m[32m                        $b['unit_list'] = [];[m
+[32m+[m[32m                        if ($units) {[m
+[32m+[m[32m                            $b['unit_list'] = $units;[m
+[32m+[m[32m                        }[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                }[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return $groups;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    /**[m
+[32m+[m[32m     * 社区微恼基础资料[m
+[32m+[m[32m     * @author yjh[m
+[32m+[m[32m     * @param $data[m
+[32m+[m[32m     * @return array|\yii\db\ActiveRecord[][m
+[32m+[m[32m     */[m
+[32m+[m[32m    public function getRoomList($data)[m
+[32m+[m[32m    {[m
+[32m+[m[32m        $list = PsCommunityUnits::find()->select(['room as name', 'id'])->where(['unit_id' => $data['unit_id']])->orderBy('id desc')->asArray()->all();[m
+[32m+[m[32m        return $list;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m
+ }[m
+\ No newline at end of file[m

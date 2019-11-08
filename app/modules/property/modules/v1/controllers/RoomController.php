@@ -1002,7 +1002,15 @@ class RoomController extends BaseController
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid['errorMsg']);
         }
-        $result = RoomService::service()->getGroups($this->request_params);
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
+        $data['community_id'] = $community_id;
+        $data['has_member_info'] = $this->request_params['has_member_info'];
+        $result = RoomService::service()->getGroups($data);
         return PsCommon::responseSuccess($result);
     }
 
@@ -1115,7 +1123,12 @@ class RoomController extends BaseController
     //获取苑期区列表--无分页
     public function actionGetGroup()
     {
-        $community_id = PsCommon::get($this->request_params,'community_id');
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
         $list = PsCommunityGroups::find()
             ->select(['name'])
             ->where(['community_id' => $community_id])
@@ -1127,7 +1140,12 @@ class RoomController extends BaseController
     //获取苑期区列表--无分页
     public function actionGetBuilding()
     {
-        $community_id = PsCommon::get($this->request_params,'community_id');
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
         $group_name = PsCommon::get($this->request_params,'group');
         $list = PsCommunityBuilding::find()
             ->select(['name'])
@@ -1140,7 +1158,12 @@ class RoomController extends BaseController
     //获取苑期区列表--无分页
     public function actionGetUnit()
     {
-        $community_id = PsCommon::get($this->request_params,'community_id');
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
         $group_name = PsCommon::get($this->request_params,'group');
         $building_name = PsCommon::get($this->request_params,'building');
         $list = PsCommunityUnits::find()
@@ -1154,7 +1177,12 @@ class RoomController extends BaseController
     //获取房屋列表--无分页
     public function actionGetRoom()
     {
-        $community_id = PsCommon::get($this->request_params,'community_id');
+        $community_code = PsCommon::get($this->request_params,'community_code');
+        if($community_code){
+            $community_id = PsCommunityModel::find()->select(['id'])->where(['event_community_no'=>$community_code])->asArray()->scalar();
+        }else{
+            $community_id = PsCommon::get($this->request_params,'community_id');
+        }
         $group_name = PsCommon::get($this->request_params,'group');
         $building_name = PsCommon::get($this->request_params,'building');
         $unit_name = PsCommon::get($this->request_params,'unit');

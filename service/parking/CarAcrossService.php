@@ -21,6 +21,7 @@ use common\MyException;
 use service\BaseService;
 use OSS\Core\OssException;
 use OSS\OssClient;
+use service\basic_data\DoorExternalService;
 
 class CarAcrossService extends BaseService
 {
@@ -500,7 +501,6 @@ class CarAcrossService extends BaseService
         if($data['park_time'] < 0){
             throw new MyException('出场时间不能比入场时间晚');
         }
-        $this->saveExitRecord($data);
         if (!$model) {
             $model = new ParkingAcrossRecord();
             $model->supplier_id = $data['supplier_id'];
@@ -624,7 +624,6 @@ class CarAcrossService extends BaseService
         }
         $model->park_time = $data['park_time'];
         if ($model->save()) {
-
             //开通支付宝停车缴费功能并是外部车辆
             if ($lotInfo['alipay_park_id'] && $model->car_type == 2) {
                 //添加一条入场记录到支付宝
@@ -642,6 +641,7 @@ class CarAcrossService extends BaseService
             }
             $res['record_id'] = $model->id;
             $data['across_type'] = 2;
+            $this->saveExitRecord($data);
             return true;
         } else {
             $re = array_values($model->getErrors());
@@ -743,6 +743,8 @@ class CarAcrossService extends BaseService
         $model = new ParkingAcross();
         $model->setAttributes($data);
         $model->save();
+        //保存记录的时候，统计数据+1
+        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num']);
     }
 
     public function saveExitRecord($req)
@@ -772,6 +774,8 @@ class CarAcrossService extends BaseService
         $model = new ParkingAcross();
         $model->setAttributes($data);
         $model->save();
+        //保存记录的时候，统计数据+1
+        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num']);
     }
 
 

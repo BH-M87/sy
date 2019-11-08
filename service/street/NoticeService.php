@@ -81,7 +81,7 @@ class NoticeService extends BaseService
     public function getUserInfoByNoticeId($id)
     {
         $list = StNoticeUser::find()->alias('nu')
-            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name'])
+            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name','u.org_name'])
             ->innerJoin(['u'=>UserInfo::tableName()],'u.user_id = nu.receive_user_id')
             ->where(['nu.notice_id' => $id])
             ->andWhere(['>','nu.receive_user_id',0])
@@ -101,7 +101,7 @@ class NoticeService extends BaseService
     public function getUnReadInfoByNoticeId($id)
     {
         $list = StNoticeUser::find()->alias('nu')
-            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name'])
+            ->select(['nu.receive_user_id as user_id', 'nu.receive_user_name as user_name','u.org_name'])
             ->innerJoin(['u'=>UserInfo::tableName()],'u.user_id = nu.receive_user_id')
             ->where(['nu.notice_id' => $id, 'nu.is_read' => 1])
             ->asArray()->all();
@@ -109,7 +109,6 @@ class NoticeService extends BaseService
         $result['un_read_user_list'] = $list ? $list : [];
         return $result;
     }
-
 
     /**
      * 新增通知通报
@@ -126,6 +125,8 @@ class NoticeService extends BaseService
             $id = $this->addNotice($data, $user_info);
             //每个发送对象，发送一个信息
             $receive_user_list = PsCommon::get($data, 'receive_user_list', []);
+            //对接收到的人和部门进行处理
+            $receive_user_list = UserService::service()->dealReceiveUserList($receive_user_list);
             $result = $this->addNoticeUser($receive_user_list, $id);
             $transaction->commit();
             return $result;
@@ -203,6 +204,9 @@ class NoticeService extends BaseService
     {
         //新增加的发送对象
         $newReceiveList = PsCommon::get($data, 'receive_user_list', []);
+        //对接收到的人和部门进行处理
+        $newReceiveList = UserService::service()->dealReceiveUserList($newReceiveList);
+
         $id = $data['id'];
         $noticeUserInfo = $this->getUserInfoByNoticeId($id);
         //原先存在的发送对象
@@ -245,7 +249,9 @@ class NoticeService extends BaseService
         $detail = StNotice::find()->where(['id'=>$id])->asArray()->one();
         if($detail){
             $detail['type_info'] = ['id'=>$detail['type'],'name'=>$this->type_info[$detail['type']]];
-            $detail['receive_user_list'] = $this->getUserInfoByNoticeId($id);
+            $receive_user_list = $this->getUserInfoByNoticeId($id);
+            //$detail['receive_user_list_old'] = $receive_user_list;
+            $detail['receive_user_list'] = UserService::service()->dealReturnReceiveUserList($receive_user_list);
             $accessory_file = $detail['accessory_file'];
             $detail['accessory_file'] = $this->getOssUrlByKey($accessory_file);
             $detail['create_at'] = date("Y-m-d H:i",$detail['create_at']);

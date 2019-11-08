@@ -1,13 +1,38 @@
 <?php
+$paramsConfig = require(__DIR__ . '/params-project-config.php');
 $basePath = dirname(__DIR__,2);
 
+/*****************公共配置*****************/
 $data = [
-    'import_totals' => 400,
     'list_rows' => 20,
     'gaode_url'   => 'http://restapi.amap.com/v3/geocode/geo',
     'gaode_key'   => 'd7298ae8e746fbacb6836ba918eedc52',
-    'host_name'   => 'https://sqwr.elive99.com/'
 ];
+
+/******物业收费应用配置*****/
+//测试环境先用未来社区进行测试，后面换成哪个应用待定
+$data['gate_way_url']   = 'https://openapi.alipay.com/gateway.do';
+if (YII_ENV == "dev" || YII_ENV == "test") {
+    $data['property_isv_app_id'] = '2018032802464092';
+    $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/wlsq/alipay_public.txt";
+    $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/wlsq/rsa_private.txt";
+} else {
+    $data['property_isv_app_id'] = '2019091167205649';
+    $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/sqwn/alipay_public.txt";
+    $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/sqwn/rsa_private.txt";
+}
+//iot新接口参数
+$data['iotNewAppKey'] = 'community';
+$data['iotNewAppSecret'] = '9f1bbb1b06797a3541c4ab5afafbaf6c';
+
+//人脸bucket
+$data['zjy_oss_face_bucket'] = 'sqwn-face';
+$data['zjy_oss_face_domain'] = 'https://sqwn-face.oss-cn-hangzhou.aliyuncs.com';
+
+
+/*****************可变配置*****************/
+$data['host_name'] = $paramsConfig[YII_ENV][YII_PROJECT]['host_name'];
+
 //小程序支付回调地址
 $data['external_invoke_small_address'] = $data['host_name'].'/property/v1/notify/small';
 //小程序与钉钉报事报修支付回调地址
@@ -15,28 +40,30 @@ $data['external_invoke_small_repair_address'] = $data['host_name'].'/property/v1
 //小程序临停缴费支付回调地址
 $data['external_invoke_small_address_park'] = $data['host_name'].'/property/v1/notify/small-park';
 
-//临时停车二维码地址
+//临时停车二维码地址,TODO
 $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
 
 
-
 //小程序配置
-$data['fczl_app_id'] = '2019071165794353';
-$data['fczl_alipay_public_key_file'] = $basePath."/common/rsa_files/fczl/alipay_public.txt";
-$data['fczl_rsa_private_key_file'] = $basePath."/common/rsa_files/fczl/rsa_private.txt";
-$data['fczl_aes_secret'] = "EBG7v29Z3B4+DYuGk1a0ww==";
+$data['fczl_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_app_id'];
+$data['fczl_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_alipay_public_key_file'];
+$data['fczl_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_rsa_private_key_file'];
+$data['fczl_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_aes_secret'];
 
-// 门禁配置
-$data['edoor_app_id'] = '2019031663543853';
-$data['edoor_alipay_public_key_file'] = $basePath."/common/rsa_files/edoor/alipay_public.txt";
-$data['edoor_rsa_private_key_file'] = $basePath."/common/rsa_files/edoor/rsa_private.txt";
-$data['edoor_aes_secret'] = "Glu/dZr2xWDPCAiFAcZkCw==";
+//富阳，合肥，五常配置多个小程序
+if (in_array(YII_PROJECT, ['fuyang', 'hefei', 'wuchang'])) {
+    // 门禁配置
+    $data['edoor_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_app_id'];
+    $data['edoor_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_alipay_public_key_file'];
+    $data['edoor_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_rsa_private_key_file'];
+    $data['edoor_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_aes_secret'];
+    // 党建引领小程序
+    $data['djyl_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_app_id'];
+    $data['djyl_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_alipay_public_key_file'];
+    $data['djyl_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_rsa_private_key_file'];
+    $data['djyl_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_aes_secret'];
+}
 
-// 党建引领小程序
-$data['djyl_app_id'] = '2019082866552086';
-$data['djyl_alipay_public_key_file'] = $basePath."/common/rsa_files/djyl/alipay_public.txt";
-$data['djyl_rsa_private_key_file'] = $basePath."/common/rsa_files/djyl/rsa_private.txt";
-$data['djyl_aes_secret'] = "ee1ysBQwEIBmbCO7++GEvw==";
 
 //七牛上传图片配置，后面改为oss会去掉
 $bucket      = "wuyetest";
@@ -56,54 +83,11 @@ $data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
 $data['zjy_oss_bucket'] = 'sqwn-fy';
 $data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
-//人脸bucket
-$data['zjy_oss_face_bucket'] = 'sqwn-face';
-$data['zjy_oss_face_domain'] = 'https://sqwn-face.oss-cn-hangzhou.aliyuncs.com';
-
-/******物业收费应用配置*****/
-//测试环境先用未来社区进行测试
-$data['gate_way_url']   = 'https://openapi.alipay.com/gateway.do';
-if (YII_ENV == "dev" || YII_ENV == "test") {
-    $data['property_isv_app_id'] = '2018032802464092';
-    $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/wlsq/alipay_public.txt";
-    $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/wlsq/rsa_private.txt";
-} else {
-    $data['property_isv_app_id'] = '2019091167205649';
-    $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/sqwn/alipay_public.txt";
-    $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/sqwn/rsa_private.txt";
-}
-
-//iot新接口参数
-$data['iotNewAppKey'] = 'community';
-$data['iotNewAppSecret'] = '9f1bbb1b06797a3541c4ab5afafbaf6c';
-
-if (YII_ENV == "prod") {
-    $data['api_host_url'] = 'https://sqwn-fy-web.elive99.com';
-    //iot接口地址
-    $data['iotNewUrl'] = 'https://gateway-api.zje.com';
-    //钉钉相关配置
-    $data['appKey'] = 'dingvxqretqs7uduiovc';
-    $data['appSecret'] = '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2';
-    $data['agent_id'] = 281128929;
-    $data['java_domain'] = 'http://192.168.9.159:8888/';
-} else if (YII_ENV == "test" || YII_ENV == "release")  {
-    $data['api_host_url'] = 'https://sqwr.elive99.com';
-    //iot接口地址
-    $data['iotNewUrl'] = 'http://101.37.135.54:8844';
-    //钉钉相关配置
-    $data['appKey'] = 'dingrxn2bgp2ngekcak5';
-    $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
-    $data['agent_id'] = 290532532;
-    $data['java_domain'] = 'http://47.103.151.121:8888/';
-} else {
-    $data['api_host_url'] = Yii::$app->request->getHostInfo();
-    //iot接口地址
-    $data['iotNewUrl'] = 'http://101.37.135.54:8844';
-    //钉钉相关配置
-    $data['appKey'] = 'dingrxn2bgp2ngekcak5';
-    $data['appSecret'] = 'S_ovO-YELdDYpuZ79hcn2NWCZLyryzgCZRIozq9xhfPqagnHHgbIIMrNgOxiZOOT';
-    $data['agent_id'] = 290532532;
-    $data['java_domain'] = 'http://47.103.151.121:8888/';
-}
+$data['api_host_url'] = $data['host_name'];
+$data['iotNewUrl'] = $paramsConfig[YII_ENV][YII_PROJECT]['iotNewUrl'];
+$data['appKey'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['appKey'];
+$data['appSecret'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['appSecret'];
+$data['agent_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['agent_id'];
+$data['java_domain'] = $paramsConfig[YII_ENV][YII_PROJECT]['java_domain'];
 
 return $data;
