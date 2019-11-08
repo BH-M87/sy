@@ -151,12 +151,12 @@ class DoorRecordService extends BaseService
     /**
      * 社区微恼关联访客
      * @author yjh
-     * @param $param
+     * @param $visitor_id
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getVisitorRecord($param)
+    public function getVisitorRecord($visitor_id)
     {
-        $data = DoorRecord::find()->select('open_type,device_name,capture_photo,open_time')->where(['visitor_id' => $param['visitor_id']])->asArray()->all();
+        $data = DoorRecord::find()->select('open_type,device_name,capture_photo,open_time')->where(['visitor_id' => $visitor_id])->asArray()->all();
         foreach ($data as &$v) {
             $v['open_type'] = [
                 'id' => $v['open_type'],
