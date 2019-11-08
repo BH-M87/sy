@@ -166,12 +166,12 @@ class CarDataService extends BaseService
                 ->innerJoin(['pu'=>ParkingUsers::tableName()],'pu.id = puc.user_id')
                 ->innerJoin(['pcr'=>PsCommunityRoominfo::tableName()],'pcr.id = puc.room_id')
                 ->select(['pu.user_name','pu.user_mobile','pcr.address as room_address'])
-                ->where(['car_id'=>$car_id])
+                ->where(['puc.car_id'=>$car_id])
                 ->asArray()->one();
             $community_name = ParkingCars::find()->alias('pc')
                 ->leftJoin(['c'=>PsCommunityModel::tableName()],'c.id = pc.community_id')
                 ->select(['c.name as community_name'])
-                ->where(['car_id'=>$car_id])->asArray()->scalar();
+                ->where(['pc.id'=>$car_id])->asArray()->scalar();
             $detail['user_name'] = PsCommon::get($userInfo,"user_name");
             $detail['user_mobile'] = PsCommon::get($userInfo,"user_mobile");
             $detail['room_address'] = PsCommon::get($userInfo,"room_address");
