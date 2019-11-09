@@ -16,6 +16,7 @@ use app\models\ParkingUserCarport;
 use app\models\ParkingUsers;
 use app\models\PsMember;
 use app\models\StLabelsRela;
+use common\core\F;
 use common\core\PsCommon;
 
 class RecordDataService extends BaseService
@@ -63,6 +64,7 @@ class RecordDataService extends BaseService
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
                 $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
                 $value['user_phone'] = substr($value['user_phone'],0,3)."****".substr($value['user_phone'],7,4);
+                $value['capture_photo'] = $value['capture_photo'] ? F::getOssImagePath($value['capture_photo'], 'zjy') : '';
                 $newList[] = $value;
             }
         }
@@ -127,7 +129,7 @@ class RecordDataService extends BaseService
         $offset = ($page - 1) * $pageSize;
         $model = $this->getDoorSearchList($params,$userInfo);
         return $model->select(['dr.id as record_id','m.id as member_id','m.face_url','dr.open_time','dr.open_type','dr.device_name','dr.card_no as card_number','dr.room_id',
-            'dr.user_name','m.mobile as user_phone'])
+            'dr.user_name','m.mobile as user_phone', 'dr.capture_photo'])
             ->offset($offset)->limit($pageSize)
             ->orderBy("dr.open_time desc")
             ->asArray()->all();
@@ -216,7 +218,7 @@ class RecordDataService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $model = $this->getCarSearchList($params,$userInfo);
-        return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images',
+        return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images', 'pc.capture_photo',
             'pa.created_at as open_time','pa.across_type as open_type','pa.gate_address as open_addrss','pa.park_time'])
             ->offset($offset)->limit($pageSize)
             ->orderBy("pa.created_at desc")
