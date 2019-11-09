@@ -95,7 +95,7 @@ class CarDataService extends BaseService
     public function getCarTotal($params,$userInfo)
     {
         $model = $this->getSearchList($params,$userInfo);
-        return $model->groupBy("pc.id")->count();
+        return $model->groupBy("pc.car_num")->count();
     }
 
     /**
