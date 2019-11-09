@@ -139,6 +139,7 @@ class CarDataService extends BaseService
             $car_image = F::getOssImagePath($car_image, 'zjy');
         }
         $detail['car_image'] = $car_image;
+        $detail['capture_photo'] =  $params['capture_photo'] ? F::getOssImagePath($params['capture_photo'], 'zjy') : '';
         if($type == "record-list"){
             $detail['car_img'] = $detail['car_image'];
             $detail['car_number'] = substr_replace(PsCommon::get($params,"car_num"),'****',4,4);
