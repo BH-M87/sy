@@ -37,6 +37,7 @@ Class TmpController extends Controller
                 if($list){
                     foreach($list as $key=>$value){
                         Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
+                        $count++;
                     }
                     $page ++;
                 }else{
@@ -62,9 +63,9 @@ Class TmpController extends Controller
                 $limit = $pageSize;
                 $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
                 if($list){
-                    echo $page;
                     foreach($list as $key=>$value){
                         Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+                        $count++;
                     }
                     $page ++;
                 }else{
