@@ -248,63 +248,6 @@ class CommandController extends Controller
     }
 
 
-    //用不小区住户数据
-    public function actionSyncRecordDoor()
-    {
-        $request = F::request();//住户传入数据
-        $day = PsCommon::get($request,"day");
-        if($day){
-            $start_time = strtotime($day." 00:00:00");
-            $end_time = strtotime($day." 23:59:59");
-            $flag = true;
-            $page = 1;
-            $pageSize = 1000;
-            while($flag){
-                $offset = ($page-1)*$pageSize;
-                $limit = $pageSize;
-                $list = DoorRecord::find()->where(['>=','open_time',$start_time])->andFilterWhere(['<=','open_time',$end_time])->limit($limit)->offset($offset)->asArray()->all();
-                if($list){
-                    echo $page;
-                    foreach($list as $key=>$value){
-                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR,json_encode($value));
-                    }
-                    $page ++;
-                }else{
-                    $flag = false;
-                }
-            }
-        }
-
-    }
-
-    //用不小区住户数据
-    public function actionSyncRecordCar()
-    {
-        $request = F::request();//住户传入数据
-        $day = PsCommon::get($request,"day");
-        if($day){
-            $start_time = strtotime($day." 00:00:00");
-            $end_time = strtotime($day." 23:59:59");
-            $flag = true;
-            $page = 1;
-            $pageSize = 1000;
-            while($flag){
-                $offset = ($page-1)*$pageSize;
-                $limit = $pageSize;
-                $list = ParkingAcross::find()->where(['>=','created_at',$start_time])->andFilterWhere(['<=','created_at',$end_time])->limit($limit)->offset($offset)->asArray()->all();
-                if($list){
-                    echo $page;
-                    foreach($list as $key=>$value){
-                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
-                    }
-                    $page ++;
-                }else{
-                    $flag = false;
-                }
-            }
-        }
-    }
-
 
 
 
@@ -447,7 +390,7 @@ class CommandController extends Controller
     //人行数据同步
     public function actionRecordSyncDoor()
     {
-        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 999);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
@@ -466,7 +409,7 @@ class CommandController extends Controller
     //车行数据同步
     public function actionRecordSyncCar()
     {
-        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 999);
         if($list){
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
