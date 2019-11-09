@@ -218,7 +218,7 @@ class RecordDataService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $model = $this->getCarSearchList($params,$userInfo);
-        return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images', 'pc.capture_photo',
+        return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images', 'pa.capture_photo',
             'pa.created_at as open_time','pa.across_type as open_type','pa.gate_address as open_addrss','pa.park_time'])
             ->offset($offset)->limit($pageSize)
             ->orderBy("pa.created_at desc")
