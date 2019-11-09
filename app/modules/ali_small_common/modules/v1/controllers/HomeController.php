@@ -26,6 +26,7 @@ class HomeController extends UserBaseController
     //用户授权
     public function actionAuth()
     {
+        \Yii::info("system:small-app".'request:'.json_encode($this->params),'smallapp');
         $authCode = F::value($this->params, 'auth_code');
         if (!$authCode) {
             return F::apiFailed("授权码不能为空！");
