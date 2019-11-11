@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * 测试脚本
+ * 同步数据到redis的脚本
+ */
 
 namespace app\commands;
 
