@@ -27,6 +27,7 @@ Class TmpController extends Controller
     }
 
     //查看redis缓存
+    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/test-redis
     public function actionTestRedis(){
         $request = F::request();//住户传入数据
         $type = PsCommon::get($request,"type",1);
