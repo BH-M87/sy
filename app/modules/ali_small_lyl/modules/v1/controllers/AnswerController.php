@@ -8,6 +8,7 @@
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
 use app\modules\ali_small_lyl\controllers\UserBaseController;
+use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
 use service\small\AnswerService;
@@ -26,7 +27,7 @@ class AnswerController extends UserBaseController
         if (empty($this->params['user_id'])) throw new MyException('用户id不能为空');
         $member = AnswerService::service()->getUserInfo($this->params);
         $result = AnswerService::service()->getUserGrade($member['id']);
-        PsCommon::responseSuccess(['grade' => $result]);
+        return F::apiSuccess(['grade' => $result]);
     }
 
     /**
@@ -38,7 +39,7 @@ class AnswerController extends UserBaseController
     {
         if (empty($this->params['user_id']) || !isset($this->params['grade'])) throw new MyException('用户id或分数不能为空');
         AnswerService::service()->addGrade($this->params);
-        PsCommon::responseSuccess();
+        return F::apiSuccess();
     }
 
     /**
@@ -50,18 +51,18 @@ class AnswerController extends UserBaseController
     {
         if (empty($this->params['user_id'])) throw new MyException('用户id不能为空');
         $result = AnswerService::service()->getTopInfo($this->params);
-        PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     public function actionGetList()
     {
         $result = AnswerService::service()->getList();
-        PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 
     public function actionGetTime()
     {
         $result = AnswerService::service()->getTime();
-        PsCommon::responseSuccess($result);
+        return F::apiSuccess($result);
     }
 }
