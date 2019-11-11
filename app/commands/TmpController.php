@@ -28,9 +28,7 @@ Class TmpController extends Controller
 
     //查看redis缓存
     //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/test-redis
-    public function actionTestRedis(){
-        $request = F::request();//住户传入数据
-        $type = PsCommon::get($request,"type",1);
+    public function actionTestRedis($type){
         switch($type){
             case "1":
                 $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
