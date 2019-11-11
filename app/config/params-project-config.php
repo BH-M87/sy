@@ -23,7 +23,7 @@ $paramsConfig['test'] = [
             'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => 'http://47.103.151.121:8888/',
+        'java_domain' => ' http://47.103.151.121:8889/',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingrxn2bgp2ngekcak5',
@@ -53,7 +53,7 @@ $paramsConfig['test'] = [
             'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => 'http://192.168.4.129:8888/',
+        'java_domain' =>  'http://47.103.151.121:8700/',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
@@ -69,7 +69,7 @@ $paramsConfig['test'] = [
 
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => '',
+        'java_domain' => 'http://47.103.151.121:8900/',
         //钉钉应用配置
         'dd_app' => [
         ],
@@ -99,7 +99,7 @@ $paramsConfig['test'] = [
 
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => 'http://47.103.151.121:8819/',
+        'java_domain' => 'http://47.103.151.121:8800/',
         //钉钉应用配置,待定
         'dd_app' => [
         ],

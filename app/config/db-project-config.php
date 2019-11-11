@@ -2,7 +2,7 @@
 $dbconfig['test'] = [
     'fuyang'  => [
         'class' => 'yii\db\Connection',
-        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_fy_test',
+        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_test',
         'username' => 'communitybrain',
         'password' => 'communitybrain123!@#',
         'charset' => 'utf8',
@@ -22,7 +22,7 @@ $dbconfig['test'] = [
     ],
     'wuchang' => [
         'class' => 'yii\db\Connection',
-        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_test',
+        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_wc_test',
         'username' => 'communitybrain',
         'password' => 'communitybrain123!@#',
         'charset' => 'utf8',

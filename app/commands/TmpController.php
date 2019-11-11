@@ -16,14 +16,40 @@ use yii\console\Controller;
 Class TmpController extends Controller
 {
 
+    const IOT_FACE_USER = "IotFaceUser_sqwn";//人脸住户数据同步
+    const IOT_MQ_DATA = "IotMqData_sqwn";//同步iot数据
     const RECORD_SYNC_DOOR = "record_sync_door";//人行出入记录同步
     const RECORD_SYNC_CAR = "record_sync_car";//车行出入记录同步
+
     public function actionTest()
     {
         file_put_contents('./1.txt',time());
     }
 
+    //查看redis缓存
+    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/test-redis
+    public function actionTestRedis($type){
+        switch($type){
+            case "1":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
+                break;
+            case "2":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_FACE_USER, 0, 99);
+                break;
+            case "3":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 99);
+                break;
+            case "4":
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
+                break;
+            default:
+                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
+        }
+        var_dump($list);die;
+    }
+
     //同步人行出入记录到redis
+    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/sync-record-door
     public function actionSyncRecordDoor($day ='')
     {
         $count = 0;
@@ -52,6 +78,7 @@ Class TmpController extends Controller
     }
 
     //同步车行出入记录到redis
+    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/sync-record-car
     public function actionSyncRecordCar($day = '')
     {
         $count = 0;

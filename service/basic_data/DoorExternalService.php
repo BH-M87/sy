@@ -176,23 +176,29 @@ class DoorExternalService extends BaseService
     //对进出记录进行统计处理
     public function saveToRecordReport($type,$time,$v)
     {
+        $num = 0;
         //人行记录
         if($type == 2){
             $st_day = date("Y-m-d",$time);
-            $st_time = strtotime($st_day." 00:00:00");//获取当前时间0点的时间戳
+            $st_time = strtotime($st_day." 00:00:00")."";//获取当前时间0点的时间戳
             $st_data_id = PsMember::find()->select(['id'])->where(['mobile'=>$v])->asArray()->scalar();
             if($st_data_id){
                 $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
                 if($res){
                     StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
+                    $num = $res['num']+1;
                 }else{
                     $model = new StRecordReport();
                     $model->type = $type;
                     $model->day = $st_day;
-                    $model->time = $st_time."";
+                    $model->time = $st_time;
                     $model->num = 1;
                     $model->data_id = $st_data_id;
-                    $model->save();
+                    if($model->save()){
+                        $num = 1;
+                    }else{
+                        $num = $model->getErrors();
+                    }
                 }
             }
 
@@ -201,24 +207,31 @@ class DoorExternalService extends BaseService
         //车行记录
         if($type == 1){
             $st_day = date("Y-m-d",$time);
-            $st_time = strtotime($st_day." 00:00:00");//获取当前时间0点的时间戳
+            $st_time = strtotime($st_day." 00:00:00")."";//获取当前时间0点的时间戳
             $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v])->asArray()->scalar();
             if($st_data_id){
                 $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
                 if($res){
                     StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
+                    $num = $res['num']+1;
                 }else{
                     $model = new StRecordReport();
                     $model->type = $type;
                     $model->day = $st_day;
-                    $model->time = $st_time."";
+                    $model->time = $st_time;
                     $model->num = 1;
                     $model->data_id = $st_data_id;
-                    $model->save();
+                    if($model->save()){
+                        $num = 1;
+                    }else{
+                        $num = $model->getErrors();
+                    }
+
                 }
             }
 
         }
+        return $num;
 
     }
 
