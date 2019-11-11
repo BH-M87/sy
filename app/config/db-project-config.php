@@ -2,7 +2,7 @@
 $dbconfig['test'] = [
     'fuyang'  => [
         'class' => 'yii\db\Connection',
-        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_test',
+        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_fy_test',
         'username' => 'communitybrain',
         'password' => 'communitybrain123!@#',
         'charset' => 'utf8',
@@ -12,7 +12,7 @@ $dbconfig['test'] = [
     ],
     'hefei'   => [
         'class' => 'yii\db\Connection',
-        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_test',
+        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public_ah_test',
         'username' => 'communitybrain',
         'password' => 'communitybrain123!@#',
         'charset' => 'utf8',
@@ -39,7 +39,17 @@ $dbconfig['test'] = [
         'attributes' => [
             PDO::ATTR_EMULATE_PREPARES => true,
         ]
-    ]
+    ],
+    'yanshi' => [
+        'class' => 'yii\db\Connection',
+        'dsn' => 'mysql:host=rm-uf602z2864539nw937o.mysql.rds.aliyuncs.com;dbname=microbrain_public',
+        'username' => 'communitybrain',
+        'password' => 'communitybrain123!@#',
+        'charset' => 'utf8',
+        'attributes' => [
+            PDO::ATTR_EMULATE_PREPARES => true,
+        ]
+    ],
 ];
 
 $dbconfig['prod'] = [
