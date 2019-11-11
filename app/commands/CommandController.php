@@ -13,6 +13,7 @@ namespace app\commands;
 use app\models\IotSuppliers;
 use app\models\PsRoomUser;
 use common\core\PsCommon;
+use service\basic_data\DoorExternalService;
 use service\basic_data\IotNewService;
 use service\resident\ResidentService;
 use service\street\XzTaskService;
@@ -181,9 +182,11 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['open_time'];
                 $mobile = $dataInfo['user_phone'];
+                $num = 0;
                 if($mobile){
-                    DoorExternalService::service()->saveToRecordReport(2,$time,$mobile);
+                    $num = DoorExternalService::service()->saveToRecordReport(2,$time,$mobile);
                 }
+                Yii::info("人行记录:".$mobile."-".$num,'console');
                 //从队列里面移除
                 Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR);
             }
@@ -201,9 +204,11 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['created_at'];
                 $car_num = $dataInfo['car_num'];
+                $num = 0;
                 if($car_num){
-                    DoorExternalService::service()->saveToRecordReport(1,$time,$car_num);
+                    $num = DoorExternalService::service()->saveToRecordReport(1,$time,$car_num);
                 }
+                Yii::info("车行记录:".$car_num."-".$num,'console');
                 //从队列里面移除
                 Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR);
             }
