@@ -182,9 +182,10 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['open_time'];
                 $mobile = $dataInfo['user_phone'];
+                $community_id = $dataInfo['community_id'];//小区id
                 $num = 0;
                 if($mobile){
-                    $num = DoorExternalService::service()->saveToRecordReport(2,$time,$mobile);
+                    $num = DoorExternalService::service()->saveToRecordReport(2,$time,$mobile,$community_id);
                 }
                 Yii::info("人行记录:".$mobile."-".$num,'console');
                 //从队列里面移除
@@ -204,9 +205,10 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['created_at'];
                 $car_num = $dataInfo['car_num'];
+                $community_id = $dataInfo['community_id'];//小区id
                 $num = 0;
                 if($car_num){
-                    $num = DoorExternalService::service()->saveToRecordReport(1,$time,$car_num);
+                    $num = DoorExternalService::service()->saveToRecordReport(1,$time,$car_num,$community_id);
                 }
                 Yii::info("车行记录:".$car_num."-".$num,'console');
                 //从队列里面移除

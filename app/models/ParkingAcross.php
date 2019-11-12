@@ -98,7 +98,7 @@ class ParkingAcross extends BaseModel
     {
         $model = self::find()->alias('pa')
             ->innerJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
-            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num')
+            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num and pa.community_id=pc.community_id')
             ->leftJoin(['puc'=>ParkingUserCarport::tableName()],'puc.car_id = pc.id')
             ->select(['pa.*','c.name as community_name','puc.room_address'])
             ->where(['pa.car_num'=>$param['car_num']])

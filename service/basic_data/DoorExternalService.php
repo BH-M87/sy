@@ -162,7 +162,8 @@ class DoorExternalService extends BaseService
             //统计住户的进出记录
             if(!$visitor_id){
                 //保存记录的时候，统计数据+1
-                $this->saveToRecordReport(2,$model->open_time,$model->user_phone);
+                $community_id = $data['community_id'];//小区id
+                $this->saveToRecordReport(2,$model->open_time,$model->user_phone,$community_id);
             }
             if ($model->user_type != 0) {
                 PhotosService::service()->updateVisitor($data,$visitor); // 更新访客信息 已到访
@@ -174,7 +175,7 @@ class DoorExternalService extends BaseService
     }
 
     //对进出记录进行统计处理
-    public function saveToRecordReport($type,$time,$v)
+    public function saveToRecordReport($type,$time,$v,$community_id='')
     {
         $num = 0;
         //人行记录
@@ -207,7 +208,8 @@ class DoorExternalService extends BaseService
         if($type == 1){
             $st_day = date("Y-m-d",$time);
             $st_time = strtotime($st_day." 00:00:00")."";//获取当前时间0点的时间戳
-            $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v])->asArray()->scalar();
+            //一个车牌可能绑定到了多个小区，因此需要区分是哪个小区传过来的数据
+            $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v,'community_id'=>$community_id])->asArray()->scalar();
             if($st_data_id){
                 $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
                 if($res){

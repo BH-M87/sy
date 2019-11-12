@@ -9,6 +9,7 @@
 namespace service\street;
 use app\models\Department;
 use app\models\DepartmentCommunity;
+use app\models\ParkingCars;
 use app\models\PsCommunityModel;
 use app\models\StLabels;
 use app\models\StLabelsRela;
@@ -313,17 +314,22 @@ class BasicDataService extends BaseService
         $start_time = strtotime(date("Y-m-d 00:00:00")) - 86400;//昨天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
-            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])
-                ->asArray()->one();
+            //根据传进来的车辆id，反查车牌，再根据车牌查找对应的车辆ID，再统计总数
+            $car_num = ParkingCars::findOne($id)->car_num;
+            $car_id_column = ParkingCars::find()->select(['id'])->where(['car_num'=>$car_num])->asArray()->column();
+            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$car_id_column])
+                ->asArray()->all();
+            $newData = [];
+            $newData['id'] = $i;
+            $newData['day'] = date("Y-m-d",$start_time);
+            $newData['num'] = "0";
             if($res){
-                $res['id'] = $i;
-                $data[] = $res;
-            }else{
-                $a['day'] = date("Y-m-d",$start_time);
-                $a['num'] = "0";
-                $a['id'] = $i;
-                $data[] = $a;
+                foreach($res as $key=>$value){
+                    $newData['day'] = $value['day'];
+                    $newData['num'] += $value['num'];
+                }
             }
+            $data[] = $newData;
             $start_time -= 3600*24;
         }
 
