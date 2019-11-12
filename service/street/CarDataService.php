@@ -266,8 +266,15 @@ class CarDataService extends BaseService
                 $newList[$key]['time'] = date("Y-m-d H:i:s",$value['created_at']);
                 $newList[$key]['address'] = $value['gate_address'];
                 $newList[$key]['park_time'] = !empty($value['park_time']) ? $this->dealParkingTime($value['park_time']) : 0;
-                $newList[$key]['community_name'] = $value['community_name'];
-                $newList[$key]['room_address'] = $value['room_address'];
+                //关联小区获取小区名称
+                $newList[$key]['community_name'] = PsCommunityModel::find()->select(['name'])->where(['id'=>$value['community_id']])->asArray()->scalar();
+                //获取关联的房屋
+                $room_address = ParkingCars::find()->alias('pc')
+                    ->innerJoin(['puc'=>ParkingUserCarport::tableName()],'pc.id = puc.car_id')
+                    ->select(['room_address'])
+                    ->where(['pc.car_num'=>$value['car_num'],'pc.community_id'=>$value['community_id']])
+                    ->asArray()->scalar();
+                $newList[$key]['room_address'] = $room_address ? $room_address : '';
             }
         }
         return ['list' => $newList,'totals' => $data['totals']];

@@ -30,8 +30,8 @@ class StRecordReport extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['type', 'num', 'data_id'], 'integer'],
-            [['day'], 'string', 'max' => 20],
+            [['type', 'num'], 'integer'],
+            [['day','data_id'], 'string', 'max' => 20],
             [['time'], 'string', 'max' => 11],
         ];
     }

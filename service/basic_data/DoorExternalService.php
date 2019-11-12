@@ -162,7 +162,8 @@ class DoorExternalService extends BaseService
             //统计住户的进出记录
             if(!$visitor_id){
                 //保存记录的时候，统计数据+1
-                $this->saveToRecordReport(2,$model->open_time,$model->user_phone);
+                $community_id = $data['community_id'];//小区id
+                $this->saveToRecordReport(2,$model->open_time,$model->user_phone,$community_id);
             }
             if ($model->user_type != 0) {
                 PhotosService::service()->updateVisitor($data,$visitor); // 更新访客信息 已到访
@@ -174,7 +175,7 @@ class DoorExternalService extends BaseService
     }
 
     //对进出记录进行统计处理
-    public function saveToRecordReport($type,$time,$v)
+    public function saveToRecordReport($type,$time,$v,$community_id='')
     {
         $num = 0;
         //人行记录
@@ -193,7 +194,7 @@ class DoorExternalService extends BaseService
                     $model->day = $st_day;
                     $model->time = $st_time;
                     $model->num = 1;
-                    $model->data_id = $st_data_id;
+                    $model->data_id = $st_data_id."";
                     if($model->save()){
                         $num = 1;
                     }else{
@@ -207,25 +208,22 @@ class DoorExternalService extends BaseService
         if($type == 1){
             $st_day = date("Y-m-d",$time);
             $st_time = strtotime($st_day." 00:00:00")."";//获取当前时间0点的时间戳
-            $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v])->asArray()->scalar();
-            if($st_data_id){
-                $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
-                if($res){
-                    StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
-                    $num = $res['num']+1;
+            //车辆统计的时候根据车牌去统计记录，不需要判断是否已经在我们系统里面已经绑定
+            $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$v])->asArray()->one();
+            if($res){
+                StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$v]);
+                $num = $res['num']+1;
+            }else{
+                $model = new StRecordReport();
+                $model->type = $type;
+                $model->day = $st_day;
+                $model->time = $st_time;
+                $model->num = 1;
+                $model->data_id = $v;
+                if($model->save()){
+                    $num = 1;
                 }else{
-                    $model = new StRecordReport();
-                    $model->type = $type;
-                    $model->day = $st_day;
-                    $model->time = $st_time;
-                    $model->num = 1;
-                    $model->data_id = $st_data_id;
-                    if($model->save()){
-                        $num = 1;
-                    }else{
-                        $num = $model->getErrors();
-                    }
-
+                    $num = $model->getErrors();
                 }
             }
             Yii::info("车行记录:".$v."-".$num,'record');
