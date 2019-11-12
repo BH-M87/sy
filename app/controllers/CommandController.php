@@ -163,13 +163,22 @@ class CommandController extends Controller
     //批量删除小区下的住户
     public function actionDeleteRoomUser()
     {
-        $community_id = ["101","102"];
+        $community_id = ["120"];
         $list = PsRoomUser::find()->where(['community_id'=>$community_id])->asArray()->all();
         if($list){
             foreach($list as $key=>$value){
                 $id = $value['id'];
                 //删除标签
                 PsLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]); // 删除住户所有标签关联关系
+                //查询是否有其他房屋
+                $otherRoomData = PsRoomUser::find()
+                    ->select(['id'])
+                    ->where(['member_id' => $value['member_id']])
+                    ->asArray()
+                    ->all();
+                if (!$otherRoomData) {
+                    StLabelsRela::deleteAll(['data_type' => 2, 'data_id' => $id]);
+                }
                 //删除java对应的住户
                 ResidentService::service()->residentSync($value, 'delete');
                 //删除住户
@@ -181,7 +190,7 @@ class CommandController extends Controller
     //删除房屋
     public function actionDeleteRoom()
     {
-        $community_id = ["101","102"];
+        $community_id = ["120"];
         $list = PsCommunityRoominfo::find()->alias('cr')
             ->leftJoin(['cu'=>PsCommunityUnits::tableName()],'cu.id = cr.unit_id')
             ->select(['cu.group_id','cu.building_id','cr.unit_id','cr.id'])
