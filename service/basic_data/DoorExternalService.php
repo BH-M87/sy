@@ -194,7 +194,7 @@ class DoorExternalService extends BaseService
                     $model->day = $st_day;
                     $model->time = $st_time;
                     $model->num = 1;
-                    $model->data_id = $st_data_id;
+                    $model->data_id = $st_data_id."";
                     if($model->save()){
                         $num = 1;
                     }else{
@@ -208,26 +208,22 @@ class DoorExternalService extends BaseService
         if($type == 1){
             $st_day = date("Y-m-d",$time);
             $st_time = strtotime($st_day." 00:00:00")."";//获取当前时间0点的时间戳
-            //一个车牌可能绑定到了多个小区，因此需要区分是哪个小区传过来的数据
-            $st_data_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$v,'community_id'=>$community_id])->asArray()->scalar();
-            if($st_data_id){
-                $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id])->asArray()->one();
-                if($res){
-                    StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$st_data_id]);
-                    $num = $res['num']+1;
+            //车辆统计的时候根据车牌去统计记录，不需要判断是否已经在我们系统里面已经绑定
+            $res = StRecordReport::find()->where(['type'=>$type,'time'=>$st_time,'data_id'=>$v])->asArray()->one();
+            if($res){
+                StRecordReport::updateAllCounters(['num'=>1],['type'=>$type,'time'=>$st_time,'data_id'=>$v]);
+                $num = $res['num']+1;
+            }else{
+                $model = new StRecordReport();
+                $model->type = $type;
+                $model->day = $st_day;
+                $model->time = $st_time;
+                $model->num = 1;
+                $model->data_id = $v;
+                if($model->save()){
+                    $num = 1;
                 }else{
-                    $model = new StRecordReport();
-                    $model->type = $type;
-                    $model->day = $st_day;
-                    $model->time = $st_time;
-                    $model->num = 1;
-                    $model->data_id = $st_data_id;
-                    if($model->save()){
-                        $num = 1;
-                    }else{
-                        $num = $model->getErrors();
-                    }
-
+                    $num = $model->getErrors();
                 }
             }
             Yii::info("车行记录:".$v."-".$num,'record');

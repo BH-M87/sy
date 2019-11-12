@@ -314,10 +314,14 @@ class BasicDataService extends BaseService
         $start_time = strtotime(date("Y-m-d 00:00:00")) - 86400;//昨天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
-            //根据传进来的车辆id，反查车牌，再根据车牌查找对应的车辆ID，再统计总数
-            $car_num = ParkingCars::findOne($id)->car_num;
-            $car_id_column = ParkingCars::find()->select(['id'])->where(['car_num'=>$car_num])->asArray()->column();
-            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$car_id_column])
+            if($type == 1){
+                //根据传进来的车辆id，反查车牌,再统计总数
+                $data_id = ParkingCars::findOne($id)->car_num;
+            }else{
+                //人员的时候传入的id就是member_id
+                $data_id = $id;
+            }
+            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$data_id])
                 ->asArray()->all();
             $newData = [];
             $newData['id'] = $i;
@@ -325,7 +329,6 @@ class BasicDataService extends BaseService
             $newData['num'] = "0";
             if($res){
                 foreach($res as $key=>$value){
-                    $newData['day'] = $value['day'];
                     $newData['num'] += $value['num'];
                 }
             }

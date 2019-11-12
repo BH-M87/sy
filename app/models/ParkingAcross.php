@@ -96,15 +96,10 @@ class ParkingAcross extends BaseModel
 
     public static function getList($param,$page=true)
     {
-        $model = self::find()->alias('pa')
-            ->innerJoin(['c'=>PsCommunityModel::tableName()],'c.id = pa.community_id')
-            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num and pa.community_id=pc.community_id')
-            ->leftJoin(['puc'=>ParkingUserCarport::tableName()],'puc.car_id = pc.id')
-            ->select(['pa.*','c.name as community_name','puc.room_address'])
-            ->where(['pa.car_num'=>$param['car_num']])
-            ->andFilterWhere(['>=','pa.created_at',$param['start_time']])
-            ->andFilterWhere(['<','pa.created_at',$param['end_time']]);
-//        $model->orderBy([ 'st.create_at' => SORT_DESC]);
+        $model = self::find()
+            ->where(['car_num'=>$param['car_num']])
+            ->andFilterWhere(['>=','created_at',$param['start_time']])
+            ->andFilterWhere(['<','created_at',$param['end_time']]);
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['rows']) ? $param['rows'] : 10;
@@ -113,7 +108,7 @@ class ParkingAcross extends BaseModel
             $data['totals'] = $count;
             $model->offset($page)->limit($row);
         }
-        $data['list'] = $model->orderBy('pa.created_at desc')->asArray()->all();
+        $data['list'] = $model->orderBy('created_at desc')->asArray()->all();
         return $data;
     }
 
