@@ -24,6 +24,7 @@ $paramsConfig['test'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => ' http://47.103.151.121:8889/',
+        'oss_bucket' => 'sqwn-fy',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingrxn2bgp2ngekcak5',
@@ -54,6 +55,7 @@ $paramsConfig['test'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' =>  'http://47.103.151.121:8700/',
+        'oss_bucket' => 'sqwn-ss',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
@@ -70,6 +72,7 @@ $paramsConfig['test'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => 'http://47.103.151.121:8900/',
+        'oss_bucket' => 'sqwn-wc',
         //钉钉应用配置
         'dd_app' => [
         ],
@@ -85,6 +88,7 @@ $paramsConfig['test'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => 'http://47.103.151.121:8819/',
+        'oss_bucket' => 'sqwn-saas',
         //钉钉应用配置,待定
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
@@ -100,6 +104,7 @@ $paramsConfig['test'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => 'http://47.103.151.121:8800/',
+        'oss_bucket' => 'sqwn-yanshi',
         //钉钉应用配置,待定
         'dd_app' => [
         ],
@@ -131,6 +136,7 @@ $paramsConfig['prod'] = [
         ],
         'iotNewUrl' => 'https://gateway-api.zje.com',
         'java_domain' => 'http://192.168.9.159:8888/',
+        'oss_bucket' => 'sqwn-fy',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingvxqretqs7uduiovc',
@@ -163,6 +169,7 @@ $paramsConfig['prod'] = [
         ],
         'iotNewUrl' => 'https://gateway-api.zje.com',
         'java_domain' => 'http://192.168.9.159:8898/',
+        'oss_bucket' => 'sqwn-ss',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
@@ -178,6 +185,7 @@ $paramsConfig['prod'] = [
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' => '',
+        'oss_bucket' => 'sqwn-wc',
         //钉钉应用配置
         'dd_app' => [
         ],
@@ -194,6 +202,7 @@ $paramsConfig['prod'] = [
         'iotNewUrl' => 'https://gateway-api.zje.com',
         //待定
         'java_domain' => 'http://192.168.4.129:8888/',
+        'oss_bucket' => 'sqwn-saas',
         //钉钉应用配置，待定
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
