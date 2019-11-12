@@ -2,7 +2,7 @@
 $basePath = dirname(__DIR__,2);
 $paramsConfig['test'] = [
     'fuyang' => [
-        'host_name' => 'https://sqwr.elive99.com',
+        'host_name' => 'https://test-fy.elive99.com',
         'small_app' => [
             //邻易联小程序
             'fczl_app_id' => '2019071165794353',
@@ -23,7 +23,7 @@ $paramsConfig['test'] = [
             'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => 'http://47.103.151.121:8888/',
+        'java_domain' => ' http://47.103.151.121:8889/',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingrxn2bgp2ngekcak5',
@@ -32,7 +32,7 @@ $paramsConfig['test'] = [
         ],
     ],
     'hefei' => [
-        'host_name' => 'https://test-hefei.elive99.com',
+        'host_name' => 'https://test-hf.elive99.com',
         'small_app' => [
             //邻易联小程序
             'fczl_app_id' => '2019101068202998',
@@ -53,7 +53,7 @@ $paramsConfig['test'] = [
             'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => 'http://192.168.4.129:8888/',
+        'java_domain' =>  'http://47.103.151.121:8700/',
         //钉钉应用配置
         'dd_app' => [
             'appKey' => 'dingnwwsei87rubgtdty',
@@ -62,13 +62,14 @@ $paramsConfig['test'] = [
         ],
     ],
     'wuchang' => [
+        //暂无
         'host_name' => 'https://test-wuchang.elive99.com',
         //暂无
         'small_app' => [
 
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
-        'java_domain' => '',
+        'java_domain' => 'http://47.103.151.121:8900/',
         //钉钉应用配置
         'dd_app' => [
         ],
@@ -90,7 +91,20 @@ $paramsConfig['test'] = [
             'appSecret' => 'pn5BSZ7jJlpbgDGTbfQClIs3Y6SBJm6L0u57fDjZRrgp9U_CPOb9l5pIjcoXLPAx',
             'agent_id' => '301180256'
         ],
+    ],
+    'yanshi' => [
+        //暂无
+        'host_name' => 'https://test-saas.elive99.com',
+        'small_app' => [
+
+        ],
+        'iotNewUrl' => 'http://101.37.135.54:8844',
+        'java_domain' => 'http://47.103.151.121:8800/',
+        //钉钉应用配置,待定
+        'dd_app' => [
+        ],
     ]
+
 ];
 
 $paramsConfig['prod'] = [
