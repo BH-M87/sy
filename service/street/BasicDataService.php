@@ -311,7 +311,7 @@ class BasicDataService extends BaseService
      */
     public function getDayReport($id,$type = 1,$day = 30)
     {
-        $start_time = strtotime(date("Y-m-d 00:00:00")) - 86400;//昨天开始时间
+        $start_time = strtotime(date("Y-m-d 00:00:00"));//昨天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
             if($type == 1){
