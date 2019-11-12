@@ -8,7 +8,6 @@
 namespace service\basic_data;
 
 use common\core\Curl;
-use service\BaseService;
 use service\manage\CommunityService;
 use Yii;
 
