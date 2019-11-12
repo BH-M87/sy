@@ -80,7 +80,7 @@ $data['oss_domain'] = 'http://oss-cn-shanghai.aliyuncs.com';
 //oss文件上传使用筑家易oss账号
 $data['zjy_oss_access_key_id'] = 'LTAIRMyJgmFU2NnA';
 $data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
-$data['zjy_oss_bucket'] = 'sqwn-fy';
+$data['zjy_oss_bucket'] = $paramsConfig[YII_ENV][YII_PROJECT]['oss_bucket'];
 $data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
 $data['api_host_url'] = $data['host_name'];
