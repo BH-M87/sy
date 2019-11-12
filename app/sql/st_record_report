@@ -1,0 +1,2 @@
+ALTER TABLE `st_record_report`
+MODIFY COLUMN `data_id`  varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '车的车牌/人的id(ps_member)' AFTER `num`;
