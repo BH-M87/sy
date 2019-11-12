@@ -47,7 +47,7 @@ $config =  [
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
-                [
+                [//iot接口日志
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['iot-request'],
                     'logFile' => '@app/runtime/logs/iot-request.log',
@@ -58,6 +58,13 @@ $config =  [
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['smallapp'],
                     'logFile' => '@app/runtime/logs/smallapp.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
+                [//设备记录上报日志
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['record'],
+                    'logFile' => '@app/runtime/logs/record.log',
                     'levels' => ['info'],
                     'logVars' => [],
                 ],

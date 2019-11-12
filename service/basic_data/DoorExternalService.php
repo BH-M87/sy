@@ -201,8 +201,7 @@ class DoorExternalService extends BaseService
                     }
                 }
             }
-
-
+            Yii::info("人行记录:".$v."-".$num,'record');
         }
         //车行记录
         if($type == 1){
@@ -229,8 +228,9 @@ class DoorExternalService extends BaseService
 
                 }
             }
-
+            Yii::info("车行记录:".$v."-".$num,'record');
         }
+
         return $num;
 
     }
