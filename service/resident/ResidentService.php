@@ -342,7 +342,12 @@ class ResidentService extends BaseService
             $member = PsMember::findOne($roomUser->member_id);
             if (!empty($member) && !empty($data['face_url'])) {
                 if (strpos($data['face_url'],"com") === false) {
-                    $face = F::getOssImagePath($data['face_url']);
+                    if (YII_PROJECT == 'fuyang') {
+                        $face = F::getOssImagePath($data['face_url']);
+                    } else {
+                        $face = F::getOssImagePath($data['face_url'], 'zjy');
+                    }
+
                     //转换人脸上传
                     if ($face) {
                         $faceKey = F::trunsFaceImg($face);
