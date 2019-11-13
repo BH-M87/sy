@@ -151,7 +151,7 @@ class PersonDataService extends BaseService
     {
         //查询基础信息
         $userInfo = PsMember::find()
-            ->select('m.name as member_name,m.face_url')
+            ->select('m.name as member_name,m.face_url,m.mobile')
             ->alias('m')
             ->where(['m.id' => $params['id']])
             ->asArray()
@@ -174,6 +174,7 @@ class PersonDataService extends BaseService
             ->one();
         $tmpUserInfo = $tmpUserInfo ? $tmpUserInfo : [];
         $userInfo = array_merge($userInfo, $tmpUserInfo);
+
         if ($userInfo) {
             $userInfo['card_no'] = $userInfo['card_no'] ? $userInfo['card_no'] : '';
             $userInfo['identity'] = [
