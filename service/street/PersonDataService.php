@@ -150,22 +150,30 @@ class PersonDataService extends BaseService
     public function view($params)
     {
         //查询基础信息
-        $userInfo = PsRoomUser::find()
+        $userInfo = PsMember::find()
+            ->select('m.name as member_name,m.face_url')
+            ->alias('m')
+            ->where(['m.id' => $params['id']])
+            ->asArray()
+            ->one();
+        //查询房屋信息
+
+        $tmpUserInfo = PsRoomUser::find()
             ->alias('u')
-            ->select('u.member_id as id,m.name as member_name,m.face_url,u.card_no,u.sex,
+            ->select('u.member_id as id,u.card_no,u.sex,
             u.identity_type,u.mobile,u.time_end as expired_time,u.enter_time,u.nation,u.reason as enter_reason,
             u.face,u.work_address as company,u.marry_status,u.household_type,u.household_address,u.`group`,
             u.building,u.unit,u.room,u.qq,u.wechat,u.email,u.telephone,u.emergency_contact,u.emergency_mobile,
-            com.name as community_name,n.name as nation_name
-            ')
-            ->leftJoin('ps_member m', 'm.id = u.member_id')
+            com.name as community_name,n.name as nation_name')
             ->leftJoin('ps_community com','com.id = u.community_id')
             ->leftJoin('ps_nation n','n.id = u.nation')
-            ->where(['u.member_id' => $params['id']])
+            ->where(['u.member_id' => $params['id'], 'u.status' => [1,2]])
             ->orderBy('u.id desc')
             ->limit(1)
             ->asArray()
             ->one();
+        $tmpUserInfo = $tmpUserInfo ? $tmpUserInfo : [];
+        $userInfo = array_merge($userInfo, $tmpUserInfo);
         if ($userInfo) {
             $userInfo['card_no'] = $userInfo['card_no'] ? $userInfo['card_no'] : '';
             $userInfo['identity'] = [
