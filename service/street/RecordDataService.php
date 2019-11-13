@@ -61,6 +61,9 @@ class RecordDataService extends BaseService
         if($list){
             //处理一车一档详情
             foreach ($list as $key =>$value) {
+                $value['member_id'] = !empty($value['member_id']) ? $value['member_id'] : '';
+                $value['face_url'] = !empty($value['face_url']) ? $value['face_url'] : '';
+                $value['room_id'] = !empty($value['room_id']) ? $value['room_id'] : '';
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
                 $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
                 $value['user_phone'] = substr($value['user_phone'],0,3)."****".substr($value['user_phone'],7,4);
@@ -90,7 +93,7 @@ class RecordDataService extends BaseService
         $card_number = PsCommon::get($params,"card_number");//门卡卡号
 
         $model = DoorRecord::find()->alias("dr")
-            ->innerJoin(['m'=>PsMember::tableName()],'dr.user_phone = m.mobile');
+            ->leftJoin(['m'=>PsMember::tableName()],'dr.user_phone = m.mobile');
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
@@ -101,7 +104,7 @@ class RecordDataService extends BaseService
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
         $model->andWhere(['dr.community_id'=>$community_id]);
         //访客开门记录不展示
-        $model->andWhere(['dr.user_type'=>[1,2,3]]);
+        //$model->andWhere(['dr.user_type'=>[1,2,3]]);
         if($start_time && $end_time){
             $start = strtotime($start_time." 00:00:00");
             $end = strtotime($end_time." 23:59:59");
