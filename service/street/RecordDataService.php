@@ -66,7 +66,7 @@ class RecordDataService extends BaseService
                 $value['room_id'] = !empty($value['room_id']) ? $value['room_id'] : '';
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
                 $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
-                $value['user_phone'] = substr($value['user_phone'],0,3)."****".substr($value['user_phone'],7,4);
+                $value['user_phone'] =  $value['user_phone'] ? F::processMobile($value['user_phone']) : '';
                 $value['capture_photo'] = $value['capture_photo'] ? F::getOssImagePath($value['capture_photo'], 'zjy') : '';
                 $newList[] = $value;
             }

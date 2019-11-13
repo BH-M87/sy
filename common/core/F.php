@@ -555,11 +555,19 @@ class F
      */
     public static function getOssImagePath($keyName, $type = '')
     {
-        if ($type == 'zjy') {
-            $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
-            $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
-            $endpoint = \Yii::$app->params['zjy_oss_domain'];
-            $bucket = \Yii::$app->params['zjy_oss_bucket'];
+
+        if (YII_PROJECT == "fuyang") {
+            if ($type == 'zjy') {
+                $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+                $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+                $endpoint = \Yii::$app->params['zjy_oss_domain'];
+                $bucket = \Yii::$app->params['zjy_oss_bucket'];
+            } else {
+                $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+                $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+                $endpoint = \Yii::$app->params['oss_domain'];
+                $bucket = \Yii::$app->params['oss_bucket'];
+            }
         } else {
             $accessKeyId = \Yii::$app->params['oss_access_key_id'];
             $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
@@ -589,10 +597,10 @@ class F
         $strArr = explode('/', $localPath);
         $fileName = $strArr[count($strArr)-1];
 
-        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
-        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
-        $endpoint = \Yii::$app->params['oss_domain'];
-        $bucket = \Yii::$app->params['oss_bucket'];
+        $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['zjy_oss_domain'];
+        $bucket = \Yii::$app->params['zjy_oss_bucket'];
 
         $object = $fileName;
         $filePath = $localPath;
@@ -604,26 +612,6 @@ class F
             throw new MyException($e->getMessage());
         }
         //上传到七牛
-        $re['filepath'] = F::getOssImagePath($object);
-        return $re;
-    }
-
-    public static function uploadToOss($localPath, $keyName)
-    {
-        $accessKeyId = \Yii::$app->params['oss_access_key_id'];
-        $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
-        $endpoint = \Yii::$app->params['oss_domain'];
-        $bucket = \Yii::$app->params['oss_bucket'];
-        $object = $keyName;
-        $filePath = $localPath;
-        try{
-            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
-            $ossClient->uploadFile($bucket, $object, $filePath);
-        } catch(OssException $e) {
-            throw new MyException($e->getMessage());
-        }
-
-        //上传到oss
         $re['filepath'] = F::getOssImagePath($object);
         return $re;
     }
@@ -696,7 +684,11 @@ class F
         }
     }
 
-
+    /**
+     * 人行，车行记录图片先下载图片再保存到oss
+     * @param $url
+     * @return string
+     */
     public static function trunsImg($url)
     {
         $trueUrl = $url;
@@ -733,7 +725,11 @@ class F
         return $imgKeyData;
     }
 
-    //转换人脸图片，人脸图片公用空间处理
+    /**
+     * 转换人脸图片，人脸图片公用空间处理,图片先下载，再做处理
+     * @param $url
+     * @return string
+     */
     public static function trunsFaceImg($url)
     {
         $filePath = F::qiniuImagePath().date('Y-m-d')."/";
