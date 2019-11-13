@@ -60,6 +60,9 @@ class CommandController extends Controller
             case "4":
                 $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
                 break;
+            case "5":
+                $list = Yii::$app->redis->lrange("IotMqData_sqwn", 0, 99);
+                break;
             default:
                 $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV."IotMqData_sqwn", 0, 99);
         }

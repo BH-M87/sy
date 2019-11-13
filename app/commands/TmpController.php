@@ -42,6 +42,9 @@ Class TmpController extends Controller
             case "4":
                 $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
                 break;
+            case "5":
+                $list = Yii::$app->redis->lrange(self::IOT_MQ_DATA, 0, 99);
+                break;
             default:
                 $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
         }
