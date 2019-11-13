@@ -9,6 +9,7 @@
 namespace service\street;
 use app\models\Department;
 use app\models\DepartmentCommunity;
+use app\models\ParkingCars;
 use app\models\PsCommunityModel;
 use app\models\StLabels;
 use app\models\StLabelsRela;
@@ -310,20 +311,28 @@ class BasicDataService extends BaseService
      */
     public function getDayReport($id,$type = 1,$day = 30)
     {
-        $start_time = strtotime(date("Y-m-d 00:00:00")) - 86400;//昨天开始时间
+        $start_time = strtotime(date("Y-m-d 00:00:00"));//昨天开始时间
         $data = [];
         for($i =1;$i<=$day;$i ++){
-            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$id])
-                ->asArray()->one();
-            if($res){
-                $res['id'] = $i;
-                $data[] = $res;
+            if($type == 1){
+                //根据传进来的车辆id，反查车牌,再统计总数
+                $data_id = ParkingCars::findOne($id)->car_num;
             }else{
-                $a['day'] = date("Y-m-d",$start_time);
-                $a['num'] = "0";
-                $a['id'] = $i;
-                $data[] = $a;
+                //人员的时候传入的id就是member_id
+                $data_id = $id;
             }
+            $res = StRecordReport::find()->select(['day','num'])->where(['time'=>$start_time,'type'=>$type,'data_id'=>$data_id])
+                ->asArray()->all();
+            $newData = [];
+            $newData['id'] = $i;
+            $newData['day'] = date("Y-m-d",$start_time);
+            $newData['num'] = "0";
+            if($res){
+                foreach($res as $key=>$value){
+                    $newData['num'] += $value['num'];
+                }
+            }
+            $data[] = $newData;
             $start_time -= 3600*24;
         }
 

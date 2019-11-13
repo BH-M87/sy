@@ -4,7 +4,9 @@
  * User: zhangqiang
  * Date: 2019-11-11
  * Time: 10:13
- * 线上在用的脚本
+ * 线上在用的脚本,
+ * 切记！这些脚本在线上执行的时候不能直接手动执行，否则会跟脚本执行的方法产生数据冲突
+ * 需要先把线上的脚本停掉，再手动执行下面的脚本
  */
 
 namespace app\commands;
@@ -182,9 +184,10 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['open_time'];
                 $mobile = $dataInfo['user_phone'];
+                $community_id = $dataInfo['community_id'];//小区id
                 $num = 0;
                 if($mobile){
-                    $num = DoorExternalService::service()->saveToRecordReport(2,$time,$mobile);
+                    $num = DoorExternalService::service()->saveToRecordReport(2,$time,$mobile,$community_id);
                 }
                 Yii::info("人行记录:".$mobile."-".$num,'console');
                 //从队列里面移除
@@ -204,9 +207,10 @@ class CommandController extends Controller
                 //逻辑处理
                 $time = $dataInfo['created_at'];
                 $car_num = $dataInfo['car_num'];
+                $community_id = $dataInfo['community_id'];//小区id
                 $num = 0;
                 if($car_num){
-                    $num = DoorExternalService::service()->saveToRecordReport(1,$time,$car_num);
+                    $num = DoorExternalService::service()->saveToRecordReport(1,$time,$car_num,$community_id);
                 }
                 Yii::info("车行记录:".$car_num."-".$num,'console');
                 //从队列里面移除

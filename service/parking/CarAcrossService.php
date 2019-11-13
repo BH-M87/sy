@@ -744,7 +744,8 @@ class CarAcrossService extends BaseService
         $model->setAttributes($data);
         $model->save();
         //保存记录的时候，统计数据+1
-        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num']);
+        $community_id = $data['community_id'];//小区id
+        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num'],$community_id);
     }
 
     public function saveExitRecord($req)
@@ -775,7 +776,8 @@ class CarAcrossService extends BaseService
         $model->setAttributes($data);
         $model->save();
         //保存记录的时候，统计数据+1
-        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num']);
+        $community_id = $data['community_id'];//小区id
+        DoorExternalService::service()->saveToRecordReport(1,$data['created_at'],$req['car_num'],$community_id);
     }
 
 
