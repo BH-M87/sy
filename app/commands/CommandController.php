@@ -168,6 +168,82 @@ class CommandController extends Controller
                 $dataInfo = json_decode($value,true);
                 ResidentService::service()->residentSync($dataInfo, 'edit');
                 //从队列里面移除
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_FACE_USER);
+            }
+        }
+    }
+
+    //iot相关数据的同步
+    //* * * * * docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii command/iot-data
+    public function actionIotDataOld()
+    {
+        $list = Yii::$app->redis->lrange(self::IOT_MQ_DATA, 0, 99);
+        if(!empty($list)){
+            foreach ($list as $key =>$value) {
+                $dataInfo = json_decode($value,true);
+                $parkType = $dataInfo['parkType'];
+                $actionType = $dataInfo['actionType'];
+                $res = ['code'=>1, 'data'=>[]];
+                switch($parkType){
+                    case "roomusertoiot":
+                        switch ($actionType){
+                            case "add":
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户新增
+                                break;
+                            case "face":
+                                $res = IotNewService::service()->roomUserFace($dataInfo);//住户人脸录入
+                                break;
+                            case "addBatch":
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户批量新增
+                                break;
+                            case "edit":
+                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户编辑
+                                break;
+                            case "del":
+                                $res = IotNewService::service()->roomUserDelete($dataInfo);//住户删除
+                                break;
+                        }
+                        break;
+                    case "devicetoiot":
+                        switch ($actionType){
+                            case "add":
+                                $res = IotNewService::service()->deviceAdd($dataInfo);//设备新增
+                                break;
+                            case "edit":
+                                $res = IotNewService::service()->deviceEdit($dataInfo);//设备编辑
+                                break;
+                            case "del":
+                                $res = IotNewService::service()->deviceDeleteTrue($dataInfo);//设备删除
+                                break;
+                        }
+                        break;
+                }
+                //从队列里面移除
+                Yii::$app->redis->lpop(self::IOT_MQ_DATA);
+                //如果操作失败了，就重新放到队列里面执行
+                if($res['code'] != 1){
+                    $sendNum = PsCommon::get($dataInfo,'sendNum',0);
+                    //如果超过3次了，就不再放回队列里面
+                    if($sendNum < 3){
+                        $dataInfo['sendNum'] += 1;//操作次数 +1
+                        //重新丢回队列里面
+                        Yii::$app->redis->rpush(self::IOT_MQ_DATA,json_encode($dataInfo));
+                    }
+                }
+            }
+        }
+
+    }
+
+    //iot人脸数据下发
+    //* * * * * docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii command/iot-face
+    public function actionIotFaceOld(){
+        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 1);
+        if($list){
+            foreach($list as $key=>$value){
+                $dataInfo = json_decode($value,true);
+                ResidentService::service()->residentSync($dataInfo, 'edit');
+                //从队列里面移除
                 Yii::$app->redis->lpop(self::IOT_FACE_USER);
             }
         }
