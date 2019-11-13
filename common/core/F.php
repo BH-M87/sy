@@ -569,10 +569,10 @@ class F
                 $bucket = \Yii::$app->params['oss_bucket'];
             }
         } else {
-            $accessKeyId = \Yii::$app->params['oss_access_key_id'];
-            $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
-            $endpoint = \Yii::$app->params['oss_domain'];
-            $bucket = \Yii::$app->params['oss_bucket'];
+            $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+            $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+            $endpoint = \Yii::$app->params['zjy_oss_domain'];
+            $bucket = \Yii::$app->params['zjy_oss_bucket'];
         }
 
         // 设置URL的有效期为3600秒。
