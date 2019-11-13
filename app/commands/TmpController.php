@@ -8,6 +8,8 @@ namespace app\commands;
 
 use app\models\DoorRecord;
 use app\models\ParkingAcross;
+use app\models\PsMember;
+use app\models\PsRoomUser;
 use common\core\F;
 use common\core\PsCommon;
 use Yii;
@@ -27,7 +29,7 @@ Class TmpController extends Controller
     }
 
     //查看redis缓存
-    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/test-redis
+    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/test-redis
     public function actionTestRedis($type){
         switch($type){
             case "1":
@@ -52,7 +54,7 @@ Class TmpController extends Controller
     }
 
     //同步人行出入记录到redis
-    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/sync-record-door
+    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-record-door
     public function actionSyncRecordDoor($day ='')
     {
         $count = 0;
@@ -81,7 +83,7 @@ Class TmpController extends Controller
     }
 
     //同步车行出入记录到redis
-    //docker-compose -f /data/fczl-backend/docker-composer.yml exec php-fpm php /var/www/api/yii tmp/sync-record-car
+    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-record-car
     public function actionSyncRecordCar($day = '')
     {
         $count = 0;
@@ -98,6 +100,39 @@ Class TmpController extends Controller
                 if($list){
                     foreach($list as $key=>$value){
                         Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR,json_encode($value));
+                        $count++;
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
+                }
+            }
+        }
+        echo "一共".($page-1)."页，".$count."条数据";
+    }
+
+    //用不小区住户数据
+    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-face-user
+    public function actionSyncFaceUser($community_id = '')
+    {
+        $count = 0;
+        $page = 1;
+        $pageSize = 1000;
+        if($community_id){
+            $flag = true;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = PsRoomUser::find()->alias('ru')
+                    ->leftJoin(['m'=>PsMember::tableName()],'ru.member_id = m.id')
+                    ->select(['ru.*'])
+                    ->where(['ru.community_id'=>$community_id])
+                    ->limit($limit)->offset($offset)
+                    ->asArray()
+                    ->all();
+                if($list){
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::IOT_FACE_USER,json_encode($value));
                         $count++;
                     }
                     $page ++;
