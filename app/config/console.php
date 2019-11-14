@@ -21,6 +21,13 @@ $config = [
                     'levels' => ['info'],
                     'logVars'=>[],
                 ],
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories'=>['console'],
+                    'logFile'=>'@app/runtime/console/iot-request.log',
+                    'levels' => ['info'],
+                    'logVars'=>[],
+                ],
             ],
         ],
         'redis' => require(__DIR__ . '/redis.php'),
