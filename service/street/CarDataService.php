@@ -132,7 +132,6 @@ class CarDataService extends BaseService
             $car_id = PsCommon::get($params,"car_id",0);
         }
         $detail['car_id'] = $car_id;
-
         $car_image = PsCommon::get($params,"images");
         if($car_image){
             //根据oss上的key获取图片的具体地址
@@ -141,8 +140,11 @@ class CarDataService extends BaseService
         $detail['car_image'] = $car_image;
         $detail['capture_photo'] =  $params['capture_photo'] ? F::getOssImagePath($params['capture_photo'], 'zjy') : '';
         if($type == "record-list"){
-            $detail['car_img'] = $detail['car_image'];
-            $detail['car_number'] = substr_replace(PsCommon::get($params,"car_num"),'****',4,4);
+            $car_num = PsCommon::get($params,"car_num");
+            $car_id = ParkingCars::find()->select(['id'])->where(['car_num'=>$car_num])->asArray()->scalar();
+            $detail['car_id'] = $car_id ? $car_id : '';
+            $detail['car_img'] = $detail['capture_photo'];
+            $detail['car_number'] = (mb_strlen($car_num) > 3) ? substr_replace($car_num,'****',4,4) : $car_num;
             //获取这个车辆下的所有标签
             $detail['label'] = LabelsService::service()->getLabelInfoByCarId($car_id);
             $detail['open_time'] = date("Y-m-d H:i:s",PsCommon::get($params,"open_time"));
