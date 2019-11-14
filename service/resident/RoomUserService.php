@@ -115,8 +115,8 @@ class RoomUserService extends BaseService
         u.auth_time,u.card_no,u.identity_type,u.time_end,u.auth_time,u.group,u.building,u.unit,u.room,c.name as community_name');
     }
 
-    public function getRoomIdList($member_id)
+    public function getRoomIdList($member_id,$community_id)
     {
-        return PsRoomUser::find()->select('room_id')->where(['member_id' => $member_id])->column();
+        return PsRoomUser::find()->select('room_id')->where(['member_id' => $member_id])->andWhere(['community_id' => $community_id])->column();
     }
 }
