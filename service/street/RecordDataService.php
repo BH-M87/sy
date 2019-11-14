@@ -16,6 +16,7 @@ use app\models\ParkingUserCarport;
 use app\models\ParkingUsers;
 use app\models\PsMember;
 use app\models\StLabelsRela;
+use app\models\UserCommunityPermission;
 use common\core\F;
 use common\core\PsCommon;
 
@@ -105,6 +106,18 @@ class RecordDataService extends BaseService
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
+        if ($userInfo['user_id']) {
+            $userCommunity = UserCommunityPermission::find()
+                ->alias('ucp')
+                ->leftJoin('ps_community c', 'c.event_community_no = ucp.xq_org_code')
+                ->select('c.id')
+                ->where(['ucp.user_id' => $userInfo['user_id']])
+                ->asArray()
+                ->column();
+            if ($userCommunity) {
+                $community_id = array_intersect($community_id, $userCommunity);
+            }
+        }
         $model->andWhere(['dr.community_id'=>$community_id]);
         //访客开门记录不展示
         //$model->andWhere(['dr.user_type'=>[1,2,3]]);
@@ -198,6 +211,18 @@ class RecordDataService extends BaseService
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
+        if ($userInfo['user_id']) {
+            $userCommunity = UserCommunityPermission::find()
+                ->alias('ucp')
+                ->leftJoin('ps_community c', 'c.event_community_no = ucp.xq_org_code')
+                ->select('c.id')
+                ->where(['ucp.user_id' => $userInfo['user_id']])
+                ->asArray()
+                ->column();
+            if ($userCommunity) {
+                $community_id = array_intersect($community_id, $userCommunity);
+            }
+        }
         $model->andWhere(['community_id'=>$community_id]);
         if($carNum){
             $model->andFilterWhere(['like','car_num',$carNum]);

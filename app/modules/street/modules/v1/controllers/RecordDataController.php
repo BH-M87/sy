@@ -24,6 +24,7 @@ class RecordDataController extends BaseController
     //获取人行记录列表
     public function actionDoorList()
     {
+        $this->user_info['user_id'] = $this->user_id;
         $result = RecordDataService::service()->getDoorList($this->request_params,$this->page,$this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
@@ -31,6 +32,7 @@ class RecordDataController extends BaseController
     //获取车行记录列表
     public function actionCarList()
     {
+        $this->user_info['user_id'] = $this->user_id;
         $result = RecordDataService::service()->getCarList($this->request_params,$this->page,$this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
