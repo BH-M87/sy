@@ -178,7 +178,7 @@ $paramsConfig['prod'] = [
         ],
     ],
     'wuchang' => [
-        'host_name' => 'https://test-wuchang.elive99.com',
+        'host_name' => 'https://sqwn-5c-web.elive99.com/',
         //暂无
         'small_app' => [
 
