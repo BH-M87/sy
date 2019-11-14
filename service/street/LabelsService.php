@@ -310,10 +310,12 @@ class LabelsService extends BaseService
     //根据车辆id获取这个车辆下的所有标签id和名称
     public function getLabelInfoByCarId($carId)
     {
+        $car_num = ParkingCars::findOne($carId)->car_num;
+        $carIdList = ParkingCars::find()->select(['id'])->where(['car_num'=>$car_num])->asArray()->column();
         $list = StLabelsRela::find()->alias('lr')
             ->leftJoin(['l'=>StLabels::tableName()],'l.id = lr.labels_id')
             ->select(['l.id','l.name', 'l.label_type'])
-            ->where(['lr.data_id'=>$carId,'lr.data_type'=>3,'l.is_delete'=>1])->asArray()->all();
+            ->where(['lr.data_id'=>$carIdList,'lr.data_type'=>3,'l.is_delete'=>1])->asArray()->all();
         return $list ? $list : [];
     }
 }
