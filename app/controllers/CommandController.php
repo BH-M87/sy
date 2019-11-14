@@ -259,12 +259,23 @@ class CommandController extends Controller
         }
     }
 
-
-
-
-
     ##############################在用脚本############################################
 
+    public function actionFixSex()
+    {
+        echo F::getOssImagePath('2019111413381326686.jpg');exit;
+        $roomUser = PsRoomUser::find()
+            ->select('id, card_no')
+            ->where(['!=', 'card_no', ''])
+            ->asArray()
+            ->all();
+    }
+
+    private function get_sex($idcard) {
+        if(empty($idcard)) return null;
+        $sexint = (int) substr($idcard, 16, 1);
+        return $sexint % 2 === 0 ? 2 : 1;
+    }
 
 
 }
