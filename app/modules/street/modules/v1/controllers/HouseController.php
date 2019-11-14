@@ -69,7 +69,7 @@ class HouseController extends BaseController
         if ($this->request_params['type'] == 2) {
             $this->request_params['room_id'] = $this->request_params['id'];
         } else {
-            $this->request_params['room_id'] = RoomUserService::service()->getRoomIdList($this->request_params['id']);
+            $this->request_params['room_id'] = RoomUserService::service()->getRoomIdList($this->request_params['id'],$this->user_info['community_id']);
             if (empty($this->request_params['room_id'])) {
                 return PsCommon::responseSuccess([]);
             }
@@ -93,6 +93,7 @@ class HouseController extends BaseController
             $this->request_params['room_id'] = $this->request_params['id'];
         } else {
             $this->request_params['member_id'] = $this->request_params['id'];
+            $this->request_params['community_id'] = $this->user_info['community_id'];
         }
         $result = CarService::service()->getList($this->request_params);
         foreach ($result['list'] as &$v) {
@@ -119,6 +120,7 @@ class HouseController extends BaseController
             $param['room_id'] = $this->request_params['id'];
         } else {
             $param['member_id'] = $this->request_params['id'];
+            $param['community_id'] = $this->user_info['community_id'];
         }
         $result = VisitorService::service()->getList($param);
         foreach ($result['list'] as &$v) {
