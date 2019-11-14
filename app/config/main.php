@@ -68,13 +68,6 @@ $config =  [
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
-                [//设备记录上报日志
-                    'class' => 'yii\log\FileTarget',
-                    'categories' => ['room_user'],
-                    'logFile' => '@app/runtime/logs/room_user.log',
-                    'levels' => ['info'],
-                    'logVars' => [],
-                ],
             ],
         ],
         'errorHandler' => [

@@ -33,24 +33,24 @@ Class TmpController extends Controller
     public function actionTestRedis($type){
         switch($type){
             case "1":
-                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA);
                 break;
             case "2":
-                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_FACE_USER, 0, 99);
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::IOT_FACE_USER);
                 break;
             case "3":
-                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 99);
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR);
                 break;
             case "4":
-                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 99);
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR);
                 break;
             case "5":
-                $list = Yii::$app->redis->lrange(self::IOT_MQ_DATA, 0, 99);
+                $num = Yii::$app->redis->llen(self::IOT_MQ_DATA);
                 break;
             default:
-                $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA);
         }
-        var_dump($list);die;
+        echo $num;
     }
 
     //同步人行出入记录到redis

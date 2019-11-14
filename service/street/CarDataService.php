@@ -273,7 +273,11 @@ class CarDataService extends BaseService
         $params['end_time'] = strtotime($day." 23:59:59");//一天的结束时间
         $params['car_num'] = ParkingCars::find()->select(['car_num'])->where(['id'=>$id])->asArray()->scalar();
         //当天的具体记录
-        $data = ParkingAcross::getList($params);
+        if($params['car_num']){
+            $data = ParkingAcross::getList($params);
+        }else{
+            $data['list'] = [];
+        }
         $newList = [];
         if($data['list']){
             foreach ($data['list'] as $key => $value) {
