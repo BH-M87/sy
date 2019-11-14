@@ -17,6 +17,7 @@ class CarDataController extends BaseController
     //获取列表
     public function actionList()
     {
+        $this->user_info['user_id'] = $this->user_id;
         $result = CarDataService::service()->getList($this->request_params,$this->page,$this->pageSize,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
