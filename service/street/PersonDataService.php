@@ -11,6 +11,7 @@ use app\models\DoorRecord;
 use app\models\PsMember;
 use app\models\PsRoomUser;
 use app\models\StLabelsRela;
+use app\models\UserCommunityPermission;
 use common\core\F;
 use service\door\DoorRecordService;
 
@@ -18,14 +19,27 @@ use service\door\DoorRecordService;
 class PersonDataService extends BaseService
 {
     //人员
-    public function getList($params, $page, $rows,$userInfo)
+    public function getList($params, $page, $rows, $userInfo, $userId = 0)
     {
         $reData['list'] = [];
         $reData['totals'] = 0;
         //街道社区小区搜索条件处理
         $searchCommunityIds = [];
-        //查询登录账号的小区列表
+        //查询登录账号所在组织的小区列表
         $communityIds = UserService::service()->getCommunityList($params['organization_type'], $params['organization_id']);
+        //查询登录账号有管理权限的小区列表
+        if ($userId) {
+            $userCommunity = UserCommunityPermission::find()
+                ->alias('ucp')
+                ->leftJoin('ps_community c', 'c.event_community_no = ucp.xq_org_code')
+                ->select('c.id')
+                ->where(['ucp.user_id' => $userId])
+                ->asArray()
+                ->column();
+            if ($userCommunity) {
+                $communityIds = array_intersect($communityIds, $userCommunity);
+            }
+        }
 
         if ($params['community_code']) {
             $searchCommunityIds[0] = BasicDataService::service()->getCommunityIdByCommunityCode($params['community_code']);

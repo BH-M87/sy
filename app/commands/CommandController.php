@@ -101,7 +101,7 @@ class CommandController extends Controller
     //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/iot-data
     public function actionIotData()
     {
-        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 99);
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 1);
         if(!empty($list)){
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
