@@ -103,6 +103,8 @@ class CommandController extends Controller
     {
         $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA, 0, 1);
         if(!empty($list)){
+            //从队列里面移除
+            Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA);
             foreach ($list as $key =>$value) {
                 $dataInfo = json_decode($value,true);
                 $parkType = $dataInfo['parkType'];
@@ -142,8 +144,6 @@ class CommandController extends Controller
                         }
                         break;
                 }
-                //从队列里面移除
-                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA);
                 //如果操作失败了，就重新放到队列里面执行
                 if($res['code'] != 1){
                     $sendNum = PsCommon::get($dataInfo,'sendNum',0);
@@ -164,11 +164,11 @@ class CommandController extends Controller
     public function actionIotFace(){
         $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::IOT_FACE_USER, 0, 1);
         if($list){
+            //从队列里面移除
+            Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_FACE_USER);
             foreach($list as $key=>$value){
                 $dataInfo = json_decode($value,true);
                 ResidentService::service()->residentSync($dataInfo, 'edit');
-                //从队列里面移除
-                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_FACE_USER);
             }
         }
     }
