@@ -23,7 +23,7 @@ $config = [
                 ],
                 [
                     'class' => 'yii\log\FileTarget',
-                    'categories'=>['console'],
+                    'categories'=>['iot-request'],
                     'logFile'=>'@app/runtime/console/iot-request.log',
                     'levels' => ['info'],
                     'logVars'=>[],
