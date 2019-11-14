@@ -17,6 +17,7 @@ use app\models\PsCommunityModel;
 use app\models\PsCommunityRoominfo;
 use app\models\StLabelsRela;
 use app\models\StRecordReport;
+use app\models\UserCommunityPermission;
 use common\core\F;
 use common\core\PsCommon;
 
@@ -48,6 +49,18 @@ class CarDataService extends BaseService
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
+        if ($userInfo['user_id']) {
+            $userCommunity = UserCommunityPermission::find()
+                ->alias('ucp')
+                ->leftJoin('ps_community c', 'c.event_community_no = ucp.xq_org_code')
+                ->select('c.id')
+                ->where(['ucp.user_id' => $userInfo['user_id']])
+                ->asArray()
+                ->column();
+            if ($userCommunity) {
+                $community_id = array_intersect($community_id, $userCommunity);
+            }
+        }
         $model->andWhere(['pc.community_id'=>$community_id]);
         $group = PsCommon::get($params,"group");
         $building = PsCommon::get($params,"building");
