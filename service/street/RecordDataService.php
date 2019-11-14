@@ -58,6 +58,9 @@ class RecordDataService extends BaseService
     {
         $list = $this->getDoorAllList($params,$page, $pageSize,$userInfo);
         $newList = [];
+        //当前用户所拥有街道权限的所有标签
+        $organization_type = 1;
+        $organization_id = UserService::service()->geyStreetCodeByUserInfo($userInfo);
         if($list){
             //处理一车一档详情
             foreach ($list as $key =>$value) {
@@ -65,7 +68,7 @@ class RecordDataService extends BaseService
                 $value['face_url'] = !empty($value['face_url']) ? $value['face_url'] : '';
                 $value['room_id'] = !empty($value['room_id']) ? $value['room_id'] : '';
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
-                $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
+                $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id'],$organization_type,$organization_id);
                 $value['user_phone'] =  $value['user_phone'] ? F::processMobile($value['user_phone']) : '';
                 $value['capture_photo'] = $value['capture_photo'] ? F::getOssImagePath($value['capture_photo'], 'zjy') : '';
                 $newList[] = $value;
@@ -160,7 +163,7 @@ class RecordDataService extends BaseService
         if($list){
             //处理一车一档详情
             foreach ($list as $key =>$value) {
-                $newList[] = CarDataService::service()->dealDetail($value,"record-list");
+                $newList[] = CarDataService::service()->dealDetail($value,"record-list",$userInfo);
             }
         }
         $return['list'] = $newList;

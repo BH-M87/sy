@@ -243,6 +243,26 @@ class UserService extends BaseService
         return Department::find()->select(['org_code'])->where(['id'=>$id,'node_type'=>1])->asArray()->column();
     }
 
+    //根据区县、街道、社区传入的权限，获取对应的街道code
+    public function geyStreetCodeByUserInfo($userInfo)
+    {
+        switch($userInfo['node_type']){
+            case "0":
+                $code = $this->getStreetCodeByCounty($userInfo['dept_id']);
+                break;
+            case "1":
+                $code = $userInfo['dept_id'];
+                break;
+            case "2":
+                $code = $this->getStreetCodeByDistrict($userInfo['dept_id']);
+                break;
+            default:
+                $code = '';
+        }
+        return $code;
+
+    }
+
     //处理搜索小区
     public function dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo)
     {

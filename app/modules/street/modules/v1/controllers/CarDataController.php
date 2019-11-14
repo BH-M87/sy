@@ -25,7 +25,7 @@ class CarDataController extends BaseController
     public function actionDetail()
     {
 
-        $result = CarDataService::service()->getDetail($this->request_params);
+        $result = CarDataService::service()->getDetail($this->request_params,$this->user_info);
         return PsCommon::responseSuccess($result);
     }
 
