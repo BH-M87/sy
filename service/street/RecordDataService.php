@@ -58,6 +58,9 @@ class RecordDataService extends BaseService
     {
         $list = $this->getDoorAllList($params,$page, $pageSize,$userInfo);
         $newList = [];
+        //当前用户所拥有街道权限的所有标签
+        $organization_type = 1;
+        $organization_id = UserService::service()->geyStreetCodeByUserInfo($userInfo);
         if($list){
             //处理一车一档详情
             foreach ($list as $key =>$value) {
@@ -65,7 +68,7 @@ class RecordDataService extends BaseService
                 $value['face_url'] = !empty($value['face_url']) ? $value['face_url'] : '';
                 $value['room_id'] = !empty($value['room_id']) ? $value['room_id'] : '';
                 $value['open_time'] = date("Y-m-d H:i:s",$value['open_time']);
-                $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id']);
+                $value['label'] = LabelsService::service()->getLabelInfoByMemberId($value['member_id'],$organization_type,$organization_id);
                 $value['user_phone'] =  $value['user_phone'] ? F::processMobile($value['user_phone']) : '';
                 $value['capture_photo'] = $value['capture_photo'] ? F::getOssImagePath($value['capture_photo'], 'zjy') : '';
                 $newList[] = $value;
@@ -160,7 +163,7 @@ class RecordDataService extends BaseService
         if($list){
             //处理一车一档详情
             foreach ($list as $key =>$value) {
-                $newList[] = CarDataService::service()->dealDetail($value,"record-list");
+                $newList[] = CarDataService::service()->dealDetail($value,"record-list",$userInfo);
             }
         }
         $return['list'] = $newList;
@@ -183,35 +186,35 @@ class RecordDataService extends BaseService
         $across_type = PsCommon::get($params,"across_type");//进出方式
         $car_type = PsCommon::get($params,"car_type");//车辆类别，车辆属性
 
-        $model = ParkingAcross::find()->alias("pa")
-            ->innerJoin(['pc'=>ParkingCars::tableName()],'pc.car_num = pa.car_num');
+        $model = ParkingAcross::find();
         //处理搜索标签
         $labelId = BasicDataService::service()->dealSearchLabel($label_id,$street_code,$userInfo);
         if($labelId){
-            /*$model->innerJoin(['slr'=>StLabelsRela::tableName()],'slr.data_id = pc.id')
-                ->where(['slr.data_type'=>3,'slr.labels_id'=>$labelId]);*/
+            //根据标签id找到车牌id
             $car_id = StLabelsRela::find()->select(['data_id'])->distinct()->where(['data_type'=>3,'labels_id'=>$labelId])->asArray()->column();
-            $model->andWhere(['pc.id'=>$car_id]);
+            //根据车牌id找到车牌
+            $car_num = ParkingCars::findOne($car_id)->car_num;
+            $model->andWhere(['car_num'=>$car_num]);
         }
         //根据搜索的条件以及登录的信息，去获取对应的小区id列表
         $community_id = UserService::service()->dealSearchCommunityId($street_code,$district_code,$community_code,$userInfo);
-        $model->andWhere(['pc.community_id'=>$community_id]);
+        $model->andWhere(['community_id'=>$community_id]);
         if($carNum){
-            $model->andFilterWhere(['like','pc.car_num',$carNum]);
+            $model->andFilterWhere(['like','car_num',$carNum]);
         }
         if($start_time && $end_time){
             $start = strtotime($start_time." 00:00:00");
             $end = strtotime($end_time." 23:59:59");
-            $model->andFilterWhere(['>=','pa.created_at',$start])
-                ->andFilterWhere(['<','pa.created_at',$end]);
+            $model->andFilterWhere(['>=','created_at',$start])
+                ->andFilterWhere(['<','created_at',$end]);
         }
 
         if($across_type){
-            $model->andFilterWhere(['pa.across_type'=>$across_type]);
+            $model->andFilterWhere(['across_type'=>$across_type]);
         }
 
         if($car_type){
-            $model->andFilterWhere(['pa.car_type'=>$car_type]);
+            $model->andFilterWhere(['car_type'=>$car_type]);
         }
         return $model;
     }
@@ -221,10 +224,10 @@ class RecordDataService extends BaseService
     {
         $offset = ($page - 1) * $pageSize;
         $model = $this->getCarSearchList($params,$userInfo);
-        return $model->select(['pa.id as record_id','pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images', 'pa.capture_photo',
-            'pa.created_at as open_time','pa.across_type as open_type','pa.gate_address as open_addrss','pa.park_time'])
+        //'pc.id as car_id','pc.car_num','pc.car_model','pc.car_color','pc.images',
+        return $model->select(['id as record_id', 'capture_photo', 'created_at as open_time','across_type as open_type','gate_address as open_addrss','park_time','car_num','community_id'])
             ->offset($offset)->limit($pageSize)
-            ->orderBy("pa.created_at desc")
+            ->orderBy("created_at desc")
             ->asArray()->all();
     }
 

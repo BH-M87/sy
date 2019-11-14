@@ -30,10 +30,17 @@ Class UploadController extends BaseController
             $result = json_encode($config);
             return $result;
         } else {//上传图片
-            $accessKeyId = \Yii::$app->params['oss_access_key_id'];
-            $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
-            $endpoint = \Yii::$app->params['oss_domain'];
-            $bucket = \Yii::$app->params['oss_bucket'];
+            if (YII_PROJECT == "fuyang") {
+                $accessKeyId = \Yii::$app->params['oss_access_key_id'];
+                $accessKeySecret = \Yii::$app->params['oss_secret_key_id'];
+                $endpoint = \Yii::$app->params['oss_domain'];
+                $bucket = \Yii::$app->params['oss_bucket'];
+            } else {
+                $accessKeyId = \Yii::$app->params['zjy_oss_access_key_id'];
+                $accessKeySecret = \Yii::$app->params['zjy_oss_secret_key_id'];
+                $endpoint = \Yii::$app->params['zjy_oss_domain'];
+                $bucket = \Yii::$app->params['zjy_oss_bucket'];
+            }
 
             if (empty($_FILES['upfile'])) {
                 return PsCommon::responseFailed('未获取上传文件');
