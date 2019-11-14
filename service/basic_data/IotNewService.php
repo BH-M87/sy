@@ -69,7 +69,7 @@ class IotNewService extends BaseService
             if($result['code'] == 1){
                 \Yii::info('success-url:'.$postUrl.'--request-data:'.json_encode($postData).'--response-data:'.json_encode($result),'iot-request');
                 unset($postData['faceData']);
-                $data = !empty($result['data']) ? $result['data'] : [];
+                $data = isset($result['data']) ? $result['data'] : [];
                 return $this->success($data);
             } else {
                 \Yii::info('error-url:'.$postUrl.'--request-data:'.json_encode($postData).'--response-data:'.json_encode($result),'iot-request');
