@@ -11,6 +11,7 @@ use service\resident\RoomUserService;
 use service\room\HouseService;
 use common\core\PsCommon;
 use service\street\LabelsService;
+use service\street\UserService;
 
 class HouseController extends BaseController
 {
@@ -96,10 +97,13 @@ class HouseController extends BaseController
             $this->request_params['community_id'] = $this->user_info['community_id'];
         }
         $result = CarService::service()->getList($this->request_params);
+        //当前用户所拥有街道权限的所有标签
+        $organization_type = 1;
+        $organization_id = UserService::service()->geyStreetCodeByUserInfo($this->user_info);
         foreach ($result['list'] as &$v) {
             $v['car_id'] = $v['id'];
             $v['car_images'] = F::getOssImagePath($v['images'][0]);
-            $v['label'] = LabelsService::service()->getLabelInfoByCarId($v['id']);
+            $v['label'] = LabelsService::service()->getLabelInfoByCarId($v['id'],$organization_type,$organization_id);
             unset($v['id']);
             unset($v['images']);
         }
