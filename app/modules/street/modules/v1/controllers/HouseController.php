@@ -75,6 +75,7 @@ class HouseController extends BaseController
             }
         }
         $result = RoomUserService::service()->getRoomUserList($this->request_params);
+        \Yii::info(json_encode(['request' => $this->request_params,'response'=>$result]),'smallapp');
         return PsCommon::responseSuccess($result);
     }
 
