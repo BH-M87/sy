@@ -55,7 +55,7 @@ $dbconfig['test'] = [
 $dbconfig['prod'] = [
     'fuyang'  => [
         'class' => 'yii\db\Connection',
-        'dsn' => 'mysql:host=rm-bp1kfqjq40ese52bro.mysql.rds.aliyuncs.com;dbname=microbrain_public',
+        'dsn' => 'mysql:host=rm-bp1kfqjq40ese52br.mysql.rds.aliyuncs.com;dbname=microbrain_public',
         'username' => 'xqwr_fy',
         'password' => 'zhujia@1688',
         'charset' => 'utf8',
