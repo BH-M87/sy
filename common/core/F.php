@@ -612,7 +612,7 @@ class F
             throw new MyException($e->getMessage());
         }
         //上传到七牛
-        $re['filepath'] = F::getOssImagePath($object);
+        $re['filepath'] = F::getOssImagePath($object, 'zjy');
         return $re;
     }
     
