@@ -65,6 +65,7 @@ class HomeController extends UserBaseController
     //解析手机号
     public function actionGetMobile()
     {
+        \Yii::info("system:small-app".'request:'.json_encode($this->params),'smallapp');
         $userId = F::value($this->params, 'user_id');
 
         $encryptStr = F::value($this->params, 'encrypt_str');
