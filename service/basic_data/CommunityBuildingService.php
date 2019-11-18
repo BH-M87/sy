@@ -729,6 +729,10 @@ class CommunityBuildingService extends BaseService
             }
             $building_name = $buildingModel->name;
             $buildingModel->delete();
+
+            //删除单元
+            PsCommunityUnits::deleteAll(['building_id' => $building_id]);
+
             $transaction->commit();
             return PsCommon::responseSuccess("删除成功");
         } catch (\Exception $e) {
