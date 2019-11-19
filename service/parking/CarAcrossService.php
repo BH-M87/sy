@@ -329,7 +329,7 @@ class CarAcrossService extends BaseService
             }
         }else{
             //查询设备信息
-            $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['device_num']);
+            $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['device_num'],$data['community_id']);
             if (!$deviceInfo) {
                 //保存设备信息
                 $tmpData['deviceNum'] = $data['device_num'];
@@ -337,7 +337,7 @@ class CarAcrossService extends BaseService
                 $tmpData['community_id'] = $data['community_id'];
                 $tmpData['supplier_id'] = $data['supplier_id'];
                 DeviceService::service()->addData($tmpData);
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['device_num']);
+                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['device_num'],$data['community_id']);
             }
         }
 
@@ -538,7 +538,7 @@ class CarAcrossService extends BaseService
                         $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'], $data['in_address']);
                     }
                 }else{
-                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                    $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num'],$data['community_id']);
                     if (!$deviceInfo) {
                         //保存设备信息
                         $tmpData['deviceNum'] = $data['in_device_num'];
@@ -546,7 +546,7 @@ class CarAcrossService extends BaseService
                         $tmpData['community_id'] = $data['community_id'];
                         $tmpData['supplier_id'] = $data['supplier_id'];
                         DeviceService::service()->addData($tmpData);
-                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num']);
+                        $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['in_device_num'],$data['community_id']);
                     }
                 }
             }
@@ -577,7 +577,7 @@ class CarAcrossService extends BaseService
                 $deviceInfo = CarAcrossService::service()->getDeviceInfoByName($data['supplier_id'],$data['community_id'],$data['out_address']);
             }
         }else{
-            $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['out_device_num']);
+            $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['out_device_num'],$data['community_id']);
             if (!$deviceInfo) {
                 //保存设备信息
                 $tmpData['deviceNum'] = $data['out_device_num'];
@@ -585,7 +585,7 @@ class CarAcrossService extends BaseService
                 $tmpData['community_id'] = $data['community_id'];
                 $tmpData['supplier_id'] = $data['supplier_id'];
                 DeviceService::service()->addData($tmpData);
-                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['out_device_num']);
+                $deviceInfo = CarAcrossService::service()->getDeviceInfoByNum($data['out_device_num'],$data['community_id']);
             }
         }
 
@@ -654,10 +654,10 @@ class CarAcrossService extends BaseService
      * @param $deviceNum
      * @return array|null|\yii\db\ActiveRecord
      */
-    public function getDeviceInfoByNum($deviceNum)
+    public function getDeviceInfoByNum($deviceNum,$community_id)
     {
         $deviceInfo = ParkingDevices::find()
-            ->where(['device_id' => $deviceNum])
+            ->where(['device_id' => $deviceNum,'community_id'=>$community_id])
             ->asArray()
             ->one();
         return $deviceInfo;

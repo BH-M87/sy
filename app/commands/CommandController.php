@@ -12,6 +12,8 @@
 namespace app\commands;
 
 
+use app\models\DoorDevices;
+use app\models\DoorRecord;
 use app\models\IotSuppliers;
 use app\models\PsRoomUser;
 use common\core\PsCommon;
@@ -28,6 +30,7 @@ class CommandController extends Controller
     const IOT_MQ_DATA = "IotMqData_sqwn";//同步iot数据
     const RECORD_SYNC_DOOR = "record_sync_door";//人行出入记录同步
     const RECORD_SYNC_CAR = "record_sync_car";//车行出入记录同步
+    const DOOR_DEVICE_NAME = "door_device_name";//门禁设备名称同步
 
     public function actionTest()
     {
@@ -284,6 +287,29 @@ class CommandController extends Controller
                 Yii::info("车行记录:".$car_num."-".$num,'console');
                 //从队列里面移除
                 Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR);
+            }
+        }
+    }
+
+    //门禁出入记录的设备名称修复
+    public function actionDoorDeviceName()
+    {
+        $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::DOOR_DEVICE_NAME, 0, 999);
+        if($list){
+            foreach($list as $key=>$value){
+                $dataInfo = json_decode($value,true);
+                //逻辑处理
+                $community_id = $dataInfo['community_id'];//小区id
+                $device_no = $dataInfo['device_no'];//设备编号
+                $id = $dataInfo['id'];
+                $old_device_name = $dataInfo['device_name'];
+                $device_name = DoorDevices::find()->select(['name'])->where(['community_id'=>$community_id,'device_id'=>$device_no])->asArray()->scalar();
+                if($device_name){
+                    DoorRecord::updateAll(['device_name'=>$device_name],['id'=>$id]);
+                }
+                Yii::info("门禁出入记录修复:".$id."-".$old_device_name."-".$device_name,'console');
+                //从队列里面移除
+                Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::DOOR_DEVICE_NAME);
             }
         }
     }

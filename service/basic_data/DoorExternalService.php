@@ -33,7 +33,7 @@ class DoorExternalService extends BaseService
         //判断设备是否存在
         $deviceInfo = DoorDevices::find()
             ->select(['id', 'community_id', 'supplier_id', 'name', 'device_id as device_no','device_type'])
-            ->where(['device_id' => $data['deviceNo']])
+            ->where(['device_id' => $data['deviceNo'],'community_id'=>$data['community_id']])
             ->asArray()
             ->one();
         if (!$deviceInfo) {

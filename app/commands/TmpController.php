@@ -22,11 +22,7 @@ Class TmpController extends Controller
     const IOT_MQ_DATA = "IotMqData_sqwn";//同步iot数据
     const RECORD_SYNC_DOOR = "record_sync_door";//人行出入记录同步
     const RECORD_SYNC_CAR = "record_sync_car";//车行出入记录同步
-
-    public function actionTest()
-    {
-        file_put_contents('./1.txt',time());
-    }
+    const DOOR_DEVICE_NAME = "door_device_name";//门禁设备名称同步
 
     //查看redis缓存
     ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/test-redis
@@ -46,6 +42,9 @@ Class TmpController extends Controller
                 break;
             case "5":
                 $num = Yii::$app->redis->llen(self::IOT_MQ_DATA);
+                break;
+            case "6":
+                $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::DOOR_DEVICE_NAME);
                 break;
             default:
                 $num = Yii::$app->redis->llen(YII_PROJECT.YII_ENV.self::IOT_MQ_DATA);
@@ -133,6 +132,38 @@ Class TmpController extends Controller
                 if($list){
                     foreach($list as $key=>$value){
                         Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::IOT_FACE_USER,json_encode($value));
+                        $count++;
+                    }
+                    $page ++;
+                }else{
+                    $flag = false;
+                }
+            }
+        }
+        echo "一共".($page-1)."页，".$count."条数据";
+    }
+
+    //更新门禁出入记录里面的设备名称
+    public function actionSyncDoorDevice()
+    {
+        $count = 0;
+        $page = 1;
+        $pageSize = 1000;
+        //富阳有门禁记录的51个小区的门禁记录的设备名称修复
+        $community_id = [5,7,16,20,21,23,24,33,35,36,42,44,47,48,49,50,51,52,54,63,65,69,70,74,78,89,90,99,101,102,103,105,106,107,108,110,112,117,118,120,121,123,131,132,135,138,139,146,149,150,151];
+        if($community_id){
+            $flag = true;
+            while($flag){
+                $offset = ($page-1)*$pageSize;
+                $limit = $pageSize;
+                $list = DoorRecord::find()
+                    ->where(['community_id'=>$community_id])
+                    ->limit($limit)->offset($offset)
+                    ->asArray()
+                    ->all();
+                if($list){
+                    foreach($list as $key=>$value){
+                        Yii::$app->redis->rpush(YII_PROJECT.YII_ENV.self::DOOR_DEVICE_NAME,json_encode($value));
                         $count++;
                     }
                     $page ++;
