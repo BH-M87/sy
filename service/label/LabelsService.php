@@ -1,6 +1,7 @@
 <?php // 标签service
 namespace service\label;
 
+use common\MyException;
 use Yii;
 
 use common\core\F;
@@ -163,6 +164,15 @@ Class LabelsService extends BaseService
     // 添加 关联数据
     public function addRelation($data_id, $labels_id, $data_type)
     {
+        if (empty($labels_id)) {
+            throw new MyException('标签不能为空');
+        }
+        if (empty($data_id)) {
+            throw new MyException('要打标签的数据id不能为空');
+        }
+        if (empty($data_type)) {
+            throw new MyException('标签类型不能为空');
+        }
         if (!empty($labels_id) && !empty($data_id) && !empty($data_type)) {
             $type = 1;
             switch ($data_type) {

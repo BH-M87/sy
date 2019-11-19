@@ -45,13 +45,13 @@ $paramsConfig['test'] = [
             'edoor_app_id' => '2019101068237958',
             'edoor_alipay_public_key_file' => $basePath."/common/rsa_files/hefei-edoor/alipay_public.txt",
             'edoor_rsa_private_key_file' => $basePath."/common/rsa_files/hefei-edoor/rsa_private.txt",
-            'edoor_aes_secret' => "Glu/dZr2xWDPCAiFAcZkCw==",
+            'edoor_aes_secret' => "e+cWTywFOvsNOwf9P2DZBg==",
 
             //党建小程序
             'djyl_app_id' => '2019101068202999',
             'djyl_alipay_public_key_file' => $basePath."/common/rsa_files/hefei-djyl/alipay_public.txt",
             'djyl_rsa_private_key_file' => $basePath."/common/rsa_files/hefei-djyl/rsa_private.txt",
-            'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
+            'djyl_aes_secret' => 'wrQRqNPKjii/FRMbCUR3kA==',
         ],
         'iotNewUrl' => 'http://101.37.135.54:8844',
         'java_domain' =>  'http://47.103.151.121:8700/',
@@ -159,13 +159,13 @@ $paramsConfig['prod'] = [
             'edoor_app_id' => '2019101068237958',
             'edoor_alipay_public_key_file' => $basePath."/common/rsa_files/hefei-edoor/alipay_public.txt",
             'edoor_rsa_private_key_file' => $basePath."/common/rsa_files/hefei-edoor/rsa_private.txt",
-            'edoor_aes_secret' => "Glu/dZr2xWDPCAiFAcZkCw==",
+            'edoor_aes_secret' => "e+cWTywFOvsNOwf9P2DZBg==",
 
             //党建小程序
             'djyl_app_id' => '2019101068202999',
             'djyl_alipay_public_key_file' => $basePath."/common/rsa_files/hefei-djyl/alipay_public.txt",
             'djyl_rsa_private_key_file' => $basePath."/common/rsa_files/hefei-djyl/rsa_private.txt",
-            'djyl_aes_secret' => 'ee1ysBQwEIBmbCO7++GEvw==',
+            'djyl_aes_secret' => 'wrQRqNPKjii/FRMbCUR3kA==',
         ],
         'iotNewUrl' => 'https://gateway-api.zje.com',
         'java_domain' => 'http://192.168.9.159:8898/',
