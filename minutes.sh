@@ -27,3 +27,12 @@ $(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-hf comma
 #$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-wc command/record-sync-car)
 #$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-saas command/record-sync-car)
 #$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-yanshi command/record-sync-car)
+#门禁出入记录设别名称修复同步
+$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/door-device-name)
+$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-hf command/door-device-name)
+#$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-wc command/door-device-name)
+$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-fy command/door-device-name)
+$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-hf command/door-device-name)
+#$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-wc command/door-device-name)
+#$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-saas command/door-device-name)
+#$(/usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-test-yanshi command/door-device-name)
