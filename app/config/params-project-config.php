@@ -139,9 +139,9 @@ $paramsConfig['prod'] = [
         'oss_bucket' => 'sqwn-fy',
         //钉钉应用配置
         'dd_app' => [
-            'appKey' => 'dingvxqretqs7uduiovc',
-            'appSecret' => '06YC5GujdrjBqydJuEt4P6SieVl9YdmZZwVXJ0XSOQPJ1seJ1mSEC1HIpHGJqhN2',
-            'agent_id' => '281128929'
+            'appKey' => 'dingmc0yufwse2kvknlv',
+            'appSecret' => '1WdE42ZGjWrTw_I4e7mv-PJ0IxZbW53s8GN_5S7oFvdJhFaoY7GxU6cpphSdR3V4',
+            'agent_id' => '319637206'
         ],
 
 
