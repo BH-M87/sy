@@ -507,7 +507,8 @@ class ResidentService extends BaseService
 
         $data = $query->orderBy('id desc')->asArray()->all();
         foreach ($data as &$model) {
-            $model['sex'] = $model['sex'] == 1 ? '男' : '女';
+
+            $model['sex'] = $model['sex'] ? ($model['sex'] == 1 ? '男' : '女') : '';
             $model['card_no'] = F::processIdCard($model['card_no']);
             $model['time_end'] = !empty($model['time_end']) ? date('Y-m-d', $model['time_end']) : '长期';
             $model['create_at'] = !empty($model['create_at']) ? date('Y-m-d', $model['create_at']) : '';
