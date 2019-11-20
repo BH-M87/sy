@@ -52,7 +52,7 @@ Class AliSmsService extends BaseService
         ["id"=>13,"template_code"=>"SMS_174278311","content"=>"$"."{name}，您好，$"."{community_name}小区业主$"."{resident_name}已经将您添加为$"."{resident_type}身份，请进入支付宝搜索“富春智联”小程序即可体验智慧社区服务","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
         ["id"=>14,"template_code"=>"SMS_174810613","content"=>"尊敬的$"."{name}，您被$"."{resident_name}邀请于$"."{start_date}至$"."{end_date}到访$"."{community_name}，请打开 https://t.zje.com/$"."{code} 获取到访通行证","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
         ["id"=>15,"template_code"=>"SMS_174810699","content"=>"尊敬的$"."{name}。您被邀请于$"."{start_date}至$"."{end_date}到访$"."{community_name}的邀请已被取消。","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
-        ["id"=>16,"template_code"=>"SMS_177548952","content"=>"亲爱的业主您好，您提交的$"."{community_name}小区住户信息审核未通过，请打开支付宝小程序[$"."{app_name}]查看原因并及时修改！","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>16,"template_code"=>"SMS_177548952","content"=>"亲爱的业主您好，您提交的$"."{community_name}小区住户信息审核未通过，请打开支付宝$"."{app_name}查看原因并及时修改！","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
     ];
 
     /**

@@ -621,7 +621,7 @@ class ResidentService extends BaseService
         }
 
         $community = CommunityService::service()->getCommunityName($model['community_id']);
-        $app_name = \Yii::$app->params['app_name'];//小程序的名字
+        $app_name = "小程序[".Yii::$app->params['app_name']."]";//小程序的名字
         AliSmsService::service(['templateCode' => 'SMS_177548952', 'mobile' => $model['mobile']])->send(['community_name' => $community['name'],'app_name'=>$app_name]);
 
         PsResidentHistory::model()->addHistory($model, ['id' => $operator['id'], 'name' => $operator['username']]);
