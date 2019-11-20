@@ -144,7 +144,7 @@ Class TmpController extends Controller
     }
 
     //更新门禁出入记录里面的设备名称
-    public function actionSyncDoorDevice()
+    public function actionSyncDoorDevice($start_time = '',$end_time ='')
     {
         $count = 0;
         $page = 1;
@@ -156,9 +156,20 @@ Class TmpController extends Controller
             while($flag){
                 $offset = ($page-1)*$pageSize;
                 $limit = $pageSize;
-                $list = DoorRecord::find()
-                    ->where(['community_id'=>$community_id])
-                    ->limit($limit)->offset($offset)
+                $model = DoorRecord::find()->where(['community_id'=>$community_id]);
+                if($start_time){
+                    if(!is_numeric($start_time)){
+                        $start_time = strtotime($start_time);
+                    }
+                    $model->andFilterWhere(['>=','open_time',$start_time]);
+                }
+                if($end_time){
+                    if(!is_numeric($end_time)){
+                        $end_time = strtotime($end_time);
+                    }
+                    $model->andFilterWhere(['<=','open_time',$end_time]);
+                }
+                $list = $model->limit($limit)->offset($offset)
                     ->asArray()
                     ->all();
                 if($list){
