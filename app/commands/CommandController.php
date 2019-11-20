@@ -32,12 +32,8 @@ class CommandController extends Controller
     const RECORD_SYNC_CAR = "record_sync_car";//车行出入记录同步
     const DOOR_DEVICE_NAME = "door_device_name";//门禁设备名称同步
 
-    public function actionTest()
-    {
-        Yii::info("zqtest:".date("Y-m-d H:i:s"),'console');
-    }
     //同步iot的供应商到数据库
-    //0 0 * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/sync
+    //  0 0 * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/sync
     public function actionSync()
     {
         $list = IotNewService::service()->getProductSn();
@@ -77,14 +73,14 @@ class CommandController extends Controller
     }
 
     //街道的任务脚本
-    //30 9 * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/street-index
+    //  30 9 * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/street-index
     public function actionStreetIndex()
     {
         XzTaskService::service()->console_index();
     }
 
     // 住户过期迁出 每分钟执行
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/move-out
+    //  * * * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/move-out
     public function actionMoveOut()
     {
         // 查询id出来，再执行更新，避免锁全表
@@ -101,7 +97,7 @@ class CommandController extends Controller
     }
 
     //iot相关数据的同步
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/iot-data
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/iot-data
     public function actionIotData()
     {
         //从队列里面移除
@@ -160,7 +156,7 @@ class CommandController extends Controller
     }
 
     //iot人脸数据下发
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/iot-face
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/iot-face
     public function actionIotFace(){
         $value = Yii::$app->redis->lpop(YII_PROJECT.YII_ENV.self::IOT_FACE_USER);
         if($value){
@@ -169,84 +165,8 @@ class CommandController extends Controller
         }
     }
 
-    //iot相关数据的同步
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/iot-data
-    public function actionIotDataOld()
-    {
-        $list = Yii::$app->redis->lrange(self::IOT_MQ_DATA, 0, 99);
-        if(!empty($list)){
-            foreach ($list as $key =>$value) {
-                $dataInfo = json_decode($value,true);
-                $parkType = $dataInfo['parkType'];
-                $actionType = $dataInfo['actionType'];
-                $res = ['code'=>1, 'data'=>[]];
-                switch($parkType){
-                    case "roomusertoiot":
-                        switch ($actionType){
-                            case "add":
-                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户新增
-                                break;
-                            case "face":
-                                $res = IotNewService::service()->roomUserFace($dataInfo);//住户人脸录入
-                                break;
-                            case "addBatch":
-                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户批量新增
-                                break;
-                            case "edit":
-                                $res = IotNewService::service()->roomUserAdd($dataInfo);//住户编辑
-                                break;
-                            case "del":
-                                $res = IotNewService::service()->roomUserDelete($dataInfo);//住户删除
-                                break;
-                        }
-                        break;
-                    case "devicetoiot":
-                        switch ($actionType){
-                            case "add":
-                                $res = IotNewService::service()->deviceAdd($dataInfo);//设备新增
-                                break;
-                            case "edit":
-                                $res = IotNewService::service()->deviceEdit($dataInfo);//设备编辑
-                                break;
-                            case "del":
-                                $res = IotNewService::service()->deviceDeleteTrue($dataInfo);//设备删除
-                                break;
-                        }
-                        break;
-                }
-                //从队列里面移除
-                Yii::$app->redis->lpop(self::IOT_MQ_DATA);
-                //如果操作失败了，就重新放到队列里面执行
-                if($res['code'] != 1){
-                    $sendNum = PsCommon::get($dataInfo,'sendNum',0);
-                    //如果超过3次了，就不再放回队列里面
-                    if($sendNum < 3){
-                        $dataInfo['sendNum'] += 1;//操作次数 +1
-                        //重新丢回队列里面
-                        Yii::$app->redis->rpush(self::IOT_MQ_DATA,json_encode($dataInfo));
-                    }
-                }
-            }
-        }
-
-    }
-
-    //iot人脸数据下发
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/iot-face
-    public function actionIotFaceOld(){
-        $list = Yii::$app->redis->lrange(self::IOT_FACE_USER, 0, 1);
-        if($list){
-            foreach($list as $key=>$value){
-                $dataInfo = json_decode($value,true);
-                ResidentService::service()->residentSync($dataInfo, 'edit');
-                //从队列里面移除
-                Yii::$app->redis->lpop(self::IOT_FACE_USER);
-            }
-        }
-    }
-
     //人行数据同步
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/record-sync-door
+    //  * * * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/record-sync-door
     public function actionRecordSyncDoor()
     {
         $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_DOOR, 0, 999);
@@ -269,7 +189,7 @@ class CommandController extends Controller
     }
 
     //车行数据同步
-    //* * * * * /usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii command/record-sync-car
+    //  * * * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/record-sync-car
     public function actionRecordSyncCar()
     {
         $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::RECORD_SYNC_CAR, 0, 999);
@@ -292,6 +212,7 @@ class CommandController extends Controller
     }
 
     //门禁出入记录的设备名称修复
+    //  * * * * * /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy command/door-device-name
     public function actionDoorDeviceName()
     {
         $list = Yii::$app->redis->lrange(YII_PROJECT.YII_ENV.self::DOOR_DEVICE_NAME, 0, 999);

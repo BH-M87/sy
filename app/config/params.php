@@ -63,7 +63,7 @@ if (in_array(YII_PROJECT, ['fuyang', 'hefei', 'wuchang'])) {
     $data['djyl_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_rsa_private_key_file'];
     $data['djyl_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_aes_secret'];
 }
-
+$data['app_name'] = $paramsConfig[YII_ENV][YII_PROJECT]['app_name'];
 
 //七牛上传图片配置，后面改为oss会去掉
 $bucket      = "wuyetest";

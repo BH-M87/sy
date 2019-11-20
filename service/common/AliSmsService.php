@@ -26,6 +26,51 @@ Class AliSmsService extends BaseService
     public $duplicate = true;//重复发送验证，默认为true
     public $duplicateTime = 3;//手机号180s内不能重复发送
     public $captchaCode;
+    const CAPTCHA = 1;
+
+    /*
+     *  id:日志中需要记录模版表id（兼容记录日志用）
+     *  template_code:短信模版code
+     *  content:短信模版内容
+     *  is_captcha:是否是验证码短信，1是，2不是
+     *  created_at:创建时间
+     *  change:是否需要直接更新,1更新-第一次添加都需要更新，2不更新（兼容脚本用）
+     *  短信模版里面的变量符号中间需要插入"."来拼接
+     */
+    public $templateList = [
+        ["id"=>2,"template_code"=>"SMS_142105050","content"=>"验证码$"."{code}，您正在进行身份验证，打死不要告诉别人哦！","is_captcha"=>"1","created_at"=>"1543321695","change"=>1],
+        ["id"=>3,"template_code"=>"SMS_152160101","content"=>"您的动态码为：$"."{code}，您正在进行密码重置操作，如非本人操作，请忽略本短信！","is_captcha"=>"1","created_at"=>"1543547757","change"=>1],
+        ["id"=>4,"template_code"=>"SMS_153992159","content"=>"已给您添加（$"."{name}）访客权限：点击  https://t.zje.com/$"."{code}，可在对应的门禁机上使用，有效期至：$"."{time}","is_captcha"=>"2","created_at"=>"1543907726","change"=>1],
+        ["id"=>5,"template_code"=>"SMS_152281702","content"=>"您的账号:$"."{account}，登录密码:$"."{password}，为了您的安全，请登录后修改密码。请勿泄漏于他人。","is_captcha"=>"2","created_at"=>"1543998605","change"=>1],
+        ["id"=>6,"template_code"=>"SMS_154589639","content"=>"尊敬的$"."{name}女士/先生。您于$"."{time_start}至$"."{time_end}到访$"."{address}的邀请已被取消","is_captcha"=>"2","created_at"=>"1546913936","change"=>1],
+        ["id"=>7,"template_code"=>"SMS_155857503","content"=>"尊敬的业主，$"."{address}已完成出租房屋安全排查，排查结果为$"."{inspect_type}，感谢您为出租房屋安全做出的贡献，请在出租房屋租赁期间保证房屋安全。我们将于$"."{next_inspect_date}前再次上门排查。如有疑问，请联系网格员$"."{grid_member_name}，电话:$"."{grid_member_phone}。","is_captcha"=>"2","created_at"=>"1546913939","change"=>1],
+        ["id"=>8,"template_code"=>"SMS_160306319","content"=>"已给您添加（$"."{address}）访客权限，车位号：$"."{carport_name}。点击 https://t.zje.com/$"."{code}，可在对应的门禁机上使用，有效期至：$"."{end_date}","is_captcha"=>"2","created_at"=>"1552554902","change"=>1],
+        ["id"=>9,"template_code"=>"SMS_160301495","content"=>"已给您添加（$"."{address}）访客权限。点击 https://t.zje.com/$"."{code}，可在对应的门禁机上使用，有效期至：$"."{end_date}","is_captcha"=>"2","created_at"=>"1552554902","change"=>1],
+        ["id"=>10,"template_code"=>"SMS_165055077","content"=>"亲爱的业主您好，您提交的$"."{community_name}小区住户信息已审核通过，祝您生活愉快!","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>11,"template_code"=>"SMS_165118483","content"=>"亲爱的业主您好，您提交的$"."{community_name}小区住户信息审核未通过，请打开APP查看原因并及时修改！","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>12,"template_code"=>"SMS_174277644","content"=>"尊敬的$"."{name}，您好，已为您开通富春智联管理平台账号，用户名为您的手机号码，初始登录密码为：$"."{code}，请及时登录并修改密码，密码请勿告知他人。","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>13,"template_code"=>"SMS_174278311","content"=>"$"."{name}，您好，$"."{community_name}小区业主$"."{resident_name}已经将您添加为$"."{resident_type}身份，请进入支付宝搜索“富春智联”小程序即可体验智慧社区服务","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>14,"template_code"=>"SMS_174810613","content"=>"尊敬的$"."{name}，您被$"."{resident_name}邀请于$"."{start_date}至$"."{end_date}到访$"."{community_name}，请打开 https://t.zje.com/$"."{code} 获取到访通行证","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>15,"template_code"=>"SMS_174810699","content"=>"尊敬的$"."{name}。您被邀请于$"."{start_date}至$"."{end_date}到访$"."{community_name}的邀请已被取消。","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+        ["id"=>16,"template_code"=>"SMS_177548952","content"=>"亲爱的业主您好，您提交的$"."{community_name}小区住户信息审核未通过，请打开支付宝小程序[$"."{app_name}]查看原因并及时修改！","is_captcha"=>"2","created_at"=>"1557369730","change"=>1],
+    ];
+
+    /**
+     * 获取短信模版的内容
+     * 从以前表里面获取改成从代码里面获取
+     * @param $tmpCode
+     * @return array|mixed
+     */
+    public function getSmsTemplate($tmpCode){
+        $list = $this->templateList;
+        $back = [];
+        foreach ($list as $key=>$value) {
+            if($value['template_code'] == $tmpCode){
+                $back = $value;
+            }
+        }
+        return $back;
+    }
 
     /**
      * 目前只支持，一次发送一个签名，一个模版的一条数据，给一个或多个手机号
@@ -38,7 +83,8 @@ Class AliSmsService extends BaseService
     {
         $tmpCode = $params['templateCode'];
         $mobile = $params['mobile'];
-        $template = SmsTemplate::find()->where(['template_code' => $tmpCode])->one();
+        //$template = SmsTemplate::find()->where(['template_code' => $tmpCode])->one();
+        $template = $this->getSmsTemplate($tmpCode);
         if (!$tmpCode || !$template) {
             throw new MyException(Code::$codes[Code::TEMPLATE_EMPTY]);
         }
@@ -46,7 +92,7 @@ Class AliSmsService extends BaseService
         if (!$this->mobile) {
             throw new MyException(Code::$codes[Code::MOBILE_EMPTY]);
         }
-        if ($template['is_captcha'] == SmsTemplate::CAPTCHA && count($this->mobile) > 1) {
+        if ($template['is_captcha'] == self::CAPTCHA && count($this->mobile) > 1) {
             throw new MyException(Code::$codes[Code::PARAMS_ERROR], '验证码类短信只支持单个手机号发送');
         }
         $this->templateCode = $tmpCode;
@@ -65,7 +111,7 @@ Class AliSmsService extends BaseService
         if ($this->duplicate && $this->getCache()) {
             throw new MyException(Code::$codes[Code::SMS_DUPLICATE]);
         }
-        if ($this->template['is_captcha'] == SmsTemplate::CAPTCHA) {//验证码
+        if ($this->template['is_captcha'] == self::CAPTCHA) {//验证码
             if (empty($data['code'])) {
                 $data['code'] = mt_rand(100000, 999999);
             }

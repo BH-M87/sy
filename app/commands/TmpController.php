@@ -1,6 +1,6 @@
 <?php
 /**
- * 测试脚本
+ * 手动执行脚本
  * 同步数据到redis的脚本
  */
 
@@ -10,8 +10,8 @@ use app\models\DoorRecord;
 use app\models\ParkingAcross;
 use app\models\PsMember;
 use app\models\PsRoomUser;
-use common\core\F;
-use common\core\PsCommon;
+use app\models\SmsTemplate;
+use service\common\AliSmsService;
 use Yii;
 use yii\console\Controller;
 
@@ -25,7 +25,7 @@ Class TmpController extends Controller
     const DOOR_DEVICE_NAME = "door_device_name";//门禁设备名称同步
 
     //查看redis缓存
-    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/test-redis
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/test-redis
     public function actionTestRedis($type){
         switch($type){
             case "1":
@@ -53,7 +53,7 @@ Class TmpController extends Controller
     }
 
     //同步人行出入记录到redis
-    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-record-door
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/sync-record-door
     public function actionSyncRecordDoor($day ='')
     {
         $count = 0;
@@ -82,7 +82,7 @@ Class TmpController extends Controller
     }
 
     //同步车行出入记录到redis
-    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-record-car
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/sync-record-car
     public function actionSyncRecordCar($day = '')
     {
         $count = 0;
@@ -111,7 +111,7 @@ Class TmpController extends Controller
     }
 
     //用不小区住户数据
-    ///usr/local/bin/docker-compose -f /data/fczl-backend/docker-compose.yml exec -T php-fpm php /var/www/api/yii tmp/sync-face-user
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/sync-face-user
     public function actionSyncFaceUser($community_id = '')
     {
         $count = 0;
@@ -144,6 +144,7 @@ Class TmpController extends Controller
     }
 
     //更新门禁出入记录里面的设备名称
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/sync-door-device
     public function actionSyncDoorDevice($start_time = '',$end_time ='')
     {
         $count = 0;
@@ -185,4 +186,21 @@ Class TmpController extends Controller
         }
         echo "一共".($page-1)."页，".$count."条数据";
     }
+
+    //更新短信模版表里面的数据
+    //  /usr/local/php/bin/php /data/fczl-backend/www/api_basic_sqwn/yii-fy tmp/sync-sms-template
+    public function actionSyncSmsTemplate()
+    {
+        $template = AliSmsService::service()->templateList;
+        foreach($template as $key=>$value){
+            if($value['change'] == 1){
+                $update['content'] = $value['content'];
+                $update['is_captcha'] = $value['is_captcha'];
+                $update['created_at'] = $value['created_at'];
+                SmsTemplate::updateAll($update,['template_code'=>$value['template_code']]);
+            }
+        }
+    }
+
+
 }
