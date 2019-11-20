@@ -316,7 +316,7 @@ class CarService extends BaseService
             $req['user_id'] = $userId;
 
             $tmpModel = ParkingUserCarport::find()
-                ->where(['car_id' => $carId, 'carport_id' => $req['carport_id']])
+                ->where(['car_id' => $carId])
                 ->orderBy('id desc')
                 ->limit(1)
                 ->asArray()
