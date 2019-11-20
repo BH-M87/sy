@@ -307,6 +307,7 @@ class CarService extends BaseService
             }
             $req['car_id'] = $carId;
 
+
             //添加车主
             list($userId, $error) = $this->_saveCarUserData($req);
             if (!$userId && $error) {
@@ -316,6 +317,8 @@ class CarService extends BaseService
 
             $tmpModel = ParkingUserCarport::find()
                 ->where(['car_id' => $carId, 'carport_id' => $req['carport_id']])
+                ->orderBy('id desc')
+                ->limit(1)
                 ->asArray()
                 ->one();
 
