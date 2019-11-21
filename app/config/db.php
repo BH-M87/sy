@@ -1,20 +1,39 @@
 <?php
-
-$config = require 'db-project-config.php';
-
 switch (YII_ENV) {
-    case  "prod":
-        return $config['prod'][YII_PROJECT];
+    case  "master":
+        return [
+            'class' => 'yii\db\Connection',
+            'dsn' => 'mysql:host=rm-bp1up05n7675il875.mysql.rds.aliyuncs.com;dbname=property_sy',
+            'username' => 'shj',
+            'password' => 'SHJ2017zhujia!@#',
+            'charset' => 'utf8',
+            'attributes' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
+        ];
         break;
-    case  "release":
-        return $config['test'][YII_PROJECT];
+    case  "test"://测试环境
+        return [
+            'class' => 'yii\db\Connection',
+            'dsn' => 'mysql:host=rm-bp1up05n7675il875.mysql.rds.aliyuncs.com;dbname=property_sy_test',
+            'username' => 'shj',
+            'password' => 'SHJ2017zhujia!@#',
+            'charset' => 'utf8',
+            'attributes' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
+        ];
         break;
-    case  "test":
-        return $config['test'][YII_PROJECT];
-        break;
-    case "dev":
-        return $config['test'][YII_PROJECT];
-        break;
-    default :
-        return $config['test'][YII_PROJECT];
+    case "dev"://本地开发环境
+        return [
+            'class' => 'yii\db\Connection',
+            'dsn' => 'mysql:host=192.168.1.112;dbname=property_sy_test',
+            'username' => 'root',
+            'password' => 'zhujia360!@#',
+            'charset' => 'utf8',
+            'attributes' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ]
+        ];
 }
+

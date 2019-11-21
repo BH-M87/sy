@@ -31,7 +31,7 @@ $data['zjy_oss_face_domain'] = 'https://sqwn-face.oss-cn-hangzhou.aliyuncs.com';
 
 
 /*****************可变配置*****************/
-$data['host_name'] = $paramsConfig[YII_ENV][YII_PROJECT]['host_name'];
+$data['host_name'] = $paramsConfig[YII_ENV]['host_name'];
 
 //小程序支付回调地址
 $data['external_invoke_small_address'] = $data['host_name'].'/property/v1/notify/small';
@@ -45,25 +45,10 @@ $data['parl_qrcode_url'] = "https://api-prod.elive99.com/small";
 
 
 //小程序配置
-$data['fczl_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_app_id'];
-$data['fczl_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_alipay_public_key_file'];
-$data['fczl_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_rsa_private_key_file'];
-$data['fczl_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['fczl_aes_secret'];
-
-//富阳，合肥，五常配置多个小程序
-if (in_array(YII_PROJECT, ['fuyang', 'hefei', 'wuchang'])) {
-    // 门禁配置
-    $data['edoor_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_app_id'];
-    $data['edoor_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_alipay_public_key_file'];
-    $data['edoor_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_rsa_private_key_file'];
-    $data['edoor_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['edoor_aes_secret'];
-    // 党建引领小程序
-    $data['djyl_app_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_app_id'];
-    $data['djyl_alipay_public_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_alipay_public_key_file'];
-    $data['djyl_rsa_private_key_file'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_rsa_private_key_file'];
-    $data['djyl_aes_secret'] = $paramsConfig[YII_ENV][YII_PROJECT]['small_app']['djyl_aes_secret'];
-}
-$data['app_name'] = $paramsConfig[YII_ENV][YII_PROJECT]['app_name'];
+$data['fczl_app_id'] = '';
+$data['fczl_alipay_public_key_file'] = '';
+$data['fczl_rsa_private_key_file'] = '';
+$data['app_name'] = '上虞社区';
 
 //七牛上传图片配置，后面改为oss会去掉
 $bucket      = "wuyetest";
@@ -80,14 +65,14 @@ $data['oss_domain'] = 'http://oss-cn-shanghai.aliyuncs.com';
 //oss文件上传使用筑家易oss账号
 $data['zjy_oss_access_key_id'] = 'LTAIRMyJgmFU2NnA';
 $data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
-$data['zjy_oss_bucket'] = $paramsConfig[YII_ENV][YII_PROJECT]['oss_bucket'];
+$data['zjy_oss_bucket'] = $paramsConfig[YII_ENV]['oss_bucket'];
 $data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
 $data['api_host_url'] = $data['host_name'];
-$data['iotNewUrl'] = $paramsConfig[YII_ENV][YII_PROJECT]['iotNewUrl'];
-$data['appKey'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['appKey'];
-$data['appSecret'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['appSecret'];
-$data['agent_id'] = $paramsConfig[YII_ENV][YII_PROJECT]['dd_app']['agent_id'];
-$data['java_domain'] = $paramsConfig[YII_ENV][YII_PROJECT]['java_domain'];
+$data['iotNewUrl'] = $paramsConfig[YII_ENV]['iotNewUrl'];
+$data['appKey'] = $paramsConfig[YII_ENV]['dd_app']['appKey'];
+$data['appSecret'] = $paramsConfig[YII_ENV]['dd_app']['appSecret'];
+$data['agent_id'] = $paramsConfig[YII_ENV]['dd_app']['agent_id'];
+$data['java_domain'] = $paramsConfig[YII_ENV]['java_domain'];
 
 return $data;

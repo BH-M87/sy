@@ -34,6 +34,6 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        return 'this is '. YII_PROJECT .' '.\Yii::$app->id;
+        return 'this is  '.\Yii::$app->id;
     }
 }
