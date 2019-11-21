@@ -36,14 +36,13 @@ Class BaseController extends CoreController
     ];
 
     public $user_info = [];
-    public $userId = '';//当前用户ID
+    public $token = '';//当前用户token
     public $enableAction = [];//绕开token验证(登录，发送短信验证码，验证短信验证码，重置密码)
     public $communityNoCheck = [];//不验证小区ID，小区权限
     public $communityId = '';//当前请求的小区ID
     public $request_params;//请求参数
     public $page;//当前页
     public $pageSize = 10;//分页条数，后台默认10条数据
-    public $systemType = 2;//当前系统类型
     public $repeatAction = [];//验证重复请求的方法数组
     public $addLogAction = [];//验证是否需要记录日志的数据
 
@@ -65,22 +64,19 @@ Class BaseController extends CoreController
             $communityId = F::request('communityId');
         }
         $this->communityId  = $communityId;
-        $this->userId = F::request('user_id');
-        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'user_id:'.$this->userId,'api');
+        $this->token = F::request('token');
+        \Yii::info("controller:".Yii::$app->controller->id."action:".$action->id.'request:'.$dataStr.'token:'.$this->token,'api');
         $this->request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
         $this->request_params['community_id'] = !empty($this->request_params['community_id']) ? $this->request_params['community_id'] : $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 
-        if ($action->id == 'move-out2') {
-            return true;
-        }
+        return true;
         //验证用户
         if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名
             if (!$this->userId) {
                 throw new MyException('登录用户id不能为空');
             }
-            //$userInfo = UserService::service()->getUserById($this->userId);
             $userInfo = \service\street\UserService::service()->getUserInfoById($this->userId);
             $userInfo['mobile'] = $userInfo['mobile_number'];
             $community_id = \service\street\UserService::service()->getCommunityList($userInfo['node_type'],$userInfo['dept_id']);
@@ -92,7 +88,6 @@ Class BaseController extends CoreController
                 $this->communityId = $tmpcommunityId;
             }
             $this->request_params['community_id'] = $communityId;
-            UserService::setUser($this->user_info);
         }
 
         //不走token验证的接口，及download不走其他权限,小区ID 验证

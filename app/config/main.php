@@ -47,6 +47,13 @@ $config =  [
                     'levels' => ['info'],
                     'logVars' => [],
                 ],
+                [//java接口日志
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['java-request'],
+                    'logFile' => '@app/runtime/logs/java-request.log',
+                    'levels' => ['info'],
+                    'logVars' => [],
+                ],
                 [//iot接口日志
                     'class' => 'yii\log\FileTarget',
                     'categories' => ['iot-request'],
@@ -111,10 +118,6 @@ $config =  [
         //七牛上传
         'qiniu' => [
             'class' => 'app\modules\qiniu\Qiniu'
-        ],
-        //街道相关
-        'street' => [
-            'class' => 'app\modules\street\Module'
         ],
         //硬件接入
         'hard_ware_butt' => [

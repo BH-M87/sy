@@ -8,6 +8,7 @@ use common\core\PsCommon;
 
 use app\models\PsCommunityRoominfo;
 
+use service\basic_data\JavaService;
 use service\small\CommunityService as SmallCommunityService;
 use service\manage\CommunityService;
 
@@ -219,7 +220,9 @@ class CommunityController extends BaseController
 
     public function actionGetCommList()
     {
-        $data = CommunityService::service()->getSnCommunityList($this->request_params);
+        $result = JavaService::service()->test();
+        print_r($result);die;
+        //$data = CommunityService::service()->getSnCommunityList($this->request_params);
         return PsCommon::responseSuccess($data);
     }
 
