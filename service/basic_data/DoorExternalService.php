@@ -48,7 +48,6 @@ class DoorExternalService extends BaseService
         $visitor_id = !empty($data['visitorId']) ? $data['visitorId'] : '0'; // 访客记录ID
         $visitor = '';
         if (!empty($visitor_id)) { // 有访客ID
-            //$visitor = \Yii::$app->db->createCommand("SELECT vistor_name, vistor_mobile,passage_at FROM `ps_room_vistors` where id =:id",[":id"=>$visitor_id])->queryOne();
             $visitor = PsRoomVistors::find()->select(['vistor_name','vistor_mobile','passage_at'])->where(["id"=>$visitor_id])->asArray()->one();
             $data['userName'] = !empty($visitor['vistor_name']) ? $visitor['vistor_name'] : '';
             $data['userPhone'] = !empty($visitor['vistor_mobile']) ? $visitor['vistor_mobile'] : '';
@@ -90,6 +89,8 @@ class DoorExternalService extends BaseService
         if($visitor_id){
             $model->visitor_id = $visitor_id;
         }
+
+        //门卡开门，暂时没有对接的设备厂商
         if ($data['openType'] == 5) {
             //门卡开门，查询门卡
             $cardInfo = DoorCard::find()

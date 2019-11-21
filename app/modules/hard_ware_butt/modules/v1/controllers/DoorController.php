@@ -84,10 +84,4 @@ class DoorController extends BaseController
         }
     }
 
-    public function actionTestImg()
-    {
-        $url = 'http://218.108.151.10/pic?2dde35i87-e*5114741a6m6ep=t6i9=*1p0i=d1s*i8d0d*=*1b5i705a8006cb702--82b511-499s42e5z62ei=3=';
-        $dd = F::trunsImg($url);
-        echo $dd;exit;
-    }
 }
