@@ -70,7 +70,7 @@ Class BaseController extends CoreController
         $this->request_params['community_id'] = !empty($this->request_params['community_id']) ? $this->request_params['community_id'] : $this->communityId;
         $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
         $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
-
+        $this->user_info = ['id'=>'1','truename'=>'test','mobile'=>'15257187454'];
         return true;
         //验证用户
         if (!in_array($action->controller->id, ['download', 'third-butt'])) {//下载文件不走签名

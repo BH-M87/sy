@@ -97,6 +97,7 @@ class VoteController extends BaseController
             }
         }
 
+
         if ($data["permission_type"] == 3) {
             if (empty($data["appoint_members"])) {
                 return PsCommon::responseFailed('指定业主不能为空');
@@ -116,6 +117,7 @@ class VoteController extends BaseController
             }
         }
         $result = VoteService::service()->addVote($data, $this->user_info);
+        echo 2;die;
         if ($result["code"]) {
             // 添加到redis中，处理发送消息
             $voteId = $result['data']['vote_id'];
