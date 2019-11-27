@@ -41,6 +41,15 @@ class VoteService extends BaseService
         return $comms;
     }
 
+    public function getStatusList(){
+        return [
+            ['id'=>1,'name'=>'未开始'],
+            ['id'=>2,'name'=>'投票中'],
+            ['id'=>3,'name'=>'投票结束'],
+            ['id'=>4,'name'=>'已公示'],
+        ];
+    }
+
     // 获取投票列表
     public function voteList($reqArr) 
     {

@@ -70,6 +70,12 @@ class VoteController extends BaseController
         }
     }
 
+    //投票状态下拉
+    public function actionGetStatusDrop(){
+        $drop = VoteService::service()->getStatusList();
+        return PsCommon::responseSuccess($drop);
+    }
+
     public function actionAdd()
     {
         $data = $this->request_params;
@@ -122,7 +128,7 @@ class VoteController extends BaseController
         if ($result["code"]) {
             // 添加到redis中，处理发送消息
             $voteId = $result['data']['vote_id'];
-            return PsCommon::responseSuccess();
+            return PsCommon::responseSuccess(['id'=>$voteId]);
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }
