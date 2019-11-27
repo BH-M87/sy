@@ -55,6 +55,7 @@ class VoteService extends BaseService
     {
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : '';
         $voteName = !empty($reqArr['vote_name']) ? $reqArr['vote_name'] : '';
+        $voteStatus = !empty($reqArr['vote_status']) ? $reqArr['vote_status'] : '';
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
 
@@ -69,27 +70,40 @@ class VoteService extends BaseService
             $query->andWhere(['like', 'vote_name', $voteName]);
         }
 
+        if ($voteStatus){
+            $query->andWhere(['=', 'vote_status', $voteStatus]);
+        }
+
         $totals = $query->count();
         if($totals == 0 ) {
             return [ "totals" => 0, 'list' => []];
         }
-
-        $query->select(['*']);
+        $fields = ['id','community_id','vote_name','totals','start_time','end_time','vote_status'];
+        $query->select($fields);
         $query->orderBy('created_at desc');
         $re['totals'] = $totals;
         $offset = ($page-1) * $rows;
         $query->offset($offset)->limit($rows);
+
         $command = $query->createCommand();
         $models = $command->queryAll();
         foreach ($models as $key=>$val) {
-            $models[$key]['totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
             $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
             $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
-            $models[$key]["vote_status"] = $val['end_time'] > time() ? "进行中" : "已结束";
-            $models[$key]["status_desc"] = isset( self::$status[$val['status']]) ? self::$status[$val['status']] : '未知';
-            $models[$key]['created_at'] = date("Y-m-d H:i:s", $val['created_at']);
-            $models[$key]['permission_type_desc'] = isset( self::$Permission_Type[$val['permission_type']]) ? self::$Permission_Type[$val['permission_type']] : '未知';
-            $models[$key]['vote_type_desc'] = isset( self::$Vote_Type[$val['vote_type']]) ? self::$Vote_Type[$val['vote_type']] : '未知';
+            $models[$key]['vote_status_msg'] = !empty($val['vote_status'])?self::$vote_status[$val['vote_status']]:'';
+            $models[$key]['community_name'] = !empty($val['community_id'])?"":'';
+
+
+
+//            $models[$key]['totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+//            $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
+//            $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
+//            $models[$key]["vote_status"] = $val['end_time'] > time() ? "进行中" : "已结束";
+//            $models[$key]["status_desc"] = isset( self::$status[$val['status']]) ? self::$status[$val['status']] : '未知';
+//            $models[$key]['created_at'] = date("Y-m-d H:i:s", $val['created_at']);
+//            $models[$key]['permission_type_desc'] = isset( self::$Permission_Type[$val['permission_type']]) ? self::$Permission_Type[$val['permission_type']] : '未知';
+//            $models[$key]['vote_type_desc'] = isset( self::$Vote_Type[$val['vote_type']]) ? self::$Vote_Type[$val['vote_type']] : '未知';
         }
 
         return ["totals" => $totals, 'list' => $models];

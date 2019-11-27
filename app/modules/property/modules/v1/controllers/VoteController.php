@@ -36,10 +36,10 @@ class VoteController extends BaseController
 
     public function actionList()
     {
-        $communityId = PsCommon::get($this->request_params, 'community_id');
-        if (!$communityId) {
-            return PsCommon::responseFailed('小区不能为空！');
-        }
+//        $communityId = PsCommon::get($this->request_params, 'community_id');
+//        if (!$communityId) {
+//            return PsCommon::responseFailed('小区不能为空！');
+//        }
         $result = VoteService::service()->voteList($this->request_params);
         
         return PsCommon::responseSuccess($result);
