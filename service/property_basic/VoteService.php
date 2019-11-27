@@ -27,6 +27,7 @@ class VoteService extends BaseService
     public static $status = ['1' => '已上架', '2'  => '已下架'];
     public static $Vote_Channel = ['1' => '线上投票', '2'  => '线下录入'];
     public static $Vote_Status = ['0' => '全部', '1' => '进行中', '2'  => '已结束'];
+    public static $vote_status = ['1'=>'未开始', '2'=>'投票中', '3'=>'投票结束', '4'=>'已公示'];        //投票状态
 
     // 查询所有的小区列表
     public function getAllCommunitys($name)
