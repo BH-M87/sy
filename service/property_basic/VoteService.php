@@ -795,17 +795,32 @@ class VoteService extends BaseService
         $now_time = time();
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
+        $vote_status = 1;
         try {
+
+            $start_time = !empty($data["start_time"]) ? strtotime($data["start_time"].":00")  : strtotime(date("Y-m-d H:i:00",$now_time));
+            $end_time = strtotime($data["end_time"].":59");
+            if($now_time<$start_time){
+                $vote_status = 1;
+            }
+            if($now_time>$start_time && $now_time<$end_time){
+                $vote_status = 2;
+            }
+            if($now_time>$end_time){
+                $vote_status = 3;
+            }
+            
             // 添加投票主题
             $voteArr = [
                 "community_id" => $data["community_id"],
                 "vote_name" => $data["vote_name"],
-                "start_time" => !empty($data["start_time"]) ? strtotime($data["start_time"].":00")  : strtotime(date("Y-m-d H:i:00",$now_time)),
-                "end_time" => strtotime($data["end_time"].":59"),
+                "start_time" => $start_time,
+                "end_time" => $end_time,
                 "vote_desc" => $data["vote_desc"],
-                "vote_type" => $data["vote_type"],
+                "vote_status" => $vote_status,
+//                "vote_type" => $data["vote_type"],
                 "permission_type" => $data["permission_type"],
-                "show_at" => strtotime($data["show_at"].":59"),
+//                "show_at" => strtotime($data["show_at"].":59"),
                 "status" => 1,
                 "created_at" => $now_time
             ];
@@ -830,7 +845,7 @@ class VoteService extends BaseService
                     "option_type" => $problem["option_type"],
                     "option_num" => !empty($problem["option_num"]) ? $problem["option_num"] : 0,
                     "title" => $problem["title"],
-                    "vote_type" => $voteArr["vote_type"],
+//                    "vote_type" => $voteArr["vote_type"],
                     "created_at" => $now_time
                 ];
                 $connection->createCommand()->insert('ps_vote_problem', $problemArr)->execute();

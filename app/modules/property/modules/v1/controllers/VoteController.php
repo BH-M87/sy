@@ -73,7 +73,9 @@ class VoteController extends BaseController
     public function actionAdd()
     {
         $data = $this->request_params;
+        $this->request_params['vote_status'] = 1; //投票状态
         $valid = PsCommon::validParamArr(new PsVote(), $this->request_params, 'add');
+
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
@@ -117,7 +119,6 @@ class VoteController extends BaseController
             }
         }
         $result = VoteService::service()->addVote($data, $this->user_info);
-        echo 2;die;
         if ($result["code"]) {
             // 添加到redis中，处理发送消息
             $voteId = $result['data']['vote_id'];
