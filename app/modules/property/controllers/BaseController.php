@@ -27,6 +27,10 @@ class BaseController extends \yii\web\Controller
     public $user_info = [];
     //存储token
     public static $token = '';
+    //当前页
+    public $page;
+    //分页条数，后台默认10条数据
+    public $pageSize = 10;
 
     public function init(){
         //跨域
@@ -48,7 +52,9 @@ class BaseController extends \yii\web\Controller
             $this->_validateMethod();
             $this->_validateBody();
             //token验证
-            $this->_validateToken($action);
+//            $this->_validateToken($action);
+            $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
+            $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
             //所有验证通过
             return true;
         }
