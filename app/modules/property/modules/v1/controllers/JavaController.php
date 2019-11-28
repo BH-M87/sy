@@ -81,4 +81,32 @@ use yii\base\Exception;class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+     *住户身份下拉
+     */
+    public function actionMemberTypeEnum(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->memberTypeEnum($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
+     * 住户列表
+     */
+    public function actionResidentList(){
+        try{
+            $data = $this->request_params;
+            $data['pageNum'] = !empty($data['page'])?$data['page']:'';
+            $data['pageSize'] = !empty($data['rows'])?$data['rows']:'';
+            $result = JavaService::service()->residentList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
