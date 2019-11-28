@@ -46,5 +46,35 @@ class JavaService extends BaseService{
         return self::returnCData($query);
     }
 
+    /*
+     * 苑期区名称下拉
+     */
+    public function groupNameList($query){
+        $query['route'] = '/group/nameList';
+        return self::returnCData($query);
+    }
 
+    /*
+     *楼栋名称下拉
+     */
+    public function buildingNameList($query){
+        $query['route'] = '/building/nameList';
+        return self::returnCData($query);
+    }
+
+    /*
+     *单元名称下拉
+     */
+    public function unitNameList($query){
+        $query['route'] = '/building/unit/nameList';
+        return self::returnCData($query);
+    }
+
+    /*
+     * 房屋名称下拉
+     */
+    public function roomNameList($query){
+        $query['route'] = '/room/nameList';
+        return self::returnCData($query);
+    }
 }

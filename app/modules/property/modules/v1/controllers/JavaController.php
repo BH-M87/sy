@@ -17,7 +17,7 @@ use yii\base\Exception;class JavaController extends BaseController{
 
 
     /*
-     * 小区列表
+     * 小区下拉
      */
     public function actionCommunityNameList(){
         try{
@@ -30,4 +30,55 @@ use yii\base\Exception;class JavaController extends BaseController{
         }
     }
 
+    /*
+     * 苑期区名称下拉
+     */
+    public function actionGroupNameList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->groupNameList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
+     * 楼栋名称下拉
+     */
+    public function actionBuildingNameList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->buildingNameList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
+     * 单元名称下拉
+     */
+    public function actionUnitNameList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->unitNameList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
+     *房屋名称 下拉
+     */
+    public function actionRoomNameList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->roomNameList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
