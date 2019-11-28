@@ -64,7 +64,7 @@ class VoteController extends BaseController
         }
         $result = VoteService::service()->onOffVote($this->request_params, $this->user_info);
         if ($result["code"]) {
-            return PsCommon::responseSuccess();
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }

@@ -80,7 +80,7 @@ class VoteService extends BaseService
         if($totals == 0 ) {
             return [ "totals" => 0, 'list' => []];
         }
-        $fields = ['id','community_id','vote_name','totals','start_time','end_time','vote_status'];
+        $fields = ['id','community_id','vote_name','totals','start_time','end_time','vote_status','status'];
         $query->select($fields);
         $query->orderBy('created_at desc');
         $re['totals'] = $totals;
@@ -1133,7 +1133,7 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$model["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
-            return $this->success();
+            return $this->success(['id'=>$data['vote_id']]);
         }
     }
 
