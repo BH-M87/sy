@@ -21,4 +21,22 @@ class JavaService extends BaseService{
         $result =  JavaCurl::getInstance()->pullHandler($query);
         return $result;
     }
+
+    /*
+     * 住户列表
+     */
+    public function residentList($query){
+        $query['route'] = '/resident/list';
+        $result =  JavaCurl::getInstance()->pullHandler($query);
+        return $result;
+    }
+
+    /*
+     * 房屋列表
+     */
+    public function roomList($query){
+        $query['route'] = '/room/list';
+        $result =  JavaCurl::getInstance()->pullHandler($query);
+        return $result;
+    }
 }

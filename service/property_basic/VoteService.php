@@ -821,6 +821,7 @@ class VoteService extends BaseService
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
         $vote_status = 1;
+        $totals = 0;
         try {
 
             $start_time = !empty($data["start_time"]) ? strtotime($data["start_time"].":00")  : strtotime(date("Y-m-d H:i:00",$now_time));
@@ -834,7 +835,26 @@ class VoteService extends BaseService
             if($now_time>$end_time){
                 $vote_status = 3;
             }
-            
+            //计算应该有多少投票
+            switch($data["permission_type"]){
+                case 1: //每户一票
+                    $javaService = new JavaService();
+                    $javaParams['token'] = $data['token'];
+                    $javaParams['communityId'] = $data['community_id'];
+                    $javaResult = $javaService->roomList($javaParams);
+                    $totals = !empty($javaResult['totalSize'])?$javaResult['totalSize']:'';
+                    break;
+                case 2: //每人一票
+                    $javaService = new JavaService();
+                    $javaParams['token'] = $data['token'];
+                    $javaParams['communityId'] = $data['community_id'];
+                    $javaResult = $javaService->residentList($javaParams);
+                    $totals = !empty($javaResult['totalSize'])?$javaResult['totalSize']:'';
+                    break;
+                case 3: //指定业主投票
+                    $totals = count($data['appoint_members']);
+                    break;
+            }
             // 添加投票主题
             $voteArr = [
                 "community_id" => $data["community_id"],
@@ -843,6 +863,7 @@ class VoteService extends BaseService
                 "end_time" => $end_time,
                 "vote_desc" => $data["vote_desc"],
                 "vote_status" => $vote_status,
+                "totals" => $totals,
 //                "vote_type" => $data["vote_type"],
                 "permission_type" => $data["permission_type"],
 //                "show_at" => strtotime($data["show_at"].":59"),
