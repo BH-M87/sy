@@ -13,13 +13,21 @@ use common\core\JavaCurl;
 
 class JavaService extends BaseService{
 
+
+    /*
+     * c 端调用
+     */
+    public function returnCData($query){
+        $result =  JavaCurl::getInstance()->pullHandler($query);
+        return $result;
+    }
+
     /**
      * Notes: 小区下拉列表
      */
-    public function communityList($query){
+    public function communityNameList($query){
         $query['route'] = '/community/nameList';
-        $result =  JavaCurl::getInstance()->pullHandler($query);
-        return $result;
+        return self::returnCData($query);
     }
 
     /*
@@ -27,8 +35,7 @@ class JavaService extends BaseService{
      */
     public function residentList($query){
         $query['route'] = '/resident/list';
-        $result =  JavaCurl::getInstance()->pullHandler($query);
-        return $result;
+        return self::returnCData($query);
     }
 
     /*
@@ -36,7 +43,8 @@ class JavaService extends BaseService{
      */
     public function roomList($query){
         $query['route'] = '/room/list';
-        $result =  JavaCurl::getInstance()->pullHandler($query);
-        return $result;
+        return self::returnCData($query);
     }
+
+
 }

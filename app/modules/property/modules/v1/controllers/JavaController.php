@@ -19,11 +19,11 @@ use yii\base\Exception;class JavaController extends BaseController{
     /*
      * 小区列表
      */
-    public function actionCommunityList(){
+    public function actionCommunityNameList(){
         try{
 
             $data = $this->request_params;
-            $result = JavaService::service()->communityList($data);
+            $result = JavaService::service()->communityNameList($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());

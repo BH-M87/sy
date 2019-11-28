@@ -89,12 +89,18 @@ class VoteService extends BaseService
 
         $command = $query->createCommand();
         $models = $command->queryAll();
+        // 获得所有小区
+        $javaService = new JavaService();
+        $javaParam['token'] = $reqArr['token'];
+        $javaResult = $javaService->communityNameList($javaParam);
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+
         foreach ($models as $key=>$val) {
             $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
             $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
             $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
             $models[$key]['vote_status_msg'] = !empty($val['vote_status'])?self::$vote_status[$val['vote_status']]:'';
-            $models[$key]['community_name'] = !empty($val['community_id'])?"":'';
+            $models[$key]['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
 
 
 
