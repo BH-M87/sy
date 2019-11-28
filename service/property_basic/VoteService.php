@@ -43,10 +43,12 @@ class VoteService extends BaseService
 
     public function getStatusList(){
         return [
-            ['id'=>1,'name'=>'未开始'],
-            ['id'=>2,'name'=>'投票中'],
-            ['id'=>3,'name'=>'投票结束'],
-            ['id'=>4,'name'=>'已公示'],
+            'list'=>[
+                ['key'=>1,'name'=>'未开始'],
+                ['key'=>2,'name'=>'投票中'],
+                ['key'=>3,'name'=>'投票结束'],
+                ['key'=>4,'name'=>'已公示'],
+            ]
         ];
     }
 
