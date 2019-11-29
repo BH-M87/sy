@@ -51,9 +51,12 @@ class VoteController extends BaseController
         if (!$voteId) {
             return PsCommon::responseFailed('投票活动id不能为空！');
         }
-        $result = VoteService::service()->showVote($voteId);
-        
-        return PsCommon::responseSuccess($result);
+        $result = VoteService::service()->voteDetail($voteId);
+        if ($result["code"]) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
     }
 
     public function actionOnOff()

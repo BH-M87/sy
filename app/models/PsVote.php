@@ -19,6 +19,9 @@ class PsVote extends BaseModel
     public function rules()
     {
         return [
+            ['id','required','message' => '{attribute}不能为空','on' => ['detail']],
+            ['id','infoData','on' => ['detail']],
+
             ["vote_id",'required','message' => '投票id不能为空','on'=>['on-off','end-time','edit-result']],
 
             ["status",'required','message' => '{attribute}不能为空','on'=>['on-off']],
@@ -78,5 +81,31 @@ class PsVote extends BaseModel
             'result_title' =>'结果标题',
             'result_content' =>'结果内容',
         ];
+    }
+
+    /***
+     * 自定义验证数据是否存在
+     * @param $attribute
+     */
+    public function infoData($attribute){
+        if(!empty($this->id)){
+            $res = static::find()->select(['id'])->where('id=:id',[':id'=>$this->id])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该数据不存在！");
+            }
+        }
+    }
+
+    //投票问题
+    public function getProblem(){
+        return $this->hasMany(PsVoteProblem::className(),['vote_id'=>'id']);
+    }
+
+    //投票详情
+    public function getDetail($params){
+        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type'];
+        $model = self::find()->select($fields)->where(['=','id',$params['id']]);
+        $model->with('problem.option');
+        return $model->asArray()->one();
     }
 }

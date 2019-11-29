@@ -215,6 +215,19 @@ class VoteService extends BaseService
         return $votes;
     }
 
+    //投票详情
+    public function voteDetail($vote_id){
+        $params['id'] = $vote_id;
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($params,"") && $model->validate()){
+            $detail = $model->getDetail($params);
+            print_r($detail);die;
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+
     // 获取投票详情
     public function showVote($vote_id, $member_id = 0, $roomId = 0) 
     {

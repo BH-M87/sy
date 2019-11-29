@@ -36,4 +36,9 @@ class PsVoteProblem extends BaseModel
             'created_at' => '创建时间',
         ];
     }
+
+    //获得问题选项
+    public function getOption(){
+        return $this->hasMany(PsVoteProblemOption::className(),['problem_id'=>'id']);
+    }
 }
