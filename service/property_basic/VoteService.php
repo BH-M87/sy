@@ -234,9 +234,10 @@ class VoteService extends BaseService
         $element['id'] = !empty($params['id'])?$params['id']:'';
         $element['vote_name'] = !empty($params['vote_name'])?$params['vote_name']:'';
         $element['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
-        $element['start_time_msg'] = !empty($params['start_time'])?date('Y-m-d',$params['start_time']):'';
-        $element['end_time_msg'] = !empty($params['end_time'])?date('Y-m-d',$params['end_time']):'';
+        $element['start_time_msg'] = !empty($params['start_time'])?date('Y-m-d H:i',$params['start_time']):'';
+        $element['end_time_msg'] = !empty($params['end_time'])?date('Y-m-d H:i',$params['end_time']):'';
         $element['vote_desc'] = !empty($params['vote_desc'])?$params['vote_desc']:'';
+        $element['permission_type'] = !empty($params['permission_type'])?$params['permission_type']:'';
         $element['permission_type_msg'] = !empty($params['permission_type'])?self::$Permission_Type[$params['permission_type']]:'';
         //已投票数
         $element['totals'] = !empty($params['totals'])?$params['totals']:0;
@@ -255,7 +256,7 @@ class VoteService extends BaseService
                         $optionEle = [];
                         $optionEle['title'] = !empty($v['title'])?$v['title']:'';
                         $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
-                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
                         $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
                         $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
                         $problemEle['option'][] = $optionEle;
