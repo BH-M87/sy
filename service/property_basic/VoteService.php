@@ -221,10 +221,50 @@ class VoteService extends BaseService
         $model = new PsVote(['scenario'=>'detail']);
         if($model->load($params,"") && $model->validate()){
             $detail = $model->getDetail($params);
-            print_r($detail);die;
+            $result = self::doVoteDetail($detail);
+            return $this->success($result);
         }else{
             return $this->failed($this->getError($model));
         }
+    }
+
+    //投票详情数据
+    public function doVoteDetail($params){
+        $element = [];
+        $element['id'] = !empty($params['id'])?$params['id']:'';
+        $element['vote_name'] = !empty($params['vote_name'])?$params['vote_name']:'';
+        $element['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $element['start_time_msg'] = !empty($params['start_time'])?date('Y-m-d',$params['start_time']):'';
+        $element['end_time_msg'] = !empty($params['end_time'])?date('Y-m-d',$params['end_time']):'';
+        $element['vote_desc'] = !empty($params['vote_desc'])?$params['vote_desc']:'';
+        $element['permission_type_msg'] = !empty($params['permission_type'])?self::$Permission_Type[$params['permission_type']]:'';
+        //已投票数
+        $element['totals'] = !empty($params['totals'])?$params['totals']:0;
+        //投票问题
+        $element['problem'] = [];
+        if(!empty($params['problem'])){
+            foreach($params['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['totals'] = !empty($value['totals'])?$value['totals']:0;
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
+                        $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $element['problem'][] = $problemEle;
+            }
+        }
+        return $element;
     }
 
 

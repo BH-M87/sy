@@ -103,7 +103,7 @@ class PsVote extends BaseModel
 
     //投票详情
     public function getDetail($params){
-        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type'];
+        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type','totals'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         $model->with('problem.option');
         return $model->asArray()->one();
