@@ -413,81 +413,90 @@ class VoteService extends BaseService
      */
     public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0)
     {
-        $canVote = $this->doCanVoting($memberId, $voteId, $voteChannel, $room_id);
-        if (!empty($canVote['voting_status']) && $canVote['voting_status'] == 1) {
-            // 可投票
-            $voteDetArr = $voteDetail;//json_decode($voteDetail, true);
-            // 数据检查
-            foreach ($voteDetArr as $vote) {
-                if (empty($vote['problem_id'])) {
-                    return '投票项不存在！';
-                }
 
-                if (empty($vote['options'])) {
-                    return '您还有投票项未选择!';
-                }
-            }
-            // 进行投票 查询会员的房屋信息
-            if ($room_id > 0 ) {
-                $room_id = $room_id;
-            } else {
-                $memberRoomIds = MemberService::service()->getRommIdsByMemberId($memberId, $communityId);
-                $room_id = $memberRoomIds[0] ? $memberRoomIds[0] : 0 ;
-            }
+        $connection = Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try{
 
-            $doVoteSuc = 0;
-            foreach ($voteDetArr as $vote) {
-                $suc = 0;
-                foreach ($vote['options'] as $k => $v) {
-                    $model = new PsVoteMemberDet();
-                    $model->vote_id     = $voteId;
-                    $model->problem_id  = $vote['problem_id'];
-                    $model->room_id     = $room_id ;
-                    $model->option_id   = $v['option_id'];
-                    $model->member_id   = $memberId;
-                    $model->member_name = $memberName;
-                    $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
-                    $model->created_at  = time();
-                    if ($model->save()) {
-                        // 给选项增加投票数量
-                        $suc++;
-                        $optionModel = PsVoteProblemOption::findOne($v['option_id']);
-                        $optionModel->totals = $optionModel->totals + 1;
-                        $optionModel->save();
+            $canVote = $this->doCanVoting($memberId, $voteId, $voteChannel, $room_id);
+            if (!empty($canVote['voting_status']) && $canVote['voting_status'] == 1) {
+                // 可投票
+                $voteDetArr = $voteDetail;//json_decode($voteDetail, true);
+                // 数据检查
+                foreach ($voteDetArr as $vote) {
+                    if (empty($vote['problem_id'])) {
+                        return '投票项不存在！';
+                    }
+
+                    if (empty($vote['options'])) {
+                        return '您还有投票项未选择!';
+                    }
+                }
+                // 进行投票 查询会员的房屋信息
+//                if ($room_id > 0 ) {
+//                    $room_id = $room_id;
+//                } else {
+//                    $memberRoomIds = MemberService::service()->getRommIdsByMemberId($memberId, $communityId);
+//                    $room_id = $memberRoomIds[0] ? $memberRoomIds[0] : 0 ;
+//                }
+
+                $doVoteSuc = 0;
+                foreach ($voteDetArr as $vote) {
+                    $suc = 0;
+                    foreach ($vote['options'] as $k => $v) {
+                        $model = new PsVoteMemberDet();
+                        $model->vote_id     = $voteId;
+                        $model->problem_id  = $vote['problem_id'];
+                        $model->room_id     = $room_id ;
+                        $model->option_id   = $v['option_id'];
+                        $model->member_id   = $memberId;
+                        $model->member_name = $memberName;
+                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
+                        $model->created_at  = time();
+                        if ($model->save()) {
+                            // 给选项增加投票数量
+                            $suc++;
+                            $optionModel = PsVoteProblemOption::findOne($v['option_id']);
+                            $optionModel->totals = $optionModel->totals + 1;
+                            $optionModel->save();
+                        }
+                    }
+
+                    // 给问题增加投票数量
+                    $problemModel = PsVoteProblem::findOne($vote['problem_id']);
+                    if ($problemModel && $suc) {
+                        $problemModel->totals = $problemModel->totals + 1;
+                        $problemModel->save();
+                        $doVoteSuc++;
                     }
                 }
 
-                // 给问题增加投票数量
-                $problemModel = PsVoteProblem::findOne($vote['problem_id']);
-                if ($problemModel && $suc) {
-                    $problemModel->totals = $problemModel->totals + 1;
-                    $problemModel->save();
-                    $doVoteSuc++;
+                if ($doVoteSuc) {
+                    // 修改投票计数
+                    $voteModel = PsVote::findOne($voteId);
+                    $voteModel->totals = $voteModel->totals + 1;
+                    $voteModel->save();
+                    $transaction->commit();
+                    return true;
                 }
-            }
 
-            if ($doVoteSuc) {
-                // 修改投票计数
-                $voteModel = PsVote::findOne($voteId);
-                $voteModel->totals = $voteModel->totals + 1;
-                $voteModel->save();
-                return true;
-            }
+            } else {
 
-        } else {
-
-            if ($canVote['voting_status'] == 2) {
-                if($voteChannel == 'off') {
-                    return '该业主已参与投票，无法重复投票';
-                } else {
-                    //已投票
-                    return '已投票';
+                if ($canVote['voting_status'] == 2) {
+                    if($voteChannel == 'off') {
+                        return '该业主已参与投票，无法重复投票';
+                    } else {
+                        //已投票
+                        return '已投票';
+                    }
                 }
+                return !empty($canVote['voting_value']) ? $canVote['voting_value'] : '投票失败！';
             }
-            return !empty($canVote['voting_value']) ? $canVote['voting_value'] : '投票失败！';
+
+            return false;
+        }catch (Exception $e) {
+            return $this->failed('系统错误');
         }
-
-        return false;
     }
 
     /**
@@ -528,7 +537,7 @@ class VoteService extends BaseService
                     ->asArray()
                     ->one();
             }
-            if ($voteDet) {
+            if (!empty($voteDet)) {
                 if($voteChannel=='off') {
                     //已投
                     $data = [
@@ -552,11 +561,12 @@ class VoteService extends BaseService
                 }
             } else {
                 //未投
-                if( $voteChannel == 'off' &&  ( $vote['end_time'] >= time() || $vote['show_at'] <= time())) {
+//                if( $voteChannel == 'off' &&  ( $vote['end_time'] >= time() || $vote['show_at'] <= time())) {
+                if( $voteChannel == 'off' &&  $vote['end_time'] <= time() ) {
                     //投票已结束
                     $data = [
                         'voting_status' => 5,
-                        'voting_value'  => '投票必须在活动结束后未到公示时间'
+                        'voting_value'  => '当前投票活动已截止'
                     ];
                 } elseif ( $voteChannel == 'on' && $vote['end_time'] <= time() ) {
                     //投票已结束
@@ -568,11 +578,12 @@ class VoteService extends BaseService
                     //投票未结束
                     if ($vote['permission_type'] ==  1) {
                         //每户一票
-                        if($roomId == 0 ) {
-                            $roomIds = MemberService::service()->getRommIdsByMemberId($memberId, $vote['community_id']);
-                        }else {
-                            $roomIds = $roomId;
-                        }
+//                        if($roomId == 0 ) {
+//                            $roomIds = MemberService::service()->getRommIdsByMemberId($memberId, $vote['community_id']);
+//                        }else {
+//                            $roomIds = $roomId;
+//                        }
+                        $roomIds = $roomId;
                         $voteStatus = $this->roomIsVoted($voteId, $roomIds);
                         if ($voteStatus) {
                             $data = [

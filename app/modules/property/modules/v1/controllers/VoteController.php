@@ -349,13 +349,18 @@ class VoteController extends BaseController
         }
 
         $javaService = new JavaService();
-
-        $memberInfo = Yii::$app->db->createCommand("select community_id,member_id as id,name,mobile from ps_room_user where member_id=:id", [":id" => $memberId])->queryOne();
-
-        if (empty($memberInfo)) {
+        $javaParams['id'] = $memberId;
+        $javaParams['token'] = $token;
+        $javaResult = $javaService->residentDetail($javaParams);
+        if(empty($javaResult)){
             return PsCommon::responseFailed('用户不存在');
         }
-        $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], json_encode($voteDetail), $memberInfo['community_id'], 'off', $roomId);
+
+        if(!empty($javaResult['roomId'])&&$javaResult['roomId']!=$roomId){
+            return PsCommon::responseFailed('用户不存在');
+        }
+
+        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId);
         if ($doVote === true) {
             return PsCommon::responseSuccess();
         } elseif ($doVote === false) {

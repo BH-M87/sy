@@ -39,6 +39,14 @@ class JavaService extends BaseService{
     }
 
     /*
+     * 住户详情
+     */
+    public function residentDetail($query){
+        $query['route'] = '/resident/detail';
+        return self::returnCData($query);
+    }
+
+    /*
      * 房屋列表
      */
     public function roomList($query){
