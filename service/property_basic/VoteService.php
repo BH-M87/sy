@@ -1346,9 +1346,10 @@ class VoteService extends BaseService
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
                     $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
                     $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote'] = 1;
                     $element['is_vote_msg'] = '是';
-                    $element['vote_channel_msg'] = !empty($voteChannel[$value['member_id']])?self::$Vote_Channel[$voteChannel[$value['member_id']]]:'';
-                    $element['vote_create_msg'] = !empty($voteCreate[$value['member_id']])?date('Y/m/d H:i:s',$voteCreate[$value['member_id']]):'';
+                    $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
+                    $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
                     $list[] = $element;
                 }
             }else{
@@ -1362,6 +1363,7 @@ class VoteService extends BaseService
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
                     $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
                     $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote'] = 2;
                     $element['is_vote_msg'] = '否';
                     $element['vote_channel_msg'] = '';
                     $element['vote_create_msg'] = '';
@@ -1387,9 +1389,10 @@ class VoteService extends BaseService
                 $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
                 $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
                 $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
-                $element['is_vote_msg'] = !empty($voteCreate[$value['member_id']])?"是":'否';
-                $element['vote_channel_msg'] = !empty($voteChannel[$value['member_id']])?self::$Vote_Channel[$voteChannel[$value['member_id']]]:'';
-                $element['vote_create_msg'] = !empty($voteCreate[$value['member_id']])?date('Y/m/d H:i:s',$voteCreate[$value['member_id']]):'';
+                $element['is_vote'] = !empty($voteCreate[$value['residentId']])?1:2;
+                $element['is_vote_msg'] = !empty($voteCreate[$value['residentId']])?"是":'否';
+                $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
+                $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
                 $list[] = $element;
             }
         }
