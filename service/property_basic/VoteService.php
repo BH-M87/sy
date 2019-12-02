@@ -1206,6 +1206,10 @@ class VoteService extends BaseService
             //获得java数据
             $javaService = new JavaService();
             $javaData = $javaService->residentList($javaParams);
+
+            if(!empty($javaData['list'])){
+                $result = $this->doVoteMemberListData($javaData,$data);
+            }
         }
         return $result;
     }
@@ -1269,6 +1273,83 @@ class VoteService extends BaseService
             $data['votedIds'] = array_column($specifyResult,'member_id');
         }
         return $data;
+    }
+
+    /*
+     *  获得java数据 做自己显示数据
+     *   javaData   java返回数据
+     *   params     输入参数
+     */
+    public function doVoteMemberListData($javaData,$params){
+        $list = $voteChannel = $voteCreate = [];
+        $totals = $javaData['totalSize'];
+        if(!empty($params['is_vote'])){
+            if($params['is_vote']==1){
+                //已投票
+                //获得投票数据
+                $memberIds = array_column($javaData['list'],'residentId');
+                $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
+                                ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
+                                ->asArray()->all();
+                $voteChannel = array_column($votedResult,'vote_channel','member_id');
+                $voteCreate = array_column($votedResult,'created_at','member_id');
+                foreach($javaData['list'] as $key=>$value){
+                    $element = [];
+                    $element['home'] = !empty($value['home'])?$value['home']:'';
+                    $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                    $element['name'] = !empty($value['name'])?$value['name']:'';
+                    $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                    $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                    $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote_msg'] = '是';
+                    $element['vote_channel_msg'] = !empty($voteChannel[$value['member_id']])?self::$Vote_Channel[$voteChannel[$value['member_id']]]:'';
+                    $element['vote_create_msg'] = !empty($voteCreate[$value['member_id']])?date('Y/m/d H:i:s',$voteCreate[$value['member_id']]):'';
+                    $list[] = $element;
+                }
+            }else{
+                //未投票
+                foreach($javaData['list'] as $key=>$value){
+                    $element = [];
+                    $element['home'] = !empty($value['home'])?$value['home']:'';
+                    $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                    $element['name'] = !empty($value['name'])?$value['name']:'';
+                    $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                    $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                    $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote_msg'] = '否';
+                    $element['vote_channel_msg'] = '';
+                    $element['vote_create_msg'] = '';
+                    $list[] = $element;
+                }
+            }
+        }else{
+            //获得投票数据
+            $memberIds = array_column($javaData['list'],'residentId');
+            $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
+                ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
+                ->asArray()->all();
+            if(!empty($votedResult)){
+                $voteChannel = array_column($votedResult,'vote_channel','member_id');
+                $voteCreate = array_column($votedResult,'created_at','member_id');
+            }
+            foreach($javaData['list'] as $key=>$value){
+                $element = [];
+                $element['home'] = !empty($value['home'])?$value['home']:'';
+                $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                $element['name'] = !empty($value['name'])?$value['name']:'';
+                $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                $element['is_vote_msg'] = !empty($voteCreate[$value['member_id']])?"是":'否';
+                $element['vote_channel_msg'] = !empty($voteChannel[$value['member_id']])?self::$Vote_Channel[$voteChannel[$value['member_id']]]:'';
+                $element['vote_create_msg'] = !empty($voteCreate[$value['member_id']])?date('Y/m/d H:i:s',$voteCreate[$value['member_id']]):'';
+                $list[] = $element;
+            }
+        }
+        return ['totals'=>$totals,'list'=>$list];
     }
 
     public function showMember($data) 
