@@ -1199,16 +1199,19 @@ class VoteService extends BaseService
         $rows = !empty($data["rows"]) ?  $data["rows"] : Yii::$app->params['list_rows'];
         $data['pageNum'] = $page;
         $data['pageSize'] = $rows;
+        $data["communityId"] = $data['community_id'];
         $result = ['totals'=>0,'list'=>[]];
         $vote = PsVote::find()->select(['permission_type','id'])->where(['=','id',$data['vote_id']])->andWhere(['=','community_id',$data['community_id']])->asArray()->one();
         if(!empty($vote)){
             $javaParams = $this->doJavaListParams($data,$vote);
-            //获得java数据
-            $javaService = new JavaService();
-            $javaData = $javaService->residentList($javaParams);
+            if($javaParams['transfer']){
+                //获得java数据
+                $javaService = new JavaService();
+                $javaData = $javaService->residentList($javaParams);
 
-            if(!empty($javaData['list'])){
-                $result = $this->doVoteMemberListData($javaData,$data);
+                if(!empty($javaData['list'])){
+                    $result = $this->doVoteMemberListData($javaData,$data);
+                }
             }
         }
         return $result;
@@ -1216,11 +1219,11 @@ class VoteService extends BaseService
 
     //投票用户列表 is_vote 是否投票 1已投票 2未投票
     public function doJavaListParams($data,$vote){
-
+        $data['transfer'] = false;  //默认不调用java接口
         switch($vote['permission_type']){
             case 1:
             case 2: //非指定用户
-                $data = self::doUnSpecifyJavaListParams($data);
+                $data = self::doUnSpecifyJavaListParams($data,$vote);
                 break;
             case 3: //指定用户
                 $data = self::doSpecifyJavaListParams($data,$vote);
@@ -1231,7 +1234,37 @@ class VoteService extends BaseService
 
     //非指定业主参数
     public function doUnSpecifyJavaListParams($data,$vote){
-
+        if(!empty($data['is_vote'])){
+            if($data['is_vote']==1) {    //已投票
+                //获得所有已经投票用户id
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['transfer'] = true;
+                    $data['votedIds'] = array_column($votedResult,'member_id');
+                }
+            }else{
+                //未投票
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['transfer'] = true;
+                    $data['neVotedIds'] = array_column($votedResult,'member_id');
+                }
+            }
+        }else{
+            $data['transfer'] = true;
+        }
+        return $data;
     }
 
     //指定业主参数
@@ -1245,8 +1278,15 @@ class VoteService extends BaseService
                 if(!empty($data['vote_channel'])){
                     $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
                 }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
                 $votedResult = $votedModel->asArray()->all();
                 if(!empty($votedResult)){
+                    $data['transfer'] = true;
                     $data['votedIds'] = array_column($votedResult,'member_id');
                 }
             }else{
@@ -1264,13 +1304,17 @@ class VoteService extends BaseService
                 }
                 $queryResult = $query->all();
                 if(!empty($queryResult)){
+                    $data['transfer'] = true;
                     $data['votedIds'] = array_column($queryResult,'member_id');
                 }
             }
         }else{
             //获得指定人员（全部）
             $specifyResult = PsVoteMemberAppoint::find()->select(['member_id','room_id'])->where(['=','vote_id',$vote['id']])->asArray()->all();
-            $data['votedIds'] = array_column($specifyResult,'member_id');
+            if(!empty($specifyResult)){
+                $data['transfer'] = true;
+                $data['votedIds'] = array_column($specifyResult,'member_id');
+            }
         }
         return $data;
     }
