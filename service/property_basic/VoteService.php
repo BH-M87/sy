@@ -1191,6 +1191,86 @@ class VoteService extends BaseService
         }
     }
 
+    //投票人员列表
+    public function voteMemberList($data){
+        
+        $page = !empty($data["page"]) ?  $data["page"] : 1;
+        $page = $page < 1 ? 1 : $page;
+        $rows = !empty($data["rows"]) ?  $data["rows"] : Yii::$app->params['list_rows'];
+        $data['pageNum'] = $page;
+        $data['pageSize'] = $rows;
+        $result = ['totals'=>0,'list'=>[]];
+        $vote = PsVote::find()->select(['permission_type','id'])->where(['=','id',$data['vote_id']])->andWhere(['=','community_id',$data['community_id']])->asArray()->one();
+        if(!empty($vote)){
+            $javaParams = $this->doJavaListParams($data,$vote);
+            //获得java数据
+            $javaService = new JavaService();
+            $javaData = $javaService->residentList($javaParams);
+        }
+        return $result;
+    }
+
+    //投票用户列表 is_vote 是否投票 1已投票 2未投票
+    public function doJavaListParams($data,$vote){
+
+        switch($vote['permission_type']){
+            case 1:
+            case 2: //非指定用户
+                $data = self::doUnSpecifyJavaListParams($data);
+                break;
+            case 3: //指定用户
+                $data = self::doSpecifyJavaListParams($data,$vote);
+                break;
+        }
+        return $data;
+    }
+
+    //非指定业主参数
+    public function doUnSpecifyJavaListParams($data,$vote){
+
+    }
+
+    //指定业主参数
+    public function doSpecifyJavaListParams($data,$vote){
+        // 获得已投票人员
+        $data['votedIds'] = [];
+        if(!empty($data['is_vote'])){
+            if($data['is_vote']==1){    //已投票
+                //获得所有已经投票用户id
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['votedIds'] = array_column($votedResult,'member_id');
+                }
+            }else{
+                //未投票
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                $votedResult = $votedModel->asArray()->all();
+                $memberIds = [];
+                if(!empty($votedResult)){
+                    $memberIds = array_column($votedResult,'member_id');
+                }
+                $query = new Query();
+                $query->from('ps_vote_member_appoint')->select(['room_id','member_id'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($memberIds)){
+                    $query->andWhere(['not in','member_id',$memberIds]);
+                }
+                $queryResult = $query->all();
+                if(!empty($queryResult)){
+                    $data['votedIds'] = array_column($queryResult,'member_id');
+                }
+            }
+        }else{
+            //获得指定人员（全部）
+            $specifyResult = PsVoteMemberAppoint::find()->select(['member_id','room_id'])->where(['=','vote_id',$vote['id']])->asArray()->all();
+            $data['votedIds'] = array_column($specifyResult,'member_id');
+        }
+        return $data;
+    }
+
     public function showMember($data) 
     {
         $page = !empty($data["page"]) ?  $data["page"] : 1;

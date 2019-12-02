@@ -165,6 +165,21 @@ class VoteController extends BaseController
         }
     }
 
+    //投票人员列表
+    public function actionVoteMemberList(){
+        $voteId = PsCommon::get($this->request_params, 'vote_id');
+        if (!$voteId) {
+            return PsCommon::responseFailed('投票活动id不能为空！');
+        }
+        $communityId = PsCommon::get($this->request_params, 'community_id');
+        if (!$communityId) {
+            return PsCommon::responseFailed('小区id不能为空！');
+        }
+
+        $result = VoteService::service()->voteMemberList($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
     public function actionShowMember()
     {
         $voteId = PsCommon::get($this->request_params, 'vote_id');
