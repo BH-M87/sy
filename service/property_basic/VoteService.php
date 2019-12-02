@@ -471,37 +471,6 @@ class VoteService extends BaseService
                 $voteModel = PsVote::findOne($voteId);
                 $voteModel->totals = $voteModel->totals + 1;
                 $voteModel->save();
-
-                //发送消息
-//                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
-//                $data = [
-//                    'community_id' => $communityId,
-//                    'id' => $voteId,
-//                    'member_id' => $memberId,
-//                    'user_name' => $memberName,
-//                    'create_user_type' => 2,
-//
-//                    'remind_tmpId' => 5,
-//                    'remind_target_type' => 5,
-//                    'remind_auth_type' => 5,
-//                    'msg_type' => 1,
-//
-//                    'msg_tmpId' => 5,
-//                    'msg_target_type' => 5,
-//                    'msg_auth_type' => 5,
-//                    'remind' =>[
-//                        0 => $memberName
-//                    ],
-//                    'msg' => [
-//                        0 => $memberName,
-//                        1 => $voteModel['vote_name'],
-//                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
-//                        3 => $memberName,
-//                        4 => date("Y-m-d H:i:s",time())
-//                    ]
-//                ];
-//                MessageService::service()->addMessageTemplate($data);
-
                 return true;
             }
 
@@ -1803,12 +1772,12 @@ class VoteService extends BaseService
     }
 
     //投票列表详情
-    public function voteListDetail($voteId, $memberId, $roomId,$memberName){
+    public function voteListDetail($voteId, $memberId, $roomId){
         $params['id'] = $voteId;
         $model = new PsVote(['scenario'=>'detail']);
         if($model->load($params,"") && $model->validate()){
             $detail = $model->getDetail($params);
-            $result = self::doVoteListDetail($detail,$memberId,$roomId,$memberName);
+            $result = self::doVoteListDetail($detail,$memberId,$roomId);
             return $this->success($result);
         }else{
             return $this->failed($this->getError($model));
@@ -1816,7 +1785,7 @@ class VoteService extends BaseService
     }
 
     //做投票列表详情数据
-    public function doVoteListDetail($detail,$memberId,$roomId,$memberName){
+    public function doVoteListDetail($detail,$memberId,$roomId){
 
         $data = [];
         //获得投票记录
@@ -1827,7 +1796,6 @@ class VoteService extends BaseService
         $voteArr = [];
         $data['member_id'] = $memberId;
         $data['room_id'] = $roomId;
-        $data['member_name'] = $memberName;
         $data['id'] = !empty($detail['id'])?$detail['id']:'';
         $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
         $data['problem'] = [];

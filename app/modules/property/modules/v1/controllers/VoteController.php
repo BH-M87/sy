@@ -202,17 +202,13 @@ class VoteController extends BaseController
             return PsCommon::responseFailed('用户id不能为空！');
         }
 
-        $memberName = PsCommon::get($this->request_params, 'member_name');
-        if(!$memberName){
-            return PsCommon::responseFailed('用户名称不能为空！');
-        }
 
         $roomId = PsCommon::get($this->request_params, 'room_id');
         if(!$roomId){
             return PsCommon::responseFailed('房屋id不能为空！');
         }
 
-        $result = VoteService::service()->voteListDetail($voteId, $memberId, $roomId,$memberName);
+        $result = VoteService::service()->voteListDetail($voteId, $memberId, $roomId);
         if ($result["code"]) {
             return PsCommon::responseSuccess($result['data']);
         } else {
