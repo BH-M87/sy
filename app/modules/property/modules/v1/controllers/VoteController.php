@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
+use service\property_basic\JavaService;
 use Yii;
 
 use app\modules\property\controllers\BaseController;
@@ -307,6 +308,7 @@ class VoteController extends BaseController
     public function actionDoVote()
     {
         $memberId = PsCommon::get($this->request_params, 'member_id');
+        $token = PsCommon::get($this->request_params, 'token');
         $roomId = PsCommon::get($this->request_params, 'room_id');
         $voteId = PsCommon::get($this->request_params, 'vote_id');
         $voteDetail = PsCommon::get($this->request_params, 'vote_det');
@@ -345,6 +347,9 @@ class VoteController extends BaseController
         if (!empty($problem_type)) {
             return PsCommon::responseFailed('问题未添加选项！');
         }
+
+        $javaService = new JavaService();
+
         $memberInfo = Yii::$app->db->createCommand("select community_id,member_id as id,name,mobile from ps_room_user where member_id=:id", [":id" => $memberId])->queryOne();
 
         if (empty($memberInfo)) {
