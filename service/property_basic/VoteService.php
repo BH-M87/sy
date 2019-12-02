@@ -1051,7 +1051,7 @@ class VoteService extends BaseService
     // 查看投票结果
     public function showResult( $vote_id) 
     {
-        $result =  Yii::$app->db->createCommand("select * from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
+        $result =  Yii::$app->db->createCommand("select id,vote_id,result_content,created_at from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
         if( !empty( $result)) {
             $result["created_at"]= date("Y-m-d H:i:s",$result["created_at"]);
         }
@@ -1119,9 +1119,9 @@ class VoteService extends BaseService
             return $this->failed('未找到投票');
         }
 
-        if( $model["status"]==1 ) {
-            return $this->failed('显示的投票 才能删除');
-        }
+//        if( $model["status"]==1 ) {
+//            return $this->failed('显示的投票 才能删除');
+//        }
 
         $transaction = $connection->beginTransaction();
         try {
@@ -1136,6 +1136,8 @@ class VoteService extends BaseService
             $connection->createCommand()->delete('ps_vote_member_appoint',["vote_id"=>$vote_id])->execute();
             // 删除投票记录
             $connection->createCommand()->delete('ps_vote_member_det',["vote_id"=>$vote_id])->execute();
+            //删除公式
+            $connection->createCommand()->delete('ps_vote_result',["vote_id"=>$vote_id])->execute();
             // 删除问题//删除问题选项
             $connection->createCommand("delete A,B from ps_vote_problem A,ps_vote_problem_option B 
               where A.id=B.problem_id  and A.vote_id=:vote_id",[":vote_id"=>$vote_id])->execute();
