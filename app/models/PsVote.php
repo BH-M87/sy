@@ -52,8 +52,10 @@ class PsVote extends BaseModel
             ['vote_status', 'in', 'range' =>array_keys(VoteService::$vote_status), 'message' => '{attribute}不正确', 'on' =>['add']],
 
             ["vote_name",'required','message' => '{attribute}不能为空','on'=>['add']],
-            ['vote_name', 'string', 'max' => 50,'on' => ['add']],
-            ['vote_desc', 'string', 'max' => 500,'on' => ['add']],
+//            ['vote_name', 'string', 'max' => 50,'on' => ['add']],
+            ['vote_name', 'string', 'max' => 20,'on' => ['add']],
+//            ['vote_desc', 'string', 'max' => 500,'on' => ['add']],
+            ['vote_desc', 'string', 'max' => 200,'on' => ['add']],
 
 //            [['result_title','result_content'], 'required','message' => '{attribute}不能为空','on' => ['edit-result']],
             [['result_content'], 'required','message' => '{attribute}不能为空','on' => ['edit-result']],

@@ -107,6 +107,13 @@ class VoteController extends BaseController
             if (empty($problem["options"]) || count($problem["options"]) > 30 || count($problem["options"]) < 2) {
                 return PsCommon::responseFailed('选项个数最少2个最多30个');
             }
+
+            foreach ($problem['options'] as $option){
+                $valid = PsCommon::validParamArr(new PsVoteProblemOption(), $option, 'add2');
+                if (!$valid["status"]) {
+                    return PsCommon::responseFailed($valid["errorMsg"]);
+                }
+            }
         }
 
 
