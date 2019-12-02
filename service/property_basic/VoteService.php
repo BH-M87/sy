@@ -473,34 +473,34 @@ class VoteService extends BaseService
                 $voteModel->save();
 
                 //发送消息
-                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
-                $data = [
-                    'community_id' => $communityId,
-                    'id' => $voteId,
-                    'member_id' => $memberId,
-                    'user_name' => $memberName,
-                    'create_user_type' => 2,
-
-                    'remind_tmpId' => 5,
-                    'remind_target_type' => 5,
-                    'remind_auth_type' => 5,
-                    'msg_type' => 1,
-
-                    'msg_tmpId' => 5,
-                    'msg_target_type' => 5,
-                    'msg_auth_type' => 5,
-                    'remind' =>[
-                        0 => $memberName
-                    ],
-                    'msg' => [
-                        0 => $memberName,
-                        1 => $voteModel['vote_name'],
-                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
-                        3 => $memberName,
-                        4 => date("Y-m-d H:i:s",time())
-                    ]
-                ];
-                MessageService::service()->addMessageTemplate($data);
+//                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
+//                $data = [
+//                    'community_id' => $communityId,
+//                    'id' => $voteId,
+//                    'member_id' => $memberId,
+//                    'user_name' => $memberName,
+//                    'create_user_type' => 2,
+//
+//                    'remind_tmpId' => 5,
+//                    'remind_target_type' => 5,
+//                    'remind_auth_type' => 5,
+//                    'msg_type' => 1,
+//
+//                    'msg_tmpId' => 5,
+//                    'msg_target_type' => 5,
+//                    'msg_auth_type' => 5,
+//                    'remind' =>[
+//                        0 => $memberName
+//                    ],
+//                    'msg' => [
+//                        0 => $memberName,
+//                        1 => $voteModel['vote_name'],
+//                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
+//                        3 => $memberName,
+//                        4 => date("Y-m-d H:i:s",time())
+//                    ]
+//                ];
+//                MessageService::service()->addMessageTemplate($data);
 
                 return true;
             }
@@ -1801,6 +1801,71 @@ class VoteService extends BaseService
             ];
         }
     }
+
+    //投票列表详情
+    public function voteListDetail($voteId, $memberId, $roomId,$memberName){
+        $params['id'] = $voteId;
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($params,"") && $model->validate()){
+            $detail = $model->getDetail($params);
+            $result = self::doVoteListDetail($detail,$memberId,$roomId,$memberName);
+            return $this->success($result);
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+    //做投票列表详情数据
+    public function doVoteListDetail($detail,$memberId,$roomId,$memberName){
+
+        $data = [];
+        //获得投票记录
+        $votedResult = PsVoteMemberDet::find()
+                        ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                        ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                        ->andWhere(['=','room_id',$roomId])->asArray()->all();
+        $voteArr = [];
+        $data['member_id'] = $memberId;
+        $data['room_id'] = $roomId;
+        $data['member_name'] = $memberName;
+        $data['id'] = !empty($detail['id'])?$detail['id']:'';
+        $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
+        $data['problem'] = [];
+        $data['is_check'] = 0;
+        if(!empty($votedResult)){
+            //投过票
+            $voteArr = array_column($votedResult,'onlyId');
+            $data['is_check'] = 1;
+        }
+        if(!empty($detail['problem'])){
+            foreach($detail['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['id'] = !empty($value['id'])?$value['id']:'';
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['id'] = !empty($v['id'])?$v['id']:'';
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $onlyId = $detail['id'].$value['id'].$v['id'];
+                        $optionEle['is_check'] = 0;
+                        if(in_array($onlyId,$voteArr)){
+                            $optionEle['is_check'] = 1;
+                        }
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $data['problem'][] = $problemEle;
+            }
+        }
+        return $data;
+    }
+
 
     public function showMemberDet($vote_id, $member_id, $room_id) 
     {

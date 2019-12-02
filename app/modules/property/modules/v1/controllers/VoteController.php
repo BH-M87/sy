@@ -190,6 +190,37 @@ class VoteController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //投票列表详情
+    public function actionVoteListDetail(){
+        $voteId = PsCommon::get($this->request_params, 'vote_id');
+        if (!$voteId) {
+            return PsCommon::responseFailed('投票活动id不能为空！');
+        }
+
+        $memberId = PsCommon::get($this->request_params, 'member_id');
+        if(!$memberId){
+            return PsCommon::responseFailed('用户id不能为空！');
+        }
+
+        $memberName = PsCommon::get($this->request_params, 'member_name');
+        if(!$memberName){
+            return PsCommon::responseFailed('用户名称不能为空！');
+        }
+
+        $roomId = PsCommon::get($this->request_params, 'room_id');
+        if(!$roomId){
+            return PsCommon::responseFailed('房屋id不能为空！');
+        }
+
+        $result = VoteService::service()->voteListDetail($voteId, $memberId, $roomId,$memberName);
+        if ($result["code"]) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
+
+
     public function actionShowMemberDet()
     {
         $voteId = PsCommon::get($this->request_params, 'vote_id');
