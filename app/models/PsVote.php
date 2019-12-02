@@ -55,8 +55,9 @@ class PsVote extends BaseModel
             ['vote_name', 'string', 'max' => 50,'on' => ['add']],
             ['vote_desc', 'string', 'max' => 500,'on' => ['add']],
 
-            [['result_title','result_content'], 'required','message' => '{attribute}不能为空','on' => ['edit-result']],
-            ['result_title', 'string', 'max' => 64,'on' => ['edit-result']],
+//            [['result_title','result_content'], 'required','message' => '{attribute}不能为空','on' => ['edit-result']],
+            [['result_content'], 'required','message' => '{attribute}不能为空','on' => ['edit-result']],
+//            ['result_title', 'string', 'max' => 64,'on' => ['edit-result']],
 
         ];
     }

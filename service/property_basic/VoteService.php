@@ -1015,15 +1015,15 @@ class VoteService extends BaseService
         if($model["end_time"]>time()) {
             return $this->failed('投票未结束,暂不能编辑投票结果');
         }
-        if( $model["show_at"] < time()) {
-            return $this->failed('已过公示时间,不能编辑投票结果');
-        }
+//        if( $model["show_at"] < time()) {
+//            return $this->failed('已过公示时间,不能编辑投票结果');
+//        }
         $result =  $connection->createCommand("select id from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$data["vote_id"]])->queryOne();
         if( empty( $result) ) {
             $connection->createCommand()->insert('ps_vote_result',
                 [
                     "vote_id" => $data["vote_id"],
-                    "result_title" => $data["result_title"],
+//                    "result_title" => $data["result_title"],
                     "result_content" => $data["result_content"],
                     "created_at" =>time(),
                 ]
@@ -1031,12 +1031,20 @@ class VoteService extends BaseService
         } else {
             $connection->createCommand()->update('ps_vote_result',
                 [
-                    "result_title" => $data["result_title"],
+//                    "result_title" => $data["result_title"],
                     "result_content"=>$data["result_content"]],
                 "vote_id=:vote_id",
                 [":vote_id" => $data["vote_id"]]
             )->execute();
         }
+        //修改投票状态为已公式
+        $connection->createCommand()->update('ps_vote',
+                [
+                    "vote_status"=>4
+                ],
+                "id=:vote_id",[":vote_id" => $data["vote_id"]
+            ]
+        )->execute();
         return $this->success();
     }
 
