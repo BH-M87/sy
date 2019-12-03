@@ -111,4 +111,28 @@ class PsVote extends BaseModel
         $model->with('problem.option');
         return $model->asArray()->one();
     }
+
+    //投票列表
+    public function getList($params){
+        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type','vote_status'];
+        $model = self::find()->select($fields)->where(1);
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+        }
+
+        if(!empty($params['status'])){
+            $model->andWhere(['=','status',$params['status']]);
+        }
+
+        $count = $model->count();
+
+        $model->offset(($params['page']-1)*$params['rows'])->limit($params['rows']);
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'data'=>$result,
+            'count'=>$count
+        ];
+    }
 }
