@@ -69,6 +69,18 @@ class VoteController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //投票公式查看投票结果
+    public function actionVoteStatistics(){
+        $vote_id = $this->params['vote_id'];
+        if (!$vote_id) {
+            return F::apiFailed('投票id必填！');
+        }
+
+        $result = VoteService::service()->voteStatisticsOfC($this->params);
+
+        return PsCommon::responseSuccess($result);
+    }
+
     // 投票详情接口
     public function actionView()
     {

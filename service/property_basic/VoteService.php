@@ -2035,7 +2035,7 @@ class VoteService extends BaseService
         if($model->load($voteParams,"") && $model->validate()){
             $detail = $model->getDetail($voteParams);
             $result = self::doVoteListDetailOfC($detail,$params['member_id'],$params['room_id']);
-            return $this->success($result);
+            return $result;
         }else{
             return $this->failed($this->getError($model));
         }
@@ -2203,5 +2203,19 @@ class VoteService extends BaseService
             'voting_end'=>[],
             'voting_formula'=>$data,
         ];
+    }
+
+    //投票公式 查看投票结果 （小程序）
+    public function voteStatisticsOfC($params){
+        $voteParams['id'] = $params['vote_id'];
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($voteParams,"") && $model->validate()){
+            $detail = $model->getDetail($voteParams);
+            $result = self::doVotingEndOfC($detail);
+            $result = !empty($result['voting_end'])?$result['voting_end']:[];
+            return $result;
+        }else{
+            return $this->failed($this->getError($model));
+        }
     }
 }
