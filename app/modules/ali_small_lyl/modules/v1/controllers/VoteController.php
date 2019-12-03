@@ -43,7 +43,7 @@ class VoteController extends BaseController
 
         $result = VoteService::service()->voteListOfC($this->params);
 
-        return F::apiSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 
     //投票详情
@@ -66,7 +66,7 @@ class VoteController extends BaseController
 
         $result = VoteService::service()->voteDetailOfC($this->params);
 
-        return F::apiSuccess($result);
+        return PsCommon::responseSuccess($result);
     }
 
     // 投票详情接口
