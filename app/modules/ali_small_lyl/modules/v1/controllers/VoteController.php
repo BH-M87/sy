@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
+use app\modules\ali_small_lyl\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
 
@@ -10,9 +11,8 @@ use app\models\PsCommunityModel;
 use service\resident\MemberService;
 use service\property_basic\VoteService;
 
-use app\modules\ali_small_lyl\controllers\UserBaseController;
 
-class VoteController extends UserBaseController 
+class VoteController extends BaseController
 {
     // 小区列表
     public function actionCommunitys()
@@ -26,37 +26,24 @@ class VoteController extends UserBaseController
     // 投票列表
     public function actionList()
     {
-        $appUserId    = $this->appUserId;
         $community_id = $this->params['community_id'];
         if (!$community_id) {
-            return F::apiFailed('参数错误');
+            return F::apiFailed('小区id必填！');
         }
 
-        $from = PsCommon::get($this->params, 'from', '');
+//        $member_id = $this->params['member_id'];
+//        if (!$member_id) {
+//            return F::apiFailed('住户id必填！');
+//        }
+//
+//        $room_id = $this->params['room_id'];
+//        if (!$room_id) {
+//            return F::apiFailed('房屋id必填！');
+//        }
 
-        $reqArr['community_id'] = $community_id;
-        $data['list'] = VoteService::service()->simpleVoteList($reqArr);
+        $result = VoteService::service()->voteListOfC($this->params);
 
-        // 查询用户信息及小区信息
-        $data['comm_info']['name'] = '';
-
-        $community = PsCommunityModel::find()
-            ->select(['name'])
-            ->where(['id' => $community_id])
-            ->asArray()
-            ->one();
-        if ($community) {
-            $data['comm_info']['name'] = $community['name'];
-        }
-
-        // 保存最后访问的小区
-        if ($from && $from == "vote_ali_sa") {
-            $appUserModel = PsAppUser::findOne($appUserId);
-            $appUserModel->last_comm_id = $community_id;
-            $appUserModel->save();
-        }
-
-        return F::apiSuccess($data);
+        return F::apiSuccess($result);
     }
 
     // 投票详情接口

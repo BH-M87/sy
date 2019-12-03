@@ -188,6 +188,30 @@ class VoteService extends BaseService
     }
 
     // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法
+    public function voteListOfC($params)
+    {
+        $model = new PsVote();
+        $params['status'] = 1;
+        $result = $model->getList($params);
+
+        if($result['count']==0){
+            return ["totals" => 0, 'list' => []];
+        }
+
+        $data = [];
+        foreach ($result['data'] as $key => $value) {
+            $element = [];
+            $element['id'] = !empty($value['id'])?$value['id']:'';
+            $element['vote_name'] = !empty($value['vote_name'])?$value['vote_name']:'';
+            $element['vote_status_msg'] = !empty($value['vote_status'])?self::$vote_status[$value['vote_status']]:'';
+            $element['end_time_msg'] = !empty($value['end_time'])?date('Y年m月d日',$value['end_time']):'';
+            $data[] = $element;
+        }
+
+        return ["totals" => $result['count'], 'list' => $data];
+    }
+
+    // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法
     public function simpleVoteList($reqArr)
     {
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
@@ -522,8 +546,12 @@ class VoteService extends BaseService
             ];
             //查询当前用户是否已投 权限类型 1每户一票 2每人一票 3指定业主投票
             if ($vote['permission_type'] ==  1) {//每户一票根据 投票id 房号id查询该房号是否投票
+//                $voteDet = PsVoteMemberDet::find()
+//                    ->where(['vote_id' => $voteId, 'member_id' => $memberId, 'room_id' => $roomId])
+//                    ->asArray()
+//                    ->one();
                 $voteDet = PsVoteMemberDet::find()
-                    ->where(['vote_id' => $voteId, 'member_id' => $memberId, 'room_id' => $roomId])
+                    ->where(['vote_id' => $voteId, 'room_id' => $roomId])
                     ->asArray()
                     ->one();
             } else if ($vote['permission_type'] ==  2) {//每人一票 根据投票id 用户id查询是否投票
