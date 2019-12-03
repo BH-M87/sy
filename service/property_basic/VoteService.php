@@ -187,19 +187,52 @@ class VoteService extends BaseService
         return ["totals" => $totals, 'list' => $models];
     }
 
-    // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法
+    // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法 显示当前用户能看到的数据
     public function voteListOfC($params)
     {
-        $model = new PsVote();
         $params['status'] = 1;
-        $result = $model->getList($params);
 
-        if($result['count']==0){
+        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type','vote_status','status'];
+        $model = PsVote::find()->select($fields)->andWhere(['in','permission_type',[1,2]]);
+
+        $fields1 = ['v.id','v.vote_name','v.community_id','v.start_time','v.end_time','v.vote_desc','v.permission_type','v.vote_status','v.status'];
+        $model1 = PsVote::find()->alias('v')->select($fields1)
+            ->leftJoin(['a'=>PsVoteMemberAppoint::tableName()],'a.vote_id=v.id')
+            ->andWhere(['=','v.permission_type',3]);
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+            $model1->andWhere(['=','v.community_id',$params['community_id']]);
+        }
+
+        if(!empty($params['status'])){
+            $model->andWhere(['=','status',$params['status']]);
+            $model1->andWhere(['=','v.status',$params['status']]);
+        }
+
+
+        if(!empty($params['member_id'])){
+            $model1->andWhere(['=','a.member_id',$params['member_id']]);
+        }
+
+        if(!empty($params['room_id'])){
+            $model1->andWhere(['=','a.room_id',$params['room_id']]);
+        }
+
+        $modelQuery = (new Query())->from(['tmpA' => $model->union($model1)]);
+
+        $count = $modelQuery->count();
+        $modelQuery->offset(($params['page']-1)*$params['rows'])->limit($params['rows']);
+        $modelQuery->orderBy(["id"=>SORT_DESC]);
+        $result = $modelQuery->all();
+
+
+        if($count==0){
             return ["totals" => 0, 'list' => []];
         }
 
         $data = [];
-        foreach ($result['data'] as $key => $value) {
+        foreach ($result as $key => $value) {
             $element = [];
             $element['id'] = !empty($value['id'])?$value['id']:'';
             $element['vote_name'] = !empty($value['vote_name'])?$value['vote_name']:'';
@@ -208,7 +241,7 @@ class VoteService extends BaseService
             $data[] = $element;
         }
 
-        return ["totals" => $result['count'], 'list' => $data];
+        return ["totals" => $count, 'list' => $data];
     }
 
     // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法
@@ -1992,5 +2025,132 @@ class VoteService extends BaseService
             }
         }
         return $member_options;
+    }
+
+    //c端小程序投票详情
+    public function voteDetailOfC($params){
+
+        $voteParams['id'] = $params['vote_id'];
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($voteParams,"") && $model->validate()){
+            $detail = $model->getDetail($voteParams);
+            $result = self::doVoteListDetailOfC($detail,$params['member_id'],$params['room_id']);
+            return $this->success($result);
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+    //做数据详情
+    public function doVoteListDetailOfC($detail,$memberId,$roomId){
+
+        switch($detail['vote_status']){
+            case 1:     //未开始
+            case 2:     //投票中
+                $result = self::doVotingOfC($detail,$memberId,$roomId);
+                break;
+            case 3:     //投票结束
+                break;
+            case 4:     //已公示
+                break;
+        }
+
+        $data = [
+            'voting'=>'',
+            'voting_end'=>'',
+            'voting_formula'=>'',
+        ];
+        return $result;
+    }
+
+    //做投票开始，中数据
+    public function doVotingOfC($detail,$memberId,$roomId){
+
+        $data = [];
+        $data['is_permission'] = 0;     //判断是否有权限投票 0没有权限 1有权限投票
+        switch($detail['permission_type']){
+            case 1: //每户一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','room_id',$roomId])
+                    ->asArray()->all();
+                $data['is_permission'] = 1;
+                break;
+            case 2: //每人一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                $data['is_permission'] = 1;
+
+                break;
+            case 3: //指定业主投票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                //判断是否制定业主
+                $appointResult = PsVoteMemberAppoint::find()->select(['id'])->where(['=','vote_id',$detail['id']])
+                    ->andWhere(['=','member_id',$memberId])->andWhere(['=','room_id',$roomId])->asArray()->all();
+                if(!empty($appointResult)){
+                    $data['is_permission'] = 1;
+                }
+                break;
+        }
+        $voteArr = [];
+        $data['member_id'] = $memberId;
+        $data['room_id'] = $roomId;
+        $data['id'] = !empty($detail['id'])?$detail['id']:'';
+        $data['vote_status'] = !empty($detail['vote_status'])?$detail['vote_status']:'';
+        $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
+        $data['problem'] = [];
+        $data['is_check'] = 0;
+        if(!empty($votedResult)){
+            //投过票
+            $voteArr = array_column($votedResult,'onlyId');
+            $data['is_check'] = 1;
+        }
+        if(!empty($detail['problem'])){
+            foreach($detail['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['id'] = !empty($value['id'])?$value['id']:'';
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['id'] = !empty($v['id'])?$v['id']:'';
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $onlyId = $detail['id'].$value['id'].$v['id'];
+                        $optionEle['is_check'] = 0;
+                        if(in_array($onlyId,$voteArr)){
+                            $optionEle['is_check'] = 1;
+                        }
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $data['problem'][] = $problemEle;
+            }
+        }
+        if($detail['vote_status']==1){
+            $data['msg'] = '投票尚未开始，请先查看投票内容';
+        }
+        if($detail['vote_status']==2){
+            if($data['is_permission']==0){
+                $data['msg'] = '投票尚未开始，请先查看投票内容';
+            }
+        }
+        return [
+            'voting'=>$data,
+            'voting_end'=>[],
+            'voting_formula'=>[],
+        ];
     }
 }

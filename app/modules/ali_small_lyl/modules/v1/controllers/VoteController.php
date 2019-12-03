@@ -31,17 +31,40 @@ class VoteController extends BaseController
             return F::apiFailed('小区id必填！');
         }
 
-//        $member_id = $this->params['member_id'];
-//        if (!$member_id) {
-//            return F::apiFailed('住户id必填！');
-//        }
-//
-//        $room_id = $this->params['room_id'];
-//        if (!$room_id) {
-//            return F::apiFailed('房屋id必填！');
-//        }
+        $member_id = $this->params['member_id'];
+        if (!$member_id) {
+            return F::apiFailed('住户id必填！');
+        }
+
+        $room_id = $this->params['room_id'];
+        if (!$room_id) {
+            return F::apiFailed('房屋id必填！');
+        }
 
         $result = VoteService::service()->voteListOfC($this->params);
+
+        return F::apiSuccess($result);
+    }
+
+    //投票详情
+    public function actionVoteDetail(){
+
+        $vote_id = $this->params['vote_id'];
+        if (!$vote_id) {
+            return F::apiFailed('投票id必填！');
+        }
+
+        $member_id = $this->params['member_id'];
+        if (!$member_id) {
+            return F::apiFailed('住户id必填！');
+        }
+
+        $room_id = $this->params['room_id'];
+        if (!$room_id) {
+            return F::apiFailed('房屋id必填！');
+        }
+
+        $result = VoteService::service()->voteDetailOfC($this->params);
 
         return F::apiSuccess($result);
     }
