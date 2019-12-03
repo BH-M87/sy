@@ -28,17 +28,17 @@ class VoteController extends BaseController
     {
         $community_id = $this->params['community_id'];
         if (!$community_id) {
-            return F::apiFailed('小区id必填！');
+            return PsCommon::responseFailed('小区id必填！');
         }
 
         $member_id = $this->params['member_id'];
         if (!$member_id) {
-            return F::apiFailed('住户id必填！');
+            return PsCommon::responseFailed('住户id必填！');
         }
 
         $room_id = $this->params['room_id'];
         if (!$room_id) {
-            return F::apiFailed('房屋id必填！');
+            return PsCommon::responseFailed('房屋id必填！');
         }
 
         $result = VoteService::service()->voteListOfC($this->params);
@@ -51,17 +51,17 @@ class VoteController extends BaseController
 
         $vote_id = $this->params['vote_id'];
         if (!$vote_id) {
-            return F::apiFailed('投票id必填！');
+            return PsCommon::responseFailed('投票id必填！');
         }
 
         $member_id = $this->params['member_id'];
         if (!$member_id) {
-            return F::apiFailed('住户id必填！');
+            return PsCommon::responseFailed('住户id必填！');
         }
 
         $room_id = $this->params['room_id'];
         if (!$room_id) {
-            return F::apiFailed('房屋id必填！');
+            return PsCommon::responseFailed('房屋id必填！');
         }
 
         $result = VoteService::service()->voteDetailOfC($this->params);
@@ -73,7 +73,7 @@ class VoteController extends BaseController
     public function actionVoteStatistics(){
         $vote_id = $this->params['vote_id'];
         if (!$vote_id) {
-            return F::apiFailed('投票id必填！');
+            return PsCommon::responseFailed('投票id必填！');
         }
 
         $result = VoteService::service()->voteStatisticsOfC($this->params);
@@ -87,18 +87,18 @@ class VoteController extends BaseController
         $voteId = PsCommon::get($this->params, 'vote_id', 0);
         $roomId = PsCommon::get($this->params, 'room_id', 0);
         if (!$voteId || !$roomId) {
-            return F::apiFailed('参数错误');
+            return PsCommon::responseFailed('参数错误');
         }
 
         // 查询member_id
         $memberId = MemberService::service()->getMemberId($this->appUserId);
         if (!$memberId) {
-            return F::apiFailed('用户不存在');
+            return PsCommon::responseFailed('用户不存在');
         }
         $voteInfo = VoteService::service()->showVote($voteId, $memberId, $roomId);
 
         if (!$voteInfo) {
-            return F::apiFailed('投票信息不存在');
+            return PsCommon::responseFailed('投票信息不存在');
         } else {
             return F::apiSuccess($voteInfo);
         }
@@ -111,20 +111,23 @@ class VoteController extends BaseController
         $voteDetail = PsCommon::get($this->params, 'vote_det', '');
         $roomId = PsCommon::get($this->params, 'room_id', 0);
         if (!$voteId || !$voteDetail || !$roomId) {
-            return F::apiFailed('参数错误');
+            return PsCommon::responseFailed('参数错误');
         }
+
+
+
         //查询member_id
         $memberInfo = MemberService::service()->getInfoByAppUserId($this->appUserId);
         if (!$memberInfo) {
-            return F::apiFailed('用户不存在');
+            return PsCommon::responseFailed('用户不存在');
         }
         $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
             return F::apiSuccess();
         } elseif ($doVote === false){
-            return F::apiFailed('投票失败');
+            return PsCommon::responseFailed('投票失败');
         } else {
-            return F::apiFailed($doVote);
+            return PsCommon::responseFailed($doVote);
         }
     }
 }
