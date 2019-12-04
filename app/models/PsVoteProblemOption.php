@@ -15,13 +15,15 @@ class PsVoteProblemOption extends BaseModel
         return [
             ["title",'required','message' => '{attribute}不能为空','on'=>['add1','add2']],
             ['title', 'string', 'max' =>200, 'message' => '{attribute}不正确', 'on' =>['add1']],
-            ['title', 'string', 'max' =>35, 'message' => '{attribute}不正确', 'on' =>['add2']],
+//            ['title', 'string', 'max' =>35, 'message' => '{attribute}不正确', 'on' =>['add2']],
+            ['title', 'string', 'max' =>20, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
             ["image_url",'required','message' => '{attribute}不能为空','on'=>['add2']],
             ['image_url', 'string', 'max' =>250, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
             ["option_desc",'required','message' => '{attribute}不能为空','on'=>['add2']],
-            ['option_desc', 'string', 'max' =>500, 'message' => '{attribute}不正确', 'on' =>['add2']],
+//            ['option_desc', 'string', 'max' =>500, 'message' => '{attribute}不正确', 'on' =>['add2']],
+            ['option_desc', 'string', 'max' =>50, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
         ];
     }

@@ -31,9 +31,14 @@ class PsVoteProblem extends BaseModel
             'option_type' => '问题类型',
             'option_num' => '多选最大值',
             'title' => '问题标题',
-            'vote_type' => '投票类型',
+//            'vote_type' => '投票类型',
             'totals' => '总人数',
             'created_at' => '创建时间',
         ];
+    }
+
+    //获得问题选项
+    public function getOption(){
+        return $this->hasMany(PsVoteProblemOption::className(),['problem_id'=>'id']);
     }
 }

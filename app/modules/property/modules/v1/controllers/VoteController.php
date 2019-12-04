@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
+use service\property_basic\JavaService;
 use Yii;
 
 use app\modules\property\controllers\BaseController;
@@ -36,10 +37,10 @@ class VoteController extends BaseController
 
     public function actionList()
     {
-        $communityId = PsCommon::get($this->request_params, 'community_id');
-        if (!$communityId) {
-            return PsCommon::responseFailed('小区不能为空！');
-        }
+//        $communityId = PsCommon::get($this->request_params, 'community_id');
+//        if (!$communityId) {
+//            return PsCommon::responseFailed('小区不能为空！');
+//        }
         $result = VoteService::service()->voteList($this->request_params);
         
         return PsCommon::responseSuccess($result);
@@ -51,9 +52,12 @@ class VoteController extends BaseController
         if (!$voteId) {
             return PsCommon::responseFailed('投票活动id不能为空！');
         }
-        $result = VoteService::service()->showVote($voteId);
-        
-        return PsCommon::responseSuccess($result);
+        $result = VoteService::service()->voteDetail($voteId);
+        if ($result["code"]) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
     }
 
     public function actionOnOff()
@@ -64,16 +68,24 @@ class VoteController extends BaseController
         }
         $result = VoteService::service()->onOffVote($this->request_params, $this->user_info);
         if ($result["code"]) {
-            return PsCommon::responseSuccess();
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }
     }
 
+    //投票状态下拉
+    public function actionGetStatusDrop(){
+        $drop = VoteService::service()->getStatusList();
+        return PsCommon::responseSuccess($drop);
+    }
+
     public function actionAdd()
     {
         $data = $this->request_params;
+        $this->request_params['vote_status'] = 1; //投票状态
         $valid = PsCommon::validParamArr(new PsVote(), $this->request_params, 'add');
+
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
@@ -94,6 +106,13 @@ class VoteController extends BaseController
 
             if (empty($problem["options"]) || count($problem["options"]) > 30 || count($problem["options"]) < 2) {
                 return PsCommon::responseFailed('选项个数最少2个最多30个');
+            }
+
+            foreach ($problem['options'] as $option){
+                $valid = PsCommon::validParamArr(new PsVoteProblemOption(), $option, 'add2');
+                if (!$valid["status"]) {
+                    return PsCommon::responseFailed($valid["errorMsg"]);
+                }
             }
         }
 
@@ -117,11 +136,10 @@ class VoteController extends BaseController
             }
         }
         $result = VoteService::service()->addVote($data, $this->user_info);
-        echo 2;die;
         if ($result["code"]) {
             // 添加到redis中，处理发送消息
             $voteId = $result['data']['vote_id'];
-            return PsCommon::responseSuccess();
+            return PsCommon::responseSuccess(['id'=>$voteId]);
         } else {
             return PsCommon::responseFailed($result["msg"]);
         }
@@ -155,6 +173,21 @@ class VoteController extends BaseController
         }
     }
 
+    //投票人员列表
+    public function actionVoteMemberList(){
+        $voteId = PsCommon::get($this->request_params, 'vote_id');
+        if (!$voteId) {
+            return PsCommon::responseFailed('投票活动id不能为空！');
+        }
+        $communityId = PsCommon::get($this->request_params, 'community_id');
+        if (!$communityId) {
+            return PsCommon::responseFailed('小区id不能为空！');
+        }
+
+        $result = VoteService::service()->voteMemberList($this->request_params);
+        return PsCommon::responseSuccess($result);
+    }
+
     public function actionShowMember()
     {
         $voteId = PsCommon::get($this->request_params, 'vote_id');
@@ -164,6 +197,33 @@ class VoteController extends BaseController
         $result = VoteService::service()->showMember($this->request_params);
         return PsCommon::responseSuccess($result);
     }
+
+    //投票列表详情
+    public function actionVoteListDetail(){
+        $voteId = PsCommon::get($this->request_params, 'vote_id');
+        if (!$voteId) {
+            return PsCommon::responseFailed('投票活动id不能为空！');
+        }
+
+        $memberId = PsCommon::get($this->request_params, 'member_id');
+        if(!$memberId){
+            return PsCommon::responseFailed('用户id不能为空！');
+        }
+
+
+        $roomId = PsCommon::get($this->request_params, 'room_id');
+        if(!$roomId){
+            return PsCommon::responseFailed('房屋id不能为空！');
+        }
+
+        $result = VoteService::service()->voteListDetail($voteId, $memberId, $roomId);
+        if ($result["code"]) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
+
 
     public function actionShowMemberDet()
     {
@@ -255,6 +315,7 @@ class VoteController extends BaseController
     public function actionDoVote()
     {
         $memberId = PsCommon::get($this->request_params, 'member_id');
+        $token = PsCommon::get($this->request_params, 'token');
         $roomId = PsCommon::get($this->request_params, 'room_id');
         $voteId = PsCommon::get($this->request_params, 'vote_id');
         $voteDetail = PsCommon::get($this->request_params, 'vote_det');
@@ -293,12 +354,20 @@ class VoteController extends BaseController
         if (!empty($problem_type)) {
             return PsCommon::responseFailed('问题未添加选项！');
         }
-        $memberInfo = Yii::$app->db->createCommand("select community_id,member_id as id,name,mobile from ps_room_user where member_id=:id", [":id" => $memberId])->queryOne();
 
-        if (empty($memberInfo)) {
+        $javaService = new JavaService();
+        $javaParams['id'] = $memberId;
+        $javaParams['token'] = $token;
+        $javaResult = $javaService->residentDetail($javaParams);
+        if(empty($javaResult)){
             return PsCommon::responseFailed('用户不存在');
         }
-        $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], json_encode($voteDetail), $memberInfo['community_id'], 'off', $roomId);
+
+        if(!empty($javaResult['roomId'])&&$javaResult['roomId']!=$roomId){
+            return PsCommon::responseFailed('用户不存在');
+        }
+
+        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId);
         if ($doVote === true) {
             return PsCommon::responseSuccess();
         } elseif ($doVote === false) {

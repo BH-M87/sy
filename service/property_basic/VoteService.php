@@ -27,6 +27,7 @@ class VoteService extends BaseService
     public static $status = ['1' => '已上架', '2'  => '已下架'];
     public static $Vote_Channel = ['1' => '线上投票', '2'  => '线下录入'];
     public static $Vote_Status = ['0' => '全部', '1' => '进行中', '2'  => '已结束'];
+    public static $vote_status = ['1'=>'未开始', '2'=>'投票中', '3'=>'投票结束', '4'=>'已公示'];        //投票状态
 
     // 查询所有的小区列表
     public function getAllCommunitys($name)
@@ -40,11 +41,23 @@ class VoteService extends BaseService
         return $comms;
     }
 
+    public function getStatusList(){
+        return [
+            'list'=>[
+                ['key'=>1,'name'=>'未开始'],
+                ['key'=>2,'name'=>'投票中'],
+                ['key'=>3,'name'=>'投票结束'],
+                ['key'=>4,'name'=>'已公示'],
+            ]
+        ];
+    }
+
     // 获取投票列表
     public function voteList($reqArr) 
     {
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : '';
         $voteName = !empty($reqArr['vote_name']) ? $reqArr['vote_name'] : '';
+        $voteStatus = !empty($reqArr['vote_status']) ? $reqArr['vote_status'] : '';
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
 
@@ -59,27 +72,46 @@ class VoteService extends BaseService
             $query->andWhere(['like', 'vote_name', $voteName]);
         }
 
+        if ($voteStatus){
+            $query->andWhere(['=', 'vote_status', $voteStatus]);
+        }
+
         $totals = $query->count();
         if($totals == 0 ) {
             return [ "totals" => 0, 'list' => []];
         }
-
-        $query->select(['*']);
+        $fields = ['id','community_id','vote_name','start_time','end_time','vote_status','status'];
+        $query->select($fields);
         $query->orderBy('created_at desc');
         $re['totals'] = $totals;
         $offset = ($page-1) * $rows;
         $query->offset($offset)->limit($rows);
+
         $command = $query->createCommand();
         $models = $command->queryAll();
+        // 获得所有小区
+        $javaService = new JavaService();
+        $javaParam['token'] = $reqArr['token'];
+        $javaResult = $javaService->communityNameList($javaParam);
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+
         foreach ($models as $key=>$val) {
-            $models[$key]['totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
             $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
             $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
-            $models[$key]["vote_status"] = $val['end_time'] > time() ? "进行中" : "已结束";
-            $models[$key]["status_desc"] = isset( self::$status[$val['status']]) ? self::$status[$val['status']] : '未知';
-            $models[$key]['created_at'] = date("Y-m-d H:i:s", $val['created_at']);
-            $models[$key]['permission_type_desc'] = isset( self::$Permission_Type[$val['permission_type']]) ? self::$Permission_Type[$val['permission_type']] : '未知';
-            $models[$key]['vote_type_desc'] = isset( self::$Vote_Type[$val['vote_type']]) ? self::$Vote_Type[$val['vote_type']] : '未知';
+            $models[$key]['vote_status_msg'] = !empty($val['vote_status'])?self::$vote_status[$val['vote_status']]:'';
+            $models[$key]['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+
+
+
+//            $models[$key]['totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+//            $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
+//            $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
+//            $models[$key]["vote_status"] = $val['end_time'] > time() ? "进行中" : "已结束";
+//            $models[$key]["status_desc"] = isset( self::$status[$val['status']]) ? self::$status[$val['status']] : '未知';
+//            $models[$key]['created_at'] = date("Y-m-d H:i:s", $val['created_at']);
+//            $models[$key]['permission_type_desc'] = isset( self::$Permission_Type[$val['permission_type']]) ? self::$Permission_Type[$val['permission_type']] : '未知';
+//            $models[$key]['vote_type_desc'] = isset( self::$Vote_Type[$val['vote_type']]) ? self::$Vote_Type[$val['vote_type']] : '未知';
         }
 
         return ["totals" => $totals, 'list' => $models];
@@ -155,6 +187,63 @@ class VoteService extends BaseService
         return ["totals" => $totals, 'list' => $models];
     }
 
+    // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法 显示当前用户能看到的数据
+    public function voteListOfC($params)
+    {
+        $params['status'] = 1;
+
+        $fields = ['id','vote_name','community_id','start_time','end_time','vote_desc','permission_type','vote_status','status'];
+        $model = PsVote::find()->select($fields)->andWhere(['in','permission_type',[1,2]]);
+
+        $fields1 = ['v.id','v.vote_name','v.community_id','v.start_time','v.end_time','v.vote_desc','v.permission_type','v.vote_status','v.status'];
+        $model1 = PsVote::find()->alias('v')->select($fields1)
+            ->leftJoin(['a'=>PsVoteMemberAppoint::tableName()],'a.vote_id=v.id')
+            ->andWhere(['=','v.permission_type',3]);
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+            $model1->andWhere(['=','v.community_id',$params['community_id']]);
+        }
+
+        if(!empty($params['status'])){
+            $model->andWhere(['=','status',$params['status']]);
+            $model1->andWhere(['=','v.status',$params['status']]);
+        }
+
+
+        if(!empty($params['member_id'])){
+            $model1->andWhere(['=','a.member_id',$params['member_id']]);
+        }
+
+        if(!empty($params['room_id'])){
+            $model1->andWhere(['=','a.room_id',$params['room_id']]);
+        }
+
+        $modelQuery = (new Query())->from(['tmpA' => $model->union($model1)]);
+
+        $count = $modelQuery->count();
+        $modelQuery->offset(($params['page']-1)*$params['rows'])->limit($params['rows']);
+        $modelQuery->orderBy(["id"=>SORT_DESC]);
+        $result = $modelQuery->all();
+
+
+        if($count==0){
+            return ["totals" => 0, 'list' => []];
+        }
+
+        $data = [];
+        foreach ($result as $key => $value) {
+            $element = [];
+            $element['id'] = !empty($value['id'])?$value['id']:'';
+            $element['vote_name'] = !empty($value['vote_name'])?$value['vote_name']:'';
+            $element['vote_status_msg'] = !empty($value['vote_status'])?self::$vote_status[$value['vote_status']]:'';
+            $element['end_time_msg'] = !empty($value['end_time'])?date('Y年m月d日',$value['end_time']):'';
+            $data[] = $element;
+        }
+
+        return ["totals" => $count, 'list' => $data];
+    }
+
     // 精简的投票列表，用于生活号上展示，主要为了C端查询速度不用后台使用同一个方法
     public function simpleVoteList($reqArr)
     {
@@ -182,6 +271,60 @@ class VoteService extends BaseService
 
         return $votes;
     }
+
+    //投票详情
+    public function voteDetail($vote_id){
+        $params['id'] = $vote_id;
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($params,"") && $model->validate()){
+            $detail = $model->getDetail($params);
+            $result = self::doVoteDetail($detail);
+            return $this->success($result);
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+    //投票详情数据
+    public function doVoteDetail($params){
+        $element = [];
+        $element['id'] = !empty($params['id'])?$params['id']:'';
+        $element['vote_name'] = !empty($params['vote_name'])?$params['vote_name']:'';
+        $element['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $element['start_time_msg'] = !empty($params['start_time'])?date('Y-m-d H:i',$params['start_time']):'';
+        $element['end_time_msg'] = !empty($params['end_time'])?date('Y-m-d H:i',$params['end_time']):'';
+        $element['vote_desc'] = !empty($params['vote_desc'])?$params['vote_desc']:'';
+        $element['permission_type'] = !empty($params['permission_type'])?$params['permission_type']:'';
+        $element['permission_type_msg'] = !empty($params['permission_type'])?self::$Permission_Type[$params['permission_type']]:'';
+        //已投票数
+        $element['totals'] = !empty($params['totals'])?$params['totals']:0;
+        //投票问题
+        $element['problem'] = [];
+        if(!empty($params['problem'])){
+            foreach($params['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['totals'] = !empty($value['totals'])?$value['totals']:0;
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
+                        $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $element['problem'][] = $problemEle;
+            }
+        }
+        return $element;
+    }
+
 
     // 获取投票详情
     public function showVote($vote_id, $member_id = 0, $roomId = 0) 
@@ -327,112 +470,90 @@ class VoteService extends BaseService
      */
     public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0)
     {
-        $canVote = $this->doCanVoting($memberId, $voteId, $voteChannel, $room_id);
-        if (!empty($canVote['voting_status']) && $canVote['voting_status'] == 1) {
-            // 可投票
-            $voteDetArr = $voteDetail;//json_decode($voteDetail, true);
-            // 数据检查
-            foreach ($voteDetArr as $vote) {
-                if (empty($vote['problem_id'])) {
-                    return '投票项不存在！';
-                }
 
-                if (empty($vote['options'])) {
-                    return '您还有投票项未选择!';
-                }
-            }
-            // 进行投票 查询会员的房屋信息
-            if ($room_id > 0 ) {
-                $room_id = $room_id;
-            } else {
-                $memberRoomIds = MemberService::service()->getRommIdsByMemberId($memberId, $communityId);
-                $room_id = $memberRoomIds[0] ? $memberRoomIds[0] : 0 ;
-            }
+        $connection = Yii::$app->db;
+        $transaction = $connection->beginTransaction();
+        try{
 
-            $doVoteSuc = 0;
-            foreach ($voteDetArr as $vote) {
-                $suc = 0;
-                foreach ($vote['options'] as $k => $v) {
-                    $model = new PsVoteMemberDet();
-                    $model->vote_id     = $voteId;
-                    $model->problem_id  = $vote['problem_id'];
-                    $model->room_id     = $room_id ;
-                    $model->option_id   = $v['option_id'];
-                    $model->member_id   = $memberId;
-                    $model->member_name = $memberName;
-                    $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
-                    $model->created_at  = time();
-                    if ($model->save()) {
-                        // 给选项增加投票数量
-                        $suc++;
-                        $optionModel = PsVoteProblemOption::findOne($v['option_id']);
-                        $optionModel->totals = $optionModel->totals + 1;
-                        $optionModel->save();
+            $canVote = $this->doCanVoting($memberId, $voteId, $voteChannel, $room_id);
+            if (!empty($canVote['voting_status']) && $canVote['voting_status'] == 1) {
+                // 可投票
+                $voteDetArr = $voteDetail;//json_decode($voteDetail, true);
+                // 数据检查
+                foreach ($voteDetArr as $vote) {
+                    if (empty($vote['problem_id'])) {
+                        return '投票项不存在！';
+                    }
+
+                    if (empty($vote['options'])) {
+                        return '您还有投票项未选择!';
+                    }
+                }
+                // 进行投票 查询会员的房屋信息
+//                if ($room_id > 0 ) {
+//                    $room_id = $room_id;
+//                } else {
+//                    $memberRoomIds = MemberService::service()->getRommIdsByMemberId($memberId, $communityId);
+//                    $room_id = $memberRoomIds[0] ? $memberRoomIds[0] : 0 ;
+//                }
+
+                $doVoteSuc = 0;
+                foreach ($voteDetArr as $vote) {
+                    $suc = 0;
+                    foreach ($vote['options'] as $k => $v) {
+                        $model = new PsVoteMemberDet();
+                        $model->vote_id     = $voteId;
+                        $model->problem_id  = $vote['problem_id'];
+                        $model->room_id     = $room_id ;
+                        $model->option_id   = $v['option_id'];
+                        $model->member_id   = $memberId;
+                        $model->member_name = $memberName;
+                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
+                        $model->created_at  = time();
+                        if ($model->save()) {
+                            // 给选项增加投票数量
+                            $suc++;
+                            $optionModel = PsVoteProblemOption::findOne($v['option_id']);
+                            $optionModel->totals = $optionModel->totals + 1;
+                            $optionModel->save();
+                        }
+                    }
+
+                    // 给问题增加投票数量
+                    $problemModel = PsVoteProblem::findOne($vote['problem_id']);
+                    if ($problemModel && $suc) {
+                        $problemModel->totals = $problemModel->totals + 1;
+                        $problemModel->save();
+                        $doVoteSuc++;
                     }
                 }
 
-                // 给问题增加投票数量
-                $problemModel = PsVoteProblem::findOne($vote['problem_id']);
-                if ($problemModel && $suc) {
-                    $problemModel->totals = $problemModel->totals + 1;
-                    $problemModel->save();
-                    $doVoteSuc++;
+                if ($doVoteSuc) {
+                    // 修改投票计数
+                    $voteModel = PsVote::findOne($voteId);
+                    $voteModel->totals = $voteModel->totals + 1;
+                    $voteModel->save();
+                    $transaction->commit();
+                    return true;
                 }
-            }
 
-            if ($doVoteSuc) {
-                // 修改投票计数
-                $voteModel = PsVote::findOne($voteId);
-                $voteModel->totals = $voteModel->totals + 1;
-                $voteModel->save();
+            } else {
 
-                //发送消息
-                $room_info = \app\services\CommunityService::getCommunityRoominfo($room_id);
-                $data = [
-                    'community_id' => $communityId,
-                    'id' => $voteId,
-                    'member_id' => $memberId,
-                    'user_name' => $memberName,
-                    'create_user_type' => 2,
-
-                    'remind_tmpId' => 5,
-                    'remind_target_type' => 5,
-                    'remind_auth_type' => 5,
-                    'msg_type' => 1,
-
-                    'msg_tmpId' => 5,
-                    'msg_target_type' => 5,
-                    'msg_auth_type' => 5,
-                    'remind' =>[
-                        0 => $memberName
-                    ],
-                    'msg' => [
-                        0 => $memberName,
-                        1 => $voteModel['vote_name'],
-                        2 => $room_info['group'].''.$room_info['building'].''.$room_info['unit'].$room_info['room'],
-                        3 => $memberName,
-                        4 => date("Y-m-d H:i:s",time())
-                    ]
-                ];
-                MessageService::service()->addMessageTemplate($data);
-
-                return true;
-            }
-
-        } else {
-
-            if ($canVote['voting_status'] == 2) {
-                if($voteChannel == 'off') {
-                    return '该业主已参与投票，无法重复投票';
-                } else {
-                    //已投票
-                    return '已投票';
+                if ($canVote['voting_status'] == 2) {
+                    if($voteChannel == 'off') {
+                        return '该业主已参与投票，无法重复投票';
+                    } else {
+                        //已投票
+                        return '已投票';
+                    }
                 }
+                return !empty($canVote['voting_value']) ? $canVote['voting_value'] : '投票失败！';
             }
-            return !empty($canVote['voting_value']) ? $canVote['voting_value'] : '投票失败！';
+
+            return false;
+        }catch (Exception $e) {
+            return $this->failed('系统错误');
         }
-
-        return false;
     }
 
     /**
@@ -458,8 +579,12 @@ class VoteService extends BaseService
             ];
             //查询当前用户是否已投 权限类型 1每户一票 2每人一票 3指定业主投票
             if ($vote['permission_type'] ==  1) {//每户一票根据 投票id 房号id查询该房号是否投票
+//                $voteDet = PsVoteMemberDet::find()
+//                    ->where(['vote_id' => $voteId, 'member_id' => $memberId, 'room_id' => $roomId])
+//                    ->asArray()
+//                    ->one();
                 $voteDet = PsVoteMemberDet::find()
-                    ->where(['vote_id' => $voteId, 'member_id' => $memberId, 'room_id' => $roomId])
+                    ->where(['vote_id' => $voteId, 'room_id' => $roomId])
                     ->asArray()
                     ->one();
             } else if ($vote['permission_type'] ==  2) {//每人一票 根据投票id 用户id查询是否投票
@@ -473,7 +598,7 @@ class VoteService extends BaseService
                     ->asArray()
                     ->one();
             }
-            if ($voteDet) {
+            if (!empty($voteDet)) {
                 if($voteChannel=='off') {
                     //已投
                     $data = [
@@ -497,11 +622,12 @@ class VoteService extends BaseService
                 }
             } else {
                 //未投
-                if( $voteChannel == 'off' &&  ( $vote['end_time'] >= time() || $vote['show_at'] <= time())) {
+//                if( $voteChannel == 'off' &&  ( $vote['end_time'] >= time() || $vote['show_at'] <= time())) {
+                if( $voteChannel == 'off' &&  $vote['end_time'] <= time() ) {
                     //投票已结束
                     $data = [
                         'voting_status' => 5,
-                        'voting_value'  => '投票必须在活动结束后未到公示时间'
+                        'voting_value'  => '当前投票活动已截止'
                     ];
                 } elseif ( $voteChannel == 'on' && $vote['end_time'] <= time() ) {
                     //投票已结束
@@ -513,11 +639,12 @@ class VoteService extends BaseService
                     //投票未结束
                     if ($vote['permission_type'] ==  1) {
                         //每户一票
-                        if($roomId == 0 ) {
-                            $roomIds = MemberService::service()->getRommIdsByMemberId($memberId, $vote['community_id']);
-                        }else {
-                            $roomIds = $roomId;
-                        }
+//                        if($roomId == 0 ) {
+//                            $roomIds = MemberService::service()->getRommIdsByMemberId($memberId, $vote['community_id']);
+//                        }else {
+//                            $roomIds = $roomId;
+//                        }
+                        $roomIds = $roomId;
                         $voteStatus = $this->roomIsVoted($voteId, $roomIds);
                         if ($voteStatus) {
                             $data = [
@@ -794,17 +921,53 @@ class VoteService extends BaseService
         $now_time = time();
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
+        $vote_status = 1;
+//        $totals = 0;
         try {
+
+            $start_time = !empty($data["start_time"]) ? strtotime($data["start_time"].":00")  : strtotime(date("Y-m-d H:i:00",$now_time));
+            $end_time = strtotime($data["end_time"].":59");
+            if($now_time<$start_time){
+                $vote_status = 1;
+            }
+            if($now_time>$start_time && $now_time<$end_time){
+                $vote_status = 2;
+            }
+            if($now_time>$end_time){
+                $vote_status = 3;
+            }
+//            //计算应该有多少投票
+//            switch($data["permission_type"]){
+//                case 1: //每户一票
+//                    $javaService = new JavaService();
+//                    $javaParams['token'] = $data['token'];
+//                    $javaParams['communityId'] = $data['community_id'];
+//                    $javaResult = $javaService->roomList($javaParams);
+//                    $totals = !empty($javaResult['totalSize'])?$javaResult['totalSize']:'';
+//                    break;
+//                case 2: //每人一票
+//                    $javaService = new JavaService();
+//                    $javaParams['token'] = $data['token'];
+//                    $javaParams['communityId'] = $data['community_id'];
+//                    $javaResult = $javaService->residentList($javaParams);
+//                    $totals = !empty($javaResult['totalSize'])?$javaResult['totalSize']:'';
+//                    break;
+//                case 3: //指定业主投票
+//                    $totals = count($data['appoint_members']);
+//                    break;
+//            }
             // 添加投票主题
             $voteArr = [
                 "community_id" => $data["community_id"],
                 "vote_name" => $data["vote_name"],
-                "start_time" => !empty($data["start_time"]) ? strtotime($data["start_time"].":00")  : strtotime(date("Y-m-d H:i:00",$now_time)),
-                "end_time" => strtotime($data["end_time"].":59"),
+                "start_time" => $start_time,
+                "end_time" => $end_time,
                 "vote_desc" => $data["vote_desc"],
-                "vote_type" => $data["vote_type"],
+                "vote_status" => $vote_status,
+//                "totals" => $totals,
+//                "vote_type" => $data["vote_type"],
                 "permission_type" => $data["permission_type"],
-                "show_at" => strtotime($data["show_at"].":59"),
+//                "show_at" => strtotime($data["show_at"].":59"),
                 "status" => 1,
                 "created_at" => $now_time
             ];
@@ -829,7 +992,7 @@ class VoteService extends BaseService
                     "option_type" => $problem["option_type"],
                     "option_num" => !empty($problem["option_num"]) ? $problem["option_num"] : 0,
                     "title" => $problem["title"],
-                    "vote_type" => $voteArr["vote_type"],
+//                    "vote_type" => $voteArr["vote_type"],
                     "created_at" => $now_time
                 ];
                 $connection->createCommand()->insert('ps_vote_problem', $problemArr)->execute();
@@ -913,15 +1076,15 @@ class VoteService extends BaseService
         if($model["end_time"]>time()) {
             return $this->failed('投票未结束,暂不能编辑投票结果');
         }
-        if( $model["show_at"] < time()) {
-            return $this->failed('已过公示时间,不能编辑投票结果');
-        }
+//        if( $model["show_at"] < time()) {
+//            return $this->failed('已过公示时间,不能编辑投票结果');
+//        }
         $result =  $connection->createCommand("select id from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$data["vote_id"]])->queryOne();
         if( empty( $result) ) {
             $connection->createCommand()->insert('ps_vote_result',
                 [
                     "vote_id" => $data["vote_id"],
-                    "result_title" => $data["result_title"],
+//                    "result_title" => $data["result_title"],
                     "result_content" => $data["result_content"],
                     "created_at" =>time(),
                 ]
@@ -929,19 +1092,27 @@ class VoteService extends BaseService
         } else {
             $connection->createCommand()->update('ps_vote_result',
                 [
-                    "result_title" => $data["result_title"],
+//                    "result_title" => $data["result_title"],
                     "result_content"=>$data["result_content"]],
                 "vote_id=:vote_id",
                 [":vote_id" => $data["vote_id"]]
             )->execute();
         }
+        //修改投票状态为已公式
+        $connection->createCommand()->update('ps_vote',
+                [
+                    "vote_status"=>4
+                ],
+                "id=:vote_id",[":vote_id" => $data["vote_id"]
+            ]
+        )->execute();
         return $this->success();
     }
 
     // 查看投票结果
     public function showResult( $vote_id) 
     {
-        $result =  Yii::$app->db->createCommand("select * from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
+        $result =  Yii::$app->db->createCommand("select id,vote_id,result_content,created_at from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
         if( !empty( $result)) {
             $result["created_at"]= date("Y-m-d H:i:s",$result["created_at"]);
         }
@@ -1009,9 +1180,9 @@ class VoteService extends BaseService
             return $this->failed('未找到投票');
         }
 
-        if( $model["status"]==1 ) {
-            return $this->failed('显示的投票 才能删除');
-        }
+//        if( $model["status"]==1 ) {
+//            return $this->failed('显示的投票 才能删除');
+//        }
 
         $transaction = $connection->beginTransaction();
         try {
@@ -1026,6 +1197,8 @@ class VoteService extends BaseService
             $connection->createCommand()->delete('ps_vote_member_appoint',["vote_id"=>$vote_id])->execute();
             // 删除投票记录
             $connection->createCommand()->delete('ps_vote_member_det',["vote_id"=>$vote_id])->execute();
+            //删除公式
+            $connection->createCommand()->delete('ps_vote_result',["vote_id"=>$vote_id])->execute();
             // 删除问题//删除问题选项
             $connection->createCommand("delete A,B from ps_vote_problem A,ps_vote_problem_option B 
               where A.id=B.problem_id  and A.vote_id=:vote_id",[":vote_id"=>$vote_id])->execute();
@@ -1065,8 +1238,216 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$model["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
-            return $this->success();
+            return $this->success(['id'=>$data['vote_id']]);
         }
+    }
+
+    //投票人员列表
+    public function voteMemberList($data){
+        
+        $page = !empty($data["page"]) ?  $data["page"] : 1;
+        $page = $page < 1 ? 1 : $page;
+        $rows = !empty($data["rows"]) ?  $data["rows"] : Yii::$app->params['list_rows'];
+        $data['pageNum'] = $page;
+        $data['pageSize'] = $rows;
+        $data["communityId"] = $data['community_id'];
+        $result = ['totals'=>0,'list'=>[]];
+        $vote = PsVote::find()->select(['permission_type','id'])->where(['=','id',$data['vote_id']])->andWhere(['=','community_id',$data['community_id']])->asArray()->one();
+        if(!empty($vote)){
+            $javaParams = $this->doJavaListParams($data,$vote);
+            if($javaParams['transfer']){
+                //获得java数据
+                $javaService = new JavaService();
+                $javaData = $javaService->residentList($javaParams);
+
+                if(!empty($javaData['list'])){
+                    $result = $this->doVoteMemberListData($javaData,$data);
+                }
+            }
+        }
+        return $result;
+    }
+
+    //投票用户列表 is_vote 是否投票 1已投票 2未投票
+    public function doJavaListParams($data,$vote){
+        $data['transfer'] = false;  //默认不调用java接口
+        switch($vote['permission_type']){
+            case 1:
+            case 2: //非指定用户
+                $data = self::doUnSpecifyJavaListParams($data,$vote);
+                break;
+            case 3: //指定用户
+                $data = self::doSpecifyJavaListParams($data,$vote);
+                break;
+        }
+        return $data;
+    }
+
+    //非指定业主参数
+    public function doUnSpecifyJavaListParams($data,$vote){
+        if(!empty($data['is_vote'])){
+            if($data['is_vote']==1) {    //已投票
+                //获得所有已经投票用户id
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['transfer'] = true;
+                    $data['votedIds'] = array_column($votedResult,'member_id');
+                }
+            }else{
+                //未投票
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['transfer'] = true;
+                    $data['neVotedIds'] = array_column($votedResult,'member_id');
+                }
+            }
+        }else{
+            $data['transfer'] = true;
+        }
+        return $data;
+    }
+
+    //指定业主参数
+    public function doSpecifyJavaListParams($data,$vote){
+        // 获得已投票人员
+        $data['votedIds'] = [];
+        if(!empty($data['is_vote'])){
+            if($data['is_vote']==1){    //已投票
+                //获得所有已经投票用户id
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
+                $votedResult = $votedModel->asArray()->all();
+                if(!empty($votedResult)){
+                    $data['transfer'] = true;
+                    $data['votedIds'] = array_column($votedResult,'member_id');
+                }
+            }else{
+                //未投票
+                $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                $votedResult = $votedModel->asArray()->all();
+                $memberIds = [];
+                if(!empty($votedResult)){
+                    $memberIds = array_column($votedResult,'member_id');
+                }
+                $query = new Query();
+                $query->from('ps_vote_member_appoint')->select(['room_id','member_id'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($memberIds)){
+                    $query->andWhere(['not in','member_id',$memberIds]);
+                }
+                $queryResult = $query->all();
+                if(!empty($queryResult)){
+                    $data['transfer'] = true;
+                    $data['votedIds'] = array_column($queryResult,'member_id');
+                }
+            }
+        }else{
+            //获得指定人员（全部）
+            $specifyResult = PsVoteMemberAppoint::find()->select(['member_id','room_id'])->where(['=','vote_id',$vote['id']])->asArray()->all();
+            if(!empty($specifyResult)){
+                $data['transfer'] = true;
+                $data['votedIds'] = array_column($specifyResult,'member_id');
+            }
+        }
+        return $data;
+    }
+
+    /*
+     *  获得java数据 做自己显示数据
+     *   javaData   java返回数据
+     *   params     输入参数
+     */
+    public function doVoteMemberListData($javaData,$params){
+        $list = $voteChannel = $voteCreate = [];
+        $totals = $javaData['totalSize'];
+        if(!empty($params['is_vote'])){
+            if($params['is_vote']==1){
+                //已投票
+                //获得投票数据
+                $memberIds = array_column($javaData['list'],'residentId');
+                $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
+                                ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
+                                ->asArray()->all();
+                $voteChannel = array_column($votedResult,'vote_channel','member_id');
+                $voteCreate = array_column($votedResult,'created_at','member_id');
+                foreach($javaData['list'] as $key=>$value){
+                    $element = [];
+                    $element['home'] = !empty($value['home'])?$value['home']:'';
+                    $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                    $element['name'] = !empty($value['name'])?$value['name']:'';
+                    $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                    $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                    $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote'] = 1;
+                    $element['is_vote_msg'] = '是';
+                    $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
+                    $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
+                    $list[] = $element;
+                }
+            }else{
+                //未投票
+                foreach($javaData['list'] as $key=>$value){
+                    $element = [];
+                    $element['home'] = !empty($value['home'])?$value['home']:'';
+                    $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                    $element['name'] = !empty($value['name'])?$value['name']:'';
+                    $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                    $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                    $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                    $element['is_vote'] = 2;
+                    $element['is_vote_msg'] = '否';
+                    $element['vote_channel_msg'] = '';
+                    $element['vote_create_msg'] = '';
+                    $list[] = $element;
+                }
+            }
+        }else{
+            //获得投票数据
+            $memberIds = array_column($javaData['list'],'residentId');
+            $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
+                ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
+                ->asArray()->all();
+            if(!empty($votedResult)){
+                $voteChannel = array_column($votedResult,'vote_channel','member_id');
+                $voteCreate = array_column($votedResult,'created_at','member_id');
+            }
+            foreach($javaData['list'] as $key=>$value){
+                $element = [];
+                $element['home'] = !empty($value['home'])?$value['home']:'';
+                $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
+                $element['name'] = !empty($value['name'])?$value['name']:'';
+                $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
+                $element['memberTypeVal'] = !empty($value['memberTypeVal'])?$value['memberTypeVal']:'';
+                $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
+                $element['is_vote'] = !empty($voteCreate[$value['residentId']])?1:2;
+                $element['is_vote_msg'] = !empty($voteCreate[$value['residentId']])?"是":'否';
+                $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
+                $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
+                $list[] = $element;
+            }
+        }
+        return ['totals'=>$totals,'list'=>$list];
     }
 
     public function showMember($data) 
@@ -1472,6 +1853,70 @@ class VoteService extends BaseService
         }
     }
 
+    //投票列表详情
+    public function voteListDetail($voteId, $memberId, $roomId){
+        $params['id'] = $voteId;
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($params,"") && $model->validate()){
+            $detail = $model->getDetail($params);
+            $result = self::doVoteListDetail($detail,$memberId,$roomId);
+            return $this->success($result);
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+    //做投票列表详情数据
+    public function doVoteListDetail($detail,$memberId,$roomId){
+
+        $data = [];
+        //获得投票记录
+        $votedResult = PsVoteMemberDet::find()
+                        ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                        ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                        ->andWhere(['=','room_id',$roomId])->asArray()->all();
+        $voteArr = [];
+        $data['member_id'] = $memberId;
+        $data['room_id'] = $roomId;
+        $data['id'] = !empty($detail['id'])?$detail['id']:'';
+        $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
+        $data['problem'] = [];
+        $data['is_check'] = 0;
+        if(!empty($votedResult)){
+            //投过票
+            $voteArr = array_column($votedResult,'onlyId');
+            $data['is_check'] = 1;
+        }
+        if(!empty($detail['problem'])){
+            foreach($detail['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['id'] = !empty($value['id'])?$value['id']:'';
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['id'] = !empty($v['id'])?$v['id']:'';
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $onlyId = $detail['id'].$value['id'].$v['id'];
+                        $optionEle['is_check'] = 0;
+                        if(in_array($onlyId,$voteArr)){
+                            $optionEle['is_check'] = 1;
+                        }
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $data['problem'][] = $problemEle;
+            }
+        }
+        return $data;
+    }
+
+
     public function showMemberDet($vote_id, $member_id, $room_id) 
     {
         $db = Yii::$app->db;
@@ -1580,5 +2025,197 @@ class VoteService extends BaseService
             }
         }
         return $member_options;
+    }
+
+    //c端小程序投票详情
+    public function voteDetailOfC($params){
+
+        $voteParams['id'] = $params['vote_id'];
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($voteParams,"") && $model->validate()){
+            $detail = $model->getDetail($voteParams);
+            $result = self::doVoteListDetailOfC($detail,$params['member_id'],$params['room_id']);
+            return $result;
+        }else{
+            return $this->failed($this->getError($model));
+        }
+    }
+
+    //做数据详情
+    public function doVoteListDetailOfC($detail,$memberId,$roomId){
+
+        switch($detail['vote_status']){
+            case 1:     //未开始
+            case 2:     //投票中
+                $result = self::doVotingOfC($detail,$memberId,$roomId);
+                break;
+            case 3:     //投票结束
+                $result = self::doVotingEndOfC($detail);
+                break;
+            case 4:     //已公示
+                $result = self::doVotingFormulaOfC($detail);
+                break;
+        }
+
+//        $data = [
+//            'voting'=>'',
+//            'voting_end'=>'',
+//            'voting_formula'=>'',
+//        ];
+        return $result;
+    }
+
+    //做投票开始，中数据
+    public function doVotingOfC($detail,$memberId,$roomId){
+
+        $data = [];
+        switch($detail['permission_type']){
+            case 1: //每户一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','room_id',$roomId])
+                    ->asArray()->all();
+                break;
+            case 2: //每人一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                break;
+            case 3: //指定业主投票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                break;
+        }
+        $voteArr = [];
+        $data['member_id'] = $memberId;
+        $data['room_id'] = $roomId;
+        $data['id'] = !empty($detail['id'])?$detail['id']:'';
+        $data['vote_status'] = !empty($detail['vote_status'])?$detail['vote_status']:'';
+        $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
+        $data['vote_desc'] = !empty($detail['vote_desc'])?$detail['vote_desc']:'';
+        $data['problem'] = [];
+        $data['is_check'] = 0;
+        if(!empty($votedResult)){
+            //投过票
+            $voteArr = array_column($votedResult,'onlyId');
+            $data['is_check'] = 1;
+        }
+        if(!empty($detail['problem'])){
+            foreach($detail['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['id'] = !empty($value['id'])?$value['id']:'';
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['id'] = !empty($v['id'])?$v['id']:'';
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $onlyId = $detail['id'].$value['id'].$v['id'];
+                        $optionEle['is_check'] = 0;
+                        if(in_array($onlyId,$voteArr)){
+                            $optionEle['is_check'] = 1;
+                        }
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $data['problem'][] = $problemEle;
+            }
+        }
+        if($detail['vote_status']==1){
+            $data['msg'] = '投票尚未开始，请先查看投票内容';
+        }
+        if($detail['vote_status']==2){
+            $data['msg'] = '请投出您宝贵的一票';
+            if($data['is_check']==1){
+                $data['msg'] = '投票成功，感谢您的投票';
+            }
+        }
+        return [
+            'voting'=>$data,
+            'voting_end'=>[],
+            'voting_formula'=>[],
+        ];
+    }
+
+    //投票已经结束
+    public function doVotingEndOfC($params){
+
+        $element = [];
+        $element['id'] = !empty($params['id'])?$params['id']:'';
+        $element['vote_name'] = !empty($params['vote_name'])?$params['vote_name']:'';
+        $element['vote_desc'] = !empty($params['vote_desc'])?$params['vote_desc']:'';
+        //已投票数
+        $element['totals'] = !empty($params['totals'])?$params['totals']:0;
+        //投票问题
+        $element['problem'] = [];
+        if(!empty($params['problem'])){
+            foreach($params['problem'] as $key=>$value){
+                $problemEle = [];
+                $problemEle['title'] = !empty($value['title'])?$value['title']:'';
+                $problemEle['option_type'] = !empty($value['option_type'])?$value['option_type']:'';
+                $problemEle['totals'] = !empty($value['totals'])?$value['totals']:0;
+                $problemEle['option_type_msg'] = !empty($value['option_type'])?self::$Option_Type[$value['option_type']]:'';
+                $problemEle['option'] = [];
+                if(!empty($value['option'])){
+                    foreach($value['option'] as $k=>$v){
+                        $optionEle = [];
+                        $optionEle['title'] = !empty($v['title'])?$v['title']:'';
+                        $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
+                        $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
+                        $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
+                        $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
+                        $problemEle['option'][] = $optionEle;
+                    }
+                }
+                $element['problem'][] = $problemEle;
+            }
+        }
+        
+        $element['msg'] = '当前投票活动已结束';
+        return [
+            'voting'=>[],
+            'voting_end'=>$element,
+            'voting_formula'=>[],
+        ];
+    }
+
+    //投票已经公式
+    public function doVotingFormulaOfC($detail){
+        //查询公式结果
+        $voteResult = PsVoteResult::find()->select(['result_content'])->where(['=','vote_id',$detail['id']])->asArray()->one();
+        $data['id'] = $detail['id'];
+        $data['result_content'] = !empty($voteResult['result_content'])?$voteResult['result_content']:'';
+        $data['msg'] = "当前投票活动已结束";
+
+        return  [
+            'voting'=>[],
+            'voting_end'=>[],
+            'voting_formula'=>$data,
+        ];
+    }
+
+    //投票公式 查看投票结果 （小程序）
+    public function voteStatisticsOfC($params){
+        $voteParams['id'] = $params['vote_id'];
+        $model = new PsVote(['scenario'=>'detail']);
+        if($model->load($voteParams,"") && $model->validate()){
+            $detail = $model->getDetail($voteParams);
+            $result = self::doVotingEndOfC($detail);
+            $result = !empty($result['voting_end'])?$result['voting_end']:[];
+            return $result;
+        }else{
+            return $this->failed($this->getError($model));
+        }
     }
 }
