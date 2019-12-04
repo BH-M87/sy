@@ -20,7 +20,6 @@ class JavaController extends BaseController{
      */
     public function actionLoginAuth(){
         try{
-
             $data = $this->params;
             $result = JavaOfCService::service()->loginAuth($data);
             return PsCommon::responseSuccess($result);

@@ -156,12 +156,13 @@ class VoteController extends BaseController
         }
 
         $javaService = new JavaOfCService();
-        $javaParams['id'] = $memberId;
         $javaParams['token'] = $token;
-        print_r($javaParams);die;
-        $javaResult = $javaService->residentDetail($javaParams);
+        $javaResult = $javaService->memberBase($javaParams);
+        if(empty($javaResult)){
+            return PsCommon::responseFailed('用户不存在');
+        }
 
-        $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->params['community_id'], 'on', $roomId);
+        $doVote = VoteService::service()->doVote($voteId, $javaResult['id'], $javaResult['trueName'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
             return F::apiSuccess();
         } elseif ($doVote === false){

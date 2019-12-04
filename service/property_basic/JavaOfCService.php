@@ -32,4 +32,13 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/api/login-auth';
         return self::returnCData($query);
     }
+
+    /*
+     * 获得会员信息
+     */
+    public function memberBase($query){
+
+        $query['route'] = '/member/api/member-base';
+        return self::returnCData($query);
+    }
 }
