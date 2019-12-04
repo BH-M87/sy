@@ -238,6 +238,7 @@ class VoteService extends BaseService
             $element['vote_name'] = !empty($value['vote_name'])?$value['vote_name']:'';
             $element['vote_status_msg'] = !empty($value['vote_status'])?self::$vote_status[$value['vote_status']]:'';
             $element['end_time_msg'] = !empty($value['end_time'])?date('Y年m月d日',$value['end_time']):'';
+            $element['end_minute_msg'] = !empty($value['end_time'])?date('H:i',$value['end_time']):'';
             $data[] = $element;
         }
 
