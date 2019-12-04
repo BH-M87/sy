@@ -8,8 +8,10 @@ use common\core\PsCommon;
 use app\models\PsAppUser;
 use app\models\PsCommunityModel;
 
+use service\property_basic\JavaOfCService;
 use service\resident\MemberService;
 use service\property_basic\VoteService;
+use Yii;
 
 
 class VoteController extends BaseController
@@ -109,18 +111,56 @@ class VoteController extends BaseController
     {
         $voteId     = PsCommon::get($this->params, 'vote_id', 0);
         $voteDetail = PsCommon::get($this->params, 'vote_det', '');
+        $memberId = PsCommon::get($this->params, 'member_id', 0);
         $roomId = PsCommon::get($this->params, 'room_id', 0);
-        if (!$voteId || !$voteDetail || !$roomId) {
-            return PsCommon::responseFailed('参数错误');
+        $token = PsCommon::get($this->params, 'token');
+
+        if (!$voteId) {
+            return PsCommon::responseFailed('投票id必填');
         }
 
-
-
-        //查询member_id
-        $memberInfo = MemberService::service()->getInfoByAppUserId($this->appUserId);
-        if (!$memberInfo) {
-            return PsCommon::responseFailed('用户不存在');
+        if (!$memberId) {
+            return PsCommon::responseFailed('业主id不能为空');
         }
+
+        if (!$roomId) {
+            return PsCommon::responseFailed('房间号id不能为空');
+        }
+
+        if (!$voteDetail) {
+            return PsCommon::responseFailed('投票明细不能为空');
+        }
+
+        $problems = Yii::$app->db->createCommand("select id,option_type from ps_vote_problem where vote_id=:vote_id", [":vote_id" => $voteId])->queryAll();
+        $problem_type = array_column($problems, 'option_type', 'id');
+        $problem_ids = array_column($problems, 'id');
+
+        foreach ($voteDetail as $key => $det) {
+            if (!empty($det["problem_id"]) && in_array($det["problem_id"], $problem_ids)) {
+                if (empty($det["options"])) {
+                    return PsCommon::responseFailed('选项不能为空');
+                }
+                if (!$problem_type[$det["problem_id"]]) {
+                    return PsCommon::responseFailed('重复提交');
+                }
+                if (count($det["options"]) > 1 && $problem_type[$det["problem_id"]] == 1) {
+                    return PsCommon::responseFailed('单选问题答案不能多余1个');
+                }
+                unset($problem_type[$det["problem_id"]]);
+            } else {
+                return PsCommon::responseFailed('问题未找到');
+            }
+        }
+        if (!empty($problem_type)) {
+            return PsCommon::responseFailed('问题未添加选项！');
+        }
+
+        $javaService = new JavaOfCService();
+        $javaParams['id'] = $memberId;
+        $javaParams['token'] = $token;
+        print_r($javaParams);die;
+        $javaResult = $javaService->residentDetail($javaParams);
+
         $doVote = VoteService::service()->doVote($voteId, $memberInfo['id'], $memberInfo['name'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
             return F::apiSuccess();

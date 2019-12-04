@@ -9,11 +9,12 @@
 namespace app\modules\property\modules\v1\controllers;
 
 use service\property_basic\JavaService;
-use Yii;
 use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
 
-use yii\base\Exception;class JavaController extends BaseController{
+use yii\base\Exception;
+
+class JavaController extends BaseController{
 
 
     /*
