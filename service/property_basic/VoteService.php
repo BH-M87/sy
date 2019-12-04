@@ -2196,6 +2196,7 @@ class VoteService extends BaseService
         //查询公式结果
         $voteResult = PsVoteResult::find()->select(['result_content'])->where(['=','vote_id',$detail['id']])->asArray()->one();
         $data['id'] = $detail['id'];
+        $data['vote_desc'] = $detail['vote_desc'];
         $data['result_content'] = !empty($voteResult['result_content'])?$voteResult['result_content']:'';
         $data['msg'] = "当前投票活动已结束";
 
