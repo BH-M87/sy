@@ -2055,6 +2055,9 @@ class VoteService extends BaseService
                 break;
             case 4:     //已公示
                 $result = self::doVotingFormulaOfC($detail);
+                $result['voting'] = [];
+                $result['voting_end'] = self::doVotingEndOfC($detail);
+                $result['voting_formula'] = self::doVotingFormulaOfC($detail);
                 break;
         }
 
