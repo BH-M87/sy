@@ -18,10 +18,10 @@ class PsVoteProblemOption extends BaseModel
 //            ['title', 'string', 'max' =>35, 'message' => '{attribute}不正确', 'on' =>['add2']],
             ['title', 'string', 'max' =>20, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
-            ["image_url",'required','message' => '{attribute}不能为空','on'=>['add2']],
+//            ["image_url",'required','message' => '{attribute}不能为空','on'=>['add2']],
             ['image_url', 'string', 'max' =>250, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
-            ["option_desc",'required','message' => '{attribute}不能为空','on'=>['add2']],
+//            ["option_desc",'required','message' => '{attribute}不能为空','on'=>['add2']],
 //            ['option_desc', 'string', 'max' =>500, 'message' => '{attribute}不正确', 'on' =>['add2']],
             ['option_desc', 'string', 'max' =>50, 'message' => '{attribute}不正确', 'on' =>['add2']],
 
