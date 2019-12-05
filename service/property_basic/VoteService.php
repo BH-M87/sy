@@ -2102,7 +2102,7 @@ class VoteService extends BaseService
         $data['vote_desc'] = !empty($detail['vote_desc'])?$detail['vote_desc']:'';
         $data['problem'] = [];
         $data['is_check'] = 0;
-        if(!empty($votedResult)){
+        if(!empty($votedResult[0]['onlyId'])){
             //投过票
             $voteArr = array_column($votedResult,'onlyId');
             $data['is_check'] = 1;
