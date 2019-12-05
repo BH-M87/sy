@@ -164,7 +164,7 @@ class VoteController extends BaseController
 
         $doVote = VoteService::service()->doVote($voteId, $javaResult['id'], $javaResult['trueName'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
-            return F::apiSuccess();
+            return PsCommon::responseSuccess();
         } elseif ($doVote === false){
             return PsCommon::responseFailed('投票失败');
         } else {
