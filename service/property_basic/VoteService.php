@@ -2109,7 +2109,7 @@ class VoteService extends BaseService
         $data['is_check'] = 0;
         if(!empty($votedResult[0]['onlyId'])){
             //投过票
-            $voteArr = array_column($votedResult,'onlyId');
+            $voteArr = explode(",",$votedResult[0]['onlyId']);
             $data['is_check'] = 1;
         }
         if(!empty($detail['problem'])){
