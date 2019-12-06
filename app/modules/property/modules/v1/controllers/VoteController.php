@@ -145,6 +145,11 @@ class VoteController extends BaseController
         }
     }
 
+    public function actionGetPermissionType(){
+        $drop = VoteService::service()->getPermissionType();
+        return PsCommon::responseSuccess($drop);
+    }
+
     public function actionEndTime()
     {
         $valid = PsCommon::validParamArr(new PsVote(), $this->request_params, 'end-time');

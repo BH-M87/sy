@@ -52,6 +52,17 @@ class VoteService extends BaseService
         ];
     }
 
+    //投票权限类型下拉
+    public function getPermissionType(){
+        return [
+            'list'=>[
+                ['key'=>1,'name'=>'每户一票'],
+                ['key'=>2,'name'=>'每人一票'],
+                ['key'=>3,'name'=>'指定业主投票'],
+            ]
+        ];
+    }
+
     // 获取投票列表
     public function voteList($reqArr) 
     {
