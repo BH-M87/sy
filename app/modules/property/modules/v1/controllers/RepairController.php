@@ -22,7 +22,7 @@ class RepairController extends BaseController {
 
     //工单列表
     public function actionList()
-    {
+    {echo 1;die;
         /*if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
