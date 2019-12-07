@@ -382,6 +382,20 @@ class VoteController extends BaseController
         }
     }
 
+    public function actionResidentList(){
+
+        $data = $this->request_params;
+        $communityId = PsCommon::get($this->request_params, 'communityId');
+        if (!$communityId) {
+            return PsCommon::responseFailed('小区id不能为空');
+        }
+        $data['pageNum'] = !empty($data['page'])?$data['page']:'';
+        $data['pageSize'] = !empty($data['rows'])?$data['rows']:'';
+        $result = JavaService::service()->residentList($data);
+        return PsCommon::responseSuccess($result);
+
+    }
+
     public function actionDataExport()
     {
         $community_id = PsCommon::get($this->request_params, 'community_id');
