@@ -137,25 +137,25 @@ class BaseController extends \yii\web\Controller
      * @return array
      * @throws Exception
      */
-    protected function ajaxReturn($errIndex, $data = [])
-    {
-        $errorConfig = Yii::$app->params['error'];
-        if (empty($errorConfig[$errIndex])) {
-            $err = ['errorMsg' => "未找到返回信息索引[{$errIndex}]"];
-            $errorMsg = json_encode([
-                'code' => $errorConfig['params_error']['code'],
-                'message' => $err,
-                'data' => (object)[],
-            ],JSON_UNESCAPED_UNICODE);
-            throw new Exception($errorMsg);
-        }
-        $error = $errorConfig[$errIndex];
-        return json_encode([
-            'code' => $error['code'],
-            'message' => $error['info'],
-            'data' => (object)$data,
-        ]);
-    }
+//    protected function ajaxReturn($errIndex, $data = [])
+//    {
+//        $errorConfig = Yii::$app->params['error'];
+//        if (empty($errorConfig[$errIndex])) {
+//            $err = ['errorMsg' => "未找到返回信息索引[{$errIndex}]"];
+//            $errorMsg = json_encode([
+//                'code' => $errorConfig['params_error']['code'],
+//                'message' => $err,
+//                'data' => (object)[],
+//            ],JSON_UNESCAPED_UNICODE);
+//            throw new Exception($errorMsg);
+//        }
+//        $error = $errorConfig[$errIndex];
+//        return json_encode([
+//            'code' => $error['code'],
+//            'message' => $error['info'],
+//            'data' => (object)$data,
+//        ]);
+//    }
 
     /***
      * Excel文件导入URL
