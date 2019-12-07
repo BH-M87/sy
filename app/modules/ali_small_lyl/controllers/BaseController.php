@@ -104,7 +104,12 @@ class BaseController extends \yii\web\Controller
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
             exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
+
+        if (!isset($header['AppKey']) || empty($header['AppKey'])) {
+            exit($this->ajaxReturn('AppKey不能为空'));
+        }
         $this->params['token'] = $header['OpenAuthorization'];
+        $this->params['appKey'] = $header['AppKey'];
     }
 
     /**

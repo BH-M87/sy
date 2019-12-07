@@ -81,7 +81,7 @@ class JavaCurl {
     {
         $this->serverType = 'C';//C端请求
         $query['timestamp'] = time();
-        $query['appKey'] = 'community-platform';
+//        $query['appKey'] = 'community-platform';
         $response = $this->request($query['route'], $query, [], 'POST');
         return $response;
     }
