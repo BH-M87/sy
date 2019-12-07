@@ -31,7 +31,7 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $this->request_params["hard_type"] = 1;
-        $this->request_params['community_id'] = $this->communityId;
+        //$this->request_params['community_id'] = $this->communityId;
         $result = RepairService::service()->getRepairLists($this->request_params);
         return PsCommon::responseSuccess($result);
     }
