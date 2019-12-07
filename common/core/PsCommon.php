@@ -224,6 +224,7 @@ class PsCommon {
         Yii::$app->response->content = json_encode([
             'code' => $code,
             'data' => $data,
+            'message' => !empty($error['errorMsg'])?$error['errorMsg']:'',
             'error' => $error,
         ], JSON_UNESCAPED_UNICODE);
         Yii::$app->response->send();
