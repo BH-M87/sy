@@ -28,4 +28,19 @@ class JavaController extends BaseController{
         }
     }
 
+
+    /**
+     * Notes: 首页展示的房屋信息[鉴权]
+     * Author: zph
+     * Date: 2019/12/7 14:33
+     */
+    public function actionLastChosenRoom(){
+        try{
+            $data = $this->params;
+            $result = JavaOfCService::service()->lastChosenRoom($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
