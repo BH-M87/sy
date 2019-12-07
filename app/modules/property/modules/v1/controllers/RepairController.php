@@ -23,13 +23,13 @@ class RepairController extends BaseController {
     //工单列表
     public function actionList()
     {
-        if (empty($this->request_params)) {
+        /*if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
         $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
-        }
+        }*/
         $this->request_params["hard_type"] = 1;
         //$this->request_params['community_id'] = $this->communityId;
         $result = RepairService::service()->getRepairLists($this->request_params);
