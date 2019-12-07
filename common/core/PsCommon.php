@@ -178,7 +178,6 @@ class PsCommon {
         } else {
             $reData = $data;
         }
-//        return self::ajaxReturn(20000, $reData, ['errorMsg' => '']);
         return self::ajaxReturn(1, $reData, ['errorMsg' => '']);
     }
 
@@ -188,7 +187,6 @@ class PsCommon {
      * @param int $code
      */
     public static function responseFailed($msg = '系统错误', $code = 50001)
-//    public static function responseFailed($msg = '系统错误', $code = 10004)
     {
         if (self::$log) {
             $log['action'] = Yii::$app->controller->action->getUniqueId();

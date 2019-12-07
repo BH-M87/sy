@@ -114,7 +114,7 @@ class BaseController extends \yii\web\Controller
 //        }
         //B端鉴权
         if (!isset($header['authorization']) || empty($header['authorization'])) {
-            exit($this->ajaxReturn('authorization',[]));
+            exit($this->ajaxReturn('token不能为空'));
         }
         //todo::调用java token鉴权接口,并拿到用户信息
         $params = [
@@ -137,24 +137,9 @@ class BaseController extends \yii\web\Controller
      * @return array
      * @throws Exception
      */
-    protected function ajaxReturn($errIndex, $data = [])
+    protected function ajaxReturn($msg='',$code=50001)
     {
-        $errorConfig = Yii::$app->params['error'];
-        if (empty($errorConfig[$errIndex])) {
-            $err = ['errorMsg' => "未找到返回信息索引[{$errIndex}]"];
-            $errorMsg = json_encode([
-                'code' => $errorConfig['params_error']['code'],
-                'message' => $err,
-                'data' => (object)[],
-            ],JSON_UNESCAPED_UNICODE);
-            throw new Exception($errorMsg);
-        }
-        $error = $errorConfig[$errIndex];
-        return json_encode([
-            'code' => $error['code'],
-            'message' => $error['info'],
-            'data' => (object)$data,
-        ]);
+        return json_encode(['code' => $code,'message' => $msg,]);
     }
 
     /***
