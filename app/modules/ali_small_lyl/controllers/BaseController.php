@@ -97,6 +97,12 @@ class BaseController extends \yii\web\Controller
     private function _validateToken()
     {
         $header = Yii::$app->request->getHeaders();
+
+        if (!isset($header['AppKey']) || empty($header['AppKey'])) {
+            exit($this->ajaxReturn('AppKey不能为空'));
+        }
+        $this->params['appKey'] = $header['AppKey'];
+
         //C端鉴权
         if (in_array(Yii::$app->controller->action->id, ['login-auth'])) {
             return ;
@@ -105,9 +111,7 @@ class BaseController extends \yii\web\Controller
             exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
 
-        if (!isset($header['AppKey']) || empty($header['AppKey'])) {
-            exit($this->ajaxReturn('AppKey不能为空'));
-        }
+
         $this->params['token'] = $header['OpenAuthorization'];
         $this->params['appKey'] = $header['AppKey'];
     }
