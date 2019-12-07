@@ -72,11 +72,21 @@ class VoteService extends BaseService
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
 
+        // 获得所有小区
+        $javaService = new JavaService();
+        $javaParam['token'] = $reqArr['token'];
+        $javaResult = $javaService->communityNameList($javaParam);
+        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
         $query = new Query();
         $query->from('ps_vote') ->where("1=1");
         
         if ($communityId) {
             $query->andWhere(['community_id' => $communityId]);
+        }else{
+            if(!empty($communityIds)){
+                $query->andWhere(['community_id' => $communityIds]);
+            }
         }
 
         if ($voteName) {
@@ -100,11 +110,6 @@ class VoteService extends BaseService
 
         $command = $query->createCommand();
         $models = $command->queryAll();
-        // 获得所有小区
-        $javaService = new JavaService();
-        $javaParam['token'] = $reqArr['token'];
-        $javaResult = $javaService->communityNameList($javaParam);
-        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
 
         foreach ($models as $key=>$val) {
             $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
