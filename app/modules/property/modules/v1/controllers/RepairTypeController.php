@@ -44,6 +44,7 @@ class RepairTypeController extends BaseController
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+        $this->request_params['level'] = 1;//类别层级默认1
         $valid = PsCommon::validParamArr(new PsRepairType(), $this->request_params, 'add');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
