@@ -8,6 +8,7 @@
 namespace app\modules\property\controllers;
 
 use common\core\JavaCurl;
+use service\property_basic\JavaService;
 use Yii;
 use yii\base\Exception;
 
@@ -31,6 +32,8 @@ class BaseController extends \yii\web\Controller
     public $page;
     //分页条数，后台默认10条数据
     public $pageSize = 10;
+    //当前登录用户的小区列表
+    public $community_list = [];
 
     public function init(){
         //跨域
@@ -128,6 +131,17 @@ class BaseController extends \yii\web\Controller
         $this->request_params['create_id'] = $result['id'];
         $this->request_params['create_name'] = $result['trueName'];
         $this->request_params['corp_id'] = $result['corpId'];
+
+        //设置小区缓存
+        $redis = Yii::$app->redis;
+        $this->community_list = $redis->get("communityList");
+        if(!$this->community_list){
+            // 获得所有小区
+            $javaResult = JavaService::service()->communityNameList(['token'=>$this->request_params['token']]);
+            $this->community_list = $javaResult['list'];
+            //设置一小时缓存
+            $redis->set("communityList", $javaResult['list'], 'EX', 3600, 'NX');
+        }
     }
 
     /**
