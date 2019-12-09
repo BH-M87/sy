@@ -140,7 +140,7 @@ class BaseController extends \yii\web\Controller
             $javaResult = JavaService::service()->communityNameList(['token'=>$this->request_params['token']]);
             $this->community_list = $javaResult['list'];
             //设置一小时缓存
-            $redis->set("communityList", $javaResult['list'], 'EX', 3600, 'NX');
+            $redis->set("communityList", $javaResult['list'], 3600);
         }
     }
 
