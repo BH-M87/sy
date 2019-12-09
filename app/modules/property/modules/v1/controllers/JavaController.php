@@ -110,4 +110,30 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+      * 部门列表
+      */
+    public function actionTreeList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->treeList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
+     * 员工列表
+     */
+    public function actionUserList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->userList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
