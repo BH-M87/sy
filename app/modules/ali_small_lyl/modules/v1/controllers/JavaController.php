@@ -43,4 +43,14 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    public function actionMemberBase(){
+        try{
+            $data = $this->params;
+            $result = JavaOfCService::service()->memberBase($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
