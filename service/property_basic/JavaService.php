@@ -119,7 +119,7 @@ class JavaService extends BaseService
     */
     public function userList($query)
     {
-        $query['route'] = '/user/list';
+        $query['route'] = '/user/simple-list';
         return self::returnCData($query);
     }
 }
