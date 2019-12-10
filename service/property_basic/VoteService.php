@@ -2242,4 +2242,41 @@ class VoteService extends BaseService
             return $this->failed($this->getError($model));
         }
     }
+
+    /*
+     * 投票状态变化脚本
+     */
+    public function voteScript(){
+        $model = PsVote::find()->select(['id','vote_status','start_time','end_time'])->where(['<','vote_status',3])->asArray()->all();
+        $nowTime = time();
+        if(!empty($model)){
+            foreach($model as $key=>$value){
+                $vote_status = 0;
+                switch($value['vote_status']){
+                    case 1: //未开始
+                        if($value['start_time']<$nowTime&&$value['end_time']>$nowTime){
+                            $vote_status = 2;
+                        }
+                        if($value['end_time']<$nowTime){
+                            $vote_status = 3;
+                        }
+                        break;
+                    case 2: //投票中
+                        if($value['end_time']<$nowTime){
+                            $vote_status = 3;
+                        }
+                        break;
+                }
+                if($vote_status>0){
+                    //修改投票记录状态
+                    $connection = Yii::$app->db;
+                    $connection->createCommand()->update('ps_vote',
+                        ["vote_status" => $vote_status],
+                        "id=:id",
+                        [":id" => $value["id"]]
+                    )->execute();
+                }
+            }
+        }
+    }
 }

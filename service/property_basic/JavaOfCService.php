@@ -46,7 +46,7 @@ class JavaOfCService extends BaseService{
      * 首页展示的房屋信息[鉴权]
      */
     public function lastChosenRoom($query){
-        $query['route'] = '/member/api/lastChosenRoom';
+        $query['route'] = '/member/home/lastRoom';
         return self::returnCData($query);
     }
 }

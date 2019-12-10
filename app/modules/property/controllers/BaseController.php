@@ -8,6 +8,7 @@
 namespace app\modules\property\controllers;
 
 use common\core\JavaCurl;
+use service\property_basic\JavaService;
 use Yii;
 use yii\base\Exception;
 
@@ -31,6 +32,8 @@ class BaseController extends \yii\web\Controller
     public $page;
     //分页条数，后台默认10条数据
     public $pageSize = 10;
+    //当前登录用户的小区列表
+    public $community_list = [];
 
     public function init(){
         //跨域

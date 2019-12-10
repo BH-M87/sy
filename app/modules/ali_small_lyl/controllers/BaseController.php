@@ -65,7 +65,7 @@ class BaseController extends \yii\web\Controller
     private function _validateMethod()
     {
         if (!Yii::$app->request->isPost) {
-            exit($this->ajaxReturn('request_method'));
+            exit($this->ajaxReturn('请求错误'));
         }
     }
 
@@ -79,7 +79,7 @@ class BaseController extends \yii\web\Controller
             error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/front_req.log');
             $bodys = json_decode(Yii::$app->request->getRawBody(), true);
             if (!is_array($bodys)){
-                exit($this->ajaxReturn('http_body',[]));
+                exit($this->ajaxReturn('参数错误'));
             }
             $body = $bodys;
         }
@@ -97,14 +97,23 @@ class BaseController extends \yii\web\Controller
     private function _validateToken()
     {
         $header = Yii::$app->request->getHeaders();
+
+        if (!isset($header['AppKey']) || empty($header['AppKey'])) {
+            exit($this->ajaxReturn('AppKey不能为空'));
+        }
+        $this->params['appKey'] = $header['AppKey'];
+
         //C端鉴权
         if (in_array(Yii::$app->controller->action->id, ['login-auth'])) {
             return ;
         }
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
-            exit($this->ajaxReturn('OpenAuthorization',[]));
+            exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
+
+
         $this->params['token'] = $header['OpenAuthorization'];
+        $this->params['appKey'] = $header['AppKey'];
     }
 
     /**
@@ -114,24 +123,9 @@ class BaseController extends \yii\web\Controller
      * @return array
      * @throws Exception
      */
-    protected function ajaxReturn($errIndex, $data = [])
+    protected function ajaxReturn($msg = '',$code=50001)
     {
-        $errorConfig = Yii::$app->params['error'];
-        if (empty($errorConfig[$errIndex])) {
-            $err = ['errorMsg' => "未找到返回信息索引[{$errIndex}]"];
-            $errorMsg = json_encode([
-                'code' => $errorConfig['params_error']['code'],
-                'message' => $err,
-                'data' => (object)[],
-            ],JSON_UNESCAPED_UNICODE);
-            throw new Exception($errorMsg);
-        }
-        $error = $errorConfig[$errIndex];
-        return json_encode([
-            'code' => $error['code'],
-            'message' => $error['info'],
-            'data' => (object)$data,
-        ]);
+        return json_encode(['code' => $code,'message' => $msg,]);
     }
 
     /***
