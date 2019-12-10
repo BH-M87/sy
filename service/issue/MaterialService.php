@@ -74,7 +74,10 @@ class MaterialService extends BaseService
         $command = $query->createCommand();
         $models = $command->queryAll();
         foreach ($models as $key => $val) {
-            $models[$key]["price_unit_desc"] = isset(self::$_unit_type[$val['price_unit']]) ? self::$_unit_type[$val['price_unit']] : '未知';
+            $models[$key]["price_unit_desc"] = isset(self::$_material_type[$val['price_unit']]) ? self::$_material_type[$val['price_unit']] : '未知';
+            if($val['cate_id']==2){
+                $models[$key]["price_unit_desc"] = isset(self::$_people_type[$val['price_unit']]) ? self::$_people_type[$val['price_unit']] : '未知';
+            }
             $models[$key]["cate_name"] = isset(self::$_fee_type[$val['cate_id']]) ? self::$_fee_type[$val['cate_id']] : '未知';
             $models[$key]["community_name"] = !empty($val['community_id']) ? $javaResult[$val['community_id']] : '';
             $models[$key]["created_at"] = $val['created_at'] ? date("Y-m-d H:i", $val['created_at']) : '';
