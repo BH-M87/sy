@@ -273,6 +273,11 @@ class RepairTypeService extends BaseService
      */
     public function getRepairTypeLevelList($params)
     {
+        // 获得所有小区
+        $javaResult = JavaService::service()->communityNameList(['token'=>$params['token']]);
+        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
+        $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
+
         $level = PsCommon::get($params, 'level');
         $id = PsCommon::get($params, 'id');
         switch ($level) {
@@ -288,11 +293,7 @@ class RepairTypeService extends BaseService
             default:
                 $levels = '1';
         }
-        $mod = PsRepairType::find()
-            ->filterWhere([
-                'community_id' => PsCommon::get($params, 'community_id'),
-                'level' => $levels,
-            ]);
+        $mod = PsRepairType::find()->filterWhere(['community_id' => $communityId,'level' => $levels,]);
         //剔除出入的id，防止修改类目的时候选到自己当前这个类目
         if ($id) {
             $mod->andFilterWhere(['not in', 'id', [$id]]);
