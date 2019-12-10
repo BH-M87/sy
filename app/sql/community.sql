@@ -1,5 +1,8 @@
 ALTER TABLE `ps_repair`
-MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`;
+MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`,
+
+ALTER TABLE `ps_repair`
+MODIFY COLUMN `room_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '房屋id';
 
 ALTER TABLE `ps_repair_type`
 MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`;

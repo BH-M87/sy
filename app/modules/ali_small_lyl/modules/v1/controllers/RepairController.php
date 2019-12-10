@@ -95,7 +95,7 @@ class RepairController extends UserBaseController
         return F::apiSuccess($result);
     }
 
-    //报事报修评价
+    // 报事报修评价
     public function actionEvaluate()
     {
         if (empty($this->params)) {
@@ -106,24 +106,30 @@ class RepairController extends UserBaseController
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
+
         $result = RepairService::service()->evaluate($valid['data']);
         if ($result === true) {
             return F::apiSuccess($result);
         }
+        
         return F::apiFailed($result);
     }
 
-    //获取报修类型
+    // 获取报修类型
     public function actionType()
     {
         if (empty($this->params)) {
             return F::apiFailed("未接受到有效数据");
         }
+
         $params['community_id'] = F::value($this->params, 'community_id', 0);
+
         if (!$params['community_id']) {
             return F::apiFailed("小区id不能为空");
         }
+
         $result = RepairTypeService::service()->getSmallAppRepairTypeTree($params);
+
         return F::apiSuccess($result);
     }
 

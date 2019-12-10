@@ -1534,16 +1534,18 @@ print_r($javaParam);die;
         return $repair_info;
     }
 
-    //工单评价
+    // 工单评价
     public function evaluate($params)
     {
         $repairInfo = $this->getRepairInfoById($params['repair_id']);
         if (!$repairInfo) {
             return "工单不存在";
         }
+
         if ($repairInfo['status'] != self::STATUS_DONE) {
             return "工单状态有误，无法评价";
         }
+
         $repairAppraise = PsRepairAppraise::find()
             ->where(['repair_id' => $params['repair_id']])
             ->asArray()
@@ -1551,48 +1553,20 @@ print_r($javaParam);die;
         if ($repairAppraise) {
             return'已经评价过了';
         }
+
         $params['created_at'] = time();
         $model = new PsRepairAppraise();
         $model->setAttributes($params);
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
-        /*更新订单状态*/
+        
+        // 更新订单状态
         $repair_arr["status"] = self::STATUS_COMPLETE;
-        Yii::$app->db->createCommand()->update('ps_repair',
-            $repair_arr,
-            "id=:id",
-            [":id" => $params["repair_id"]]
+        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,
+            "id = :id", [":id" => $params["repair_id"]]
         )->execute();
-        //TODO 发送站内消息
-        //发送消息
-        $typeName = RepairType::find()->select("name")->where(['id' => $repairInfo['repair_type_id']])->scalar();
-        $info = [
-            'community_id' => $repairInfo['community_id'],
-            'id' => $repairInfo["id"] ?? "",
-            'member_id' => $repairInfo["member_id"],
-            'user_name' => $repairInfo["room_username"],
-
-            'create_user_type' => 2,
-            'remind_tmpId' => 15,
-            'remind_target_type' => 4,
-            'remind_auth_type' => 3,
-
-            'msg_type' => 1,
-            'msg_tmpId' => 15,
-            'msg_target_type' => 4,
-            'msg_auth_type' => 3,
-            'remind' => [
-                0 => $repairInfo["room_username"]
-            ],
-            'msg' => [
-                0 => $repairInfo['repair_no'],
-                1 => $typeName ?? "",
-                2 => $params['content'] ?? "",
-                3 => date('Y-m-d H:i:s', time()),
-            ],
-        ];
-        MessageService::service()->addMessageTemplate($info);
+        
         return true;
     }
 
@@ -1710,11 +1684,9 @@ print_r($javaParam);die;
 
     public function getRepairInfoById($id)
     {
-        return PsRepair::find()
-            ->alias('pr')
-            ->select('pr.repair_no,pr.id,pr.status,pr.repair_type_id,pr.community_id,pr.contact_mobile,
-            pr.is_pay,pc.name community_name,pr.member_id,pr.room_username,pc.pro_company_id')
-            ->leftJoin('ps_community pc', 'pr.community_id = pc.id')
+        return PsRepair::find()->alias('pr')
+            ->select('pr.repair_no, pr.id, pr.status, pr.repair_type_id, pr.community_id, pr.contact_mobile,
+            pr.is_pay, pr.member_id, pr.room_username')
             ->where(['pr.id' => $id])
             ->asArray()
             ->one();
