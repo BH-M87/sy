@@ -30,10 +30,14 @@ class RepairTypeService extends BaseService
         $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
         $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
 
-        $status = PsCommon::get($params, 'status');
+        $is_relate_room = PsCommon::get($params, 'is_relate_room');
+        $name = PsCommon::get($params, 'name');
         $query = PsRepairType::find()->filterWhere(['community_id' => $communityId]);
-        if ($status) {
-            $query->andFilterWhere(['status' => $status]);
+        if ($is_relate_room) {
+            $query->andFilterWhere(['status' => $is_relate_room]);
+        }
+        if ($name) {
+            $query->andFilterWhere(['like','name',$name]);
         }
 
         $re['totals'] = $query->count();
@@ -53,7 +57,6 @@ class RepairTypeService extends BaseService
                 if ($value['parent_id'] == '0') {
                     $list[$key]['parent_name'] = [];
                 }
-                $list[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
                 $list[$key]['community_name'] = !empty($value['community_id'])?$javaResult[$value['community_id']]:'';
                 $list[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
                 $list[$key]['cid'] = $count;
