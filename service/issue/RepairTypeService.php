@@ -34,7 +34,7 @@ class RepairTypeService extends BaseService
         $name = PsCommon::get($params, 'name');
         $query = PsRepairType::find()->filterWhere(['community_id' => $communityId]);
         if ($is_relate_room) {
-            $query->andFilterWhere(['status' => $is_relate_room]);
+            $query->andFilterWhere(['is_relate_room' => $is_relate_room]);
         }
         if ($name) {
             $query->andFilterWhere(['like','name',$name]);
