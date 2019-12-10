@@ -340,22 +340,10 @@ class RepairService extends BaseService
     {
         $model = new PsRepair();
 
-        if ($useAs == 'small' && !empty($params['room_id'])) {
-            //关联房屋的验证
-            $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
-                $params['building'], $params['unit'], $params['room']);
-            if(!$roomInfo)  {
-                return "房屋不存在";
-            }
-            $model->room_id = $roomInfo['id'];
-            $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
+        if ($useAs == 'small' && !empty($params['room_id'])) { // 小程序
+            $model->room_id = $params['room_id'];
+            $model->room_address = $params['room_address'];
         } else {
-
-            $javaService = new JavaService();
-            $javaParam['token'] = '1';
-            $javaParam['id'] = '1197049219637379074';
-            $javaResult = $javaService->roomDetail($javaParam);
-print_r($javaParam);die;
             if ($params['relate_room']) {
                 // 关联房屋的验证
                 $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
@@ -369,13 +357,12 @@ print_r($javaParam);die;
             }
         }
 
-        if ($useAs == 'small') {
-            $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
-            $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
+        if ($useAs == 'small') { // 小程序
+            $model->contact_mobile = $params['member_mobile'];
             $model->appuser_id = $params['app_user_id'];
-            $model->created_username = $memberInfo['name'];
-            $model->created_id = $memberInfo['id'];
-            $model->member_id = $memberInfo['id'];
+            $model->created_username = $params['member_name'];
+            $model->created_id = $params['member_id'];
+            $model->member_id = $params['member_id'];
         } else {
             $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
             $model->contact_mobile = $params['contact_mobile'];
@@ -1560,7 +1547,7 @@ print_r($javaParam);die;
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
-        
+
         // 更新订单状态
         $repair_arr["status"] = self::STATUS_COMPLETE;
         Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,

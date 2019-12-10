@@ -15,50 +15,65 @@ use app\models\PsRepairRecord;
 use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
-use service\basic_data\RoomService;
+use common\core\JavaCurl;
+use service\property_basic\JavaService;
 use service\issue\RepairService;
 use service\issue\RepairTypeService;
 
 class RepairController extends UserBaseController
 {
-    //发布报事报修
+    // 发布报事报修
     public function actionCreate()
     {
-        $params['community_id'] = F::value($this->params, 'community_id', 0);
-        $params['app_user_id'] = F::value($this->params, 'app_user_id', 0);
-        $params['repair_type'] = F::value($this->params, 'repair_type_id', 0);
-        $params['expired_repair_time'] = F::value($this->params, 'expired_time', '');
-        $params['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
-        $params['repair_content'] = F::value($this->params, 'repair_content', '');
-        $params['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
-        $params['repair_from'] = 1;
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['app_user_id'] = F::value($this->params, 'app_user_id', 0);
+        $p['repair_type'] = F::value($this->params, 'repair_type_id', 0);
+        $p['expired_repair_time'] = F::value($this->params, 'expired_time', '');
+        $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
+        $p['repair_content'] = F::value($this->params, 'repair_content', '');
+        $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
+        $p['repair_from'] = 1; 
+        $p['token'] = PsCommon::get($this->params, 'token');
 
-        $relateRoom= RepairTypeService::service()->repairTypeRelateRoom($params['repair_type']);
+        $relateRoom = RepairTypeService::service()->repairTypeRelateRoom($p['repair_type']);
         $roomIds = F::value($this->params, 'room_id', '');
         if ($roomIds) {
-            $roomInfo = RoomService::service()->getRoomById($roomIds);
-            $params['group'] = $roomInfo ? $roomInfo['group'] : '';
-            $params['building'] = $roomInfo ? $roomInfo['building'] : '';
-            $params['unit'] = $roomInfo ? $roomInfo['unit'] : '';
-            $params['room'] = $roomInfo ? $roomInfo['room'] : '';
+            $javaService = new JavaService();
+            $javaParam['token'] = '1';
+            $javaParam['id'] = '1197049219637379074';
+            $javaResult = $javaService->roomDetail($javaParam);
+print_r($javaParam);die;
+            $p['group'] = $roomInfo ? $roomInfo['group'] : '';
+            $p['building'] = $roomInfo ? $roomInfo['building'] : '';
+            $p['unit'] = $roomInfo ? $roomInfo['unit'] : '';
+            $p['room'] = $roomInfo ? $roomInfo['room'] : '';
+            $p['room_address'] = '';
         }
 
         if ($relateRoom) {
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $params, 'add-repair3');
+            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
         } else {
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $params, 'add-repair1');
+            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair1');
         }
+
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
+
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
         $validData['room_id'] = $roomIds;
+        $validData['member_id'] = '';
+        $validData['member_name'] = '';
+        $validData['member_mobile'] = '';
+
+        print_r($validData);die;
         $result = RepairService::service()->add($validData, [], 'small');
 
         if (is_array($result)) {
             return F::apiSuccess($result);
         }
+
         return F::apiFailed($result);
     }
 
@@ -111,7 +126,7 @@ class RepairController extends UserBaseController
         if ($result === true) {
             return F::apiSuccess($result);
         }
-        
+
         return F::apiFailed($result);
     }
 
