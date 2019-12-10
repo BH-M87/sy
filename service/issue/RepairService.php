@@ -25,12 +25,10 @@ use common\core\F;
 use common\MyException;
 use service\alipay\BillService;
 use service\alipay\BillSmallService;
-use service\basic_data\JavaService;
 use service\manage\CommunityService;
 use common\core\PsCommon;
 use service\BaseService;
 use service\basic_data\MemberService;
-use service\basic_data\RoomService;
 use service\common\CsvService;
 use service\message\MessageService;
 use service\rbac\OperateService;
@@ -354,12 +352,11 @@ class RepairService extends BaseService
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
         } else {
-
-            $javaService = new JavaService();
-            $javaParam['token'] = '1';
-            $javaParam['id'] = '1197049219637379074';
-            $javaResult = $javaService->roomDetail($javaParam);
-print_r($javaParam);die;
+//
+//            $javaService = new JavaService();
+//            $javaParam['token'] = '1';
+//            $javaParam['id'] = '1197049219637379074';
+//            $javaResult = $javaService->roomDetail($javaParam);
             if ($params['relate_room']) {
                 // 关联房屋的验证
                 $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],

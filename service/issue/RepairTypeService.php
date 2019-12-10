@@ -15,7 +15,7 @@ use app\models\RepairType;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
-use service\basic_data\JavaService;
+use service\property_basic\JavaService;
 use service\rbac\OperateService;
 
 class RepairTypeService extends BaseService

@@ -14,6 +14,7 @@ use app\models\PsRepairMaterialsCate;
 use common\core\PsCommon;
 use service\BaseService;
 use service\rbac\OperateService;
+use service\property_basic\JavaService;
 use yii\db\Query;
 use Yii;
 
