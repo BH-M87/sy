@@ -59,6 +59,7 @@ class PsRepairRecord extends BaseModel
             [['repair_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['create','assign-repair']],
             ['content', 'string', 'max' => '200','message' => '{attribute}最多200个字符!', 'on' => 'create'],
 
+            [['community_id'], 'required','message' => '小区id必填!', 'on' => ['add-material']],
             [['name'], 'required','message' => '材料名必填!', 'on' => ['add-material','edit-material']],
             [['cate_id'], 'required','message' => '材料分类必填!', 'on' => ['add-material','edit-material']],
             [['price'], 'required','message' => '材料价格必填!', 'on' => ['add-material','edit-material']],
