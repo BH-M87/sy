@@ -348,7 +348,7 @@ class RepairService extends BaseService
             $model->buildingId = $roomInfo['buildingId'];
             $model->unitId = $roomInfo['unitId'];
             $model->roomId = $roomInfo['roomId'];
-            $model->room_address = $roomInfo['roomName'];
+            $model->room_address = $roomInfo['groupName'].$roomInfo['buildingName'].$roomInfo['unitName'].$roomInfo['roomName'];
         }
         if ($useAs == 'small') {
             $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
