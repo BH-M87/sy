@@ -25,23 +25,22 @@ class MaterialService extends BaseService
         '2' => '人工费用'
     ];
 
-    public static $_unit_type = [
-        'material' => [
+    public static $_material_type = [
             '1' => '/米',
             '2' => '/卷',
             '3' => '/个',
             '4' => '/根',
             '5' => '/平方米',
             '6' => '/立方米'
-        ],
-        'people' => ['1'=>'/次','2'=>'/小时']
     ];
+    public static $_people_type = ['1'=>'/次','2'=>'/小时'];
 
     public function getCommon()
     {
         $comm = [
             'fee_type' => PsCommon::returnKeyValue(self::$_fee_type),
-            'unit_type' => PsCommon::returnKeyValue(self::$_unit_type)
+            'material' => PsCommon::returnKeyValue(self::$_material_type),
+            'people' => PsCommon::returnKeyValue(self::$_people_type)
         ];
         return $comm;
     }
