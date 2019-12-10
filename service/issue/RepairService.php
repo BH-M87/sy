@@ -341,6 +341,9 @@ class RepairService extends BaseService
         $model = new PsRepair();
 
         if ($useAs == 'small' && !empty($params['room_id'])) { // 小程序
+            $model->groupId = $params['groupId'];
+            $model->buildingId = $params['buildingId'];
+            $model->unitId = $params['unitId'];
             $model->room_id = $params['room_id'];
             $model->room_address = $params['room_address'];
         } else {

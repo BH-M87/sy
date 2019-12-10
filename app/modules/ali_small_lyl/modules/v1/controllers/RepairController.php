@@ -42,11 +42,10 @@ class RepairController extends UserBaseController
         if ($roomIds) {
             $roomInfo = $javaService->roomInfo(['token' => $token, 'id' => $roomIds]);
 
-            $p['group'] = $roomInfo ? $roomInfo['group'] : '';
-            $p['building'] = $roomInfo ? $roomInfo['building'] : '';
-            $p['unit'] = $roomInfo ? $roomInfo['unit'] : '';
-            $p['room'] = $roomInfo ? $roomInfo['room'] : '';
-            $p['room_address'] = '';
+            $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
+            $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
+            $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
+            $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
         }
 
         if ($relateRoom) {
@@ -70,7 +69,7 @@ class RepairController extends UserBaseController
 
         $validData['member_id'] = $member['id'];
         $validData['member_name'] = $member['trueName'];
-        $validData['member_mobile'] = $member['mobile'];
+        $validData['member_mobile'] = $member['sensitiveInf'];
 
         $result = RepairService::service()->add($validData, [], 'small');
 
@@ -114,7 +113,7 @@ class RepairController extends UserBaseController
         if (!$result) {
             return F::apiFailed("工单不存在");
         }
-        
+
         return F::apiSuccess($result);
     }
 
