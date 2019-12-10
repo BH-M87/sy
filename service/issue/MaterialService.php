@@ -92,40 +92,27 @@ class MaterialService extends BaseService
     }
 
     //耗材新增
-    public function add($params, $userInfo = [])
+    public function add($data, $userInfo = [])
     {
         $materialArr = [];
-        foreach ($params["list"] as $key => $data) {
-            $params = [
-                "num" => $data["num"] ? $data["num"] : 0,
-                "price_unit" => $data["price_unit"],
-                "price" => $data["price"],
-                "name" => $data["name"],
-                "cate_id" => $data["cate_id"],
-                "community_id" => $params["community_id"],
-                "created_at" => time(),
-            ];
-            array_push($materialArr, $params);
-            $operate = [
-                "community_id" => $params['community_id'],
-                "operate_menu" => "耗材管理",
-                "operate_type" => "新增耗材",
-                "operate_content" => '材料名称' . $data["name"] . '-单价：' . $data['price'] . '-数量:' . $data['num'],
-            ];
-            OperateService::addComm($userInfo, $operate);
-        }
-        return Yii::$app->db->createCommand()->batchInsert('ps_repair_materials',
-            [
-                "num",
-                "price_unit",
-                "price",
-                "name",
-                "cate_id",
-                "community_id",
-                "created_at",
-            ],
-            $materialArr
-        )->execute();
+        $params = [
+            "num" => $data["num"] ? $data["num"] : 0,
+            "price_unit" => $data["price_unit"],
+            "price" => $data["price"],
+            "name" => $data["name"],
+            "cate_id" => $data["cate_id"],
+            "community_id" => $data["community_id"],
+            "created_at" => time(),
+        ];
+        array_push($materialArr, $params);
+        $operate = [
+            "community_id" => $params['community_id'],
+            "operate_menu" => "耗材管理",
+            "operate_type" => "新增耗材",
+            "operate_content" => '材料名称' . $data["name"] . '-单价：' . $data['price'] . '-数量:' . $data['num'],
+        ];
+        OperateService::addComm($userInfo, $operate);
+        return Yii::$app->db->createCommand()->batchInsert('ps_repair_materials',["num","price_unit","price","name","cate_id","community_id","created_at",],$materialArr)->execute();
     }
 
     //耗材编辑
