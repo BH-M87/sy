@@ -136,4 +136,18 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+
+    /*
+     * 房屋详情
+     */
+    public function actionRoomInfo(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->roomDetail($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
