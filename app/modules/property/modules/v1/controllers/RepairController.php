@@ -22,50 +22,50 @@ class RepairController extends BaseController {
 
     //工单列表
     public function actionList()
-    {echo 1;die;
-        /*if (empty($this->request_params)) {
+    {
+        if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }*/
+
         $this->request_params["hard_type"] = 1;
         //$this->request_params['community_id'] = $this->communityId;
         $result = RepairService::service()->getRepairLists($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
-    //工单新增
+    // 工单新增
     public function actionAdd()
     {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
 
-        //是否需要检测房屋信息必填
+        // 是否需要检测房屋信息必填
         $repairTypeArr = PsCommon::get($this->request_params,'repair_type',[]);
         if (!$repairTypeArr) {
             return PsCommon::responseFailed("报修类型不能为空");
         }
+
         $repair_type = RepairTypeService::service()->repairTypeRelateRoom($repairTypeArr[0]);
         if ($repair_type) {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'add-repair2');
         } else {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'add-repair1');
         }
+
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
+
         $validData = $valid['data'];
         $validData['relate_room'] = $repair_type;
         $result = RepairService::service()->add($validData, $this->user_info);
         if (!is_array($result)) {
             return PsCommon::responseFailed($result);
         }
+
         return PsCommon::responseSuccess($result);
     }
-
 
     //获取公共接口
     public function actionGetCommon()

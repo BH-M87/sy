@@ -93,4 +93,11 @@ class JavaService extends BaseService{
         $query['route'] = '/resident/memberTypeEnum';
         return self::returnCData($query);
     }
+
+    // 房屋详情
+    public function roomDetail($query)
+    {
+        $query['route'] = '/room/detail';
+        return self::returnCData($query);
+    }
 }

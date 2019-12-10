@@ -8,6 +8,7 @@
 
 namespace service\issue;
 
+use service\property_basic\JavaService;
 
 use app\models\PsCommunityModel;
 use app\models\PsOrder;
@@ -349,13 +350,20 @@ class RepairService extends BaseService
             $model->room_id = $roomInfo['id'];
             $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
         } else {
+
+            $javaService = new JavaService();
+            $javaParam['token'] = '1';
+            $javaParam['id'] = '1197049219637379074';
+            $javaResult = $javaService->roomDetail($javaParam);
+print_r($javaParam);die;
             if ($params['relate_room']) {
-                //关联房屋的验证
+                // 关联房屋的验证
                 $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
                     $params['building'], $params['unit'], $params['room']);
                 if (!$roomInfo) {
                     return "房屋不存在";
                 }
+
                 $model->room_id = $roomInfo['id'];
                 $model->room_address = $params['group'] . $params['building'] . $params['unit'] . $params['room'];
             }
@@ -388,76 +396,19 @@ class RepairService extends BaseService
         $model->expired_repair_type = !empty($params["expired_repair_type"]) ? $params["expired_repair_type"] : 0;
         $model->repair_imgs = !empty($params["repair_imgs"]) ?
             (is_array($params["repair_imgs"]) ? implode(',', $params["repair_imgs"]) : $params["repair_imgs"] ) : "";
-        $model->expired_repair_time = !empty($params["expired_repair_time"]) ? strtotime($params["expired_repair_time"]) : 0;
-        $model->repair_from = $params["repair_from"];
-        $model->is_assign = 2;
-        $model->hard_type = 1;
-        $model->status = 1;
-        $model->day = date('Y-m-d');
-        $model->create_at = time();
+        $model->expired_repair_time = !empty($params["expired_repair_time"]) ? strtotime($params["expired_repair_time"]) : 0; 
+        $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
+        $model->is_assign = 2; // 是否已分配 1已分配 2未分配
+        $model->hard_type = 1; // 1 一般问题，2 疑难问题
+        $model->status = 1; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
+        $model->day = date('Y-m-d'); // 报修日期
+        $model->create_at = time(); // 提交订单时间
+
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
 
-        $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($model->repair_type_id);
-        $typeName = $repairTypeInfo ? $repairTypeInfo['name'] : '';
-
-        //发送消息
-        //TODO 发送短信
-        //TODO 发送站内消息
-        if ($useAs != 'small') {
-            $msgData = [
-                'community_id' => $params['community_id'],
-                'id' => $model->id,
-                'member_id' => $userInfo['id'],
-                'user_name' => $userInfo['truename'],
-
-                'create_user_type' => 1,
-                'remind_tmpId' => 7,
-                'remind_target_type' => 7,
-                'remind_auth_type' => 3,
-
-                'msg_type' => 2,
-                'msg_tmpId' => 7,
-                'msg_target_type' => 7,
-                'msg_auth_type' => 3,
-                'remind' => [
-                    0 => $model->created_username
-                ],
-                'msg' => [
-                    0 => $model->repair_no,
-                    1 => $typeName ?? "",
-                    2 => date('Y-m-d H:i:s', time()),
-                ]
-            ];
-        } else {
-            $msgData = [
-                'community_id' => $params['community_id'],
-                'id' => $model->id,
-                'member_id' => $memberInfo['id'],
-                'user_name' => $memberInfo['name'],
-                'create_user_type' => 1,
-                'remind_tmpId' => 7,
-                'remind_target_type' => 7,
-                'remind_auth_type' => 3,
-                'msg_type' => 2,
-                'msg_tmpId' => 7,
-                'msg_target_type' => 7,
-                'msg_auth_type' => 3,
-                'remind' => [
-                    0 => $model->created_username
-                ],
-                'msg' => [
-                    0 => $model->repair_no,
-                    1 => $typeName ?? "",
-                    2 => date('Y-m-d H:i:s', time()),
-                ]
-            ];
-        }
-        MessageService::service()->addMessageTemplate($msgData);
-
-        $re['id'] = $model->id;
-        return $re;
+        return ['id' => $model->id];
     }
 
     //工单详情
