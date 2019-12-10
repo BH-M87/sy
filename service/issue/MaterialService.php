@@ -43,13 +43,16 @@ class MaterialService extends BaseService
     //耗材列表
     public function getList($params)
     {
+        // 获得所有小区
+        $javaResult = JavaService::service()->communityNameList(['token'=>$params['token']]);
+        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+        $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
         $query = new Query();
         $query->from('ps_repair_materials A')
             ->select('A.*')
-            ->where("1=1");
-        if ($params['community_id']) {
-            $query->andWhere(['A.community_id' => $params['community_id']]);
-        }
+            ->where("1=1")
+            ->andWhere(['A.community_id' => $communityId]);
         $re['totals'] = $query->count();
         $query->orderBy('A.created_at desc');
         $offset = ($params['page'] - 1) * $params['rows'];
@@ -59,6 +62,7 @@ class MaterialService extends BaseService
         foreach ($models as $key => $val) {
             $models[$key]["price_unit_desc"] = isset(self::$_unit_type[$val['price_unit']]) ? self::$_unit_type[$val['price_unit']] : '未知';
             $models[$key]["cate_name"] = isset(self::$_fee_type[$val['cate_id']]) ? self::$_fee_type[$val['cate_id']] : '未知';
+            $models[$key]["community_name"] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
             $models[$key]["created_at"] = $val['created_at'] ? date("Y-m-d H:i", $val['created_at']) : '';
         }
         $re['list'] = $models;

@@ -19,30 +19,18 @@ use service\rbac\OperateService;
 
 class RepairTypeService extends BaseService
 {
-    /*报修类型管理--类目级别*/
-    public static $Repair_Type_Level = [
-        '1' => '一级类目',
-        '2' => '二级类目',
-        '3' => '三级类目',
-    ];
-
-    //公共参数
-    public function getCommon()
-    {
-        $comm = [
-            'repair_type_level' =>  PsCommon::returnKeyValue(self::$Repair_Type_Level)
-        ];
-        return $comm;
-    }
 
     //获取报修类目列表
     public function getRepairTypeList($params)
     {
+        // 获得所有小区
+        $javaResult = JavaService::service()->communityNameList(['token'=>$params['token']]);
+        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+        $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
+
         $status = PsCommon::get($params, 'status');
-        $query = PsRepairType::find()
-            ->filterWhere([
-                'community_id' => PsCommon::get($params, 'community_id'),
-            ]);
+        $query = PsRepairType::find()->filterWhere(['community_id' => $communityId]);
         if ($status) {
             $query->andFilterWhere(['status' => $status]);
         }
@@ -65,6 +53,7 @@ class RepairTypeService extends BaseService
                     $list[$key]['parent_name'] = [];
                 }
                 $list[$key]['level_name'] = ['id' => $value['level'], 'name' => self::$Repair_Type_Level[$value['level']]];
+                $list[$key]['community_name'] = !empty($value['community_id'])?$javaResult[$value['community_id']]:'';
                 $list[$key]['is_relate_room'] = ($value['is_relate_room'] == '1') ? "1" : "2";
                 $list[$key]['cid'] = $count;
                 $count--;

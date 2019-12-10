@@ -30,11 +30,6 @@ class MaterialController extends BaseController
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'materials');
-        if (!$valid["status"]) {
-            unset($valid["status"]);
-            return PsCommon::responseFailed($valid['errorMsg']);
-        }
         $result = MaterialService::service()->getList($this->request_params);
         return PsCommon::responseSuccess($result);
     }

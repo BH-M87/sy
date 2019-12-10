@@ -15,26 +15,13 @@ use service\issue\RepairTypeService;
 
 class RepairTypeController extends BaseController
 {
-    //公共接口
-    public function actionGetCommon()
-    {
-        if (empty($this->request_params)) {
-            return PsCommon::responseFailed("未接受到有效数据");
-        }
-        return PsCommon::responseSuccess(RepairTypeService::service()->getCommon());
-    }
-
     //类目列表
     public function actionList()
     {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $valid = PsCommon::validParamArr(new PsRepairType(), $this->request_params, 'list');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result =  RepairTypeService::service()->getRepairTypeList($valid['data']);
+        $result =  RepairTypeService::service()->getRepairTypeList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
@@ -59,6 +46,7 @@ class RepairTypeController extends BaseController
     //类目编辑
     public function actionEdit()
     {
+        $this->request_params['level'] = 1;//类别层级默认1
         $data = $this->request_params;
         if (empty($data)) {
             return PsCommon::responseFailed("未接受到有效数据");

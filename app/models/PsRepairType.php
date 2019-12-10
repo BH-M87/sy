@@ -32,7 +32,6 @@ class PsRepairType extends BaseModel
         return [
             [['community_id', 'level', 'parent_id', 'is_relate_room', 'status', 'created_at'], 'integer'],
             [['name'], 'string', 'max' => 20],
-            [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list','level-list']],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['status','edit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
             ['status', 'in', 'range' => [1, 2, 3]],
