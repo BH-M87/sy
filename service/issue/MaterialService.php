@@ -184,7 +184,10 @@ class MaterialService extends BaseService
         if (!$model) {
             return "耗材不存在";
         }
-        $model["price_unit_desc"] = isset(self::$_unit_type[$model['price_unit']]) ? self::$_unit_type[$model['price_unit']] : '未知';
+        $model["price_unit_desc"] = isset(self::$_material_type[$model['price_unit']]) ? self::$_material_type[$model['price_unit']] : '未知';
+        if($model['cate_id']==2){
+            $model["price_unit_desc"] = isset(self::$_people_type[$model['price_unit']]) ? self::$_people_type[$model['price_unit']] : '未知';
+        }
         $model["cate_name"] = isset(self::$_fee_type[$model['cate_id']]) ? self::$_fee_type[$model['cate_id']] : '未知';
         $model["created_at"] = $model['created_at'] ? date("Y-m-d H:i", $model['created_at']) : '';
         return $model;
@@ -210,7 +213,10 @@ class MaterialService extends BaseService
                     ->asArray()
                     ->all();
                 foreach ($materials as $kk => $vv) {
-                    $materials[$kk]['price_unit'] = self::$_unit_type[$vv['price_unit']];
+                    $models[$kk]["price_unit"] = isset(self::$_material_type[$vv['price_unit']]) ? self::$_material_type[$vv['price_unit']] : '未知';
+                    if($vv['cate_id']==2){
+                        $models[$kk]["price_unit"] = isset(self::$_people_type[$vv['price_unit']]) ? self::$_people_type[$vv['price_unit']] : '未知';
+                    }
                 }
                 $cates[$k]['material_detail'] = $materials;
             }
