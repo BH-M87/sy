@@ -16,7 +16,7 @@ use app\modules\ali_small_lyl\controllers\UserBaseController;
 use common\core\F;
 use common\core\PsCommon;
 use common\core\JavaCurl;
-use service\property_basic\JavaService;
+use service\property_basic\JavaOfCService;
 use service\issue\RepairService;
 use service\issue\RepairTypeService;
 
@@ -36,13 +36,12 @@ class RepairController extends UserBaseController
         $p['token'] = PsCommon::get($this->params, 'token');
 
         $relateRoom = RepairTypeService::service()->repairTypeRelateRoom($p['repair_type']);
+
+        $javaService = new JavaOfCService();
         $roomIds = F::value($this->params, 'room_id', '');
         if ($roomIds) {
-            $javaService = new JavaService();
-            $javaParam['token'] = '1';
-            $javaParam['id'] = '1197049219637379074';
-            $javaResult = $javaService->roomDetail($javaParam);
-print_r($javaParam);die;
+            $roomInfo = $javaService->roomInfo(['token' => $token, 'id' => $roomIds]);
+
             $p['group'] = $roomInfo ? $roomInfo['group'] : '';
             $p['building'] = $roomInfo ? $roomInfo['building'] : '';
             $p['unit'] = $roomInfo ? $roomInfo['unit'] : '';
@@ -63,11 +62,16 @@ print_r($javaParam);die;
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
         $validData['room_id'] = $roomIds;
-        $validData['member_id'] = '';
-        $validData['member_name'] = '';
-        $validData['member_mobile'] = '';
 
-        print_r($validData);die;
+        $member = $javaService->memberBase(['token' => $token]);
+        if(empty($member)){
+            return PsCommon::responseFailed('用户不存在');
+        }
+
+        $validData['member_id'] = $member['id'];
+        $validData['member_name'] = $member['trueName'];
+        $validData['member_mobile'] = $member['mobile'];
+
         $result = RepairService::service()->add($validData, [], 'small');
 
         if (is_array($result)) {
@@ -77,7 +81,7 @@ print_r($javaParam);die;
         return F::apiFailed($result);
     }
 
-    //报事报修列表
+    // 报事报修列表
     public function actionList()
     {
         if (empty($this->params)) {
@@ -88,16 +92,19 @@ print_r($javaParam);die;
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
+
         $result = RepairService::service()->smallRepairList($valid['data']);
+
         return F::apiSuccess($result);
     }
 
-    //报事报修详情
+    // 报事报修详情
     public function actionView()
     {
         if (empty($this->params)) {
             return F::apiFailed("未接受到有效数据");
         }
+
         $valid = PsCommon::validParamArr(new PsRepair(), $this->params, 'small_view');
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
@@ -107,6 +114,7 @@ print_r($javaParam);die;
         if (!$result) {
             return F::apiFailed("工单不存在");
         }
+        
         return F::apiSuccess($result);
     }
 
