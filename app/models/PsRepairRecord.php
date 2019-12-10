@@ -65,7 +65,7 @@ class PsRepairRecord extends BaseModel
             [['price_unit'], 'required','message' => '材料单位必填!', 'on' => ['add-material','edit-material']],
             ['name', 'match', 'pattern' => Regular::string(1, 20),
                 'message' => '{attribute}最长不超过10个汉字，且不能含特殊字符', 'on' =>['add-material', 'edit-material','import-data']],
-            ['price_unit', 'in', 'range' =>array_keys(MaterialService::$_unit_type), 'message' => '材料单位错误', 'on' =>['add-material','edit-material']],
+            ['price_unit', 'in', 'range' =>array_keys(MaterialService::$_material_type), 'message' => '材料单位错误', 'on' =>['add-material','edit-material']],
             ['price', 'double','message' => '材料价格错误!', 'on' =>['add-material','edit-material']],
             ['cate_id', 'in', 'range' => [1, 2],'message' => '材料分类不正确', 'on' =>['add-material','edit-material']],
             ['num', 'integer','message' => '材料数量错误!', 'on' =>['add-material','edit-material']],
