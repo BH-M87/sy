@@ -82,11 +82,7 @@ class RepairTypeController extends BaseController
     //类目下拉列表
     public function actionGetLevelList()
     {
-        $valid = PsCommon::validParamArr(new PsRepairType(), $this->request_params, 'level-list');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $result = RepairTypeService::service()->getRepairTypeLevelList($valid['data']);
+        $result = RepairTypeService::service()->getRepairTypeLevelList($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 }
