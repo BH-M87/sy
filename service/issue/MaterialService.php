@@ -26,10 +26,15 @@ class MaterialService extends BaseService
     ];
 
     public static $_unit_type = [
-        '1' => '/米',
-        '2' => '/卷',
-        '3' => '/个',
-        '4' => '/次'
+        'material' => [
+            '1' => '/米',
+            '2' => '/卷',
+            '3' => '/个',
+            '4' => '/根',
+            '5' => '/平方米',
+            '6' => '/立方米'
+        ],
+        'people' => ['1'=>'/次','2'=>'/小时']
     ];
 
     public function getCommon()
@@ -45,10 +50,10 @@ class MaterialService extends BaseService
     public function getList($params)
     {
         // 获得所有小区
-        $javaResult = JavaService::service()->communityNameList(['token'=>$params['token']]);
-        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
-        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
-        $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
+        $javaResult = JavaService::service()->communityNameList(['token' => $params['token']]);
+        $communityIds = !empty($javaResult['list']) ? array_column($javaResult['list'], 'key') : [];
+        $javaResult = !empty($javaResult['list']) ? array_column($javaResult['list'], 'name', 'key') : [];
+        $communityId = !empty($params['community_id']) ? $params['community_id'] : $communityIds;
         $query = new Query();
         $query->from('ps_repair_materials A')
             ->select('A.*')
@@ -63,7 +68,7 @@ class MaterialService extends BaseService
         foreach ($models as $key => $val) {
             $models[$key]["price_unit_desc"] = isset(self::$_unit_type[$val['price_unit']]) ? self::$_unit_type[$val['price_unit']] : '未知';
             $models[$key]["cate_name"] = isset(self::$_fee_type[$val['cate_id']]) ? self::$_fee_type[$val['cate_id']] : '未知';
-            $models[$key]["community_name"] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+            $models[$key]["community_name"] = !empty($val['community_id']) ? $javaResult[$val['community_id']] : '';
             $models[$key]["created_at"] = $val['created_at'] ? date("Y-m-d H:i", $val['created_at']) : '';
         }
         $re['list'] = $models;
@@ -94,10 +99,10 @@ class MaterialService extends BaseService
             ];
             array_push($materialArr, $params);
             $operate = [
-                "community_id" =>$params['community_id'],
+                "community_id" => $params['community_id'],
                 "operate_menu" => "耗材管理",
                 "operate_type" => "新增耗材",
-                "operate_content" => '材料名称'.$data["name"].'-单价：'.$data['price'].'-数量:'.$data['num'],
+                "operate_content" => '材料名称' . $data["name"] . '-单价：' . $data['price'] . '-数量:' . $data['num'],
             ];
             OperateService::addComm($userInfo, $operate);
         }
@@ -143,7 +148,7 @@ class MaterialService extends BaseService
             "community_id" => $params['community_id'],
             "operate_menu" => "耗材管理",
             "operate_type" => "编辑耗材",
-            "operate_content" => '材料名称'.$params['name'].'-单价：'.$params['name'].'-数量:'.$params['num'],
+            "operate_content" => '材料名称' . $params['name'] . '-单价：' . $params['name'] . '-数量:' . $params['num'],
         ];
         OperateService::addComm($userInfo, $operate);
         return $model->id;
@@ -163,7 +168,7 @@ class MaterialService extends BaseService
                 "community_id" => $model['community_id'],
                 "operate_menu" => "耗材管理",
                 "operate_type" => "删除耗材",
-                "operate_content" => '材料名称'.$model["name"],
+                "operate_content" => '材料名称' . $model["name"],
             ];
             OperateService::addComm($userInfo, $operate);
             return $params['material_id'];
