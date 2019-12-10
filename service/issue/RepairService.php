@@ -24,6 +24,7 @@ use common\core\F;
 use common\MyException;
 use service\alipay\BillService;
 use service\alipay\BillSmallService;
+use service\basic_data\JavaService;
 use service\manage\CommunityService;
 use common\core\PsCommon;
 use service\BaseService;
@@ -132,7 +133,11 @@ class RepairService extends BaseService
     //报修工单列表
     public function getRepairLists($params)
     {
-        $communityId = PsCommon::get($params, 'community_id', '');
+        // 获得所有小区
+        $javaResult = JavaService::service()->communityNameList(['token'=>$params['token']]);
+        $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
+        $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+        $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
         $repairNo = PsCommon::get($params, 'repair_no', '');
         $memberName = PsCommon::get($params, 'member_name', '');
         $memberMobile = PsCommon::get($params, 'member_mobile', '');
@@ -153,8 +158,6 @@ class RepairService extends BaseService
 
         $query = new Query();
         $query->from('ps_repair A')
-            ->leftJoin('ps_community c','c.id = A.community_id')
-            ->leftJoin('ps_community_roominfo R', 'R.id=A.room_id')
             ->leftJoin('ps_repair_type prt', 'A.repair_type_id = prt.id')
             ->where("1=1");
         if ($communityId) {
@@ -188,16 +191,16 @@ class RepairService extends BaseService
             $query->andWhere(['like', 'A.repair_no', $repairNo]);
         }
         if ($group) {
-            $query->andWhere(['R.group' => $group]);
+            $query->andWhere(['A.groupId' => $group]);
         }
         if ($building) {
-            $query->andWhere(['R.building' => $building]);
+            $query->andWhere(['A.buildingId' => $building]);
         }
         if ($unit) {
-            $query->andWhere(['R.unit' => $unit]);
+            $query->andWhere(['A.unitId' => $unit]);
         }
         if ($room) {
-            $query->andWhere(['R.room' => $room]);
+            $query->andWhere(['R.room_id' => $room]);
         }
         if ($repairType) {
             $query->andWhere(['A.repair_type_id' => $repairType]);
@@ -229,7 +232,7 @@ class RepairService extends BaseService
             $query->andWhere(['<=', 'A.hard_check_at', $end]);
         }
         $re['totals'] = $query->count();
-        $query->select(['A.id', 'A.community_id', 'c.name as community_name', 'A.is_assign_again', 'A.repair_no',
+        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no',
             'A.created_username', 'A.contact_mobile', 'A.repair_type_id', 'A.room_address', 'A.leave_msg',
             'A.repair_content', 'A.expired_repair_type', 'A.expired_repair_time', 'A.`status`',
             'A.is_pay', 'A.amount', 'A.is_assign', 'A.operator_name', 'A.repair_from',
@@ -242,6 +245,7 @@ class RepairService extends BaseService
         $command = $query->createCommand();
         $models = $command->queryAll();
         foreach ($models as $key => $val) {
+            $models[$key]['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
             if ($params['use_as'] == "dingding") {
                 $models[$key]['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {

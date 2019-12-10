@@ -44,7 +44,6 @@ class PsRepair extends BaseModel
         return [
             [['community_id','repair_type_id','repair_content','expired_repair_time'],'required','message'=>'{attribute}不能为空!','on'=>'create'],
             [['repair_content'], 'string', 'max' => 200, 'message'=>'{attribute}不能超过200个字符!', 'on' => 'create'],
-            [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list']],
             [['repair_id'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['repair_content'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['community_id'],'required','message'=>'{attribute}不能为空','on'=>['statistic-status', 'statistic-channel','statistic-type','statistic-score']],
