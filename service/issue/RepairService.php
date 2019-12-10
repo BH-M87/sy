@@ -378,25 +378,19 @@ class RepairService extends BaseService
             $model->created_id = $memberInfo['id'];
             $model->member_id = $memberInfo['id'];
         } else {
-            $memberInfo = MemberService::service()->getMemberByMobile($params['contact_mobile']);
             $model->contact_mobile = $params['contact_mobile'];
             $model->created_id = $userInfo['id'];
             $model->created_username = $userInfo['truename'];
-            $model->member_id = !empty($memberInfo) ? $memberInfo['id'] : 0;
-            //根据手机号及房屋反查小程序用户
-            if ($params['relate_room'] && $memberInfo) {
-                $appUserId = MemberService::service()->getAppUserIdsByMemberId($memberInfo['id']);
-                $model->appuser_id = $appUserId ? $appUserId : 0;
-            }
         }
 
         $model->community_id = $params['community_id'];
+        $model->contact_name = $params['contact_name'];
+        $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : 0;
         $model->repair_no = $this->generalRepairNo();
         $model->repair_type_id = is_array($params["repair_type"]) ? end($params["repair_type"]) : $params["repair_type"];
         $model->repair_content = $params["repair_content"];
         $model->expired_repair_type = !empty($params["expired_repair_type"]) ? $params["expired_repair_type"] : 0;
-        $model->repair_imgs = !empty($params["repair_imgs"]) ?
-            (is_array($params["repair_imgs"]) ? implode(',', $params["repair_imgs"]) : $params["repair_imgs"] ) : "";
+        $model->repair_imgs = !empty($params["repair_imgs"]) ?(is_array($params["repair_imgs"]) ? implode(',', $params["repair_imgs"]) : $params["repair_imgs"] ) : "";
         $model->expired_repair_time = !empty($params["expired_repair_time"]) ? strtotime($params["expired_repair_time"]) : 0; 
         $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
         $model->is_assign = 2; // 是否已分配 1已分配 2未分配

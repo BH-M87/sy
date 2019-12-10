@@ -48,3 +48,10 @@ MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_genera
 
 ALTER TABLE `ps_order_del`
 MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`;
+
+ALTER TABLE `ps_repair`
+ADD COLUMN `repair_time`  int(11) NULL COMMENT '保修时间，选填' AFTER `status`;
+
+ALTER TABLE `ps_repair`
+ADD COLUMN `contact_name`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '报事报修人' AFTER `room_id`;
+

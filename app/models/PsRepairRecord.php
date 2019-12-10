@@ -72,6 +72,7 @@ class PsRepairRecord extends BaseModel
             ['material_id', 'required','message' => '材料id不能为空!', 'on' =>['show-material','edit-material',"delete-material"]],
 
             [['expired_repair_time'], 'required','message' => '上门时间必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
+            [['contact_name'], 'required','message' => '报修人必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['repair_type'], 'required','message' => '报修类型必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['repair_content'], 'required','message' => '报修内容必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['repair_from'], 'required','message' => '报修来源不能为空!', 'on' => ['add-repair1','add-repair2','add-repair3']],
@@ -108,6 +109,7 @@ class PsRepairRecord extends BaseModel
             'room' => '室号',
             'building' => '幢',
             'contact_mobile' => '联系电话',
+            'contact_name' => '报修人',
             'status'=>'操作类型',
         ];
     }
