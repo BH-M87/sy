@@ -59,6 +59,15 @@ class MaterialService extends BaseService
             ->select('A.*')
             ->where("1=1")
             ->andWhere(['A.community_id' => $communityId]);
+        $cate_id = PsCommon::get($params, 'cate_id');
+        $name = PsCommon::get($params, 'name');
+        if ($cate_id) {
+            $query->andFilterWhere(['cate_id' => $cate_id]);
+        }
+        if ($name) {
+            $query->andFilterWhere(['like','name',$name]);
+        }
+
         $re['totals'] = $query->count();
         $query->orderBy('A.created_at desc');
         $offset = ($params['page'] - 1) * $params['rows'];
