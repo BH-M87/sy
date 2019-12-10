@@ -342,34 +342,14 @@ class RepairService extends BaseService
     {
         $model = new PsRepair();
 
-        if ($useAs == 'small' && !empty($params['room_id'])) {
-            //关联房屋的验证
-            $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
-                $params['building'], $params['unit'], $params['room']);
-            if(!$roomInfo)  {
-                return "房屋不存在";
-            }
-            $model->room_id = $roomInfo['id'];
-            $model->room_address = $params['group'].$params['building'].$params['unit'].$params['room'];
-        } else {
-//
-//            $javaService = new JavaService();
-//            $javaParam['token'] = '1';
-//            $javaParam['id'] = '1197049219637379074';
-//            $javaResult = $javaService->roomDetail($javaParam);
-            if ($params['relate_room']) {
-                // 关联房屋的验证
-                $roomInfo = RoomService::service()->getRoomByInfo($params['community_id'], $params['group'],
-                    $params['building'], $params['unit'], $params['room']);
-                if (!$roomInfo) {
-                    return "房屋不存在";
-                }
-
-                $model->room_id = $roomInfo['id'];
-                $model->room_address = $params['group'] . $params['building'] . $params['unit'] . $params['room'];
-            }
+        if(!empty($params['roomId'])){
+            $roomInfo = JavaService::service()->roomDetail(['token'=>$params['token'],'id'=>$params['roomId']]);
+            $model->groupId = $roomInfo['groupId'];
+            $model->buildingId = $roomInfo['buildingId'];
+            $model->unitId = $roomInfo['unitId'];
+            $model->roomId = $roomInfo['roomId'];
+            $model->room_address = $roomInfo['roomName'];
         }
-
         if ($useAs == 'small') {
             $memberInfo = MemberService::service()->getMemberByAppUserId($params['app_user_id']);
             $model->contact_mobile = $memberInfo ? $memberInfo['mobile'] : '';
@@ -378,14 +358,13 @@ class RepairService extends BaseService
             $model->created_id = $memberInfo['id'];
             $model->member_id = $memberInfo['id'];
         } else {
+            $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : 0;
             $model->contact_mobile = $params['contact_mobile'];
+            $model->contact_name = $params['contact_name'];
             $model->created_id = $userInfo['id'];
             $model->created_username = $userInfo['truename'];
         }
-
         $model->community_id = $params['community_id'];
-        $model->contact_name = $params['contact_name'];
-        $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : 0;
         $model->repair_no = $this->generalRepairNo();
         $model->repair_type_id = is_array($params["repair_type"]) ? end($params["repair_type"]) : $params["repair_type"];
         $model->repair_content = $params["repair_content"];

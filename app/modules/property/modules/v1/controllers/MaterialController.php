@@ -40,27 +40,16 @@ class MaterialController extends BaseController
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        if (empty($this->request_params["list"])) {
-            return PsCommon::responseFailed("耗材名不能为空");
-        }
 
-        $arr = [];
-        foreach ($this->request_params["list"] as $data) {
-            if (in_array($data["name"], $arr)) {
-                return PsCommon::responseFailed('列表材料名重复');
-            }
-            array_push($arr, $data["name"]);
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $data, 'add-material');
-            if (!$valid["status"]) {
-                unset($valid["status"]);
-                return PsCommon::responseFailed($valid['errorMsg']);
-            }
-            $isMaterial = MaterialService::service()->getMaterialByName($data["name"], $this->request_params["community_id"]);
-            if ($isMaterial) {
-                return PsCommon::responseFailed('材料名重复');
-            }
+        $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'add-material');
+        if (!$valid["status"]) {
+            unset($valid["status"]);
+            return PsCommon::responseFailed($valid['errorMsg']);
         }
-
+        $isMaterial = MaterialService::service()->getMaterialByName($this->request_params["name"], $this->request_params["community_id"]);
+        if ($isMaterial) {
+            return PsCommon::responseFailed('材料名重复');
+        }
         $result = MaterialService::service()->add($this->request_params,$this->user_info);
         if ($result) {
             return PsCommon::responseSuccess($result);
