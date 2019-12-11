@@ -364,6 +364,7 @@ class RepairService extends BaseService
             $model->created_username = $params['member_name'];
             $model->created_id = $params['member_id'];
             $model->member_id = $params['member_id'];
+            $model->contact_name = $params['member_name'];
         } else {
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : 0;
             $model->contact_mobile = $params['contact_mobile'];
@@ -1418,7 +1419,7 @@ class RepairService extends BaseService
         }
 
         if ($roomId) {
-            $query->andWhere(['A.room_id' => $roomId]);
+            $query->andWhere(['A.roomId' => $roomId]);
         }
 
         $query->orderBy('A.id desc');
@@ -1457,7 +1458,7 @@ class RepairService extends BaseService
             ->leftJoin('ps_repair_type type','a.repair_type_id = type.id')
             ->where(['a.id' => $params['repair_id']])->asArray()->one();
         if (!$repair_info) {
-            return "获取数据失败";
+            return F::apiFailed("数据不存在");
         }
 
         $repair_info['repair_status'] = $repair_info['status'];

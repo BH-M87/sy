@@ -40,6 +40,7 @@ class PsRepairRecord extends BaseModel
     public $room;
     public $unit;
     public $contact_mobile;
+    public $contact_name;
     public $finish_time;
 
     public $user_id;
