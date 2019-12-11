@@ -398,12 +398,9 @@ class RepairService extends BaseService
     public function show($params)
     {
         $model = PsRepair::find()
-            ->select(['id', 'is_assign_again', 'repair_no', 'create_at', 'repair_type_id', 'repair_content', 'repair_imgs',
-                'expired_repair_time', 'expired_repair_type', 'hard_check_at', 'hard_remark', 'leave_msg',
-                'is_pay', 'status', 'member_id', 'room_username', 'room_address', 'contact_mobile'])
+            ->select(['id', 'is_assign_again', 'repair_no', 'create_at', 'repair_type_id', 'repair_content', 'repair_imgs', 'expired_repair_time', 'expired_repair_type', 'hard_check_at', 'hard_remark', 'leave_msg', 'is_pay', 'status', 'member_id', 'room_username', 'room_address', 'contact_mobile'])
             ->where(["id" => $params['repair_id']])
-            ->asArray()
-            ->one();
+            ->asArray()->one();
         if (!$model) {
             return $model;
         }
@@ -432,13 +429,14 @@ class RepairService extends BaseService
         $model['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
         $model["records"] = $this->getRecord(["repair_id" => $params['repair_id']]);
         $model["appraise"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
-        $model["repair_assigns"] = $this->getAssigns(["repair_id" => $params['repair_id']]);
+        //$model["repair_assigns"] = $this->getAssigns(["repair_id" => $params['repair_id']]);
         $model["materials"] = $this->getMaterials(["repair_id" => $params['repair_id']]);
         $payType = $model["materials"]['pay_type'];
         $model["amount"] = $model["materials"]['amount'];
         $model["other_charge"] = $model["materials"]['other_charge'];
         $model["pay_type"] = $payType;
         $model["pay_type_desc"] = isset(self::$_pay_type[$payType]) ? self::$_pay_type[$payType] : '';
+        
         return $model;
     }
 
@@ -954,16 +952,14 @@ class RepairService extends BaseService
     private function getRecord($params)
     {
         $query = new Query();
-        $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`',
-            'A.create_at', 'U.username as operator_name', 'info.dept_id as group_id',
-            'U.mobileNumber as operator_mobile', 'info.org_name as group_name'])
+        $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`', 'A.create_at'])
             ->from('ps_repair_record A')
-            ->leftJoin('user U', 'U.id=A.operator_id')
-            ->leftJoin('user_info info', 'U.id = info.user_id')
             ->where(["A.repair_id" => $params["repair_id"]]);
+
         if (!empty($params["status"]) && is_array($params["status"])) {
             $mod->andWhere(['in', 'A.status', $params["status"]]);
         }
+
         $models = $mod->orderBy('A.create_at desc')->all();
         if (!empty($models)) {
             foreach ($models as $key => $model) {
@@ -973,14 +969,12 @@ class RepairService extends BaseService
                     } else {
                         $models[$key]['status_label'] = self::$_repair_status[$model['status']];
                     }
-                    $models[$key]["mobile"] = $model['operator_mobile'];
                 } else {
                     $models[$key]["status_name"] = self::getStatusName($model['status']);
                     $models[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
                     if ($model['status'] == self::STATUS_DONE) {
                         $models[$key]['status_desc'] = "已完成";
                     }
-                    $models[$key]["group_name"] = $model["group_id"] == 0 ? "管理员" : ($model["group_name"] ? $model["group_name"] : "未知");
                     //分配订单or改派后，为待确认。处理人和联系电话为工人信息，待确认处理时间和处理结果为空。
                     if ($model['status'] == '7') {
                         $models[$key]['content'] = '';
@@ -1000,6 +994,7 @@ class RepairService extends BaseService
             }
 
         }
+
         return !empty($models) ? $models : [];
     }
 
