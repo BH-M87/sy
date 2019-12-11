@@ -429,7 +429,7 @@ class RepairService extends BaseService
         $m["amount"] = $m["materials"]['amount'];
         $m["other_charge"] = $m["materials"]['other_charge'];
         // 小区名称调Java
-        //$roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
+        $roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $roomInfo['communityName'];
 
         return $m;
@@ -677,36 +677,9 @@ class RepairService extends BaseService
         ];
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $params["repair_id"]])->execute();
         if ($re) {
-            //发送站内消息
-            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
-            $info = [
-                'community_id' => $model['community_id'],
-                'id' => $params['repair_id'] ?? "",
-                'member_id' => $userInfo["id"],
-                'user_name' => $userInfo["truename"],
-
-                'create_user_type' => 1,
-                'remind_tmpId' => 8,
-                'remind_target_type' => 8,
-                'remind_auth_type' => 7,
-
-                'msg_type' => 2,
-                'msg_tmpId' => 8,
-                'msg_target_type' => 8,
-                'msg_auth_type' => 7,
-                'remind' => [
-                    0 => $userInfo["truename"]
-                ],
-                'msg' => [
-                    0 => $model['repair_no'],
-                    1 => $typeName ?? "",
-                    2 => date('Y-m-d H:i:s', time()),
-                    3 => $updateArr['hard_remark']
-                ],
-            ];
-            MessageService::service()->addMessageTemplate($info);
             return true;
         }
+        
         return '系统错误,标记为疑难失败';
     }
 
