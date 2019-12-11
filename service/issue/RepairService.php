@@ -231,7 +231,7 @@ class RepairService extends BaseService
             $query->andWhere(['<=', 'A.hard_check_at', $end]);
         }
         $re['totals'] = $query->count();
-        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',,
+        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',
             'A.repair_content', 'A.expired_repair_type', 'A.`status`',
             'A.is_assign', 'A.operator_name', 'A.repair_from',
             'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
