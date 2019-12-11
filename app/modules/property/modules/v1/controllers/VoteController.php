@@ -529,4 +529,14 @@ class VoteController extends BaseController
         $downUrl = F::downloadUrl($this->systemType, date('Y-m-d') . '/' . $fileName, 'temp', 'TouPiaoMingXi.xlsx');
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
+
+    public function actionIsVoteDrop(){
+        $result = VoteService::service()->isVoteDrop();
+        return PsCommon::responseSuccess($result);
+    }
+
+    public function actionChannelDrop(){
+        $result = VoteService::service()->channelDrop();
+        return PsCommon::responseSuccess($result);
+    }
 }

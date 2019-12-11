@@ -2248,6 +2248,32 @@ class VoteService extends BaseService
     }
 
     /*
+     * 是否投票下拉
+     */
+    public function isVoteDrop(){
+        return [
+            'list'=>[
+                ['key'=>0,'name'=>'全部'],
+                ['key'=>1,'name'=>'是'],
+                ['key'=>2,'name'=>'否'],
+            ]
+        ];
+    }
+
+    /*
+     * 投票渠道下拉
+     */
+    public function channelDrop(){
+        return [
+            'list'=>[
+                ['key'=>0,'name'=>'全部'],
+                ['key'=>1,'name'=>'线上投票'],
+                ['key'=>2,'name'=>'线下投票'],
+            ]
+        ];
+    }
+
+    /*
      * 投票状态变化脚本
      */
     public function voteScript(){
