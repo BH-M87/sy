@@ -28,6 +28,7 @@ class RepairController extends BaseController {
         }
 
         $result = RepairService::service()->getRepairLists($this->request_params);
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -90,13 +91,11 @@ class RepairController extends BaseController {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $valid = PsCommon::validParamArr(new PsRepair(), $this->request_params, 'list');
-        if (!$valid["status"]) {
-            return PsCommon::responseFailed($valid["errorMsg"]);
-        }
-        $this->request_params["hard_type"] = 1;
+
         $this->request_params["export"] = true;
+
         $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
@@ -110,7 +109,7 @@ class RepairController extends BaseController {
         if (!$repairId) {
             return PsCommon::responseFailed("报事报修id不能为空");
         }
-        $result = RepairService::service()->show($this->request_params);
+        $result = RepairService::service()->show($this->request_params, $this->user_info);
         return PsCommon::responseSuccess($result);
     }
 

@@ -395,7 +395,7 @@ class RepairService extends BaseService
     }
 
     //工单详情
-    public function show($p)
+    public function show($p, $user = [])
     {
         $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
             repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, 
@@ -431,6 +431,9 @@ class RepairService extends BaseService
         // 小区名称调Java
         $roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $roomInfo['communityName'];
+        $m['user_id'] = $user['id'];
+        $m['user_name'] = $user['truename'];
+        $m['user_mobile'] = $user['mobile'];
 
         return $m;
     }
