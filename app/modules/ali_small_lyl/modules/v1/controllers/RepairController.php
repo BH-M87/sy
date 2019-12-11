@@ -47,6 +47,13 @@ class RepairController extends UserBaseController
             $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
         }
 
+        $member = JavaOfCService::service()->memberBase(['token' => $token]);
+        if (empty($member)) {
+            return F::apiSuccess('用户不存在');
+        }
+
+        $p['contact_name'] = $member['trueName'];
+
         if ($relateRoom) {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
         } else {
