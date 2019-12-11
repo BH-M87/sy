@@ -114,6 +114,7 @@ class JavaService extends BaseService
         $query['route'] = '/dept/tree';
         return self::returnCData($query);
     }
+
     /*
     * 员工列表
     */
@@ -122,6 +123,7 @@ class JavaService extends BaseService
         $query['route'] = '/user/simple-list';
         return self::returnCData($query);
     }
+
     /*
      * 房屋详情
      */
