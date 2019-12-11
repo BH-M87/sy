@@ -231,11 +231,10 @@ class RepairService extends BaseService
             $query->andWhere(['<=', 'A.hard_check_at', $end]);
         }
         $re['totals'] = $query->count();
-        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no',
-            'A.created_username', 'A.contact_mobile', 'A.repair_type_id', 'A.room_address', 'A.leave_msg',
-            'A.repair_content', 'A.expired_repair_type', 'A.expired_repair_time', 'A.`status`',
-            'A.is_pay', 'A.amount', 'A.is_assign', 'A.operator_name', 'A.repair_from',
-            'A.operator_id', 'A.create_at', 'A.hard_check_at', 'A.hard_remark', 'prt.name repair_type_desc', 'prt.is_relate_room']);
+        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',,
+            'A.repair_content', 'A.expired_repair_type', 'A.`status`',
+            'A.is_assign', 'A.operator_name', 'A.repair_from',
+            'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
