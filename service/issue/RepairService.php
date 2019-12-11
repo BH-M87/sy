@@ -454,7 +454,7 @@ class RepairService extends BaseService
             return "工单已完成";
         }
 
-        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
+        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
@@ -526,7 +526,7 @@ class RepairService extends BaseService
             return "工单已完成";
         }
 
-        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
+        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
@@ -588,7 +588,7 @@ class RepairService extends BaseService
             return "工单已完成";
         }
 
-        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
+        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
