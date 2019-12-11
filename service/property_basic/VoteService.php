@@ -1395,7 +1395,7 @@ class VoteService extends BaseService
     public function doVoteMemberListData($javaData,$params){
         $list = $voteChannel = $voteCreate = [];
         $totals = $javaData['totalSize'];
-        $voteModel = PsVote::find()->select(['vote_status'])->where(['=','id',$params['vote_id']])->asArray()->all();
+        $voteModel = PsVote::find()->select(['vote_status'])->where(['=','id',$params['vote_id']])->asArray()->one();
         if(!empty($params['is_vote'])){
             if($params['is_vote']==1){
                 //已投票
