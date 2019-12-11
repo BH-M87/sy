@@ -368,7 +368,9 @@ class RepairService extends BaseService
             $model->contact_mobile = $params['contact_mobile'];
             $model->contact_name = $params['contact_name'];
             $model->created_id = $userInfo['id'];
-            $model->created_username = $userInfo['truename'];
+            $model->created_username = $userInfo['trueName'];
+            $model->operator_id = $userInfo['id'];
+            $model->operator_name = $userInfo['trueName'];
         }
         $model->community_id = $params['community_id'];
         $model->repair_no = $this->generalRepairNo();
