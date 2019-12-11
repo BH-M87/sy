@@ -31,6 +31,7 @@ use yii\db\Exception;
 use yii\db\Query;
 use yii\helpers\FileHelper;
 use yii\web\Response;
+use service\property_basic\JavaService;
 
 class BillService extends BaseService
 {
@@ -1316,45 +1317,50 @@ class BillService extends BaseService
      * @param int $otherCharge
      * @return bool|mixed
      */
-    public function addRepairBill($repairId, $materialsPrice, $totalPrice, $otherCharge = 0)
+    public function addRepairBill($repairId, $materialsPrice, $totalPrice, $otherCharge = 0, $token = '')
     {
-        $psRepair = PsRepair::findOne($repairId);
-        if (!$psRepair) {
+        $m = PsRepair::findOne($repairId);
+        if (!$m) {
             return false;
         }
-        $community = PsCommunityModel::findOne($psRepair->community_id);
+
+        $community = JavaService::service()->communityDetail(['token' => $token, 'id' => $m->community_id]);
         if (!$community) {
             return false;
         }
+
         //查询此小区对应的物业公司信息
         $preCompany = PsPropertyCompany::findOne($community->pro_company_id);
         if (!$preCompany || !$preCompany->alipay_account) {
             return false;
         }
-        $psRepairBill = PsRepairBill::find()
+
+        $bill = PsRepairBill::find()
             ->select(['id'])
             ->where(['repair_id' => $repairId])
             ->one();
-        if ($psRepairBill) {
+        if ($bill) {
             return false;
         }
-        $psRepairBill = new PsRepairBill();
-        $psRepairBill->repair_id = $repairId;
-        $psRepairBill->community_id = $community->id;
-        $psRepairBill->community_name = $community->name;
-        $psRepairBill->property_company_id = $community->pro_company_id;
-        $psRepairBill->order_no = $psRepair->repair_no;
-        $psRepairBill->property_alipay_account = $preCompany->alipay_account;
-        $psRepairBill->materials_price = $materialsPrice ? $materialsPrice : 0;
-        $psRepairBill->other_charge = $otherCharge ? $otherCharge : 0;
-        $psRepairBill->amount = $totalPrice ? $totalPrice : 0;
-        $psRepairBill->trade_no = "";
-        $psRepairBill->pay_status = 0;
-        $psRepairBill->create_at = time();
-        if ($psRepairBill->save()) {
-            $re = $this->generalRepair($psRepair,$psRepairBill,$community);
+
+        $bill = new PsRepairBill();
+        $bill->repair_id = $repairId;
+        $bill->community_id = $m->community_id;
+        $bill->community_name = $community['communityName'];
+        $bill->property_company_id = $community->pro_company_id;
+        $bill->order_no = $m->repair_no;
+        $bill->property_alipay_account = $preCompany->alipay_account;
+        $bill->materials_price = $materialsPrice ? $materialsPrice : 0;
+        $bill->other_charge = $otherCharge ? $otherCharge : 0;
+        $bill->amount = $totalPrice ? $totalPrice : 0;
+        $bill->trade_no = "";
+        $bill->pay_status = 0;
+        $bill->create_at = time();
+        if ($bill->save()) {
+            $re = $this->generalRepair($m, $bill, $community);
             return $re;
         }
+
         return false;
     }
 

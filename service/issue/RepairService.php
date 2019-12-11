@@ -429,8 +429,8 @@ class RepairService extends BaseService
         $m["amount"] = $m["materials"]['amount'];
         $m["other_charge"] = $m["materials"]['other_charge'];
         // 小区名称调Java
-        $roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
-        $m['community_name'] = $roomInfo['communityName'];
+        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
+        $m['community_name'] = $community['communityName'];
         $m['user_id'] = $user['id'];
         $m['user_name'] = $user['truename'];
         $m['user_mobile'] = $user['mobile'];
@@ -631,7 +631,7 @@ class RepairService extends BaseService
             if ($releateRoom && $params['amount']) {
                 //TODO 生成报事报修账单
                 $billRe = BillService::service()->addRepairBill($params["repair_id"], $params['material_total_price'],
-                    $params['total_price'], $params['other_charge']);
+                    $params['total_price'], $params['other_charge'], $params['token']);
                 if ($billRe === false) {
                     throw new Exception('账单生成失败');
                 }
@@ -880,14 +880,6 @@ class RepairService extends BaseService
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
-                if (!empty($m[$key]["repair_imgs"])) {
-                    $imageArr = [];
-                    foreach ($m[$key]["repair_imgs"] as $k => $v){
-                        $tmpImgPath = F::getOssImagePath($v);
-                        array_push($imageArr, $tmpImgPath);
-                    }
-                    $m[$key]["repair_imgs"] = $imageArr;
-                }
             }
         }
 
