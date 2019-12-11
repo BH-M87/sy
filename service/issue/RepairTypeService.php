@@ -197,7 +197,7 @@ class RepairTypeService extends BaseService
         return $newList;
     }
 
-    //获取报修类目树
+    // 获取报修类目树
     public function getRepairTypeTree($params)
     {
         $params['status'] = 1;

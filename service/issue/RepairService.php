@@ -121,7 +121,7 @@ class RepairService extends BaseService
     public function getCommon($params)
     {
         $comm = [
-            'repair_type' => RepairTypeService::service()->getRepairTypeTree($params),
+            //'repair_type' => RepairTypeService::service()->getRepairTypeTree($params),
             'repair_from' => PsCommon::returnKeyValue(self::$_repair_from),
             'repair_status' => PsCommon::returnKeyValue(self::$_repair_status),
             'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status)

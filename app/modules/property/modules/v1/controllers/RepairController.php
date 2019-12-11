@@ -74,6 +74,16 @@ class RepairController extends BaseController {
         return PsCommon::responseSuccess(RepairService::service()->getCommon($this->request_params));
     }
 
+    // 获取报修分类
+    public function actionGetRepairTypeTree()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+
+        return PsCommon::responseSuccess(RepairTypeService::service()->getRepairTypeTree($this->request_params));
+    }
+
     //工单导出
     public function actionExport()
     {
