@@ -71,13 +71,13 @@ class RepairController extends UserBaseController
         $validData['member_name'] = $member['trueName'];
         $validData['member_mobile'] = $member['sensitiveInf'];
 
-        $result = RepairService::service()->add($validData, [], 'small');
+        $r = RepairService::service()->add($validData, [], 'small');
 
-        if (is_array($result)) {
-            return F::apiSuccess($result);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
         }
 
-        return F::apiFailed($result);
+        return F::apiFailed($r);
     }
 
     // 报事报修列表
@@ -92,9 +92,9 @@ class RepairController extends UserBaseController
             return F::apiFailed($valid["errorMsg"]);
         }
 
-        $result = RepairService::service()->smallRepairList($valid['data']);
+        $r = RepairService::service()->smallRepairList($valid['data']);
 
-        return F::apiSuccess($result);
+        return F::apiSuccess($r);
     }
 
     // 报事报修详情
@@ -109,12 +109,12 @@ class RepairController extends UserBaseController
             return F::apiFailed($valid["errorMsg"]);
         }
 
-        $result = RepairService::service()->smallView($valid['data']);
-        if (!$result) {
+        $r = RepairService::service()->smallView($valid['data']);
+        if (!$r) {
             return F::apiFailed("工单不存在");
         }
 
-        return F::apiSuccess($result);
+        return F::apiSuccess($r);
     }
 
     // 报事报修评价
@@ -129,12 +129,12 @@ class RepairController extends UserBaseController
             return F::apiFailed($valid["errorMsg"]);
         }
 
-        $result = RepairService::service()->evaluate($valid['data']);
-        if ($result === true) {
-            return F::apiSuccess($result);
+        $r = RepairService::service()->evaluate($valid['data']);
+        if ($r === true) {
+            return F::apiSuccess($r);
         }
 
-        return F::apiFailed($result);
+        return F::apiFailed($r);
     }
 
     // 获取报修类型
@@ -144,39 +144,41 @@ class RepairController extends UserBaseController
             return F::apiFailed("未接受到有效数据");
         }
 
-        $params['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
 
-        if (!$params['community_id']) {
+        if (!$p['community_id']) {
             return F::apiFailed("小区id不能为空");
         }
 
-        $result = RepairTypeService::service()->getSmallAppRepairTypeTree($params);
+        $r = RepairTypeService::service()->getSmallAppRepairTypeTree($p);
 
-        return F::apiSuccess($result);
+        return F::apiSuccess($r);
     }
 
-    //报事报修工单生成订单
+    // 报事报修工单生成订单
     public function actionGetOrder()
     {
         if (empty($this->params)) {
             return F::apiFailed("未接受到有效数据");
         }
-        $params['community_id'] = F::value($this->params, 'community_id', 0);
-        $params['repair_id'] = F::value($this->params, 'repair_id', 0);
-        $params['app_user_id'] = F::value($this->params, 'app_user_id', 0);
-        if (!$params['community_id']) {
+
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['repair_id'] = F::value($this->params, 'repair_id', 0);
+        $p['app_user_id'] = F::value($this->params, 'app_user_id', 0);
+
+        if (!$p['community_id']) {
             return F::apiFailed("小区id不能为空");
         }
-        if (!$params['repair_id']) {
+
+        if (!$p['repair_id']) {
             return F::apiFailed("报事报修工单id不能为空");
         }
-        if (!$params['app_user_id']) {
-            return F::apiFailed("用户id不能为空");
+
+        $r = RepairService::service()->getAlipayOrder($p);
+        if ($r['code']) {
+            return F::apiSuccess($r['data']);
         }
-        $result = RepairService::service()->getAlipayOrder($params);
-        if ($result['code']) {
-            return F::apiSuccess($result['data']);
-        }
-        return F::apiFailed($result['msg']);
+
+        return F::apiFailed($r['msg']);
     }
 }

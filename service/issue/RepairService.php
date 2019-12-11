@@ -1559,23 +1559,20 @@ class RepairService extends BaseService
         return true;
     }
 
-    public function getAlipayOrder($params)
+    public function getAlipayOrder($p)
     {
-        $repair_info = PsRepair::find()
-            ->select(['ps_repair.room_address','bill.id','bill.amount','bill.pay_status'])
-            ->leftJoin('ps_repair_bill bill', 'ps_repair.id = bill.repair_id')
-            ->where(['ps_repair.id' => $params['repair_id'],'pay_status'=>0])
-            ->asArray()
-            ->one();
-        if (empty($repair_info)) {
+        $m = PsRepair::find()->alias('A')
+            ->select('A.room_address, B.id as repair_bill, B.amount, B.pay_status, B.community_no, B.property_company_id')
+            ->leftJoin('ps_repair_bill B', 'A.id = B.repair_id')
+            ->where(['A.id' => $p['repair_id'], 'B.pay_status' => 0])
+            ->asArray()->one();
+        if (empty($m)) {
             return $this->failed("账单已支付");
         }
 
-        $params['room_address'] = $repair_info['room_address'];
-        $params['amount'] = $repair_info['amount'];
-        $params['repair_bill'] = $repair_info['id'];
         $bill = new BillSmallService();
-        $result = $bill->addRepairBill($params);
+        $result = $bill->addRepairBill($m);
+
         return $result;
     }
 

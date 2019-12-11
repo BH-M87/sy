@@ -10,6 +10,9 @@ MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_genera
 ALTER TABLE `ps_repair_bill`
 MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`;
 
+ALTER TABLE `ps_repair_bill`
+add COLUMN `community_no`  varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '支付宝小区编号' AFTER `community_id`;
+
 ALTER TABLE `ps_repair_materials`
 MODIFY COLUMN `community_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '0' COMMENT '小区id' AFTER `id`;
 
