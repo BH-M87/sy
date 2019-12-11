@@ -1395,6 +1395,7 @@ class VoteService extends BaseService
     public function doVoteMemberListData($javaData,$params){
         $list = $voteChannel = $voteCreate = [];
         $totals = $javaData['totalSize'];
+        $voteModel = PsVote::find()->select(['vote_status'])->where(['=','id',$params['vote_id']])->asArray()->all();
         if(!empty($params['is_vote'])){
             if($params['is_vote']==1){
                 //已投票
@@ -1416,6 +1417,7 @@ class VoteService extends BaseService
                     $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
                     $element['is_vote'] = 1;
                     $element['is_vote_msg'] = '是';
+                    $element['vote_status'] = $voteModel['vote_status'];
                     $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
                     $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
                     $list[] = $element;
@@ -1433,6 +1435,7 @@ class VoteService extends BaseService
                     $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
                     $element['is_vote'] = 2;
                     $element['is_vote_msg'] = '否';
+                    $element['vote_status'] = $voteModel['vote_status'];
                     $element['vote_channel_msg'] = '';
                     $element['vote_create_msg'] = '';
                     $list[] = $element;
@@ -1459,6 +1462,7 @@ class VoteService extends BaseService
                 $element['vote_id'] = !empty($params['vote_id'])?$params['vote_id']:'';
                 $element['is_vote'] = !empty($voteCreate[$value['residentId']])?1:2;
                 $element['is_vote_msg'] = !empty($voteCreate[$value['residentId']])?"是":'否';
+                $element['vote_status'] = $voteModel['vote_status'];
                 $element['vote_channel_msg'] = !empty($voteChannel[$value['residentId']])?self::$Vote_Channel[$voteChannel[$value['residentId']]]:'';
                 $element['vote_create_msg'] = !empty($voteCreate[$value['residentId']])?date('Y/m/d H:i:s',$voteCreate[$value['residentId']]):'';
                 $list[] = $element;
