@@ -37,10 +37,9 @@ class RepairController extends UserBaseController
 
         $relateRoom = RepairTypeService::service()->repairTypeRelateRoom($p['repair_type']);
 
-        $javaService = new JavaOfCService();
         $roomIds = F::value($this->params, 'room_id', '');
         if ($roomIds) {
-            $roomInfo = $javaService->roomInfo(['token' => $token, 'id' => $roomIds]);
+            $roomInfo = JavaOfCService::service()->roomInfo(['token' => $token, 'id' => $roomIds]);
 
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
             $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
@@ -62,7 +61,7 @@ class RepairController extends UserBaseController
         $validData['relate_room'] = $relateRoom;
         $validData['room_id'] = $roomIds;
 
-        $member = $javaService->memberBase(['token' => $token]);
+        $member = JavaOfCService::service()->memberBase(['token' => $token]);
         if(empty($member)){
             return PsCommon::responseFailed('用户不存在');
         }
