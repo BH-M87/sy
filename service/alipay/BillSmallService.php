@@ -318,30 +318,25 @@ class BillSmallService extends BaseService
         return $this->success(['id' => $income_id, 'pay_money' => $total_money, 'out_trade_no' => $out_trade_no, "trade_no" => $trade_no]);
     }
 
-    //提交报事报修账单，返回付款支付宝交易号
-    public function addRepairBill($params)
+    // 提交报事报修账单，返回付款支付宝交易号
+    public function addRepairBill($p)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $repair_bill = PsCommon::get($params, 'repair_bill');
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
-        $total_money = !empty($params['amount']) ? $params['amount'] : '';
-        $address = !empty($params['room_address']) ? $params['room_address'] : '';
+        $communityId = PsCommon::get($p, 'community_id');
+        $repair_bill = PsCommon::get($p, 'repair_bill');
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+        $total_money = !empty($p['amount']) ? $p['amount'] : '';
+        $address = !empty($p['room_address']) ? $p['room_address'] : '';
+        $community_no = $p['community_no'];
+
         if (!$communityId || !$repair_bill || !$app_user_id) {
             return $this->failed('请求参数不完整！');
         }
 
-        //小区id
-        $communityInfo = PsCommunityModel::find()->select('community_no,pro_company_id')->where(['id' => $communityId])->asArray()->one();
-        $community_no = $communityInfo['community_no'];
-        //查询物业公司是否签约
-        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$communityInfo['pro_company_id'],'status'=>'2'])->asArray()->one();
+        // 查询物业公司是否签约
+        $alipay = PsPropertyAlipay::find()->andWhere(['company_id' => $p['property_company_id'], 'status' => '2'])->asArray()->one();
         if(empty($alipay)){
             return $this->failed('当前小区物业公司未签约支付宝！');
         }
-        //获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
-        //获取业主名称
-        $member_name = $this->getMemberNameByUser($member_id);
         //获取支付宝id
         $buyer_id = $this->getBuyerIdr($app_user_id);
         $data = [

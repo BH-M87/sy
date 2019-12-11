@@ -49,4 +49,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/home/lastRoom';
         return self::returnCData($query);
     }
+
+    // 房屋信息
+    public function roomInfo($query)
+    {
+        $query['route'] = '/member/room/roomInfo';
+        return self::returnCData($query);
+    }
 }
