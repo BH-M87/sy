@@ -26,7 +26,7 @@ class RepairController extends BaseController {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        $this->request_params["hard_type"] = 1;
+
         $result = RepairService::service()->getRepairLists($this->request_params);
         return PsCommon::responseSuccess($result);
     }

@@ -140,7 +140,7 @@ class RepairService extends BaseService
         $repairNo = PsCommon::get($params, 'repair_no', '');
         $memberName = PsCommon::get($params, 'member_name', '');
         $memberMobile = PsCommon::get($params, 'member_mobile', '');
-        $hardType = PsCommon::get($params, 'hard_type', 1);
+        $hardType = PsCommon::get($params, 'hard_type', '');
         $operateName = PsCommon::get($params, 'operator_name', '');
         $createAtStart = PsCommon::get($params, 'create_at_start', '');
         $createAtEnd = PsCommon::get($params, 'create_at_end', '');
@@ -679,7 +679,7 @@ class RepairService extends BaseService
         if ($re) {
             return true;
         }
-        
+
         return '系统错误,标记为疑难失败';
     }
 
