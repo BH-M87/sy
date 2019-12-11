@@ -127,6 +127,7 @@ class BaseController extends \yii\web\Controller
         //todo::调用java接口
         $result = JavaCurl::getInstance()->pullHandler($params);
         $this->user_info = $result;
+        $this->user_info['truename'] = $result['trueName'];
         $this->request_params['token'] = $header['authorization'];
         $this->request_params['create_id'] = $result['id'];
         $this->request_params['create_name'] = $result['trueName'];
