@@ -399,7 +399,8 @@ class RepairService extends BaseService
     {
         $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
             repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, 
-            status, member_id, room_username, room_address, contact_mobile, roomId')
+            status, member_id, room_username, room_address, contact_mobile, community_id, repair_from, 
+            contact_name, hard_type')
             ->where(["id" => $p['repair_id']])->asArray()->one();
         if (!$m) {
             return $m;
@@ -411,17 +412,9 @@ class RepairService extends BaseService
         $m['create_at'] = $m['create_at'] ? date("Y-m-d H:i:s", $m['create_at']) : '';
         $m['hard_check_at'] = $m['hard_check_at'] ? date("Y-m-d H:i", $m['hard_check_at']) : '';
         $m["repair_imgs"] = $m["repair_imgs"] ? explode(',', $m["repair_imgs"]) : [];
-        
-        if (!empty($m["repair_imgs"])) {
-            $imageArr = [];
-            foreach ($m["repair_imgs"] as $k => $v){
-                $tmpImgPath = F::getOssImagePath($v);
-                array_push($imageArr, $tmpImgPath);
-            }
-            $m["repair_imgs"] = $imageArr;
-        }
-
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
+        $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
+        $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
 
         if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
             $m['status_desc'] = self::$_repair_status[10];
@@ -435,7 +428,7 @@ class RepairService extends BaseService
         $m["appraise"] = (object)$this->getAppraise(["repair_id" => $p['repair_id']]);
         $m["amount"] = $m["materials"]['amount'];
         $m["other_charge"] = $m["materials"]['other_charge'];
-        //$roomInfo = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $m['roomId']]);
+        $roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $roomInfo['communityName'];
 
         return $m;
