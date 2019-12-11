@@ -428,7 +428,8 @@ class RepairService extends BaseService
         $m["appraise"] = (object)$this->getAppraise(["repair_id" => $p['repair_id']]);
         $m["amount"] = $m["materials"]['amount'];
         $m["other_charge"] = $m["materials"]['other_charge'];
-        $roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
+        // 小区名称调Java
+        //$roomInfo = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $roomInfo['communityName'];
 
         return $m;
@@ -440,50 +441,44 @@ class RepairService extends BaseService
         if ($params['finish_time'] < 0 || $params['finish_time'] > 24) {
             return "期望完成时间只能输入1-24的正整数";
         }
+
         $model = $this->getRepairInfoById($params['repair_id']);
         if (!$model) {
             return "工单不存在";
         }
+
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = SqwnUser::find()
-            ->select('username as truename,mobileNumber as mobile')
-            ->where(["id" => $params["user_id"]])
-            ->asArray()
-            ->one();
+
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
+
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
         try {
-            /*更新订单状态，添加物业留言*/
+            // 更新订单状态，添加物业留言
             $repair_arr["operator_id"] = $params["user_id"];
-            $repair_arr["operator_name"] = $user["truename"];
+            $repair_arr["operator_name"] = $user["trueName"];
             $repair_arr["is_assign"] = 1;
             $repair_arr["status"] = 7;
             if (!empty($params["leave_msg"]) && $params["leave_msg"]) {
                 $repair_arr["leave_msg"] = $params["leave_msg"];
             }
             $connection->createCommand()->update('ps_repair',
-                $repair_arr,
-                "id=:id",
-                [":id" => $params["repair_id"]]
-            )->execute();
+                $repair_arr, "id=:id", [":id" => $params["repair_id"]])->execute();
 
             $now_time = time();
-            //判断，如果工单为待确认或已驳回状态，直接删除掉其他的指派人
+            // 判断，如果工单为待确认或已驳回状态，直接删除掉其他的指派人
             if ($model['status'] == 7 || $model['status'] == 8) {
                 $connection->createCommand()->delete('ps_repair_assign', 'repair_id=:repair_id', [":repair_id" => $params["repair_id"]])->execute();
             } else {
                 $connection->createCommand()->update('ps_repair_assign',
-                    ["is_operate" => 0],
-                    "repair_id=:repair_id",
-                    [":repair_id" => $params["repair_id"]]
-                )->execute();
+                    ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
             }
-            //增加指派记录
+            // 增加指派记录
             $assign_arr = [
                 "repair_id" => $params["repair_id"],
                 "user_id" => $params["user_id"],
@@ -494,7 +489,7 @@ class RepairService extends BaseService
                 "created_at" => $now_time,
             ];
             $connection->createCommand()->insert('ps_repair_assign', $assign_arr)->execute();
-            //增加工单操作记录
+            // 增加工单操作记录
             $repair_record = [
                 'repair_id' => $params["repair_id"],
                 'content' => '',
@@ -502,46 +497,11 @@ class RepairService extends BaseService
                 'status' => '7',
                 'create_at' => $now_time,
                 'operator_id' => $params["user_id"],
-                'operator_name' => $user['truename']
+                'operator_name' => $user['trueName'],
+                'mobile' => $user['mobile']
             ];
             $connection->createCommand()->insert('ps_repair_record', $repair_record)->execute();
 
-            //发送短信通知 TODO
-//            $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($model['repair_type_id']);
-//            if ($releateRoom && $model["contact_mobile"]) {
-//                SmsService::service()->init(11, $model["contact_mobile"])->send([$user['truename']]);
-//            }
-//            SmsService::service()->init(27, $user["mobile"])->send();
-            //TODO 钉消息
-            //发送站内消息
-            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
-            date_default_timezone_set('PRC');//强制设置时间
-            $info = [
-                'community_id' => $model['community_id'],
-                'id' => $params['repair_id'],
-                'member_id' => $params["user_id"],
-                'user_name' => $user['truename'],
-
-                'create_user_type' => 1,
-                'remind_tmpId' => 7,
-                'remind_target_type' => 7,
-                'remind_auth_type' => 6,
-
-                'msg_type' => 2,
-                'msg_tmpId' => 7,
-                'msg_target_type' => 7,
-                'msg_auth_type' => 3,
-                'remind' => [
-                    0 => $user['truename']
-                ],
-                'msg' => [
-                    0 => $model['repair_no'],
-                    1 => $typeName ?? "",
-                    2 => date('Y-m-d H:i:s', $now_time),
-                ],
-                'assign_id'=>[$params["user_id"]],
-            ];
-            MessageService::service()->addMessageTemplate($info);
             $transaction->commit();
             $re['releate_id'] = $params['repair_id'];
             return $re;
@@ -558,14 +518,12 @@ class RepairService extends BaseService
         if (!$model) {
             return "工单不存在";
         }
+
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = SqwnUser::find()
-            ->select('username as truename,mobileNumber as mobile')
-            ->where(["id" => $params["user_id"]])
-            ->asArray()
-            ->one();
+
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
@@ -582,7 +540,8 @@ class RepairService extends BaseService
                 'status' => 2,
                 'create_at' => time(),
                 'operator_id' => $params["user_id"],
-                'operator_name' => $user["truename"],
+                'operator_name' => $user["trueName"],
+                'mobile' => $user["mobile"],
             ])->execute();
             //将钉钉的图片转化为七牛图片地址
             //TODO 钉钉图片转为七牛图片是否还需要处理
@@ -601,7 +560,7 @@ class RepairService extends BaseService
             }
             $repairArr["is_assign"] = 1;
             $repairArr["operator_id"] = $params["user_id"];
-            $repairArr["operator_name"] = $user["truename"];
+            $repairArr["operator_name"] = $user["trueName"];
             $repairArr["status"] = 2;
             $connection->createCommand()->update('ps_repair',
                 $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
@@ -626,11 +585,7 @@ class RepairService extends BaseService
             return "工单已完成";
         }
 
-        $user = SqwnUser::find()
-            ->select('username as truename,mobileNumber as mobile')
-            ->where(["id" => $params["user_id"]])
-            ->asArray()
-            ->one();
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
@@ -652,7 +607,8 @@ class RepairService extends BaseService
                 'status' => 3,
                 'create_at' => time(),
                 'operator_id' => $params["user_id"],
-                'operator_name' => $user["truename"],
+                'operator_name' => $user["trueName"],
+                'mobile' => $user["mobile"],
             ])->execute();
             if ($params["user_id"] != $model["operator_id"]) {
                 $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
@@ -667,7 +623,7 @@ class RepairService extends BaseService
                 ])->execute();
                 $repairArr["is_assign"] = 1;
                 $repairArr["operator_id"] = $userInfo['id'];
-                $repairArr["operator_name"] = $userInfo["truename"];
+                $repairArr["operator_name"] = $userInfo["trueName"];
             }
             if ($releateRoom && $params['amount']) {
                 //TODO 生成报事报修账单
@@ -686,39 +642,12 @@ class RepairService extends BaseService
             $repairModelArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
             $repairModelArr["hard_type"] = 1;
             $repairModelArr["operator_id"] = $params["user_id"];
-            $repairModelArr["operator_name"] = $user["truename"];
+            $repairModelArr["operator_name"] = $user["trueName"];
             $repairModelArr["amount"] = !empty($params['amount']) ? $params['amount'] : 0;
             $connection->createCommand()->update('ps_repair',
                 $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
             )->execute();
-            //TODO 发送钉消息
-            //发送站内消息
-            $typeName = RepairType::find()->select("name")->where(['id' => $model['repair_type_id']])->scalar();
-            $info = [
-                'community_id' => $model['community_id'],
-                'id' => $params['repair_id'],
-                'member_id' => $userInfo["id"],
-                'user_name' => $userInfo["truename"],
-
-                'create_user_type' => 1,
-                'remind_tmpId' => 14,
-                'remind_target_type' => 7,
-                'remind_auth_type' => 7,
-
-                'msg_type' => 2,
-                'msg_tmpId' => 14,
-                'msg_target_type' => 7,
-                'msg_auth_type' => 3,
-                'remind' => [
-                    0 => "1213"
-                ],
-                'msg' => [
-                    0 => $model['repair_no'],
-                    1 => $typeName ?? "",
-                    2 => date('Y-m-d H:i:s', time()),
-                ],
-            ];
-            MessageService::service()->addMessageTemplate($info);
+  
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -876,6 +805,7 @@ class RepairService extends BaseService
                 'create_at' => time(),
                 'operator_id' => $userInfo["id"],
                 'operator_name' => $userInfo["truename"],
+                'mobile' => $userInfo["mobile"],
             ])->execute();
             if ($params['status'] == 1) {
                 //复核通过
@@ -890,8 +820,6 @@ class RepairService extends BaseService
             )->execute();
 
             $transaction->commit();
-
-            //发送消息提醒
 
             return true;
         } catch (Exception $e) {
@@ -946,7 +874,7 @@ class RepairService extends BaseService
     private function getRecord($p)
     {
         $query = new Query();
-        $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`', 'A.create_at'])
+        $mod = $query->select('A.id, A.content, A.repair_imgs, A.`status`, A.create_at, A.mobile')
             ->from('ps_repair_record A')
             ->where(["A.repair_id" => $p["repair_id"]]);
 
