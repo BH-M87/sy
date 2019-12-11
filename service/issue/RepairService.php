@@ -395,49 +395,50 @@ class RepairService extends BaseService
     }
 
     //工单详情
-    public function show($params)
+    public function show($p)
     {
-        $model = PsRepair::find()
-            ->select(['id', 'is_assign_again', 'repair_no', 'create_at', 'repair_type_id', 'repair_content', 'repair_imgs', 'expired_repair_time', 'expired_repair_type', 'hard_check_at', 'hard_remark', 'leave_msg', 'is_pay', 'status', 'member_id', 'room_username', 'room_address', 'contact_mobile'])
-            ->where(["id" => $params['repair_id']])
-            ->asArray()->one();
-        if (!$model) {
-            return $model;
+        $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
+            repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, 
+            status, member_id, room_username, room_address, contact_mobile, roomId')
+            ->where(["id" => $p['repair_id']])->asArray()->one();
+        if (!$m) {
+            return $m;
         }
-        $model['expired_repair_time'] = $model['expired_repair_time'] ? date("Y-m-d", $model['expired_repair_time']) : '';
-        $model['expired_repair_type_desc'] = isset(self::$_expired_repair_type[$model['expired_repair_type']]) ?
-            self::$_expired_repair_type[$model['expired_repair_type']] : '';
-        $model['create_at'] = $model['create_at'] ? date("Y-m-d H:i:s", $model['create_at']) : '';
-        $model['hard_check_at'] = $model['hard_check_at'] ? date("Y-m-d H:i", $model['hard_check_at']) : '';
-        $model["repair_imgs"] = $model["repair_imgs"] ? explode(',', $model["repair_imgs"]) : [];
-        if (!empty($model["repair_imgs"])) {
+
+        $m['expired_repair_time'] = $m['expired_repair_time'] ? date("Y-m-d", $m['expired_repair_time']) : '';
+        $m['expired_repair_type_desc'] = isset(self::$_expired_repair_type[$m['expired_repair_type']]) ?
+            self::$_expired_repair_type[$m['expired_repair_type']] : '';
+        $m['create_at'] = $m['create_at'] ? date("Y-m-d H:i:s", $m['create_at']) : '';
+        $m['hard_check_at'] = $m['hard_check_at'] ? date("Y-m-d H:i", $m['hard_check_at']) : '';
+        $m["repair_imgs"] = $m["repair_imgs"] ? explode(',', $m["repair_imgs"]) : [];
+        
+        if (!empty($m["repair_imgs"])) {
             $imageArr = [];
-            foreach ($model["repair_imgs"] as $k => $v){
+            foreach ($m["repair_imgs"] as $k => $v){
                 $tmpImgPath = F::getOssImagePath($v);
                 array_push($imageArr, $tmpImgPath);
             }
-            $model["repair_imgs"] = $imageArr;
+            $m["repair_imgs"] = $imageArr;
         }
-        $model['is_pay_desc'] = isset(self::$_is_pay[$model['is_pay']]) ? self::$_is_pay[$model['is_pay']] : '';
 
-        if ($model['status'] == self::STATUS_DONE && $model['is_pay'] > 1) {
-            $model['status_desc'] = self::$_repair_status[10];
+        $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
+
+        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
+            $m['status_desc'] = self::$_repair_status[10];
         } else {
-            $model['status_desc'] = self::$_repair_status[$model['status']];
+            $m['status_desc'] = self::$_repair_status[$m['status']];
         }
-        $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($model['repair_type_id']);
-        $model['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
-        $model["records"] = $this->getRecord(["repair_id" => $params['repair_id']]);
-        $model["appraise"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
-        //$model["repair_assigns"] = $this->getAssigns(["repair_id" => $params['repair_id']]);
-        $model["materials"] = $this->getMaterials(["repair_id" => $params['repair_id']]);
-        $payType = $model["materials"]['pay_type'];
-        $model["amount"] = $model["materials"]['amount'];
-        $model["other_charge"] = $model["materials"]['other_charge'];
-        $model["pay_type"] = $payType;
-        $model["pay_type_desc"] = isset(self::$_pay_type[$payType]) ? self::$_pay_type[$payType] : '';
-        
-        return $model;
+
+        $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
+        $m['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
+        $m["records"] = $this->getRecord(["repair_id" => $p['repair_id']]);
+        $m["appraise"] = (object)$this->getAppraise(["repair_id" => $p['repair_id']]);
+        $m["amount"] = $m["materials"]['amount'];
+        $m["other_charge"] = $m["materials"]['other_charge'];
+        //$roomInfo = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $m['roomId']]);
+        $m['community_name'] = $roomInfo['communityName'];
+
+        return $m;
     }
 
     //工单分配
@@ -949,53 +950,51 @@ class RepairService extends BaseService
     }
 
     //查看工单历史操作记录
-    private function getRecord($params)
+    private function getRecord($p)
     {
         $query = new Query();
         $mod = $query->select(['A.id', 'A.content', 'A.repair_imgs', 'A.`status`', 'A.create_at'])
             ->from('ps_repair_record A')
-            ->where(["A.repair_id" => $params["repair_id"]]);
+            ->where(["A.repair_id" => $p["repair_id"]]);
 
-        if (!empty($params["status"]) && is_array($params["status"])) {
-            $mod->andWhere(['in', 'A.status', $params["status"]]);
+        if (!empty($p["status"]) && is_array($p["status"])) {
+            $mod->andWhere(['in', 'A.status', $p["status"]]);
         }
 
-        $models = $mod->orderBy('A.create_at desc')->all();
-        if (!empty($models)) {
-            foreach ($models as $key => $model) {
-                if ($params['use_as'] == "dingding") {
+        $m = $mod->orderBy('A.create_at desc')->all();
+        if (!empty($m)) {
+            foreach ($m as $key => $model) {
+                if ($p['use_as'] == "dingding") {
                     if ($model['status'] == self::STATUS_DONE) {
-                        $models[$key]["status_label"] = '已完成';
+                        $m[$key]["status_label"] = '已完成';
                     } else {
-                        $models[$key]['status_label'] = self::$_repair_status[$model['status']];
+                        $m[$key]['status_label'] = self::$_repair_status[$model['status']];
                     }
                 } else {
-                    $models[$key]["status_name"] = self::getStatusName($model['status']);
-                    $models[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
+                    $m[$key]["status_name"] = self::getStatusName($model['status']);
+                    $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
                     if ($model['status'] == self::STATUS_DONE) {
-                        $models[$key]['status_desc'] = "已完成";
+                        $m[$key]['status_desc'] = "已完成";
                     }
                     //分配订单or改派后，为待确认。处理人和联系电话为工人信息，待确认处理时间和处理结果为空。
                     if ($model['status'] == '7') {
-                        $models[$key]['content'] = '';
+                        $m[$key]['content'] = '';
                     }
                 }
-                $models[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
-                $models[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
-                if (!empty($models[$key]["repair_imgs"])) {
+                $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
+                $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
+                if (!empty($m[$key]["repair_imgs"])) {
                     $imageArr = [];
-                    foreach ($models[$key]["repair_imgs"] as $k => $v){
+                    foreach ($m[$key]["repair_imgs"] as $k => $v){
                         $tmpImgPath = F::getOssImagePath($v);
                         array_push($imageArr, $tmpImgPath);
                     }
-                    $models[$key]["repair_imgs"] = $imageArr;
+                    $m[$key]["repair_imgs"] = $imageArr;
                 }
-
             }
-
         }
 
-        return !empty($models) ? $models : [];
+        return !empty($m) ? $m : [];
     }
 
     private function getStatusName($status)
@@ -1016,19 +1015,20 @@ class RepairService extends BaseService
         return $return;
     }
 
-    //查看评价内容
-    private function getAppraise($params)
+    // 查看评价内容
+    private function getAppraise($p)
     {
         $query = new Query();
-        $model = $query->select(['A.id', 'A.start_num', 'A.appraise_labels', 'A.`content`', 'A.created_at'])
+        $m = $query->select('A.id, A.start_num, A.appraise_labels, A.`content`, A.created_at')
             ->from(' ps_repair_appraise A')
-            ->where(["A.repair_id" => $params["repair_id"]])
+            ->where(["A.repair_id" => $p["repair_id"]])
             ->one();
-        if ($model) {
-            $model["appraise_labels"] = $model["appraise_labels"] ? explode(',', $model['appraise_labels']) : [];
-            $model["created_at"] = date("Y年m月d日", $model["created_at"]);
+        if ($m) {
+            $m["appraise_labels"] = $m["appraise_labels"] ? explode(',', $m['appraise_labels']) : [];
+            $m["created_at"] = date("Y年m月d日", $m["created_at"]);
         }
-        return $model ? $model : [];
+
+        return $m ? $m : [];
     }
 
     //查询指派记录
