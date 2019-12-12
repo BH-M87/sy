@@ -142,8 +142,8 @@ class RepairService extends BaseService
         $memberMobile = PsCommon::get($params, 'member_mobile', '');
         $hardType = PsCommon::get($params, 'hard_type', '');
         $operateName = PsCommon::get($params, 'operator_name', '');
-        $createAtStart = PsCommon::get($params, 'create_at_start', '');
-        $createAtEnd = PsCommon::get($params, 'create_at_end', '');
+        $repair_timeStart = PsCommon::get($params, 'repair_time_start', '');
+        $repair_timeEnd = PsCommon::get($params, 'repair_time_end', '');
         $checkAtStart = PsCommon::get($params, 'check_at_start', '');
         $checkAtEnd = PsCommon::get($params, 'check_at_end', '');
         $status = PsCommon::get($params, 'status', '');
@@ -214,13 +214,13 @@ class RepairService extends BaseService
             $query->andWhere(['like', 'A.operator_name', $operateName]);
         }
 
-        if ($createAtStart) {
-            $start = strtotime($createAtStart . " 00:00:00");
-            $query->andWhere(['>=', 'A.create_at', $start]);
+        if ($repair_timeStart) {
+            $start = strtotime($repair_timeStart . " 00:00:00");
+            $query->andWhere(['>=', 'A.repair_time', $start]);
         }
-        if ($createAtEnd) {
-            $end = strtotime($createAtEnd . " 23:59:59");
-            $query->andWhere(['<=', 'A.create_at', $end]);
+        if ($repair_timeEnd) {
+            $end = strtotime($repair_timeEnd . " 23:59:59");
+            $query->andWhere(['<=', 'A.repair_time', $end]);
         }
         if ($checkAtStart) {
             $start = strtotime($checkAtStart . " 00:00:00");
@@ -391,7 +391,7 @@ class RepairService extends BaseService
     {
         $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
             repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, amount,
-            status, member_id, room_username, room_address, contact_mobile, community_id, repair_from, 
+            status, member_id, room_username, room_address, contact_mobile, community_id, repair_from,  repair_time,
             contact_name, hard_type')
             ->where(["id" => $p['repair_id']])->asArray()->one();
         if (!$m) {
@@ -402,6 +402,7 @@ class RepairService extends BaseService
         $m['expired_repair_type_desc'] = isset(self::$_expired_repair_type[$m['expired_repair_type']]) ?
             self::$_expired_repair_type[$m['expired_repair_type']] : '';
         $m['create_at'] = $m['create_at'] ? date("Y-m-d H:i:s", $m['create_at']) : '';
+        $m['repair_time'] = $m['repair_time'] ? date("Y-m-d H:i:s", $m['repair_time']) : '';
         $m['hard_check_at'] = $m['hard_check_at'] ? date("Y-m-d H:i", $m['hard_check_at']) : '';
         $m["repair_imgs"] = $m["repair_imgs"] ? explode(',', $m["repair_imgs"]) : [];
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
