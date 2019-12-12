@@ -61,3 +61,11 @@ ADD COLUMN `repair_time`  int(11) NULL COMMENT '保修时间，选填' AFTER `st
 ALTER TABLE `ps_repair`
 ADD COLUMN `contact_name`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '报事报修人' AFTER `room_id`;
 
+ALTER TABLE `ps_repair_assign`
+MODIFY COLUMN `user_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '维修工人id';
+
+ALTER TABLE `ps_repair_record`
+MODIFY COLUMN `operator_id`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '处理人id';
+
+ALTER TABLE `ps_repair_record`
+ADD COLUMN `mobile`  varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '手机号' AFTER `operator_name`;

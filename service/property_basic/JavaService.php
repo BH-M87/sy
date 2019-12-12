@@ -132,4 +132,18 @@ class JavaService extends BaseService
         $query['route'] = '/room/detail';
         return self::returnCData($query);
     }
+
+    // 小区详情
+    public function communityDetail($query)
+    {
+        $query['route'] = '/community/detail';
+        return self::returnCData($query);
+    }
+
+    // 员工详情
+    public function userDetail($query)
+    {
+        $query['route'] = '/user/detail';
+        return self::returnCData($query);
+    }
 }

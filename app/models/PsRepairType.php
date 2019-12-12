@@ -30,7 +30,7 @@ class PsRepairType extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'level', 'parent_id', 'is_relate_room', 'status', 'created_at'], 'integer'],
+            [['community_id', 'level', 'parent_id', 'is_relate_room', 'icon_url', 'status', 'created_at'], 'integer'],
             [['name'], 'string', 'max' => 20],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['status','edit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
@@ -50,6 +50,7 @@ class PsRepairType extends BaseModel
             'name' => '类别名称',
             'level' => '类别属性',
             'parent_id' => '父级类别',
+            'icon_url' => '类目图片',
             'is_relate_room' => '是否关联房屋信息',
             'status' => '显示/隐藏',
             'created_at' => 'Created At',

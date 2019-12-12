@@ -7,9 +7,6 @@
  */
 
 namespace service\issue;
-
-
-use app\models\PsRepair;
 use app\models\PsRepairType;
 use app\models\RepairType;
 use common\core\PsCommon;
@@ -17,6 +14,7 @@ use common\MyException;
 use service\BaseService;
 use service\property_basic\JavaService;
 use service\rbac\OperateService;
+use Yii;
 
 class RepairTypeService extends BaseService
 {
@@ -70,6 +68,8 @@ class RepairTypeService extends BaseService
     //新增报修类目
     public function add($params, $userInfo = [])
     {
+        //清理所有表结构缓存数据
+        Yii::$app->db->getSchema()->refresh();
         $params['created_at'] = time();
         $params['status'] = 1;
         if ($params['parent_id']) {
