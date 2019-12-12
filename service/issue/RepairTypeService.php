@@ -87,6 +87,7 @@ class RepairTypeService extends BaseService
         if ($checkResult) {
             return "该类目已经存在！";
         }
+        $params['icon_url'] = $params['icon_url']?json_encode($params['icon_url']):'';
         $mod = new PsRepairType();
         $mod->setAttributes($params);
         if (!$mod->save()) {
