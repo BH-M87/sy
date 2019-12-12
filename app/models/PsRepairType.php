@@ -16,7 +16,6 @@ use Yii;
  */
 class PsRepairType extends BaseModel
 {
-    public  $icon_url;
     /**
      * @inheritdoc
      */
@@ -37,8 +36,6 @@ class PsRepairType extends BaseModel
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
             ['status', 'in', 'range' => [1, 2, 3]],
             [['community_id','name','level','icon_url'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
-            ['icon_url', 'save'],
-
         ];
     }
 
