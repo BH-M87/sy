@@ -16,6 +16,7 @@ use Yii;
  */
 class PsRepairType extends BaseModel
 {
+    $icon_url;
     /**
      * @inheritdoc
      */
