@@ -161,8 +161,7 @@ class VoteController extends BaseController
         if(empty($javaResult)){
             return PsCommon::responseFailed('用户不存在');
         }
-
-        $doVote = VoteService::service()->doVote($voteId, $javaResult['id'], $javaResult['trueName'], $voteDetail, $this->params['community_id'], 'on', $roomId);
+        $doVote = VoteService::service()->doVote($voteId, $memberId, $javaResult['trueName'], $voteDetail, $this->params['community_id'], 'on', $roomId);
         if ($doVote === true) {
             return PsCommon::responseSuccess();
         } elseif ($doVote === false){
