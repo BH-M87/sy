@@ -281,6 +281,7 @@ class RepairService extends BaseService
             if ($models[$key]['contact_mobile']) {
                 $models[$key]['contact_mobile'] = PsCommon::hideMobile($models[$key]['contact_mobile']);
             }
+            $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
             $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
         }
         $re['list'] = $models;
@@ -294,34 +295,26 @@ class RepairService extends BaseService
         if (count($result['list']) < 1) {
             throw new MyException('数据为空');
         }
-        if ($params['hard_type'] == 2) {
-            $config = [
-                ['title' => '提交时间', 'field' => 'create_at'],
-                ['title' => '订单号', 'field' => 'repair_no'],
-                ['title' => '提交人', 'field' => 'created_username'],
-                ['title' => '联系电话', 'field' => 'contact_mobile'],
-                ['title' => '报修位置', 'field' => 'export_room_address'],
-                ['title' => '内容', 'field' => 'repair_content'],
-                ['title' => '报修来源', 'field' => 'repair_from_desc'],
-                ['title' => '状态', 'field' => 'status_desc'],
-                ['title' => '标记说明', 'field' => 'hard_remark'],
-                ['title' => '标记时间', 'field' => 'hard_check_at'],
-            ];
-        } else {
-            $config = [
-                ['title' => '提交时间', 'field' => 'create_at'],
-                ['title' => '订单号', 'field' => 'repair_no'],
-                ['title' => '提交人', 'field' => 'created_username'],
-                ['title' => '联系电话', 'field' => 'contact_mobile'],
-                ['title' => '报修位置', 'field' => 'export_room_address'],
-                ['title' => '内容', 'field' => 'repair_content'],
-                ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
-                ['title' => '报修来源', 'field' => 'repair_from_desc'],
-                ['title' => '工单金额', 'field' => 'amount'],
-                ['title' => '状态', 'field' => 'status_desc'],
-                ['title' => '处理人', 'field' => 'operator_name'],
-            ];
-        }
+        $config = [
+            ['title' => '工单号', 'field' => 'repair_no'],
+            ['title' => '提交时间', 'field' => 'create_at'],
+            ['title' => '小区', 'field' => 'community_name'],
+            ['title' => '报修类别', 'field' => 'repair_type_desc'],
+            ['title' => '提交人', 'field' => 'created_username'],
+            ['title' => '联系电话', 'field' => 'contact_mobile'],
+            ['title' => '报修位置', 'field' => 'export_room_address'],
+            ['title' => '报修内容', 'field' => 'repair_content'],
+            ['title' => '报修来源', 'field' => 'repair_from_desc'],
+            ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
+            ['title' => '工单金额', 'field' => 'amount'],
+            ['title' => '状态', 'field' => 'status_desc'],
+            ['title' => '是否疑难问题', 'field' => 'hard_type_desc'],
+            ['title' => '疑难标记说明', 'field' => 'hard_remark'],
+            ['title' => '疑难标记时间', 'field' => 'hard_check_at'],
+            ['title' => '提交人', 'field' => 'created_username'],
+            ['title' => '联系电话', 'field' => 'contact_mobile'],
+            ['title' => '处理人', 'field' => 'operator_name'],
+        ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
         $filePath = F::originalFile().'temp/'.$filename;
         $fileRe = F::uploadFileToOss($filePath);
