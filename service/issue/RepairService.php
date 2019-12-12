@@ -849,9 +849,7 @@ class RepairService extends BaseService
     private function getRecord($p)
     {
         $query = new Query();
-        $mod = $query->select('A.id, A.content, A.repair_imgs, A.`status`, A.create_at, A.mobile')
-            ->from('ps_repair_record A')
-            ->where(["A.repair_id" => $p["repair_id"]]);
+        $mod = $query->select('A.*')->from('ps_repair_record A')->where(["A.repair_id" => $p["repair_id"]]);
 
         if (!empty($p["status"]) && is_array($p["status"])) {
             $mod->andWhere(['in', 'A.status', $p["status"]]);
