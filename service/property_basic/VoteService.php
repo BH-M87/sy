@@ -1903,9 +1903,9 @@ class VoteService extends BaseService
         $data['vote_name'] = !empty($detail['vote_name'])?$detail['vote_name']:'';
         $data['problem'] = [];
         $data['is_check'] = 0;
-        if(!empty($votedResult)){
+        if(!empty($votedResult[0]['onlyId'])){
             //投过票
-            $voteArr = array_column($votedResult,'onlyId');
+            $voteArr = array_column($votedResult[0]['onlyId'],'onlyId');
             $data['is_check'] = 1;
         }
         if(!empty($detail['problem'])){
