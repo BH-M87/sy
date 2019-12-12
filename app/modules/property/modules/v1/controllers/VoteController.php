@@ -90,8 +90,8 @@ class VoteController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
 
-        if (empty($data["problems"]) || count($data["problems"]) > 10) {
-            return PsCommon::responseFailed('投票问题数最少一个最多十个');
+        if (empty($data["problems"]) || count($data["problems"]) > 20) {
+            return PsCommon::responseFailed('投票问题数最少一个最多20个');
         }
 
         if (strtotime($data["end_time"]) <= time()) {
@@ -104,8 +104,8 @@ class VoteController extends BaseController
                 return PsCommon::responseFailed($valid["errorMsg"]);
             }
 
-            if (empty($problem["options"]) || count($problem["options"]) > 30 || count($problem["options"]) < 2) {
-                return PsCommon::responseFailed('选项个数最少2个最多30个');
+            if (empty($problem["options"]) || count($problem["options"]) > 20 || count($problem["options"]) < 2) {
+                return PsCommon::responseFailed('选项个数最少2个最多20个');
             }
 
             foreach ($problem['options'] as $option){
