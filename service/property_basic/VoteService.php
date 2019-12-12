@@ -1891,11 +1891,30 @@ class VoteService extends BaseService
     public function doVoteListDetail($detail,$memberId,$roomId){
 
         $data = [];
-        //获得投票记录
-        $votedResult = PsVoteMemberDet::find()
-                        ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
-                        ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
-                        ->andWhere(['=','room_id',$roomId])->asArray()->all();
+        switch($detail['permission_type']){
+            case 1: //每户一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','room_id',$roomId])
+                    ->asArray()->all();
+                break;
+            case 2: //每人一票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                break;
+            case 3: //指定业主投票
+                //获得投票记录
+                $votedResult = PsVoteMemberDet::find()
+                    ->select(['vote_id','problem_id','option_id','member_id','room_id',"group_concat(vote_id,problem_id,option_id) as onlyId"])
+                    ->where(['=','vote_id',$detail['id']])->andWhere(['=','member_id',$memberId])
+                    ->andWhere(['=','room_id',$roomId])->asArray()->all();
+                break;
+        }
+
         $voteArr = [];
         $data['member_id'] = $memberId;
         $data['room_id'] = $roomId;
@@ -1905,7 +1924,7 @@ class VoteService extends BaseService
         $data['is_check'] = 0;
         if(!empty($votedResult[0]['onlyId'])){
             //投过票
-            $voteArr = array_column($votedResult[0]['onlyId'],'onlyId');
+            $voteArr = explode(",",$votedResult[0]['onlyId']);
             $data['is_check'] = 1;
         }
         if(!empty($detail['problem'])){
