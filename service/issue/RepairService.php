@@ -232,7 +232,7 @@ class RepairService extends BaseService
         }
         $re['totals'] = $query->count();
         $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',
-            'A.repair_content', 'A.expired_repair_type', 'A.`status`',
+            'A.repair_content', 'A.expired_repair_type', 'A.`status`', 'A.`created_username`', 'A.`hard_remark`', 'A.`hard_check_at`',
             'A.is_assign', 'A.operator_name', 'A.repair_from',
             'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
@@ -283,6 +283,7 @@ class RepairService extends BaseService
             }
             $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
             $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
+            $models[$key]['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
         }
         $re['list'] = $models;
         return $re;
@@ -300,8 +301,6 @@ class RepairService extends BaseService
             ['title' => '提交时间', 'field' => 'create_at'],
             ['title' => '小区', 'field' => 'community_name'],
             ['title' => '报修类别', 'field' => 'repair_type_desc'],
-            ['title' => '提交人', 'field' => 'created_username'],
-            ['title' => '联系电话', 'field' => 'contact_mobile'],
             ['title' => '报修位置', 'field' => 'export_room_address'],
             ['title' => '报修内容', 'field' => 'repair_content'],
             ['title' => '报修来源', 'field' => 'repair_from_desc'],
@@ -312,7 +311,6 @@ class RepairService extends BaseService
             ['title' => '疑难标记说明', 'field' => 'hard_remark'],
             ['title' => '疑难标记时间', 'field' => 'hard_check_at'],
             ['title' => '提交人', 'field' => 'created_username'],
-            ['title' => '联系电话', 'field' => 'contact_mobile'],
             ['title' => '处理人', 'field' => 'operator_name'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
