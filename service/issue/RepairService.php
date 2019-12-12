@@ -235,7 +235,7 @@ class RepairService extends BaseService
             'A.repair_content', 'A.expired_repair_type', 'A.`status`', 'A.`created_username`', 'A.`hard_remark`', 'A.`hard_check_at`',
             'A.is_assign', 'A.operator_name', 'A.repair_from',
             'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
-        $query->orderBy('A.create_at desc');
+        $query->orderBy('A.repair_time desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
             $query->offset($offset)->limit($params['rows']);
@@ -283,6 +283,7 @@ class RepairService extends BaseService
             }
             $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
             $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
+            $models[$key]['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $models[$key]['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
         }
         $re['list'] = $models;
