@@ -431,9 +431,9 @@ class RepairService extends BaseService
         // 小区名称调Java
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $community['communityName'];
-        $m['user_id'] = $user['id'];
-        $m['user_name'] = $user['truename'];
-        $m['user_mobile'] = $user['mobile'];
+        $m['system_user_id'] = $user['id'];
+        $m['system_user_name'] = $user['truename'];
+        $m['system_user_mobile'] = $user['mobile'];
 
         return $m;
     }
@@ -464,7 +464,7 @@ class RepairService extends BaseService
         try {
             // 更新订单状态，添加物业留言
             $repair_arr["operator_id"] = $params["user_id"];
-            $repair_arr["operator_name"] = $user["trueName"];
+            $repair_arr["operator_name"] = $params["user_name"];
             $repair_arr["is_assign"] = 1;
             $repair_arr["status"] = 7;
             if (!empty($params["leave_msg"]) && $params["leave_msg"]) {
