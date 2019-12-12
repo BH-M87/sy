@@ -629,15 +629,15 @@ class RepairService extends BaseService
             }
             if ($releateRoom && $params['amount']) {
                 //TODO 生成报事报修账单
-                $billRe = BillService::service()->addRepairBill($params["repair_id"], $params['material_total_price'],
-                    $params['total_price'], $params['other_charge'], $params['token']);
-                if ($billRe === false) {
-                    throw new Exception('账单生成失败');
-                }
-                $billId = $billRe['bill_id'];
-                if (!empty($params['materials_list'])) {
-                    $this->addMaterials($params["repair_id"], $billId, $params['materials_list']);
-                }
+//                $billRe = BillService::service()->addRepairBill($params["repair_id"], $params['material_total_price'],
+//                    $params['total_price'], $params['other_charge'], $params['token']);
+//                if ($billRe === false) {
+//                    throw new Exception('账单生成失败');
+//                }
+//                $billId = $billRe['bill_id'];
+//                if (!empty($params['materials_list'])) {
+//                    $this->addMaterials($params["repair_id"], $billId, $params['materials_list']);
+//                }
             }
 
             $repairModelArr["status"] = 3;
