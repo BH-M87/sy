@@ -29,9 +29,6 @@ class RepairTypeController extends BaseController
     //类目新增
     public function actionAdd()
     {
-        Yii::$app->db->getSchema()->refreshTableSchema('ps_repair_type');
-        Yii::$app->db->getSchema()->refresh();
-
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }

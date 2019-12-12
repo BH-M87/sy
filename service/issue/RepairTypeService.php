@@ -88,7 +88,14 @@ class RepairTypeService extends BaseService
             return "该类目已经存在！";
         }
         $mod = new PsRepairType();
-        $mod->setAttributes($params);
+        $mod->community_id = $params['community_id'];
+        $mod->name = $params['name'];
+        $mod->level = $params['level'];
+        $mod->status = $params['status'];
+        $mod->created_at = $params['created_at'];
+        $mod->icon_url = $params['icon_url'];
+        $mod->is_relate_room = $params['is_relate_room'];
+//        $mod->setAttributes($params);
         if (!$mod->save()) {
             return "新增失败！";
         }
