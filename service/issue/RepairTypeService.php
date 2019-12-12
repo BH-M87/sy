@@ -68,8 +68,6 @@ class RepairTypeService extends BaseService
     //新增报修类目
     public function add($params, $userInfo = [])
     {
-        //清理所有表结构缓存数据
-        Yii::$app->db->getSchema()->refresh();
         $params['created_at'] = time();
         $params['status'] = 1;
         if ($params['parent_id']) {
