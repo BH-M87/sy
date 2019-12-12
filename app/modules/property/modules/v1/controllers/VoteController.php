@@ -391,6 +391,9 @@ class VoteController extends BaseController
         }
         $data['pageNum'] = !empty($data['page'])?$data['page']:'';
         $data['pageSize'] = !empty($data['rows'])?$data['rows']:'';
+        if(!empty($data['authStatus'])){
+            unset($data['authStatus']);
+        }
         $result = JavaService::service()->residentList($data);
         return PsCommon::responseSuccess($result);
 
