@@ -68,6 +68,9 @@ class RepairTypeService extends BaseService
     //新增报修类目
     public function add($params, $userInfo = [])
     {
+        Yii::$app->db->getSchema()->refreshTableSchema('{{ps_repair_type}}');
+        Yii::$app->db->getSchema()->refresh();
+        
         $params['created_at'] = time();
         $params['status'] = 1;
         if ($params['parent_id']) {
@@ -85,7 +88,6 @@ class RepairTypeService extends BaseService
         if ($checkResult) {
             return "该类目已经存在！";
         }
-        $params['icon_url'] = $params['icon_url']?json_encode($params['icon_url']):'';
         $mod = new PsRepairType();
         $mod->setAttributes($params);
         if (!$mod->save()) {

@@ -142,8 +142,8 @@ class RepairService extends BaseService
         $memberMobile = PsCommon::get($params, 'member_mobile', '');
         $hardType = PsCommon::get($params, 'hard_type', '');
         $operateName = PsCommon::get($params, 'operator_name', '');
-        $createAtStart = PsCommon::get($params, 'create_at_start', '');
-        $createAtEnd = PsCommon::get($params, 'create_at_end', '');
+        $repair_timeStart = PsCommon::get($params, 'repair_time_start', '');
+        $repair_timeEnd = PsCommon::get($params, 'repair_time_end', '');
         $checkAtStart = PsCommon::get($params, 'check_at_start', '');
         $checkAtEnd = PsCommon::get($params, 'check_at_end', '');
         $status = PsCommon::get($params, 'status', '');
@@ -214,13 +214,13 @@ class RepairService extends BaseService
             $query->andWhere(['like', 'A.operator_name', $operateName]);
         }
 
-        if ($createAtStart) {
-            $start = strtotime($createAtStart . " 00:00:00");
-            $query->andWhere(['>=', 'A.create_at', $start]);
+        if ($repair_timeStart) {
+            $start = strtotime($repair_timeStart . " 00:00:00");
+            $query->andWhere(['>=', 'A.repair_time', $start]);
         }
-        if ($createAtEnd) {
-            $end = strtotime($createAtEnd . " 23:59:59");
-            $query->andWhere(['<=', 'A.create_at', $end]);
+        if ($repair_timeEnd) {
+            $end = strtotime($repair_timeEnd . " 23:59:59");
+            $query->andWhere(['<=', 'A.repair_time', $end]);
         }
         if ($checkAtStart) {
             $start = strtotime($checkAtStart . " 00:00:00");
@@ -233,9 +233,9 @@ class RepairService extends BaseService
         $re['totals'] = $query->count();
         $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',
             'A.repair_content', 'A.expired_repair_type', 'A.`status`', 'A.`created_username`', 'A.`hard_remark`', 'A.`hard_check_at`',
-            'A.is_assign', 'A.operator_name', 'A.repair_from',
+            'A.is_assign', 'A.operator_name', 'A.repair_from', 'A.repair_time',
             'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
-        $query->orderBy('A.create_at desc');
+        $query->orderBy('A.repair_time desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
             $query->offset($offset)->limit($params['rows']);
@@ -283,6 +283,7 @@ class RepairService extends BaseService
             }
             $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
             $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
+            $models[$key]['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $models[$key]['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
         }
         $re['list'] = $models;
@@ -390,7 +391,7 @@ class RepairService extends BaseService
     {
         $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
             repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, amount,
-            status, member_id, room_username, room_address, contact_mobile, community_id, repair_from, 
+            status, member_id, room_username, room_address, contact_mobile, community_id, repair_from,  repair_time,
             contact_name, hard_type')
             ->where(["id" => $p['repair_id']])->asArray()->one();
         if (!$m) {
@@ -401,6 +402,7 @@ class RepairService extends BaseService
         $m['expired_repair_type_desc'] = isset(self::$_expired_repair_type[$m['expired_repair_type']]) ?
             self::$_expired_repair_type[$m['expired_repair_type']] : '';
         $m['create_at'] = $m['create_at'] ? date("Y-m-d H:i:s", $m['create_at']) : '';
+        $m['repair_time'] = $m['repair_time'] ? date("Y-m-d H:i:s", $m['repair_time']) : '';
         $m['hard_check_at'] = $m['hard_check_at'] ? date("Y-m-d H:i", $m['hard_check_at']) : '';
         $m["repair_imgs"] = $m["repair_imgs"] ? explode(',', $m["repair_imgs"]) : [];
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
