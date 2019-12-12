@@ -315,10 +315,7 @@ class RepairService extends BaseService
             ['title' => '处理人', 'field' => 'operator_name'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
-        $filePath = F::originalFile().'temp/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
-        \Yii::info("export-url:".$downUrl,'api');
+        $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');                
         return $downUrl;
     }
 

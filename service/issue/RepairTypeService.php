@@ -95,7 +95,6 @@ class RepairTypeService extends BaseService
         $mod->created_at = $params['created_at'];
         $mod->icon_url = $params['icon_url'];
         $mod->is_relate_room = $params['is_relate_room'];
-//        $mod->setAttributes($params);
         if (!$mod->save()) {
             return "新增失败！";
         }
