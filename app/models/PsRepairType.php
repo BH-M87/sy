@@ -30,12 +30,12 @@ class PsRepairType extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'level', 'parent_id', 'is_relate_room', 'icon_url', 'status', 'created_at'], 'integer'],
+            [['community_id', 'level', 'parent_id', 'is_relate_room', 'status', 'created_at'], 'integer'],
             [['name'], 'string', 'max' => 20],
             [['id'], 'required','message' => '{attribute}不能为空!', 'on' => ['status','edit']],
             [['status'], 'required','message' => '{attribute}不能为空!', 'on' => ['status']],
             ['status', 'in', 'range' => [1, 2, 3]],
-            [['community_id','name','level'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
+            [['community_id','name','level','icon_url'], 'required','message' => '{attribute}不能为空!', 'on' => ['add','edit']],
         ];
     }
 
