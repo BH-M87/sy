@@ -398,7 +398,7 @@ class RepairService extends BaseService
     public function show($p, $user = [])
     {
         $m = PsRepair::find()->select('id, is_assign_again, repair_no, create_at, repair_type_id, repair_content, 
-            repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, 
+            repair_imgs, expired_repair_time, expired_repair_type, hard_check_at, hard_remark, leave_msg, is_pay, amount,
             status, member_id, room_username, room_address, contact_mobile, community_id, repair_from, 
             contact_name, hard_type')
             ->where(["id" => $p['repair_id']])->asArray()->one();
@@ -426,8 +426,6 @@ class RepairService extends BaseService
         $m['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
         $m["records"] = $this->getRecord(["repair_id" => $p['repair_id']]);
         $m["appraise"] = (object)$this->getAppraise(["repair_id" => $p['repair_id']]);
-        $m["amount"] = $m["materials"]['amount'];
-        $m["other_charge"] = $m["materials"]['other_charge'];
         // 小区名称调Java
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $community['communityName'];
