@@ -68,7 +68,9 @@ class RepairTypeService extends BaseService
     //新增报修类目
     public function add($params, $userInfo = [])
     {
+        Yii::$app->db->getSchema()->refreshTableSchema('{{ps_repair_type}}');
         Yii::$app->db->getSchema()->refresh();
+        
         $params['created_at'] = time();
         $params['status'] = 1;
         if ($params['parent_id']) {
