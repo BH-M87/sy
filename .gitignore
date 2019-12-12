@@ -36,4 +36,3 @@ phpunit.phar
 # ignore generated files
 /app/web/index.php
 /app/web/store
-.env

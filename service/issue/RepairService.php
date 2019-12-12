@@ -587,7 +587,6 @@ class RepairService extends BaseService
         if (in_array($model['status'],self::$_issue_complete_status)) {
             return "工单已完成";
         }
-
         $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
         if (!$user) {
             return "操作人员未找到";

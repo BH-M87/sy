@@ -161,7 +161,6 @@ class RepairController extends BaseController {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
         $data['is_pay'] = 2;
-        $data['user_id'] = $data['operator_id'];
         $data['material_total_price'] = 0;
         $data['total_price'] = $data['amount'];
         $data['other_charge'] = 0;
