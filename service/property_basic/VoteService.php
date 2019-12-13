@@ -2304,7 +2304,7 @@ class VoteService extends BaseService
             'list'=>[
                 ['key'=>0,'name'=>'全部'],
                 ['key'=>1,'name'=>'线上投票'],
-                ['key'=>2,'name'=>'线下投票'],
+                ['key'=>2,'name'=>'线下录入'],
             ]
         ];
     }
