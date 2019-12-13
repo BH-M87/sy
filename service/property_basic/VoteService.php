@@ -101,7 +101,7 @@ class VoteService extends BaseService
         if($totals == 0 ) {
             return [ "totals" => 0, 'list' => []];
         }
-        $fields = ['id','community_id','vote_name','start_time','end_time','vote_status','status'];
+        $fields = ['id','community_id','vote_name','start_time','end_time','vote_status','status','totals'];
         $query->select($fields);
         $query->orderBy('created_at desc');
         $re['totals'] = $totals;
@@ -112,7 +112,8 @@ class VoteService extends BaseService
         $models = $command->queryAll();
 
         foreach ($models as $key=>$val) {
-            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+//            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+            $models[$key]['voted_totals'] = $val['totals'];
             $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
             $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
             $models[$key]['vote_status_msg'] = !empty($val['vote_status'])?self::$vote_status[$val['vote_status']]:'';
@@ -518,22 +519,39 @@ class VoteService extends BaseService
                 foreach ($voteDetArr as $vote) {
                     $suc = 0;
                     foreach ($vote['options'] as $k => $v) {
-                        $model = new PsVoteMemberDet();
-                        $model->vote_id     = $voteId;
-                        $model->problem_id  = $vote['problem_id'];
-                        $model->room_id     = $room_id ;
-                        $model->option_id   = $v['option_id'];
-                        $model->member_id   = $memberId;
-                        $model->member_name = $memberName;
-                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
-                        $model->created_at  = time();
-                        if ($model->save()) {
-                            // 给选项增加投票数量
+                        $model = new PsVoteMemberDet(['scenario' => 'add']);
+                        $params['vote_id'] = $voteId;
+                        $params['problem_id'] = $vote['problem_id'];
+                        $params['room_id'] = $room_id;
+                        $params['option_id'] = $v['option_id'];
+                        $params['member_id'] = $memberId;
+                        $params['member_name'] = $memberName;
+                        $params['vote_channel'] = $voteChannel == 'off' ? 2 : 1;
+
+                        if ($model->load($params, '') && $model->validate() && $model->saveData()) {
                             $suc++;
                             $optionModel = PsVoteProblemOption::findOne($v['option_id']);
                             $optionModel->totals = $optionModel->totals + 1;
                             $optionModel->save();
+                        }else{
+                            //验证不通过
+                            throw new Exception(array_values($model->errors)[0][0]);
                         }
+//                        $model->vote_id     = $voteId;
+//                        $model->problem_id  = $vote['problem_id'];
+//                        $model->room_id     = $room_id ;
+//                        $model->option_id   = $v['option_id'];
+//                        $model->member_id   = $memberId;
+//                        $model->member_name = $memberName;
+//                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
+//                        $model->created_at  = time();
+//                        if ($model->save()) {
+                            // 给选项增加投票数量
+//                            $suc++;
+//                            $optionModel = PsVoteProblemOption::findOne($v['option_id']);
+//                            $optionModel->totals = $optionModel->totals + 1;
+//                            $optionModel->save();
+//                        }
                     }
 
                     // 给问题增加投票数量
@@ -544,7 +562,6 @@ class VoteService extends BaseService
                         $doVoteSuc++;
                     }
                 }
-
                 if ($doVoteSuc) {
                     // 修改投票计数
                     $voteModel = PsVote::findOne($voteId);
@@ -569,7 +586,7 @@ class VoteService extends BaseService
 
             return false;
         }catch (Exception $e) {
-            return $this->failed('系统错误');
+            return PsCommon::responseFailed($e->getMessage());
         }
     }
 
@@ -2287,7 +2304,7 @@ class VoteService extends BaseService
             'list'=>[
                 ['key'=>0,'name'=>'全部'],
                 ['key'=>1,'name'=>'线上投票'],
-                ['key'=>2,'name'=>'线下投票'],
+                ['key'=>2,'name'=>'线下录入'],
             ]
         ];
     }
