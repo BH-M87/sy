@@ -12,7 +12,7 @@ namespace app\modules\ali_small_lyl\modules\v1\controllers;
 use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
-use app\modules\ali_small_lyl\controllers\UserBaseController;
+use app\modules\ali_small_lyl\controllers\BaseController;
 use common\core\F;
 use common\core\PsCommon;
 use common\core\JavaCurl;
@@ -20,7 +20,7 @@ use service\property_basic\JavaOfCService;
 use service\issue\RepairService;
 use service\issue\RepairTypeService;
 
-class RepairController extends UserBaseController
+class RepairController extends BaseController
 {
     // 发布报事报修
     public function actionCreate()
