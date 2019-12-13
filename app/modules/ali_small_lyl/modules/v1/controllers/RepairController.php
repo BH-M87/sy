@@ -31,13 +31,13 @@ class RepairController extends BaseController
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
-        $p['repair_from'] = 1; 
+        $p['repair_from'] = 1;
         $p['token'] = PsCommon::get($this->params, 'token');
 
-        $relateRoom = RepairTypeService::service()->repairTypeRelateRoom($p['repair_type']);
+        $relateRoom =F::value($this->params, 'is_relate_room', '');
 
         $roomIds = F::value($this->params, 'room_id', '');
-        if ($roomIds) {
+        if ($roomIds && $relateRoom==2) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
 
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
@@ -53,7 +53,7 @@ class RepairController extends BaseController
 
         $p['contact_name'] = $member['trueName'];
 
-        if ($relateRoom) {
+        if ($relateRoom==2) {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
         } else {
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair1');
