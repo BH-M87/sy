@@ -12,6 +12,7 @@ use app\models\PsRepairType;
 use app\modules\property\controllers\BaseController;
 use common\core\PsCommon;
 use service\issue\RepairTypeService;
+use Yii;
 
 class RepairTypeController extends BaseController
 {

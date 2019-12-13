@@ -68,9 +68,8 @@ class RepairTypeService extends BaseService
     //新增报修类目
     public function add($params, $userInfo = [])
     {
-        Yii::$app->db->getSchema()->refreshTableSchema('{{ps_repair_type}}');
-        Yii::$app->db->getSchema()->refresh();
-        
+
+
         $params['created_at'] = time();
         $params['status'] = 1;
         if ($params['parent_id']) {
@@ -89,7 +88,13 @@ class RepairTypeService extends BaseService
             return "该类目已经存在！";
         }
         $mod = new PsRepairType();
-        $mod->setAttributes($params);
+        $mod->community_id = $params['community_id'];
+        $mod->name = $params['name'];
+        $mod->level = $params['level'];
+        $mod->status = $params['status'];
+        $mod->created_at = $params['created_at'];
+        $mod->icon_url = $params['icon_url'];
+        $mod->is_relate_room = $params['is_relate_room'];
         if (!$mod->save()) {
             return "新增失败！";
         }
@@ -107,27 +112,13 @@ class RepairTypeService extends BaseService
     public function edit($params, $userInfo = [])
     {
         $params['created_at'] = time();
-        if ($params['parent_id']) {
-            $type_parent = PsRepairType::findOne($params['parent_id']);
-            if (!$type_parent) {
-                throw new MyException('父类id不存在');
-            }
-            $params['is_relate_room'] = $type_parent['is_relate_room'];//是否关联房屋只跟父类有关系
-        } else {
-            if (empty($params['is_relate_room'])) {
-                throw new MyException('请选择是否关联房屋');
-            }
-            //将这个类型下面的所有子类型的关联状态改成跟这个类型一致，批量更新
-            $type_associated = PsRepairType::find()->where(['parent_id' => $params['id']])->asArray()->all();
-            if ($type_associated) {
-                //批量更新多条数据
-                \Yii::$app->db->createCommand()->update(PsRepairType::tableName(), ['is_relate_room' => $params['is_relate_room']], "parent_id=:parent_id",
-                    [":parent_id" => $params["id"]]
-                )->execute();
-            }
-        }
         $mod = PsRepairType::findOne(PsCommon::get($params, 'id', 0));
-        $mod->setAttributes($params);
+        $mod->community_id = $params['community_id'];
+        $mod->name = $params['name'];
+        $mod->status = $params['status'];
+        $mod->created_at = $params['created_at'];
+        $mod->icon_url = $params['icon_url'];
+        $mod->is_relate_room = $params['is_relate_room'];
         if ($mod->save()) {
             return true;
         } else {
@@ -210,12 +201,12 @@ class RepairTypeService extends BaseService
     public function getSmallAppRepairTypeTree($params)
     {
         $model = new RepairType();
-        $type_info = $model::find()
-            ->select('id, name, parent_id')
+        $list = $model::find()
+            ->select('id, name,is_relate_room,icon_url, parent_id')
             ->where(['status' => 1, 'community_id' => $params['community_id']])
             ->asArray()
             ->all();
-        $list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
+        //$list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
         return $list;
     }
 

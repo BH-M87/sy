@@ -7,6 +7,7 @@
  */
 namespace app\modules\property\controllers;
 
+use common\core\F;
 use common\core\JavaCurl;
 use service\property_basic\JavaService;
 use Yii;
@@ -22,8 +23,10 @@ class BaseController extends \yii\web\Controller
     public $enableCsrfValidation = false;
     //存储request请求体
     public $body = [];
-    //存储data
+    //存储下载参数
     public $request_params = [];
+    //存储body请求参数
+    public $down_request_params = [];
     //存储用户信息
     public $user_info = [];
     //存储token
@@ -51,13 +54,16 @@ class BaseController extends \yii\web\Controller
     public function beforeAction($action)
     {
         if (parent::beforeAction($action)) {
-            //请求方式，post检测
-            $this->_validateMethod();
-            $this->_validateBody();
-            //token验证
-            $this->_validateToken($action);
-            $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
-            $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+            $this->down_request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
+            if (!in_array($action->controller->id, ['download'])) {//下载文件不走签名
+                //请求方式，post检测
+                $this->_validateMethod();
+                $this->_validateBody();
+                //token验证
+                $this->_validateToken($action);
+                $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
+                $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+            }
             //所有验证通过
             return true;
         }

@@ -14,17 +14,17 @@ Class DownloadController extends BaseController
 {
     public function actionIndex()
     {
-        $fileName = PsCommon::get($this->request_params, 'filename');
+        $fileName = PsCommon::get($this->down_request_params, 'filename');
         if (!$fileName) {
             return PsCommon::responseFailed('文件名不能为空');
         }
-        $type = PsCommon::get($this->request_params, 'type', 'temp');
+        $type = PsCommon::get($this->down_request_params, 'type', 'temp');
         $filePath = $this->_getDir($type) . $fileName;
         if (!file_exists($filePath)) {
             return PsCommon::responseFailed('文件不存在');
         }
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-        $newName = PsCommon::get($this->request_params, 'newname');//下载后生成的文件名字
+        $newName = PsCommon::get($this->down_request_params, 'newname');//下载后生成的文件名字
         $newName = $newName ? $newName : pathinfo($fileName, PATHINFO_BASENAME);
         $ctype = $this->_getContentType($ext);
         $fp = fopen($filePath, "r");
@@ -56,7 +56,7 @@ Class DownloadController extends BaseController
 
     public function actionDownloadImg()
     {
-        $id = PsCommon::get($this->request_params, 'id');
+        $id = PsCommon::get($this->down_request_params, 'id');
         $savePath = F::imagePath('parking-coupon-code');
         $filename = $savePath.$id.'.png';
         $file_size = filesize($filename);
