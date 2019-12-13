@@ -27,7 +27,7 @@ class RepairController extends BaseController
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
         $p['repair_type'] = F::value($this->params, 'repair_type_id', 0);
-        $p['expired_repair_time'] = F::value($this->params, 'expired_time', '');
+        $p['expired_repair_time'] = time();
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');

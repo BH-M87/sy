@@ -347,6 +347,7 @@ class RepairService extends BaseService
         }
 
         if ($useAs == 'small') { // 小程序
+            $model->repair_time = time();
             $model->contact_mobile = $params['member_mobile'];
             $model->appuser_id = $params['app_user_id'];
             $model->created_username = $params['member_name'];
@@ -354,7 +355,7 @@ class RepairService extends BaseService
             $model->member_id = $params['member_id'];
             $model->contact_name = $params['member_name'];
         } else {
-            $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : 0;
+            $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
             $model->contact_mobile = $params['contact_mobile'];
             $model->contact_name = $params['contact_name'];
             $model->created_id = $userInfo['id'];
