@@ -101,7 +101,7 @@ class VoteService extends BaseService
         if($totals == 0 ) {
             return [ "totals" => 0, 'list' => []];
         }
-        $fields = ['id','community_id','vote_name','start_time','end_time','vote_status','status'];
+        $fields = ['id','community_id','vote_name','start_time','end_time','vote_status','status','totals'];
         $query->select($fields);
         $query->orderBy('created_at desc');
         $re['totals'] = $totals;
@@ -112,7 +112,8 @@ class VoteService extends BaseService
         $models = $command->queryAll();
 
         foreach ($models as $key=>$val) {
-            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+//            $models[$key]['voted_totals'] = Yii::$app->db->createCommand("SELECT count(distinct member_id ) as total from ps_vote_member_det where vote_id=:vote_id and vote_channel=1", [":vote_id" => $val["id"]])->queryScalar();
+            $models[$key]['voted_totals'] = $val['totals'];
             $models[$key]['start_time'] = date("Y-m-d H:i", $val['start_time']);
             $models[$key]['end_time'] = date("Y-m-d H:i", $val['end_time']);
             $models[$key]['vote_status_msg'] = !empty($val['vote_status'])?self::$vote_status[$val['vote_status']]:'';
