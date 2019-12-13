@@ -1340,6 +1340,15 @@ class VoteService extends BaseService
             }else{
                 //未投票
                 $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
                 $votedResult = $votedModel->asArray()->all();
                 if(!empty($votedResult)){
                     $data['transfer'] = true;
@@ -1377,6 +1386,15 @@ class VoteService extends BaseService
             }else{
                 //未投票
                 $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
+                if(!empty($data['vote_channel'])){
+                    $votedModel->andWhere(['=','vote_channel',$data['vote_channel']]);
+                }
+                if(!empty($data['start_time'])){
+                    $votedModel->andWhere(['>=','created_at',strtotime($data['start_time'])]);
+                }
+                if(!empty($data['end_time'])){
+                    $votedModel->andWhere(['<=','created_at',strtotime($data['end_time'])]);
+                }
                 $votedResult = $votedModel->asArray()->all();
                 $memberIds = [];
                 if(!empty($votedResult)){
