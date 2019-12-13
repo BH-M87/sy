@@ -84,9 +84,9 @@ class F
     public static function paramsSuccess($data = [])
     {
         $data = [
-            'errCode' => 0,
+            'code' => 0,
             'data' => $data,
-            'errMsg' => ""
+            'error' => ['errorMsg'=>'']
         ];
 
         return $data;
@@ -98,7 +98,7 @@ class F
         $data = [
             'errCode' => $code,
             'data' => (object)[],
-            'errMsg' => $msg
+            'error' => ['errorMsg'=>$msg]
         ];
         return $data;
     }
@@ -107,9 +107,9 @@ class F
     public static function apiSuccess($data = [])
     {
         $data = [
-            'errCode' => 0,
+            'code' => 0,
             'data' => $data,
-            'errMsg' => ""
+            'error' => ['errorMsg'=>'']
         ];
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         Yii::$app->response->content = json_encode($data, JSON_UNESCAPED_SLASHES);
@@ -121,9 +121,9 @@ class F
     public static function apiFailed($msg = '网络异常', $code = 50001)
     {
         $data = [
-            'errCode' => $code,
+            'code' => $code,
             'data' => (object)[],
-            'errMsg' => $msg
+            'error' => ['errorMsg'=>$msg]
         ];
         Yii::info(json_encode($msg, 320), 'api');
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -135,7 +135,7 @@ class F
     //返回json
     public static function ajaxSuccess($data = [])
     {
-        $result['err'] = 0;
+        $result['code'] = 0;
         $result['data'] = $data;
         return json_encode($result, JSON_UNESCAPED_UNICODE);
     }
