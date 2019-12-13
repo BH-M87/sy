@@ -26,7 +26,6 @@ class RepairController extends BaseController
     public function actionCreate()
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
-        $p['app_user_id'] = F::value($this->params, 'app_user_id', 0);
         $p['repair_type'] = F::value($this->params, 'repair_type_id', 0);
         $p['expired_repair_time'] = F::value($this->params, 'expired_time', '');
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
@@ -39,7 +38,7 @@ class RepairController extends BaseController
 
         $roomIds = F::value($this->params, 'room_id', '');
         if ($roomIds) {
-            $roomInfo = JavaOfCService::service()->roomInfo(['token' => $token, 'id' => $roomIds]);
+            $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
 
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
             $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
@@ -47,7 +46,7 @@ class RepairController extends BaseController
             $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
         }
 
-        $member = JavaOfCService::service()->memberBase(['token' => $token]);
+        $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
         if (empty($member)) {
             return F::apiSuccess('用户不存在');
         }
@@ -67,12 +66,6 @@ class RepairController extends BaseController
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
         $validData['room_id'] = $roomIds;
-
-        $member = JavaOfCService::service()->memberBase(['token' => $token]);
-        if(empty($member)){
-            return PsCommon::responseFailed('用户不存在');
-        }
-
         $validData['member_id'] = $member['id'];
         $validData['member_name'] = $member['trueName'];
         $validData['member_mobile'] = $member['sensitiveInf'];
