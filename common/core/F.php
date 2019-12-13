@@ -86,6 +86,7 @@ class F
         $data = [
             'code' => 0,
             'data' => $data,
+            'message' => '',
             'error' => ['errorMsg'=>'']
         ];
 
@@ -98,6 +99,7 @@ class F
         $data = [
             'errCode' => $code,
             'data' => (object)[],
+            'message' => $msg,
             'error' => ['errorMsg'=>$msg]
         ];
         return $data;
@@ -107,8 +109,9 @@ class F
     public static function apiSuccess($data = [])
     {
         $data = [
-            'code' => 0,
+            'code' => 1,
             'data' => $data,
+            'message' => '',
             'error' => ['errorMsg'=>'']
         ];
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -123,6 +126,7 @@ class F
         $data = [
             'code' => $code,
             'data' => (object)[],
+            'message' => $msg,
             'error' => ['errorMsg'=>$msg]
         ];
         Yii::info(json_encode($msg, 320), 'api');
