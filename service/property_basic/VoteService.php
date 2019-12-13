@@ -519,22 +519,39 @@ class VoteService extends BaseService
                 foreach ($voteDetArr as $vote) {
                     $suc = 0;
                     foreach ($vote['options'] as $k => $v) {
-                        $model = new PsVoteMemberDet();
-                        $model->vote_id     = $voteId;
-                        $model->problem_id  = $vote['problem_id'];
-                        $model->room_id     = $room_id ;
-                        $model->option_id   = $v['option_id'];
-                        $model->member_id   = $memberId;
-                        $model->member_name = $memberName;
-                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
-                        $model->created_at  = time();
-                        if ($model->save()) {
-                            // 给选项增加投票数量
+                        $model = new PsVoteMemberDet(['scenario' => 'add']);
+                        $params['vote_id'] = $voteId;
+                        $params['problem_id'] = $vote['problem_id'];
+                        $params['room_id'] = $room_id;
+                        $params['option_id'] = $v['option_id'];
+                        $params['member_id'] = $memberId;
+                        $params['member_name'] = $memberName;
+                        $params['vote_channel'] = $voteChannel == 'off' ? 2 : 1;
+
+                        if ($model->load($params, '') && $model->validate() && $model->saveData()) {
                             $suc++;
                             $optionModel = PsVoteProblemOption::findOne($v['option_id']);
                             $optionModel->totals = $optionModel->totals + 1;
                             $optionModel->save();
+                        }else{
+                            //验证不通过
+                            throw new Exception(array_values($model->errors)[0][0]);
                         }
+//                        $model->vote_id     = $voteId;
+//                        $model->problem_id  = $vote['problem_id'];
+//                        $model->room_id     = $room_id ;
+//                        $model->option_id   = $v['option_id'];
+//                        $model->member_id   = $memberId;
+//                        $model->member_name = $memberName;
+//                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
+//                        $model->created_at  = time();
+//                        if ($model->save()) {
+                            // 给选项增加投票数量
+//                            $suc++;
+//                            $optionModel = PsVoteProblemOption::findOne($v['option_id']);
+//                            $optionModel->totals = $optionModel->totals + 1;
+//                            $optionModel->save();
+//                        }
                     }
 
                     // 给问题增加投票数量
@@ -545,7 +562,6 @@ class VoteService extends BaseService
                         $doVoteSuc++;
                     }
                 }
-
                 if ($doVoteSuc) {
                     // 修改投票计数
                     $voteModel = PsVote::findOne($voteId);
@@ -570,7 +586,7 @@ class VoteService extends BaseService
 
             return false;
         }catch (Exception $e) {
-            return $this->failed('系统错误');
+            return PsCommon::responseFailed($e->getMessage());
         }
     }
 
