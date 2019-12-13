@@ -201,12 +201,12 @@ class RepairTypeService extends BaseService
     public function getSmallAppRepairTypeTree($params)
     {
         $model = new RepairType();
-        $type_info = $model::find()
-            ->select('id, name, parent_id')
+        $list = $model::find()
+            ->select('id, name,is_relate_room,icon_url, parent_id')
             ->where(['status' => 1, 'community_id' => $params['community_id']])
             ->asArray()
             ->all();
-        $list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
+        //$list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
         return $list;
     }
 
