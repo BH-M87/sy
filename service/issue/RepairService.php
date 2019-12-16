@@ -330,7 +330,7 @@ class RepairService extends BaseService
     {
         $model = new PsRepair();
 
-        if(!empty($params['roomId'])){
+        if(!empty($params['roomId']) && $useAs != 'small'){
             $roomInfo = JavaService::service()->roomDetail(['token'=>$params['token'],'id'=>$params['roomId']]);
             $model->groupId = $roomInfo['groupId'];
             $model->buildingId = $roomInfo['buildingId'];
@@ -342,7 +342,7 @@ class RepairService extends BaseService
             $model->groupId = $params['groupId'];
             $model->buildingId = $params['buildingId'];
             $model->unitId = $params['unitId'];
-            $model->room_id = $params['room_id'];
+            $model->room_id = $params['roomId'];
             $model->room_address = $params['room_address'];
         }
 

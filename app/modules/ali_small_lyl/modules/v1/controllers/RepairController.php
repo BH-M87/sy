@@ -22,7 +22,7 @@ use service\issue\RepairTypeService;
 
 class RepairController extends BaseController
 {
-    
+
     // 发布报事报修
     public function actionCreate()
     {
@@ -33,12 +33,12 @@ class RepairController extends BaseController
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
-        $p['room_id'] =  F::value($this->params, 'room_id', '');
+        $p['roomId'] =  F::value($this->params, 'roomId', '');
         $p['repair_from'] = 1;
         $p['token'] = PsCommon::get($this->params, 'token');
         //当前报修类型是否需要房屋
         $relateRoom =F::value($this->params, 'is_relate_room', '');
-        $roomIds = $p['room_id'];
+        $roomIds = $p['roomId'];
         if ($roomIds && $relateRoom==2) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
