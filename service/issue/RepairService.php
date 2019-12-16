@@ -1265,9 +1265,8 @@ class RepairService extends BaseService
     public function smallRepairList($params)
     {
         $communityId = PsCommon::get($params, 'community_id', '');
-        $communityName = PsCommon::get($params, 'community_name', '');
         $status = PsCommon::get($params, 'repair_status', '');
-        $appUserId = PsCommon::get($params, 'app_user_id', '');
+        $member_id = PsCommon::get($params, 'member_id', '');
         $roomId = PsCommon::get($params, 'room_id', '');
 
         $query = new Query();
@@ -1284,8 +1283,8 @@ class RepairService extends BaseService
             $query->andWhere($whereCondition);
         }
 
-        if ($appUserId) {
-            $query->andWhere(['A.appuser_id' => $appUserId]);
+        if ($member_id) {
+            $query->andWhere(['A.member_id' => $member_id]);
         }
 
         if ($roomId) {
