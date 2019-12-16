@@ -13,8 +13,10 @@ class JavaCurl {
 
     private static $instance = null;
     //java B端 host
-    const API_HOST = 'https://test-communityb.lvzhuyun.com';
-    const C_API_HOST = 'https://test-communityc.lvzhuyun.com';
+//    const API_HOST = 'https://test-communityb.lvzhuyun.com';
+//    const C_API_HOST = 'https://test-communityc.lvzhuyun.com';
+    const API_HOST = 'https://communityb.lvzhuyun.com';
+    const C_API_HOST = 'https://communityc.lvzhuyun.com';
     //日志文件
     private static $pushLog = '/logs/java_push.log';  //java推送过来数据日志
     private static $pullLog = '/logs/java_pull.log';  //拉取java数据日志
