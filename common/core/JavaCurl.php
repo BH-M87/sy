@@ -15,8 +15,8 @@ class JavaCurl {
     //java B端 host
 //    const API_HOST = 'https://test-communityb.lvzhuyun.com';
 //    const C_API_HOST = 'https://test-communityc.lvzhuyun.com';
-    const API_HOST = 'https://communityb.lvzhuyun.com';
-    const C_API_HOST = 'https://communityc.lvzhuyun.com';
+//    const API_HOST = 'https://communityb.lvzhuyun.com';
+//    const C_API_HOST = 'https://communityc.lvzhuyun.com';
     //日志文件
     private static $pushLog = '/logs/java_push.log';  //java推送过来数据日志
     private static $pullLog = '/logs/java_pull.log';  //拉取java数据日志
@@ -179,13 +179,28 @@ class JavaCurl {
      */
     private function parseUrl($route, $getData = [])
     {
+        switch (YII_ENV) {
+            case "master":
+                $api_host = "https://communityb.lvzhuyun.com";
+                $c_api_host = "https://communityc.lvzhuyun.com";
+                break;
+            case "test":
+                $api_host = "https://test-communityb.lvzhuyun.com";
+                $c_api_host = "https://test-communityc.lvzhuyun.com";
+                break;
+            default :
+                $api_host = "https://test-communityb.lvzhuyun.com";
+                $c_api_host = "https://test-communityc.lvzhuyun.com";
+                break;
+        }
+
         switch ($this->serverType) {
             case 'B':
-                $url = self::API_HOST . $route;break;
+                $url = $api_host . $route;break;
             case 'C':
-                $url = self::C_API_HOST . $route;break;
+                $url = $c_api_host . $route;break;
             default :
-                $url = self::API_HOST . $route;
+                $url = $api_host . $route;
         }
         if (!empty($getData)) {
             $query = '';
