@@ -333,7 +333,7 @@ class VoteService extends BaseService
                         $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
                         $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
                         $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
-                        $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
+                        $optionEle['rate'] = !empty($problemEle['totals'])?round(sprintf("%.3f",$v['totals']/$problemEle['totals'])*100,2):0;
                         $problemEle['option'][] = $optionEle;
                     }
                 }
@@ -2236,7 +2236,7 @@ class VoteService extends BaseService
                         $optionEle['image_url'] = !empty($v['image_url'])?$v['image_url']:'';
                         $optionEle['option_desc'] = !empty($v['option_desc'])?$v['option_desc']:'';
                         $optionEle['totals'] = !empty($v['totals'])?$v['totals']:0;
-                        $optionEle['rate'] = !empty($problemEle['totals'])?sprintf("%.3f",$v['totals']/$problemEle['totals'])*100:0;
+                        $optionEle['rate'] = !empty($problemEle['totals'])?round(sprintf("%.3f",$v['totals']/$problemEle['totals'])*100,2):0;
                         $problemEle['option'][] = $optionEle;
                     }
                 }
