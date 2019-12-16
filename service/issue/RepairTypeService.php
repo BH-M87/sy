@@ -115,8 +115,6 @@ class RepairTypeService extends BaseService
         $mod = PsRepairType::findOne(PsCommon::get($params, 'id', 0));
         $mod->community_id = $params['community_id'];
         $mod->name = $params['name'];
-        $mod->status = $params['status'];
-        $mod->created_at = $params['created_at'];
         $mod->icon_url = $params['icon_url'];
         $mod->is_relate_room = $params['is_relate_room'];
         if ($mod->save()) {
