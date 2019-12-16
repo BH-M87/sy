@@ -65,6 +65,9 @@ class JavaController extends BaseController{
     public function actionUploadImg(){
         try{
             $data = $this->params;
+            if (empty($data['uploadFile'])) {
+                return PsCommon::responseFailed('请上传文件！');
+            }
             $result = JavaOfCService::service()->uploadImg($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
