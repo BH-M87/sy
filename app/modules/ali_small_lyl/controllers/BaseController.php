@@ -82,7 +82,10 @@ class BaseController extends \yii\web\Controller
                 exit($this->ajaxReturn('参数错误'));
             }
             $body = $bodys;
+        } else if ($_FILES) {
+            $body = $_FILES;
         }
+        
         $this->body = $body;
         $this->params = $body;
     }

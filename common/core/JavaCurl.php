@@ -100,6 +100,10 @@ class JavaCurl {
     {
         $log = Yii::$app->getRuntimePath().self::$pullLog;
 
+        if (!empty($postData['uploadFile'])) {
+            $this->contentType = 'multipart/form-data';
+        }
+
         //设置请求header
         $options = [
             CURLOPT_HTTPHEADER => [
