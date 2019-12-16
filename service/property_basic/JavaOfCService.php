@@ -56,4 +56,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/room/roomInfo';
         return self::returnCData($query);
     }
+
+    // 图片上传
+    public function uploadImg($query)
+    {
+        $query['route'] = '/member/file-tool/upload-img';
+        return self::returnCData($query);
+    }
 }

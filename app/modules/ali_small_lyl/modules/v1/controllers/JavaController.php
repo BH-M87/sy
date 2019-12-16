@@ -44,10 +44,28 @@ class JavaController extends BaseController{
         }
     }
 
+    /**
+     * 用户信息
+     * @return string
+     */
     public function actionMemberBase(){
         try{
             $data = $this->params;
             $result = JavaOfCService::service()->memberBase($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /**
+     * 图片上传
+     * @return string
+     */
+    public function actionUploadImg(){
+        try{
+            $data = $this->params;
+            $result = JavaOfCService::service()->uploadImg($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());
