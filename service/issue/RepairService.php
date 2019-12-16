@@ -338,12 +338,12 @@ class RepairService extends BaseService
             $model->roomId = $roomInfo['roomId'];
             $model->room_address = $roomInfo['groupName'].$roomInfo['buildingName'].$roomInfo['unitName'].$roomInfo['roomName'];
         }
-        
+
         if ($useAs == 'small' && !empty($params['roomId'])) { // 小程序
             $model->groupId = $params['groupId'];
             $model->buildingId = $params['buildingId'];
             $model->unitId = $params['unitId'];
-            $model->room_id = $params['roomId'];
+            $model->roomId = $params['roomId'];
             $model->room_address = $params['room_address'];
         }
 
