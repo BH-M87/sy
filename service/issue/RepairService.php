@@ -348,12 +348,11 @@ class RepairService extends BaseService
 
         if ($useAs == 'small') { // 小程序
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
-            $model->contact_mobile = $params['member_mobile'];
-            $model->appuser_id = $params['app_user_id'];
-            $model->created_username = $params['member_name'];
-            $model->created_id = $params['member_id'];
-            $model->member_id = $params['member_id'];
-            $model->contact_name = $params['member_name'];
+            $model->contact_mobile = $userInfo['mobile'];
+            $model->created_username = $userInfo['trueName'];
+            $model->created_id = $userInfo['id'];
+            $model->member_id = $userInfo['id'];
+            $model->contact_name = $userInfo['trueName'];
         } else {
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
             $model->contact_mobile = $params['contact_mobile'];
