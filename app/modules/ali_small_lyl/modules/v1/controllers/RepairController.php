@@ -26,26 +26,26 @@ class RepairController extends BaseController
     public function actionCreate()
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['member_id'] = PsCommon::get($this->params, 'member_id', 0);
         $p['repair_type'] = F::value($this->params, 'repair_type_id', 0);
         $p['expired_repair_time'] = time();
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
+        $p['room_id'] =  F::value($this->params, 'room_id', '');
         $p['repair_from'] = 1;
         $p['token'] = PsCommon::get($this->params, 'token');
-
+        //当前报修类型是否需要房屋
         $relateRoom =F::value($this->params, 'is_relate_room', '');
-
-        $roomIds = F::value($this->params, 'room_id', '');
+        $roomIds = $p['room_id'];
         if ($roomIds && $relateRoom==2) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
-
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
             $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
             $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
             $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
         }
-
+        //查找用户的信息
         $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
         if (empty($member)) {
             return F::apiSuccess('用户不存在');
@@ -62,15 +62,8 @@ class RepairController extends BaseController
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
-
         $validData = $valid['data'];
-        $validData['relate_room'] = $relateRoom;
-        $validData['room_id'] = $roomIds;
-        $validData['member_id'] = $member['id'];
-        $validData['member_name'] = $member['trueName'];
-        $validData['member_mobile'] = $member['sensitiveInf'];
-
-        $r = RepairService::service()->add($validData, [], 'small');
+        $r = RepairService::service()->add($validData, $member, 'small');
 
         if (is_array($r)) {
             return F::apiSuccess($r);
