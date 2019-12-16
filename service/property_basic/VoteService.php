@@ -1339,10 +1339,10 @@ class VoteService extends BaseService
                 }
             }else{
                 //未投票
+                $data['transfer'] = true;
                 $votedModel = PsVoteMemberDet::find()->select(['member_id','vote_channel'])->where(['=','vote_id',$vote['id']]);
                 $votedResult = $votedModel->asArray()->all();
                 if(!empty($votedResult)){
-                    $data['transfer'] = true;
                     $data['neVotedIds'] = array_column($votedResult,'member_id');
                 }
             }
