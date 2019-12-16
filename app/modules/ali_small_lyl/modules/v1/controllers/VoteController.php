@@ -128,7 +128,7 @@ class VoteController extends BaseController
         }
 
         if (!$voteDetail) {
-            return PsCommon::responseFailed('投票明细不能为空');
+            return PsCommon::responseFailed('请提交您的投票选项');
         }
 
         $problems = Yii::$app->db->createCommand("select id,option_type from ps_vote_problem where vote_id=:vote_id", [":vote_id" => $voteId])->queryAll();
