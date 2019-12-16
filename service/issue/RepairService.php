@@ -350,16 +350,16 @@ class RepairService extends BaseService
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
             $model->contact_mobile = $userInfo['mobile'];
             $model->created_username = $userInfo['trueName'];
-            $model->created_id = $userInfo['id'];
-            $model->member_id = $userInfo['id'];
+            $model->created_id = $params['member_id'];
+            $model->member_id = $params['member_id'];
             $model->contact_name = $userInfo['trueName'];
         } else {
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
             $model->contact_mobile = $params['contact_mobile'];
             $model->contact_name = $params['contact_name'];
-            $model->created_id = $params['member_id'];
+            $model->created_id = $userInfo['id'];
             $model->created_username = $userInfo['trueName'];
-            $model->operator_id = $params['member_id'];
+            $model->operator_id = $userInfo['id'];
             $model->operator_name = $userInfo['trueName'];
         }
         $model->community_id = $params['community_id'];
