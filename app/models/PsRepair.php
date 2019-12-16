@@ -48,7 +48,7 @@ class PsRepair extends BaseModel
             [['repair_content'],'required','message'=>'{attribute}不能为空','on'=>['make-complete']],
             [['community_id'],'required','message'=>'{attribute}不能为空','on'=>['statistic-status', 'statistic-channel','statistic-type','statistic-score']],
             ['day', 'safe'],
-            [['app_user_id', 'community_id', 'repair_status', 'room_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['small_list']],
+            [['community_id', 'repair_status', 'room_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['small_list']],
             ['repair_status', 'in', 'range' => [1, 2, 3, 4, 5], 'message' => '{attribute}类型有误', 'on' => ['small_list']],
             [['repair_id'], 'required', 'message' => '{attribute}不能为空', 'on' => ['small_view']],
         ];
@@ -74,7 +74,6 @@ class PsRepair extends BaseModel
             'status' => 'Status',
             'create_at' => 'Create At',
             'repair_id'=> "工单id",
-            'app_user_id' => '小程序端用户id',
             'repair_status' => '工单状态',
             'room_id' => '房屋id'
         ];
