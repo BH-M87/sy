@@ -7,7 +7,7 @@
  */
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
-
+use common\core\F;
 use service\property_basic\JavaOfCService;
 use app\modules\ali_small_lyl\controllers\BaseController;
 use common\core\PsCommon;
@@ -66,7 +66,7 @@ class JavaController extends BaseController{
         try{
             $data = $this->params;
             if (empty($data['uploadFile'])) {
-                return PsCommon::responseFailed('请上传文件！');
+                return F::apiFailed('请上传文件！');
             }
             $result = JavaOfCService::service()->uploadImg($data);
             return PsCommon::responseSuccess($result);
