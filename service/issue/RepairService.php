@@ -796,40 +796,47 @@ class RepairService extends BaseService
         }
     }
 
-    //二次维修
-    public function createNew($params, $userInfo = [])
+    // 二次维修
+    public function createNew($p, $userInfo = [])
     {
-        $model = PsRepair::find()->where(["id" => $params["repair_id"]])->asArray()->one();
-        if (!$model) {
+        $m = PsRepair::find()->where(["id" => $p["repair_id"]])->asArray()->one();
+        
+        if (!$m) {
             return "工单不存在";
         }
-        if ($model['status'] != self::STATUS_CHECKED_FALSE) {
+
+        if ($m['status'] != self::STATUS_CHECKED_FALSE) {
             return "此工单不能发起二次维修";
         }
-        if ($model['is_assign_again'] == 1) {
+
+        if ($m['is_assign_again'] == 1) {
             return "该订单已经发起二次维修";
         }
 
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            $repairArr["is_assign_again"] = 1;
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
-            $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
-            $repair = $model;
-            unset($repair['id']);
-            $repair['status'] = 1;//订单重新变成待处理
-            $repair['repair_from'] = 6;//来源：二次复核
-            $repair['create_at'] = time();
-            $repair['repair_no'] = $this->generalRepairNo();
-            $repair['is_assign'] = 2; //未分配
-            $repair['created_id'] = $repair['operator_id'] = $userInfo['id'];
-            $repair['created_username'] = $repair['operator_name'] = $userInfo['truename'];
-            $repair['is_assign_again'] = 0;
-            $repair['day'] = date('Y-m-d');
-            Yii::$app->db->createCommand()->insert('ps_repair', $repair)->execute();
+            $rArr["is_assign_again"] = 1;
+            $rArr["operator_id"] = $userInfo["id"];
+            $rArr["operator_name"] = $userInfo["truename"];
+            
+            Yii::$app->db->createCommand()->update('ps_repair',
+                $rArr, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
+            
+            $r = $m;
+            unset($r['id']);
+            $r['status'] = 1;//订单重新变成待处理
+            $r['repair_from'] = 6;//来源：二次复核
+            $r['create_at'] = time();
+            $r['repair_time'] = time();
+            $r['repair_no'] = $this->generalRepairNo();
+            $r['is_assign'] = 2; //未分配
+            $r['created_id'] = $r['operator_id'] = $userInfo['id'];
+            $r['created_username'] = $r['operator_name'] = $userInfo['truename'];
+            $r['is_assign_again'] = 0;
+            $r['day'] = date('Y-m-d');
+
+            Yii::$app->db->createCommand()->insert('ps_repair', $r)->execute();
+
             $transaction->commit();
             return true;
         } catch (Exception $e) {
