@@ -749,42 +749,45 @@ class RepairService extends BaseService
         }
     }
 
-    //工单复核
-    public function review($params, $userInfo = [])
+    // 工单复核
+    public function review($p, $u = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
-        if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+
+        if (!$m) {
             return "工单不存在";
         }
-        if ($model["status"] == self::STATUS_CHECKED) {
+
+        if ($m["status"] == self::STATUS_CHECKED) {
             return $this->failed('工单已复核');
         }
-        if ($model["status"] != self::STATUS_DONE && $model["status"] != self::STATUS_COMPLETE) {
+
+        if ($m["status"] != self::STATUS_DONE && $m["status"] != self::STATUS_COMPLETE) {
             return $this->failed('工单未完成');
         }
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            /*添加 维修 记录*/
-            $connection->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $params["repair_id"],
+            // 添加 维修 记录
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
                 'status' => self::STATUS_CHECKED,
-                'content' => '已复核',
+                'content' => $p['content'],
                 'create_at' => time(),
-                'operator_id' => $userInfo["id"],
-                'operator_name' => $userInfo["truename"],
-                'mobile' => $userInfo["mobile"],
+                'operator_id' => $u["id"],
+                'operator_name' => $u["truename"],
+                'mobile' => $u["mobile"],
             ])->execute();
-            if ($params['status'] == 1) {
-                //复核通过
-                $repairArr["status"] = self::STATUS_CHECKED;
+            if ($p['status'] == 1) {
+                // 复核通过
+                $r["status"] = self::STATUS_CHECKED;
             } else {
-                $repairArr["status"] = self::STATUS_CHECKED_FALSE;
+                $r["status"] = self::STATUS_CHECKED_FALSE;
             }
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
-            $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
+            $r["operator_id"] = $u["id"];
+            $r["operator_name"] = $u["truename"];
+            Yii::$app->db->createCommand()->update('ps_repair',
+                $r, "id=:repair_id", [":repair_id" => $p["repair_id"]]
             )->execute();
 
             $transaction->commit();
@@ -818,7 +821,7 @@ class RepairService extends BaseService
             $rArr["is_assign_again"] = 1;
             $rArr["operator_id"] = $userInfo["id"];
             $rArr["operator_name"] = $userInfo["truename"];
-            
+
             Yii::$app->db->createCommand()->update('ps_repair',
                 $rArr, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
             
