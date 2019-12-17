@@ -215,11 +215,11 @@ class RepairService extends BaseService
         }
 
         if ($repair_timeStart) {
-            $start = strtotime($repair_timeStart . " 00:00:00");
+            $start = strtotime($repair_timeStart);
             $query->andWhere(['>=', 'A.repair_time', $start]);
         }
         if ($repair_timeEnd) {
-            $end = strtotime($repair_timeEnd . " 23:59:59");
+            $end = strtotime($repair_timeEnd);
             $query->andWhere(['<=', 'A.repair_time', $end]);
         }
         if ($checkAtStart) {
