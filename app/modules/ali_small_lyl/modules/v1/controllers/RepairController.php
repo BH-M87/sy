@@ -39,7 +39,7 @@ class RepairController extends BaseController
         //当前报修类型是否需要房屋
         $relateRoom =F::value($this->params, 'is_relate_room', '');
         $roomIds = $p['roomId'];
-        if ($roomIds && $relateRoom==2) {
+        if ($roomIds && $relateRoom == 1) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
             $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
