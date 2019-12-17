@@ -199,7 +199,7 @@ class RepairService extends BaseService
             $query->andWhere(['A.unitId' => $unit]);
         }
         if ($room) {
-            $query->andWhere(['R.room_id' => $room]);
+            $query->andWhere(['R.roomId' => $room]);
         }
         if ($repairType) {
             $query->andWhere(['A.repair_type_id' => $repairType]);
@@ -989,7 +989,7 @@ class RepairService extends BaseService
         $query->from('ps_repair_assign pra')
             ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
             ->leftJoin('ps_community c','c.id = pr.community_id')
-            ->leftJoin('ps_community_roominfo R', 'R.id=pr.room_id')
+            ->leftJoin('ps_community_roominfo R', 'R.id=pr.roomId')
             ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
             ->where(['pra.user_id' => $userInfo['id']]);
         if ($params['status']) {
