@@ -199,7 +199,7 @@ class RepairService extends BaseService
             $query->andWhere(['A.unitId' => $unit]);
         }
         if ($room) {
-            $query->andWhere(['R.roomId' => $room]);
+            $query->andWhere(['A.roomId' => $room]);
         }
         if ($repairType) {
             $query->andWhere(['A.repair_type_id' => $repairType]);
