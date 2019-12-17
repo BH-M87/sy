@@ -241,51 +241,55 @@ class RepairService extends BaseService
         }
         $command = $query->createCommand();
         $models = $command->queryAll();
-        foreach ($models as $key => $val) {
-            $models[$key]['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+        foreach ($models as $key => &$val) {
+            $val['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
             if ($params['use_as'] == "dingding") {
-                $models[$key]['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
+                $val['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $models[$key]['status_label'] = self::$_repair_status[10];
+                    $val['status_label'] = self::$_repair_status[10];
                 } else {
-                    $models[$key]['status_label'] = self::$_repair_status[$val['status']];
+                    $val['status_label'] = self::$_repair_status[$val['status']];
                 }
-                $models[$key]['issue_id'] = $val['id'];
-                $models[$key]['issue_bill_no'] = $val['repair_no'];
-                $models[$key]['repair_type_label'] = $val['repair_type_desc'];
-                unset($models[$key]['id']);
-                unset($models[$key]['repair_no']);
-                unset($models[$key]['repair_type_desc']);
+                $val['issue_id'] = $val['id'];
+                $val['issue_bill_no'] = $val['repair_no'];
+                $val['repair_type_label'] = $val['repair_type_desc'];
+                unset($val['id']);
+                unset($val['repair_no']);
+                unset($val['repair_type_desc']);
             } else {
-                $models[$key]['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
-                $models[$key]['hard_check_at'] = !empty($val['hard_check_at']) ? date("Y-m-d H:i:s", $val['hard_check_at']) : '';
-                $models[$key]['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
+                $val['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
+                $val['hard_check_at'] = !empty($val['hard_check_at']) ? date("Y-m-d H:i:s", $val['hard_check_at']) : '';
+                $val['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $models[$key]['status_desc'] = self::$_repair_status[10];
+                    $val['status_desc'] = self::$_repair_status[10];
                 } else {
-                    $models[$key]['status_desc'] = self::$_repair_status[$val['status']];
+                    $val['status_desc'] = self::$_repair_status[$val['status']];
                 }
-                $models[$key]['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
-                $models[$key]['repair_from_desc'] =
+                $val['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
+                $val['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
-                $models[$key]['expired_repair_type_desc'] =
+                $val['expired_repair_type_desc'] =
                     isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
-                $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
-                $models[$key]['amount'] = $this->getRepairBill($val['id']);
-                $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
-                $models[$key]['export_expired_repair_type_desc'] = $models[$key]['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
+                $val['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
+                $val['amount'] = $this->getRepairBill($val['id']);
+                $val['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
+                $val['export_expired_repair_type_desc'] = $val['expired_repair_time'].$val['expired_repair_type_desc'];
             }
 
-            $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
-            if ($models[$key]['contact_mobile']) {
-                $models[$key]['contact_mobile'] = PsCommon::hideMobile($models[$key]['contact_mobile']);
+            $val['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
+            if ($val['contact_mobile']) {
+                $val['contact_mobile'] = PsCommon::hideMobile($val['contact_mobile']);
             }
-            $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
-            $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
-            $models[$key]['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
-            $models[$key]['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
+
+            $val['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
+            $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
+            $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
+            $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
+            $val['operator_name'] = $val['status'] == 1 ? '' : $val['operator_name'];
         }
+
         $re['list'] = $models;
+
         return $re;
     }
 
