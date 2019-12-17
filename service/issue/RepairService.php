@@ -768,24 +768,26 @@ class RepairService extends BaseService
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
+            if ($p['status'] == 1) { // 复核通过
+                $r["status"] = self::STATUS_CHECKED;
+            } else {
+                $r["status"] = self::STATUS_CHECKED_FALSE;
+            }
+            
             // 添加 维修 记录
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
-                'status' => self::STATUS_CHECKED,
+                'status' => $r["status"],
                 'content' => $p['content'],
                 'create_at' => time(),
                 'operator_id' => $u["id"],
                 'operator_name' => $u["truename"],
                 'mobile' => $u["mobile"],
             ])->execute();
-            if ($p['status'] == 1) {
-                // 复核通过
-                $r["status"] = self::STATUS_CHECKED;
-            } else {
-                $r["status"] = self::STATUS_CHECKED_FALSE;
-            }
+
             $r["operator_id"] = $u["id"];
             $r["operator_name"] = $u["truename"];
+
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]]
             )->execute();
