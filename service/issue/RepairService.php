@@ -1506,7 +1506,7 @@ class RepairService extends BaseService
     protected function handleInfo($repair_id)
     {
         $info = PsRepairRecord::find()
-            ->select("content as handle_content, operator_name, status, create_at as handle_time, repair_imgs")
+            ->select("content as handle_content, operator_name, status, create_at as handle_time, repair_imgs, mobile")
             ->where(['repair_id' => $repair_id])
             ->orderBy('handle_time desc')->asArray()->all();
         if ($info) {
