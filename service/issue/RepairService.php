@@ -258,7 +258,6 @@ class RepairService extends BaseService
                 unset($val['repair_type_desc']);
             } else {
                 $val['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
-                $val['hard_check_at'] = !empty($val['hard_check_at']) ? date("Y-m-d H:i:s", $val['hard_check_at']) : '';
                 $val['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
                     $val['status_desc'] = self::$_repair_status[10];
