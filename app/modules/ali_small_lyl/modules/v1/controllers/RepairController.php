@@ -41,10 +41,10 @@ class RepairController extends BaseController
         $roomIds = $p['room'];
         if ($roomIds && $relateRoom == 1) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
-            $p['group'] = $roomInfo ? $roomInfo['groupId'] : '';
-            $p['building'] = $roomInfo ? $roomInfo['buildingId'] : '';
-            $p['unit'] = $roomInfo ? $roomInfo['unitId'] : '';
-            $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
+            $p['group'] = $roomInfo ? $roomInfo['groupId'] : '1';
+            $p['building'] = $roomInfo ? $roomInfo['buildingId'] : '2';
+            $p['unit'] = $roomInfo ? $roomInfo['unitId'] : '3';
+            $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '4';
         }
         //查找用户的信息
         $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
