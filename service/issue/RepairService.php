@@ -341,11 +341,11 @@ class RepairService extends BaseService
             $model->room_address = $roomInfo['groupName'].$roomInfo['buildingName'].$roomInfo['unitName'].$roomInfo['roomName'];
         }
 
-        if ($useAs == 'small' && !empty($params['roomId'])) { // 小程序
-            $model->groupId = $params['groupId'];
-            $model->buildingId = $params['buildingId'];
-            $model->unitId = $params['unitId'];
-            $model->roomId = $params['roomId'];
+        if ($useAs == 'small' && !empty($params['room'])) { // 小程序
+            $model->groupId = $params['group'];
+            $model->buildingId = $params['building'];
+            $model->unitId = $params['unit'];
+            $model->roomId = $params['room'];
             $model->room_address = $params['room_address'];
         }
 

@@ -33,17 +33,17 @@ class RepairController extends BaseController
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
-        $p['roomId'] =  F::value($this->params, 'roomId', '');
+        $p['room'] =  F::value($this->params, 'roomId', '');
         $p['repair_from'] = 1;
         $p['token'] = PsCommon::get($this->params, 'token');
         //当前报修类型是否需要房屋
         $relateRoom =F::value($this->params, 'is_relate_room', '');
-        $roomIds = $p['roomId'];
+        $roomIds = $p['room'];
         if ($roomIds && $relateRoom == 1) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
-            $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
-            $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
-            $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
+            $p['group'] = $roomInfo ? $roomInfo['groupId'] : '';
+            $p['building'] = $roomInfo ? $roomInfo['buildingId'] : '';
+            $p['unit'] = $roomInfo ? $roomInfo['unitId'] : '';
             $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
         }
         //查找用户的信息
