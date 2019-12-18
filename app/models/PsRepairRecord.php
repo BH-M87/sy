@@ -73,7 +73,7 @@ class PsRepairRecord extends BaseModel
             ['num', 'integer','message' => '材料数量错误!', 'on' =>['add-material','edit-material']],
             ['material_id', 'required','message' => '材料id不能为空!', 'on' =>['show-material','edit-material',"delete-material"]],
 
-            [['expired_repair_time'], 'required','message' => '上门时间必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
+            [['expired_repair_time'], 'string', 'max' => 100, 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['contact_name'], 'required','message' => '报修人必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['repair_type'], 'required','message' => '报修类型必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
             [['repair_content'], 'required','message' => '报修内容必填!', 'on' => ['add-repair1','add-repair2','add-repair3']],
