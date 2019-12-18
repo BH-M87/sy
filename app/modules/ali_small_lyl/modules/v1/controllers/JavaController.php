@@ -68,7 +68,20 @@ class JavaController extends BaseController{
             if (empty($data['uploadFile'])) {
                 return F::apiFailed('请上传文件！');
             }
+
             $result = JavaOfCService::service()->uploadImg($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    // 七牛token
+    public function actionQiniuToken()
+    {
+        try {
+            $data = $this->params;
+            $result = JavaOfCService::service()->qiniuToken($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());

@@ -39,7 +39,7 @@ class RepairController extends BaseController
         //当前报修类型是否需要房屋
         $relateRoom =F::value($this->params, 'is_relate_room', '');
         $roomIds = $p['roomId'];
-        if ($roomIds && $relateRoom==2) {
+        if ($roomIds && $relateRoom == 1) {
             $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomIds]);
             $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
             $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
@@ -54,10 +54,10 @@ class RepairController extends BaseController
 
         $p['contact_name'] = $member['trueName'];
 
-        if ($relateRoom==2) {
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
-        } else {
+        if ($relateRoom == 1) { // 1关联房屋
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair1');
+        } else {
+            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
         }
 
         if (!$valid["status"]) {

@@ -181,7 +181,7 @@ class RepairService extends BaseService
         }
 
         if ($memberName) {
-            $query->andWhere(['or', ['like', 'A.room_username', $memberName ], ['like', 'A.contact_mobile', $memberName]]);
+            $query->andWhere(['or', ['like', 'A.contact_name', $memberName ], ['like', 'A.contact_mobile', $memberName]]);
         }
         if ($memberMobile) {
             $query->andWhere(['like', 'A.contact_mobile', $memberMobile]);
@@ -199,7 +199,7 @@ class RepairService extends BaseService
             $query->andWhere(['A.unitId' => $unit]);
         }
         if ($room) {
-            $query->andWhere(['R.room_id' => $room]);
+            $query->andWhere(['A.roomId' => $room]);
         }
         if ($repairType) {
             $query->andWhere(['A.repair_type_id' => $repairType]);
@@ -215,11 +215,11 @@ class RepairService extends BaseService
         }
 
         if ($repair_timeStart) {
-            $start = strtotime($repair_timeStart . " 00:00:00");
+            $start = strtotime($repair_timeStart);
             $query->andWhere(['>=', 'A.repair_time', $start]);
         }
         if ($repair_timeEnd) {
-            $end = strtotime($repair_timeEnd . " 23:59:59");
+            $end = strtotime($repair_timeEnd);
             $query->andWhere(['<=', 'A.repair_time', $end]);
         }
         if ($checkAtStart) {
@@ -231,10 +231,9 @@ class RepairService extends BaseService
             $query->andWhere(['<=', 'A.hard_check_at', $end]);
         }
         $re['totals'] = $query->count();
-        $query->select(['A.id', 'A.community_id', 'A.is_assign_again', 'A.repair_no','A.repair_type_id',
-            'A.repair_content', 'A.expired_repair_type', 'A.`status`', 'A.`created_username`', 'A.`hard_remark`', 'A.`hard_check_at`',
-            'A.is_assign', 'A.operator_name', 'A.repair_from', 'A.repair_time',
-            'A.operator_id', 'A.create_at', 'A.hard_type', 'prt.name repair_type_desc', 'prt.is_relate_room']);
+        $query->select('A.id, A.community_id, A.is_assign_again, A.repair_no, A.repair_type_id, A.repair_content, A.expired_repair_type, A.`status`, A.`created_username`, A.`hard_remark`, A.`hard_check_at`, 
+            A.is_assign, A.operator_name, A.repair_from, A.repair_time, A.operator_id, A.create_at, A.hard_type,
+            prt.name repair_type_desc, prt.is_relate_room, A.is_pay, A.expired_repair_time, A.room_address');
         $query->orderBy('A.repair_time desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
@@ -242,51 +241,54 @@ class RepairService extends BaseService
         }
         $command = $query->createCommand();
         $models = $command->queryAll();
-        foreach ($models as $key => $val) {
-            $models[$key]['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+        foreach ($models as $key => &$val) {
+            $val['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
             if ($params['use_as'] == "dingding") {
-                $models[$key]['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
+                $val['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $models[$key]['status_label'] = self::$_repair_status[10];
+                    $val['status_label'] = self::$_repair_status[10];
                 } else {
-                    $models[$key]['status_label'] = self::$_repair_status[$val['status']];
+                    $val['status_label'] = self::$_repair_status[$val['status']];
                 }
-                $models[$key]['issue_id'] = $val['id'];
-                $models[$key]['issue_bill_no'] = $val['repair_no'];
-                $models[$key]['repair_type_label'] = $val['repair_type_desc'];
-                unset($models[$key]['id']);
-                unset($models[$key]['repair_no']);
-                unset($models[$key]['repair_type_desc']);
+                $val['issue_id'] = $val['id'];
+                $val['issue_bill_no'] = $val['repair_no'];
+                $val['repair_type_label'] = $val['repair_type_desc'];
+                unset($val['id']);
+                unset($val['repair_no']);
+                unset($val['repair_type_desc']);
             } else {
-                $models[$key]['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
-                $models[$key]['hard_check_at'] = !empty($val['hard_check_at']) ? date("Y-m-d H:i:s", $val['hard_check_at']) : '';
-                $models[$key]['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
+                $val['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
+                $val['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
                 if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $models[$key]['status_desc'] = self::$_repair_status[10];
+                    $val['status_desc'] = self::$_repair_status[10];
                 } else {
-                    $models[$key]['status_desc'] = self::$_repair_status[$val['status']];
+                    $val['status_desc'] = self::$_repair_status[$val['status']];
                 }
-                $models[$key]['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
-                $models[$key]['repair_from_desc'] =
+                $val['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
+                $val['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
-                $models[$key]['expired_repair_type_desc'] =
+                $val['expired_repair_type_desc'] =
                     isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
-                $models[$key]['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
-                $models[$key]['amount'] = $this->getRepairBill($val['id']);
-                $models[$key]['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
-                $models[$key]['export_expired_repair_type_desc'] = $models[$key]['expired_repair_time'].$models[$key]['expired_repair_type_desc'];
+                $val['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
+                $val['amount'] = $this->getRepairBill($val['id']);
+                $val['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
+                $val['export_expired_repair_type_desc'] = $val['expired_repair_time'].$val['expired_repair_type_desc'];
             }
 
-            $models[$key]['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
-            if ($models[$key]['contact_mobile']) {
-                $models[$key]['contact_mobile'] = PsCommon::hideMobile($models[$key]['contact_mobile']);
+            $val['contact_mobile'] = PsCommon::get($val, 'contact_mobile', '');
+            if ($val['contact_mobile']) {
+                $val['contact_mobile'] = PsCommon::hideMobile($val['contact_mobile']);
             }
-            $models[$key]['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
-            $models[$key]['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
-            $models[$key]['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
-            $models[$key]['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
+
+            $val['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
+            $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
+            $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
+            $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
+            $val['operator_name'] = $val['status'] == 1 ? '' : $val['operator_name'];
         }
+
         $re['list'] = $models;
+
         return $re;
     }
 
@@ -349,7 +351,7 @@ class RepairService extends BaseService
 
         if ($useAs == 'small') { // 小程序
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
-            $model->contact_mobile = $userInfo['mobile'];
+            $model->contact_mobile = $userInfo['sensitiveInf'];
             $model->created_username = $userInfo['trueName'];
             $model->created_id = $params['member_id'];
             $model->member_id = $params['member_id'];
@@ -406,6 +408,7 @@ class RepairService extends BaseService
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
         $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
+        $m['amount'] = $m['status'] == 1 ? '' : $m['amount'];
 
         if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
             $m['status_desc'] = self::$_repair_status[10];
@@ -745,42 +748,47 @@ class RepairService extends BaseService
         }
     }
 
-    //工单复核
-    public function review($params, $userInfo = [])
+    // 工单复核
+    public function review($p, $u = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
-        if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+
+        if (!$m) {
             return "工单不存在";
         }
-        if ($model["status"] == self::STATUS_CHECKED) {
+
+        if ($m["status"] == self::STATUS_CHECKED) {
             return $this->failed('工单已复核');
         }
-        if ($model["status"] != self::STATUS_DONE && $model["status"] != self::STATUS_COMPLETE) {
+
+        if ($m["status"] != self::STATUS_DONE && $m["status"] != self::STATUS_COMPLETE) {
             return $this->failed('工单未完成');
         }
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            /*添加 维修 记录*/
-            $connection->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $params["repair_id"],
-                'status' => self::STATUS_CHECKED,
-                'content' => '已复核',
-                'create_at' => time(),
-                'operator_id' => $userInfo["id"],
-                'operator_name' => $userInfo["truename"],
-                'mobile' => $userInfo["mobile"],
-            ])->execute();
-            if ($params['status'] == 1) {
-                //复核通过
-                $repairArr["status"] = self::STATUS_CHECKED;
+            if ($p['status'] == 1) { // 复核通过
+                $r["status"] = self::STATUS_CHECKED;
             } else {
-                $repairArr["status"] = self::STATUS_CHECKED_FALSE;
+                $r["status"] = self::STATUS_CHECKED_FALSE;
             }
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
-            $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
+
+            // 添加 维修 记录
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
+                'status' => $r["status"],
+                'content' => $p['content'],
+                'create_at' => time(),
+                'operator_id' => $u["id"],
+                'operator_name' => $u["truename"],
+                'mobile' => $u["mobile"],
+            ])->execute();
+
+            $r["operator_id"] = $u["id"];
+            $r["operator_name"] = $u["truename"];
+
+            Yii::$app->db->createCommand()->update('ps_repair',
+                $r, "id=:repair_id", [":repair_id" => $p["repair_id"]]
             )->execute();
 
             $transaction->commit();
@@ -792,40 +800,47 @@ class RepairService extends BaseService
         }
     }
 
-    //二次维修
-    public function createNew($params, $userInfo = [])
+    // 二次维修
+    public function createNew($p, $userInfo = [])
     {
-        $model = PsRepair::find()->where(["id" => $params["repair_id"]])->asArray()->one();
-        if (!$model) {
+        $m = PsRepair::find()->where(["id" => $p["repair_id"]])->asArray()->one();
+        
+        if (!$m) {
             return "工单不存在";
         }
-        if ($model['status'] != self::STATUS_CHECKED_FALSE) {
+
+        if ($m['status'] != self::STATUS_CHECKED_FALSE) {
             return "此工单不能发起二次维修";
         }
-        if ($model['is_assign_again'] == 1) {
+
+        if ($m['is_assign_again'] == 1) {
             return "该订单已经发起二次维修";
         }
 
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            $repairArr["is_assign_again"] = 1;
-            $repairArr["operator_id"] = $userInfo["id"];
-            $repairArr["operator_name"] = $userInfo["truename"];
-            $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
-            $repair = $model;
-            unset($repair['id']);
-            $repair['status'] = 1;//订单重新变成待处理
-            $repair['repair_from'] = 6;//来源：二次复核
-            $repair['create_at'] = time();
-            $repair['repair_no'] = $this->generalRepairNo();
-            $repair['is_assign'] = 2; //未分配
-            $repair['created_id'] = $repair['operator_id'] = $userInfo['id'];
-            $repair['created_username'] = $repair['operator_name'] = $userInfo['truename'];
-            $repair['is_assign_again'] = 0;
-            $repair['day'] = date('Y-m-d');
-            Yii::$app->db->createCommand()->insert('ps_repair', $repair)->execute();
+            $rArr["is_assign_again"] = 1;
+            $rArr["operator_id"] = $userInfo["id"];
+            $rArr["operator_name"] = $userInfo["truename"];
+
+            Yii::$app->db->createCommand()->update('ps_repair',
+                $rArr, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
+            
+            $r = $m;
+            unset($r['id']);
+            $r['status'] = 1;//订单重新变成待处理
+            $r['repair_from'] = 6;//来源：二次复核
+            $r['create_at'] = time();
+            $r['repair_time'] = time();
+            $r['repair_no'] = $this->generalRepairNo();
+            $r['is_assign'] = 2; //未分配
+            $r['created_id'] = $r['operator_id'] = $userInfo['id'];
+            $r['created_username'] = $r['operator_name'] = $userInfo['truename'];
+            $r['is_assign_again'] = 0;
+            $r['day'] = date('Y-m-d');
+
+            Yii::$app->db->createCommand()->insert('ps_repair', $r)->execute();
+
             $transaction->commit();
             return true;
         } catch (Exception $e) {
@@ -989,7 +1004,7 @@ class RepairService extends BaseService
         $query->from('ps_repair_assign pra')
             ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
             ->leftJoin('ps_community c','c.id = pr.community_id')
-            ->leftJoin('ps_community_roominfo R', 'R.id=pr.room_id')
+            ->leftJoin('ps_community_roominfo R', 'R.id=pr.roomId')
             ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
             ->where(['pra.user_id' => $userInfo['id']]);
         if ($params['status']) {
@@ -1489,8 +1504,8 @@ class RepairService extends BaseService
     // c端处理工单操作日志
     protected function handleInfo($repair_id)
     {
-        $info = PsRepairRecord::find()->alias('r')
-            ->select("r.content as handle_content, r.operator_name, r.status, r.create_at as handle_time, r.repair_imgs")
+        $info = PsRepairRecord::find()
+            ->select("content as handle_content, operator_name, status, create_at as handle_time, repair_imgs, mobile")
             ->where(['repair_id' => $repair_id])
             ->orderBy('handle_time desc')->asArray()->all();
         if ($info) {
@@ -1498,14 +1513,6 @@ class RepairService extends BaseService
                 $info[$key]['repair_status_desc'] =  $value['status'] == 3 ? '已完成' : self::$_repair_status[$value['status']];
                 $info[$key]['handle_time'] = $value['handle_time'] ? date('Y-m-d H:i', $value['handle_time']) : '';
                 $info[$key]['repair_image'] = empty($value['repair_imgs']) ? [] : explode(',', $value['repair_imgs']);
-                if (!empty($info[$key]['repair_image'])) {
-                    $imageArr = [];
-                    foreach ($info[$key]['repair_image'] as $k => $v){
-                        $tmpImgPath = F::getOssImagePath($v);
-                        array_push($imageArr, $tmpImgPath);
-                    }
-                    $info[$key]['repair_image'] = $imageArr;
-                }
             }
         }
 

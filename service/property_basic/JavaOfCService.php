@@ -63,4 +63,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/file-tool/upload-img';
         return self::returnCData($query);
     }
+
+    // 图片上传
+    public function qiniuToken($query)
+    {
+        $query['route'] = '/member/file-tool/qiniu-token';
+        return self::returnCData($query);
+    }
 }
