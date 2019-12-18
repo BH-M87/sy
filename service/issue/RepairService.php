@@ -233,7 +233,7 @@ class RepairService extends BaseService
         $re['totals'] = $query->count();
         $query->select('A.id, A.community_id, A.is_assign_again, A.repair_no, A.repair_type_id, A.repair_content, A.expired_repair_type, A.`status`, A.`created_username`, A.`hard_remark`, A.`hard_check_at`, 
             A.is_assign, A.operator_name, A.repair_from, A.repair_time, A.operator_id, A.create_at, A.hard_type,
-            prt.name repair_type_desc, prt.is_relate_room, A.is_pay, A.expired_repair_time');
+            prt.name repair_type_desc, prt.is_relate_room, A.is_pay, A.expired_repair_time, A.room_address');
         $query->orderBy('A.repair_time desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
@@ -773,7 +773,7 @@ class RepairService extends BaseService
             } else {
                 $r["status"] = self::STATUS_CHECKED_FALSE;
             }
-            
+
             // 添加 维修 记录
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
@@ -1505,8 +1505,8 @@ class RepairService extends BaseService
     // c端处理工单操作日志
     protected function handleInfo($repair_id)
     {
-        $info = PsRepairRecord::find()->alias('r')
-            ->select("r.content as handle_content, r.operator_name, r.status, r.create_at as handle_time, r.repair_imgs")
+        $info = PsRepairRecord::find()
+            ->select("content as handle_content, operator_name, status, create_at as handle_time, repair_imgs")
             ->where(['repair_id' => $repair_id])
             ->orderBy('handle_time desc')->asArray()->all();
         if ($info) {
