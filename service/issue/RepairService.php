@@ -649,9 +649,9 @@ class RepairService extends BaseService
     }
 
     //工单标记为疑难功能
-    public function markHard($params, $userInfo = [])
+    public function markHard($p, $u = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
+        $model = $this->getRepairInfoById($p['repair_id']);
         if (!$model) {
             return "工单不存在";
         }
@@ -664,11 +664,20 @@ class RepairService extends BaseService
 
         $updateArr = [
             "hard_type" => 2,
-            "hard_remark" => $params["hard_remark"] ? $params["hard_remark"] : '',
+            "hard_remark" => $p["hard_remark"] ? $p["hard_remark"] : '',
             "hard_check_at" => time(),
         ];
-        $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $params["repair_id"]])->execute();
+        $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $p["repair_id"]])->execute();
         if ($re) {
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
+                'status' => 12,
+                'content' => '标记疑难',
+                'create_at' => time(),
+                'operator_id' => $u["id"],
+                'operator_name' => $u["truename"],
+            ])->execute();
+
             return true;
         }
 
@@ -981,7 +990,7 @@ class RepairService extends BaseService
     }
 
     // 钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
-    public function getCommunityRepairTypes($userInfo = [])
+    public function getCommunity($userInfo = [])
     {
         $communitys = CommunityService::service()->getUserCommunitys($userInfo['id']);
         $reCommunityList = [];

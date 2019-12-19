@@ -19,7 +19,7 @@ class RepairController extends UserBaseController
     // 报事报修公共接口
     public function actionCommon()
     {
-        $re = RepairService::service()->getCommunityRepairTypes($this->userInfo);
+        $re = RepairService::service()->getCommunity($this->userInfo);
         return F::apiSuccess($re);
     }
 
