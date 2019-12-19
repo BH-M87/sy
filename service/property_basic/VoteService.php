@@ -1056,6 +1056,12 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$data["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
+            //java日志
+            $javaService = new JavaService();
+            $javaParam['moduleKey'] = "vote_module";
+            $javaParam['token'] = $data['token'];
+            $javaParam['content'] = "新增投票:".$data["vote_name"];
+            $javaService->logAdd($javaParam);
             return $this->success($re);
         }catch (Exception $e) {
             return $this->failed('系统错误');
@@ -1205,9 +1211,10 @@ class VoteService extends BaseService
     }
 
     // 删除投票
-    public function deleteVote($vote_id, $userinfo = '') 
+    public function deleteVote($data, $userinfo = '')
     {
         $connection = Yii::$app->db;
+        $vote_id = $data['vote_id'];
         /*上架或者进行中*/
         $model = $connection->createCommand("select * from ps_vote where id=:id",[":id" => $vote_id])->queryOne();
         if( empty( $model)) {
@@ -1238,6 +1245,12 @@ class VoteService extends BaseService
               where A.id=B.problem_id  and A.vote_id=:vote_id",[":vote_id"=>$vote_id])->execute();
             // 删除投票
             $connection->createCommand()->delete('ps_vote',["id"=>$vote_id])->execute();
+            //添加java日志
+            $javaService = new JavaService();
+            $javaParam['moduleKey'] = "vote_module";
+            $javaParam['token'] = $data['token'];
+            $javaParam['content'] = "删除投票:".$model["vote_name"];
+            $javaService->logAdd($javaParam);
             $transaction->commit();
             return $this->success();
         } catch (Exception $e) {
