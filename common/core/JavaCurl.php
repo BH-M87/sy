@@ -147,11 +147,14 @@ class JavaCurl {
         $response = curl_exec($ch);
         curl_close($ch);
         $response = json_decode($response, true);
-        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求参数前:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java_error.log');
+
         if (!$response['code'] || !in_array($response['code'], [0,1,200])) {
+            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求参数前:".Yii::$app->request->getRawBody() . PHP_EOL . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java_error.log');
+
             self::pullLog($url . PHP_EOL . $postData."getParams:".json_encode($getData) . PHP_EOL . json_encode($response) . PHP_EOL);
             self::errorResult($response);
         }
+
         return $response['data'];
     }
 
