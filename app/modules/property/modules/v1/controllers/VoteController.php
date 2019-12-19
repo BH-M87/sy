@@ -166,11 +166,12 @@ class VoteController extends BaseController
 
     public function actionDelete()
     {
+        $data = $this->request_params;
         $voteId = PsCommon::get($this->request_params, 'vote_id');
         if (!$voteId) {
             return PsCommon::responseFailed('投票活动id不能为空！');
         }
-        $result = VoteService::service()->deleteVote($voteId,$this->user_info);
+        $result = VoteService::service()->deleteVote($data,$this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
