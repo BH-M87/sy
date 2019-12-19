@@ -148,7 +148,7 @@ class JavaCurl {
         curl_close($ch);
         $response = json_decode($response, true);
 
-        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求参数：".Yii::$app->request->getRawBody() . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java.log');
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求参数：".$postData . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java.log');
 
         if (!$response['code'] || !in_array($response['code'], [0,1,200])) {
             self::pullLog($url . PHP_EOL . $postData."getParams:".json_encode($getData) . PHP_EOL . json_encode($response) . PHP_EOL);
