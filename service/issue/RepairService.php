@@ -99,7 +99,6 @@ class RepairService extends BaseService
         '7' => '待确认',
         '8' => '已驳回',
         '9' => '复核不通过',
-        '12' => '标记疑难',
     ];
 
     public static $_hard_repair_status = [
@@ -652,14 +651,14 @@ class RepairService extends BaseService
     //工单标记为疑难功能
     public function markHard($p, $u = [])
     {
-        $model = $this->getRepairInfoById($p['repair_id']);
-        if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+        if (!$m) {
             return "工单不存在";
         }
-        if (in_array($model['status'],self::$_issue_complete_status)) {
+        if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        if ($model["hard_type"] == 2) {
+        if ($m["hard_type"] == 2) {
             return $this->failed('已是疑难问题');
         }
 
@@ -672,7 +671,7 @@ class RepairService extends BaseService
         if ($re) {
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
-                'status' => 12,
+                'status' => $m['status'],
                 'content' => '标记疑难',
                 'create_at' => time(),
                 'operator_id' => $u["id"],
