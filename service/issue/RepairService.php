@@ -1377,7 +1377,7 @@ class RepairService extends BaseService
         }
 
         if ($repair_info['repair_status'] == self::STATUS_DONE) {
-            $repair_info['repair_status_desc'] = $repair_info['is_pay'] == 1 ? "待付款" : "已付款";
+            $repair_info['repair_status_desc'] = $repair_info['is_pay'] == 1 ? "待付款" : "待评价";
         } else {
             $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
         }
