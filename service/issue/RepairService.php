@@ -98,7 +98,8 @@ class RepairService extends BaseService
         '6' => '已作废',
         '7' => '待确认',
         '8' => '已驳回',
-        '9' => '复核不通过'
+        '9' => '复核不通过',
+        '12' => '标记疑难',
     ];
 
     public static $_hard_repair_status = [
@@ -676,6 +677,7 @@ class RepairService extends BaseService
                 'create_at' => time(),
                 'operator_id' => $u["id"],
                 'operator_name' => $u["truename"],
+                'mobile' => $u["mobile"],
             ])->execute();
 
             return true;
