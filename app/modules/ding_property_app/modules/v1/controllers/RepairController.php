@@ -45,7 +45,7 @@ class RepairController extends UserBaseController
         return F::apiSuccess($re);
     }
 
-    //发布报事报修
+    // 发布报事报修
     public function actionAdd()
     {
         $params['community_id'] = F::value($this->request_params, 'community_id', 0);

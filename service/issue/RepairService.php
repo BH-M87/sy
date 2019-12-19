@@ -877,10 +877,6 @@ class RepairService extends BaseService
                     if ($model['status'] == self::STATUS_DONE) {
                         $m[$key]['status_desc'] = "已完成";
                     }
-                    //分配订单or改派后，为待确认。处理人和联系电话为工人信息，待确认处理时间和处理结果为空。
-                    if ($model['status'] == '7') {
-                        $m[$key]['content'] = '';
-                    }
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
