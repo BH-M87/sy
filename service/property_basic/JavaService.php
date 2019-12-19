@@ -146,4 +146,11 @@ class JavaService extends BaseService
         $query['route'] = '/user/detail';
         return self::returnCData($query);
     }
+
+    // 添加日志
+    public function LogAdd($query)
+    {
+        $query['route'] = '/log/add';
+        return self::returnCData($query);
+    }
 }
