@@ -406,7 +406,7 @@ class RepairService extends BaseService
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
         $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
-        $m['amount'] = $m['status'] == 1 ? '' : $m['amount'];
+        $m['amount'] = $m['amount'] > 0 ? $m['amount'] : '';
 
         if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
             $m['status_desc'] = self::$_repair_status[10];
