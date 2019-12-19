@@ -231,9 +231,7 @@ class RepairService extends BaseService
             $query->andWhere(['<=', 'A.hard_check_at', $end]);
         }
         $re['totals'] = $query->count();
-        $query->select('A.id, A.community_id, A.is_assign_again, A.repair_no, A.repair_type_id, A.repair_content, A.expired_repair_type, A.`status`, A.`created_username`, A.`hard_remark`, A.`hard_check_at`, 
-            A.is_assign, A.operator_name, A.repair_from, A.repair_time, A.operator_id, A.create_at, A.hard_type,
-            prt.name repair_type_desc, prt.is_relate_room, A.is_pay, A.expired_repair_time, A.room_address');
+        $query->select('A.*, prt.name repair_type_desc, prt.is_relate_room');
         $query->orderBy('A.repair_time desc');
         if (!$isExport) {
             $offset = ($params['page'] - 1) * $params['rows'];
@@ -270,7 +268,7 @@ class RepairService extends BaseService
                 $val['expired_repair_type_desc'] =
                     isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
                 $val['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
-                $val['amount'] = $this->getRepairBill($val['id']);
+                $val['amount'] = $val['amount'] > 0 ? $val['amount'] : $this->getRepairBill($val['id']);
                 $val['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
                 $val['export_expired_repair_type_desc'] = $val['expired_repair_time'].$val['expired_repair_type_desc'];
             }
@@ -408,7 +406,7 @@ class RepairService extends BaseService
         $m['is_pay_desc'] = isset(self::$_is_pay[$m['is_pay']]) ? self::$_is_pay[$m['is_pay']] : '';
         $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
-        $m['amount'] = $m['status'] == 1 ? '' : $m['amount'];
+        $m['amount'] = $m['amount'] > 0 ? $m['amount'] : '';
 
         if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
             $m['status_desc'] = self::$_repair_status[10];
@@ -456,7 +454,7 @@ class RepairService extends BaseService
         try {
             // 更新订单状态，添加物业留言
             $repair_arr["operator_id"] = $params["user_id"];
-            $repair_arr["operator_name"] = $params["user_name"];
+            $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
             $repair_arr["status"] = 7;
             if (!empty($params["leave_msg"]) && $params["leave_msg"]) {
