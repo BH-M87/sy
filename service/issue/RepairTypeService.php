@@ -30,12 +30,19 @@ class RepairTypeService extends BaseService
 
         $is_relate_room = PsCommon::get($params, 'is_relate_room');
         $name = PsCommon::get($params, 'name');
+        $status = PsCommon::get($params, 'status');
+
         $query = PsRepairType::find()->filterWhere(['community_id' => $communityId]);
         if ($is_relate_room) {
             $query->andFilterWhere(['is_relate_room' => $is_relate_room]);
         }
+
         if ($name) {
             $query->andFilterWhere(['like','name',$name]);
+        }
+
+        if ($status) {
+            $query->andFilterWhere(['=', 'status', $status]);
         }
 
         $re['totals'] = $query->count();
