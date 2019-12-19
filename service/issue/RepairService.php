@@ -299,7 +299,7 @@ class RepairService extends BaseService
         }
         $config = [
             ['title' => '工单号', 'field' => 'repair_no'],
-            ['title' => '提交时间', 'field' => 'create_at'],
+            ['title' => '报修时间', 'field' => 'create_at'],
             ['title' => '小区', 'field' => 'community_name'],
             ['title' => '报修类别', 'field' => 'repair_type_desc'],
             ['title' => '报修位置', 'field' => 'export_room_address'],
@@ -980,7 +980,7 @@ class RepairService extends BaseService
         return [];
     }
 
-    //钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
+    // 钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
     public function getCommunityRepairTypes($userInfo = [])
     {
         $communitys = CommunityService::service()->getUserCommunitys($userInfo['id']);

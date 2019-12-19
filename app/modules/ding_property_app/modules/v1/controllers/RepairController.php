@@ -1,33 +1,32 @@
 <?php
-/**
- * 报事报修相关
- * User: fengwenchao
- * Date: 2019/8/16
- * Time: 10:55
- */
-
 namespace app\modules\ding_property_app\modules\v1\controllers;
+
+use app\modules\ding_property_app\controllers\UserBaseController;
+
+use common\core\F;
+use common\core\PsCommon;
 
 use app\models\PsRepair;
 use app\models\PsRepairRecord;
-use app\modules\ding_property_app\controllers\UserBaseController;
-use common\core\F;
-use common\core\PsCommon;
-use service\basic_data\RoomService;
+
 use service\issue\RepairService;
 use service\issue\RepairTypeService;
-use service\manage\CommunityService;
-use service\rbac\GroupService;
 
 class RepairController extends UserBaseController
 {
     public $repeatAction = ['add'];
 
-    //报事报修公共接口
+    // 报事报修公共接口
     public function actionCommon()
     {
         $re = RepairService::service()->getCommunityRepairTypes($this->userInfo);
         return F::apiSuccess($re);
+    }
+
+    public function actionType()
+    {
+        $r = RepairTypeService::service()->getSmallAppRepairTypeTree($this->request_params);
+        return F::apiSuccess($r);
     }
 
     //查看房屋信息

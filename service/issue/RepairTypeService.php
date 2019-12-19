@@ -18,7 +18,6 @@ use Yii;
 
 class RepairTypeService extends BaseService
 {
-
     //获取报修类目列表
     public function getRepairTypeList($params)
     {
@@ -202,16 +201,17 @@ class RepairTypeService extends BaseService
         return self::dealRepairType($model['list']);
     }
 
-    //小程序报修类目树，结构与后台不一样
+    // 小程序报修类目树，结构与后台不一样
     public function getSmallAppRepairTypeTree($params)
     {
         $model = new RepairType();
+        
         $list = $model::find()
             ->select('id, name,is_relate_room,icon_url, parent_id')
             ->where(['status' => 1, 'community_id' => $params['community_id']])
             ->asArray()
             ->all();
-        //$list = $this->_makeTree($type_info, 'id', 'parent_id', 'subList');
+
         return $list;
     }
 

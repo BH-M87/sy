@@ -54,7 +54,7 @@ class BaseController extends Controller
             }
         }
 
-        $params = F::request();
+        $params = json_decode(Yii::$app->request->getRawBody(), true);
         //配置基本参数
         $this->request_params = $params ? $params : [];
         $this->page = (integer)F::value($params, 'page', $this->page);
