@@ -177,7 +177,7 @@ class RepairService extends BaseService
             }
         //} else {
             //if ($status) {
-                $query->andWhere(['A.status' => $status]);
+                //$query->andWhere(['A.status' => $status]);
             //}
         //}
 
