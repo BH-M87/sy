@@ -454,7 +454,7 @@ class RepairService extends BaseService
         try {
             // 更新订单状态，添加物业留言
             $repair_arr["operator_id"] = $params["user_id"];
-            $repair_arr["operator_name"] = $params["user_name"];
+            $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
             $repair_arr["status"] = 7;
             if (!empty($params["leave_msg"]) && $params["leave_msg"]) {
