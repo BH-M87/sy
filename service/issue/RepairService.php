@@ -268,7 +268,7 @@ class RepairService extends BaseService
                 $val['expired_repair_type_desc'] =
                     isset(self::$_expired_repair_type[$val['expired_repair_type']]) ? self::$_expired_repair_type[$val['expired_repair_type']] : '';
                 $val['show_amount'] = $val['is_relate_room'] == 1 ? 1 : 0; //前端用来控制是否输入金额
-                $val['amount'] = !empty($val['amount']) ? $val['amount'] : $this->getRepairBill($val['id']);
+                //$val['amount'] = !empty($val['amount']) ? $val['amount'] : $this->getRepairBill($val['id']);
                 $val['export_room_address'] = $val['is_relate_room'] == 1 ? $val['repair_type_desc'].'('.$val['room_address'].')' : $val['repair_type_desc']; //导出时展示报修地址
                 $val['export_expired_repair_type_desc'] = $val['expired_repair_time'].$val['expired_repair_type_desc'];
             }
