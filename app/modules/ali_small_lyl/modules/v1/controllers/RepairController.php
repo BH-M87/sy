@@ -53,7 +53,7 @@ class RepairController extends BaseController
         }
 
         $p['contact_name'] = $member['trueName'];
-print_r($roomInfo);die;
+
         if ($relateRoom == 1) { // 1关联房屋
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
         } else {
