@@ -163,23 +163,17 @@ class RepairService extends BaseService
             $query->andWhere(['A.community_id' => $communityId]);
         }
 
-        //if ($params['use_as'] == "dingding") {
-            if ($status) {
-                if ($status == self::STATUS_DONE) {
-                    $query->andWhere(['A.status' => $status]);
-                    $query->andWhere(['A.is_pay' => self::BILL_WAIT_PAY]);
-                } elseif ($status == self::STATUS_UN_APPRAISE) {
-                    $query->andWhere(['A.status' => self::STATUS_DONE]);
-                    $query->andWhere(['>' ,'A.is_pay',self::BILL_WAIT_PAY]);
-                } else {
-                    $query->andWhere(['A.status' => $status]);
-                }
+        if ($status) {
+            if ($status == self::STATUS_DONE) {
+                $query->andWhere(['A.status' => $status]);
+                $query->andWhere(['A.is_pay' => self::BILL_WAIT_PAY]);
+            } elseif ($status == self::STATUS_UN_APPRAISE) {
+                $query->andWhere(['A.status' => self::STATUS_DONE]);
+                $query->andWhere(['>' ,'A.is_pay',self::BILL_WAIT_PAY]);
+            } else {
+                $query->andWhere(['A.status' => $status]);
             }
-        //} else {
-            //if ($status) {
-                //$query->andWhere(['A.status' => $status]);
-            //}
-        //}
+        }
 
         if ($memberName) {
             $query->andWhere(['or', ['like', 'A.contact_name', $memberName ], ['like', 'A.contact_mobile', $memberName]]);
