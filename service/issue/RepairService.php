@@ -423,14 +423,14 @@ class RepairService extends BaseService
         return $m;
     }
 
-    //工单分配
-    public function assign($params, $userInfo = [])
+    // 工单分配
+    public function assign($p, $u = [])
     {
-        if ($params['finish_time'] < 0 || $params['finish_time'] > 24) {
+        if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
             return "期望完成时间只能输入1-24的正整数";
         }
 
-        $model = $this->getRepairInfoById($params['repair_id']);
+        $model = $this->getRepairInfoById($p['repair_id']);
         if (!$model) {
             return "工单不存在";
         }
@@ -439,7 +439,7 @@ class RepairService extends BaseService
             return "工单已完成";
         }
 
-        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $p["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
@@ -448,50 +448,50 @@ class RepairService extends BaseService
         $transaction = $connection->beginTransaction();
         try {
             // 更新订单状态，添加物业留言
-            $repair_arr["operator_id"] = $params["user_id"];
+            $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
             $repair_arr["status"] = 7;
-            if (!empty($params["leave_msg"]) && $params["leave_msg"]) {
-                $repair_arr["leave_msg"] = $params["leave_msg"];
+            if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
+                $repair_arr["leave_msg"] = $p["leave_msg"];
             }
             $connection->createCommand()->update('ps_repair',
-                $repair_arr, "id=:id", [":id" => $params["repair_id"]])->execute();
+                $repair_arr, "id=:id", [":id" => $p["repair_id"]])->execute();
 
             $now_time = time();
             // 判断，如果工单为待确认或已驳回状态，直接删除掉其他的指派人
             if ($model['status'] == 7 || $model['status'] == 8) {
-                $connection->createCommand()->delete('ps_repair_assign', 'repair_id=:repair_id', [":repair_id" => $params["repair_id"]])->execute();
+                $connection->createCommand()->delete('ps_repair_assign', 'repair_id=:repair_id', [":repair_id" => $p["repair_id"]])->execute();
             } else {
                 $connection->createCommand()->update('ps_repair_assign',
-                    ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
+                    ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
             }
             // 增加指派记录
             $assign_arr = [
-                "repair_id" => $params["repair_id"],
-                "user_id" => $params["user_id"],
-                "remark" => $params["remark"],
-                "operator_id" => PsCommon::get($userInfo, 'operator_id', 0),
+                "repair_id" => $p["repair_id"],
+                "user_id" => $p["user_id"],
+                "remark" => $p["remark"],
+                "operator_id" => PsCommon::get($u, 'operator_id', 0),
                 "is_operate" => 1,
-                "finish_time" => $now_time + ($params["finish_time"] * 3600),
+                "finish_time" => $now_time + ($p["finish_time"] * 3600),
                 "created_at" => $now_time,
             ];
             $connection->createCommand()->insert('ps_repair_assign', $assign_arr)->execute();
             // 增加工单操作记录
             $repair_record = [
-                'repair_id' => $params["repair_id"],
+                'repair_id' => $p["repair_id"],
                 'content' => '',
                 'repair_imgs' => '',
                 'status' => '7',
                 'create_at' => $now_time,
-                'operator_id' => $params["user_id"],
+                'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
                 'mobile' => $user['mobile']
             ];
             $connection->createCommand()->insert('ps_repair_record', $repair_record)->execute();
 
             $transaction->commit();
-            $re['releate_id'] = $params['repair_id'];
+            $re['releate_id'] = $p['repair_id'];
             return $re;
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -499,62 +499,62 @@ class RepairService extends BaseService
         }
     }
 
-    //添加操作记录
-    public function addRecord($params, $userInfo = [])
+    // 添加操作记录
+    public function addRecord($p, $u = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
-        if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+        if (!$m) {
             return "工单不存在";
         }
 
-        if (in_array($model['status'],self::$_issue_complete_status)) {
+        if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
 
-        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $p["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            /*添加 维修 记录*/
-            $tmpImgs = !empty($params["repair_imgs"]) ? $params["repair_imgs"] : '';
-            $repairImages =  is_array($tmpImgs) ? implode(',', $params["repair_imgs"]) : $tmpImgs;
-            $connection->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $params["repair_id"],
-                'content' => $params["repair_content"],
+            // 添加 维修 记录
+            $tmpImgs = !empty($p["repair_imgs"]) ? $p["repair_imgs"] : '';
+            $repairImages =  is_array($tmpImgs) ? implode(',', $p["repair_imgs"]) : $tmpImgs;
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
+                'content' => $p["repair_content"],
                 'repair_imgs' => $repairImages,
                 'status' => 2,
                 'create_at' => time(),
-                'operator_id' => $params["user_id"],
+                'operator_id' => $p["user_id"],
                 'operator_name' => $user["trueName"],
                 'mobile' => $user["mobile"],
             ])->execute();
-            //将钉钉的图片转化为七牛图片地址
-            //TODO 钉钉图片转为七牛图片是否还需要处理
-            $id = $connection->getLastInsertID();
-            if ($params["user_id"] != $model["operator_id"]) {
-                $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
+            // 将钉钉的图片转化为七牛图片地址
+            // TODO 钉钉图片转为七牛图片是否还需要处理
+            $id = Yii::$app->db->getLastInsertID();
+            if ($p["user_id"] != $m["operator_id"]) {
+                Yii::$app->db->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
                 // 添加一条分配记录 ps_repair_assign
-                $connection->createCommand()->insert('ps_repair_assign', [
-                    "repair_id" => $params["repair_id"],
-                    "user_id" => $params["user_id"],
-                    "operator_id" => $userInfo["id"] ? $userInfo["id"] : 0,
+                Yii::$app->db->createCommand()->insert('ps_repair_assign', [
+                    "repair_id" => $p["repair_id"],
+                    "user_id" => $p["user_id"],
+                    "operator_id" => $u["id"] ? $u["id"] : 0,
                     "is_operate" => 1,
                     "finish_time" => time(),
                     "created_at" => time(),
                 ])->execute();
             }
-            $repairArr["is_assign"] = 1;
-            $repairArr["operator_id"] = $params["user_id"];
-            $repairArr["operator_name"] = $user["trueName"];
-            $repairArr["status"] = 2;
-            $connection->createCommand()->update('ps_repair',
-                $repairArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
-            )->execute();
+            // 更新报修表
+            $r["is_assign"] = 1;
+            $r["operator_id"] = $p["user_id"];
+            $r["operator_name"] = $user["trueName"];
+            $r["status"] = 2;
+            Yii::$app->db->createCommand()->update('ps_repair',
+                $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
+            
             $transaction->commit();
-
             return true;
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -630,16 +630,18 @@ class RepairService extends BaseService
         }
     }
 
-    //工单标记为疑难功能
+    // 工单标记为疑难功能
     public function markHard($p, $u = [])
     {
         $m = $this->getRepairInfoById($p['repair_id']);
         if (!$m) {
             return "工单不存在";
         }
+
         if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
+
         if ($m["hard_type"] == 2) {
             return $this->failed('已是疑难问题');
         }
@@ -667,21 +669,24 @@ class RepairService extends BaseService
         return '系统错误,标记为疑难失败';
     }
 
-    //工单作废
-    public function markInvalid($params, $userInfo = [])
+    // 工单作废
+    public function markInvalid($p, $userInfo = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
-            if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+        if (!$m) {
             return "工单不存在";
         }
-        if (in_array($model['status'],self::$_issue_complete_status)) {
+
+        if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $re = Yii::$app->db->createCommand()->update('ps_repair',
-            ["status" => 6, 'hard_type' => 1], ["id" => $params['repair_id']])->execute();
-        if ($re) {
+
+        $r = Yii::$app->db->createCommand()->update('ps_repair',
+            ["status" => 6, 'hard_type' => 1], ["id" => $p['repair_id']])->execute();
+        if ($r) {
             return true;
         }
+
         return "系统错误,工作作废失败";
     }
 
@@ -1036,10 +1041,10 @@ class RepairService extends BaseService
         return $re;
     }
 
-    //钉钉应用工单详情
+    // 钉钉应用工单详情
     public function appShow($params)
     {
-        //查询此工单是否分配给了此用户
+        // 查询此工单是否分配给了此用户
         if (!$params['is_admin']) {
             $repair = $this->getOperateRepair($params['repair_id'], $params['user_id']);
             if (!$repair) {

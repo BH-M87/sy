@@ -22,6 +22,7 @@ class UserBaseController extends BaseController
 
         $this->userInfo = $userInfo;
         $this->userInfo['mobile'] = $userInfo['sensitiveInf'];
+        $this->userInfo['truename'] = $userInfo['trueName'];
 
         $this->userId = $userInfo['id'];
         $this->userMobile = $this->userInfo['mobile'];
