@@ -1040,122 +1040,58 @@ class RepairService extends BaseService
     }
 
     // 钉钉应用工单详情
-    public function appShow($params)
+    public function appShow($p)
     {
         // 查询此工单是否分配给了此用户
-        if (!$params['is_admin']) {
-            $repair = $this->getOperateRepair($params['repair_id'], $params['user_id']);
+        if (!$p['is_admin']) {
+            $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
             if (!$repair) {
                 return "无权查看此工单详情！";
             }
         }
-        $repairInfo = PsRepair::find()
-            ->alias('pr')
-            ->select(['pr.id as issue_id', 'pr.repair_no as issue_bill_no',
-                'pr.contact_mobile as owner_phone', 'pr.room_username as owner_name', 'pr.is_assign', 'pr.is_assign_again',
-                'pr.room_address', 'pr.repair_type_id', 'pr.repair_content',
-                'pr.repair_imgs', 'pr.expired_repair_time', 'pr.repair_from', 'pr.status',
-                'pr.pay_code_url', 'pr.member_id','pr.expired_repair_type', 'pr.operator_name as manager',
-                'pr.create_at as created_at', 'pr.created_username', 'pr.is_pay', 'c.name as community_name'])
-            ->leftJoin('ps_community c', 'pr.community_id = c.id')
-            ->where(['pr.id' => $params['repair_id']])
-            ->asArray()
-            ->one();
-        if (!$repairInfo) {
-            return $repairInfo;
-        }
-        $appraise = $this->getAppraise(["repair_id" => $params['repair_id']]);
-        $repairInfo['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
-        if ($params['is_admin']) {
-            $repairInfo['owner_address'] = '';
-        } else {
-            $repairInfo['owner_address'] = $repairInfo['room_address'];
-            $repairInfo['room_address']  = '';
-        }
-        $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($repairInfo['repair_type_id']);
-        $repairInfo['repair_type_label'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
-        $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($repairInfo['repair_type_id']);
-        $repairInfo['is_relate_room'] = $releateRoom ? 1 : 2;
-        $repairInfo['repair_from_label'] =
-            isset(self::$_repair_from[$repairInfo['repair_from']]) ? self::$_repair_from[$repairInfo['repair_from']] : '未知';
-        if ($repairInfo['status'] == self::STATUS_DONE && $repairInfo['is_pay'] > 1) {
-            $repairInfo['status_label'] = self::$_repair_status[10];
-        } else {
-            $repairInfo['status_label'] = self::$_repair_status[$repairInfo['status']];
-        }
-        if (($repairInfo['status'] == self::STATUS_CHECKED || $repairInfo['status'] == self::STATUS_CHECKED_FALSE) && !$params['is_admin']) {
-            $repairInfo['status_label'] = "已结束";
-            $repairInfo['status'] = 4;
-        }
-        $repairInfo['repair_imgs'] = $repairInfo['repair_imgs'] ? explode(",", $repairInfo['repair_imgs']) : [];
-        if (!empty($repairInfo['repair_imgs'])) {
-            $imageArr = [];
-            foreach ($repairInfo['repair_imgs'] as $k => $v){
-                $tmpImgPath = F::getOssImagePath($v);
-                array_push($imageArr, $tmpImgPath);
-            }
-            $repairInfo['repair_imgs'] = $imageArr;
+
+        $m = PsRepair::find()
+            ->select('id as issue_id, repair_no as issue_bill_no, contact_mobile as owner_phone, leave_msg,
+                room_username as owner_name, is_assign, is_assign_again, room_address, repair_type_id, 
+                repair_content, repair_imgs, expired_repair_time, repair_from, status, pay_code_url, member_id, 
+                expired_repair_type, operator_name as manager, create_at as created_at, created_username, is_pay')
+            ->where(['id' => $p['repair_id']])->asArray()->one();
+        if (!$m) {
+            return $m;
         }
 
-        $repairInfo['created_at'] = $repairInfo['created_at'] ? date("Y-m-d H:i", $repairInfo['created_at']) : '';
+        $appraise = $this->getAppraise(["repair_id" => $p['repair_id']]);
+        $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
+        if ($p['is_admin']) {
+            $m['owner_address'] = '';
+        } else {
+            $m['owner_address'] = $m['room_address'];
+            $m['room_address']  = '';
+        }
+        $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
+        $m['repair_type_label'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
+        $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($m['repair_type_id']);
+        $m['is_relate_room'] = $releateRoom ? 1 : 2;
+        $m['repair_from_label'] =
+            isset(self::$_repair_from[$m['repair_from']]) ? self::$_repair_from[$m['repair_from']] : '未知';
+        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
+            $m['status_label'] = self::$_repair_status[10];
+        } else {
+            $m['status_label'] = self::$_repair_status[$m['status']];
+        }
+
+        if (($m['status'] == self::STATUS_CHECKED || $m['status'] == self::STATUS_CHECKED_FALSE) && !$p['is_admin']) {
+            $m['status_label'] = "已结束";
+            $m['status'] = 4;
+        }
+
+        $m['repair_imgs'] = $m['repair_imgs'] ? explode(",", $m['repair_imgs']) : [];
+        $m['created_at'] = $m['created_at'] ? date("Y-m-d H:i", $m['created_at']) : '';
         $expiredRepairTypeDesc =
-            isset(self::$_expired_repair_type[$repairInfo['expired_repair_type']]) ? self::$_expired_repair_type[$repairInfo['expired_repair_type']] : '';
-        $repairInfo['expired_repair_time'] = $repairInfo['expired_repair_time'] ? date("Y-m-d", $repairInfo['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
-        $repairInfo['material_total_price'] = "0";
-        $repairInfo['materials_list'] = [];
-        $repairInfo['other_charge'] = "0";
-        $repairInfo['total_price'] = "0";
-        //查询最近处理人
-        $repairInfo['last_username'] = "";
-        //查询是否有评价
-        $repairInfo['appraise_content'] = '';
+            isset(self::$_expired_repair_type[$m['expired_repair_type']]) ? self::$_expired_repair_type[$m['expired_repair_type']] : '';
+        $m['expired_repair_time'] = $m['expired_repair_time'] ? date("Y-m-d", $m['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
 
-        //查询最近处理人
-        $tmpAssign = PsRepairAssign::find()
-            ->select(['u.username truename', 'ps_repair_assign.remark'])
-            ->leftJoin('user u', 'u.id = ps_repair_assign.user_id')
-            ->where(['ps_repair_assign.repair_id' => $params['repair_id']])
-            ->orderBy('ps_repair_assign.id desc')
-            ->limit(1)
-            ->asArray()
-            ->one();
-        $repairInfo['leave_msg'] = !empty($tmpAssign['remark']) ? $tmpAssign['remark'] : "";
-        if ($params['is_admin']) {
-            $repairInfo['last_username'] = $tmpAssign['truename'];
-            if ($appraise) {
-                $labelArr = explode(',', $appraise['appraise_labels']);
-                $appraise['labels'] = $labelArr;
-                unset($appraise['appraise_labels']);
-                $repairInfo['appraise_content'] = $appraise;
-            }
-        }
-        if (!$repairInfo['last_username']) {
-            //使用后台操作人员
-            $repairInfo['last_username'] = $repairInfo['manager'];
-        }
-        //驳回理由
-        $repairInfo['refuse_reason'] = '';
-        //工单为驳回状态时，查看驳回原因
-        if ($repairInfo['status'] == self::STATUS_REJECTED) {
-            $tmpRecord = PsRepairRecord::find()
-                ->select(['content'])
-                ->where(['repair_id' => $params['repair_id']])
-                ->andWhere(['status' => self::STATUS_REJECTED])
-                ->orderBy('id desc')
-                ->limit(1)
-                ->asArray()
-                ->one();
-            if ($tmpRecord) {
-                $repairInfo['refuse_reason'] = $tmpRecord['content'];
-            }
-        }
-        $materialsInfo = $this->getMaterials(["repair_id" => $params['repair_id']]);
-        $repairInfo['material_total_price'] = $materialsInfo['amount'];
-        $repairInfo['other_charge'] = $materialsInfo['other_charge'];
-        $repairInfo['total_price'] = $materialsInfo['amount'];
-        $repairInfo['pay_type'] = $materialsInfo['pay_type'];
-        $repairInfo['materials_list'] = $materialsInfo['list'];
-        return $repairInfo;
+        return $m;
     }
 
     //钉钉端工单确认或驳回
