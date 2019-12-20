@@ -19,6 +19,26 @@ class RepairController extends UserBaseController
 {
     public $repeatAction = ['add'];
 
+    // 代办列表
+    public function actionNotList()
+    {
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['type'] = F::value($this->params, 'type', 0);
+        $p['user_id'] = $this->userInfo['id'];
+
+        if (!$p['community_id']) {
+            return F::apiFailed('请输入小区id！');
+        }
+
+        $r = RepairService::service()->notList($p);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
+        }
+
+        return F::apiFailed($r);
+    }
+
     // 小区列表
     public function actionCommunity()
     {
