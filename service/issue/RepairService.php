@@ -844,8 +844,8 @@ class RepairService extends BaseService
         }
     }
 
-    //查看工单历史操作记录
-    private function getRecord($p)
+    // 查看工单历史操作记录
+    public function getRecord($p)
     {
         $query = new Query();
         $mod = $query->select('A.*')->from('ps_repair_record A')->where(["A.repair_id" => $p["repair_id"]]);
@@ -976,7 +976,7 @@ class RepairService extends BaseService
     // 钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
     public function getCommunity($userInfo = [])
     {
-        $communitys = CommunityService::service()->getUserCommunitys($userInfo['id']);
+        $communitys = JavaOfCService::service()->communityList($userInfo['id']);
         $reCommunityList = [];
         foreach ($communitys as $key => $val) {
             $tmp['community_id'] = $val['id'];
@@ -988,57 +988,55 @@ class RepairService extends BaseService
         return $reCommunityList;
     }
 
-    //我的工单
-    public function mines($params, $userInfo)
+    // 我的工单
+    public function mines($p, $userInfo)
     {
         $query = new Query();
         $query->from('ps_repair_assign pra')
             ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
-            ->leftJoin('ps_community c','c.id = pr.community_id')
-            ->leftJoin('ps_community_roominfo R', 'R.id=pr.roomId')
             ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
             ->where(['pra.user_id' => $userInfo['id']]);
-        if ($params['status']) {
-            if ($params['status'] == 4) {
-                $params['status'] = [4, 5, 9];
+        if ($p['status']) {
+            if ($p['status'] == 4) {
+                $p['status'] = [4, 5, 9];
             } else {
-                $params['status'] = [$params['status']];
+                $p['status'] = [$p['status']];
             }
         } else {
-            $params['status'] = [2, 3, 4, 5, 7, 8, 9];
+            $p['status'] = [2, 3, 4, 5, 7, 8, 9];
         }
-        $query->andWhere(['pr.status' => $params['status']]);
-        $re['totals'] = $query->count();
-        $query->select(['pr.contact_mobile',
-            'pr.room_address as owner_address', 'pr.id as issue_id', 'pr.repair_no as issue_bill_no',
-            'pr.create_at as created_at', 'pr.expired_repair_time', 'pr.expired_repair_type', 'pr.leave_msg',
-            'pr.repair_type_id', 'pr.room_username', 'c.name as community_name', 'pr.status', 'pr.is_pay',
-            'prt.name as repair_type_label', 'prt.is_relate_room'
-        ])
-        ->orderBy('pr.id desc,pr.status asc');
-        $offset = ($params['page'] - 1) * $params['rows'];
-        $query->offset($offset)->limit($params['rows']);
-        $command = $query->createCommand();
-        $repairList = $command->queryAll();
-        foreach ($repairList as $k => $v) {
-            $repairList[$k]['owner_name'] = $v['room_username'];
-            $repairList[$k]['owner_phone'] = $v['contact_mobile'] ? $v['contact_mobile'] : '';
-            $repairList[$k]['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
-            $repairList[$k]['status'] = $v['status'];
+
+        $query->andWhere(['pr.status' => $p['status']]);
+        $r['totals'] = $query->count();
+        $query->select('pr.contact_mobile, pr.room_address as owner_address, pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.leave_msg,
+            pr.repair_type_id, pr.room_username, pr.status, pr.is_pay, 
+            prt.name as repair_type_label, prt.is_relate_room')
+        ->orderBy('pr.id desc, pr.status asc');
+        $offset = ($p['page'] - 1) * $p['rows'];
+        $query->offset($offset)->limit($p['rows']);
+        $m = $query->createCommand()->queryAll();
+
+        foreach ($m as $k => &$v) {
+            $v['owner_name'] = $v['room_username'];
+            $v['owner_phone'] = $v['contact_mobile'] ? $v['contact_mobile'] : '';
+            $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
+            $v['status'] = $v['status'];
             if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
-                $repairList[$k]['status_label'] = self::$_repair_status[10];
+                $v['status_label'] = self::$_repair_status[10];
             } else {
-                $repairList[$k]['status_label'] = self::$_repair_status[$v['status']];
+                $v['status_label'] = self::$_repair_status[$v['status']];
             }
             $expiredRepairTypeDesc =
                 isset(self::$_expired_repair_type[$v['expired_repair_type']]) ? self::$_expired_repair_type[$v['expired_repair_type']] : '';
-            $repairList[$k]['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
-            unset($repairList[$k]['contact_mobile']);
-            unset($repairList[$k]['room_username']);
-            unset($repairList[$k]['is_pay']);
+            $v['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
+            unset($v['contact_mobile']);
+            unset($v['room_username']);
+            unset($v['is_pay']);
         }
-        $re['list'] = $repairList;
-        return $re;
+
+        $r['list'] = $m;
+
+        return $r;
     }
 
     // 钉钉应用工单详情

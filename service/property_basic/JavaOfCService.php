@@ -70,4 +70,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/file-tool/qiniu-token';
         return self::returnCData($query);
     }
+
+    // 小区列表
+    public function communityList($query)
+    {
+        $query['route'] = '/member/room/communityList';
+        return self::returnCData($query);
+    }
 }

@@ -18,8 +18,8 @@ class RepairController extends UserBaseController
 {
     public $repeatAction = ['add'];
 
-    // 报事报修公共接口
-    public function actionCommon()
+    // 小区列表
+    public function actionCommunity()
     {
         $re = RepairService::service()->getCommunity($this->userInfo);
         return F::apiSuccess($re);
@@ -100,11 +100,11 @@ class RepairController extends UserBaseController
         return F::apiSuccess($r);
     }
 
-    //我的工单
+    // 我的工单
     public function actionMines()
     {
-        $result = RepairService::service()->mines($this->params, $this->userInfo);
-        return F::apiSuccess($result);
+        $r = RepairService::service()->mines($this->params, $this->userInfo);
+        return F::apiSuccess($r);
     }
 
     // 工单详情
@@ -119,6 +119,24 @@ class RepairController extends UserBaseController
         }
 
         $r = RepairService::service()->appShow($p);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
+        }
+
+        return F::apiFailed($r);
+    }
+
+    // 工单日志
+    public function actionRecord()
+    {
+        $p['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $p['use_as'] = 'dingding';
+
+        if (!$p['repair_id']) {
+            return F::apiFailed('请输入工单id！');
+        }
+
+        $r = RepairService::service()->getRecord($p);
         if (is_array($r)) {
             return F::apiSuccess($r);
         }

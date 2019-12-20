@@ -17,6 +17,7 @@ class BaseController extends Controller
 {
     public $enableCsrfValidation = false;
     public $params; // 请求参数
+    public $body;
     public $page = 1;
     public $pageSize = 20;
     public $repeatAction = []; // 验证重复请求的方法数组
@@ -81,7 +82,7 @@ class BaseController extends Controller
         $header = Yii::$app->request->getHeaders();
 
         if (!isset($header['AppKey']) || empty($header['AppKey'])) {
-            exit($this->ajaxReturn('AppKey不能为空'));
+            //exit($this->ajaxReturn('AppKey不能为空'));
         }
 
         // C端鉴权
@@ -90,7 +91,7 @@ class BaseController extends Controller
         }
 
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
-            exit($this->ajaxReturn('OpenAuthorization不能为空'));
+            //exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
 
         $this->params['token'] = $header['OpenAuthorization'];
