@@ -25,14 +25,14 @@ class RepairController extends UserBaseController
 
     public function actionType()
     {
-        $r = RepairTypeService::service()->getSmallAppRepairTypeTree($this->request_params);
+        $r = RepairTypeService::service()->getSmallAppRepairTypeTree($this->params);
         return F::apiSuccess($r);
     }
 
     //查看房屋信息
     public function actionRooms()
     {
-        $communityId = F::value($this->request_params, 'community_id', '');
+        $communityId = F::value($this->params, 'community_id', '');
         if (!$communityId) {
             return F::apiFailed('请输入小区id！');
         }
@@ -48,18 +48,18 @@ class RepairController extends UserBaseController
     // 发布报事报修
     public function actionAdd()
     {
-        $params['community_id'] = F::value($this->request_params, 'community_id', 0);
-        $params['repair_type'] = F::value($this->request_params, 'repair_type_id', 0);
-        $params['expired_repair_time'] = F::value($this->request_params, 'expired_repair_time', '');
-        $params['expired_repair_type'] = F::value($this->request_params, 'expired_repair_type', 0);
-        $params['repair_content'] = F::value($this->request_params, 'repair_content', '');
-        $params['contact_mobile'] = F::value($this->request_params, 'contact_mobile', '');
-        $params['repair_imgs'] =  F::value($this->request_params, 'imgs', '');
+        $params['community_id'] = F::value($this->params, 'community_id', 0);
+        $params['repair_type'] = F::value($this->params, 'repair_type_id', 0);
+        $params['expired_repair_time'] = F::value($this->params, 'expired_repair_time', '');
+        $params['expired_repair_type'] = F::value($this->params, 'expired_repair_type', 0);
+        $params['repair_content'] = F::value($this->params, 'repair_content', '');
+        $params['contact_mobile'] = F::value($this->params, 'contact_mobile', '');
+        $params['repair_imgs'] =  F::value($this->params, 'imgs', '');
         $params['expired_repair_time'] = $params['expired_repair_time'] ? date("Y-m-d", $params['expired_repair_time']) : 0;
         $params['repair_from'] = 3;
 
         $relateRoom= RepairTypeService::service()->repairTypeRelateRoom($params['repair_type']);
-        $roomIds = F::value($this->request_params, 'room_ids', '');
+        $roomIds = F::value($this->params, 'room_ids', '');
         if ($roomIds) {
             $roomInfo = RoomService::service()->getRoomById($roomIds);
             $params['group'] = $roomInfo ? $roomInfo['group'] : '';
@@ -88,15 +88,15 @@ class RepairController extends UserBaseController
     //我的工单
     public function actionMines()
     {
-        $result = RepairService::service()->mines($this->request_params, $this->userInfo);
+        $result = RepairService::service()->mines($this->params, $this->userInfo);
         return F::apiSuccess($result);
     }
 
     //工单详情
     public function actionView()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['is_admin'] = F::value($this->request_params, 'is_admin', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['is_admin'] = F::value($this->params, 'is_admin', 0);
         $params['user_id'] = $this->userInfo['id'];
 
         if (!$params['repair_id']) {
@@ -112,9 +112,9 @@ class RepairController extends UserBaseController
     //工单确认或驳回
     public function actionAccept()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['status'] = F::value($this->request_params, 'status', '');
-        $params['reason'] = F::value($this->request_params, 'reason', '');
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['status'] = F::value($this->params, 'status', '');
+        $params['reason'] = F::value($this->params, 'reason', '');
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -137,8 +137,8 @@ class RepairController extends UserBaseController
     //查看维修记录
     public function actionRecordList()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['is_admin'] = F::value($this->request_params, 'is_admin', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['is_admin'] = F::value($this->params, 'is_admin', 0);
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -149,12 +149,12 @@ class RepairController extends UserBaseController
     //分配工单
     public function actionAssign()
     {
-        $params['repair_id'] = F::value($this->request_params, 'repair_id', '');
-        $params['user_id'] = F::value($this->request_params, 'user_id', '');
-        $params['finish_time'] = F::value($this->request_params, 'finish_time', '');
-        $params['leave_msg'] = F::value($this->request_params, 'leave_msg', '');
-        $params['remark'] = F::value($this->request_params, 'remark', '');
-        $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->request_params, 'assign-repair');
+        $params['repair_id'] = F::value($this->params, 'repair_id', '');
+        $params['user_id'] = F::value($this->params, 'user_id', '');
+        $params['finish_time'] = F::value($this->params, 'finish_time', '');
+        $params['leave_msg'] = F::value($this->params, 'leave_msg', '');
+        $params['remark'] = F::value($this->params, 'remark', '');
+        $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->params, 'assign-repair');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
@@ -168,7 +168,7 @@ class RepairController extends UserBaseController
     //二次维修
     public function actionCreateNew()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (empty($params['repair_id'])) {
             return F::apiFailed("repair_id不能为空");
         }
@@ -182,14 +182,14 @@ class RepairController extends UserBaseController
     //添加维修记录
     public function actionAddRecord()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['repair_content'] = F::value($this->request_params, 'content', '');
-        $params['status'] = F::value($this->request_params, 'status', '');
-        $params['need_pay'] = F::value($this->request_params, 'need_pay', 0);
-        $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['materials_list'] = F::value($this->request_params, 'materials_list', json_encode([]));
-        $params['other_charge'] = F::value($this->request_params, 'other_charge', 0);
-        $params['total_price'] = F::value($this->request_params, 'total_price', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['repair_content'] = F::value($this->params, 'content', '');
+        $params['status'] = F::value($this->params, 'status', '');
+        $params['need_pay'] = F::value($this->params, 'need_pay', 0);
+        $params['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
+        $params['materials_list'] = F::value($this->params, 'materials_list', json_encode([]));
+        $params['other_charge'] = F::value($this->params, 'other_charge', 0);
+        $params['total_price'] = F::value($this->params, 'total_price', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {
@@ -216,10 +216,10 @@ class RepairController extends UserBaseController
     //管理员添加工单记录
     public function actionAdminAddRecord()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['repair_content'] = F::value($this->request_params, 'content', '');
-        $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['repair_content'] = F::value($this->params, 'content', '');
+        $params['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
+        $params['user_id'] = F::value($this->params, 'user_id', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
         if (!$valid["status"]) {
@@ -235,30 +235,34 @@ class RepairController extends UserBaseController
         return F::apiFailed($result);
     }
 
-    //管理员工单标记完成
+    // 管理员工单标记完成
     public function actionAdminMarkComplete()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['repair_content'] = F::value($this->request_params, 'content', '');
-        $params['repair_imgs'] = F::value($this->request_params, 'repair_imgs', '');
-        $params['user_id'] = F::value($this->request_params, 'user_id', 0);
-        $params['amount'] = F::value($this->request_params, 'amount', 0);
-        $valid = PsCommon::validParamArr(new PsRepair(), $params, 'make-complete');
+        $p['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $p['repair_content'] = F::value($this->params, 'content', '');
+        $p['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
+        $p['user_id'] = F::value($this->params, 'user_id', 0);
+        $p['amount'] = F::value($this->params, 'amount', 0);
+
+        $valid = PsCommon::validParamArr(new PsRepair(), $p, 'make-complete');
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
-        $params['is_pay'] = 2;
-        $result = RepairService::service()->makeComplete($params, $this->userInfo);
-        if ($result === true) {
-            return F::apiSuccess($result);
+
+        $p['is_pay'] = 2;
+
+        $r = RepairService::service()->makeComplete($p, $this->userInfo);
+        if ($r === true) {
+            return F::apiSuccess($r);
         }
-        return F::apiFailed($result);
+
+        return F::apiFailed($r);
     }
 
     //耗材列表
     public function actionMaterialList()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -272,7 +276,7 @@ class RepairController extends UserBaseController
     //线下收款
     public function actionOfflinePay()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -286,8 +290,8 @@ class RepairController extends UserBaseController
     //工单列表
     public function actionList()
     {
-        $params['status'] = F::value($this->request_params, 'status', '');
-        $params['hard_type'] = F::value($this->request_params, 'hard_type', '');
+        $params['status'] = F::value($this->params, 'status', '');
+        $params['hard_type'] = F::value($this->params, 'hard_type', '');
         $params['page'] = $this->page;
         $params['rows'] = $this->pageSize;
 
@@ -302,8 +306,8 @@ class RepairController extends UserBaseController
     //标记为疑难
     public function actionMarkHard()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['hard_remark'] = F::value($this->request_params, 'reason', '');
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['hard_remark'] = F::value($this->params, 'reason', '');
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -320,7 +324,7 @@ class RepairController extends UserBaseController
     //工单作废
     public function actionMarkInvalid()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (!$params['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
@@ -334,9 +338,9 @@ class RepairController extends UserBaseController
     //工单复核
     public function actionReview()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['content'] = F::value($this->request_params, 'content', '');
-        $params['status'] = F::value($this->request_params, 'status', '');
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['content'] = F::value($this->params, 'content', '');
+        $params['status'] = F::value($this->params, 'status', '');
         if (!$params['repair_id']) {
             return F::apiFailed("请输入工单id！");
         }
@@ -364,8 +368,8 @@ class RepairController extends UserBaseController
     //获取部门员工列表
     public function actionUsers()
     {
-        $params['repair_id'] = F::value($this->request_params, 'issue_id', 0);
-        $params['group_id'] = F::value($this->request_params, 'group_id', 0);
+        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $params['group_id'] = F::value($this->params, 'group_id', 0);
         if (!$params['repair_id']) {
             return F::apiFailed("请输入工单id！");
         }

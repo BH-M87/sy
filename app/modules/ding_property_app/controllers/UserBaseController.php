@@ -4,6 +4,7 @@ namespace app\modules\ding_property_app\controllers;
 use app\modules\ding_property_app\services\UserService;
 
 use common\core\F;
+use service\property_basic\JavaOfCService;
 
 class UserBaseController extends BaseController
 {
@@ -16,11 +17,14 @@ class UserBaseController extends BaseController
     {
         if(!parent::beforeAction($action)) return false;
 
-        //$userInfo = UserService::service()->getUserById($this->userId);
+        // 查找用户的信息
+        $userInfo = JavaOfCService::service()->memberBase(['token' => $this->token]);
 
         $this->userInfo = $userInfo;
+        $this->userInfo['mobile'] = $userInfo['sensitiveInf'];
+
         $this->userId = $userInfo['id'];
-        $this->userMobile = $userInfo['mobile'];
+        $this->userMobile = $this->userInfo['mobile'];
 
         return true;
     }

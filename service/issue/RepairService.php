@@ -562,78 +562,65 @@ class RepairService extends BaseService
         }
     }
 
-    //工单标记完成
-    public function makeComplete($params, $userInfo = [])
+    // 工单标记完成
+    public function makeComplete($p, $userInfo = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
-        if (!$model) {
+        $m = $this->getRepairInfoById($p['repair_id']);
+        if (!$m) {
             return "工单不存在";
         }
-        if (in_array($model['status'],self::$_issue_complete_status)) {
+
+        if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        $user = JavaService::service()->userDetail(['token' => $params['token'], 'id' => $params["user_id"]]);
+
+        $user = JavaService::service()->userDetail(['token' => $p['token'], 'id' => $p["user_id"]]);
         if (!$user) {
             return "操作人员未找到";
         }
 
-        $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($model['repair_type_id']);
-        if ($releateRoom && empty($params['amount'])) {
+        $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($m['repair_type_id']);
+        if ($releateRoom && empty($p['amount'])) {
             return '请输入使用金额';
         }
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+
+        $transaction = Yii::$app->db->beginTransaction();
         try {
-            /*添加 维修 记录*/
-            $tmpImgs = !empty($params["repair_imgs"]) ? $params["repair_imgs"] : '';
-            $repairImages =  is_array($tmpImgs) ? implode(',', $params["repair_imgs"]) : $tmpImgs;
-            $connection->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $params["repair_id"],
-                'content' => $params["repair_content"],
+            // 添加 维修 记录
+            $tmpImgs = !empty($p["repair_imgs"]) ? $p["repair_imgs"] : '';
+            $repairImages =  is_array($tmpImgs) ? implode(',', $p["repair_imgs"]) : $tmpImgs;
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
+                'content' => $p["repair_content"],
                 'repair_imgs' => $repairImages,
                 'status' => 3,
                 'create_at' => time(),
-                'operator_id' => $params["user_id"],
+                'operator_id' => $p["user_id"],
                 'operator_name' => $user["trueName"],
                 'mobile' => $user["mobile"],
             ])->execute();
-            if ($params["user_id"] != $model["operator_id"]) {
-                $connection->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $params["repair_id"]])->execute();
+
+            if ($p["user_id"] != $m["operator_id"]) {
+                Yii::$app->db->createCommand()->update('ps_repair_assign', ["is_operate" => 0], "repair_id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
                 // 添加一条分配记录 ps_repair_assign
-                $connection->createCommand()->insert('ps_repair_assign', [
-                    "repair_id" => $params["repair_id"],
-                    "user_id" => $params["user_id"],
+                Yii::$app->db->createCommand()->insert('ps_repair_assign', [
+                    "repair_id" => $p["repair_id"],
+                    "user_id" => $p["user_id"],
                     "operator_id" => $userInfo["id"] ? $userInfo["id"] : 0,
                     "is_operate" => 1,
                     "finish_time" => time(),
                     "created_at" => time(),
                 ])->execute();
-                $repairArr["is_assign"] = 1;
-                $repairArr["operator_id"] = $userInfo['id'];
-                $repairArr["operator_name"] = $userInfo["trueName"];
             }
-            if ($releateRoom && $params['amount']) {
-                //TODO 生成报事报修账单
-//                $billRe = BillService::service()->addRepairBill($params["repair_id"], $params['material_total_price'],
-//                    $params['total_price'], $params['other_charge'], $params['token']);
-//                if ($billRe === false) {
-//                    throw new Exception('账单生成失败');
-//                }
-//                $billId = $billRe['bill_id'];
-//                if (!empty($params['materials_list'])) {
-//                    $this->addMaterials($params["repair_id"], $billId, $params['materials_list']);
-//                }
-            }
-
-            $repairModelArr["status"] = 3;
-            $repairModelArr["is_pay"] = $params["is_pay"] ? $params["is_pay"] : 1;
-            $repairModelArr["hard_type"] = 1;
-            $repairModelArr["operator_id"] = $params["user_id"];
-            $repairModelArr["operator_name"] = $user["trueName"];
-            $repairModelArr["amount"] = !empty($params['amount']) ? $params['amount'] : 0;
-            $connection->createCommand()->update('ps_repair',
-                $repairModelArr, "id=:repair_id", [":repair_id" => $params["repair_id"]]
-            )->execute();
+            // 更新报修表
+            $r["status"] = 3;
+            $r["is_pay"] = $p["is_pay"] ? $p["is_pay"] : 1;
+            $r["hard_type"] = 1;
+            $r["operator_id"] = $p["user_id"];
+            $r["operator_name"] = $user["trueName"];
+            $r["amount"] = !empty($p['amount']) ? $p['amount'] : 0;
+            Yii::$app->db->createCommand()->update('ps_repair', $r, "id=:repair_id", 
+                [":repair_id" => $p["repair_id"]])->execute();
   
             $transaction->commit();
             return true;
