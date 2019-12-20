@@ -128,6 +128,136 @@ class RepairService extends BaseService
         ];
         return $comm;
     }
+    
+    // 代办列表
+    public function notList($p)
+    {
+        $w = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+
+        $day_1 = self::dingList($p, 1);
+        $day_2 = self::dingList($p, 2);
+        $day_3 = self::dingList($p, 3);
+        $day_4 = self::dingList($p, 4);
+        $day_5 = self::dingList($p, 5);
+        $day_6 = self::dingList($p, 6);
+        $day_7 = self::dingList($p, 7);
+
+        $time_1 = '过去';
+        $time_2 = '今天';
+        $time_3 = $w[date("w", time() + 86400*1)];
+        $time_4 = $w[date("w", time() + 86400*2)];
+        $time_5 = $w[date("w", time() + 86400*3)];
+        $time_6 = $w[date("w", time() + 86400*4)];
+        $time_7 = '将来';
+
+        switch ($p['type']) {
+            case '1':
+                $m = $day_1;
+                $r['time'] = $time_1;
+                break;
+            case '3':
+                $m = $day_3;
+                $r['time'] = $time_3;
+                break;
+            case '4':
+                $m = $day_4;
+                $r['time'] = $time_4;
+                break;
+            case '5':
+                $m = $day_5;
+                $r['time'] = $time_5;
+                break;
+            case '6':
+                $m = $day_6;
+                $r['time'] = $time_6;
+                break;
+            case '7':
+                $m = $day_7;
+                $r['time'] = $time_7;
+                break;
+            default:
+                $m = $day_2;
+                $r['time'] = $time_2;
+                break;
+        }
+
+        $r['timeList'] = [
+            ['name' => $time_1, 'num' => $day_1['totals'], 'type' => '1'],
+            ['name' => $time_2, 'num' => $day_2['totals'], 'type' => '2'],
+            ['name' => $time_3, 'num' => $day_3['totals'], 'type' => '3'],
+            ['name' => $time_4, 'num' => $day_4['totals'], 'type' => '4'],
+            ['name' => $time_5, 'num' => $day_5['totals'], 'type' => '5'],
+            ['name' => $time_6, 'num' => $day_6['totals'], 'type' => '6'],
+            ['name' => $time_7, 'num' => $day_7['totals'], 'type' => '7']
+        ];
+
+        $r['list'] = $m['list'];
+        $r['totals'] = $m['totals'];
+
+        return $r;
+    }
+
+    public function dingList($p, $type)
+    {
+        switch ($type) {
+            case '1':
+                $end = strtotime(date('Y-m-d').'00:00:00') - 1;
+                break;
+            case '3':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400;
+                break;
+            case '4':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 2;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 2;
+                break;
+            case '5':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 3;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 3;
+                break;
+            case '6':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 4;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 4;
+                break;
+            case '7':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 5;
+                break;
+            default:
+                $start = strtotime(date('Y-m-d').'00:00:00');
+                $end = strtotime(date('Y-m-d').'23:59:59');
+                break;
+        }
+
+        $query = new Query();
+        $query->from('ps_repair A')->where("1=1");
+
+        if ($p['community_id']) {
+            $query->andWhere(['A.community_id' => $p['community_id']]);
+        }
+
+        if ($start) {
+            $query->andWhere(['>=', 'A.repair_time', $start]);
+        }
+
+        if ($end) {
+            $query->andWhere(['<=', 'A.repair_time', $end]);
+        }
+
+        $r['totals'] = $query->count();
+        $query->select('A.id issue_id, A.repair_time, A.repair_content, A.expired_repair_time');
+        $query->orderBy('A.repair_time desc');
+
+        $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+
+        $m = $query->createCommand()->queryAll();
+        foreach ($m as $k => &$v) {
+            $v['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
+        }
+
+        $r['list'] = $m;
+
+        return $r;
+    }
 
     //报修工单列表
     public function getRepairLists($params)
