@@ -85,44 +85,23 @@ class RepairController extends UserBaseController
         $p['expired_repair_time'] = $p['expired_repair_time'] ? date("Y-m-d", $p['expired_repair_time']) : 0;
         $p['repair_from'] = 3;
         $p['token'] = F::value($this->params, 'token', '');
-        $p['room'] =  F::value($this->params, 'roomId', '');
 
-        $relateRoom= RepairTypeService::service()->repairTypeRelateRoom($p['repair_type']);
-        $roomId = F::value($this->params, 'roomId', '');
-        if ($roomId) {
-            $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $roomId]);
-            $p['group'] = $roomInfo ? $roomInfo['groupId'] : '';
-            $p['building'] = $roomInfo ? $roomInfo['buildingId'] : '';
-            $p['unit'] = $roomInfo ? $roomInfo['unitId'] : '';
-            $p['room_address'] = $roomInfo ? $roomInfo['fullName'] : '';
-        }
+        $p['contact_name'] = $this->userInfo['trueName'];
 
-        // 查找用户的信息
-        $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
-        if (empty($member)) {
-            return F::apiSuccess('用户不存在');
-        }
-
-        $p['contact_name'] = $member['trueName'];
-
-        if ($relateRoom) {
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair2');
-        } else {
-            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair1');
-        }
+        $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair1');
 
         if (!$valid["status"]) {
             return F::apiFailed($valid["errorMsg"]);
         }
 
         $validData = $valid['data'];
-        $validData['relate_room'] = $relateRoom;
 
-        $r = RepairService::service()->add($validData, $this->userInfo, 'small');
-        if (!is_numeric($r)) {
-            return F::apiFailed($r);
+        $r = RepairService::service()->add($validData, $this->userInfo);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
         }
-        return F::apiSuccess($r);
+        
+        return F::apiFailed($r);
     }
 
     // 我的工单
