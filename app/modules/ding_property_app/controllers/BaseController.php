@@ -17,6 +17,7 @@ class BaseController extends Controller
 {
     public $enableCsrfValidation = false;
     public $params; // 请求参数
+    public $request_params; // 请求参数
     public $body;
     public $page = 1;
     public $pageSize = 20;
@@ -74,6 +75,7 @@ class BaseController extends Controller
         
         $this->body = $body;
         $this->params = $body;
+        $this->request_params = $body;
     }
 
     // token验证

@@ -18,10 +18,10 @@ class UserController extends BaseController
     //获取钉钉的登录token
     public function actionGetUserInfo()
     {
-        $corpId = F::value($this->request_params, 'corp_id');
-        $code = F::value($this->request_params, 'code', '');
+        $corpId = F::value($this->request_params, 'corp_id','ding32513f1275950a94');
+        $code = F::value($this->request_params, 'authCode', '');
         $userId = F::value($this->request_params, 'user_id', '');
-        $agentId = F::value($this->request_params, 'agent_id');
+        $agentId = F::value($this->request_params, 'agent_id','335433056');
         if (!$corpId) {
             return F::apiFailed('街道办ID不能为空！');
         }
