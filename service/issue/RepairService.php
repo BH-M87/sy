@@ -1152,8 +1152,8 @@ class RepairService extends BaseService
     public function mineList($p, $userInfo)
     {
         $query = new Query();
-        $query->from('ps_repair_assign pra')
-            ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
+        $query->from('ps_repair pr')
+            ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id')
             ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id');
 
         if ($p['top_status'] == 1) { // 我报修
@@ -1165,8 +1165,8 @@ class RepairService extends BaseService
             $p['status'] = [1];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
-
-        $query->andWhere(['pr.status' => $p['status']]);
+        
+        $query->andFilterWhere(['pr.status' => $p['status']]);
 
         $r['totals'] = $query->count();
         $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
