@@ -1197,14 +1197,6 @@ class RepairService extends BaseService
     // 钉钉应用工单详情
     public function appShow($p)
     {
-        // 查询此工单是否分配给了此用户
-        if (!$p['is_admin']) {
-            $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
-            if (!$repair) {
-                return "无权查看此工单详情！";
-            }
-        }
-
         $m = PsRepair::find()
             ->select('id as issue_id, repair_no as issue_bill_no, contact_mobile as owner_phone, leave_msg,
                 room_username as owner_name, is_assign, is_assign_again, room_address, repair_type_id, 
