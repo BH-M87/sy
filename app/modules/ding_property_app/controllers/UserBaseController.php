@@ -25,8 +25,10 @@ class UserBaseController extends BaseController
             'token' => $this->token,
         ];
         //todo::调用java接口
-        $userInfo = JavaCurl::getInstance()->pullHandler($params);
-
+        //$userInfo = JavaCurl::getInstance()->pullHandler($params);
+        $userInfo['id'] = '1205020963543236609';
+        $userInfo['trueName'] = '周文斌';
+        $userInfo['sensitiveInf'] = '15067035302';
         $this->userInfo = $userInfo;
         $this->userInfo['mobile'] = $userInfo['sensitiveInf'];
         $this->userInfo['truename'] = $userInfo['trueName'];
