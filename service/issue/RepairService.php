@@ -1162,7 +1162,7 @@ class RepairService extends BaseService
             $p['status'] = [3,4,5,6,9];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         } else { // 待处理
-            $p['status'] = [1];
+            $p['status'] = [2,7];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
         
