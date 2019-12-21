@@ -153,4 +153,11 @@ class JavaService extends BaseService
         $query['route'] = '/log/add';
         return self::returnCData($query);
     }
+
+    // 根据用户id获取小区列表
+    public function relCommunityList($query)
+    {
+        $query['route'] = '/user/rel-community-list';
+        return self::returnCData($query);
+    }
 }

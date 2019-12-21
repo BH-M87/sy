@@ -1133,21 +1133,6 @@ class RepairService extends BaseService
         return [];
     }
 
-    // 钉钉端发布报事报修公共接口，获取所有的小区列表及小区的报事报修类别
-    public function getCommunity($userInfo = [])
-    {
-        $communitys = JavaOfCService::service()->communityList($userInfo['id']);
-        $reCommunityList = [];
-        foreach ($communitys as $key => $val) {
-            $tmp['community_id'] = $val['id'];
-            $tmp['community_name'] = $val['name'];
-            //查询小区下的报修类型
-            $tmp['types'] = RepairTypeService::service()->getRepairTypeTree($tmp);
-            array_push($reCommunityList, $tmp);
-        }
-        return $reCommunityList;
-    }
-
     public function mines($p, $userInfo)
     {
         $p['page'] = $p['page'] ?? 1;
@@ -1691,5 +1676,43 @@ class RepairService extends BaseService
     {
         $res = PsRepairBill::find()->select("amount")->where(['repair_id' => $id])->asArray()->one();
         return $res ? $res['amount'] : '';
+    }
+
+    public function analyse($p, $userInfo)
+    {
+        $sdefaultDate = date("Y-m-d");
+        $first = 1;
+        $w = date('w',strtotime($sdefaultDate));
+        $week_start = date('Y-m-d',strtotime("$sdefaultDate -".($w ? $w - $first : 6).' days'));
+        $week_end = date('m-d',strtotime("$week_start +6 days"));
+        $week_start = date('m-d', strtotime($week_start));
+
+        return [
+            'list' => [
+                'repair' => '', 
+                'task' => '0', 
+                'hard' => '', 
+                'late' => '0', 
+                'user' => '',
+                'plan' => '0',
+                'device' => '0',
+                'stopDevice' => '0',
+                'totals' => '0',
+            ], 
+            'week' => [
+                'repair' => '', 
+                'task' => '0', 
+                'hard' => '', 
+                'late' => '0', 
+                'time' => $week_start.'~'.$week_end
+            ], 
+            'month' => [
+                'repair' => '', 
+                'task' => '0', 
+                'hard' => '', 
+                'late' => '0', 
+                'time' => date('m', time()).'月'
+            ]
+        ];
     }
 }

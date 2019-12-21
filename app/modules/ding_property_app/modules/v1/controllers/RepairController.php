@@ -59,10 +59,10 @@ class RepairController extends UserBaseController
     }
 
     // 小区列表
-    public function actionCommunity()
+    public function actionRelCommunityList()
     {
-        $re = RepairService::service()->getCommunity($this->userInfo);
-        return F::apiSuccess($re);
+        $r = JavaService::service()->relCommunityList(['token' => $this->params['token'], 'id' => $this->userInfo['id']]);
+        return F::apiSuccess($r);
     }
     
     // 工单分类
@@ -429,6 +429,20 @@ class RepairController extends UserBaseController
         }
 
         $r = JavaService::service()->userList($this->params);
+
+        return F::apiSuccess($r);
+    }
+
+    // 分析
+    public function actionAnalyse()
+    {
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
+
+        if (!$p['community_id']) {
+            return F::apiFailed("请选择小区！");
+        }
+
+        $r = RepairService::service()->analyse($p, $this->userInfo);
 
         return F::apiSuccess($r);
     }
