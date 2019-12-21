@@ -19,6 +19,25 @@ class RepairController extends UserBaseController
 {
     public $repeatAction = ['add'];
 
+    // 首页代办
+    public function actionNotListIndex()
+    {
+        $p['community_id'] = F::value($this->params, 'community_id', 0);
+        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['user_id'] = $this->userInfo['id'];
+
+        if (!$p['community_id']) {
+            return F::apiFailed('请输入小区id！');
+        }
+
+        $r = RepairService::service()->notListIndex($p);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
+        }
+
+        return F::apiFailed($r);
+    }
+
     // 代办列表
     public function actionNotList()
     {
@@ -99,7 +118,7 @@ class RepairController extends UserBaseController
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
 
-        $r = RepairService::service()->add($validData, $this->userInfo);
+        $r = RepairService::service()->add($validData, $this->userInfo, 'small');
         if (!is_numeric($r)) {
             return F::apiFailed($r);
         }

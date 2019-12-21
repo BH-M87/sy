@@ -128,67 +128,94 @@ class RepairService extends BaseService
         ];
         return $comm;
     }
+
+    // 代办列表
+    public function notListIndex($p)
+    {
+        $p['onlyTotal'] = 1;
+
+        $dt = self::dayTime($p);
+
+        $r['list'] = [
+            ['name' => $dt['time']['time_1'], 'num' => $dt['day']['day_1']['totals'], 'type' => '1'],
+            ['name' => $dt['time']['time_2'], 'num' => $dt['day']['day_2']['totals'], 'type' => '2'],
+            ['name' => $dt['time']['time_3'], 'num' => $dt['day']['day_3']['totals'], 'type' => '3'],
+            ['name' => $dt['time']['time_4'], 'num' => $dt['day']['day_4']['totals'], 'type' => '4'],
+            ['name' => $dt['time']['time_5'], 'num' => $dt['day']['day_5']['totals'], 'type' => '5'],
+            ['name' => $dt['time']['time_6'], 'num' => $dt['day']['day_6']['totals'], 'type' => '6'],
+            ['name' => $dt['time']['time_7'], 'num' => $dt['day']['day_7']['totals'], 'type' => '7']
+        ];
+
+        return $r;
+    }
+
+    public function dayTime($p)
+    {
+        $w = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+
+        $arr['day']['day_1'] = self::dingList($p, 1);
+        $arr['day']['day_2'] = self::dingList($p, 2);
+        $arr['day']['day_3'] = self::dingList($p, 3);
+        $arr['day']['day_4'] = self::dingList($p, 4);
+        $arr['day']['day_5'] = self::dingList($p, 5);
+        $arr['day']['day_6'] = self::dingList($p, 6);
+        $arr['day']['day_7'] = self::dingList($p, 7);
+
+        $arr['time']['time_1'] = '过去';
+        $arr['time']['time_2'] = '今天';
+        $arr['time']['time_3'] = $w[date("w", time() + 86400*1)];
+        $arr['time']['time_4'] = $w[date("w", time() + 86400*2)];
+        $arr['time']['time_5'] = $w[date("w", time() + 86400*3)];
+        $arr['time']['time_6'] = $w[date("w", time() + 86400*4)];
+        $arr['time']['time_7'] = '将来';
+
+        return $arr;
+    }
     
     // 代办列表
     public function notList($p)
     {
-        $w = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-
-        $day_1 = self::dingList($p, 1);
-        $day_2 = self::dingList($p, 2);
-        $day_3 = self::dingList($p, 3);
-        $day_4 = self::dingList($p, 4);
-        $day_5 = self::dingList($p, 5);
-        $day_6 = self::dingList($p, 6);
-        $day_7 = self::dingList($p, 7);
-
-        $time_1 = '过去';
-        $time_2 = '今天';
-        $time_3 = $w[date("w", time() + 86400*1)];
-        $time_4 = $w[date("w", time() + 86400*2)];
-        $time_5 = $w[date("w", time() + 86400*3)];
-        $time_6 = $w[date("w", time() + 86400*4)];
-        $time_7 = '将来';
+        $dt = self::dayTime($p);
 
         switch ($p['type']) {
             case '1':
-                $m = $day_1;
-                $r['time'] = $time_1;
+                $m = $dt['day']['day_1'];
+                $r['time'] = $dt['time']['time_1'];
                 break;
             case '3':
-                $m = $day_3;
-                $r['time'] = $time_3;
+                $m = $dt['day']['day_3'];
+                $r['time'] = $dt['time']['time_3'];
                 break;
             case '4':
-                $m = $day_4;
-                $r['time'] = $time_4;
+                $m = $dt['day']['day_4'];
+                $r['time'] = $dt['time']['time_4'];
                 break;
             case '5':
-                $m = $day_5;
-                $r['time'] = $time_5;
+                $m = $dt['day']['day_5'];
+                $r['time'] = $dt['time']['time_5'];
                 break;
             case '6':
-                $m = $day_6;
-                $r['time'] = $time_6;
+                $m = $dt['day']['day_6'];
+                $r['time'] = $dt['time']['time_6'];
                 break;
             case '7':
-                $m = $day_7;
-                $r['time'] = $time_7;
+                $m = $dt['day']['day_7'];
+                $r['time'] = $dt['time']['time_7'];
                 break;
             default:
-                $m = $day_2;
-                $r['time'] = $time_2;
+                $m = $dt['day']['day_2'];
+                $r['time'] = $dt['time']['time_2'];
                 break;
         }
 
         $r['timeList'] = [
-            ['name' => $time_1, 'num' => $day_1['totals'], 'type' => '1'],
-            ['name' => $time_2, 'num' => $day_2['totals'], 'type' => '2'],
-            ['name' => $time_3, 'num' => $day_3['totals'], 'type' => '3'],
-            ['name' => $time_4, 'num' => $day_4['totals'], 'type' => '4'],
-            ['name' => $time_5, 'num' => $day_5['totals'], 'type' => '5'],
-            ['name' => $time_6, 'num' => $day_6['totals'], 'type' => '6'],
-            ['name' => $time_7, 'num' => $day_7['totals'], 'type' => '7']
+            ['name' => $dt['time']['time_1'], 'num' => $dt['day']['day_1']['totals'], 'type' => '1'],
+            ['name' => $dt['time']['time_2'], 'num' => $dt['day']['day_2']['totals'], 'type' => '2'],
+            ['name' => $dt['time']['time_3'], 'num' => $dt['day']['day_3']['totals'], 'type' => '3'],
+            ['name' => $dt['time']['time_4'], 'num' => $dt['day']['day_4']['totals'], 'type' => '4'],
+            ['name' => $dt['time']['time_5'], 'num' => $dt['day']['day_5']['totals'], 'type' => '5'],
+            ['name' => $dt['time']['time_6'], 'num' => $dt['day']['day_6']['totals'], 'type' => '6'],
+            ['name' => $dt['time']['time_7'], 'num' => $dt['day']['day_7']['totals'], 'type' => '7']
         ];
 
         $r['list'] = $m['list'];
@@ -244,17 +271,20 @@ class RepairService extends BaseService
         }
 
         $r['totals'] = $query->count();
-        $query->select('A.id issue_id, A.repair_time, A.repair_content, A.expired_repair_time');
-        $query->orderBy('A.repair_time desc');
 
-        $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+        if (empty($p['onlyTotal'])) {
+            $query->select('A.id issue_id, A.repair_time, A.repair_content, A.expired_repair_time');
+            $query->orderBy('A.repair_time desc');
 
-        $m = $query->createCommand()->queryAll();
-        foreach ($m as $k => &$v) {
-            $v['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
+            $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+
+            $m = $query->createCommand()->queryAll();
+            foreach ($m as $k => &$v) {
+                $v['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
+            }
+
+            $r['list'] = $m;
         }
-
-        $r['list'] = $m;
 
         return $r;
     }
@@ -1118,37 +1148,50 @@ class RepairService extends BaseService
         return $reCommunityList;
     }
 
-    // 我的工单
     public function mines($p, $userInfo)
+    {
+        $p['page'] = $p['page'] ?? 1;
+        $p['rows'] = $p['rows'] ?? 5;
+        
+        $p['top_status'] = 1; // 我报修
+        $add = self::mineList($p, $userInfo);
+        $p['top_status'] = 2; // 待处理
+        $deal = self::mineList($p, $userInfo);
+        $p['top_status'] = 3; // 我处理
+        $dealed = self::mineList($p, $userInfo);
+
+        return ['add' => $add, 'deal' => $deal, 'dealed' => $dealed];
+    }
+
+    // 我的工单
+    public function mineList($p, $userInfo)
     {
         $query = new Query();
         $query->from('ps_repair_assign pra')
             ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
-            ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
-            ->where(['pra.user_id' => $userInfo['id']]);
-        if ($p['status']) {
-            if ($p['status'] == 4) {
-                $p['status'] = [4, 5, 9];
-            } else {
-                $p['status'] = [$p['status']];
-            }
-        } else {
-            $p['status'] = [2, 3, 4, 5, 7, 8, 9];
+            ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id');
+
+        if ($p['top_status'] == 1) { // 我报修
+            $query->andWhere(['pr.created_id' => $userInfo['id']]);
+        } else if ($p['top_status'] == 3) { // 我处理
+            $p['status'] = [3,4,5,6,9];
+            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+        } else { // 待处理
+            $p['status'] = [1];
+            $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
 
         $query->andWhere(['pr.status' => $p['status']]);
+
         $r['totals'] = $query->count();
-        $query->select('pr.contact_mobile, pr.room_address as owner_address, pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.leave_msg,
-            pr.repair_type_id, pr.room_username, pr.status, pr.is_pay, 
-            prt.name as repair_type_label, prt.is_relate_room')
+        $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
+            prt.name as repair_type_label')
         ->orderBy('pr.id desc, pr.status asc');
         $offset = ($p['page'] - 1) * $p['rows'];
         $query->offset($offset)->limit($p['rows']);
         $m = $query->createCommand()->queryAll();
 
         foreach ($m as $k => &$v) {
-            $v['owner_name'] = $v['room_username'];
-            $v['owner_phone'] = $v['contact_mobile'] ? $v['contact_mobile'] : '';
             $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
             $v['status'] = $v['status'];
             if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
@@ -1159,9 +1202,6 @@ class RepairService extends BaseService
             $expiredRepairTypeDesc =
                 isset(self::$_expired_repair_type[$v['expired_repair_type']]) ? self::$_expired_repair_type[$v['expired_repair_type']] : '';
             $v['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
-            unset($v['contact_mobile']);
-            unset($v['room_username']);
-            unset($v['is_pay']);
         }
 
         $r['list'] = $m;
