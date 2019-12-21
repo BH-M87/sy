@@ -446,4 +446,16 @@ class RepairController extends UserBaseController
 
         return F::apiSuccess($r);
     }
+
+    // 七牛token
+    public function actionQiniuToken()
+    {
+        try {
+            $data = $this->params;
+            $result = JavaOfCService::service()->qiniuToken($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
