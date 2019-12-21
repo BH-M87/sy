@@ -1681,27 +1681,27 @@ class RepairService extends BaseService
 
         return [
             'list' => [
-                'repair' => '', 
+                'repair' => '0', 
                 'task' => '0', 
-                'hard' => '', 
+                'hard' => '0', 
                 'late' => '0', 
-                'user' => '',
+                'user' => '0',
                 'plan' => '0',
                 'device' => '0',
                 'stopDevice' => '0',
                 'totals' => '0',
             ], 
             'week' => [
-                'repair' => '', 
+                'repair' => '0', 
                 'task' => '0', 
-                'hard' => '', 
+                'hard' => '0', 
                 'late' => '0', 
                 'time' => $week_start.'~'.$week_end
             ], 
             'month' => [
-                'repair' => '', 
+                'repair' => '0', 
                 'task' => '0', 
-                'hard' => '', 
+                'hard' => '0', 
                 'late' => '0', 
                 'time' => date('m', time()).'月'
             ]
