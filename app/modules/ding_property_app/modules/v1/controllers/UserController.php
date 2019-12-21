@@ -19,7 +19,7 @@ class UserController extends BaseController
     public function actionGetUserInfo()
     {
         $corpId = F::value($this->request_params, 'corp_id','ding32513f1275950a94');
-        $code = F::value($this->request_params, 'code', '');
+        $code = F::value($this->request_params, 'authCode', '');
         $userId = F::value($this->request_params, 'user_id', '');
         $agentId = F::value($this->request_params, 'agent_id','335433056');
         if (!$corpId) {
