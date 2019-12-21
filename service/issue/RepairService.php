@@ -1148,37 +1148,50 @@ class RepairService extends BaseService
         return $reCommunityList;
     }
 
-    // 我的工单
     public function mines($p, $userInfo)
+    {
+        $p['page'] = $p['page'] ?? 1;
+        $p['rows'] = $p['rows'] ?? 5;
+        
+        $p['top_status'] = 1; // 我报修
+        $add = self::mineList($p, $userInfo);
+        $p['top_status'] = 2; // 待处理
+        $deal = self::mineList($p, $userInfo);
+        $p['top_status'] = 3; // 我处理
+        $dealed = self::mineList($p, $userInfo);
+
+        return ['add' => $add, 'deal' => $deal, 'dealed' => $dealed];
+    }
+
+    // 我的工单
+    public function mineList($p, $userInfo)
     {
         $query = new Query();
         $query->from('ps_repair_assign pra')
             ->leftJoin('ps_repair pr', 'pra.repair_id = pr.id')
-            ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
-            ->where(['pra.user_id' => $userInfo['id']]);
-        if ($p['status']) {
-            if ($p['status'] == 4) {
-                $p['status'] = [4, 5, 9];
-            } else {
-                $p['status'] = [$p['status']];
-            }
-        } else {
-            $p['status'] = [2, 3, 4, 5, 7, 8, 9];
+            ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id');
+
+        if ($p['top_status'] == 1) { // 我报修
+            $query->andWhere(['pr.created_id' => $userInfo['id']]);
+        } else if ($p['top_status'] == 3) { // 我处理
+            $p['status'] = [3,4,5,6,9];
+            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+        } else { // 待处理
+            $p['status'] = [1];
+            $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
 
         $query->andWhere(['pr.status' => $p['status']]);
+
         $r['totals'] = $query->count();
-        $query->select('pr.contact_mobile, pr.room_address as owner_address, pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.leave_msg,
-            pr.repair_type_id, pr.room_username, pr.status, pr.is_pay, 
-            prt.name as repair_type_label, prt.is_relate_room')
+        $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
+            prt.name as repair_type_label')
         ->orderBy('pr.id desc, pr.status asc');
         $offset = ($p['page'] - 1) * $p['rows'];
         $query->offset($offset)->limit($p['rows']);
         $m = $query->createCommand()->queryAll();
 
         foreach ($m as $k => &$v) {
-            $v['owner_name'] = $v['room_username'];
-            $v['owner_phone'] = $v['contact_mobile'] ? $v['contact_mobile'] : '';
             $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
             $v['status'] = $v['status'];
             if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
@@ -1189,9 +1202,6 @@ class RepairService extends BaseService
             $expiredRepairTypeDesc =
                 isset(self::$_expired_repair_type[$v['expired_repair_type']]) ? self::$_expired_repair_type[$v['expired_repair_type']] : '';
             $v['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
-            unset($v['contact_mobile']);
-            unset($v['room_username']);
-            unset($v['is_pay']);
         }
 
         $r['list'] = $m;

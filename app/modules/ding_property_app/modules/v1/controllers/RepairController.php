@@ -118,7 +118,7 @@ class RepairController extends UserBaseController
         $validData = $valid['data'];
         $validData['relate_room'] = $relateRoom;
 
-        $r = RepairService::service()->add($validData, $this->userInfo);
+        $r = RepairService::service()->add($validData, $this->userInfo, 'small');
         if (!is_numeric($r)) {
             return F::apiFailed($r);
         }
