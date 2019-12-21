@@ -1156,12 +1156,12 @@ class RepairService extends BaseService
             ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id')
             ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id');
 
-        if ($p['top_status'] == 1) { // 我报修
+        if ($p['top_status'] == 1) { // 我报修 我提交的报事报修工单
             $query->andWhere(['pr.created_id' => $userInfo['id']]);
-        } else if ($p['top_status'] == 3) { // 我处理
+        } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
             $p['status'] = [3,4,5,6,9];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
-        } else { // 待处理
+        } else { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
