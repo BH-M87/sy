@@ -256,19 +256,20 @@ class RepairService extends BaseService
         }
 
         $query = new Query();
-        $query->from('ps_repair A')->where("1=1");
-
-        if ($p['community_id']) {
-            $query->andWhere(['A.community_id' => $p['community_id']]);
-        }
-
-        if ($start) {
-            $query->andWhere(['>=', 'A.repair_time', $start]);
-        }
-
-        if ($end) {
-            $query->andWhere(['<=', 'A.repair_time', $end]);
-        }
+        $query->from('ps_repair A')->where("1=1")
+            ->andfilterWhere(['A.community_id' => $p['community_id']])
+            ->andfilterWhere(['or', 
+            ['and', 
+                ['>=', 'A.expired_repair_time', $start], 
+                ['<', 'A.expired_repair_time', $end], 
+                ['>', 'A.expired_repair_time', 0]
+            ], 
+            ['and', 
+                ['>=', 'A.repair_time', $start], 
+                ['<', 'A.repair_time', $end], 
+                ['=', 'A.expired_repair_time', 0]
+            ]
+        ]);
 
         $r['totals'] = $query->count();
 
@@ -1680,8 +1681,8 @@ class RepairService extends BaseService
                     ['>', 'expired_repair_time', 0]
                 ], 
                 ['and', 
-                    ['>=', 'create_at', $start_at], 
-                    ['<', 'create_at', $end_at], 
+                    ['>=', 'repair_time', $start_at], 
+                    ['<', 'repair_time', $end_at], 
                     ['=', 'expired_repair_time', 0]
                 ]
             ])->andFilterWhere(['or', 
@@ -1690,12 +1691,13 @@ class RepairService extends BaseService
                     ['>', 'expired_repair_time', 0]
                 ], 
                 ['and', 
-                    ['<', 'create_at', $late_at], 
+                    ['<', 'repair_time', $late_at], 
                     ['=', 'expired_repair_time', 0]
                 ]
             ])->count();
     }
-
+    
+    // 分析
     public function analyse($p, $userInfo)
     {
         $sdefaultDate = date("Y-m-d");
