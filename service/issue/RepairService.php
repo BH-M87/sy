@@ -1241,46 +1241,41 @@ class RepairService extends BaseService
         return $m;
     }
 
-    //钉钉端工单确认或驳回
-    public function acceptIssue($params, $userInfo = [])
+    // 钉钉端工单确认或驳回
+    public function acceptIssue($p, $userInfo = [])
     {
-        $model = $this->getRepairInfoById($params['repair_id']);
+        $model = $this->getRepairInfoById($p['repair_id']);
         if (!$model) {
             return "工单不存在";
         }
-        $operate = $this->getOperateRepair($params['repair_id'], $userInfo['id']);
-        if (!$operate) {
-            return "无权操作此工单！";
-        }
 
-        //保存操作记录
+        // 保存操作记录
         $recordModel = new PsRepairRecord();
-        $recordModel->repair_id = $params['repair_id'];
-        $recordModel->content = $params['status'] == 2 ? $params['reason'] : '已确认';
-        $recordModel->status = $params['status'];
+        $recordModel->repair_id = $p['repair_id'];
+        $recordModel->content = $p['status'] == 2 ? $p['reason'] : '已确认';
+        $recordModel->status = $p['status'];
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
         $recordModel->operator_name = $userInfo['truename'];
+        $recordModel->mobile = $userInfo['mobile'];
+        
         if (!$recordModel->save()) {
             return "操作记录添加失败";
         }
 
-        if ($params['status'] == 1) {
-            //确认
-            $repairStatus = self::STATUS_UN_DO;
-        } elseif ($params['status'] == 2) {
-            //驳回
-            $repairStatus = self::STATUS_REJECTED;
+        if ($p['status'] == 1) { // 确认
+            $repairStatus = self::STATUS_UN_DO; 
+        } elseif ($p['status'] == 2) { // 驳回
+            $repairStatus = self::STATUS_REJECTED; 
         }
+
         $repair_arr['status'] = $repairStatus;
         Yii::$app->db->createCommand()->update('ps_repair',
-            $repair_arr,
-            "id=:id",
-            [":id" => $params["repair_id"]]
+            $repair_arr, "id = :id", [":id" => $p["repair_id"]]
         )->execute();
-        //TODO 发送短信
-        //TODO 发送钉消息
-        $re['issue_id'] = $params['repair_id'];
+
+        $re['issue_id'] = $p['repair_id'];
+
         return $re;
     }
 

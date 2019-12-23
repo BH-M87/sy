@@ -100,7 +100,7 @@ class RepairController extends UserBaseController
         if (is_array($r)) {
             return F::apiSuccess($r);
         }
-        
+
         return F::apiFailed($r);
     }
 
@@ -148,29 +148,34 @@ class RepairController extends UserBaseController
         return F::apiFailed($r);
     }
 
-    //工单确认或驳回
+    // 工单确认或驳回
     public function actionAccept()
     {
-        $params['repair_id'] = F::value($this->params, 'issue_id', 0);
-        $params['status'] = F::value($this->params, 'status', '');
-        $params['reason'] = F::value($this->params, 'reason', '');
-        if (!$params['repair_id']) {
+        $p['repair_id'] = F::value($this->params, 'issue_id', 0);
+        $p['status'] = F::value($this->params, 'status', '');
+        $p['reason'] = F::value($this->params, 'reason', '');
+
+        if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
         }
-        if (!$params['status']) {
+
+        if (!$p['status']) {
             return F::apiFailed('请输入操作状态！');
         }
-        if (!in_array($params['status'], [1,2])) {
+
+        if (!in_array($p['status'], [1,2])) {
             return F::apiFailed('状态值错误！');
         }
-        if ($params['status'] == 2 && !$params['reason']) {
+
+        if ($p['status'] == 2 && !$p['reason']) {
             return F::apiFailed('请输入驳回原因！');
         }
-        $result = RepairService::service()->acceptIssue($params, $this->userInfo);
-        if (is_array($result)) {
-            return F::apiSuccess($result);
+
+        $r = RepairService::service()->acceptIssue($p, $this->userInfo);
+        if (is_array($r)) {
+            return F::apiSuccess($r);
         }
-        return F::apiFailed($result);
+        return F::apiFailed($r);
     }
 
     // 查看维修记录
