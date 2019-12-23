@@ -831,7 +831,7 @@ class RepairService extends BaseService
     }
 
     // 工单作废
-    public function markInvalid($p, $userInfo = [])
+    public function markInvalid($p, $u = [])
     {
         $m = $this->getRepairInfoById($p['repair_id']);
         if (!$m) {
@@ -845,6 +845,16 @@ class RepairService extends BaseService
         $r = Yii::$app->db->createCommand()->update('ps_repair',
             ["status" => 6, 'hard_type' => 1], ["id" => $p['repair_id']])->execute();
         if ($r) {
+            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+                'repair_id' => $p["repair_id"],
+                'status' => 6,
+                'content' => '工单作废',
+                'create_at' => time(),
+                'operator_id' => $u["id"],
+                'operator_name' => $u["truename"],
+                'mobile' => $u["mobile"],
+            ])->execute();
+
             return true;
         }
 
