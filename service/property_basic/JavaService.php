@@ -160,4 +160,11 @@ class JavaService extends BaseService
         $query['route'] = '/user/rel-community-list';
         return self::returnCData($query);
     }
+
+    // 图片上传
+    public function qiniuToken($query)
+    {
+        $query['route'] = '/common/qiniu-token';
+        return self::returnCData($query);
+    }
 }

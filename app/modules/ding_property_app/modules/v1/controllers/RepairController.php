@@ -436,7 +436,7 @@ class RepairController extends UserBaseController
     {
         try {
             $data = $this->params;
-            $result = JavaOfCService::service()->qiniuToken($data);
+            $result = JavaService::service()->qiniuToken($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());
