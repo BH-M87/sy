@@ -1152,6 +1152,7 @@ class RepairService extends BaseService
         $r = self::mineList($p, $userInfo);
         
         if (!empty($p['top_status'])) {
+            $p['onlyTotal'] = 1;
             $p['top_status'] = 1; // 我报修
             $r['addNum'] = self::mineList($p, $userInfo)['totals'];
             $p['top_status'] = 2; // 待处理
@@ -1186,27 +1187,30 @@ class RepairService extends BaseService
         $query->andFilterWhere(['pr.status' => $p['status']]);
 
         $r['totals'] = $query->count();
-        $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
-            prt.name as repair_type_label')
-        ->orderBy('pr.id desc, pr.status asc');
-        $offset = ($p['page'] - 1) * $p['rows'];
-        $query->offset($offset)->limit($p['rows']);
-        $m = $query->createCommand()->queryAll();
 
-        foreach ($m as $k => &$v) {
-            $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
-            $v['status'] = $v['status'];
-            if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
-                $v['status_label'] = self::$_repair_status[10];
-            } else {
-                $v['status_label'] = self::$_repair_status[$v['status']];
+        if (empty($p['onlyTotal'])) {
+            $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
+                prt.name as repair_type_label')
+            ->orderBy('pr.id desc, pr.status asc');
+            $offset = ($p['page'] - 1) * $p['rows'];
+            $query->offset($offset)->limit($p['rows']);
+            $m = $query->createCommand()->queryAll();
+
+            foreach ($m as $k => &$v) {
+                $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
+                $v['status'] = $v['status'];
+                if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
+                    $v['status_label'] = self::$_repair_status[10];
+                } else {
+                    $v['status_label'] = self::$_repair_status[$v['status']];
+                }
+                $expiredRepairTypeDesc =
+                    isset(self::$_expired_repair_type[$v['expired_repair_type']]) ? self::$_expired_repair_type[$v['expired_repair_type']] : '';
+                $v['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
             }
-            $expiredRepairTypeDesc =
-                isset(self::$_expired_repair_type[$v['expired_repair_type']]) ? self::$_expired_repair_type[$v['expired_repair_type']] : '';
-            $v['expired_repair_time'] = $v['expired_repair_time'] ? date("Y-m-d", $v['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
-        }
 
-        $r['list'] = $m;
+            $r['list'] = $m;
+        }
 
         return $r;
     }
