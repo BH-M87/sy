@@ -1670,39 +1670,111 @@ class RepairService extends BaseService
         return $res ? $res['amount'] : '';
     }
 
+    public function _searchRepair($p)
+    {
+        $start_at = !empty($p['start_at']) ? $p['start_at'] : '';
+        $end_at = !empty($p['end_at']) ? $p['end_at'] : '';
+        $late_at = !empty($p['late_at']) ? $p['late_at'] : '';
+
+        return PsRepair::find()->where(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'hard_type', $p['hard_type']])
+            ->andfilterWhere(['or', 
+                ['and', 
+                    ['>=', 'expired_repair_time', $start_at], 
+                    ['<', 'expired_repair_time', $end_at], 
+                    ['>', 'expired_repair_time', 0]
+                ], 
+                ['and', 
+                    ['>=', 'create_at', $start_at], 
+                    ['<', 'create_at', $end_at], 
+                    ['=', 'expired_repair_time', 0]
+                ]
+            ])->andFilterWhere(['or', 
+                ['and',  
+                    ['<', 'expired_repair_time', $late_at], 
+                    ['>', 'expired_repair_time', 0]
+                ], 
+                ['and', 
+                    ['<', 'create_at', $late_at], 
+                    ['=', 'expired_repair_time', 0]
+                ]
+            ])->count();
+    }
+
     public function analyse($p, $userInfo)
     {
         $sdefaultDate = date("Y-m-d");
         $first = 1;
         $w = date('w',strtotime($sdefaultDate));
         $week_start = date('Y-m-d',strtotime("$sdefaultDate -".($w ? $w - $first : 6).' days'));
-        $week_end = date('m-d',strtotime("$week_start +6 days"));
-        $week_start = date('m-d', strtotime($week_start));
+        $weekEnd = date('m-d',strtotime("$week_start +6 days"));
+        $weekStart = date('m-d', strtotime($week_start));
+        // 今天
+        $p['hard_type'] = '';
+        $p['start_at'] = strtotime(date("Y-m-d", time())." 0:0:0");
+        $p['end_at'] = strtotime(date("Y-m-d", time())." 24:00:00");
+        $listRepair = self::_searchRepair($p);
+        
+        $p['hard_type'] = 2;
+        $listHard = self::_searchRepair($p);
+        
+        $p['hard_type'] = '';
+        $p['start_at'] = '';
+        $p['end_at'] = '';
+        $p['late_at'] = time();
+        $listLate = self::_searchRepair($p);
+        // 本周
+        $p['hard_type'] = '';
+        $p['start_at'] = strtotime($week_start);
+        $p['end_at'] = $p['start_at'] + 7*86400;
+        $p['late_at'] = '';
+        $weekRepair = self::_searchRepair($p);
+
+        $p['hard_type'] = 2;
+        $p['late_at'] = '';
+        $weekHard = self::_searchRepair($p);
+
+        $p['hard_type'] = '';
+        $p['late_at'] = time();
+        $weekLate = self::_searchRepair($p);
+        // 本月
+        $p['hard_type'] = '';
+        $p['late_at'] = '';
+        $p['start_at'] = mktime(0, 0, 0, date('m', time()), 1, date('Y', time()));
+        $p['end_at'] = mktime(0, 0, 0, date('m', strtotime('+1 month')), 1, date('Y', strtotime('+1 month')));
+        $monthRepair = self::_searchRepair($p);
+
+        $p['hard_type'] = 2;
+        $monthHard = self::_searchRepair($p);
+
+        $p['hard_type'] = '';
+        $p['late_at'] = time();
+        $monthLate = self::_searchRepair($p);
 
         return [
             'list' => [
-                'repair' => '0', 
+                'repair' => $listRepair, 
                 'task' => '0', 
-                'hard' => '0', 
-                'late' => '0', 
+                'hard' => $listHard, 
+                'late' => $listLate, 
                 'user' => '0',
                 'plan' => '0',
                 'device' => '0',
                 'stopDevice' => '0',
-                'totals' => '0',
+                'totals' => $listRepair,
             ], 
             'week' => [
-                'repair' => '0', 
+                'repair' => $weekRepair, 
                 'task' => '0', 
-                'hard' => '0', 
-                'late' => '0', 
-                'time' => $week_start.'~'.$week_end
+                'hard' => $weekHard, 
+                'late' => $weekLate, 
+                'time' => $weekStart.'~'.$weekEnd
             ], 
             'month' => [
-                'repair' => '0', 
+                'repair' => $monthRepair, 
                 'task' => '0', 
-                'hard' => '0', 
-                'late' => '0', 
+                'hard' => $monthHard, 
+                'late' => $monthLate, 
                 'time' => date('m', time()).'月'
             ]
         ];
