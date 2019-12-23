@@ -84,7 +84,7 @@ class BaseController extends Controller
         $header = Yii::$app->request->getHeaders();
 
         if (!isset($header['AppKey']) || empty($header['AppKey'])) {
-            //exit($this->ajaxReturn('AppKey不能为空'));
+            exit($this->ajaxReturn('AppKey不能为空'));
         }
 
         // C端鉴权
@@ -93,7 +93,7 @@ class BaseController extends Controller
         }
 
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
-            //exit($this->ajaxReturn('OpenAuthorization不能为空'));
+            exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
 
         $this->params['token'] = $header['OpenAuthorization'];
