@@ -1221,7 +1221,7 @@ class RepairService extends BaseService
     {
         $m = PsRepair::find()
             ->select('id as issue_id, repair_no as issue_bill_no, contact_mobile as owner_phone, leave_msg,
-                room_username as owner_name, is_assign, is_assign_again, room_address, repair_type_id, 
+                room_username as owner_name, is_assign, is_assign_again, room_address, repair_type_id, hard_type,
                 repair_content, repair_imgs, expired_repair_time, repair_from, status, pay_code_url, member_id, 
                 expired_repair_type, operator_name as manager, create_at as created_at, created_username, is_pay')
             ->where(['id' => $p['repair_id']])->asArray()->one();
