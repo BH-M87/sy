@@ -1148,15 +1148,19 @@ class RepairService extends BaseService
     {
         $p['page'] = $p['page'] ?? 1;
         $p['rows'] = $p['rows'] ?? 5;
-        
-        $p['top_status'] = 1; // 我报修
-        $add = self::mineList($p, $userInfo);
-        $p['top_status'] = 2; // 待处理
-        $deal = self::mineList($p, $userInfo);
-        $p['top_status'] = 3; // 我处理
-        $dealed = self::mineList($p, $userInfo);
 
-        return ['add' => $add, 'deal' => $deal, 'dealed' => $dealed];
+        $r = self::mineList($p, $userInfo);
+        
+        if (!empty($p['top_status'])) {
+            $p['top_status'] = 1; // 我报修
+            $r['addNum'] = self::mineList($p, $userInfo)['totals'];
+            $p['top_status'] = 2; // 待处理
+            $r['dealNum'] = self::mineList($p, $userInfo)['totals'];
+            $p['top_status'] = 3; // 我处理
+            $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
+        }
+        
+        return $r;
     }
 
     // 我的工单
@@ -1172,8 +1176,10 @@ class RepairService extends BaseService
         } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
             $p['status'] = [3,4,5,6,9];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
-        } else { // 待处理 分配至我处理，没走完已复核流程的工单
+        } else  if ($p['top_status'] == 1)  { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
+            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+        } else {
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
         
