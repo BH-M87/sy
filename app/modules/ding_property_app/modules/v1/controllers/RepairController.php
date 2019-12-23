@@ -196,7 +196,7 @@ class RepairController extends UserBaseController
     // 分配工单
     public function actionAssign()
     {
-        $p['repair_id'] = F::value($this->params, 'repair_id', '');
+        $p['repair_id'] = F::value($this->params, 'issue_id', '');
         $p['user_id'] = F::value($this->params, 'user_id', '');
         $p['finish_time'] = F::value($this->params, 'finish_time', '');
         $p['leave_msg'] = F::value($this->params, 'leave_msg', '');
