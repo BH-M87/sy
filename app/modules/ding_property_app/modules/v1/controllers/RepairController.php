@@ -412,6 +412,8 @@ class RepairController extends UserBaseController
             return F::apiFailed("请输入组id！");
         }
 
+        $this->params['id'] = $p['group_id'];
+
         $r = JavaService::service()->userList($this->params);
 
         return F::apiSuccess($r);
