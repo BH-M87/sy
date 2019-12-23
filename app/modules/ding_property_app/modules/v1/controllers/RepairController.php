@@ -202,6 +202,8 @@ class RepairController extends UserBaseController
         $p['leave_msg'] = F::value($this->params, 'leave_msg', '');
         $p['remark'] = F::value($this->params, 'remark', '');
 
+        $this->params['repair_id'] = $p['repair_id'];
+
         $valid = PsCommon::validParamArr(new PsRepairRecord(), $this->params, 'assign-repair');
         if (!$valid["status"]) {
             return PsCommon::responseFailed($valid["errorMsg"]);
