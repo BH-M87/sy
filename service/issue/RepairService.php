@@ -1184,7 +1184,8 @@ class RepairService extends BaseService
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
         
-        $query->andFilterWhere(['pr.status' => $p['status']]);
+        $query->andFilterWhere(['pr.status' => $p['status']])
+            ->andFilterWhere(['pr.repair_content' => $p['content']]);
 
         $r['totals'] = $query->count();
 
