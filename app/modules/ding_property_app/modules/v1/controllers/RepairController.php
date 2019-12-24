@@ -23,7 +23,7 @@ class RepairController extends UserBaseController
     public function actionNotListIndex()
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
-        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['is_admin'] = $this->params['is_admin'] == 1 ? 1 : 0;
         $p['user_id'] = $this->userInfo['id'];
         $p['token'] = F::value($this->params, 'token', 0);
 
@@ -43,7 +43,7 @@ class RepairController extends UserBaseController
     public function actionNotList()
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
-        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['is_admin'] = $this->params['is_admin'] == 1 ? 1 : 0;
         $p['type'] = F::value($this->params, 'type', 0);
         $p['user_id'] = $this->userInfo['id'];
         $p['token'] = F::value($this->params, 'token', 0);
@@ -117,7 +117,7 @@ class RepairController extends UserBaseController
     public function actionView()
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
-        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['is_admin'] = $this->params['is_admin'] == 1 ? 1 : 0;
         $p['token'] = F::value($this->params, 'token', 0);
         $p['user_id'] = $this->userInfo['id'];
 
@@ -187,7 +187,7 @@ class RepairController extends UserBaseController
     public function actionRecordList()
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
-        $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['is_admin'] = $this->params['is_admin'] == 1 ? 1 : 0;
         $p['token'] = F::value($this->params, 'token', 0);
         
         if (!$p['repair_id']) {
