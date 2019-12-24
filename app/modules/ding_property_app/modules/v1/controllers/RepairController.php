@@ -25,6 +25,7 @@ class RepairController extends UserBaseController
         $p['community_id'] = F::value($this->params, 'community_id', 0);
         $p['is_admin'] = F::value($this->params, 'is_admin', 0);
         $p['user_id'] = $this->userInfo['id'];
+        $p['token'] = F::value($this->params, 'token', 0);
 
         if (!$p['community_id']) {
             return F::apiFailed('请输入小区id！');
@@ -45,6 +46,7 @@ class RepairController extends UserBaseController
         $p['is_admin'] = F::value($this->params, 'is_admin', 0);
         $p['type'] = F::value($this->params, 'type', 0);
         $p['user_id'] = $this->userInfo['id'];
+        $p['token'] = F::value($this->params, 'token', 0);
 
         if (!$p['community_id']) {
             return F::apiFailed('请输入小区id！');
@@ -116,6 +118,7 @@ class RepairController extends UserBaseController
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['token'] = F::value($this->params, 'token', 0);
         $p['user_id'] = $this->userInfo['id'];
 
         if (!$p['repair_id']) {
@@ -135,6 +138,7 @@ class RepairController extends UserBaseController
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['use_as'] = 'dingding';
+        $p['token'] = F::value($this->params, 'token', 0);
 
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -154,6 +158,7 @@ class RepairController extends UserBaseController
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['status'] = F::value($this->params, 'status', '');
         $p['reason'] = F::value($this->params, 'reason', '');
+        $p['token'] = F::value($this->params, 'token', 0);
 
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -183,6 +188,7 @@ class RepairController extends UserBaseController
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['is_admin'] = F::value($this->params, 'is_admin', 0);
+        $p['token'] = F::value($this->params, 'token', 0);
         
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -201,6 +207,7 @@ class RepairController extends UserBaseController
         $p['finish_time'] = F::value($this->params, 'finish_time', '');
         $p['leave_msg'] = F::value($this->params, 'leave_msg', '');
         $p['remark'] = F::value($this->params, 'remark', '');
+        $p['token'] = F::value($this->params, 'token', 0);
 
         $this->params['repair_id'] = $p['repair_id'];
 
@@ -220,6 +227,7 @@ class RepairController extends UserBaseController
     // 二次维修
     public function actionCreateNew()
     {
+        $p['token'] = F::value($this->params, 'token', 0);
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (empty($p['repair_id'])) {
             return F::apiFailed("repair_id不能为空");
@@ -244,6 +252,7 @@ class RepairController extends UserBaseController
         $p['materials_list'] = F::value($this->params, 'materials_list', json_encode([]));
         $p['other_charge'] = F::value($this->params, 'other_charge', 0);
         $p['total_price'] = F::value($this->params, 'total_price', 0);
+        $p['token'] = F::value($this->params, 'token', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $p, 'make-complete');
         if (!$valid["status"]) {
@@ -274,6 +283,7 @@ class RepairController extends UserBaseController
         $p['repair_content'] = F::value($this->params, 'content', '');
         $p['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
         $p['user_id'] = F::value($this->params, 'user_id', 0);
+        $p['token'] = F::value($this->params, 'token', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $p, 'make-complete');
         if (!$valid["status"]) {
@@ -338,6 +348,7 @@ class RepairController extends UserBaseController
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['hard_remark'] = F::value($this->params, 'reason', '');
+        $p['token'] = F::value($this->params, 'token', 0);
 
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -358,6 +369,7 @@ class RepairController extends UserBaseController
     // 工单作废
     public function actionMarkInvalid()
     {
+        $p['token'] = F::value($this->params, 'token', 0);
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -374,6 +386,7 @@ class RepairController extends UserBaseController
     // 工单复核
     public function actionReview()
     {
+        $p['token'] = F::value($this->params, 'token', 0);
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['content'] = F::value($this->params, 'content', '');
         $p['status'] = F::value($this->params, 'status', '');
@@ -425,6 +438,7 @@ class RepairController extends UserBaseController
     // 分析
     public function actionAnalyse()
     {
+        $p['token'] = F::value($this->params, 'token', 0);
         $p['community_id'] = F::value($this->params, 'community_id', 0);
 
         if (!$p['community_id']) {

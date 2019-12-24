@@ -1220,7 +1220,7 @@ class RepairService extends BaseService
     public function appShow($p)
     {
         $m = PsRepair::find()
-            ->select('id as issue_id, repair_no as issue_bill_no, contact_mobile as owner_phone, leave_msg,
+            ->select('id as issue_id, repair_no as issue_bill_no, contact_mobile as owner_phone, leave_msg, community_id,
                 room_username as owner_name, is_assign, is_assign_again, room_address, repair_type_id, hard_type,
                 repair_content, repair_imgs, expired_repair_time, repair_from, status, pay_code_url, member_id, 
                 expired_repair_type, operator_name as manager, create_at as created_at, created_username, is_pay')
@@ -1259,6 +1259,9 @@ class RepairService extends BaseService
         $expiredRepairTypeDesc =
             isset(self::$_expired_repair_type[$m['expired_repair_type']]) ? self::$_expired_repair_type[$m['expired_repair_type']] : '';
         $m['expired_repair_time'] = $m['expired_repair_time'] ? date("Y-m-d", $m['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
+        // 小区名称调Java
+        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
+        $m['community_name'] = $community['communityName'];
 
         return $m;
     }
