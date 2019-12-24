@@ -1269,13 +1269,13 @@ class RepairService extends BaseService
                 'key' => 'markInvalid',
                 'status' => ["1","2","8"],
             ],
-            'gov-sy-repair-markPaid' => [
-                'name' => '标记支付',
-                'img' => '../../../images/repairDetails_icon8.png',
-                'url' => '',
-                'key' => '',
-                'status' => ["3"],
-            ],
+            //'gov-sy-repair-markPaid' => [
+            //    'name' => '标记支付',
+            //    'img' => '../../../images/repairDetails_icon8.png',
+            //    'url' => '',
+            //    'key' => '',
+            //    'status' => ["3"],
+            //],
         ];
 
         // 钉钉报事报修权限
