@@ -1303,12 +1303,7 @@ class RepairService extends BaseService
 
         $appraise = $this->getAppraise(["repair_id" => $p['repair_id']]);
         $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
-        if ($p['is_admin']) {
-            $m['owner_address'] = '';
-        } else {
-            $m['owner_address'] = $m['room_address'];
-            $m['room_address']  = '';
-        }
+ 
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
         $m['repair_type_label'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
         $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($m['repair_type_id']);
