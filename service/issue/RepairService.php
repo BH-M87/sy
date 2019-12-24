@@ -258,6 +258,7 @@ class RepairService extends BaseService
         $query = new Query();
         $query->from('ps_repair A')->where("1=1")
             ->andfilterWhere(['A.community_id' => $p['community_id']])
+            ->andfilterWhere(['A.status' => [1,2,7,8]])
             ->andfilterWhere(['or', 
             ['and', 
                 ['>=', 'A.expired_repair_time', $start], 
