@@ -1191,7 +1191,7 @@ class RepairService extends BaseService
 
         if (empty($p['onlyTotal'])) {
             $query->select('pr.id as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
-                prt.name as repair_type_label')
+                prt.name as repair_type_label, pr.repair_content remark')
             ->orderBy('pr.id desc, pr.status asc');
             $offset = ($p['page'] - 1) * $p['rows'];
             $query->offset($offset)->limit($p['rows']);
