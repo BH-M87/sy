@@ -300,6 +300,7 @@ class RepairController extends UserBaseController
         $p['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
         $p['user_id'] = F::value($this->params, 'user_id', 0);
         $p['amount'] = F::value($this->params, 'amount', 0);
+        $p['token'] = F::value($this->params, 'token', 0);
 
         $valid = PsCommon::validParamArr(new PsRepair(), $p, 'make-complete');
         if (!$valid["status"]) {
