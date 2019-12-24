@@ -84,7 +84,6 @@ class RepairController extends UserBaseController
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['contact_mobile'] = F::value($this->params, 'contact_mobile', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
-        $p['expired_repair_time'] = $p['expired_repair_time'] ? date("Y-m-d", $p['expired_repair_time']) : 0;
         $p['repair_from'] = 3;
         $p['token'] = F::value($this->params, 'token', '');
 
