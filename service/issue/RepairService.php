@@ -1351,7 +1351,7 @@ class RepairService extends BaseService
         $recordModel = new PsRepairRecord();
         $recordModel->repair_id = $p['repair_id'];
         $recordModel->content = $p['status'] == 2 ? $p['reason'] : '已确认';
-        $recordModel->status = $p['status'];
+        $recordModel->status = $model['status'];
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
         $recordModel->operator_name = $userInfo['truename'];
