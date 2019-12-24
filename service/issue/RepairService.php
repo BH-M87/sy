@@ -1301,7 +1301,7 @@ class RepairService extends BaseService
             return $m;
         }
 
-        $appraise = $this->getAppraise(["repair_id" => $p['repair_id']]);
+        $m['appraise_content'] = $this->getAppraise(["repair_id" => $p['repair_id']]);
         $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
  
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
@@ -1326,6 +1326,12 @@ class RepairService extends BaseService
         $expiredRepairTypeDesc =
             isset(self::$_expired_repair_type[$m['expired_repair_type']]) ? self::$_expired_repair_type[$m['expired_repair_type']] : '';
         $m['expired_repair_time'] = $m['expired_repair_time'] ? date("Y-m-d", $m['expired_repair_time']). ' '.$expiredRepairTypeDesc : '';
+        // 查询最近处理人
+        $tmpAssign = PsRepairRecord::find()
+            ->select('content')
+            ->where(['repair_id' => $m['issue_id']])
+            ->orderBy('id desc')->asArray()->one();
+        $m['handle_content'] = !empty($tmpAssign['content']) ? $tmpAssign['content'] : "";
         // 小区名称调Java
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $community['communityName'];
