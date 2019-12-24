@@ -742,7 +742,7 @@ class RepairService extends BaseService
 
         $releateRoom = RepairTypeService::service()->repairTypeRelateRoom($m['repair_type_id']);
         if ($releateRoom && empty($p['amount'])) {
-            return '请输入使用金额';
+            //return '请输入使用金额';
         }
 
         $transaction = Yii::$app->db->beginTransaction();
