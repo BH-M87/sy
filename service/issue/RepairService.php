@@ -1216,6 +1216,85 @@ class RepairService extends BaseService
         return $r;
     }
 
+    public function permissions($token)
+    {
+        // 钉钉报事报修权限组装前端数据
+        $repair_role_name = [
+            'gov-sy-repair-assign' => [
+                'name' => '工单分配',
+                'img' => '../../../images/repairDetails_icon1.png',
+                'url' => '/pages/myDetails/distributionOrder/distributionOrder',
+                'key' => '',
+                'status' => ["1","2","8"],
+            ],
+            'gov-sy-repair-markSuccess' => [
+                'name' => '标记完成',
+                'img' => '../../../images/repairDetails_icon2.png',
+                'url' => '/pages/myDetails/makeComplete/makeComplete',
+                'key' => '',
+                'status' => ["1","2","8"],
+            ],
+            'gov-sy-repair-addRecord' => [
+                'name' => '添加记录',
+                'img' => '../../../images/repairDetails_icon3.png',
+                'url' => '/pages/myDetails/makeRecord/makeRecord',
+                'key' => '',
+                'status' => ["1","2","8"],
+            ],
+            'gov-sy-repair-markDifficult' => [
+                'name' => '标记疑难',
+                'img' => '../../../images/repairDetails_icon4.png',
+                'url' => '/pages/myDetails/makeDifficult/makeDifficult',
+                'key' => '2',
+                'status' => ["1","2","8"],
+            ],
+            'gov-sy-repair-secondAudit' => [
+                'name' => '工单复核',
+                'img' => '../../../images/repairDetails_icon7.png',
+                'url' => '/pages/myDetails/reviewOrder/reviewOrder',
+                'key' => '',
+                'status' => ["3","4"],
+            ],
+            'gov-sy-repair-secondRepair' => [
+                'name' => '二次维修',
+                'img' => '../../../images/repairDetails_icon6.png',
+                'url' => '',
+                'key' => '',
+                'status' => ["9"],
+            ],
+            'gov-sy-repair-cancel' => [
+                'name' => '工单作废',
+                'img' => '../../../images/repairDetails_icon5.png',
+                'url' => '',
+                'key' => 'markInvalid',
+                'status' => ["1","2","8"],
+            ],
+            'gov-sy-repair-markPaid' => [
+                'name' => '标记支付',
+                'img' => '../../../images/repairDetails_icon8.png',
+                'url' => '',
+                'key' => '',
+                'status' => ["3"],
+            ],
+        ];
+
+        // 钉钉报事报修权限
+        $repair_role = [
+            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-markDifficult', 
+            'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel', 'gov-sy-repair-markPaid'
+        ];
+        // 用户已有权限
+        $role_list = JavaService::service()->permissions(['token' => $token])['list'];
+        foreach ($role_list as $item) {
+            if(in_array($item['key'], $repair_role)){
+                // 组装数组
+                $data[] = $repair_role_name[$item['key']];
+            }
+        }
+
+        return $data;
+    }
+
     // 钉钉应用工单详情
     public function appShow($p)
     {
@@ -1262,6 +1341,7 @@ class RepairService extends BaseService
         // 小区名称调Java
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $m['community_id']]);
         $m['community_name'] = $community['communityName'];
+        $m['permissions'] = self::permissions($p['token']);
 
         return $m;
     }

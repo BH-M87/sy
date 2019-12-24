@@ -167,4 +167,11 @@ class JavaService extends BaseService
         $query['route'] = '/common/qiniu-token';
         return self::returnCData($query);
     }
+
+    // 用户权限列表
+    public function permissions($query)
+    {
+        $query['route'] = '/user/permissions';
+        return self::returnCData($query);
+    }
 }
