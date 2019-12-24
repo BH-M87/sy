@@ -1269,19 +1269,12 @@ class RepairService extends BaseService
                 'key' => 'markInvalid',
                 'status' => ["1","2","8"],
             ],
-            //'gov-sy-repair-markPaid' => [
-            //    'name' => '标记支付',
-            //    'img' => '../../../images/repairDetails_icon8.png',
-            //    'url' => '',
-            //    'key' => '',
-            //    'status' => ["3"],
-            //],
         ];
 
         // 钉钉报事报修权限
         $repair_role = [
             'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-markDifficult', 
-            'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel', 'gov-sy-repair-markPaid'
+            'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel'
         ];
         // 用户已有权限
         $role_list = JavaService::service()->permissions(['token' => $token])['list'];
