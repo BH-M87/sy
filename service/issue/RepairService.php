@@ -1161,6 +1161,39 @@ class RepairService extends BaseService
         $p['page'] = $p['page'] ?? 1;
         $p['rows'] = $p['rows'] ?? 5;
 
+        switch ($p['type']) {
+            case '1': // 今天
+                $p['start'] = strtotime(date('Y-m-d', time()));
+                $p['end'] = strtotime(date('Y-m-d', time())) + 86399;
+                break;
+            case '2': // 昨天
+                $p['start'] = mktime(0, 0, 0, date('m'), date('d') - 1, date('Y'));
+                $p['end'] = mktime(23, 59, 59, date('m'), date('d') - 1, date('Y'));
+                break;
+            case '3': // 本周
+                $p['end'] = strtotime(date('Y-m-d', strtotime("+0 week Sunday", time()))) + 24 * 3600 - 1;
+                $p['start'] = $p['end'] - 7*86400 + 1;
+                break;
+            case '4': // 上周
+                $p['start'] = strtotime(date('Y-m-d', strtotime("last week Monday", time())));
+                $p['end'] = strtotime(date('Y-m-d', strtotime("last week Sunday", time()))) + 24 * 3600 - 1;
+                break;
+            case '5': // 本月
+                $p['start'] = mktime(0, 0, 0, date('m'), 1, date('Y'));
+                $p['end'] = mktime(23, 59, 59, date('m'), date('t'), date('Y'));
+                break;
+            case '6': // 上月
+                $p['start'] = mktime(0, 0, 0, date('m') - 1, 1, date('Y'));
+                $p['end'] = mktime(23, 59, 59, date('m') - 1, date('t', $p['start']), date('Y'));
+                break;
+            case '7': // 本年
+                $p['start'] = mktime(0, 0, 0, 1, 1, date('Y'));
+                $p['end'] = mktime(23, 59, 59, 12, 31, date('Y'));
+                break;
+            default:
+                break;
+        }
+
         $r = self::mineList($p, $userInfo);
         
         if (!empty($p['top_status'])) {
@@ -1172,6 +1205,8 @@ class RepairService extends BaseService
             $p['top_status'] = 3; // 我处理
             $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
+
+        
         
         return $r;
     }
@@ -1204,7 +1239,9 @@ class RepairService extends BaseService
         }
         
         $query->andFilterWhere(['pr.status' => $p['status']])
-            ->andFilterWhere(['pr.repair_content' => $p['content']]);
+            ->andFilterWhere(['pr.repair_content' => $p['content']])
+            ->andFilterWhere(['>=', 'pr.create_at', $p['start']])
+            ->andFilterWhere(['<=', 'pr.create_at', $p['end']]);
 
         $r['totals'] = $query->count('DISTINCT(pr.id)');
 
