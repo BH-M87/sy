@@ -1224,7 +1224,7 @@ class RepairService extends BaseService
         } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
             $p['status'] = [3,4,5,6,9];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
-        } else  if ($p['top_status'] == 1)  { // 待处理 分配至我处理，没走完已复核流程的工单
+        } else  if ($p['top_status'] == 2)  { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         } else {
@@ -1316,7 +1316,7 @@ class RepairService extends BaseService
                 'name' => '二次维修',
                 'img' => '../../../images/repairDetails_icon6.png',
                 'url' => '',
-                'key' => '',
+                'key' => 'repair',
                 'status' => ["9"],
             ],
             'gov-sy-repair-cancel' => [
@@ -1357,8 +1357,9 @@ class RepairService extends BaseService
         if (!$m) {
             return $m;
         }
-
+        
         $m['appraise_content'] = $this->getAppraise(["repair_id" => $p['repair_id']]);
+        $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
         $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
  
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
@@ -1371,11 +1372,6 @@ class RepairService extends BaseService
             $m['status_label'] = self::$_repair_status[10];
         } else {
             $m['status_label'] = self::$_repair_status[$m['status']];
-        }
-
-        if (($m['status'] == self::STATUS_CHECKED || $m['status'] == self::STATUS_CHECKED_FALSE) && !$p['is_admin']) {
-            $m['status_label'] = "已结束";
-            $m['status'] = 4;
         }
 
         $m['repair_imgs'] = $m['repair_imgs'] ? explode(",", $m['repair_imgs']) : [];
