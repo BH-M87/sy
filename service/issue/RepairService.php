@@ -1194,6 +1194,13 @@ class RepairService extends BaseService
         } else {
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
+
+        if ($p['status'] == 3) { // 待支付
+            $query->andFilterWhere(['pr.is_pay' => 1]);
+        } else if ($p['status'] == 10) { // 待评价
+            $p['status'] = 3;
+            $query->andFilterWhere(['pr.is_pay' => 2]);
+        }
         
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['pr.repair_content' => $p['content']]);
