@@ -614,7 +614,6 @@ class RepairService extends BaseService
             $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
-            $repair_arr["assign_user_id"] = $p["user_id"];
             $repair_arr["status"] = 7;
             if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
                 $repair_arr["leave_msg"] = $p["leave_msg"];
@@ -1227,7 +1226,8 @@ class RepairService extends BaseService
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         } else  if ($p['top_status'] == 2)  { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
-            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+            $query->andWhere(['pra.user_id' => $userInfo['id']])
+                ->andFilterWhere(['pra.is_operate' => 1]);
         } else {
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         }
