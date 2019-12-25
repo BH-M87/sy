@@ -1206,7 +1206,7 @@ class RepairService extends BaseService
             $p['top_status'] = 3; // 我处理
             $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
-        
+
         return $r;
     }
 
@@ -1828,6 +1828,7 @@ class RepairService extends BaseService
         $late_at = !empty($p['late_at']) ? $p['late_at'] : '';
 
         return PsRepair::find()->where(['community_id' => $p['community_id']])
+            ->andFilterWhere(['created_id' => $p['user_id']])
             ->andFilterWhere(['=', 'hard_type', $p['hard_type']])
             ->andfilterWhere(['or', 
                 ['and', 
@@ -1855,6 +1856,7 @@ class RepairService extends BaseService
     // 分析
     public function analyse($p, $userInfo)
     {
+        $p['user_id'] = $userInfo['id'];
         $sdefaultDate = date("Y-m-d");
         $first = 1;
         $w = date('w',strtotime($sdefaultDate));
