@@ -1373,11 +1373,6 @@ class RepairService extends BaseService
             $m['status_label'] = self::$_repair_status[$m['status']];
         }
 
-        if (($m['status'] == self::STATUS_CHECKED || $m['status'] == self::STATUS_CHECKED_FALSE) && !$p['is_admin']) {
-            $m['status_label'] = "已结束";
-            $m['status'] = 4;
-        }
-
         $m['repair_imgs'] = $m['repair_imgs'] ? explode(",", $m['repair_imgs']) : [];
         $m['created_at'] = $m['created_at'] ? date("Y-m-d H:i", $m['created_at']) : '';
         $expiredRepairTypeDesc =
