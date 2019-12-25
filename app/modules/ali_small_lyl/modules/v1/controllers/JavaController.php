@@ -28,6 +28,18 @@ class JavaController extends BaseController{
         }
     }
 
+    // 授权码换取token信息
+    public function actionExchangeAuthValue()
+    {
+        try {
+            $data = $this->params;
+            $result = JavaOfCService::service()->exchangeAuthValue($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
 
     /**
      * Notes: 首页展示的房屋信息[鉴权]

@@ -33,6 +33,13 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
+    // 授权码换取token信息
+    public function exchangeAuthValue($query)
+    {
+        $query['route'] = '/member/auth/exchangeAuthValue';
+        return self::returnCData($query);
+    }
+
     /*
      * 获得会员信息
      */
