@@ -18,60 +18,32 @@ Class AlipaySmallApp
     private $_aes_secret = '';
 
     //文件固定路径: alisa/rsa_files/module_name/xxx.txt
-    public function __construct($module)
+    public function __construct()
     {
         $this->_aop = new AopRedirect();
-        switch($module){
-            case "edoor":
-                $this->_aop->appId = Yii::$app->params['edoor_app_id'];
-                $publicFile = Yii::$app->params['edoor_alipay_public_key_file'];
-                $privateFile = Yii::$app->params['edoor_rsa_private_key_file'];
-                $this->_aes_secret = Yii::$app->params['edoor_aes_secret'];
-                break;
-            case "fczl":
-                $this->_aop->appId = Yii::$app->params['fczl_app_id'];
-                $publicFile = Yii::$app->params['fczl_alipay_public_key_file'];
-                $privateFile = Yii::$app->params['fczl_rsa_private_key_file'];
-                $this->_aes_secret = Yii::$app->params['fczl_aes_secret'];
-                break;
-            case "djyl":
-                $this->_aop->appId = Yii::$app->params['djyl_app_id'];
-                $publicFile = Yii::$app->params['djyl_alipay_public_key_file'];
-                $privateFile = Yii::$app->params['djyl_rsa_private_key_file'];
-                $this->_aes_secret = Yii::$app->params['djyl_aes_secret'];
-                break;
-            default:
-                $this->_aop->appId = Yii::$app->params['edoor_app_id'];
-                $publicFile = Yii::$app->params['edoor_alipay_public_key_file'];
-                $privateFile = Yii::$app->params['edoor_rsa_private_key_file'];
-
-        }
+        $this->_aop->appId = Yii::$app->params['repair_app_id'];
+        $publicFile = Yii::$app->params['repair_alipay_public_key_file'];
+        $privateFile = Yii::$app->params['repair_rsa_private_key_file'];
+        $this->_aes_secret = Yii::$app->params['repair_aes_secret'];
         $this->_aop->alipayrsaPublicKey = file_get_contents($publicFile);
         $this->_aop->rsaPrivateKey = file_get_contents($privateFile);
         $this->_aop->signType = 'RSA2';
     }
 
-    //auth code 换取用户token
-    public function getToken($authCode)
+    //报事报修发送消息
+    public function sendRepairMsg($to_user_id, $form_id, $id, $notifyUrl = null)
     {
-        $params['code'] = $authCode;
-        $params['grant_type'] = 'authorization_code';
-        return $this->_aop->execute('alipay.system.oauth.token', $params);
-    }
-
-    //auth code 换取用户token
-    public function refreshToken($refresh_token)
-    {
-        $params['refresh_token'] = $refresh_token;
-        $params['grant_type'] = 'refresh_token';
-        return $this->_aop->execute('alipay.system.oauth.token', $params);
-    }
-
-    //token获取会员信息
-    public function getUser($token)
-    {
-        $params['auth_token'] = $token;
-        return $this->_aop->execute('alipay.user.info.share', $params);
+        $data = ['keyword1' => ['value' => '您提交的报事报修已处理，请查看详情！']];
+        $biz = [
+            'to_user_id' => $to_user_id,
+            'form_id' => $form_id,
+            'user_template_id' => 'NGQ1MmNmYTQ1NzUzYTZlYmUyY2UwNmU0M2EzNzI0ZTM=',
+            'page' => "/pages/orderDetails/orderDetails?repair_id={$id}",
+            'data' => json_encode($data),
+        ];
+        $params['biz_content'] = json_encode($biz);
+        //$params['notify_url'] = $notifyUrl;
+        return $this->_aop->sdkExecute('alipay.open.app.mini.templatemessage.send', $params);
     }
 
     //支付宝支付orderstr
@@ -111,6 +83,7 @@ Class AlipaySmallApp
     }
 
     //解密字符串
+
     /**
      * Notes: 小程序解密数据
      * @param $query
