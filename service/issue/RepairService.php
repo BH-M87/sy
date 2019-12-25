@@ -587,7 +587,7 @@ class RepairService extends BaseService
 
     // 工单分配
     public function assign($p, $u = [])
-    {return "在调试请稍等";
+    {
         if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
             return "期望完成时间只能输入1-24的正整数";
         }
