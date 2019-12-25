@@ -1224,7 +1224,7 @@ class RepairService extends BaseService
         } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
             $p['status'] = [3,4,5,6,9];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
-        } else  if ($p['top_status'] == 1)  { // 待处理 分配至我处理，没走完已复核流程的工单
+        } else  if ($p['top_status'] == 2)  { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         } else {
