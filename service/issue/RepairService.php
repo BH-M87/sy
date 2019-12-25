@@ -652,6 +652,16 @@ class RepairService extends BaseService
             ];
             $connection->createCommand()->insert('ps_repair_record', $repair_record)->execute();
 
+            // 发送钉钉oa消息
+            $msg = [
+                'token' => $p['token'],
+                'headTitle' => $model['repair_content'],
+                'userIdList' => [$p['user_id']],
+                'messageUrl' => 'eapp://pages/detail/detail?jId=',
+                'colList' => ['rowTitle' => $model['repair_content'], 'rowContent' => $model['repair_content']],
+            ];
+            JavaService::service()->sendOaMsg($msg);
+
             $transaction->commit();
             $re['releate_id'] = $p['repair_id'];
             return $re;
@@ -1216,7 +1226,8 @@ class RepairService extends BaseService
 
         return $r;
     }
-
+    
+    // 钉钉操作权限
     public function permissions($token)
     {
         // 钉钉报事报修权限组装前端数据

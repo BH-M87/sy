@@ -174,4 +174,11 @@ class JavaService extends BaseService
         $query['route'] = '/user/permissions';
         return self::returnCData($query);
     }
+
+    // 发送钉钉oa通知
+    public function sendOaMsg($query)
+    {
+        $query['route'] = '/user/send-oa-msg';
+        return self::returnCData($query);
+    }
 }
