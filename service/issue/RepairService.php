@@ -657,7 +657,7 @@ class RepairService extends BaseService
                 'token' => $p['token'],
                 'headTitle' => $model['repair_content'],
                 'userIdList' => [$p['user_id']],
-                'messageUrl' => 'eapp://pages/detail/detail?jId=',
+                'messageUrl' => 'eapp://pages/index/repairDetails/index?id='.$model['id'],
                 'colList' => ['rowTitle' => $model['repair_content'], 'rowContent' => $model['repair_content']],
             ];
             JavaService::service()->sendOaMsg($msg);
