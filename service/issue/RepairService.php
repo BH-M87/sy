@@ -1206,8 +1206,6 @@ class RepairService extends BaseService
             $p['top_status'] = 3; // 我处理
             $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
-
-        
         
         return $r;
     }
