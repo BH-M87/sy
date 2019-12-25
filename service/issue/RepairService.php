@@ -1160,6 +1160,7 @@ class RepairService extends BaseService
     {
         $p['page'] = $p['page'] ?? 1;
         $p['rows'] = $p['rows'] ?? 5;
+        $p['status'] = $p['status'] == 0 ? '' : $p['status'];
 
         switch ($p['type']) {
             case '1': // 今天
