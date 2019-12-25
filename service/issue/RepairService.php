@@ -1707,7 +1707,7 @@ class RepairService extends BaseService
     {
         return PsRepair::find()->alias('pr')
             ->select('pr.repair_no, pr.id, pr.status, pr.repair_type_id, pr.community_id, pr.contact_mobile,
-            pr.is_pay, pr.member_id, pr.room_username')
+            pr.is_pay, pr.member_id, pr.room_username, pr.repair_content')
             ->where(['pr.id' => $id])
             ->asArray()
             ->one();
