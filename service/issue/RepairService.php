@@ -1357,8 +1357,9 @@ class RepairService extends BaseService
         if (!$m) {
             return $m;
         }
-
+        
         $m['appraise_content'] = $this->getAppraise(["repair_id" => $p['repair_id']]);
+        $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
         $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
  
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
