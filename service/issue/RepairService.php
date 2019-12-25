@@ -1316,7 +1316,7 @@ class RepairService extends BaseService
                 'name' => '二次维修',
                 'img' => '../../../images/repairDetails_icon6.png',
                 'url' => '',
-                'key' => '',
+                'key' => 'repair',
                 'status' => ["9"],
             ],
             'gov-sy-repair-cancel' => [
