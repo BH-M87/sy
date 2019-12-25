@@ -1160,6 +1160,7 @@ class RepairService extends BaseService
     {
         $p['page'] = $p['page'] ?? 1;
         $p['rows'] = $p['rows'] ?? 5;
+        $p['status'] = $p['status'] == 0 ? '' : $p['status'];
 
         switch ($p['type']) {
             case '1': // 今天
@@ -1206,8 +1207,6 @@ class RepairService extends BaseService
             $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
 
-        
-        
         return $r;
     }
 
@@ -1226,9 +1225,10 @@ class RepairService extends BaseService
             $query->andWhere(['pra.user_id' => $userInfo['id']]);
         } else  if ($p['top_status'] == 2)  { // 待处理 分配至我处理，没走完已复核流程的工单
             $p['status'] = [2,7];
-            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+            $query->andWhere(['pra.user_id' => $userInfo['id']])
+                ->andFilterWhere(['pra.is_operate' => 1]);
         } else {
-            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+            $query->andWhere(['or', ['pra.user_id' => $userInfo['id']], ['pr.created_id' => $userInfo['id']]]);
         }
 
         if ($p['status'] == 3) { // 待支付
@@ -1239,7 +1239,7 @@ class RepairService extends BaseService
         }
         
         $query->andFilterWhere(['pr.status' => $p['status']])
-            ->andFilterWhere(['pr.repair_content' => $p['content']])
+            ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
             ->andFilterWhere(['>=', 'pr.create_at', $p['start']])
             ->andFilterWhere(['<=', 'pr.create_at', $p['end']]);
 
@@ -1282,28 +1282,28 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon1.png',
                 'url' => '/pages/myDetails/distributionOrder/distributionOrder',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-markSuccess' => [
                 'name' => '标记完成',
                 'img' => '../../../images/repairDetails_icon2.png',
                 'url' => '/pages/myDetails/makeComplete/makeComplete',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-addRecord' => [
                 'name' => '添加记录',
                 'img' => '../../../images/repairDetails_icon3.png',
                 'url' => '/pages/myDetails/makeRecord/makeRecord',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-markDifficult' => [
                 'name' => '标记疑难',
                 'img' => '../../../images/repairDetails_icon4.png',
                 'url' => '/pages/myDetails/makeDifficult/makeDifficult',
                 'key' => '2',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-secondAudit' => [
                 'name' => '工单复核',
@@ -1324,7 +1324,7 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon5.png',
                 'url' => '',
                 'key' => 'markInvalid',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
         ];
 
@@ -1360,7 +1360,11 @@ class RepairService extends BaseService
         
         $m['appraise_content'] = $this->getAppraise(["repair_id" => $p['repair_id']]);
         $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
-        $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
+
+        $m['can_operate'] = '';
+        if ($repair['is_operate'] == 1 && $m['status'] == 7) {
+            $m['can_operate'] = 1;
+        }
  
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
         $m['repair_type_label'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
@@ -1824,6 +1828,7 @@ class RepairService extends BaseService
         $late_at = !empty($p['late_at']) ? $p['late_at'] : '';
 
         return PsRepair::find()->where(['community_id' => $p['community_id']])
+            ->andFilterWhere(['created_id' => $p['user_id']])
             ->andFilterWhere(['=', 'hard_type', $p['hard_type']])
             ->andfilterWhere(['or', 
                 ['and', 
@@ -1851,6 +1856,7 @@ class RepairService extends BaseService
     // 分析
     public function analyse($p, $userInfo)
     {
+        $p['user_id'] = $userInfo['id'];
         $sdefaultDate = date("Y-m-d");
         $first = 1;
         $w = date('w',strtotime($sdefaultDate));
