@@ -7,6 +7,7 @@
 
 namespace app\modules\property\controllers;
 
+use service\alipay\SmallSendService;
 use service\common\AlipaySmallApp;
 use yii\web\Controller;
 use Yii;
@@ -16,6 +17,8 @@ Class TestController extends Controller
     public function actionSend(){
         //获取支付宝会员信息
         $service = new AlipaySmallApp();
+//        $service  = new SmallSendService();
+
         $to_user_id = '2088702944312592';
         $form_id = 'MjA4ODcwMjk0NDMxMjU5Ml8xNTc3MjYwMzE2MzQzXzA3OA==';
         $id = '301';

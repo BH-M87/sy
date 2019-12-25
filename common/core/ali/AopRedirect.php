@@ -24,6 +24,7 @@ class AopRedirect {
     //私钥值
     public $rsaPrivateKey='';
     //网关
+    //public $gatewayUrl = "http://openapi.stable.dl.alipaydev.com/gateway.do";
     public $gatewayUrl ="https://openapi.alipay.com/gateway.do";
     //返回数据格式【仅支持JSON】
     public $format = "json";
@@ -171,6 +172,7 @@ class AopRedirect {
 
         $version = $this->apiVersion;
         $params['version'] = $this->checkEmpty($version) ? $this->apiVersion : $version;
+
         if ($notify_url = $apiParas['notify_url']) {
             $params['notify_url'] = $notify_url;
         }
@@ -180,7 +182,6 @@ class AopRedirect {
         ksort($params);
 
         $params['sign'] = $this->generateSign($params, $this->signType);
-
         return http_build_query($params);
     }
 
@@ -240,7 +241,6 @@ class AopRedirect {
         if(!$this->checkEmpty($this->rsaPrivateKeyFilePath)){
             openssl_free_key($res);
         }
-
         $sign = base64_encode($sign);
         return $sign;
     }
