@@ -34,6 +34,7 @@ class RepairController extends BaseController
         $p['repair_content'] = F::value($this->params, 'repair_content', '');
         $p['repair_imgs'] =  F::value($this->params, 'repair_imgs', '');
         $p['room'] =  F::value($this->params, 'roomId', '');
+        $p['formId'] =  F::value($this->params, 'formId', '');
         $p['repair_from'] = 1;
         $p['token'] = PsCommon::get($this->params, 'token');
         //当前报修类型是否需要房屋
