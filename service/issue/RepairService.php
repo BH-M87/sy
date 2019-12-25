@@ -1198,7 +1198,7 @@ class RepairService extends BaseService
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['pr.repair_content' => $p['content']]);
 
-        $r['totals'] = $query->count();
+        $r['totals'] = $query->count('DISTINCT(pr.id)');
 
         if (empty($p['onlyTotal'])) {
             $query->select('DISTINCT(pr.id) as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
