@@ -1360,11 +1360,17 @@ class RepairService extends BaseService
             return "工单不存在";
         }
 
+        if ($p['status'] == 1) { // 确认
+            $repairStatus = self::STATUS_UN_DO; 
+        } elseif ($p['status'] == 2) { // 驳回
+            $repairStatus = self::STATUS_REJECTED; 
+        }
+
         // 保存操作记录
         $recordModel = new PsRepairRecord();
         $recordModel->repair_id = $p['repair_id'];
         $recordModel->content = $p['status'] == 2 ? $p['reason'] : '已确认';
-        $recordModel->status = $model['status'];
+        $recordModel->status = $repairStatus;
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
         $recordModel->operator_name = $userInfo['truename'];
@@ -1372,12 +1378,6 @@ class RepairService extends BaseService
         
         if (!$recordModel->save()) {
             return "操作记录添加失败";
-        }
-
-        if ($p['status'] == 1) { // 确认
-            $repairStatus = self::STATUS_UN_DO; 
-        } elseif ($p['status'] == 2) { // 驳回
-            $repairStatus = self::STATUS_REJECTED; 
         }
 
         $repair_arr['status'] = $repairStatus;
