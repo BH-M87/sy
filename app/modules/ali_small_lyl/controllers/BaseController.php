@@ -107,13 +107,13 @@ class BaseController extends \yii\web\Controller
         $this->params['appKey'] = $header['AppKey'];
 
         //C端鉴权
-        if (in_array(Yii::$app->controller->action->id, ['login-auth'])) {
+        if (in_array(Yii::$app->controller->action->id, ['login-auth', 'exchange-auth-value'])) {
             return ;
         }
+
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
             exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
-
 
         $this->params['token'] = $header['OpenAuthorization'];
         $this->params['appKey'] = $header['AppKey'];
