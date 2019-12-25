@@ -14,10 +14,8 @@
  */
 namespace common\core\ali;
 
-use common\core\ali\AopEncrypt;
 use yii\base\Exception;
 use yii\helpers\FileHelper;
-use yii\web\HttpException;
 
 class AopRedirect {
     public $appId='';
@@ -26,9 +24,7 @@ class AopRedirect {
     //私钥值
     public $rsaPrivateKey='';
     //网关
-    //public $gatewayUrl = "http://openapi.stable.dl.alipaydev.com/gateway.do";
     public $gatewayUrl ="https://openapi.alipay.com/gateway.do";
-    //public $gatewayUrl ="http://openapi.sit.dl.alipaydev.com/gateway.do";
     //返回数据格式【仅支持JSON】
     public $format = "json";
     //api版本
@@ -66,24 +62,12 @@ class AopRedirect {
 
     private $writelog = true;
 
-    private $isCrontab = false;
-
     protected $alipaySdkVersion = "alipay-sdk-php-20161101";
 
     //调用不存在的属性，返回null
     public function __get($name)
     {
         return null;
-    }
-
-    public function setNotifyUrl($notifyUrl)
-    {
-        $this->notifyUrl = $notifyUrl;
-    }
-
-    public function setReturnUrl($returnUrl)
-    {
-        $this->returnUrl = $returnUrl;
     }
 
     /**
@@ -129,12 +113,6 @@ class AopRedirect {
         $this->signType = $type;
     }
 
-
-    public function setIsCrontab($isCrontab)
-    {
-        $this->isCrontab = $isCrontab;
-    }
-
     /**
      * post请求
      * @param $method
@@ -145,6 +123,7 @@ class AopRedirect {
      */
     public function execute($method, $apiParas=[], $authToken = null, $appInfoAuthtoken = null) {
         list($sysParams, $apiParams) = $this->getApiParams($method, $apiParas, $appInfoAuthtoken, $authToken);
+
         //系统参数放入GET请求串
         $requestUrl = $this->gatewayUrl .'?'.http_build_query($sysParams);
 
@@ -155,44 +134,68 @@ class AopRedirect {
             print_r( $e->getCode(). $e->getMessage());
             return false;
         }
-
         $respObject = $this->response($resp, $method);
+
         //记下错误日志
         if(!$respObject) {
             \Yii::error($sysParams["method"] . $requestUrl. "HTTP_RESPONSE_NOT_WELL_FORMED".$resp);
         }
+
         if ($this->writelog) {
-            $log  = "Request time:" . date('YmdHis') . PHP_EOL;
-            $log .= "Request url:" . $requestUrl . PHP_EOL;
-            $log .= "Request content:" . var_export($apiParas, true) . PHP_EOL;
-            $log .= "Request token:" . $appInfoAuthtoken . PHP_EOL;
-            $log .= "Response content:". var_export($respObject, true)."\r\n";
-            $this->addLog($method, $log);
+            $html  = "Request time:" . date('YmdHis') . "\r\n";
+            $html .= "Request url:" . $requestUrl . "\r\n";
+            $html .= "Request content:" . var_export($apiParas, true) . "\r\n";
+            $html .= "Request token:" . $appInfoAuthtoken . "\r\n";
+            $html .= "Response content:". var_export($respObject, true)."\r\n";
+            self::writeLog($method.".txt", $html);
         }
+
         return $respObject;
     }
 
     /**
-     * 添加日志，为了区分定时任务与程序执行的，文件夹区分开，防止文件夹权限错误
+     * 生成用于调用收银台SDK的字符串
+     * @param $method
+     * @param array $apiParas
+     * @return string
+     */
+    public function sdkExecute($method, $apiParas=[]) {
+
+        $params['app_id'] = $this->appId;
+        $params['method'] = $method;
+        $params['format'] = $this->format;
+        $params['sign_type'] = $this->signType;
+        $params['timestamp'] = date("Y-m-d H:i:s");
+        $params['alipay_sdk'] = $this->alipaySdkVersion;
+        $params['charset'] = $this->postCharset;
+
+        $version = $this->apiVersion;
+        $params['version'] = $this->checkEmpty($version) ? $this->apiVersion : $version;
+        if ($notify_url = $apiParas['notify_url']) {
+            $params['notify_url'] = $notify_url;
+        }
+
+        $params['biz_content'] = $apiParas['biz_content'];
+
+        ksort($params);
+
+        $params['sign'] = $this->generateSign($params, $this->signType);
+
+        return http_build_query($params);
+    }
+
+    /**
+     * 写入文件日志
      * @param $file
      * @param $content
      * @param int $type
-     * @return bool
      */
-    public function addLog($method, $content)
+    public static function writeLog($file, $content, $type = FILE_APPEND)
     {
-        $file = $method.".txt";
-        $today = date("Y-m-d", time());
-        //定时任务
-        $savePath = \Yii::$app->basePath.'/runtime/alipay-logs/' . $today . '/';
-
+        $today    = date("Y-m-d", time());
+        $savePath = \Yii::$app->basePath . DIRECTORY_SEPARATOR. 'runtime'. DIRECTORY_SEPARATOR . 'alipay-logs' . DIRECTORY_SEPARATOR . $today . DIRECTORY_SEPARATOR;
         if (FileHelper::createDirectory($savePath, 0777)) {
-            if (!file_exists($savePath.$file)) {
-                file_put_contents($savePath.$file, $content, FILE_APPEND);
-                chmod($savePath.$file, 0777);//第一次创建 文件，设置777权限
-            } else {
-                file_put_contents($savePath.$file, $content, FILE_APPEND);
-            }
+            file_put_contents($savePath.$file, $content, $type);
             return true;
         }
         return false;
@@ -215,6 +218,7 @@ class AopRedirect {
     }
 
     protected function sign($data, $signType = "RSA") {
+
         if($this->checkEmpty($this->rsaPrivateKeyFilePath)){
             $priKey=$this->rsaPrivateKey;
             $res = "-----BEGIN RSA PRIVATE KEY-----\n" .
@@ -224,22 +228,19 @@ class AopRedirect {
             $priKey = file_get_contents($this->rsaPrivateKeyFilePath);
             $res = openssl_get_privatekey($priKey);
         }
-        if(!$res) {
-            throw new HttpException(500, '您使用的私钥格式错误，请检查RSA私钥配置');
-        }
-        try {
-            if ("RSA2" == $signType) {
-                openssl_sign($data, $sign, $res, OPENSSL_ALGO_SHA256);
-            } else {
-                openssl_sign($data, $sign, $res);
-            }
-        } catch (\Exception $e) {
-            throw new HttpException(500, '签名错误');
+
+        ($res) or die('您使用的私钥格式错误，请检查RSA私钥配置');
+
+        if ("RSA2" == $signType) {
+            openssl_sign($data, $sign, $res, OPENSSL_ALGO_SHA256);
+        } else {
+            openssl_sign($data, $sign, $res);
         }
 
         if(!$this->checkEmpty($this->rsaPrivateKeyFilePath)){
             openssl_free_key($res);
         }
+
         $sign = base64_encode($sign);
         return $sign;
     }
@@ -283,18 +284,18 @@ class AopRedirect {
         }
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        $response = curl_exec($ch);
+        $reponse = curl_exec($ch);
 
         if (curl_errno($ch)) {
             throw new Exception(curl_error($ch), 0);
         } else {
             $httpStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             if (200 !== $httpStatusCode) {
-                throw new HttpException($httpStatusCode, $response);
+                throw new Exception($reponse, $httpStatusCode);
             }
         }
         curl_close($ch);
-        return $response;
+        return $reponse;
     }
 
     protected function getMillisecond() {
@@ -307,8 +308,7 @@ class AopRedirect {
      * @param $method
      * @param $apiParas
      */
-    public function getApiParams($method, $apiParas=[], $appInfoAuthtoken=null, $authToken=null)
-    {
+    public function getApiParams($method, $apiParas=[], $appInfoAuthtoken=null, $authToken=null) {
         //组装系统参数
         $sysParams["app_id"] = $this->appId;
         $sysParams["version"] = $this->apiVersion;
@@ -320,30 +320,27 @@ class AopRedirect {
         $sysParams["terminal_type"] = $this->terminalType;
         $sysParams["terminal_info"] = $this->terminalInfo;
         $sysParams["prod_code"] = $this->prodCode;
-        $sysParams["notify_url"] = !empty($apiParas['notify_url']) ? $apiParas['notify_url'] : $this->notifyUrl;
-        if ($this->returnUrl) {
+        $sysParams["notify_url"] = $this->notifyUrl;
+        if($this->returnUrl) {
             $sysParams["return_url"] = $this->returnUrl;
         }
         $sysParams["charset"] = $this->postCharset;
-        if ($appInfoAuthtoken) {
+        if($appInfoAuthtoken) {
             $sysParams["app_auth_token"] = $appInfoAuthtoken;
-        }
-        if ($authToken) {
-            $sysParams["auth_token"] = $authToken;
         }
         //获取业务参数
         $apiParams = $apiParas;
         //默认不加密
-        if ($this->needEncrypt) {
+        if ($this->needEncrypt){
             $sysParams["encrypt_type"] = $this->encryptType;
             if ($this->checkEmpty($apiParams['biz_content'])) {
-                throw new HttpException(500, " api request Fail! The reason : encrypt request is not supperted!");
+                throw new Exception(" api request Fail! The reason : encrypt request is not supperted!");
             }
             if ($this->checkEmpty($this->encryptKey) || $this->checkEmpty($this->encryptType)) {
-                throw new HttpException(500, " encryptType and encryptKey must not null! ");
+                throw new Exception(" encryptType and encryptKey must not null! ");
             }
             if ("AES" != $this->encryptType) {
-                throw new HttpException(500, "加密类型只支持AES");
+                throw new Exception("加密类型只支持AES");
             }
             // 执行加密
             $enCryptContent = AopEncrypt::encrypt($apiParams['biz_content'], $this->encryptKey);
@@ -359,7 +356,7 @@ class AopRedirect {
      */
     private function response($resp, $method)
     {
-        $respArray = json_decode($resp, true);
+        $respArray = json_decode($resp,true);
         // 验签
         $this->checkResponseSign($method, $respArray);
         // 解密
@@ -369,7 +366,7 @@ class AopRedirect {
         }
         if($respArray) {
             $responseKey = str_replace('.', '_', $method).'_response';
-            return !empty($respArray[$responseKey]) ? $respArray[$responseKey] : [];
+            return !empty($respArray[$responseKey]) ? $respArray[$responseKey] : $respArray['error_response'];
         }
         return [];
     }
@@ -390,8 +387,23 @@ class AopRedirect {
         return false;
     }
 
+    /**
+     * 验证签名
+     * @param $params
+     * @param $rsaPublicKeyFilePath
+     */
+    public function rsaCheckV1($params) {
+        $sign = $params['sign'];
+        $signType = $params['sign_type'];
+        $params['sign_type'] = null;
+        $params['sign'] = null;
+        return $this->verify($this->getSignContent($params), $sign, '', $signType);
+    }
+
     function verify($data, $sign, $rsaPublicKeyFilePath, $signType = 'RSA') {
+
         if($this->checkEmpty($this->alipayPublicKey)){
+
             $pubKey= $this->alipayrsaPublicKey;
             $res = "-----BEGIN PUBLIC KEY-----\n" .
                 wordwrap($pubKey, 64, "\n", true) .
@@ -406,6 +418,7 @@ class AopRedirect {
         ($res) or die('支付宝RSA公钥错误。请检查公钥文件格式是否正确');
 
         //调用openssl内置方法验签，返回bool值
+
         if ("RSA2" == $signType) {
             $result = (bool)openssl_verify($data, base64_decode($sign), $res, OPENSSL_ALGO_SHA256);
         } else {
@@ -449,18 +462,17 @@ class AopRedirect {
      * @throws Exception
      */
     public function checkResponseSign($method, $respArr) {
-
         if (!$this->checkEmpty($this->alipayPublicKey) || !$this->checkEmpty($this->alipayrsaPublicKey)) {
             $result = $this->parseResponse($method, $respArr);
             if(!$result['sign']) {
-                throw new HttpException(500, " check sign Fail! The reason : signData is Empty");
+                throw new Exception(" check sign Fail! The reason : signData is Empty;".$result['data']['sub_msg']);
             }
             if(!$result['data']) {
-                throw new HttpException(500, "check sign failed because of response data empty");
+                throw new Exception("check sign failed because of response data empty".$result['data']['sub_msg']);
             }
-            $verifyData = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
-            $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayrsaPublicKey, $this->signType);
 
+            $verifyData = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
+            $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayPublicKey, $this->signType);
             if(!$checkResult) {
                 if(strpos($verifyData, "\\/") > 0) {
                     $verifyData = str_replace("\\/", "/", $verifyData);
@@ -468,7 +480,7 @@ class AopRedirect {
                 }
             }
             if(!$checkResult) {
-                throw new HttpException(500, "check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
+                throw new Exception("check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
             }
         }
     }
@@ -483,112 +495,5 @@ class AopRedirect {
         $result = $this->parseResponse($method, $respArray);
         $content = $result['data'];
         return AopEncrypt::decrypt($content, $this->encryptKey);
-    }
-
-    public function encryptAndSign($bizContent, $rsaPublicKeyPem, $rsaPrivateKeyPem, $charset, $isEncrypt, $isSign) {
-        // 加密，并签名
-        if ($isEncrypt && $isSign) {
-            $encrypted = base64_encode($this->rsaEncrypt($bizContent, $rsaPublicKeyPem, $charset));
-            $sign = $this->sign($encrypted,$charset);
-            $response = "<?xml version=\"1.0\" encoding=\"$charset\"?><alipay><response>$encrypted</response><encryption_type>RSA</encryption_type><sign>$sign</sign><sign_type>RSA</sign_type></alipay>";
-            return $response;
-        }
-        // 加密，不签名
-        if ($isEncrypt && (!$isSign)) {
-            $encrypted = $this->rsaEncrypt($bizContent, $rsaPublicKeyPem, $charset);
-            $response = "<?xml version=\"1.0\" encoding=\"$charset\"?><alipay><response>$encrypted</response><encryption_type>RSA</encryption_type></alipay>";
-            return $response;
-        }
-        // 不加密，但签名
-        if ((!$isEncrypt) && $isSign) {
-            $sign = $this->sign($bizContent);
-            $response = "<?xml version=\"1.0\" encoding=\"$charset\"?><alipay><response>$bizContent</response><sign>$sign</sign><sign_type>RSA</sign_type></alipay>";
-            return $response;
-        }
-        // 不加密，不签名
-        $response = "<?xml version=\"1.0\" encoding=\"$charset\"?>$bizContent";
-
-        return $response;
-    }
-
-    public function rsaEncrypt($data, $rsaPublicKeyPem, $charset) {
-        //读取公钥文件
-        $pubKey = file_get_contents($rsaPublicKeyPem);
-        //转换为openssl格式密钥
-        $res = openssl_get_publickey($pubKey);
-        $blocks = $this->splitCN($data, 0, 30, $charset);
-        $chrtext  = null;
-        $encodes = array();
-        foreach ($blocks as $n => $block) {
-            if (!openssl_public_encrypt($block, $chrtext , $res)) {
-                echo "<br/>" . openssl_error_string() . "<br/>";
-            }
-            $encodes[] = $chrtext ;
-        }
-        $chrtext = implode(",", $encodes);
-
-        return $chrtext;
-    }
-
-    public function rsaDecrypt($data, $rsaPrivateKeyPem, $charset) {
-        //读取私钥文件
-        $priKey = file_get_contents($rsaPrivateKeyPem);
-        //转换为openssl格式密钥
-        $res = openssl_get_privatekey($priKey);
-        $decodes = explode(',', $data);
-        $strnull = "";
-        $dcyCont = "";
-        foreach ($decodes as $n => $decode) {
-            if (!openssl_private_decrypt($decode, $dcyCont, $res)) {
-                echo "<br/>" . openssl_error_string() . "<br/>";
-            }
-            $strnull .= $dcyCont;
-        }
-        return $strnull;
-    }
-
-    function splitCN($cont, $n = 0, $subnum, $charset) {
-        //$len = strlen($cont) / 3;
-        $arrr = array();
-        for ($i = $n; $i < strlen($cont); $i += $subnum) {
-            $res = $this->subCNchar($cont, $i, $subnum, $charset);
-            if (!empty ($res)) {
-                $arrr[] = $res;
-            }
-        }
-
-        return $arrr;
-    }
-
-    function subCNchar($str, $start = 0, $length, $charset = "gbk") {
-        if (strlen($str) <= $length) {
-            return $str;
-        }
-        $re['utf-8'] = "/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|[\xe0-\xef][\x80-\xbf]{2}|[\xf0-\xff][\x80-\xbf]{3}/";
-        $re['gb2312'] = "/[\x01-\x7f]|[\xb0-\xf7][\xa0-\xfe]/";
-        $re['gbk'] = "/[\x01-\x7f]|[\x81-\xfe][\x40-\xfe]/";
-        $re['big5'] = "/[\x01-\x7f]|[\x81-\xfe]([\x40-\x7e]|\xa1-\xfe])/";
-        preg_match_all($re[$charset], $str, $match);
-        $slice = join("", array_slice($match[0], $start, $length));
-        return $slice;
-    }
-
-    /** rsaCheckV1 & rsaCheckV2
-     *  验证签名
-     *  在使用本方法前，必须初始化AopClient且传入公钥参数。
-     *  公钥是否是读取字符串还是读取文件，是根据初始化传入的值判断的。
-     **/
-    public function rsaCheckV1($params, $rsaPublicKeyFilePath,$signType='RSA') {
-        $sign = $params['sign'];
-        $params['sign_type'] = null;
-        $params['sign'] = null;
-        return $this->verify($this->getSignContent($params), $sign, $rsaPublicKeyFilePath,$signType);
-    }
-
-    public function rsaCheckV2($params, $rsaPublicKeyFilePath, $signType='RSA') {
-        print_r($params);
-        $sign = $params['sign'];
-        $params['sign'] = null;
-        return $this->verify($this->getSignContent($params), $sign, $rsaPublicKeyFilePath, $signType);
     }
 }
