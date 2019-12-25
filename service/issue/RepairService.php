@@ -511,6 +511,7 @@ class RepairService extends BaseService
             $model->created_id = $params['member_id'];
             $model->member_id = $params['member_id'];
             $model->contact_name = $userInfo['trueName'];
+            $model->formId = $userInfo['formId'];
         } else {
             $model->repair_time = !empty($params["repair_time"]) ? strtotime($params["repair_time"]) : time();
             $model->contact_mobile = $params['contact_mobile'];
