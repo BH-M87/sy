@@ -614,6 +614,7 @@ class RepairService extends BaseService
             $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
+            $repair_arr["assign_user_id"] = $p["user_id"];
             $repair_arr["status"] = 7;
             if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
                 $repair_arr["leave_msg"] = $p["leave_msg"];
@@ -1282,28 +1283,28 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon1.png',
                 'url' => '/pages/myDetails/distributionOrder/distributionOrder',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-markSuccess' => [
                 'name' => '标记完成',
                 'img' => '../../../images/repairDetails_icon2.png',
                 'url' => '/pages/myDetails/makeComplete/makeComplete',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-addRecord' => [
                 'name' => '添加记录',
                 'img' => '../../../images/repairDetails_icon3.png',
                 'url' => '/pages/myDetails/makeRecord/makeRecord',
                 'key' => '',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-markDifficult' => [
                 'name' => '标记疑难',
                 'img' => '../../../images/repairDetails_icon4.png',
                 'url' => '/pages/myDetails/makeDifficult/makeDifficult',
                 'key' => '2',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
             'gov-sy-repair-secondAudit' => [
                 'name' => '工单复核',
@@ -1324,7 +1325,7 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon5.png',
                 'url' => '',
                 'key' => 'markInvalid',
-                'status' => ["1","2","8"],
+                'status' => ["1","2","7","8"],
             ],
         ];
 
@@ -1360,7 +1361,11 @@ class RepairService extends BaseService
         
         $m['appraise_content'] = $this->getAppraise(["repair_id" => $p['repair_id']]);
         $repair = $this->getOperateRepair($p['repair_id'], $p['user_id']);
-        $m['can_operate'] = isset($repair) ? $repair['is_operate'] : "";
+
+        $m['can_operate'] = '';
+        if ($repair['is_operate'] == 1 && $m['status'] == 7) {
+            $m['can_operate'] = 1;
+        }
  
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
         $m['repair_type_label'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
