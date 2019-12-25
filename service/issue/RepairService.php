@@ -1229,7 +1229,7 @@ class RepairService extends BaseService
             $query->andWhere(['pra.user_id' => $userInfo['id']])
                 ->andFilterWhere(['pra.is_operate' => 1]);
         } else {
-            $query->andWhere(['pra.user_id' => $userInfo['id']]);
+            $query->andWhere(['or', ['pra.user_id' => $userInfo['id']], ['pr.created_id' => $userInfo['id']]]);
         }
 
         if ($p['status'] == 3) { // 待支付
