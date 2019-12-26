@@ -1,41 +1,38 @@
-<?php
-/**
- * 报事报修相关服务
- * User: fengwenchao
- * Date: 2019/8/13
- * Time: 10:51
- */
-
+<?php // 报事报修相关服务
 namespace service\issue;
 
 use service\property_basic\JavaService;
 
-use app\models\PsCommunityModel;
-use app\models\PsOrder;
-use app\models\PsRepair;
-use app\models\PsRepairAppraise;
-use app\models\PsRepairAssign;
-use app\models\PsRepairBill;
-use app\models\PsRepairBillMaterial;
-use app\models\PsRepairMaterials;
-use app\models\PsRepairRecord;
-use app\models\RepairType;
-use app\models\SqwnUser;
-use common\core\F;
+use Yii;
+use yii\db\Query;
+use yii\base\Exception;
+
 use common\MyException;
+use common\core\F;
+use common\core\PsCommon;
+
+use service\BaseService;
+
+use service\common\CsvService;
+use service\common\AlipaySmallApp;
+use service\rbac\OperateService;
 use service\alipay\BillService;
 use service\alipay\BillSmallService;
 use service\manage\CommunityService;
-use common\core\PsCommon;
-use service\BaseService;
 use service\basic_data\MemberService;
-use service\common\CsvService;
 use service\message\MessageService;
-use service\rbac\OperateService;
-use yii\base\Exception;
-use yii\db\Query;
-use Yii;
-use service\common\AlipaySmallApp;
+
+use app\models\PsOrder;
+use app\models\PsRepair;
+use app\models\SqwnUser;
+use app\models\RepairType;
+use app\models\PsRepairBill;
+use app\models\PsRepairAssign;
+use app\models\PsRepairRecord;
+use app\models\PsRepairAppraise;
+use app\models\PsCommunityModel;
+use app\models\PsRepairMaterials;
+use app\models\PsRepairBillMaterial;
 
 class RepairService extends BaseService
 {
