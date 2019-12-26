@@ -122,7 +122,6 @@ class RepairService extends BaseService
     public function getCommon($params)
     {
         $comm = [
-            //'repair_type' => RepairTypeService::service()->getRepairTypeTree($params),
             'repair_from' => PsCommon::returnKeyValue(self::$_repair_from),
             'repair_status' => PsCommon::returnKeyValue(self::$_repair_status),
             'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status)
@@ -539,8 +538,23 @@ class RepairService extends BaseService
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
+        // 添加操作日志
+        self::_logAdd($params['token'], $userInfo['trueName']."新增报事报修，工单号" . $model->repair_no);
 
         return ['id' => $model->id];
+    }
+    
+    // 添加java日志
+    public function _logAdd($token, $content)
+    {
+        $javaService = new JavaService();
+        $javaParam = [
+            'token' => $token,
+            'moduleKey' => 'repair_module',
+            'content' => $content,
+
+        ];
+        $javaService->logAdd($javaParam);
     }
 
     //工单详情
@@ -664,6 +678,9 @@ class RepairService extends BaseService
             ];
             JavaService::service()->sendOaMsg($msg);
 
+            // 添加操作日志
+            self::_logAdd($p['token'], "工单分配，工单号" . $model['repair_no']);
+
             $transaction->commit();
             $re['releate_id'] = $p['repair_id'];
             return $re;
@@ -727,6 +744,9 @@ class RepairService extends BaseService
             $r["status"] = 2;
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
+
+            // 添加操作日志
+            self::_logAdd($p['token'], "添加操作记录，工单号" . $m['repair_no']);
             
             $transaction->commit();
             return true;
@@ -801,6 +821,9 @@ class RepairService extends BaseService
                 $member = JavaService::service()->memberRelation(['token' => $p['token'], 'id' => $m['member_id']]);
                 $service->sendRepairMsg($member['memberId'], $m['formId'], $m['id']);
             }
+
+            // 添加操作日志
+            self::_logAdd($p['token'], "工单标记完成，工单号" . $m['repair_no']);
   
             $transaction->commit();
             return true;
@@ -843,6 +866,9 @@ class RepairService extends BaseService
                 'mobile' => $u["mobile"],
             ])->execute();
 
+            // 添加操作日志
+            self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+
             return true;
         }
 
@@ -873,6 +899,9 @@ class RepairService extends BaseService
                 'operator_name' => $u["truename"],
                 'mobile' => $u["mobile"],
             ])->execute();
+
+            // 添加操作日志
+            self::_logAdd($p['token'], "工单作废，工单号" . $m['repair_no']);
 
             return true;
         }
@@ -976,6 +1005,9 @@ class RepairService extends BaseService
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]]
             )->execute();
 
+            // 添加操作日志
+            self::_logAdd($p['token'], "工单复核，工单号" . $m['repair_no']);
+
             $transaction->commit();
 
             return true;
@@ -1025,6 +1057,9 @@ class RepairService extends BaseService
             $r['day'] = date('Y-m-d');
 
             Yii::$app->db->createCommand()->insert('ps_repair', $r)->execute();
+
+            // 添加操作日志
+            self::_logAdd($p['token'], "二次维修，工单号" . $m['repair_no']);
 
             $transaction->commit();
             return true;
@@ -1248,8 +1283,6 @@ class RepairService extends BaseService
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
-            //->andFilterWhere(['>=', 'pr.create_at', $p['start']])
-            //->andFilterWhere(['<=', 'pr.create_at', $p['end']])
             ->andFilterWhere(['or', 
                 ['and', 
                     ['>=', 'expired_repair_time', $p['start']], 
@@ -1455,6 +1488,12 @@ class RepairService extends BaseService
         )->execute();
 
         $re['issue_id'] = $p['repair_id'];
+        
+        if ($p['status'] == 1) { // 确认
+            self::_logAdd($p['token'], "确认工单，工单号" . $model['repair_no']);
+        } elseif ($p['status'] == 2) { // 驳回
+            self::_logAdd($p['token'], "驳回工单，工单号" . $model['repair_no']);
+        }
 
         return $re;
     }
@@ -1640,9 +1679,9 @@ class RepairService extends BaseService
     }
 
     // 工单评价
-    public function evaluate($params)
+    public function evaluate($p)
     {
-        $repairInfo = $this->getRepairInfoById($params['repair_id']);
+        $repairInfo = $this->getRepairInfoById($p['repair_id']);
         if (!$repairInfo) {
             return "工单不存在";
         }
@@ -1652,16 +1691,16 @@ class RepairService extends BaseService
         }
 
         $repairAppraise = PsRepairAppraise::find()
-            ->where(['repair_id' => $params['repair_id']])
+            ->where(['repair_id' => $p['repair_id']])
             ->asArray()
             ->one();
         if ($repairAppraise) {
             return'已经评价过了';
         }
 
-        $params['created_at'] = time();
+        $p['created_at'] = time();
         $model = new PsRepairAppraise();
-        $model->setAttributes($params);
+        $model->setAttributes($p);
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
@@ -1669,8 +1708,10 @@ class RepairService extends BaseService
         // 更新订单状态
         $repair_arr["status"] = self::STATUS_COMPLETE;
         Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,
-            "id = :id", [":id" => $params["repair_id"]]
+            "id = :id", [":id" => $p["repair_id"]]
         )->execute();
+
+        self::_logAdd($p['token'], "工单评价，工单号" . $model['repair_no']);
         
         return true;
     }
