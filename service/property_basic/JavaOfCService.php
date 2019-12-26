@@ -77,4 +77,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/file-tool/qiniu-token';
         return self::returnCData($query);
     }
+
+    //积分新增
+    public function integralGrant($query){
+        $query['route'] = '/member/integral/grant';
+        return self::returnCData($query);
+    }
 }
