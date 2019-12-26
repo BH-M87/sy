@@ -656,10 +656,10 @@ class RepairService extends BaseService
             // 发送钉钉oa消息
             $msg = [
                 'token' => $p['token'],
-                'headTitle' => $model['repair_content'],
+                'headTitle' => '你有一条新的工单，请及时处理。',
                 'userIdList' => [$p['user_id']],
                 'messageUrl' => 'eapp://pages/index/repairDetails/index?id='.$model['id'],
-                'colList' => ['rowTitle' => $model['repair_content'], 'rowContent' => $model['repair_content']],
+                'colList' => ['rowTitle' => '你有一条新的工单，请及时处理。', 'rowContent' => $model['repair_content']],
             ];
             JavaService::service()->sendOaMsg($msg);
 
