@@ -166,7 +166,7 @@ class VoteController extends BaseController
             }
 
             //获得投票信息
-            $voteDetail = Yii::$app->db->createCommand("select vote_name,community_id from ps_vote where id=:vote_id", [":vote_id" => $voteId])->queryOne();
+            $voteInfo = Yii::$app->db->createCommand("select vote_name,community_id from ps_vote where id=:vote_id", [":vote_id" => $voteId])->queryOne();
 
             $doVote = VoteService::service()->doVote($voteId, $memberId, $javaResult['trueName'], $voteDetail, $voteDetail['community_id'], 'on', $roomId);
             if ($doVote === true) {
@@ -174,8 +174,8 @@ class VoteController extends BaseController
                 //添加会员积分
                 $integralParams['token'] = $token;
                 $integralParams['actKey'] = 'vote-publish';
-                $integralParams['bizTitle'] = '参与投票：'.$voteDetail['vote_name'];
-                $integralParams['communityId'] = $voteDetail['community_id'];
+                $integralParams['bizTitle'] = '参与投票：'.$voteInfo['vote_name'];
+                $integralParams['communityId'] = $voteInfo['community_id'];
                 $integralParams['memberId'] = $javaResult['id'];
                 $javaService->integralGrant($integralParams);
 
