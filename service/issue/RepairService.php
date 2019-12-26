@@ -1239,6 +1239,7 @@ class RepairService extends BaseService
         }
         
         $query->andFilterWhere(['pr.status' => $p['status']])
+            ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
             //->andFilterWhere(['>=', 'pr.create_at', $p['start']])
             //->andFilterWhere(['<=', 'pr.create_at', $p['end']])
