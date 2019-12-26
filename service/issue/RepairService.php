@@ -969,11 +969,11 @@ class RepairService extends BaseService
         }
 
         if ($m["status"] == self::STATUS_CHECKED) {
-            return $this->failed('工单已复核');
+            return '工单已复核';
         }
 
         if ($m["status"] != self::STATUS_DONE && $m["status"] != self::STATUS_COMPLETE) {
-            return $this->failed('工单未完成');
+            return '工单未完成';
         }
 
         $transaction = Yii::$app->db->beginTransaction();
