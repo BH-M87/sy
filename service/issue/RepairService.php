@@ -656,10 +656,10 @@ class RepairService extends BaseService
             // 发送钉钉oa消息
             $msg = [
                 'token' => $p['token'],
-                'headTitle' => $model['repair_content'],
+                'headTitle' => '你有一条新的工单，请及时处理。',
                 'userIdList' => [$p['user_id']],
                 'messageUrl' => 'eapp://pages/index/repairDetails/index?id='.$model['id'],
-                'colList' => ['rowTitle' => $model['repair_content'], 'rowContent' => $model['repair_content']],
+                'colList' => ['rowTitle' => '你有一条新的工单，请及时处理。', 'rowContent' => $model['repair_content']],
             ];
             JavaService::service()->sendOaMsg($msg);
 
@@ -1239,9 +1239,22 @@ class RepairService extends BaseService
         }
         
         $query->andFilterWhere(['pr.status' => $p['status']])
+            ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
-            ->andFilterWhere(['>=', 'pr.create_at', $p['start']])
-            ->andFilterWhere(['<=', 'pr.create_at', $p['end']]);
+            //->andFilterWhere(['>=', 'pr.create_at', $p['start']])
+            //->andFilterWhere(['<=', 'pr.create_at', $p['end']])
+            ->andFilterWhere(['or', 
+                ['and', 
+                    ['>=', 'expired_repair_time', $p['start']], 
+                    ['<=', 'expired_repair_time', $p['end']], 
+                    ['>', 'expired_repair_time', 0]
+                ], 
+                ['and', 
+                    ['>=', 'repair_time', $p['start']], 
+                    ['<=', 'repair_time', $p['end']], 
+                    ['=', 'expired_repair_time', 0]
+                ]
+            ]);
 
         $r['totals'] = $query->count('DISTINCT(pr.id)');
 
@@ -1857,6 +1870,7 @@ class RepairService extends BaseService
     public function analyse($p, $userInfo)
     {
         $p['user_id'] = $userInfo['id'];
+
         $sdefaultDate = date("Y-m-d");
         $first = 1;
         $w = date('w',strtotime($sdefaultDate));
