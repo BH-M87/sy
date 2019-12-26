@@ -506,6 +506,10 @@ class RepairService extends BaseService
             return PsCommon::getModelError($model);
         }
 
+        if (!empty($userInfo['propertyMark'])) { // 添加操作日志
+            self::_logAdd($params['token'], "新增报事报修，工单号" . $model->repair_no);
+        }
+        
         return ['id' => $model->id];
     }
     
@@ -642,7 +646,11 @@ class RepairService extends BaseService
                 'colList' => ['rowTitle' => '你有一条新的工单，请及时处理。', 'rowContent' => $model['repair_content']],
             ];
             JavaService::service()->sendOaMsg($msg);
-
+            
+            if (!empty($u['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "工单分配，工单号" . $model['repair_no']);
+            }
+            
             $transaction->commit();
             $re['releate_id'] = $p['repair_id'];
             return $re;
@@ -706,6 +714,10 @@ class RepairService extends BaseService
             $r["status"] = 2;
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
+            
+            if (!empty($u['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "添加操作记录，工单号" . $m['repair_no']);
+            }
             
             $transaction->commit();
             return true;
@@ -780,6 +792,10 @@ class RepairService extends BaseService
                 $member = JavaService::service()->memberRelation(['token' => $p['token'], 'id' => $m['member_id']]);
                 $service->sendRepairMsg($member['memberId'], $m['formId'], $m['id']);
             }
+            
+            if (!empty($userInfo['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "工单标记完成，工单号" . $m['repair_no']);
+            }
   
             $transaction->commit();
             return true;
@@ -821,6 +837,10 @@ class RepairService extends BaseService
                 'operator_name' => $u["truename"],
                 'mobile' => $u["mobile"],
             ])->execute();
+            
+            if (!empty($u['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+            }
 
             return true;
         }
@@ -852,6 +872,10 @@ class RepairService extends BaseService
                 'operator_name' => $u["truename"],
                 'mobile' => $u["mobile"],
             ])->execute();
+            
+            if (!empty($u['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "工单作废，工单号" . $m['repair_no']);
+            }
 
             return true;
         }
@@ -954,6 +978,10 @@ class RepairService extends BaseService
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]]
             )->execute();
+            
+            if (!empty($u['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "工单复核，工单号" . $m['repair_no']);
+            }
 
             $transaction->commit();
 
@@ -1004,6 +1032,10 @@ class RepairService extends BaseService
             $r['day'] = date('Y-m-d');
 
             Yii::$app->db->createCommand()->insert('ps_repair', $r)->execute();
+            
+            if (!empty($userInfo['propertyMark'])) { // 添加操作日志
+                self::_logAdd($p['token'], "二次维修，工单号" . $m['repair_no']);
+            }
 
             $transaction->commit();
             return true;
@@ -1432,6 +1464,14 @@ class RepairService extends BaseService
         )->execute();
 
         $re['issue_id'] = $p['repair_id'];
+        
+        if (!empty($userInfo['propertyMark'])) { // 添加操作日志
+            if ($p['status'] == 1) { // 确认
+                self::_logAdd($p['token'], "确认工单，工单号" . $model['repair_no']);
+            } elseif ($p['status'] == 2) { // 驳回
+                self::_logAdd($p['token'], "驳回工单，工单号" . $model['repair_no']);
+            }
+        }
 
         return $re;
     }
