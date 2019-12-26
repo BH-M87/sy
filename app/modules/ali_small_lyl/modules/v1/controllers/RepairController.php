@@ -27,7 +27,6 @@ class RepairController extends BaseController
     public function actionCreate()
     {
         $p['community_id'] = F::value($this->params, 'community_id', 0);
-        $p['member_id'] = PsCommon::get($this->params, 'member_id', 0);
         $p['repair_type'] = F::value($this->params, 'repair_type_id', 0);
         $p['expired_repair_time'] = time();
         $p['expired_repair_type'] = F::value($this->params, 'expired_type', 0);
@@ -52,8 +51,9 @@ class RepairController extends BaseController
         if (empty($member)) {
             return F::apiSuccess('用户不存在');
         }
-
+        
         $p['contact_name'] = $member['trueName'];
+        $p['member_id'] = $member['id'];
 
         if ($relateRoom == 1) { // 1关联房屋
             $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'add-repair3');
