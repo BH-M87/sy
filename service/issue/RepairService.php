@@ -513,7 +513,6 @@ class RepairService extends BaseService
         if ($useAs == 'small') { // 小程序添加报修 新增积分
             $java = [
                 'communityId' => $params['community_id'],
-                'memberId' => $params['member_id'],
                 'bizTitle' => '报事报修',
                 'actKey' => 'report-publish',
                 'token' => $params['token'],
