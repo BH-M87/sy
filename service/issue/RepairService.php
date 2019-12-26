@@ -1418,6 +1418,10 @@ class RepairService extends BaseService
             return "工单不存在";
         }
 
+        if ($model['status'] != 7) {
+            return "工单不是待确认状态";
+        }
+
         if ($p['status'] == 1) { // 确认
             $repairStatus = self::STATUS_UN_DO; 
         } elseif ($p['status'] == 2) { // 驳回
