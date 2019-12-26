@@ -1711,7 +1711,7 @@ class RepairService extends BaseService
             "id = :id", [":id" => $p["repair_id"]]
         )->execute();
 
-        self::_logAdd($p['token'], "工单评价，工单号" . $model['repair_no']);
+        self::_logAdd($p['token'], "工单评价，工单号" . $repairInfo['repair_no']);
         
         return true;
     }
