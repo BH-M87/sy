@@ -35,6 +35,7 @@ use service\rbac\OperateService;
 use yii\base\Exception;
 use yii\db\Query;
 use Yii;
+use service\common\AlipaySmallApp;
 
 class RepairService extends BaseService
 {
@@ -794,6 +795,12 @@ class RepairService extends BaseService
             $r["amount"] = !empty($p['amount']) ? $p['amount'] : 0;
             Yii::$app->db->createCommand()->update('ps_repair', $r, "id=:repair_id", 
                 [":repair_id" => $p["repair_id"]])->execute();
+            
+            if (!empty($m['member_id']) && !empty($m['formId'])) { // 工单标记完成 给住户发消息
+                $service = new AlipaySmallApp();
+                $member = JavaService::service()->memberRelation(['token' => $p['token'], 'id' => $m['member_id']]);
+                $service->sendRepairMsg($member['memberId'], $m['formId'], $m['id']);
+            }
   
             $transaction->commit();
             return true;
@@ -1767,12 +1774,7 @@ class RepairService extends BaseService
 
     public function getRepairInfoById($id)
     {
-        return PsRepair::find()->alias('pr')
-            ->select('pr.repair_no, pr.id, pr.status, pr.repair_type_id, pr.community_id, pr.contact_mobile,
-            pr.is_pay, pr.member_id, pr.room_username, pr.repair_content')
-            ->where(['pr.id' => $id])
-            ->asArray()
-            ->one();
+        return PsRepair::find()->where(['id' => $id])->asArray()->one();
     }
 
     //获取用户针对于此工单的操作权限

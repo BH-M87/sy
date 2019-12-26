@@ -14,8 +14,6 @@ use common\core\JavaCurl;
 
 class JavaService extends BaseService
 {
-
-
     /*
      * c 端调用
      */
@@ -179,6 +177,13 @@ class JavaService extends BaseService
     public function sendOaMsg($query)
     {
         $query['route'] = '/user/send-oa-msg';
+        return self::returnCData($query);
+    }
+
+    // 根据住户查询会员第三方信息
+    public function memberRelation($query)
+    {
+        $query['route'] = '/resident/memberRelation';
         return self::returnCData($query);
     }
 }
