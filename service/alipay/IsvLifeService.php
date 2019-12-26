@@ -244,6 +244,12 @@ class IsvLifeService {
         return $this->_aop->execute('alipay.open.public.advert.modify', $params, null, $this->_isv_app_auth_token);
     }
 
+    //报事报修推送消息
+    public function sendRepairMsg($data)
+    {
+        $params['biz_content'] = json_encode($data);
+        return $this->_aop->execute('alipay.open.app.mini.templatemessage.send', $params, null, $this->_isv_app_auth_token);
+    }
     //生成二维码图片
     public function getCodeImg($data = [])
     {
@@ -372,7 +378,7 @@ class IsvLifeService {
 
         return $this->_aop->execute('alipay.marketing.card.activateform.query', $params , null, $this->_isv_app_auth_token);
     }
-    
+
     // 会员卡 开卡
     public function cardOpen($data, $authToken)
     {

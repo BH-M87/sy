@@ -40,6 +40,6 @@ $data['javaAppSecret'] = $paramsConfig[YII_ENV]['javaAppSecret'];
 $data['repair_app_id'] = '2019121169782733';
 $data['repair_aes_secret'] = '1nj7Axd1H3tfXCoirAvm/w==';
 $data['repair_alipay_public_key_file'] = $basePath."/common/rsa_files/repair/alipay_public.txt";
-$data['repair_rsa_private_key_file'] = $basePath."/common/rsa_files/repair/alipay_public.txt";
+$data['repair_rsa_private_key_file'] = $basePath."/common/rsa_files/repair/rsa_private.txt";
 
 return $data;
