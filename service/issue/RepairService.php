@@ -790,7 +790,7 @@ class RepairService extends BaseService
             if (!empty($m['member_id']) && !empty($m['formId'])) { // 工单标记完成 给住户发消息
                 $service = new AlipaySmallApp();
                 $member = JavaService::service()->memberRelation(['token' => $p['token'], 'id' => $m['member_id']]);
-                $service->sendRepairMsg($member['memberId'], $m['formId'], $m['id']);
+                $service->sendRepairMsg($member['relationList'][0]['onlyNumber'], $m['formId'], $m['id']);
             }
             
             if (!empty($userInfo['propertyMark'])) { // 添加操作日志
