@@ -1,8 +1,6 @@
 <?php // 报事报修相关服务
 namespace service\issue;
 
-use service\property_basic\JavaService;
-
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
@@ -21,6 +19,8 @@ use service\alipay\BillSmallService;
 use service\manage\CommunityService;
 use service\basic_data\MemberService;
 use service\message\MessageService;
+use service\property_basic\JavaService;
+use service\property_basic\JavaOfCService;
 
 use app\models\PsOrder;
 use app\models\PsRepair;
@@ -508,6 +508,17 @@ class RepairService extends BaseService
 
         if (!empty($userInfo['propertyMark'])) { // 添加操作日志
             self::_logAdd($params['token'], "新增报事报修，工单号" . $model->repair_no);
+        }
+
+        if ($useAs == 'small') { // 小程序添加报修 新增积分
+            $java = [
+                'communityId' => $params['community_id'],
+                'memberId' => $params['member_id'],
+                'bizTitle' => '报事报修',
+                'actKey' => 'report-publish',
+                'token' => $params['token'],
+            ];
+            JavaOfCService::service()->integralGrant($java);
         }
         
         return ['id' => $model->id];
