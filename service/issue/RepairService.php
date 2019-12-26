@@ -47,43 +47,23 @@ class RepairService extends BaseService
     const STATUS_CHECKED_FALSE = 9;
     const STATUS_UN_APPRAISE = 10;
 
-    //工单支付状态
+    // 工单支付状态
     const BILL_WAIT_PAY = 1;
     const BILL_PAID = 2;
     const BILL_NO_NEED_PAY = 3;
 
-    /*是否已支付*/
-    public static $_is_pay = [
-        '1' => '待支付',
-        '2' => '已支付',
-        '3' => '已支付'
-    ];
-
-    /*工单疑难度*/
-    public static $_hard_type = [
-        '1' => '一般工单',
-        '2' => '疑难工单',
-    ];
-
-    /*期望上门时间*/
-    public static $_expired_repair_type = [
-        '1' => '上午',
-        '2' => '下午',
-    ];
-    /*是否已分配*/
-    public static $_is_assign = [
-        '1' => '已分配',
-        '2' => '未分配',
-    ];
-
-    /*报修来源*/
+    // 是否已支付
+    public static $_is_pay = ['1' => '待支付', '2' => '已支付', '3' => '已支付'];
+    // 工单疑难度
+    public static $_hard_type = ['1' => '一般工单', '2' => '疑难工单'];
+    // 期望上门时间
+    public static $_expired_repair_type = ['1' => '上午', '2' => '下午'];
+    // 是否已分配
+    public static $_is_assign = ['1' => '已分配', '2' => '未分配'];
+    // 报修来源
     public static $_repair_from = [
-        '1' => '支付宝小程序',
-        '2' => '物业内部报修',
-        '3' => '钉钉报修',
-        '4' => '前台报修',
-        '5' => '电话报修',
-        '6' => '二次维修',//复查工单
+        '1' => '支付宝小程序', '2' => '物业内部报修', '3' => '钉钉报修', 
+        '4' => '前台报修', '5' => '电话报修', '6' => '二次维修',
     ];
 
     public static $_repair_status = [
@@ -99,18 +79,8 @@ class RepairService extends BaseService
         '9' => '复核不通过',
     ];
 
-    public static $_hard_repair_status = [
-        '1' => '待处理',
-        '2' => '待完成',
-        '7' => '待确认',
-        '8' => '已驳回'
-    ];
-
-    public static $_pay_type = [
-        '1' => '线上支付',
-        '2' => '线下支付',
-    ];
-
+    public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
+    public static $_pay_type = ['1' => '线上支付', '2' => '线下支付'];
     //工单已完成状态组 （无法再分配）
     public static $_issue_complete_status = [self::STATUS_DONE,self::STATUS_COMPLETE,self::STATUS_CHECKED,self::STATUS_CANCEL,self::STATUS_CHECKED_FALSE];
 
@@ -843,7 +813,7 @@ class RepairService extends BaseService
         }
 
         if ($m["hard_type"] == 2) {
-            return $this->failed('已是疑难问题');
+            return '已是疑难问题';
         }
 
         $updateArr = [
