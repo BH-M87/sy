@@ -172,12 +172,12 @@ class VoteController extends BaseController
             if ($doVote === true) {
 
                 //添加会员积分
-//                $integralParams['token'] = $token;
-//                $integralParams['actKey'] = 'vote-publish';
-//                $integralParams['bizTitle'] = '参与投票：'.$voteDetail['vote_name'];
-//                $integralParams['communityId'] = $voteDetail['community_id'];
-//                $integralParams['memberId'] = $javaResult['id'];
-//                $javaService->integralGrant($integralParams);
+                $integralParams['token'] = $token;
+                $integralParams['actKey'] = 'vote-publish';
+                $integralParams['bizTitle'] = '参与投票：'.$voteDetail['vote_name'];
+                $integralParams['communityId'] = $voteDetail['community_id'];
+                $integralParams['memberId'] = $javaResult['id'];
+                $javaService->integralGrant($integralParams);
 
                 return PsCommon::responseSuccess();
             } elseif ($doVote === false){
