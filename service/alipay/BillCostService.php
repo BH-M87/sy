@@ -65,7 +65,7 @@ class BillCostService extends BaseService
     public function getAllByPay($userinfo)
     {
         $params=[];
-        $requestArr['company_id'] = $userinfo['property_company_id'];
+        $requestArr['company_id'] = $userinfo['corpId'];
         $where = " 1=1 AND `status`=1 AND ( company_id=:company_id or company_id=0 )";
         $params = array_merge($params, [':company_id' => $requestArr['company_id']]);
         $result = Yii::$app->db->createCommand("select  id as `value`,id as `key`,`name` as label,cost_type  from ps_bill_cost where " . $where . " order by  cost_type asc,id desc ", $params)->queryAll();

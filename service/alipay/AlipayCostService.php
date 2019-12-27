@@ -21,6 +21,7 @@ use service\basic_data\RoomService;
 use service\common\CsvService;
 use service\BaseService;
 use service\message\MessageService;
+use service\property_basic\CommonService;
 use Yii;
 use common\core\PsCommon;
 use yii\db\Exception;
@@ -1835,8 +1836,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$communityId) {
             return ["code" => 50001, "errorMsg" => "请选择有效小区"];
         }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-        if (empty($communityInfo)) {
+
+        $comService = new CommonService();
+        $comParams['community_id'] = $communityId;
+        $comParams['token'] = $params['token'];
+        if (!$comService->communityVerification($comParams)) {
             return $this->failed("请选择有效小区");
         }
         //缴费项目
