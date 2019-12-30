@@ -1,24 +1,26 @@
 <?php
-
 namespace app\modules\property\modules\v1\controllers;
 
-use app\modules\property\controllers\BaseController;
-use common\core\PsCommon;
-use service\alipay\BillCostService;
 use Yii;
+use app\modules\property\controllers\BaseController;
+
+use common\core\PsCommon;
+
+use service\alipay\BillCostService;
 
 class BillCostController extends BaseController
 {
     public $repeatAction = ['add'];
 
-    //缴费项目列表
+    // 缴费项目列表
     public function actionList()
     {
-        $result = BillCostService::service()->getAll($this->request_params, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = BillCostService::service()->getAll($this->request_params, $this->user_info);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
@@ -33,50 +35,54 @@ class BillCostController extends BaseController
         }
     }
 
-    //新增缴费项目
+    // 新增缴费项目
     public function actionAdd()
     {
-        $data = $this->request_params;
-        $data['cost_type'] = 5;         //默认是其他缴费项
-        $data['create_at'] = time();
-        $result = BillCostService::service()->addCost($data, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $$this->request_params['cost_type'] = 5;         // 默认是其他缴费项
+        $$this->request_params['create_at'] = time();
+
+        $r = BillCostService::service()->addCost($$this->request_params, $this->user_info);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    //编辑缴费项目
+    // 编辑缴费项目
     public function actionEdit()
     {
-        $result = BillCostService::service()->editCost($this->request_params, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = BillCostService::service()->editCost($this->request_params, $this->user_info);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    //编辑缴费项目状态启用禁用
-    public function actionEditStatus()
+    // 编辑缴费项目状态启用禁用
+    public function actionStatus()
     {
-        $result = BillCostService::service()->editCostStatus($this->request_params, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = BillCostService::service()->editCostStatus($this->request_params, $this->user_info);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
-    //缴费项目详情
+    // 缴费项目详情
     public function actionInfo()
     {
-        $result = BillCostService::service()->getCostInfo($this->request_params);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = BillCostService::service()->getCostInfo($this->request_params);
+
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 
