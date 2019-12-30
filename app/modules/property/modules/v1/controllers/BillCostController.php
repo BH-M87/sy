@@ -29,6 +29,9 @@ class BillCostController extends BaseController
     {
         $result = BillCostService::service()->getAllByPay($this->user_info);
         if ($result['code']) {
+            $list = $result['data'];
+            unset($result['data']);
+            $result['data']['list'] = $list;
             return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
