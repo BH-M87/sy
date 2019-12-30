@@ -42,15 +42,16 @@ class AlipayCostService extends BaseService
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
         //================================================数据验证操作==================================================
-        if (!$communityId) {
-            return $this->failed("请选择小区");
-        }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-        if (empty($communityInfo)) {
-            return $this->failed("请选择有效小区");
-        }
+//        if (!$communityId) {
+//            return $this->failed("请选择小区");
+//        }
+//        $communityInfo = CommunityService::service()->getInfoById($communityId);
+//        if (empty($communityInfo)) {
+//            return $this->failed("请选择有效小区");
+//        }
+
         //查询总数
-        $count = $this->_billSearch($data, $userInfo)->groupBy("room.id")->count();
+        $count = $this->_billSearch($data, $userInfo)->groupBy("bill.room_id")->count();
         if ($count == 0) {
             return $this->success(['totals' => 0, 'list' => [], 'reportData' => []]);
         }
@@ -61,27 +62,28 @@ class AlipayCostService extends BaseService
             $rows = $count;
         }
         //列表
-        $order_by = " (room.`group`+0) asc, room.`group` asc,(room.building+0) asc,room.building asc,(room.`unit`+0) asc,room.unit asc,(room.`room`+0) asc,room.room asc";
+//        $order_by = " (room.`group`+0) asc, room.`group` asc,(room.building+0) asc,room.building asc,(room.`unit`+0) asc,room.unit asc,(room.`room`+0) asc,room.room asc";
+        $order_by = " (bill.`group_id`+0) asc, bill.`group_id` asc,(bill.building_id+0) asc,bill.building_id asc,(bill.`unit_id`+0) asc,bill.unit_id asc,(bill.`room_id`+0) asc,bill.room_id asc";
         $models = $this->_billSearch($data, $userInfo)
-            ->select('room.id as room_id,room.`group`,room.building,room.unit,room.room')
-            ->groupBy("room.id")
+            ->select('bill.room_id as room_id,bill.group_id,bill.building_id,bill.unit_id,bill.room_address')
+            ->groupBy("bill.room_id")
             ->orderBy($order_by)
             ->offset($limit)
             ->limit($rows)
             ->asArray()->all();
         foreach ($models as $key => $model) {
             $arr[$key]['room_id'] = $model['room_id'];
-            $arr[$key]['group'] = $model['group'];
-            $arr[$key]['building'] = $model['building'];
-            $arr[$key]['unit'] = $model['unit'];
-            $arr[$key]['room'] = $model['room'];
-            $arr[$key]['room_msg'] = $model['group'] . $model['building'] . $model['unit'] . $model['room'];
+            $arr[$key]['group'] = $model['group_id'];
+            $arr[$key]['building'] = $model['building_id'];
+            $arr[$key]['unit'] = $model['unit_id'];
+            $arr[$key]['room'] = $model['room_id'];
+            $arr[$key]['room_msg'] = $model['room_address'];
             //应付已付优惠金额的计算
             $money = $this->_billSearch($data, $userInfo)
                 ->select('sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount')
-                ->andWhere(['=', 'room.id', $model['room_id']])
+                ->andWhere(['=', 'bill.room_id', $model['room_id']])
                 ->andWhere(['not in', 'bill.trade_defend', [1, 2, 3]])
-                ->groupBy("room.id")
+                ->groupBy("bill.room_id")
                 ->asArray()->one();
             $arr[$key]['bill_entry_amount'] = (string)$money['bill_entry_amount'] ? $money['bill_entry_amount'] : '0';
             $arr[$key]['paid_entry_amount'] = (string)$money['paid_entry_amount'] ? $money['paid_entry_amount'] : '0';
@@ -89,9 +91,9 @@ class AlipayCostService extends BaseService
             //欠费金额特殊计算，过滤已缴过费的账单。因为已缴费金额可以大于应缴金额
             $entry = $this->_billSearch($data, $userInfo)
                 ->select('sum(bill.bill_entry_amount) as owe_entry_amount')
-                ->andWhere(['=', 'room.id', $model['room_id']])
+                ->andWhere(['=', 'bill.room_id', $model['room_id']])
                 ->andWhere(['in', 'bill.status', [1, 3]])
-                ->groupBy("room.id")
+                ->groupBy("bill.room_id")
                 ->asArray()->one();
             $arr[$key]['owe_entry_amount'] = (string)$entry['owe_entry_amount'] ? $entry['owe_entry_amount'] : '0';
         }
@@ -105,14 +107,24 @@ class AlipayCostService extends BaseService
     private function _billSearch($params, $userInfo)
     {
         $year = PsCommon::get($params, "year");
-        $model = PsCommunityRoominfo::find()->alias("room")
-            ->leftJoin("ps_bill bill", "bill.room_id=room.id and bill.is_del=1")
+
+        $model = PsBill::find()->alias("bill")
             ->leftJoin("ps_order der", "bill.order_id=der.id and der.bill_id=bill.id")
-            ->andFilterWhere(['=', 'room.group', PsCommon::get($params, "group")])
-            ->andFilterWhere(['=', 'room.building', PsCommon::get($params, "building")])
-            ->andFilterWhere(['=', 'room.unit', PsCommon::get($params, "unit")])
-            ->andFilterWhere(['=', 'room.room', PsCommon::get($params, "room")])
-            ->andFilterWhere(['in', 'bill.cost_id', PsCommon::get($params, "costList")]);
+            ->where(['=','bill.is_del',1])
+            ->andFilterWhere(['=', 'bill.group_id', PsCommon::get($params, "group_id")])
+            ->andFilterWhere(['=', 'bill.building_id', PsCommon::get($params, "building_id")])
+            ->andFilterWhere(['=', 'bill.unit_id', PsCommon::get($params, "unit_id")])
+            ->andFilterWhere(['=', 'bill.room_id', PsCommon::get($params, "room_id")])
+            ->andFilterWhere(['in', 'bill.cost_id', PsCommon::get($params, "costList")])
+            ->andFilterWhere(['=', 'bill.community_id', PsCommon::get($params, "community_id")]);
+//        $model = PsCommunityRoominfo::find()->alias("room")
+//            ->leftJoin("ps_bill bill", "bill.room_id=room.id and bill.is_del=1")
+//            ->leftJoin("ps_order der", "bill.order_id=der.id and der.bill_id=bill.id")
+//            ->andFilterWhere(['=', 'room.group_id', PsCommon::get($params, "group")])
+//            ->andFilterWhere(['=', 'room.building_id', PsCommon::get($params, "building")])
+//            ->andFilterWhere(['=', 'room.unit_id', PsCommon::get($params, "unit")])
+//            ->andFilterWhere(['=', 'room.room_id', PsCommon::get($params, "room")])
+//            ->andFilterWhere(['in', 'bill.cost_id', PsCommon::get($params, "costList")]);
         //默认查询本年的账期数据
         if (!empty($year)) {
             $acct_period_start = strtotime(date($year . '-01-01'));
@@ -120,12 +132,35 @@ class AlipayCostService extends BaseService
             $model->andFilterWhere(['and', ['<=', 'bill.acct_period_start', $acct_period_end], ['>=', 'bill.acct_period_end', $acct_period_start]]);
         }
         //说明是总的admin账号有所有小区的权限
-        if ($userInfo["level"] == 1 && $userInfo["id"] == 1) {
-            $model->andWhere(['>', 'room.community_id', "0"]);
-        } else {//根据用户的权限来
-            $model->andFilterWhere(['=', 'room.community_id', PsCommon::get($params, "community_id")]);
-        }
+//        if ($userInfo["level"] == 1 && $userInfo["id"] == 1) {
+//            $model->andWhere(['>', 'bill.community_id', "0"]);
+//        } else {//根据用户的权限来
+//            $model->andFilterWhere(['=', 'bill.community_id', PsCommon::get($params, "community_id")]);
+//        }
         return $model;
+
+//        $year = PsCommon::get($params, "year");
+//        $model = PsCommunityRoominfo::find()->alias("room")
+//            ->leftJoin("ps_bill bill", "bill.room_id=room.id and bill.is_del=1")
+//            ->leftJoin("ps_order der", "bill.order_id=der.id and der.bill_id=bill.id")
+//            ->andFilterWhere(['=', 'room.group_id', PsCommon::get($params, "group")])
+//            ->andFilterWhere(['=', 'room.building_id', PsCommon::get($params, "building")])
+//            ->andFilterWhere(['=', 'room.unit_id', PsCommon::get($params, "unit")])
+//            ->andFilterWhere(['=', 'room.room_id', PsCommon::get($params, "room")])
+//            ->andFilterWhere(['in', 'bill.cost_id', PsCommon::get($params, "costList")]);
+//        //默认查询本年的账期数据
+//        if (!empty($year)) {
+//            $acct_period_start = strtotime(date($year . '-01-01'));
+//            $acct_period_end = strtotime(date('Y-m-d 23:59:59', $acct_period_start) . "+1 year -1 day");
+//            $model->andFilterWhere(['and', ['<=', 'bill.acct_period_start', $acct_period_end], ['>=', 'bill.acct_period_end', $acct_period_start]]);
+//        }
+//        //说明是总的admin账号有所有小区的权限
+//        if ($userInfo["level"] == 1 && $userInfo["id"] == 1) {
+//            $model->andWhere(['>', 'room.community_id', "0"]);
+//        } else {//根据用户的权限来
+//            $model->andFilterWhere(['=', 'room.community_id', PsCommon::get($params, "community_id")]);
+//        }
+//        return $model;
     }
 
     //报表查询，查询应收账单，已收账单，优惠账单，待收账单，待生成的数量与金额
@@ -237,7 +272,7 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':task_id' => $task_id]);
         }
         if (!empty($group)) {
-            $where .= " AND bill.`group_id` = :group ";
+            $where .= " AND bill.group_id = :group ";
             $params = array_merge($params, [':group' => $group]);
         }
         if (!empty($building)) {
@@ -345,33 +380,34 @@ class AlipayCostService extends BaseService
         //查询语句sql
         switch ($source) {
             case 1://应收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 2://已收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 3://优惠
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 4://待收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 5://待生成
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
                 break;
             default://应收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.`group`,bill.building,bill.unit,bill.room,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where} order by  bill.create_at desc limit $limit,$rows ";
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where} order by  bill.create_at desc limit $limit,$rows ";
                 break;
         }
         $models = Yii::$app->db->createCommand($sql, $params)->queryAll();
         foreach ($models as $key => $model) {
             $arr[$key]['bill_id'] = $model['id'];
-            $arr[$key]['room_id'] = $model['room_id'];
+//            $arr[$key]['room_id'] = $model['room_id'];
             $arr[$key]['community_name'] = $model['community_name'];
-            $arr[$key]['group'] = $model['group'];
-            $arr[$key]['building'] = $model['building'];
-            $arr[$key]['unit'] = $model['unit'];
-            $arr[$key]['room'] = $model['room'];
+//            $arr[$key]['group'] = $model['group_id'];
+//            $arr[$key]['building'] = $model['building_id'];
+//            $arr[$key]['unit'] = $model['unit_id'];
+//            $arr[$key]['room'] = $model['room_id'];
+            $arr[$key]['room_address'] = $model['room_address'];
             $arr[$key]['bill_entry_amount'] = $model['bill_entry_amount'];
             $arr[$key]['paid_entry_amount'] = $model['paid_entry_amount'];
             $arr[$key]['prefer_entry_amount'] = $model['prefer_entry_amount'];
@@ -1963,15 +1999,28 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
 
         $formulaVar = $formulaInfo["formula"];
-        print_r("asdf");die;
-        die;
+
         //得到所有需要新增账单的房屋
-        $query = new Query();
-        $allRooms = $query->select(["out_room_id", "id", "`group`", "building", "unit", "room", "address", "status", "charge_area", "property_type"])
-            ->from("ps_community_roominfo")
-            ->where(["community_id" => $communityId])
-            ->andWhere($orWhere)
-            ->all();
+//        $query = new Query();
+//        $allRooms = $query->select(["out_room_id", "id", "`group`", "building", "unit", "room", "address", "status", "charge_area", "property_type"])
+//            ->from("ps_community_roominfo")
+//            ->where(["community_id" => $communityId])
+//            ->andWhere($orWhere)
+//            ->all();
+        //获得java房屋
+
+        $allRooms = [
+            [
+                'room_id' =>'4545454',
+                'group_id' =>'4545415',
+                'building_id' =>'12313245',
+                'unit_id' =>'123132456',
+                'room_address' => "芳菲郡2幢2单元1801",
+                'charge_area' =>'89',
+                'status' => '1',
+                'property_type' =>'2',
+            ],
+        ];
         if (count($allRooms) < 1) {
             return $this->failed('未查到房屋信息');
         }
@@ -2080,11 +2129,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "company_id" => $communityInfo["company_id"],
                     "community_id" => $communityInfo["id"],
                     "community_name" => $communityInfo["name"],
-                    "room_id" => $val["id"],
+                    "room_id" => $val["room_id"],
                     "task_id" => $taskId,
                     "bill_entry_id" => $bill_entry_id,
                     "crontab_id" => $crontab_id,
-                    "out_room_id" => $val["out_room_id"],
+//                    "out_room_id" => $val["out_room_id"],
                     "group_id" => $val["group_id"],
                     "building_id" => $val["building_id"],
                     "unit_id" => $val["unit_id"],
