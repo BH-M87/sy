@@ -1605,14 +1605,25 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (count($billLists) < 1 || count($billLists) > 20) {
             return $this->failed("新增账单条目只能在1-20条");
         }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-        if (empty($communityInfo)) {
+//        $communityInfo = CommunityService::service()->getInfoById($communityId);
+//        if (empty($communityInfo)) {
+//            return $this->failed("请选择有效小区");
+//        }
+        $comService = new CommonService();
+        $comParams['community_id'] = $communityId;
+        $comParams['token'] = $params['token'];
+        $communityName = $comService->communityVerificationReturnName($comParams);
+        if (empty($communityName)) {
             return $this->failed("请选择有效小区");
         }
+        $communityInfo['id'] = $communityId;
+        $communityInfo['company_id'] = $params['corp_id'];
+        $communityInfo['name'] = $communityName;
+
         if (!$roomId) {
             return $this->failed("房屋id不能为空");
         }
-
+        print("asdf");die;
         $roomInfo = [];
         if ($roomId) {
             $roomInfo = RoomService::service()->getRoomById($roomId);
@@ -1623,13 +1634,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 return $this->failed("支付宝房屋id不能为空");
             }
         }
+
         $error_info = '';
         //================================================正式开始操作==================================================
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             //第一步，将本次的新增加入到任务表。获取任务id
             $defeat_count = $success_count = 0;
-            $task_arr = ["community_id" => $communityId, "type" => "2", "community_no" => $communityInfo["community_no"]];
+//            $task_arr = ["community_id" => $communityId, "type" => "2", "community_no" => $communityInfo["community_no"]];
+            $task_arr = ["community_id" => $communityId, "type" => "2", "community_no" => null];
             $task_id = $this->addTask($task_arr);
             //根据缴费项目循环新增
             foreach ($billLists as $v) {
@@ -1676,10 +1689,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "task_id" => $task_id,
                     "bill_entry_id" => $bill_entry_id,
                     "out_room_id" => !empty($roomInfo["out_room_id"]) ? $roomInfo["out_room_id"] : '',
-                    "group" => !empty($roomInfo["group"]) ? $roomInfo["group"] : '',
-                    "building" => !empty($roomInfo["building"]) ? $roomInfo["building"] : '',
-                    "unit" => !empty($roomInfo["unit"]) ? $roomInfo["unit"] : '',
-                    "room" => !empty($roomInfo["room"]) ? $roomInfo["room"] : '',
+                    "group_id" => !empty($roomInfo["group"]) ? $roomInfo["group"] : '',
+                    "building_id" => !empty($roomInfo["building"]) ? $roomInfo["building"] : '',
+                    "unit_id" => !empty($roomInfo["unit"]) ? $roomInfo["unit"] : '',
+                    "room_id" => !empty($roomInfo["room"]) ? $roomInfo["room"] : '',
                     "charge_area" => !empty($roomInfo["charge_area"]) ? $roomInfo["charge_area"] : '',
                     "room_status" => $roomInfo["status"],
                     "property_type" => !empty($roomInfo["property_type"]) ? $roomInfo["property_type"] : 0,
@@ -1747,11 +1760,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             return $this->failed($e->getMessage());
         }
         //账单订单新增成功后判断是否有成功记录，有则将成功记录发布到支付宝
-        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
-        if ($success_count > 0) {
-            BillService::service()->pubBillByTask($task_id);
-        }
-        return $this->success($resultData);
+//        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
+//        if ($success_count > 0) {
+//            BillService::service()->pubBillByTask($task_id);
+//        }
+//        return $this->success($resultData);
     }
 
     //获取金额（因为公摊水电的水电费公式区分了阶梯价格导致）
