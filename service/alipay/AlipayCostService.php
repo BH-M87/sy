@@ -22,6 +22,7 @@ use service\common\CsvService;
 use service\BaseService;
 use service\message\MessageService;
 use service\property_basic\CommonService;
+use service\property_basic\JavaService;
 use Yii;
 use common\core\PsCommon;
 use yii\db\Exception;
@@ -703,19 +704,20 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     {
         $community_id = PsCommon::get($params, "community_id");  //房屋id
         $room_id = PsCommon::get($params, "room_id");  //房屋id
-        $group = PsCommon::get($params, "group");  //苑期区
-        $building = PsCommon::get($params, "building");  //幢
-        $unit = PsCommon::get($params, "unit");  //单元
-        $room = PsCommon::get($params, "room");  //室
+        $group = PsCommon::get($params, "group_id");  //苑期区
+        $building = PsCommon::get($params, "building_id");  //幢
+        $unit = PsCommon::get($params, "unit_id");  //单元
+        $room = PsCommon::get($params, "room_id");  //室
         $status = PsCommon::get($params, "status");  //账单状态
         $costList = PsCommon::get($params, "cost_list");  //账单收费项目
         $acct_period_start = PsCommon::get($params, "acct_period_start");  //账期开始时间
         $acct_period_end = PsCommon::get($params, "acct_period_end");  //账期结束时间
+        $token = PsCommon::get($params, "token");  //账期结束时间
 
         //查询添加集合
         $params = $room_params = $arrList = [];
         $where = " 1=1 and bill.order_id=der.id and der.bill_id=bill.id and bill.is_del=1 and UNIX_TIMESTAMP() > bill.trade_defend"; //查询条件,默认查询未删除的数据
-        $room_where = " 1=1 "; //查询条件,默认查询未删除的数据
+//        $room_where = " 1=1 "; //查询条件,默认查询未删除的数据
         //为了兼容：收费通知单打印
         if (!empty($status)) {//说明是收费通知单过来的请求，只查询已收费的情况
             $where .= "  AND (bill.`status`=2  or bill.`status`=7) ";
@@ -725,18 +727,18 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         //房屋id存在则按房屋id查询，不存在则按条件查询
         if (!empty($room_id)) {
             $where .= " AND bill.room_id = :room_id ";
-            $room_where .= " AND room.id = :room_id ";
+//            $room_where .= " AND room.id = :room_id ";
             $params = array_merge($params, [':room_id' => $room_id]);
-            $room_params = array_merge($room_params, [':room_id' => $room_id]);
+//            $room_params = array_merge($room_params, [':room_id' => $room_id]);
         } else {
             if (!$group || !$building || !$unit || !$room) {
                 return $this->failed("缺少房屋信息");
             }
             if (!empty($community_id)) {
                 $where .= " AND bill.`community_id` = :community_id ";
-                $room_where .= " AND room.`community_id` = :community_id ";
+//                $room_where .= " AND room.`community_id` = :community_id ";
                 $params = array_merge($params, [':community_id' => $community_id]);
-                $room_params = array_merge($room_params, [':community_id' => $community_id]);
+//                $room_params = array_merge($room_params, [':community_id' => $community_id]);
             }
             if (!empty($costList)) {
                 $where .= " AND ( ";
@@ -752,28 +754,28 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $where .= " )";
             }
             if (!empty($group)) {
-                $where .= " AND bill.`group` = :group ";
-                $room_where .= " AND room.`group` = :group ";
+                $where .= " AND bill.group_id = :group ";
+//                $room_where .= " AND room.`group` = :group ";
                 $params = array_merge($params, [':group' => $group]);
-                $room_params = array_merge($room_params, [':group' => $group]);
+//                $room_params = array_merge($room_params, [':group' => $group]);
             }
             if (!empty($building)) {
-                $where .= " AND bill.building = :building ";
-                $room_where .= " AND room.building = :building ";
+                $where .= " AND bill.building_id = :building ";
+//                $room_where .= " AND room.building = :building ";
                 $params = array_merge($params, [':building' => $building]);
-                $room_params = array_merge($room_params, [':building' => $building]);
+//                $room_params = array_merge($room_params, [':building' => $building]);
             }
             if (!empty($unit)) {
-                $where .= " AND bill.unit = :unit ";
-                $room_where .= " AND room.unit = :unit ";
+                $where .= " AND bill.unit_id = :unit ";
+//                $room_where .= " AND room.unit = :unit ";
                 $params = array_merge($params, [':unit' => $unit]);
-                $room_params = array_merge($room_params, [':unit' => $unit]);
+//                $room_params = array_merge($room_params, [':unit' => $unit]);
             }
             if (!empty($room)) {
-                $where .= " AND bill.room = :room ";
-                $room_where .= " AND room.room = :room ";
+                $where .= " AND bill.room_id = :room ";
+//                $room_where .= " AND room.room = :room ";
                 $params = array_merge($params, [':room' => $room]);
-                $room_params = array_merge($room_params, [':room' => $room]);
+//                $room_params = array_merge($room_params, [':room' => $room]);
             }
             if (!empty($acct_period_start)) {
                 $acct_period_start = strtotime($acct_period_start);
@@ -787,14 +789,26 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             }
         }
         //查询房屋信息
-        $roomData = Yii::$app->db->createCommand("select  room.id as room_id,communit.name as community_name,room.group,room.building,room.unit,room.room from ps_community_roominfo as room,ps_community communit where {$room_where} and room.community_id = communit.id;", $room_params)->queryOne();
+//        $roomData = Yii::$app->db->createCommand("select  room.id as room_id,communit.name as community_name,room.group,room.building,room.unit,room.room from ps_community_roominfo as room,ps_community communit where {$room_where} and room.community_id = communit.id;", $room_params)->queryOne();
+        //java 获得房屋信息
+        $roomParam["token"] = $token;
+        $roomParam['communityId'] = $community_id;
+        $roomParam['roomId'] = $room_id;
+        $roomParam['buildingId'] = $building;
+        $roomParam['unitId'] = $unit;
+        $roomParam['groupId'] = $group;
+        $roomData = self::getRoomData($roomParam);
         //查询业主信息
-        $roomUser = PsRoomUser::find()->where(['room_id' => $roomData['room_id'], 'identity_type' => 1])->select('name')->asArray()->column();
-        $roomData['room_user_info'] = !empty($roomUser) ? implode(",", $roomUser) : '';
+//        $roomUser = PsRoomUser::find()->where(['room_id' => $roomData['room_id'], 'identity_type' => 1])->select('name')->asArray()->column();
+        $userParam["token"] = $token;
+        $userParam["memberType"] = 1;
+        $userParam["roomId"] = $room_id;
+        $roomUser = self::getUserData($userParam);
+        $roomData['room_user_info'] = !empty($roomUser) ? $roomUser : '';
 
         //查询该房屋下的总计应收，已缴，数量
         $billTotal = Yii::$app->db->createCommand("select  count(bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount from ps_bill as bill,ps_order  as der where {$where};", $params)->queryOne();
-        $entry_amount = Yii::$app->db->createCommand("select  bill.room,sum(bill.bill_entry_amount) as owe_entry_amount from ps_bill as bill,ps_order  as der where {$where} and (bill.status=1 or bill.status=3);", $params)->queryOne();
+        $entry_amount = Yii::$app->db->createCommand("select  bill.room_id,sum(bill.bill_entry_amount) as owe_entry_amount from ps_bill as bill,ps_order  as der where {$where} and (bill.status=1 or bill.status=3);", $params)->queryOne();
         $billTotal['owe_entry_amount'] = $entry_amount['owe_entry_amount'] ? $entry_amount['owe_entry_amount'] : '0';   //欠费金额
         $count = $billTotal['total_num'];       //房屋下的账单总数
         if ($count == 0) {
@@ -836,6 +850,37 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arrList[] = $arr;
         }
         return $this->success(['totals' => $count, 'dataList' => $arrList, 'reportData' => $billTotal, 'roomData' => $roomData]);
+    }
+
+    //账单线下收款页面详情java 获得房屋信息
+    public function getRoomData($params){
+        $javaService = new JavaService();
+        $roomData = $javaService->roomList($params);
+        $data = [];
+        if(!empty($roomData['list'][0])){
+            $roomInfo = $roomData['list'][0];
+            $data['building'] = !empty($roomInfo['buildingName'])?$roomInfo['buildingName']:'';
+            $data['community_name'] = !empty($roomInfo['communityName'])?$roomInfo['communityName']:'';
+            $data['group'] = !empty($roomInfo['groupName'])?$roomInfo['groupName']:'';
+            $data['room'] = !empty($roomInfo['roomName'])?$roomInfo['roomName']:'';
+            $data['unit'] = !empty($roomInfo['unitName'])?$roomInfo['unitName']:'';
+            $data['room_id'] = !empty($roomInfo['roomId'])?$roomInfo['roomId']:'';
+        }
+        return $data;
+    }
+
+    //账单线下收款页面详情java 获得业主信息
+    public function getUserData($params){
+        $javaService = new JavaService();
+        $result = $javaService->residentList($params);
+        $data = "";
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $data.= $value['name'].",";
+            }
+            $data = mb_substr($data,0,-1);
+        }
+        return $data;
     }
 
     //账单详情的报表查询，查询应收金额，已收金额，欠费金额。按缴费类型分组
@@ -2011,7 +2056,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 
         $allRooms = [
             [
-                'room_id' =>'4545454',
+                'room_id' =>'1200671382231707650',
                 'group_id' =>'4545415',
                 'building_id' =>'12313245',
                 'unit_id' =>'123132456',
