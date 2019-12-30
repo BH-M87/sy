@@ -65,7 +65,7 @@ class AlipayCostService extends BaseService
 //        $order_by = " (room.`group`+0) asc, room.`group` asc,(room.building+0) asc,room.building asc,(room.`unit`+0) asc,room.unit asc,(room.`room`+0) asc,room.room asc";
         $order_by = " (bill.`group_id`+0) asc, bill.`group_id` asc,(bill.building_id+0) asc,bill.building_id asc,(bill.`unit_id`+0) asc,bill.unit_id asc,(bill.`room_id`+0) asc,bill.room_id asc";
         $models = $this->_billSearch($data, $userInfo)
-            ->select('bill.room_id as room_id,bill.group_id,bill.building_id,bill.unit_id,bill.room_address')
+            ->select('bill.room_id as room_id,bill.group_id,bill.building_id,bill.unit_id,bill.room_address,bill.community_name')
             ->groupBy("bill.room_id")
             ->orderBy($order_by)
             ->offset($limit)
@@ -73,11 +73,11 @@ class AlipayCostService extends BaseService
             ->asArray()->all();
         foreach ($models as $key => $model) {
             $arr[$key]['room_id'] = $model['room_id'];
-            $arr[$key]['group'] = $model['group_id'];
-            $arr[$key]['building'] = $model['building_id'];
-            $arr[$key]['unit'] = $model['unit_id'];
-            $arr[$key]['room'] = $model['room_id'];
+            $arr[$key]['group_id'] = $model['group_id'];
+            $arr[$key]['building_id'] = $model['building_id'];
+            $arr[$key]['unit_id'] = $model['unit_id'];
             $arr[$key]['room_msg'] = $model['room_address'];
+            $arr[$key]['community_name'] = $model['community_name'];
             //应付已付优惠金额的计算
             $money = $this->_billSearch($data, $userInfo)
                 ->select('sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount')
