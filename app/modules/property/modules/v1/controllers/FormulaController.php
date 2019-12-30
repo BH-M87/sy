@@ -319,7 +319,7 @@ class FormulaController extends BaseController
         }
     }
 
-    //新增编辑水费
+    // 新增编辑水费
     public function actionWaterEdit()
     {
         $valid = PsCommon::validParamArr(new PsFormulaFrom(), $this->request_params, 'create-rule');
