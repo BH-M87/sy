@@ -2063,10 +2063,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "bill_entry_id" => $bill_entry_id,
                     "crontab_id" => $crontab_id,
                     "out_room_id" => $val["out_room_id"],
-                    "group" => $val["group"],
-                    "building" => $val["building"],
-                    "unit" => $val["unit"],
-                    "room" => $val["room"],
+                    "group_id" => $val["group_id"],
+                    "building_id" => $val["building_id"],
+                    "unit_id" => $val["unit_id"],
+                    "room_address" => $val["room_address"],
                     "charge_area" => $val["charge_area"],
                     "room_status" => $val["status"],
                     "property_type" => $val["property_type"],
@@ -2090,15 +2090,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "bill_id" => $billResult['data'],
                         "company_id" => $communityInfo["company_id"],
 
-                        "group_id" => $val["group"],
-                        "building_id" => $val["building"],
-                        "unit_id" => $val["unit"],
-                        "room_id" => $val["room"],
+                        "group_id" => $val["group_id"],
+                        "building_id" => $val["building_id"],
+                        "unit_id" => $val["unit_id"],
+                        "room_id" => $val["room_id"],
                         "room_address" => $val["room_address"],
 
                         "community_id" => $communityInfo["id"],
                         "order_no" => F::generateOrderNo(),
-                        "product_id" => $val["id"],
+                        "product_id" => $val["room_id"],
                         "product_type" => $cost["cost_type"],
                         "product_subject" => $cost["name"],
                         "bill_amount" => $bill_entry_amount,
@@ -2113,7 +2113,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         Yii::$app->db->createCommand("update ps_bill set order_id={$orderResult['data']} where id={$billResult['data']}")->execute();
                         //添加系统日志
                         $content = "小区名称:" . $communityInfo["name"] . ',';
-                        $content .= "房屋id:" . $val["id"] . ',';
+                        $content .= "房屋id:" . $val["room_id"] . ',';
                         $content .= "缴费项目:" . $cost["name"] . ',';
                         $content .= "缴费金额:" . $bill_entry_amount . ',';
                         $operate = [
