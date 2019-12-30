@@ -186,4 +186,22 @@ class JavaService extends BaseService
         $query['route'] = '/resident/memberRelation';
         return self::returnCData($query);
     }
+
+    // 获得单元树
+    public function unitTree($query){
+        $query['route'] = '/unit/unitTree';
+        $result = self::returnCData($query);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                if(!empty($value['children'])){
+                    foreach($value['children'] as $ck=>$cv){
+                        if(!empty($cv['children'])){
+                            unset($result['list'][$key]['children'][$ck]['children']);
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
 }

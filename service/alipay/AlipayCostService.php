@@ -1889,23 +1889,36 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
         $orWhere[] = "or";
         foreach ($buildings as $building) {
-            if (empty($building["group"])) {
+            if (empty($building["group_id"])) {
                 return $this->failed('苑期选择错误');
             }
             if (empty($building["children"])) {
                 return $this->failed('幢选择错误');
             }
             foreach ($building["children"] as $child) {
-                if (empty($child["name"])) {
+                if (empty($child["building_id"])) {
                     return $this->failed('幢选择错误');
                 }
                 $orWhere[] = ["`group`" => $building["group"], "building" => $child["name"]];
             }
         }
-        $community = CommunityService::service()->getInfoById($communityId);
-        if (!$community) {
-            return $this->failed('请选择有效小区');
+        
+//        $community = CommunityService::service()->getInfoById($communityId);
+//        if (!$community) {
+//            return $this->failed('请选择有效小区');
+//        }
+
+        $comService = new CommonService();
+        $comParams['community_id'] = $communityId;
+        $comParams['token'] = $params['token'];
+        $communityName = $comService->communityVerificationReturnName($comParams);
+        if (empty($communityName)) {
+            return $this->failed("请选择有效小区");
         }
+        $community['id'] = $communityId;
+        $community['company_id'] = $params['corp_id'];
+        $community['name'] = $communityName;
+
         $cost = BillCostService::service()->getById($costId);
         if (!$cost) {
             return $this->failed('缴费项目未找到');
@@ -1928,6 +1941,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
 
         $formulaVar = $formulaInfo["formula"];
+        print_r("asdf");die;
+        die;
         //得到所有需要新增账单的房屋
         $query = new Query();
         $allRooms = $query->select(["out_room_id", "id", "`group`", "building", "unit", "room", "address", "status", "charge_area", "property_type"])
@@ -1967,12 +1982,12 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     return $this->failed('账单周期不能为负数');
                 }
                 //数据根据账期走，有多少账期不超过当前时间就有多少定时任务
-                $arrList = $this->addCrontab($params, $periodList, $formulaVar, $community['community_no']);
-                if (!empty($arrList['contractList'])) {
-                    $contractList = $arrList['contractList'];
-                } else {
-                    $periodList = $arrList['periodList'];
-                }
+//                $arrList = $this->addCrontab($params, $periodList, $formulaVar, $community['community_no']);
+//                if (!empty($arrList['contractList'])) {
+//                    $contractList = $arrList['contractList'];
+//                } else {
+//                    $periodList = $arrList['periodList'];
+//                }
             }
             //第三步，根据需要发布的房屋来新增账单
             $result = $this->addBatchBill($periodList, $contractList, $allRooms, $community, $cost, $formulaInfo, $params, $userinfo);
@@ -2001,7 +2016,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         } else {
             $dataList = $periodList;
             //第一步，新增任务
-            $task_arr = ["file_name" => $formulaVar, 'type' => '3', 'community_id' => $communityId, "community_no" => $communityInfo["community_no"]];
+//            $task_arr = ["file_name" => $formulaVar, 'type' => '3', 'community_id' => $communityId, "community_no" => $communityInfo["community_no"]];
+            $task_arr = ["file_name" => $formulaVar, 'type' => '3', 'community_id' => $communityId, "community_no" => null];
             $task_id = BillService::service()->addTask($task_arr);
             $taskId = $task_id;
         }
@@ -2073,6 +2089,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     $orderData = [
                         "bill_id" => $billResult['data'],
                         "company_id" => $communityInfo["company_id"],
+
+                        "group_id" => $val["group"],
+                        "building_id" => $val["building"],
+                        "unit_id" => $val["unit"],
+                        "room_id" => $val["room"],
+                        "room_address" => $val["room_address"],
+
                         "community_id" => $communityInfo["id"],
                         "order_no" => F::generateOrderNo(),
                         "product_id" => $val["id"],

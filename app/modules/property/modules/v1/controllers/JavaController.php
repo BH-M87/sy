@@ -150,4 +150,20 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+     * 获得小区下所有房屋
+     */
+    public function actionUnitTree(){
+        try{
+            $data = $this->request_params;
+            if(empty($data['id'])){
+                return PsCommon::responseFailed('小区id必填');
+            }
+            $result = JavaService::service()->unitTree($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
