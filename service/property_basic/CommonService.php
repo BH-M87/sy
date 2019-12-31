@@ -62,6 +62,7 @@ class CommonService extends BaseService  {
 
     /*
      * 验证房屋是否存在
+     * input: roomId,communityId,groupId,buildingId,unitId
      */
     public function roomVerification($params){
         $data = [];

@@ -50,6 +50,12 @@ class AlipayCostService extends BaseService
 //        if (empty($communityInfo)) {
 //            return $this->failed("请选择有效小区");
 //        }
+        $comService = new CommonService();
+        $comParams['community_id'] = $communityId;
+        $comParams['token'] = $data['token'];
+        if (!$comService->communityVerification($comParams)) {
+            return $this->failed("请选择有效小区");
+        }
 
         //查询总数
         $count = $this->_billSearch($data, $userInfo)->groupBy("bill.room_id")->count();
@@ -596,19 +602,21 @@ class AlipayCostService extends BaseService
         $room_id = PsCommon::get($params, "room_id");  //房屋id
         $year = PsCommon::get($params, "year");  //时间段：20151默认展示本年、所有收费项目汇总；时间段为下拉选项，选项为2015、2016、2017、2018、请选择；
         $costList = PsCommon::get($params, "costList");  //缴费项目
+        $token = PsCommon::get($params, "token");
         if (!$room_id) {
             return $this->failed("缺少房屋信息");
         }
         //查询添加集合
-        $params = $roomParams = $arrList = [];
+        $params = $arrList = [];
+//        $roomParams = [];
         //trade_defend=》1 说明是退款的数据详情不显示，=》2 说明第二天删除支付宝数据成功
         $where = " 1=1 and bill.order_id=der.id and der.bill_id=bill.id and bill.is_del=1 and bill.trade_defend not in(1,2,3)  "; //查询条件,默认查询未删除的数据
         $room_where = " 1=1 "; //查询条件,默认查询未删除的数据
         //房屋id存在则按房屋id查询，不存在则按条件查询
         if (!empty($room_id)) {
             $where .= " AND bill.room_id = :room_id ";
-            $room_where .= " AND room.id = :room_id ";
-            $roomParams = array_merge($roomParams, [':room_id' => $room_id]);
+//            $room_where .= " AND room.id = :room_id ";
+//            $roomParams = array_merge($roomParams, [':room_id' => $room_id]);
             $params = array_merge($params, [':room_id' => $room_id]);
         }
         if (!empty($year)) {
@@ -637,11 +645,24 @@ class AlipayCostService extends BaseService
         }
 
         //查询房屋信息
-        $roomData = Yii::$app->db->createCommand("select  communit.name as community_name,room.group,room.building,room.unit,room.room from ps_community_roominfo as room,ps_community communit where {$room_where} and room.community_id = communit.id;", $roomParams)->queryOne();
+//        $roomData = Yii::$app->db->createCommand("select  communit.name as community_name,room.group,room.building,room.unit,room.room from ps_community_roominfo as room,ps_community communit where {$room_where} and room.community_id = communit.id;", $roomParams)->queryOne();
+        //java 查询房屋信息
+        $commonService = new CommonService();
+        $roomParams['token'] = $token;
+        $roomParams['roomId'] = $room_id;
+        $roomDataResult = $commonService->roomVerification($roomParams);
+        if(empty($roomDataResult)){
+            return $this->failed("房屋信息不存在");
+        }
+        $roomData['community_name'] = $roomDataResult['communityName'];
+        $roomData['group'] = $roomDataResult['groupName'];
+        $roomData['building'] = $roomDataResult['buildingName'];
+        $roomData['unit'] = $roomDataResult['unitName'];
+        $roomData['room'] = $roomDataResult['roomName'];
         //查询该房屋下的总计应收，已缴，数量
-        $billTotal = Yii::$app->db->createCommand("select  count(bill.id) as total_num,bill.room,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount from ps_bill as bill,ps_order  as der where {$where};", $params)->queryOne();
+        $billTotal = Yii::$app->db->createCommand("select  count(bill.id) as total_num,bill.room_id,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount from ps_bill as bill,ps_order  as der where {$where};", $params)->queryOne();
         //计算欠费金额
-        $entry_amount = Yii::$app->db->createCommand("select  bill.room,sum(bill.bill_entry_amount) as owe_entry_amount from ps_bill as bill,ps_order  as der where {$where} and (bill.status=1 or bill.status=3);", $params)->queryOne();
+        $entry_amount = Yii::$app->db->createCommand("select  bill.room_id,sum(bill.bill_entry_amount) as owe_entry_amount from ps_bill as bill,ps_order  as der where {$where} and (bill.status=1 or bill.status=3);", $params)->queryOne();
         $billTotal['owe_entry_amount'] = $entry_amount['owe_entry_amount'] ? $entry_amount['owe_entry_amount'] : '0';   //欠费金额
         $count = $billTotal['total_num'];       //房屋下的账单总数
         if ($count == 0) {
@@ -669,20 +690,20 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr['acct_period_time_msg'] = date("Y-m-d", $model['acct_period_start']) . ' ' . date("Y-m-d", $model['acct_period_end']);
             $arr['create_at'] = date("Y-m-d", $model['create_at']);
             //如果是水费和电费则还需要查询使用量跟起始度数
-            if ($model['cost_type'] == 2 || $model['cost_type'] == 3) {
-                $water = Yii::$app->db->createCommand("select  use_ton,latest_ton,current_ton,formula from ps_water_record where bill_id={$model['bill_id']} ")->queryOne();
-                if (!empty($water)) {
-                    $arr['use_ton'] = $water['use_ton'];        //用量
-                    $arr['latest_ton'] = $water['latest_ton'];  //上次读数
-                    $arr['current_ton'] = $water['current_ton'];//本次读数
-                    $arr['formula'] = $water['formula'];    //单价公式
-                } else {
-                    $arr['use_ton'] = '';
-                    $arr['latest_ton'] = '';
-                    $arr['current_ton'] = '';
-                    $arr['formula'] = '';
-                }
-            }
+//            if ($model['cost_type'] == 2 || $model['cost_type'] == 3) {
+//                $water = Yii::$app->db->createCommand("select  use_ton,latest_ton,current_ton,formula from ps_water_record where bill_id={$model['bill_id']} ")->queryOne();
+//                if (!empty($water)) {
+//                    $arr['use_ton'] = $water['use_ton'];        //用量
+//                    $arr['latest_ton'] = $water['latest_ton'];  //上次读数
+//                    $arr['current_ton'] = $water['current_ton'];//本次读数
+//                    $arr['formula'] = $water['formula'];    //单价公式
+//                } else {
+//                    $arr['use_ton'] = '';
+//                    $arr['latest_ton'] = '';
+//                    $arr['current_ton'] = '';
+//                    $arr['formula'] = '';
+//                }
+//            }
             //按缴费项目组装成二维数据
             $arrList[$model['cost_id']][] = $arr;
         }
