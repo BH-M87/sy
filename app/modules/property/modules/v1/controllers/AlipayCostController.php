@@ -216,8 +216,8 @@ Class AlipayCostController extends BaseController
             ];
             $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
             $filePath = F::originalFile().'temp/'.$fileName;
-            $fileRe = F::uploadFileToOss($filePath);
-            $url = $fileRe['filepath'];
+//            $fileRe = F::uploadFileToOss($filePath);
+//            $url = $fileRe['filepath'];
             //保存日志
             $log = [
                 "community_id" => $data['community_id'],
@@ -227,7 +227,7 @@ Class AlipayCostController extends BaseController
             ];
             OperateService::addComm($this->user_info, $log);
 
-            return PsCommon::responseSuccess(['down_url' => $url]);
+            return PsCommon::responseSuccess(['down_url' => $filePath]);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
