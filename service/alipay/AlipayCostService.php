@@ -832,20 +832,20 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr['pay_channel'] = PsCommon::getPayChannel($model['pay_channel']);    //支付方式
             $arr['acct_period_time_msg'] = date("Y-m-d", $model['acct_period_start']) . ' ' . date("Y-m-d", $model['acct_period_end']);
             //如果是水费和电费则还需要查询使用量跟起始度数
-            if ($model['cost_type'] == 2 || $model['cost_type'] == 3) {
-                $water = Yii::$app->db->createCommand("select  use_ton,latest_ton,current_ton,formula from ps_water_record where bill_id={$model['bill_id']} ")->queryOne();
-                if (!empty($water)) {
-                    $arr['use_ton'] = $water['use_ton'];        //用量
-                    $arr['latest_ton'] = $water['latest_ton'];  //上次读数
-                    $arr['current_ton'] = $water['current_ton'];//本次读数
-                    $arr['formula'] = $water['formula'];    //单价公式
-                } else {
-                    $arr['use_ton'] = '';
-                    $arr['latest_ton'] = '';
-                    $arr['current_ton'] = '';
-                    $arr['formula'] = '';
-                }
-            }
+//            if ($model['cost_type'] == 2 || $model['cost_type'] == 3) {
+//                $water = Yii::$app->db->createCommand("select  use_ton,latest_ton,current_ton,formula from ps_water_record where bill_id={$model['bill_id']} ")->queryOne();
+//                if (!empty($water)) {
+//                    $arr['use_ton'] = $water['use_ton'];        //用量
+//                    $arr['latest_ton'] = $water['latest_ton'];  //上次读数
+//                    $arr['current_ton'] = $water['current_ton'];//本次读数
+//                    $arr['formula'] = $water['formula'];    //单价公式
+//                } else {
+//                    $arr['use_ton'] = '';
+//                    $arr['latest_ton'] = '';
+//                    $arr['current_ton'] = '';
+//                    $arr['formula'] = '';
+//                }
+//            }
             //按缴费项目组装成二维数据
             $arrList[] = $arr;
         }
@@ -915,11 +915,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     public function billCollect($params, $userinfo)
     {
         $room_id = PsCommon::get($params, "room_id");  //房屋id
+        $community_id = PsCommon::get($params, "community_id");  //房屋id
         $bill_list = PsCommon::get($params, "bill_list");  //需要支付的账单列表
         $pay_channel = PsCommon::get($params, "pay_channel");  //付款方式
         $content = PsCommon::get($params, "content");  //备注
         if (!$room_id) {
             return $this->failed("房屋id不能为空");
+        }
+        if (!$community_id) {
+            return $this->failed("小区id不能为空");
         }
         if (!$pay_channel) {
             return $this->failed("付款方式不能为空");
@@ -927,15 +931,28 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
-        $roomInf = RoomService::service()->getRoomById($room_id);
-        $community_id = $roomInf['community_id'];
-        if (!$community_id) {
-            return $this->failed("小区id不能为空");
+//        $roomInf = RoomService::service()->getRoomById($room_id);
+//        $community_id = $roomInf['community_id'];
+//        if (!$community_id) {
+//            return $this->failed("小区id不能为空");
+//        }
+//
+//        $community_info = CommunityService::service()->getCommunityInfo($community_id);
+//        if (empty($community_info)) {
+//            return $this->failed("未找到小区信息");
+//        }
+        //java 验证小区、房屋
+        $commonService = new CommonService();
+        $roomParam['token'] = $params['token'];
+        $roomParam['communityId'] = $community_id;
+        $roomParam['roomId'] = $room_id;
+        $roomInf = $commonService->roomVerification($roomParam);
+        if(empty($roomInf)){
+            return $this->failed("未找到小区房屋信息");
         }
-        $community_info = CommunityService::service()->getCommunityInfo($community_id);
-        if (empty($community_info)) {
-            return $this->failed("未找到小区信息");
-        }
+        $roomInf['community_id'] = $community_id;
+        $roomInf['address'] = $roomInf['communityName'].$roomInf['groupName'].$roomInf['buildingName'].$roomInf['unitName'].$roomInf['roomName'];
+
         $total_money = 0;//支付总金额
         $lockArr = [];      //锁定状态的账单
         $diff_arr = [];   //分期支付的数据
@@ -1028,7 +1045,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $success['err_msg'] = $err_msg ?? '';
         $params['total_money'] = $total_money;
         if (!empty($diff_arr) && count($diff_arr) > 0) {//确认有收款账单才新增收款记录
-            //发送消息
+            /*//发送消息
             $tem = [
                 'community_id' => $params['community_id'],
                 'id' => 0,
@@ -1051,7 +1068,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     0 => '123456'
                 ]
             ];
-            MessageService::service()->addMessageTemplate($tem);
+            MessageService::service()->addMessageTemplate($tem);*/
             $income_info = BillIncomeService::service()->billIncomeAdd($params, $diff_arr, $userinfo);
             $success['income_id'] = $income_info['data']['income_id'];
             //保存日志
@@ -1075,21 +1092,21 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         //添加支付成功日志表
         $str = "1000000000" + $val["bill_id"];
         $trad_no = date("YmdHi") . 'x' . $str;
-        $pay_params = [
-            "order_id" => $val['order_id'],
-            "trade_no" => $trad_no,
-            "total_amount" => $val["pay_amount"],
-            'buyer_account' => 'zje_system',
-            'buyer_id' => 'zje_system',
-            'seller_id' => 'zje_system',
-            "gmt_payment" => time(),
-            "create_at" => time(),
-        ];
-        $Result = $this->addPayLog($pay_params);
-        if ($Result["code"]) {
+//        $pay_params = [
+//            "order_id" => $val['order_id'],
+//            "trade_no" => $trad_no,
+//            "total_amount" => $val["pay_amount"],
+//            'buyer_account' => 'zje_system',
+//            'buyer_id' => 'zje_system',
+//            'seller_id' => 'zje_system',
+//            "gmt_payment" => time(),
+//            "create_at" => time(),
+//        ];
+//        $Result = $this->addPayLog($pay_params);
+//        if ($Result["code"]) {
             //修复订单表
             $params = [
-                ":pay_id" => $Result['data'],
+//                ":pay_id" => $Result['data'],
                 ":trade_no" => $trad_no,
                 ":id" => $val["order_id"],
                 ":pay_amount" => $val["pay_amount"],
@@ -1097,12 +1114,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 ":remark" => !empty($val["remark"]) ? $val["remark"] : '',
                 ":pay_time" => time(),
             ];
-            $sql = "UPDATE ps_order  SET `status`='7',pay_status=1, trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark, pay_time=:pay_time,pay_id=:pay_id,pay_amount=:pay_amount WHERE id=:id";
+//            $sql = "UPDATE ps_order  SET `status`='7',pay_status=1, trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark, pay_time=:pay_time,pay_id=:pay_id,pay_amount=:pay_amount WHERE id=:id";
+            $sql = "UPDATE ps_order  SET `status`='7',pay_status=1, trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark, pay_time=:pay_time,pay_amount=:pay_amount WHERE id=:id";
             Yii::$app->db->createCommand($sql, $params)->execute();
             return $this->success([]);
-        } else {
-            return $this->failed($Result['msg']);
-        }
+//        } else {
+//            return $this->failed($Result['msg']);
+//        }
 
 
     }
