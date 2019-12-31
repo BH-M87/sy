@@ -63,7 +63,7 @@ Class AlipayCostController extends BaseController
                 "value" => $val,
             ];
         }
-        return PsCommon::responseSuccess($arr);
+        return PsCommon::responseSuccess(['list'=>$arr]);
     }
     //=================================================账单列表功能相关Start============================================
     //物业系统-账单管理-账单列表

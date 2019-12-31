@@ -35,10 +35,10 @@ Class BillIncomeService extends BaseService
         $param['trade_no'] = $batch_id;        //交易流水
         $param['room_id'] = $params['room_id'];
         $param['community_id'] = $room['community_id'];
-        $param['group'] = $room['group'];
-        $param['building'] = $room['building'];
-        $param['unit'] = $room['unit'];
-        $param['room'] = $room['room'];
+        $param['group_id'] = $room['group'];
+        $param['building_id'] = $room['building'];
+        $param['unit_id'] = $room['unit'];
+        $param['room_address'] = $room['room'];
         $param['note'] = $params['content'];
         $param['pay_channel'] = $params['pay_channel'];
         $param['income_time'] = time();
