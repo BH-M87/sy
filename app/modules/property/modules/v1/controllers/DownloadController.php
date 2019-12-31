@@ -14,19 +14,22 @@ use yii\base\Controller;
 
 Class DownloadController extends Controller
 {
+
+
     public function actionIndex()
     {
-        $fileName = PsCommon::get($this->request_params, 'filename');
+        $request_params = !empty($_REQUEST['data']) ? json_decode($_REQUEST['data'], true) : [];
+        $fileName = PsCommon::get($request_params, 'filename');
         if (!$fileName) {
             return PsCommon::responseFailed('文件名不能为空');
         }
-        $type = PsCommon::get($this->request_params, 'type', 'temp');
+        $type = PsCommon::get($request_params, 'type', 'temp');
         $filePath = $this->_getDir($type) . $fileName;
         if (!file_exists($filePath)) {
             return PsCommon::responseFailed('文件不存在');
         }
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
-        $newName = PsCommon::get($this->request_params, 'newname');//下载后生成的文件名字
+        $newName = PsCommon::get($request_params, 'newname');//下载后生成的文件名字
         $newName = $newName ? $newName : pathinfo($fileName, PATHINFO_BASENAME);
         $ctype = $this->_getContentType($ext);
         $fp = fopen($filePath, "r");
