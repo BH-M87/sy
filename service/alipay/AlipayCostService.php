@@ -50,12 +50,6 @@ class AlipayCostService extends BaseService
 //        if (empty($communityInfo)) {
 //            return $this->failed("请选择有效小区");
 //        }
-        $comService = new CommonService();
-        $comParams['community_id'] = $communityId;
-        $comParams['token'] = $data['token'];
-        if (!$comService->communityVerification($comParams)) {
-            return $this->failed("请选择有效小区");
-        }
 
         //查询总数
         $count = $this->_billSearch($data, $userInfo)->groupBy("bill.room_id")->count();
