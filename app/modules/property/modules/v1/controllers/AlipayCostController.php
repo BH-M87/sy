@@ -217,6 +217,8 @@ Class AlipayCostController extends BaseController
             ];
             $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
             $filePath = F::originalFile().'temp/'.$fileName;
+            $day = date('Y-m-d');
+            $downUrl = F::downloadUrl($fileName, 'temp', 'MuBan.xlsx');
 //            $fileRe = F::uploadFileToOss($filePath);
 //            $url = $fileRe['filepath'];
             //保存日志
@@ -228,7 +230,7 @@ Class AlipayCostController extends BaseController
             ];
             OperateService::addComm($this->user_info, $log);
 
-            return PsCommon::responseSuccess(['down_url' => $filePath]);
+            return PsCommon::responseSuccess(['down_url' => $downUrl]);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
