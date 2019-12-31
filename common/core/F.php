@@ -247,7 +247,7 @@ class F
     {
         $data = ['filename' => $fileName, 'type' => $type, 'newname' => $newName];
         $token = self::request('token');
-        $module = 'property';
+        $module = 'property/v1';
         return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
     }
 
