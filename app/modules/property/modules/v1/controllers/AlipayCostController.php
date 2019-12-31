@@ -18,6 +18,7 @@ use service\alipay\TemplateService;
 use Yii;
 use service\common\CsvService;
 use app\models\PsBillIncome;
+use service\alipay\BillDetailService;
 
 Class AlipayCostController extends BaseController
 {
@@ -721,14 +722,16 @@ Class AlipayCostController extends BaseController
     //=================================================End账单新增功能相关==============================================
 
     //=================================================收缴明细功能相关Start============================================
-    //收缴明细表
+    
+    // 收缴明细表
     public function actionPayDetailList()
     {
-        $result = AlipayCostService::service()->payDetailList($this->request_params, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
+        $r = BillDetailService::service()->payDetailList($this->request_params, $this->user_info);
+        
+        if ($r['code']) {
+            return PsCommon::responseSuccess($r['data']);
         } else {
-            return PsCommon::responseFailed($result['msg']);
+            return PsCommon::responseFailed($r['msg']);
         }
     }
 

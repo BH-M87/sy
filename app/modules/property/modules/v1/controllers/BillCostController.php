@@ -41,10 +41,10 @@ class BillCostController extends BaseController
     // 新增缴费项目
     public function actionAdd()
     {
-        $$this->request_params['cost_type'] = 5;         // 默认是其他缴费项
-        $$this->request_params['create_at'] = time();
+        $this->request_params['cost_type'] = 5;         // 默认是其他缴费项
+        $this->request_params['create_at'] = time();
 
-        $r = BillCostService::service()->addCost($$this->request_params, $this->user_info);
+        $r = BillCostService::service()->addCost($this->request_params, $this->user_info);
 
         if ($r['code']) {
             return PsCommon::responseSuccess($r['data']);
