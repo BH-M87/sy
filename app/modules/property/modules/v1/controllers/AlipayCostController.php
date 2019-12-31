@@ -339,7 +339,7 @@ Class AlipayCostController extends BaseController
     //获取下载数据模板的链接
     public function actionGetPayExcel()
     {
-        $data['company_id'] = $this->user_info['property_company_id'];
+        $data['company_id'] = $this->user_info['corpId'];
         //查询收费项目
         $servers = BillCostService::service()->getAllByPay($this->user_info)['data'];
         $str = "";
@@ -363,7 +363,7 @@ Class AlipayCostController extends BaseController
         $config["save_path"] = $savePath;
         $config["file_name"] = uniqid() . ".xlsx";
         $file_name = ExcelService::service()->payBill($config);
-        $downUrl = F::downloadUrl($this->systemType, $day . '/' . $file_name, 'temp', 'MuBan.xlsx');
+        $downUrl = F::downloadUrl($day . '/' . $file_name, 'temp', 'MuBan.xlsx');
 
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }

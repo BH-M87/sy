@@ -2,7 +2,7 @@
 $basePath = dirname(__DIR__,2);
 //本地配置
 $paramsConfig['dev'] = [
-    'host_name' => 'http://sy.api.com/',       //物业自己的接口域名
+    'host_name' => 'http://127.0.0.1',       //物业自己的接口域名
     'javaUrl' => 'https://test-communityb.lvzhuyun.com',    //java的接口域名
     'javaAppKey' => 'community-property',                   //java的appKey
     'javaAppSecret' => 'cMchTBCquBl3IWnHmt07i4pVSTXB18rqWR',//java的appSecret
