@@ -246,9 +246,10 @@ class F
     public static function downloadUrl($fileName, $type, $newName = '')
     {
         $data = ['filename' => $fileName, 'type' => $type, 'newname' => $newName];
-        $token = self::request('token');
+//        $token = self::request('token');
         $module = 'property/v1';
-        return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
+//        return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data) . '&token=' . $token;
+        return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data);
     }
 
     //获取完整链接，不带get参数
