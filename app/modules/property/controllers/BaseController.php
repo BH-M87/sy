@@ -89,7 +89,7 @@ class BaseController extends \yii\web\Controller
         if (!empty(Yii::$app->request->getRawBody())) {
             error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/front_req.log');
             $bodys = json_decode(Yii::$app->request->getRawBody(), true);
-            if (!is_array($bodys)){
+            if (!is_array($bodys)&&!self::_filterFunction()){
                 exit($this->ajaxReturn('http_body',[]));
             }
             $body = $bodys;
@@ -98,6 +98,19 @@ class BaseController extends \yii\web\Controller
         $this->request_params = $body;
     }
 
+    /*
+     * 过滤方法
+     */
+    private function _filterFunction(){
+        $function = Yii::$app->controller->uniqueId;
+        $filter = [
+            'property/v1/alipay-cost',
+        ];
+        if(in_array($function,$filter)){
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Notes: token验证
