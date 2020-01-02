@@ -89,27 +89,14 @@ class BaseController extends \yii\web\Controller
         if (!empty(Yii::$app->request->getRawBody())) {
             error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/front_req.log');
             $bodys = json_decode(Yii::$app->request->getRawBody(), true);
-            if (!is_array($bodys)&&!self::_filterFunction()){
+            if (!is_array($bodys)){
                 exit($this->ajaxReturn('http_body',[]));
             }
             $body = $bodys;
         }
+        $body = !empty($body)?$body:F::request();   //如果raw没有值 默认取form-data
         $this->body = $body;
         $this->request_params = $body;
-    }
-
-    /*
-     * 过滤方法
-     */
-    private function _filterFunction(){
-        $function = Yii::$app->controller->uniqueId;
-        $filter = [
-            'property/v1/alipay-cost',
-        ];
-        if(in_array($function,$filter)){
-            return true;
-        }
-        return false;
     }
 
     /**
