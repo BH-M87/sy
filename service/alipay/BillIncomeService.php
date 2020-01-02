@@ -19,6 +19,7 @@ use service\alipay\AlipayBillService;
 use service\alipay\BillService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
+use service\property_basic\JavaService;
 
 Class BillIncomeService extends BaseService
 {
@@ -252,28 +253,21 @@ Class BillIncomeService extends BaseService
     }
 
     // 收款记录 列表
-    public function billIncomeList($params)
+    public function billIncomeList($p)
     {
-        $page = PsCommon::get($params, 'page');
-        $rows = PsCommon::get($params, 'rows');
+        $page = PsCommon::get($p, 'page');
+        $rows = PsCommon::get($p, 'rows');
 
-        $model = $this->_billIncomeSearch($params)
-            ->select('A.*, B.invoice_no')
-            ->orderBy('id desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)
-            ->asArray()->all();
+        $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
+            A.pay_channel, A.income_time, A.trade_no')
+            ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
         if (!empty($model)) {
-            foreach ($model as $k => $v) {
-                $model[$k]['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
-                $model[$k]['room_info'] = $v['group'] . $v['building'] . $v['unit'] . $v['room'];
-                $model[$k]['trade_type_str'] = self::$trade_type[$v['trade_type']];
-                $model[$k]['pay_status'] = self::$pay_status[$v['pay_status']];
-                $model[$k]['pay_channel'] = self::$pay_channel[$v['pay_channel']] . '-' . self::$pay_type[$v['pay_type']];
-                $model[$k]['check_status_str'] = self::$check_status[$v['check_status']];
-                $model[$k]['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
-                $model[$k]['entry_at'] = !empty($v['entry_at']) ? date('Y-m', $v['entry_at']) : '';
-                $model[$k]['review_at'] = !empty($v['review_at']) ? date('Y-m-d H:i:s', $v['review_at']) : '';
+            foreach ($model as $k => &$v) {
+                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
+                $v['community_name'] = $community['communityName'];
+                $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
+                $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
+                $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
             }
         }
 
@@ -291,12 +285,13 @@ Class BillIncomeService extends BaseService
     {
         $params['pay_status'] = 1; // 交易成功
 
-        $money = $this->_billIncomeSearch($params)->select('sum(pay_money)')->scalar();
-
-        if (empty($money)) {
-            $money = 0;
-        }
+        $money = $this->_billIncomeSearch($params)->select('
+            sum(CASE WHEN A.trade_type = 1 THEN A.pay_money END) AS amount,
+            sum(CASE WHEN A.trade_type = 2 THEN A.pay_money END) AS refund')->asArray()->one();
         
+        $money['amount'] = $money['amount'] ?? 0;
+        $money['refund'] = $money['refund'] ?? 0;
+
         return $money;
     }
 
@@ -317,7 +312,7 @@ Class BillIncomeService extends BaseService
 
         $arr['note'] = !empty($model['note']) ? $model['note'] : '';
         $arr['pay_channel'] = self::$pay_channel[$model['pay_channel']];
-        $arr['room_info'] = $model['group'] . $model['building'] . $model['unit'] . $model['room'];
+        $arr['room_address'] = $model['room_address'];
         $arr['trade_no'] = $model['trade_no'];
 
         $bill = PsBillIncomeRelation::find()->alias("A")
@@ -413,43 +408,55 @@ Class BillIncomeService extends BaseService
     }
 
     // 发票退款操作
-    public function refundAdd($params, $userinfo)
+    public function refundAdd($p, $userinfo)
     {
-        $income_id = PsCommon::get($params, 'id');
-        $refund_note = PsCommon::get($params, 'refund_note');
+        $income_id = PsCommon::get($p, 'id');
+        $refund_note = PsCommon::get($p, 'refund_note');
+
         if (empty($income_id)) {
             return $this->failed('收款记录ID不能为空！');
         }
+
         if (empty($refund_note)) {
             return $this->failed('退款原因不能为空！');
         }
-        $model = PsBillIncome::find()
-            ->where(['=', 'id', $income_id])
-            ->asArray()->one();
+
+        $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
         if (empty($model)) {
             return $this->failed('收款记录不存在！');
         }
+
         if ($model['pay_status'] == 2) {
             return $this->failed('当前收款记录已退款！');
         }
-        //根据收款记录查询对应的账单明细
+
+        // 根据收款记录查询对应的账单明细
         $billList = PsBillIncomeRelation::find()->alias('rela')
             ->where(['rela.income_id' => $income_id])
             ->leftJoin("ps_bill bill", "bill.id=rela.bill_id")
             ->select(['bill.*'])->asArray()->all();
-        //获取小区信息
+        // 获取小区信息
         $communityInfo = CommunityService::service()->getInfoById($model['community_id']);
         if (empty($communityInfo)) {
             return $this->failed("请选择有效小区");
         }
-        if ($model['pay_type'] == 1) {//线上收款，退款要走线上退款流程
-            $result = $this->refundOnlineBill($params, $model, $billList, $communityInfo);
-        } else {//线下收款，走线下退款流程
-            $result = $this->refundOfflineBill($params, $model, $billList, $communityInfo);
+
+        if ($model['pay_type'] == 1) {// 线上收款，退款要走线上退款流程
+            $result = $this->refundOnlineBill($p, $model, $billList, $communityInfo);
+        } else {// 线下收款，走线下退款流程
+            $result = $this->refundOfflineBill($p, $model, $billList, $communityInfo);
         }
+
         if ($result['code']) {
-            //添加日志
-            OperateService::addComm($userinfo, ["community_id" => $model['community_id'], "operate_menu" => "缴费管理", "operate_type" => "撤销收款", "operate_content" => "收款记录id：" . $income_id]);
+            // 添加日志
+            $javaService = new JavaService();
+            $javaParam = [
+                'token' => $p['token'],
+                'moduleKey' => 'bill_module',
+                'content' => "收款记录id：" . $income_id,
+
+            ];
+            $javaService->logAdd($javaParam);
             //修改收款记录,状态为交易关闭
             PsBillIncome::updateAll(['pay_status' => 2, 'trade_type' => 2, 'refund_time' => time()], ['id' => $income_id]);
             return $this->success();
