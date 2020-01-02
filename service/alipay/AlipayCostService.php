@@ -2029,7 +2029,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (empty($buildings)) {
             return $this->failed("请选择有效楼幢");
         }
-        $orWhere[] = "or";
+//        $orWhere[] = "or";
+        $groupIds = $buildingIds = [];
         foreach ($buildings as $building) {
             if (empty($building["group_id"])) {
                 return $this->failed('苑期选择错误');
@@ -2037,11 +2038,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             if (empty($building["children"])) {
                 return $this->failed('幢选择错误');
             }
+            array_push($groupIds,$building['group_id']);
             foreach ($building["children"] as $child) {
                 if (empty($child["building_id"])) {
                     return $this->failed('幢选择错误');
                 }
-                $orWhere[] = ["`group`" => $building["group"], "building" => $child["name"]];
+                array_push($buildingIds,$child['building_id']);
+//                $orWhere[] = ["`group`" => $building["group"], "building" => $child["name"]];
             }
         }
         
@@ -2060,7 +2063,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $community['id'] = $communityId;
         $community['company_id'] = $params['corp_id'];
         $community['name'] = $communityName;
-
         $cost = BillCostService::service()->getById($costId);
         if (!$cost) {
             return $this->failed('缴费项目未找到');
@@ -2092,19 +2094,23 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //            ->andWhere($orWhere)
 //            ->all();
         //获得java房屋
-
-        $allRooms = [
-            [
-                'room_id' =>'1200671382231707650',
-                'group_id' =>'4545415',
-                'building_id' =>'12313245',
-                'unit_id' =>'123132456',
-                'room_address' => "芳菲郡2幢2单元1801",
-                'charge_area' =>'89',
-                'status' => '1',
-                'property_type' =>'2',
-            ],
-        ];
+        $batchParams['token'] = $params['token'];
+        $batchParams['community_id'] = $communityId;
+        $batchParams['groupIds'] = $groupIds;
+        $batchParams['buildingIds'] = $buildingIds;
+        $allRooms = self::getBatchRoomData($batchParams);
+//        $allRooms = [
+//            [
+//                'room_id' =>'1200671382231707650',
+//                'group_id' =>'4545415',
+//                'building_id' =>'12313245',
+//                'unit_id' =>'123132456',
+//                'room_address' => "芳菲郡2幢2单元1801",
+//                'charge_area' =>'89',
+//                'status' => '1',
+//                'property_type' =>'2',
+//            ],
+//        ];
         if (count($allRooms) < 1) {
             return $this->failed('未查到房屋信息');
         }
@@ -2153,6 +2159,21 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             return $this->failed($e->getMessage());
         }
         return $this->success(['task_id' => $result['task_id'], "result" => $result]);
+    }
+
+    //批量生成账单 获得java房屋数据
+    public function getBatchRoomData($params){
+        $service = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $params['community_id'];
+        if(!empty($params['groupIds'])){
+            $javaParams['groupIds'] = $params['groupIds'];
+        }
+        if(!empty($params['buildingIds'])){
+            $javaParams['buildingIds'] = $params['buildingIds'];
+        }
+        $result = $service->roomQueryList($javaParams);
+        return $result['list'];
     }
 
     //批量新增账单与订单操作
@@ -2213,18 +2234,18 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "company_id" => $communityInfo["company_id"],
                     "community_id" => $communityInfo["id"],
                     "community_name" => $communityInfo["name"],
-                    "room_id" => $val["room_id"],
+                    "room_id" => $val["roomId"],
                     "task_id" => $taskId,
                     "bill_entry_id" => $bill_entry_id,
                     "crontab_id" => $crontab_id,
 //                    "out_room_id" => $val["out_room_id"],
-                    "group_id" => $val["group_id"],
-                    "building_id" => $val["building_id"],
-                    "unit_id" => $val["unit_id"],
-                    "room_address" => $val["room_address"],
-                    "charge_area" => $val["charge_area"],
-                    "room_status" => $val["status"],
-                    "property_type" => $val["property_type"],
+                    "group_id" => $val["groupId"],
+                    "building_id" => $val["buildingId"],
+                    "unit_id" => $val["unitId"],
+                    "room_address" => $val["home"],
+                    "charge_area" => $val["areaSize"],
+                    "room_status" => $val["houseStatus"],
+                    "property_type" => $val["propertyType"],
                     "acct_period_id" => $periodId,
                     "acct_period_start" => $periodStart,
                     "acct_period_end" => $periodEnd,
@@ -2245,15 +2266,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "bill_id" => $billResult['data'],
                         "company_id" => $communityInfo["company_id"],
 
-                        "group_id" => $val["group_id"],
-                        "building_id" => $val["building_id"],
-                        "unit_id" => $val["unit_id"],
-                        "room_id" => $val["room_id"],
-                        "room_address" => $val["room_address"],
+                        "group_id" => $val["groupId"],
+                        "building_id" => $val["buildingId"],
+                        "unit_id" => $val["unitId"],
+                        "room_id" => $val["roomId"],
+                        "room_address" => $val["home"],
 
                         "community_id" => $communityInfo["id"],
                         "order_no" => F::generateOrderNo(),
-                        "product_id" => $val["room_id"],
+                        "product_id" => $val["roomId"],
                         "product_type" => $cost["cost_type"],
                         "product_subject" => $cost["name"],
                         "bill_amount" => $bill_entry_amount,
@@ -2268,7 +2289,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         Yii::$app->db->createCommand("update ps_bill set order_id={$orderResult['data']} where id={$billResult['data']}")->execute();
                         //添加系统日志
                         $content = "小区名称:" . $communityInfo["name"] . ',';
-                        $content .= "房屋id:" . $val["room_id"] . ',';
+                        $content .= "房屋id:" . $val["roomId"] . ',';
                         $content .= "缴费项目:" . $cost["name"] . ',';
                         $content .= "缴费金额:" . $bill_entry_amount . ',';
                         $operate = [

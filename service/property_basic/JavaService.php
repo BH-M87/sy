@@ -204,4 +204,10 @@ class JavaService extends BaseService
         }
         return $result;
     }
+
+    //根据条件查询房屋列表
+    public function roomQueryList($query){
+        $query['route'] = '/room/query/list';
+        return self::returnCData($query);
+    }
 }
