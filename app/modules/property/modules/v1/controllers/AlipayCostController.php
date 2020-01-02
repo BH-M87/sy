@@ -37,7 +37,7 @@ Class AlipayCostController extends BaseController
                 "value"=>$val,
             ];
         }
-        return PsCommon::responseSuccess($arr);
+        return PsCommon::responseSuccess(['list'=>$arr]);
     }
     //收款方式
     public function actionPayChannel()
@@ -50,7 +50,7 @@ Class AlipayCostController extends BaseController
                 'value' => $val
             ];
         }
-        return PsCommon::responseSuccess($result);
+        return PsCommon::responseSuccess(['list'=>$result]);
     }
 
     //获取账单状态
