@@ -436,10 +436,11 @@ Class AlipayCostController extends BaseController
             return PsCommon::responseFailed($result['msg']);
         }
         $config = [
-            ['title' => '苑期区', 'field' => 'group'],
-            ['title' => '幢', 'field' => 'building'],
-            ['title' => '单元', 'field' => 'unit'],
-            ['title' => '室', 'field' => 'room'],
+//            ['title' => '苑期区', 'field' => 'group'],
+//            ['title' => '幢', 'field' => 'building'],
+//            ['title' => '单元', 'field' => 'unit'],
+//            ['title' => '室', 'field' => 'room'],
+            ['title' => '房屋信息', 'field' => 'room_address'],
             ['title' => '账期开始时间', 'field' => 'acct_period_start'],
             ['title' => '账期结束时间', 'field' => 'acct_period_end'],
             ['title' => '缴费项目', 'field' => 'cost_name'],
@@ -464,9 +465,10 @@ Class AlipayCostController extends BaseController
             "operate_content" => $content,
         ];
         OperateService::addComm($this->user_info, $operate);
-        $filePath = F::originalFile().'temp/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'temp/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+        $downUrl = F::downloadUrl($filename, 'temp', 'BillAmount.csv');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
