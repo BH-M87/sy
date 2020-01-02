@@ -1752,17 +1752,25 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$roomId) {
             return $this->failed("房屋id不能为空");
         }
-        print("asdf");die;
-        $roomInfo = [];
-        if ($roomId) {
-            $roomInfo = RoomService::service()->getRoomById($roomId);
-            if (empty($roomInfo)) {
-                return $this->failed("未找到房屋");
-            }
-            if (empty($roomInfo["out_room_id"])) {
-                return $this->failed("支付宝房屋id不能为空");
-            }
+
+//        if ($roomId) {
+//            $roomInfo = RoomService::service()->getRoomById($roomId);
+//            if (empty($roomInfo)) {
+//                return $this->failed("未找到房屋");
+//            }
+//            if (empty($roomInfo["out_room_id"])) {
+//                return $this->failed("支付宝房屋id不能为空");
+//            }
+//        }
+        //java 获得房屋信息
+        $batchParams['token'] = $params['token'];
+        $batchParams['community_id'] = $communityId;
+        $batchParams['roomId'] = $roomId;
+        $roomInfoResult = self::getBatchRoomData($batchParams);
+        if(empty($roomInfoResult[0])){
+            return $this->failed("未找到房屋");
         }
+        $roomInfo = $roomInfoResult[0];
 
         $error_info = '';
         //================================================正式开始操作==================================================
@@ -1814,17 +1822,18 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "company_id" => $communityInfo["company_id"],
                     "community_id" => $communityInfo["id"],
                     "community_name" => $communityInfo["name"],
-                    "room_id" => !empty($roomInfo["id"]) ? $roomInfo["id"] : 0,
+                    "room_id" => !empty($roomInfo["roomId"]) ? $roomInfo["roomId"] : 0,
                     "task_id" => $task_id,
                     "bill_entry_id" => $bill_entry_id,
                     "out_room_id" => !empty($roomInfo["out_room_id"]) ? $roomInfo["out_room_id"] : '',
-                    "group_id" => !empty($roomInfo["group"]) ? $roomInfo["group"] : '',
-                    "building_id" => !empty($roomInfo["building"]) ? $roomInfo["building"] : '',
-                    "unit_id" => !empty($roomInfo["unit"]) ? $roomInfo["unit"] : '',
-                    "room_id" => !empty($roomInfo["room"]) ? $roomInfo["room"] : '',
-                    "charge_area" => !empty($roomInfo["charge_area"]) ? $roomInfo["charge_area"] : '',
-                    "room_status" => $roomInfo["status"],
-                    "property_type" => !empty($roomInfo["property_type"]) ? $roomInfo["property_type"] : 0,
+                    "group_id" => !empty($roomInfo["groupId"]) ? $roomInfo["groupId"] : '',
+                    "building_id" => !empty($roomInfo["buildingId"]) ? $roomInfo["buildingId"] : '',
+                    "unit_id" => !empty($roomInfo["unitId"]) ? $roomInfo["unitId"] : '',
+                    "room_id" => !empty($roomInfo["roomId"]) ? $roomInfo["roomId"] : '',
+                    "charge_area" => !empty($roomInfo["areaSize"]) ? $roomInfo["areaSize"] : '',
+                    "room_status" => $roomInfo["houseStatus"],
+                    "property_type" => !empty($roomInfo["propertyType"]) ? $roomInfo["propertyType"] : 0,
+                    "room_address"=> $roomInfo["home"],
                     "acct_period_id" => $acctPeriodId,
                     "acct_period_start" => $acctPeriodStart,
                     "acct_period_end" => $acctPeriodEnd,
@@ -1837,7 +1846,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "status" => "3",
                     "create_at" => time(),
                 ];
-                $product_id = !empty($roomInfo["id"]) ? $roomInfo["id"] : 0;  //商品id对应房屋
+                $product_id = !empty($roomInfo["roomId"]) ? $roomInfo["roomId"] : 0;  //商品id对应房屋
                 //新增账单
                 $billResult = $this->addBill($billData);
                 if ($billResult["code"]) {
@@ -1855,6 +1864,12 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "status" => "3",
                         "pay_status" => "0",
                         "create_at" => time(),
+
+                        "group_id" => $roomInfo["groupId"],
+                        "building_id" => $roomInfo["buildingId"],
+                        "unit_id" => $roomInfo["unitId"],
+                        "room_id" => $roomInfo["roomId"],
+                        "room_address" => $roomInfo["home"],
                     ];
                     $orderResult = $this->addOrder($orderData);
                     if ($orderResult["code"]) {
@@ -1862,7 +1877,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         Yii::$app->db->createCommand("update ps_bill set order_id={$orderResult['data']} where id={$billResult['data']}")->execute();
                         //添加系统日志
                         $content = "小区名称:" . $communityInfo["name"] . ',';
-                        $content .= "房屋id:" . $roomInfo["id"] . ',';
+                        $content .= "房屋id:" . $roomInfo["roomId"] . ',';
                         $content .= "缴费项目:" . $cost["name"] . ',';
                         $content .= "缴费金额:" . $v["bill_entry_amount"] . ',';
                         $operate = [
@@ -1889,11 +1904,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             return $this->failed($e->getMessage());
         }
         //账单订单新增成功后判断是否有成功记录，有则将成功记录发布到支付宝
-//        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
+        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
 //        if ($success_count > 0) {
 //            BillService::service()->pubBillByTask($task_id);
 //        }
-//        return $this->success($resultData);
+        return $this->success($resultData);
     }
 
     //获取金额（因为公摊水电的水电费公式区分了阶梯价格导致）
@@ -2171,6 +2186,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
         if(!empty($params['buildingIds'])){
             $javaParams['buildingIds'] = $params['buildingIds'];
+        }
+        if(!empty($params['roomId'])){
+            $javaParams['roomId'] = $params['roomId'];
         }
         $result = $service->roomQueryList($javaParams);
         return $result['list'];
