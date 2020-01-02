@@ -216,8 +216,8 @@ Class AlipayCostController extends BaseController
                 'E' => ['title' => '欠费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'owe_entry_amount', 'default' => '-'],
             ];
             $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
-            $filePath = F::originalFile().'temp/'.$fileName;
-            $day = date('Y-m-d');
+//            $filePath = F::originalFile().'temp/'.$fileName;
+//            $day = date('Y-m-d');
             $downUrl = F::downloadUrl($fileName, 'temp', 'MuBan.xlsx');
 //            $fileRe = F::uploadFileToOss($filePath);
 //            $url = $fileRe['filepath'];
