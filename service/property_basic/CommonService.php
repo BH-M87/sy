@@ -62,7 +62,7 @@ class CommonService extends BaseService  {
 
     /*
      * 验证房屋是否存在
-     * input: roomId,communityId,groupId,buildingId,unitId
+     * input: token,roomId,communityId,groupId,buildingId,unitId
      */
     public function roomVerification($params){
         $data = [];
@@ -75,5 +75,15 @@ class CommonService extends BaseService  {
             }
         }
         return $data;
+    }
+
+    /*
+     * 登录密码验证
+     * input:token,password
+     */
+    public function passwordVerification($params){
+        $service = new JavaService();
+        $flag = $service->userValidatePwd($params);
+        return $flag;
     }
 }

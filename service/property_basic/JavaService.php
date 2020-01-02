@@ -210,4 +210,10 @@ class JavaService extends BaseService
         $query['route'] = '/room/query/list';
         return self::returnCData($query);
     }
+
+    //登录密码验证
+    public function userValidatePwd($query){
+        $query['route'] = '/user/validate-pwd';
+        return self::returnCData($query);
+    }
 }

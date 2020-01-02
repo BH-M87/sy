@@ -940,6 +940,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $bill_list = PsCommon::get($params, "bill_list");  //需要支付的账单列表
         $pay_channel = PsCommon::get($params, "pay_channel");  //付款方式
         $content = PsCommon::get($params, "content");  //备注
+        $password = PsCommon::get($params, "password");  //登录密码
         if (!$room_id) {
             return $this->failed("房屋id不能为空");
         }
@@ -952,6 +953,18 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
+        if(!$password){
+            return $this->failed("登录密码不能为空");
+        }
+
+        //java 验证密码
+        $commonService = new CommonService();
+        $pwdParams['token'] = $params['token'];
+        $pwdParams['password'] = $password;
+        if(!$commonService->passwordVerification($pwdParams)){
+            return $this->failed("请输入正确的登录密码");
+        }
+
 //        $roomInf = RoomService::service()->getRoomById($room_id);
 //        $community_id = $roomInf['community_id'];
 //        if (!$community_id) {
@@ -963,7 +976,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //            return $this->failed("未找到小区信息");
 //        }
         //java 验证小区、房屋
-        $commonService = new CommonService();
         $roomParam['token'] = $params['token'];
         $roomParam['communityId'] = $community_id;
         $roomParam['roomId'] = $room_id;

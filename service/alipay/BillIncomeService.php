@@ -3,6 +3,7 @@ namespace service\alipay;
 
 use service\message\MessageService;
 use service\BaseService;
+use service\property_basic\CommonService;
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
@@ -30,15 +31,25 @@ Class BillIncomeService extends BaseService
     // 收款记录 新增
     public function billIncomeAdd($params, $bill_list, $userinfo)
     {
-        $room = PsCommunityRoominfo::findOne($params['room_id']);
+//        $room = PsCommunityRoominfo::findOne($params['room_id']);
+        $aliPayService = new AlipayCostService();
+        $roomParams['token'] = $params['token'];
+        $roomParams['community_id'] = $params['community_id'];
+        $roomParams['roomId'] = $params['room_id'];
+        $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
+        if(empty($roomInfoResult[0])){
+            return $this->failed("未找到房屋");
+        }
+        $room = $roomInfoResult[0];
+
         $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
         $param['trade_no'] = $batch_id;        //交易流水
         $param['room_id'] = $params['room_id'];
-        $param['community_id'] = $room['community_id'];
-        $param['group_id'] = $room['group'];
-        $param['building_id'] = $room['building'];
-        $param['unit_id'] = $room['unit'];
-        $param['room_address'] = $room['room'];
+        $param['community_id'] = $room['communityId'];
+        $param['group_id'] = $room['groupId'];
+        $param['building_id'] = $room['buildingId'];
+        $param['unit_id'] = $room['unitId'];
+        $param['room_address'] = $room['home'];
         $param['note'] = $params['content'];
         $param['pay_channel'] = $params['pay_channel'];
         $param['income_time'] = time();
