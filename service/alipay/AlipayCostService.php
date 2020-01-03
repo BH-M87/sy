@@ -43,9 +43,9 @@ class AlipayCostService extends BaseService
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
         //================================================数据验证操作==================================================
-//        if (!$communityId) {
-//            return $this->failed("请选择小区");
-//        }
+        if (!$communityId) {
+            return $this->failed("请选择小区");
+        }
 //        $communityInfo = CommunityService::service()->getInfoById($communityId);
 //        if (empty($communityInfo)) {
 //            return $this->failed("请选择有效小区");
@@ -1509,8 +1509,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 return $this->failed($errorMsg[0][0]);
             }
             //验证小区
-            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
-            if (empty($community_info)) {
+//            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
+//            if (empty($community_info)) {
+//                return $this->failed("未找到小区信息");
+//            }
+            //java 验证小区
+            $commonService = new CommonService();
+            $javaCommunityParams['community_id'] = $params['community_id'];
+            $javaCommunityParams['token'] = $params['token'];
+            if(!$commonService->communityVerification($javaCommunityParams)){
                 return $this->failed("未找到小区信息");
             }
             //验证任务
@@ -1545,7 +1552,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             if (\PHPExcel_Shared_Date::ExcelToPHP($val["G"]) > 0) {
                 $val["G"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["G"]));
             }
-            $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['property_company_id']]);
+            $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['corpId']]);
             //验证收费项
             if (empty($cost) || empty($val["E"])) {
                 $error_count++;
@@ -1582,7 +1589,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
                 continue;
             }
-            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"]);
+            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
             if (empty($ps_room)) {
                 $error_count++;
                 $errorCsv[$defeat_count] = $val;
@@ -1596,7 +1603,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $release_end_time = strtotime(date("Y-m-d", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
             }
             $bill_params = [
-                ":out_room_id" => $ps_room["out_room_id"],
+                ":out_room_id" => !empty($ps_room["out_room_id"])?$ps_room["out_room_id"]:null,
                 ":cost_id" => $cost['id'],
                 "community_id" => $params["community_id"],
                 ":acct_period_start" => $release_time,
@@ -1659,18 +1666,30 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $this->success($result);
     }
 
-    public function getRoom($data)
+    public function getRoom($data,$token)
     {
-        $query = new Query();
-        $query->select("*");
-        $query->from("ps_community_roominfo");
-        $query->where('room=:room', [':room' => $data["room"]]);
-        $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
-        $query->andWhere('building=:building', [':building' => $data["building"]]);
-        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
-        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
-        $model = $query->one();
-        return $model;
+
+//        $query = new Query();
+//        $query->select("*");
+//        $query->from("ps_community_roominfo");
+//        $query->where('room=:room', [':room' => $data["room"]]);
+//        $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
+//        $query->andWhere('building=:building', [':building' => $data["building"]]);
+//        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
+//        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
+//        $model = $query->one();
+//        return $model;
+        //通过java 获得房屋信息
+        $javaService = new JavaService();
+        $javaParams['token'] = $token;
+        $javaParams['communityId'] = $data['community_id'];
+        $javaParams['groupName'] = $data['group'];
+        $javaParams['buildingName'] = $data['building'];
+        $javaParams['unitName'] = $data['unit'];
+        $javaParams['roomName'] = $data['room'];
+        print_r($javaParams);die;
+        $result = $javaService->roomQueryByName($javaParams);
+        print_r($result);die;
     }
 
     //修复账单，订单，添加支付成功记录
@@ -1725,9 +1744,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'I' => ['title' => '错误原因', 'width' => 10, 'data_type' => 'str', 'field' => 'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        $filePath = F::originalFile().'error/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'error/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+        $downUrl = F::downloadUrl($filename, 'error', 'Error.csv');
         return $downUrl;
     }
     //===============================================End账单列表批量收款功能相关========================================
@@ -2033,6 +2053,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $result;
     }
 
+    public function getYearDrop(){
+        $result['list'] = PsCommon::$year;
+        return $result;
+    }
+
     //批量生成账单
     public function createBathcBill($params, $userinfo)
     {
@@ -2204,6 +2229,30 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
         $result = $service->roomQueryList($javaParams);
         return $result['list'];
+    }
+
+    //批量导入账单 获得java房屋数据
+    public function getBatchImportRoomData($params){
+        $service = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $params['community_id'];
+        if(!empty($params['groupIds'])){
+            $javaParams['groupIds'] = $params['groupIds'];
+        }
+        if(!empty($params['buildingIds'])){
+            $javaParams['buildingIds'] = $params['buildingIds'];
+        }
+        if(!empty($params['roomId'])){
+            $javaParams['roomId'] = $params['roomId'];
+        }
+        if(!empty($params['pageNum'])){
+            $javaParams['pageNum'] = $params['pageNum'];
+        }
+        if(!empty($params['pageSize'])){
+            $javaParams['pageSize'] = $params['pageSize'];
+        }
+        $result = $service->roomQueryPagingList($javaParams);
+        return $result;
     }
 
     //批量新增账单与订单操作
@@ -3596,6 +3645,27 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         } else {
             return $this->failed('暂无需打印的账单');
         }
+    }
+
+    //获得房屋信息
+    public function showRoom($params){
+        $communityId = PsCommon::get($params, "community_id");  //小区id
+        $roomId = PsCommon::get($params, "room_id");            //房屋id
+        if(!$communityId){
+            return $this->failed("小区id必填");
+        }
+        if(!$roomId){
+            return $this->failed("房屋id必填");
+        }
+        $javaService = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $communityId;
+        $javaParams['roomId'] = $roomId;
+        $result = $javaService->roomQueryList($javaParams);
+        if(empty($result['list'][0])){
+            return $this->failed("房屋不存在");
+        }
+        return $this->success($result['list'][0]);
     }
 
 }

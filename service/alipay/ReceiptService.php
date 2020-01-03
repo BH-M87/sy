@@ -246,8 +246,8 @@ class ReceiptService extends  BaseService {
             Yii::$app->db->createCommand()->update("ps_receipt_task", $params, 'task_id=' . $data["task_id"])->execute();
         } else {
             $params ["create_at"] = time();
-            //Yii::$app->db->createCommand()->insert("ps_receipt_task", $params)->execute();
-            //return Yii::$app->db->getLastInsertID();
+            Yii::$app->db->createCommand()->insert("ps_receipt_task", $params)->execute();
+            return Yii::$app->db->getLastInsertID();
         }
     }
     public static function  getReceiptTask( $task_id ) {

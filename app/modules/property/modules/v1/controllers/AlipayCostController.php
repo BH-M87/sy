@@ -248,9 +248,16 @@ Class AlipayCostController extends BaseController
             return PsCommon::responseFailed($valid);
         }
         $data = $valid["data"];
-        $getRoomTotals = HouseService::service()->getRoomTotals(["community_id" => $data["community_id"]]);
+
+//        $getRoomTotals = HouseService::service()->getRoomTotals(["community_id" => $data["community_id"]]);
+        $costService = new AlipayCostService();
+        $batchParams['token'] = $data['token'];
+        $batchParams['community_id'] = $data['community_id'];
+
+        $getRoomResult = $costService->getBatchImportRoomData($batchParams);
+        $getRoomTotals = $getRoomResult['totalSize'];
         if ($getRoomTotals > 0) {
-            $data['company_id'] = $this->user_info['property_company_id'];
+            $data['company_id'] = $this->user_info['corpId'];
             //查询收费项目
             $servers = BillCostService::service()->getAllByPay($this->user_info)['data'];
             $str = "";
@@ -258,15 +265,20 @@ Class AlipayCostController extends BaseController
                 $str .= $val["label"] . ',';
             }
             $str = substr($str, 0, -1);
-            $getRoomTotals = HouseService::service()->getRoomTotals(["community_id" => $data["community_id"]]);
+//            $getRoomTotals = HouseService::service()->getRoomTotals(["community_id" => $data["community_id"]]);
 
             $cycle = ceil($getRoomTotals / 1000);
             $config["sheet_config"] = [
-                'A' => ['title' => '苑/期/区', 'width' => 20, 'data_type' => 'str', 'field' => 'group'],
-                'B' => ['title' => '幢', 'width' => 10, 'data_type' => 'str', 'field' => 'building'],
-                'C' => ['title' => '单元', 'width' => 10, 'data_type' => 'str', 'field' => 'unit'],
-                'D' => ['title' => '室号', 'width' => 15, 'data_type' => 'str', 'field' => 'room'],
-                'E' => ['title' => '收费面积', 'width' => 15, 'data_type' => 'str', 'field' => 'charge_area'],
+//                'A' => ['title' => '苑/期/区', 'width' => 20, 'data_type' => 'str', 'field' => 'group'],
+//                'B' => ['title' => '幢', 'width' => 10, 'data_type' => 'str', 'field' => 'building'],
+//                'C' => ['title' => '单元', 'width' => 10, 'data_type' => 'str', 'field' => 'unit'],
+//                'D' => ['title' => '室号', 'width' => 15, 'data_type' => 'str', 'field' => 'room'],
+//                'E' => ['title' => '收费面积', 'width' => 15, 'data_type' => 'str', 'field' => 'charge_area'],
+                'A' => ['title' => '苑/期/区', 'width' => 20, 'data_type' => 'str', 'field' => 'groupName'],
+                'B' => ['title' => '幢', 'width' => 10, 'data_type' => 'str', 'field' => 'buildingName'],
+                'C' => ['title' => '单元', 'width' => 10, 'data_type' => 'str', 'field' => 'unitName'],
+                'D' => ['title' => '室号', 'width' => 15, 'data_type' => 'str', 'field' => 'roomName'],
+                'E' => ['title' => '收费面积', 'width' => 15, 'data_type' => 'str', 'field' => 'areaSize'],
                 'F' => ['title' => '账单开始日期', 'width' => 16, 'data_type' => 'no_data', 'field' => 'acct_period_start'],
                 'G' => ['title' => '账单结束日期', 'width' => 16, 'data_type' => 'no_data', 'field' => 'acct_period_end'],
                 'H' => ['title' => '缴费项目', 'width' => 20, 'data_type' => 'protect', 'field' => 'cost_name', "protect" => $str],
@@ -278,24 +290,44 @@ Class AlipayCostController extends BaseController
             //房屋数量查过一千则导出压缩文件
             if ($cycle == 1) {//下载单个文件
                 $config["file_name"] = "MuBan1.xlsx";
-                $houses = HouseService::service()->houseExcel($data, 1, 1000, 'data');
+//                $houses = HouseService::service()->houseExcel($data, 1, 1000, 'data');
+                $roomParams['token'] = $data['token'];
+                $roomParams['community_id'] = $data['community_id'];
+                $roomParams['pageNum'] = 1;
+                $roomParams['pageSize'] = 1000;
+                $houses = $costService->getBatchImportRoomData($roomParams);
                 $file_name = ExcelService::service()->roominfoDown($houses["list"], $config);
-                $downUrl = F::downloadUrl($this->systemType, 'moban/' . $data["community_id"] . '/' . $file_name, 'zip');
+                $downUrl = F::downloadUrl('moban/' . $data["community_id"] . '/'. $file_name, 'zip');
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             } else {//下载zip压缩包
                 for ($i = 1; $i <= $cycle; $i++) {
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
-                    $houses = HouseService::service()->houseExcel($data, $i, 1000, 'data');
+//                    $houses = HouseService::service()->houseExcel($data, $i, 1000, 'data');
+                    $roomParams['token'] = $data['token'];
+                    $roomParams['community_id'] = $data['community_id'];
+                    $roomParams['pageNum'] = $i;
+                    $roomParams['pageSize'] = 1000;
+                    $houses = $costService->getBatchImportRoomData($roomParams);
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     ExcelService::service()->roominfoDown($houses["list"], $config);
                 }
                 $path = $savePath . 'zhangdan.zip';
                 ExcelService::service()->addZip($savePath, $path);
-                $downUrl = F::downloadUrl($this->systemType, 'moban/'.$data['community_id'].'/zhangdan.zip', 'zip');
+                $downUrl = F::downloadUrl('moban/'.$data['community_id'].'/zhangdan.zip', 'zip');
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             }
         } else {
             return PsCommon::responseFailed("小区暂无房屋信息！");
+        }
+    }
+
+    //获得房屋信息
+    public function actionShowRoom(){
+        $result = AlipayCostService::service()->showRoom($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
         }
     }
 
@@ -374,6 +406,11 @@ Class AlipayCostController extends BaseController
     public function actionBillBatchImport()
     {
         set_time_limit(0);
+        $communityId = PsCommon::get($this->request_params, "community_id");  //小区id
+        if (!$communityId) {
+            return PsCommon::responseFailed("请选择小区");
+        }
+
         $file = $_FILES["file"];
         $savePath = F::excelPath('receipt');
         $excel_upload = ExcelService::service()->excelUpload($file, $savePath);
@@ -383,10 +420,10 @@ Class AlipayCostController extends BaseController
         $data = $excel_upload["data"];
         if ($data["totals"] < 3) {
             return PsCommon::responseFailed('未检测到有效数据');
-        } elseif ($data["totals"] >= 403) {
-            return PsCommon::responseFailed('只能添加400条数据');
+        } elseif ($data["totals"] > 1003) {
+            return PsCommon::responseFailed('只能添加1000条数据');
         }
-        $task_arr = ["file_name" => $data['file_name'], "totals" => $data["totals"], "next_name" => $data['next_name']];
+        $task_arr = ["community_id"=>$communityId,"file_name" => $data['file_name'], "totals" => $data["totals"], "next_name" => $data['next_name']];
         $task_id = ReceiptService::addReceiptTask($task_arr);
         $this->request_params['task_id'] = $task_id;
         $result = AlipayCostService::service()->billBatchImport($this->request_params, $this->user_info);
@@ -651,6 +688,12 @@ Class AlipayCostController extends BaseController
     public function actionGetBillCalc()
     {
         $result = AlipayCostService::service()->getBillCalc($this->request_params, $this->user_info);
+        return PsCommon::responseSuccess($result);
+    }
+
+    //物业系统-年份下拉
+    public function actionGetYearDrop(){
+        $result = AlipayCostService::service()->getYearDrop();
         return PsCommon::responseSuccess($result);
     }
 
