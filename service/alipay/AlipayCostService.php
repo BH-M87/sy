@@ -43,9 +43,9 @@ class AlipayCostService extends BaseService
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
         //================================================数据验证操作==================================================
-//        if (!$communityId) {
-//            return $this->failed("请选择小区");
-//        }
+        if (!$communityId) {
+            return $this->failed("请选择小区");
+        }
 //        $communityInfo = CommunityService::service()->getInfoById($communityId);
 //        if (empty($communityInfo)) {
 //            return $this->failed("请选择有效小区");
@@ -1509,8 +1509,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 return $this->failed($errorMsg[0][0]);
             }
             //验证小区
-            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
-            if (empty($community_info)) {
+//            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
+//            if (empty($community_info)) {
+//                return $this->failed("未找到小区信息");
+//            }
+            //java 验证小区
+            $commonService = new CommonService();
+            $javaCommunityParams['community_id'] = $params['community_id'];
+            $javaCommunityParams['token'] = $params['token'];
+            if(!$commonService->communityVerification($javaCommunityParams)){
                 return $this->failed("未找到小区信息");
             }
             //验证任务
@@ -1545,7 +1552,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             if (\PHPExcel_Shared_Date::ExcelToPHP($val["G"]) > 0) {
                 $val["G"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["G"]));
             }
-            $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['property_company_id']]);
+            $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['corpId']]);
             //验证收费项
             if (empty($cost) || empty($val["E"])) {
                 $error_count++;
@@ -1725,9 +1732,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'I' => ['title' => '错误原因', 'width' => 10, 'data_type' => 'str', 'field' => 'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        $filePath = F::originalFile().'error/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'error/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+        $downUrl = F::downloadUrl($filename, 'error', 'Error.csv');
         return $downUrl;
     }
     //===============================================End账单列表批量收款功能相关========================================
