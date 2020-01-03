@@ -1603,13 +1603,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $release_end_time = strtotime(date("Y-m-d", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
             }
             $bill_params = [
-                ":out_room_id" => !empty($ps_room["out_room_id"])?$ps_room["out_room_id"]:null,
+                ":room_id" => $ps_room["roomId"],
                 ":cost_id" => $cost['id'],
-                "community_id" => $params["community_id"],
+                ":community_id" => $params["community_id"],
                 ":acct_period_start" => $release_time,
-                "acct_period_end" => $release_end_time
+                ":acct_period_end" => $release_end_time
             ];
-            $bill_sql = "select id,order_id,bill_entry_id,bill_entry_amount,status from ps_bill where status=1 and is_del=1 and out_room_id=:out_room_id and cost_id=:cost_id and community_id=:community_id and acct_period_start=:acct_period_start and acct_period_end=:acct_period_end";
+            $bill_sql = "select id,order_id,bill_entry_id,bill_entry_amount,status from ps_bill where status=1 and is_del=1 and room_id=:room_id and cost_id=:cost_id and community_id=:community_id and acct_period_start=:acct_period_start and acct_period_end=:acct_period_end";
             $bill = Yii::$app->db->createCommand($bill_sql, $bill_params)->queryOne();
             if (empty($bill) || !$bill['order_id']) {
                 $error_count++;
@@ -1641,7 +1641,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             //修复账单表的信息
             $this->repairBillData(["bill_list" => array_values($arr), "pay_channel" => $params["pay_channel"]]);
             //添加收款记录
-            $income['room_id'] = $ps_room['id'];//房屋id
+            $income['room_id'] = $ps_room['roomId'];//房屋id
+            $income['community_id'] = $params['community_id'];//小区id
+            $income['token'] = $params['token'];//token
             $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
             $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
             $income['content'] = '批量收款';
@@ -1668,7 +1670,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 
     public function getRoom($data,$token)
     {
-
 //        $query = new Query();
 //        $query->select("*");
 //        $query->from("ps_community_roominfo");
@@ -1687,9 +1688,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $javaParams['buildingName'] = $data['building'];
         $javaParams['unitName'] = $data['unit'];
         $javaParams['roomName'] = $data['room'];
-        print_r($javaParams);die;
         $result = $javaService->roomQueryByName($javaParams);
-        print_r($result);die;
+        return $result;
     }
 
     //修复账单，订单，添加支付成功记录
@@ -1702,30 +1702,31 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             //添加支付成功日志表
             $str = "1000000000" + $val["bill_id"];
             $trad_no = date("YmdHi") . 'x' . $str;
-            $pay_params = [
-                "order_id" => $val['order_id'],
-                "trade_no" => $trad_no,
-                "total_amount" => $val["pay_amount"],
-                'buyer_account' => 'zje_system',
-                'buyer_id' => 'zje_system',
-                'seller_id' => 'zje_system',
-                "gmt_payment" => time(),
-                "create_at" => time(),
-            ];
-            $Result = $this->addPayLog($pay_params);
-            if ($Result["code"]) {
+//            $pay_params = [
+//                "order_id" => $val['order_id'],
+//                "trade_no" => $trad_no,
+//                "total_amount" => $val["pay_amount"],
+//                'buyer_account' => 'zje_system',
+//                'buyer_id' => 'zje_system',
+//                'seller_id' => 'zje_system',
+//                "gmt_payment" => time(),
+//                "create_at" => time(),
+//            ];
+//            $Result = $this->addPayLog($pay_params);
+//            if ($Result["code"]) {
                 //修复订单表
                 $params = [
-                    ":pay_id" => $Result['data'],
+//                    ":pay_id" => $Result['data'],
                     ":trade_no" => $trad_no,
                     ":id" => $val["order_id"],
                     ":pay_channel" => intval($data["pay_channel"]),
                     ":remark" => $data["remark"],
                     ":pay_time" => time(),
                 ];
-                $sql = "UPDATE ps_order  SET status='7', trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark,pay_id=:pay_id,pay_time=:pay_time,pay_status=1 WHERE id=:id ";
+//                $sql = "UPDATE ps_order  SET status='7', trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark,pay_id=:pay_id,pay_time=:pay_time,pay_status=1 WHERE id=:id ";
+                $sql = "UPDATE ps_order  SET status='7', trade_no=:trade_no,pay_channel=:pay_channel, remark=:remark,pay_time=:pay_time,pay_status=1 WHERE id=:id ";
                 Yii::$app->db->createCommand($sql, $params)->execute();
-            }
+//            }
         }
     }
 

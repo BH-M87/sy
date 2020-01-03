@@ -21,13 +21,20 @@ class BillTractContractService extends BaseService
 {
 
     protected static $service = [
-        'trade' => 'app\modules\property\models\BillTradeContract',
-        'yearly' => 'app\modules\property\models\PsBillYearly',
-        'monthly' => 'app\modules\property\models\BillReportMonthly',
-        'order' => 'app\modules\property\models\PsOrder',
-        'bill' => 'app\modules\property\models\PsBill',
-        'BillReportYearly' => 'app\modules\property\models\BillReportYearly',
-        'BillReportRoom' => 'app\modules\property\models\BillReportRoom',
+//        'trade' => 'app\modules\property\models\BillTradeContract',
+//        'yearly' => 'app\modules\property\models\PsBillYearly',
+//        'monthly' => 'app\modules\property\models\BillReportMonthly',
+//        'order' => 'app\modules\property\models\PsOrder',
+//        'bill' => 'app\modules\property\models\PsBill',
+//        'BillReportYearly' => 'app\modules\property\models\BillReportYearly',
+//        'BillReportRoom' => 'app\modules\property\models\BillReportRoom',
+        'trade' => 'app\models\BillTradeContract',
+        'yearly' => 'app\models\PsBillYearly',
+        'monthly' => 'app\models\BillReportMonthly',
+        'order' => 'app\models\PsOrder',
+        'bill' => 'app\models\PsBill',
+        'BillReportYearly' => 'app\models\BillReportYearly',
+        'BillReportRoom' => 'app\models\BillReportRoom',
     ];
 
     public function __call($name, $param)
