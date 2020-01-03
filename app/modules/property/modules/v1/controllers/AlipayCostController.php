@@ -374,6 +374,11 @@ Class AlipayCostController extends BaseController
     public function actionBillBatchImport()
     {
         set_time_limit(0);
+        $communityId = PsCommon::get($this->request_params, "community_id");  //小区id
+        if (!$communityId) {
+            return PsCommon::responseFailed("请选择小区");
+        }
+
         $file = $_FILES["file"];
         $savePath = F::excelPath('receipt');
         $excel_upload = ExcelService::service()->excelUpload($file, $savePath);
@@ -383,10 +388,10 @@ Class AlipayCostController extends BaseController
         $data = $excel_upload["data"];
         if ($data["totals"] < 3) {
             return PsCommon::responseFailed('未检测到有效数据');
-        } elseif ($data["totals"] >= 1003) {
+        } elseif ($data["totals"] > 1003) {
             return PsCommon::responseFailed('只能添加1000条数据');
         }
-        $task_arr = ["file_name" => $data['file_name'], "totals" => $data["totals"], "next_name" => $data['next_name']];
+        $task_arr = ["community_id"=>$communityId,"file_name" => $data['file_name'], "totals" => $data["totals"], "next_name" => $data['next_name']];
         $task_id = ReceiptService::addReceiptTask($task_arr);
         $this->request_params['task_id'] = $task_id;
         $result = AlipayCostService::service()->billBatchImport($this->request_params, $this->user_info);
