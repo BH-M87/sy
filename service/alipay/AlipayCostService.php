@@ -2220,6 +2220,30 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $result['list'];
     }
 
+    //批量导入账单 获得java房屋数据
+    public function getBatchImportRoomData($params){
+        $service = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $params['community_id'];
+        if(!empty($params['groupIds'])){
+            $javaParams['groupIds'] = $params['groupIds'];
+        }
+        if(!empty($params['buildingIds'])){
+            $javaParams['buildingIds'] = $params['buildingIds'];
+        }
+        if(!empty($params['roomId'])){
+            $javaParams['roomId'] = $params['roomId'];
+        }
+        if(!empty($params['pageNum'])){
+            $javaParams['pageNum'] = $params['pageNum'];
+        }
+        if(!empty($params['pageSize'])){
+            $javaParams['pageSize'] = $params['pageSize'];
+        }
+        $result = $service->roomQueryPagingList($javaParams);
+        return $result;
+    }
+
     //批量新增账单与订单操作
     public function addBatchBill($periodList, $contractList, $allRooms, $communityInfo, $cost, $formulaInfo, $params, $userinfo)
     {

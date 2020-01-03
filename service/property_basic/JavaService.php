@@ -211,6 +211,12 @@ class JavaService extends BaseService
         return self::returnCData($query);
     }
 
+    //根据条件查询房屋列表(分页)
+    public function roomQueryPagingList($query){
+        $query['route'] = '/room/query/paging/list';
+        return self::returnCData($query);
+    }
+
     //登录密码验证
     public function userValidatePwd($query){
         $query['route'] = '/user/validate-pwd';
