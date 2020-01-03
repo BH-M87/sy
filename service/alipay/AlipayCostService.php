@@ -1589,7 +1589,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
                 continue;
             }
-            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"]);
+            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
             if (empty($ps_room)) {
                 $error_count++;
                 $errorCsv[$defeat_count] = $val;
@@ -1666,19 +1666,30 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $this->success($result);
     }
 
-    public function getRoom($data)
+    public function getRoom($data,$token)
     {
-        print_r($data);die;
-        $query = new Query();
-        $query->select("*");
-        $query->from("ps_community_roominfo");
-        $query->where('room=:room', [':room' => $data["room"]]);
-        $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
-        $query->andWhere('building=:building', [':building' => $data["building"]]);
-        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
-        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
-        $model = $query->one();
-        return $model;
+
+//        $query = new Query();
+//        $query->select("*");
+//        $query->from("ps_community_roominfo");
+//        $query->where('room=:room', [':room' => $data["room"]]);
+//        $query->andWhere('unit=:unit', [':unit' => $data["unit"]]);
+//        $query->andWhere('building=:building', [':building' => $data["building"]]);
+//        $query->andWhere('`group`=:group', [':group' =>$data["group"]]);
+//        $query->andWhere('community_id=:community_id',[':community_id' =>$data["community_id"]]);
+//        $model = $query->one();
+//        return $model;
+        //通过java 获得房屋信息
+        $javaService = new JavaService();
+        $javaParams['token'] = $token;
+        $javaParams['communityId'] = $data['community_id'];
+        $javaParams['groupName'] = $data['group'];
+        $javaParams['buildingName'] = $data['building'];
+        $javaParams['unitName'] = $data['unit'];
+        $javaParams['roomName'] = $data['room'];
+        print_r($javaParams);die;
+        $result = $javaService->roomQueryByName($javaParams);
+        print_r($result);die;
     }
 
     //修复账单，订单，添加支付成功记录

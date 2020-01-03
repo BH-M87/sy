@@ -222,4 +222,10 @@ class JavaService extends BaseService
         $query['route'] = '/user/validate-pwd';
         return self::returnCData($query);
     }
+
+    //根据名称查询房屋详情
+    public function roomQueryByName($query){
+        $query['route'] = '/room/query/by-name';
+        return self::returnCData($query);
+    }
 }
