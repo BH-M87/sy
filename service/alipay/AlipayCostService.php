@@ -1603,7 +1603,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $release_end_time = strtotime(date("Y-m-d", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
             }
             $bill_params = [
-                ":out_room_id" => $ps_room["out_room_id"],
+                ":out_room_id" => !empty($ps_room["out_room_id"])?$ps_room["out_room_id"]:null,
                 ":cost_id" => $cost['id'],
                 "community_id" => $params["community_id"],
                 ":acct_period_start" => $release_time,
