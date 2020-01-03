@@ -654,6 +654,12 @@ Class AlipayCostController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
+    //物业系统-年份下拉
+    public function actionGetYearDrop(){
+        $result = AlipayCostService::service()->getYearDrop();
+        return PsCommon::responseSuccess($result);
+    }
+
     //物业系统-新建订单-批量新增
     public function actionCreateBatchBill()
     {

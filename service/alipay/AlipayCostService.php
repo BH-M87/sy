@@ -2033,6 +2033,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $result;
     }
 
+    public function getYearDrop(){
+        $result['list'] = PsCommon::$year;
+        return $result;
+    }
+
     //批量生成账单
     public function createBathcBill($params, $userinfo)
     {
