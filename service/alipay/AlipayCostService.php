@@ -1668,6 +1668,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 
     public function getRoom($data)
     {
+        print_r($data);die;
         $query = new Query();
         $query->select("*");
         $query->from("ps_community_roominfo");
