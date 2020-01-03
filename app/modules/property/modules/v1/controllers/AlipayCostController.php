@@ -383,8 +383,8 @@ Class AlipayCostController extends BaseController
         $data = $excel_upload["data"];
         if ($data["totals"] < 3) {
             return PsCommon::responseFailed('未检测到有效数据');
-        } elseif ($data["totals"] >= 403) {
-            return PsCommon::responseFailed('只能添加400条数据');
+        } elseif ($data["totals"] >= 1003) {
+            return PsCommon::responseFailed('只能添加1000条数据');
         }
         $task_arr = ["file_name" => $data['file_name'], "totals" => $data["totals"], "next_name" => $data['next_name']];
         $task_id = ReceiptService::addReceiptTask($task_arr);
