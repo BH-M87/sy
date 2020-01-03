@@ -3636,4 +3636,25 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
     }
 
+    //获得房屋信息
+    public function showRoom($params){
+        $communityId = PsCommon::get($params, "community_id");  //小区id
+        $roomId = PsCommon::get($params, "room_id");            //房屋id
+        if(!$communityId){
+            return $this->failed("小区id必填");
+        }
+        if(!$roomId){
+            return $this->failed("房屋id必填");
+        }
+        $javaService = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $communityId;
+        $javaParams['roomId'] = $roomId;
+        $result = $javaService->roomQueryList($javaParams);
+        if(empty($result['list'][0])){
+            return $this->failed("房屋不存在");
+        }
+        return $this->success($result['list'][0]);
+    }
+
 }

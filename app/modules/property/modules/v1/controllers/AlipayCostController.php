@@ -321,6 +321,16 @@ Class AlipayCostController extends BaseController
         }
     }
 
+    //获得房屋信息
+    public function actionShowRoom(){
+        $result = AlipayCostService::service()->showRoom($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
+        }
+    }
+
     //确认导入
     public function actionBillImport()
     {
