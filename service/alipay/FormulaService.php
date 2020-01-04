@@ -213,6 +213,7 @@ class FormulaService extends BaseService
                     }
                 }
             }
+            $result["type"] = $model["type"];
             $result["calcRule"] = PsCommon::getFormulaRule($model["calc_rule"]) . '/' . PsCommon::getFormulaWay($model['del_decimal_way']);           //计算规则
         }
         return $result;
