@@ -336,6 +336,11 @@ Class AlipayCostController extends BaseController
     {
         //添加上传文件并发控制
         set_time_limit(0);
+
+        $communityId = PsCommon::get($this->request_params, "community_id");  //小区id
+        if (!$communityId) {
+            return PsCommon::responseFailed("请选择小区");
+        }
         $file = $_FILES["file"];
         $savePath = F::excelPath('bill');
         $excel_upload = ExcelService::service()->excelUpload($file, $savePath);
@@ -348,7 +353,7 @@ Class AlipayCostController extends BaseController
         } elseif ($data["totals"] >= 1003) {
             return PsCommon::responseFailed("只能添加1000条数据");
         }
-        $task_arr = ["file_name" => $data['file_name'], "next_name" => $data['next_name'], 'type' => '1'];
+        $task_arr = ["community_id"=>$communityId,"file_name" => $data['file_name'], "next_name" => $data['next_name'], 'type' => '1'];
         $task_id = BillService::service()->addTask($task_arr);
         $this->request_params['file_path'] = $data['next_name'];
         $this->request_params['task_id'] = $task_id;

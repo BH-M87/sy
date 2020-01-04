@@ -1283,16 +1283,28 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!file_exists($filePath)) {
             return $this->failed("文件未找到");
         }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-        if (empty($communityInfo)) {
+//        $communityInfo = CommunityService::service()->getInfoById($communityId);
+//        if (empty($communityInfo)) {
+//            return $this->failed("请选择有效小区");
+//        }
+        //java 验证小区
+        $commonService = new CommonService();
+        $commonParams['token'] = $params['token'];
+        $commonParams['community_id'] = $communityId;
+        $commonResult = $commonService->communityVerificationReturnName($commonParams);
+        if(empty($commonResult)){
             return $this->failed("请选择有效小区");
         }
+        $communityInfo['id'] = $communityId;
+        $communityInfo['name'] = $commonResult;
+        $communityInfo['company_id'] = $params['corp_id'];
         //更新任务数据
         $task_arr = [
-            "community_no" => $communityInfo["community_no"],
+//            "community_no" => $communityInfo["community_no"],
             "community_id" => $communityInfo['id'],
             "task_id" => $taskId,
         ];
+
         BillService::service()->addTask($task_arr);
         //获取文件内容
         $PHPExcel = \PHPExcel_IOFactory::load($filePath);
@@ -1329,7 +1341,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 }
                 $bill_entry_amount = round($val["I"], 2);
                 //收费项目详情
-                $cost = BillCostService::service()->getCostByCompanyId(['name' => $val["H"], 'company_id' => $userinfo['property_company_id']]);
+                $cost = BillCostService::service()->getCostByCompanyId(['name' => $val["H"], 'company_id' => $userinfo['corpId']]);
                 //验证收费项
                 if (empty($cost) || empty($val["H"])) {
                     $error_count++;
@@ -1345,14 +1357,14 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "community_id" => $communityId,
                 ];
                 //验证方式是否存在
-                $roomInfo = $this->getRoom($roomArr);
+                $roomInfo = $this->getRoom($roomArr,$params['token']);
                 if (empty($roomInfo)) {
                     $error_count++;
                     $errorCsv[$defeat_count] = $val;
                     $errorCsv[$defeat_count]["error"] = "房屋未找到";
                     continue;
                 }
-                $key = $roomInfo["id"] . '_' . $cost['id'];
+                $key = $roomInfo["roomId"] . '_' . $cost['id'];
                 if (isset($uniqueBillInfo[$key])) {
                     foreach ($uniqueBillInfo[$key] as $item) {
                         $tmpArr = explode(',', $item);
@@ -1382,14 +1394,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "company_id" => $communityInfo["company_id"],
                     "community_id" => $communityInfo["id"],
                     "community_name" => $communityInfo["name"],
-                    "room_id" => $roomInfo["id"],
+                    "room_id" => $roomInfo["roomId"],
                     "task_id" => $taskId,
                     "bill_entry_id" => $bill_entry_id,
-                    "out_room_id" => $roomInfo["out_room_id"],
-                    "group" => $roomInfo["group"],
-                    "building" => $roomInfo["building"],
-                    "unit" => $roomInfo["unit"],
-                    "room" => $roomInfo["room"],
+//                    "out_room_id" => $roomInfo["out_room_id"],
+                    "out_room_id" => null,
+                    "group_id" => $roomInfo["groupId"],
+                    "building_id" => $roomInfo["buildingId"],
+                    "unit_id" => $roomInfo["unitId"],
+                    "room_address" => $roomInfo["communityName"].$roomInfo['groupName'].$roomInfo['buildingName'].$roomInfo['unitName'].$roomInfo['roomName'],
                     "charge_area" => $roomInfo["charge_area"],
                     "room_status" => $roomInfo["status"],
                     "property_type" => $roomInfo["property_type"],
@@ -1414,7 +1427,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "company_id" => $communityInfo["company_id"],
                         "community_id" => $communityInfo["id"],
                         "order_no" => F::generateOrderNo(),
-                        "product_id" => $roomInfo["id"],
+                        "product_id" => $roomInfo["roomId"],
                         "product_type" => $cost["cost_type"],
                         "product_subject" => $cost["name"],
                         "bill_amount" => $bill_entry_amount,
@@ -1485,9 +1498,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'J' => ['title' => '错误原因', 'width' => 30, 'data_type' => 'str', 'field' => 'error', 'default' => '-'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        $filePath = F::originalFile().'error/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'error/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+        $downUrl = F::downloadUrl($filename, 'error', 'Error.csv');
         return $downUrl;
     }
     //=================================================End账单列表导入功能相关==========================================
