@@ -242,8 +242,11 @@ Class BillIncomeService extends BaseService
             ->andFilterWhere(['=', 'A.unit_id', PsCommon::get($params, 'unit_id')])
             ->andFilterWhere(['=', 'A.room_id', PsCommon::get($params, 'room_id')])
             ->andFilterWhere(['=', 'A.check_status', PsCommon::get($params, 'check_status')])
+            ->andFilterWhere(['=', 'A.pay_channel', PsCommon::get($params, 'pay_channel')])
+            ->andFilterWhere(['=', 'A.trade_type', PsCommon::get($params, 'trade_type')])
             ->andFilterWhere(['>=', 'A.check_status', PsCommon::get($params, 'c_status')])
             ->andFilterWhere(['like', 'B.invoice_no', PsCommon::get($params, 'invoice_no')])
+            ->andFilterWhere(['like', 'A.trade_no', PsCommon::get($params, 'trade_no')])
             ->andFilterWhere(['>=', 'A.income_time', $income_start])
             ->andFilterWhere(['<=', 'A.income_time', $income_end])
             ->andFilterWhere(['=', 'A.entry_at', $entry_at])
@@ -584,8 +587,7 @@ Class BillIncomeService extends BaseService
     //账单退款，线下流程
     public function refundOfflineBill($params, $model, $billList, $communityInfo)
     {
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
             $push_arr = [];   //需要推送的支付宝账单
             foreach ($billList as $data) {
