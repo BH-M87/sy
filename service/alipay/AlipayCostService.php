@@ -2102,19 +2102,18 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             if (empty($building["group_id"])) {
                 return $this->failed('苑期选择错误');
             }
-            if (empty($building["children"])) {
+            if (empty($building["building_id"])) {
                 return $this->failed('幢选择错误');
             }
             array_push($groupIds,$building['group_id']);
-            foreach ($building["children"] as $child) {
-                if (empty($child["building_id"])) {
+            foreach ($building["building_id"] as $child) {
+                if (empty($child)) {
                     return $this->failed('幢选择错误');
                 }
-                array_push($buildingIds,$child['building_id']);
+                array_push($buildingIds,$child);
 //                $orWhere[] = ["`group`" => $building["group"], "building" => $child["name"]];
             }
         }
-        
 //        $community = CommunityService::service()->getInfoById($communityId);
 //        if (!$community) {
 //            return $this->failed('请选择有效小区');
