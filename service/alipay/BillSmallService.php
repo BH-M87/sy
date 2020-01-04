@@ -180,108 +180,86 @@ class BillSmallService extends BaseService
     }
 
     //提交账单，返回付款支付宝交易号
-    public function addBill($params)
+    public function addBill($p)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $bill_list = PsCommon::get($params, 'bill_list');
-        $room_id = PsCommon::get($params, 'room_id');
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $communityId = PsCommon::get($p, 'community_id');
+        $bill_list = PsCommon::get($p, 'bill_list');
+        $room_id = PsCommon::get($p, 'room_id');
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+        
         if (!$communityId || !$room_id || !$app_user_id) {
             return $this->failed('请求参数不完整！');
         }
-        //验证用户与房屋的权限,2019-2-25去除该验证，获取用户所有缴费过的记录
-//        $validate = $this->validateUser($app_user_id, $room_id);
-//        if ($validate !== true) {
-//        return $this->failed($validate);
-//        }
-        //获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
-        //获取业主名称
-        $member_name = $this->getMemberNameByUser($member_id);
-        //获取支付宝id
-        $buyer_id = $this->getBuyerIdr($app_user_id);
+
+        // 调Java接口 获取业主id $member_id 和 支付宝id $buyer_id
 
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
+
         if (!is_array($bill_list)) {
             return $this->failed('账单格式错误');
         }
-        //小区id
-        $community_no = PsCommunityModel::find()->select('community_no')
-            ->where(['id' => $communityId])
-            ->scalar();
-        //房屋地址
-        $room_info = PsCommunityRoominfo::find()->select('`group`,building,unit,room,address,out_room_id')
-            ->where(['id' => $room_id])->asArray()->one();
-        //收款金额
+
+        // 调Java接口获取 房屋信息
+        $room_info = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $room_id]);
+        // 收款金额
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1])
             ->scalar();
         if (empty($total_money)) {
             return $this->failed('账单不存在');
         }
+
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
             ->scalar();
         if (empty($total_money)) {
             return $this->failed('账单已收款');
         }
-        //查询支付宝账单是否有锁定账单
-        $batchId = '';
-        $roomId = $room_info['out_room_id'];
-        $page = '';
-        $result = AlipayBillService::service($community_no)->queryBill($community_no, $batchId, $roomId, $page);
-        if (!empty($result['bill_result_set'])) {
-            foreach ($result['bill_result_set'] as $item) {
-                if ($item['status'] == 'UNDER_PAYMENT') {
-                    return $this->failed('账单已锁定');
-                }
-            }
-        }
-        $data = [
-            "community_id" => $community_no,
-            "out_trade_no" => $this->_generateBatchId(),
-            "total_amount" => $total_money,
-            "subject" => $room_info['address'],
-            "buyer_id" => $buyer_id,
-            "timeout_express" => "30m"
-        ];
+
         $trans = Yii::$app->getDb()->beginTransaction();
         $income_id = $out_trade_no = $trade_no = '';
         try {
-            $small_url = Yii::$app->params['external_invoke_small_address'];
-            $result = AlipayBillService::service($community_no)->tradeCreate($data, $small_url);//调用接口
-            if ($result['code'] == 10000) {//生成成功
-                $out_trade_no = !empty($result['out_trade_no']) ? $result['out_trade_no'] : '';
-                $trade_no = !empty($result['trade_no']) ? $result['trade_no'] : '';
+            $data = [
+                "orderNo" => $this->_generateBatchId(),
+                "buyerId" => $buyer_id,
+                "subject" => $room_info['fullName'],
+                "totalAmount" => $total_money,
+                "token" => $p['token'],
+                "notifyUrl" => Yii::$app->params['external_invoke_small_address'],
+            ];
+
+            $r = JavaOfCService::service()->tradeCreate($data); // 调用java接口
+            if ($r['code'] == 1) { // 生成成功
+                $out_trade_no = !empty($r['data']['out_trade_no']) ? $r['data']['out_trade_no'] : '';
+                $trade_no = !empty($r['data']['trade_no']) ? $r['data']['trade_no'] : '';
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                //新增收款记录
-                $incomeData['app_user_id'] = $app_user_id;              //用户支付宝id
-                $incomeData['member_id'] = $member_id;              //用户id
-                $incomeData['room_id'] = $room_id;              //房屋id
-                $incomeData['out_trade_no'] = $out_trade_no;        //交易流水
-                $incomeData['trade_no'] = $trade_no;        //交易流水
-                $incomeData['community_id'] = $communityId;     //小区
-                $incomeData['group'] = $room_info['group'];
-                $incomeData['building'] = $room_info['building'];
-                $incomeData['unit'] = $room_info['unit'];
-                $incomeData['room'] = $room_info['room'];
-                $incomeData['pay_money'] = $total_money;        //收款金额
-                $incomeData['trade_type'] = 1;                  //交易类型 1收款 2退款
-                $incomeData['pay_type'] = 1;                    //收款类型 1线上收款 2线下收款
-                $incomeData['pay_channel'] = 2;                 //收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
-                $incomeData['pay_status'] = 0;                  //初始化，交易状态 1支付成功 2交易关闭
-                $incomeData['check_status'] = 1;                  //状态 1未复核 2已复核 3待核销 4已核销
-                $incomeData['payee_id'] = 1;    //收款操作人
-                $incomeData['payee_name'] = 'system';//收款人名称
+                // 新增收款记录
+                $incomeData['app_user_id'] = $app_user_id; // 用户支付宝id
+                $incomeData['member_id'] = $member_id; // 用户id
+                $incomeData['room_id'] = $room_id; // 房屋id
+                $incomeData['out_trade_no'] = $out_trade_no; // 交易流水
+                $incomeData['trade_no'] = $trade_no; // 交易流水
+                $incomeData['community_id'] = $communityId; // 小区
+                $incomeData['group_id'] = $room_info['groupId'];
+                $incomeData['building_id'] = $room_info['buildingId'];
+                $incomeData['unit_id'] = $room_info['unitId'];
+                $incomeData['pay_money'] = $total_money; // 收款金额
+                $incomeData['trade_type'] = 1; // 交易类型 1收款 2退款
+                $incomeData['pay_type'] = 1; // 收款类型 1线上收款 2线下收款
+                $incomeData['pay_channel'] = 2; // 收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
+                $incomeData['pay_status'] = 0; // 初始化，交易状态 1支付成功 2交易关闭
+                $incomeData['check_status'] = 1; // 状态 1未复核 2已复核 3待核销 4已核销
+                $incomeData['payee_id'] = 1; // 收款操作人
+                $incomeData['payee_name'] = 'system'; // 收款人名称
                 $incomeData['income_time'] = time();
                 $incomeData['batch_id'] = $batch_id;
                 $incomeData['create_at'] = time();
                 $income = Yii::$app->db->createCommand()->insert('ps_bill_income', $incomeData)->execute();
                 if (!empty($income)) {
-                    $income_id = Yii::$app->db->getLastInsertID(); //获取收款记录id
-                    //新增收款记录与账单的关系表
+                    $income_id = Yii::$app->db->getLastInsertID(); // 获取收款记录id
+                    // 新增收款记录与账单的关系表
                     foreach ($bill_list as $bill_id) {
                         $rela_income = [];
                         $rela_income['batch_id'] = $batch_id;
@@ -293,14 +271,15 @@ class BillSmallService extends BaseService
                     return $this->failed('收款失败');
                 }
             } else {
-                return $this->failed($result['sub_msg']);
+                return $this->failed($r['message']);
             }
-            //提交事务
+            // 提交事务
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+
         return $this->success(['id' => $income_id, 'pay_money' => $total_money, 'out_trade_no' => $out_trade_no, "trade_no" => $trade_no]);
     }
 
