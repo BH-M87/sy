@@ -2140,15 +2140,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$cycle_days) {
             return $this->failed('请选择生成周期');
         }
-        if (!$push_type && $cycle_days == 4) {
-            return $this->failed('请选择生成推送方式');
-        }
+//        if (!$push_type && $cycle_days == 4) {
+//            return $this->failed('请选择生成推送方式');
+//        }
         if (!$year) {
             return $this->failed('请选择年份');
         }
-        if (!$bill_day) {
-            return $this->failed('请输入账单周期');
-        }
+//        if (!$bill_day) {
+//            return $this->failed('请输入账单周期');
+//        }
 
         $formulaVar = $formulaInfo["formula"];
 
@@ -2202,12 +2202,12 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 if ($auto_day < 1 || $auto_day > 28) {
                     return $this->failed('每月推送的时间为1-28日请正确输入');
                 }
-                if (!$bill_day) {
-                    return $this->failed('请输入每月的账单周期');
-                }
-                if ($bill_day < 1) {
-                    return $this->failed('账单周期不能为负数');
-                }
+//                if (!$bill_day) {
+//                    return $this->failed('请输入每月的账单周期');
+//                }
+//                if ($bill_day < 1) {
+//                    return $this->failed('账单周期不能为负数');
+//                }
                 //数据根据账期走，有多少账期不超过当前时间就有多少定时任务
 //                $arrList = $this->addCrontab($params, $periodList, $formulaVar, $community['community_no']);
 //                if (!empty($arrList['contractList'])) {
