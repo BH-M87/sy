@@ -70,7 +70,7 @@ class CommonController extends Controller
         ];
         $url = Yii::$app->params['host_name'].$this->params['url'];
         $curl = new Curl($options);
-        $res = $curl->post($url, $this->params['data']);
+        $res = $curl->raw($url, $this->params['data']);
 
         \Yii::info("PhpGateway-result:" . json_encode($res, JSON_UNESCAPED_UNICODE).'---sendUrl:'.$url, 'api');
 

@@ -155,6 +155,30 @@ class Curl
         return self::request();
     }
 
+    public static function raw($url, $query = '')
+    {
+        if (!empty($query)) {
+            curl_setopt(self::$ch, CURLOPT_URL, $url);
+            curl_setopt(self::$ch, CURLOPT_POST, 1);    //POST
+            curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, 1);    //
+            curl_setopt(self::$ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json; charset=utf-8"]);
+
+            if (is_array($query)) {
+                $parameters = http_build_query($query, null, '&');
+            } else {
+                $parameters = $query;
+            }
+            curl_setopt(self::$ch, CURLOPT_POSTFIELDS, $parameters);
+            //if(YII_ENV != 'prod'){
+                curl_setopt(self::$ch, CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt(self::$ch, CURLOPT_SSL_VERIFYHOST, 0);
+            //}
+        } else {
+            self::get($url);
+        }
+        return self::request();
+    }
+
     /**
      * SSL安全连接，链式操作
      * @return null
