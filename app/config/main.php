@@ -78,8 +78,8 @@ $config =  [
             ],
         ],
         'errorHandler' => [
-//            'class' => 'common\MyErrorHandler',
-//            'errorAction' => 'site/error',
+            'class' => 'common\MyErrorHandler',
+            'errorAction' => 'site/error',
         ],
         'urlManager' => [
             'enablePrettyUrl' => true,
