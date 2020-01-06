@@ -97,4 +97,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/payment/trade/refund';
         return self::returnCData($query);
     }
+
+    // 会员第三方信息查询
+    public function thirdRelation($query)
+    {
+        $query['route'] = '/member/api/thirdRelation';
+        return self::returnCData($query);
+    }
 }

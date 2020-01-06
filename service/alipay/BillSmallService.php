@@ -192,6 +192,7 @@ class BillSmallService extends BaseService
         }
 
         // 调Java接口 获取业主id $member_id 和 支付宝id $buyer_id
+        $thirdR = JavaOfCService::service()->thirdRelation(['token' => $p['token'], 'type' => 1]);
 
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
@@ -223,7 +224,7 @@ class BillSmallService extends BaseService
         try {
             $data = [
                 "orderNo" => $this->_generateBatchId(),
-                "buyerId" => $buyer_id,
+                "buyerId" => $thirdR['onlyNumber'],
                 "subject" => $room_info['fullName'],
                 "totalAmount" => $total_money,
                 "token" => $p['token'],
@@ -237,7 +238,7 @@ class BillSmallService extends BaseService
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                 // 新增收款记录
                 $incomeData['app_user_id'] = $app_user_id; // 用户支付宝id
-                $incomeData['member_id'] = $member_id; // 用户id
+                $incomeData['member_id'] = $thirdR['id']; // 用户id
                 $incomeData['room_id'] = $room_id; // 房屋id
                 $incomeData['out_trade_no'] = $out_trade_no; // 交易流水
                 $incomeData['trade_no'] = $trade_no; // 交易流水
