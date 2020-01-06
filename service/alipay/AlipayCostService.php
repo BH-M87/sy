@@ -456,8 +456,15 @@ class AlipayCostService extends BaseService
             return $this->failed("请选择小区");
         }
         if ($target == 1) {
-            $communityInfo = CommunityService::service()->getInfoById($communityId);
-            if (empty($communityInfo)) {
+//            $communityInfo = CommunityService::service()->getInfoById($communityId);
+//            if (empty($communityInfo)) {
+//                return $this->failed("请选择有效小区");
+//            }
+            //java 小区验证
+            $commonService = new CommonService();
+            $commonParams['token'] = $data['token'];
+            $commonParams['community_id'] = $communityId;
+            if(!$commonService->communityVerification($commonParams)){
                 return $this->failed("请选择有效小区");
             }
         }
@@ -501,7 +508,8 @@ class AlipayCostService extends BaseService
             $where .= " AND bill.status = :status ";
             $params = array_merge($params, [':status' => $status]);
         } else {//待生成
-            $where .= " and bill.status=3 ";
+//            $where .= " and bill.status=3 ";
+            $where .= " and bill.status=1 ";
         }
         if (!empty($trade_no)) {
             $where .= " AND der.trade_no like :trade_no ";
