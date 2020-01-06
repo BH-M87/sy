@@ -438,16 +438,11 @@ Class BillIncomeService extends BaseService
             ->where(['rela.income_id' => $income_id])
             ->leftJoin("ps_bill bill", "bill.id=rela.bill_id")
             ->select(['bill.*'])->asArray()->all();
-        // 获取小区信息
-        $communityInfo = CommunityService::service()->getInfoById($model['community_id']);
-        if (empty($communityInfo)) {
-            return $this->failed("请选择有效小区");
-        }
 
         if ($model['pay_type'] == 1) {// 线上收款，退款要走线上退款流程
-            $result = $this->refundOnlineBill($p, $model, $billList, $communityInfo);
+            $result = $this->refundOnlineBill($p, $model, $billList);
         } else {// 线下收款，走线下退款流程
-            $result = $this->refundOfflineBill($p, $model, $billList, $communityInfo);
+            $result = $this->refundOfflineBill($p, $model, $billList);
         }
 
         if ($result['code']) {
@@ -469,7 +464,7 @@ Class BillIncomeService extends BaseService
     }
 
     //账单退款，线上流程
-    public function refundOnlineBill($params, $model, $billList, $communityInfo)
+    public function refundOnlineBill($params, $model, $billList)
     {
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
@@ -577,7 +572,7 @@ Class BillIncomeService extends BaseService
     }
 
     //账单退款，线下流程
-    public function refundOfflineBill($params, $model, $billList, $communityInfo)
+    public function refundOfflineBill($params, $model, $billList)
     {
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -640,16 +635,7 @@ Class BillIncomeService extends BaseService
                                 ]
                             ]
                         ];
-                        //验证小区是否发布到支付宝生活服务
-                        if($communityInfo['ali_status']=='ONLINE'){
-                            $pushResult = AlipayBillService::service($communityInfo['community_no'])->batchUpdateBill($dataInfo);
-                        }else{
-                            $pushResult['code'] = '10000';
-                            $pushResult['msg'] = 'success';
-                        }
-                        if (!$pushResult['code']) {//失败抛出异常
-                            throw new Exception($pushResult['msg']);
-                        }
+
                         //将系统的账单与订单金额修改
                         PsBill::updateAll(['bill_entry_amount' => $split_bill['bill_entry_amount'] + $billInfo['bill_entry_amount']], ['id' => $split_bill['id']]);
                         PsOrder::updateAll(['bill_amount' => $split_bill['bill_entry_amount'] + $billInfo['bill_entry_amount']], ['bill_id' => $split_bill['id']]);
