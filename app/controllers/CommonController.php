@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use common\core\Curl;
 use Yii;
 use common\core\F;
 use yii\web\Controller;
@@ -64,6 +65,16 @@ class CommonController extends Controller
     {
         \Yii::info("PhpGateway-params:" . json_encode($this->params, JSON_UNESCAPED_UNICODE), 'api');
 
+        $options['CURLOPT_HTTPHEADER'] = [
+            "application/json;charset=UTF-8",
+        ];
+        $url = Yii::$app->params['host_name'].$this->params['url'];
+        $curl = new Curl($options);
+        $res = $curl->post($url, $this->params['data']);
+
+        \Yii::info("PhpGateway-result:" . json_encode($res, JSON_UNESCAPED_UNICODE).'---sendUrl:'.$url, 'api');
+
+        return $res;
     }
 
 
