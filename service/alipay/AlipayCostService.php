@@ -437,10 +437,10 @@ class AlipayCostService extends BaseService
         $is_down = !empty($data['is_down']) ? $data['is_down'] : 1;//1正常查询，2下载
         $is_total = !empty($data['is_total']) ? $data['is_total'] : 1;//1正常查询，2查询总数
         $task_id = PsCommon::get($data, "task_id");  //任务id
-        $group = PsCommon::get($data, "group");  //苑期区
-        $building = PsCommon::get($data, "building");  //幢
-        $unit = PsCommon::get($data, "unit");  //单元
-        $room = PsCommon::get($data, "room");  //室
+        $group = PsCommon::get($data, "group_id");  //苑期区
+        $building = PsCommon::get($data, "building_id");  //幢
+        $unit = PsCommon::get($data, "unit_id");  //单元
+        $room = PsCommon::get($data, "room_id");  //室
         $trade_no = PsCommon::get($data, "trade_no");  //交易流水号
         $status = PsCommon::get($data, "status");  //账单状态
         $year = PsCommon::get($data, "year");  //查询的年份
@@ -456,8 +456,15 @@ class AlipayCostService extends BaseService
             return $this->failed("请选择小区");
         }
         if ($target == 1) {
-            $communityInfo = CommunityService::service()->getInfoById($communityId);
-            if (empty($communityInfo)) {
+//            $communityInfo = CommunityService::service()->getInfoById($communityId);
+//            if (empty($communityInfo)) {
+//                return $this->failed("请选择有效小区");
+//            }
+            //java 小区验证
+            $commonService = new CommonService();
+            $commonParams['token'] = $data['token'];
+            $commonParams['community_id'] = $communityId;
+            if(!$commonService->communityVerification($commonParams)){
                 return $this->failed("请选择有效小区");
             }
         }
@@ -475,19 +482,19 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':task_id' => $task_id]);
         }
         if (!empty($group)) {
-            $where .= " AND bill.`group` = :group ";
+            $where .= " AND bill.group_id = :group ";
             $params = array_merge($params, [':group' => $group]);
         }
         if (!empty($building)) {
-            $where .= " AND bill.building = :building ";
+            $where .= " AND bill.building_id = :building ";
             $params = array_merge($params, [':building' => $building]);
         }
         if (!empty($unit)) {
-            $where .= " AND bill.unit = :unit ";
+            $where .= " AND bill.unit_id = :unit ";
             $params = array_merge($params, [':unit' => $unit]);
         }
         if (!empty($room)) {
-            $where .= " AND bill.room = :room ";
+            $where .= " AND bill.room_id = :room ";
             $params = array_merge($params, [':room' => $room]);
         }
         //默认查询本年的账期数据
@@ -501,7 +508,8 @@ class AlipayCostService extends BaseService
             $where .= " AND bill.status = :status ";
             $params = array_merge($params, [':status' => $status]);
         } else {//待生成
-            $where .= " and bill.status=3 ";
+//            $where .= " and bill.status=3 ";
+            $where .= " and bill.status=1 ";
         }
         if (!empty($trade_no)) {
             $where .= " AND der.trade_no like :trade_no ";
@@ -557,6 +565,14 @@ class AlipayCostService extends BaseService
         if (!$community_id) {
             return $this->failed("小区id不能为空");
         }
+
+        $commonService = new CommonService();
+        $commonParams['token'] = $params['token'];
+        $commonParams['community_id'] = $community_id;
+        if(!$commonService->communityVerification($commonParams)){
+            return $this->failed("请选择有效小区");
+        }
+
         if (!$bill_list) {
             return $this->failed("请选择需要删除的账单");
         }
@@ -564,7 +580,7 @@ class AlipayCostService extends BaseService
         try {
             PsBill::deleteAll(['id' => $bill_list]);        //删除账单
             PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
-            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
+//            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
             //提交事务
             $trans->commit();
         } catch (Exception $e) {
