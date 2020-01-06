@@ -56,10 +56,19 @@ class CommonController extends Controller
         $this->params = $body;
     }
 
+
+    // 统一JSON返回
+    protected function ajaxReturn($msg = '', $code = 50001)
+    {
+        return json_encode(['code' => $code, 'message' => $msg]);
+    }
+
     //java透传接口
     public function actionPhpGateway()
     {
         \Yii::info("PhpGateway-params:" . json_encode($this->params, JSON_UNESCAPED_UNICODE), 'api');
 
     }
+
+
 }
