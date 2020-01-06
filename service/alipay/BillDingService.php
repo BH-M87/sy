@@ -21,6 +21,7 @@ use app\models\PsPropertyAlipay;
 use service\BaseService;
 use yii\db\Exception;
 use Yii;
+use service\property_basic\JavaService;
 
 class BillDingService extends BaseService
 {
@@ -181,35 +182,30 @@ class BillDingService extends BaseService
         return $this->success(['totals' => count($rooms), 'list' => $rooms]);
     }
 
-    //获取账单列表
-    public function getBillList($reqArr)
+    // 获取账单列表
+    public function getBillList($p)
     {
-        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        $room_id = !empty($reqArr['room_id']) ? $reqArr['room_id'] : '';
+        $communityId = !empty($p['community_id']) ? $p['community_id'] : 0;
+        $room_id = !empty($p['room_id']) ? $p['room_id'] : '';
+        
         if (!$communityId || !$room_id) {
             return $this->failed('请求参数不完整!');
         }
-        if (!in_array($communityId, $reqArr['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-        //房屋地址
-        $address = PsCommunityRoominfo::find()->select('id,address')
-            ->where(['id' => $room_id])
-            ->asArray()->one();
-        //小区信息
-        $community = PsCommunityModel::find()->select('id, name,pro_company_id')->where(['id' => $reqArr['community_id']])->asArray()->one();
-        //查询物业公司是否签约
-        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community['pro_company_id'],'status'=>'2'])->asArray()->one();
-        //所有的缴费项
+
+        // 房屋地址
+        $room = JavaService::service()->roomDetail(['id' => $room_id, 'token' => $p['token']]);
+        $address = $room['groupName'].$room['buildingName'].$room['unitName'].$room['roomName'];
+        
+        // 所有的缴费项
         $bill_cost = PsBill::find()->select('cost_id,cost_name,sum(bill_entry_amount) as total_money')
             ->where(['community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
             ->andWhere(["<",'trade_defend',time()])
             ->groupBy("cost_id")
             ->asArray()->all();
-        if (empty($bill_cost) || empty($alipay)) {
+        if (empty($bill_cost)) {
             return $this->success(['list' => [], 'room_info' => $address]);
         }
-        //根据缴费项获取当前缴费项的明细账单
+        // 根据缴费项获取当前缴费项的明细账单
         $dataList = [];
         foreach ($bill_cost as $cost) {
             $data = $cost;
@@ -226,6 +222,7 @@ class BillDingService extends BaseService
             $data['bill_list'] = !empty($billDataList) ? $billDataList : [];
             $dataList[] = $data;
         }
+
         return $this->success(['list' => $dataList, 'room_info' => $address]);
     }
 
