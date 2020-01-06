@@ -15,24 +15,25 @@ use service\property_basic\JavaService;
 
 class BillController extends UserBaseController
 {
-
-    //收款记录列表
-    public function actionBillIncomeList()
+    // 收款记录 列表
+    public function actionIncomeList()
     {
-        $params['page'] = F::value($this->params, 'page', 1);
-        $params['rows'] = F::value($this->params, 'rows', 10);
-        $reqArr  = array_merge($this->userInfo, $this->params);
-        $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
-        $result = BillDingService::service()->billIncomeList($reqArr);
-        if ($result['code']) {
-            return F::apiFailed($result['data']);
+        $p['room_id'] = F::value($this->params, 'room_id', '');
+        $p['token'] = F::value($this->params, 'token', '');
+        $p['page'] = F::value($this->params, 'page', 1);
+        $p['rows'] = F::value($this->params, 'rows', 10);
+
+        $r = BillDingService::service()->incomeList($p);
+
+        if ($r['code'] == 1) {
+            return F::apiSuccess($r['data']);
         } else {
-            return F::apiSuccess($result);
+            return F::apiFailed($r['msg']);
         }
     }
 
     //收款记录详情
-    public function actionBillIncomeInfo()
+    public function actionIncomeInfo()
     {
         $params['id'] = F::value($this->params, 'id', '');
         if (!$params['id']) {

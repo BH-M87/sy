@@ -25,30 +25,32 @@ use service\property_basic\JavaService;
 
 class BillDingService extends BaseService
 {
-    //收款记录列表
-    public function billIncomeList($reqArr)
+    // 收款记录列表
+    public function incomeList($p)
     {
-        $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
-        $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : 10;
-        $arr = PsBillIncome::find()->alias('income')
-            ->leftJoin("ps_community comm", "comm.id=income.community_id")
-            ->where(['income.community_id' => $reqArr['communitys'],'income.is_del'=>1,'income.pay_type'=>1])
-            ->select(['income.id', 'income.income_time', 'income.pay_money', 'income.group', 'income.building', 'income.unit', 'income.room','comm.name'])
+        $page = !empty($p['page']) ? $p['page'] : 1;
+        $rows = !empty($p['rows']) ? $p['rows'] : 10;
+
+        $m = PsBillIncome::find()
+            ->where(['room_id' => $p['room_id'], 'is_del' => 1, 'pay_type' => 1])
+            ->select('id, income_time, pay_money, room_id')
             ->andFilterWhere(['>', 'pay_status', 0])
             ->andFilterWhere(['not', ['qr_code' => null]])
-            ->orderBy('id desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)
-            ->asArray()->all();
-        if (!empty($arr)) {
-            foreach ($arr as $income) {
-                $data['id'] = $income['id'];
-                $data['income_time'] = date("Y-m-d H:i", $income['income_time']);
-                $data['pay_money'] = $income['pay_money'];
-                $data['room_info'] = $income['name'] . $income['group'] . $income['building'] . $income['unit'] . $income['room'];
+            ->orderBy('id desc')->offset(($page - 1) * $rows)
+            ->limit($rows)->asArray()->all();
+
+        if (!empty($m)) {
+            foreach ($m as $v) {
+                $room = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $v['room_id']]);
+                $data['id'] = $v['id'];
+                $data['income_time'] = date("Y-m-d H:i", $v['income_time']);
+                $data['pay_money'] = $v['pay_money'];
+                $data['room_info'] = $room['communityName'] . $room['groupName'] . $room['buildingName'] . $room['unitName'] . $room['roomName'];
+                
                 $dataLst[] = $data;
             }
         }
+
         return $this->success(['list' => !empty($dataLst) ? $dataLst : []]);
     }
 
