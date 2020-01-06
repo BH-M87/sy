@@ -557,6 +557,14 @@ class AlipayCostService extends BaseService
         if (!$community_id) {
             return $this->failed("小区id不能为空");
         }
+
+        $commonService = new CommonService();
+        $commonParams['token'] = $params['token'];
+        $commonParams['community_id'] = $community_id;
+        if(!$commonService->communityVerification($commonParams)){
+            return $this->failed("请选择有效小区");
+        }
+
         if (!$bill_list) {
             return $this->failed("请选择需要删除的账单");
         }
@@ -564,7 +572,7 @@ class AlipayCostService extends BaseService
         try {
             PsBill::deleteAll(['id' => $bill_list]);        //删除账单
             PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
-            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
+//            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
             //提交事务
             $trans->commit();
         } catch (Exception $e) {
