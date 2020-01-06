@@ -123,7 +123,6 @@ class JavaCurl {
         $ch = curl_init();
         //重写请求路由
         $url = $this->parseUrl($route, $getData);
-
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30); //设置cURL允许执行的最长秒数
@@ -149,9 +148,9 @@ class JavaCurl {
         $response = json_decode($response, true);
 
         if ($route == '/user/validate-token') {
-            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$route . "请求参数：".$postData . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/javaToken.log');
+            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$url . "请求参数：".$postData . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/javaToken.log');
         } else {
-            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$route . "请求参数：".$postData . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java.log');
+            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$url . "请求参数：".$postData . PHP_EOL . '返回结果：' . json_encode($response).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java.log');
         }
         
         if (!$response['code'] || !in_array($response['code'], [0,1,200])) {
