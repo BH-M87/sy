@@ -84,10 +84,17 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
-    // 统一收单交易创建
+    // 统一收单交易 创建
     public function tradeCreate($query)
     {
         $query['route'] = '/payment/trade/create';
+        return self::returnCData($query);
+    }
+
+    // 统一收单交易 退款
+    public function tradeRefund($query)
+    {
+        $query['route'] = '/payment/trade/refund';
         return self::returnCData($query);
     }
 }

@@ -476,14 +476,13 @@ Class BillIncomeService extends BaseService
         try {
             //======================================第一步，调用支付宝接口撤销退款====================================
             $dataParams = [
-                "community_id" => $communityInfo['community_no'],
-                "trade_no" => $model['trade_no'],
-                "refund_amount" => $model['pay_money'],
-                "refund_reason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
+                "token" => $params['token'],
+                "orderNo" => $model['trade_no'],
+                "totalAmount" => $model['pay_money'],
+                "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];
-            $result = AlipayBillService::service($communityInfo['community_no'])->refundBill($dataParams);
-            if ($result['code'] == 10000) {//支付宝退款成功
-                $push_arr = [];   //需要推送的支付宝账单
+            $result = JavaOfCService::service()->tradeRefund($dataParams);
+            if ($result['code'] == 1) { // 支付宝退款成功
                 foreach ($billList as $data) {
                     //======================================第二步，新增一条负数的账单==================================
                     $billInfo = $data;
@@ -542,14 +541,14 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 3;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为未发布
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
                         if ($diff_order_result['code']) {
                             //更新账单表的订单id字段
                             Yii::$app->db->createCommand("update ps_bill set order_id={$diff_order_result['data']} where id={$diff_bill_result['data']}")->execute();
-                            array_push($push_arr, $diff_bill_result["data"]);
+
                             //修复账单拆分表
                             $trade_bill['trade_id']=$data["id"];//说明是退款账单的id
                             $trade_bill['bill_id']=$diff_bill_result['data'];//说明是新增的账单id
@@ -565,15 +564,8 @@ Class BillIncomeService extends BaseService
                         return $this->failed($diff_bill_result['msg']);
                     }
                 }
-                if (!empty($push_arr)) {
-                    //调用批量发布账单功能
-                    $pushResult = BillService::service()->pubByIds($push_arr, $model['community_id'],2);
-                    if (!$pushResult['code']) {//失败抛出异常
-                        throw new Exception($pushResult['sub_msg']);
-                    }
-                }
             } else {
-                throw new Exception($result['sub_msg']);
+                throw new Exception($result['message']);
             }
             //提交事务
             $transaction->commit();
@@ -678,7 +670,7 @@ Class BillIncomeService extends BaseService
                     $billToInfo = $data;
                     unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                    $billToInfo['status'] = 3;//账单状态为未发布
+                    $billToInfo['status'] = 1;//账单状态为未发布
                     $billToInfo['is_del'] = 1;
                     $billToInfo['create_at'] = time();
                     //新增账单数据
@@ -688,14 +680,14 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 3;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为未发布
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
                         if ($diff_order_result['code']) {
                             //更新账单表的订单id字段
                             Yii::$app->db->createCommand("update ps_bill set order_id={$diff_order_result['data']} where id={$diff_bill_result['data']}")->execute();
-                            array_push($push_arr, $diff_bill_result["data"]);
+
                             //修复账单拆分表
                             $trade_bill['trade_id']=$data["id"];//说明是退款账单的id
                             $trade_bill['bill_id']=$diff_bill_result['data'];//说明是新增的账单id
@@ -712,13 +704,7 @@ Class BillIncomeService extends BaseService
                     }
                 }
             }
-            if (!empty($push_arr)) {
-                //调用批量发布账单功能
-                $pushResult = BillService::service()->pubByIds($push_arr, $model['community_id'],2);
-                if (!$pushResult['code']) {//失败抛出异常
-                    throw new Exception($pushResult['msg']);
-                }
-            }
+  
             //提交事务
             $transaction->commit();
         } catch (Exception $e) {
