@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use Yii;
+use common\core\F;
 use yii\web\Controller;
 
 /**
@@ -24,12 +25,6 @@ class CommonController extends Controller
         $this->_validateMethod(); // 请求方式，post检测
         $this->_validateBody();
 
-        //钉钉专用3s重复请求过滤
-        if (in_array($action->id, $this->repeatAction) && F::repeatRequestDingApp()) {
-            echo PsCommon::responseFailed('请勿重复请求，3s后重试');
-            return false;
-        }
-
         return true;
     }
 
@@ -45,6 +40,7 @@ class CommonController extends Controller
     private function _validateBody()
     {
         $body = [];
+
         if (!empty(Yii::$app->request->getRawBody())) {
             error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/front_req.log');
             $bodys = json_decode(Yii::$app->request->getRawBody(), true);
