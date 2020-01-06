@@ -437,10 +437,10 @@ class AlipayCostService extends BaseService
         $is_down = !empty($data['is_down']) ? $data['is_down'] : 1;//1正常查询，2下载
         $is_total = !empty($data['is_total']) ? $data['is_total'] : 1;//1正常查询，2查询总数
         $task_id = PsCommon::get($data, "task_id");  //任务id
-        $group = PsCommon::get($data, "group");  //苑期区
-        $building = PsCommon::get($data, "building");  //幢
-        $unit = PsCommon::get($data, "unit");  //单元
-        $room = PsCommon::get($data, "room");  //室
+        $group = PsCommon::get($data, "group_id");  //苑期区
+        $building = PsCommon::get($data, "building_id");  //幢
+        $unit = PsCommon::get($data, "unit_id");  //单元
+        $room = PsCommon::get($data, "room_id");  //室
         $trade_no = PsCommon::get($data, "trade_no");  //交易流水号
         $status = PsCommon::get($data, "status");  //账单状态
         $year = PsCommon::get($data, "year");  //查询的年份
@@ -482,19 +482,19 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':task_id' => $task_id]);
         }
         if (!empty($group)) {
-            $where .= " AND bill.`group` = :group ";
+            $where .= " AND bill.group_id = :group ";
             $params = array_merge($params, [':group' => $group]);
         }
         if (!empty($building)) {
-            $where .= " AND bill.building = :building ";
+            $where .= " AND bill.building_id = :building ";
             $params = array_merge($params, [':building' => $building]);
         }
         if (!empty($unit)) {
-            $where .= " AND bill.unit = :unit ";
+            $where .= " AND bill.unit_id = :unit ";
             $params = array_merge($params, [':unit' => $unit]);
         }
         if (!empty($room)) {
-            $where .= " AND bill.room = :room ";
+            $where .= " AND bill.room_id = :room ";
             $params = array_merge($params, [':room' => $room]);
         }
         //默认查询本年的账期数据
