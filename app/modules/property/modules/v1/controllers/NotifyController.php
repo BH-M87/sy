@@ -25,8 +25,10 @@ class NotifyController extends Controller
         $data = $_REQUEST;
         return BillService::service()->alipayNotifyDing($data);
     }
-    //小程序支付回调
-    public function actionSmall(){
+
+    // 小程序支付回调
+    public function actionSmall()
+    {
         Yii::$app->response->format = Response::FORMAT_RAW;
         Yii::$app->response->headers->add('Content-Type', 'text/xml; charset=UTF-8');
         $data = $_REQUEST;

@@ -1152,22 +1152,17 @@ class BillService extends BaseService
         if (!$result) {
             return $this->_response($result, 'fail', '空数据');
         }
-        \Yii::info("--small-notify-content".json_encode($result), 'api');
-        $checkRe = AliCommonService::service()->notifyVerify($result);
-        if (!$checkRe) {
-            //记录支付宝验签失败
-            \Yii::info("--small notify sign verify fail", 'api');
-            die("fail");
-        }
         //查询收款记录
         $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
         if(empty($incomeInfo)){
             Yii::$app->redis->lpush('error_notify', '收款记录不存在' . '|' . date("Y-m-d H:i", time()));
             return $this->_response($result, 'fail', '收款记录不存在');
         }
+
         if($incomeInfo['pay_status']>=1){
             return $this->_response($result, 'success');
         }
+
         $id=$incomeInfo['id'];
         //交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS（交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
         if ($result['trade_status'] == 'TRADE_SUCCESS') {
@@ -1196,7 +1191,7 @@ class BillService extends BaseService
                 // 添加账单变更统计表中
                 $split_bill['bill_id'] = $bill['bill_id'];  //账单id
                 $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
-                BillTractContractService::service()->payContractBill($split_bill);
+                //BillTractContractService::service()->payContractBill($split_bill);
             }
 
             return $this->_response($result, 'success');
