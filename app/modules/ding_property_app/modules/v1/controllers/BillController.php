@@ -15,6 +15,31 @@ use service\property_basic\JavaService;
 
 class BillController extends UserBaseController
 {
+    // 未缴费 列表
+    public function actionUnpaidList()
+    {
+        $p['community_id'] = F::value($this->params, 'community_id', '');
+        $p['group_id'] = F::value($this->params, 'group_id', '');
+        $p['building_id'] = F::value($this->params, 'building_id', '');
+        $p['unit_id'] = F::value($this->params, 'unit_id', '');
+        $p['room_id'] = F::value($this->params, 'room_id', '');
+        $p['token'] = F::value($this->params, 'token', '');
+        $p['page'] = F::value($this->params, 'page', 1);
+        $p['rows'] = F::value($this->params, 'rows', 10);
+
+        if (!$p['community_id']) {
+            return F::apiFailed('请输入小区id！');
+        }
+
+        $r = BillDingService::service()->unpaidList($p);
+
+        if ($r['code'] == 1) {
+            return F::apiSuccess($r['data']);
+        } else {
+            return F::apiFailed($r['msg']);
+        }
+    }
+
     // 收款记录 列表
     public function actionIncomeList()
     {
