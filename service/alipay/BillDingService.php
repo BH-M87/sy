@@ -35,7 +35,12 @@ class BillDingService extends BaseService
             foreach ($m as &$v) {
                 // 房屋地址
                 $r = JavaService::service()->roomDetail(['id' => $v['room_id'], 'token' => $p['token']]);
-                $v['address'] = $r['communityName'].$r['groupName'].$r['buildingName'].$r['unitName'].$r['roomName'];
+
+                $v['communityName'] = $r['communityName'];
+                $v['groupName'] = $r['groupName'];
+                $v['buildingName'] = $r['buildingName'];
+                $v['unitName'] = $r['unitName'];
+                $v['roomName'] = $r['roomName'];
             }
         }
 
