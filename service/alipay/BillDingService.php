@@ -1,30 +1,52 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2018/3/19
- * Time: 17:37
- */
-
 namespace service\alipay;
 
-use app\models\PsCommunityBuilding;
-use app\models\PsCommunityGroups;
+use Yii;
+use yii\db\Exception;
+
 use common\core\PsCommon;
+
 use app\models\PsBill;
 use app\models\PsBillIncome;
 use app\models\PsBillIncomeRelation;
-use app\models\PsCommunityModel;
-use app\models\PsCommunityRoominfo;
-use service\alipay\AlipayBillService;
-use app\models\PsPropertyAlipay;
+
 use service\BaseService;
-use yii\db\Exception;
-use Yii;
+use service\alipay\AlipayBillService;
 use service\property_basic\JavaService;
 
 class BillDingService extends BaseService
 {
+    // 未缴费 列表
+    public function unpaidList($p)
+    {
+        // 所有的缴费项
+        $m = PsBill::find()->select('community_id, room_id, sum(bill_entry_amount) as total_money')
+            ->where(['is_del' => 1, 'status' => 1])
+            ->andWhere(["<", 'trade_defend', time()])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'group_id', $p['group_id']])
+            ->andFilterWhere(['=', 'building_id', $p['building_id']])
+            ->andFilterWhere(['=', 'unit_id', $p['unit_id']])
+            ->andFilterWhere(['=', 'room_id', $p['room_id']])
+            ->groupBy("room_id")
+            ->asArray()->all();
+        
+        if (!empty($m)) {
+            foreach ($m as &$v) {
+                // 房屋地址
+                $r = JavaService::service()->roomDetail(['id' => $v['room_id'], 'token' => $p['token']]);
+
+                $v['communityName'] = $r['communityName'];
+                $v['groupName'] = $r['groupName'];
+                $v['buildingName'] = $r['buildingName'];
+                $v['unitName'] = $r['unitName'];
+                $v['roomName'] = $r['roomName'];
+            }
+        }
+
+        return $this->success(['list' => $m ?? []]);
+    }
+
     // 收款记录列表
     public function incomeList($p)
     {
@@ -95,95 +117,6 @@ class BillDingService extends BaseService
         return $this->failed('收款记录不存在！');
     }
 
-    //苑期区-幢数据
-    public function getBuildingList($reqArr)
-    {
-        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        if (!$communityId) {
-            return $this->failed('小区id不能为空！');
-        }
-        if (!in_array($communityId, $reqArr['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-        //苑期区
-        $groups = PsCommunityRoominfo::find()->select(['`group` as group_name'])->groupBy("`group`")->orderBy('id asc')->where(['community_id' => $communityId])->asArray()->all();
-        //根据苑期区查找幢列表
-        if (empty($groups)) {
-            return $this->success(['list' => []]);
-        }
-        $data = [];
-        foreach ($groups as $g) {
-            $buildings = PsCommunityRoominfo::find()->groupBy("`building`")->select(['`building` as building_name'])->orderBy('(`building`+0) asc, `building` asc')->where(['community_id' => $communityId, "`group`" => $g['group_name']])->asArray()->all();
-            $building = [];
-            if (!empty($buildings)) {
-                foreach ($buildings as $b) {
-                    $building[] = [
-                        'id' => PsCommunityBuilding::find()->select('id')->where(['name' => $b['building_name'], 'community_id' => $communityId])->one()['id'],
-                        'title' => $b['building_name'],
-                    ];
-                }
-            }
-            $data[] = [
-                'id' => PsCommunityGroups::find()->select('id')->where(['name' => $g['group_name'],'community_id' => $communityId])->one()['id'],
-                'title' => $g['group_name'],
-                'children' => $building
-            ];
-        }
-        return $this->success(['list' => $data]);
-    }
-
-    /**
-     * 查询单元列表
-     * @param $reqArr
-     * @return string
-     */
-    public function getUnitList($reqArr)
-    {
-        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        $groupName = !empty($reqArr['group_name']) ? $reqArr['group_name'] : '';
-        $buildingName = !empty($reqArr['building_name']) ? $reqArr['building_name'] : '';
-        if (!$communityId || !$groupName || !$buildingName) {
-            return $this->failed('请求参数不完整!');
-        }
-        if (!in_array($communityId, $reqArr['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-
-        $units = PsCommunityRoominfo::find()->select(['unit as unit_name'])
-            ->groupBy('unit')
-            ->orderBy('(`unit`+0) asc, `unit` asc')
-            ->where(['community_id' => $communityId, 'group' => $groupName, 'building' => $buildingName])
-            ->asArray()
-            ->all();
-        return $this->success(['totals' => count($units), 'list' => $units]);
-    }
-
-    /**
-     * 获取室列表
-     * @param $reqArr
-     * @return array|string|\yii\db\ActiveRecord[]
-     */
-    public function getRoomList($reqArr)
-    {
-        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        $groupName = !empty($reqArr['group_name']) ? $reqArr['group_name'] : '';
-        $buildingName = !empty($reqArr['building_name']) ? $reqArr['building_name'] : '';
-        $unitName = !empty($reqArr['unit_name']) ? $reqArr['unit_name'] : '';
-        if (!$communityId || !$groupName || !$buildingName || !$unitName) {
-            return $this->failed('请求参数不完整!');
-        }
-        if (!in_array($communityId, $reqArr['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-
-        $rooms = PsCommunityRoominfo::find()->select(['room as room_name','id as room_id'])
-            ->orderBy('(`room`+0) asc, `room` asc')
-            ->where(['community_id' => $communityId, 'group' => $groupName, 'building' => $buildingName, 'unit' => $unitName])
-            ->asArray()
-            ->all();
-        return $this->success(['totals' => count($rooms), 'list' => $rooms]);
-    }
-
     // 获取账单列表
     public function getBillList($p)
     {
@@ -206,7 +139,7 @@ class BillDingService extends BaseService
             ->asArray()->all();
         if (empty($bill_cost)) {
             return $this->success(['list' => [], 'room_info' => $address]);
-        }
+        }print_r($bill_cost);die;
         // 根据缴费项获取当前缴费项的明细账单
         $dataList = [];
         foreach ($bill_cost as $cost) {
