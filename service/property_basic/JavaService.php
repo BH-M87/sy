@@ -228,4 +228,18 @@ class JavaService extends BaseService
         $query['route'] = '/room/query/by-name';
         return self::returnCData($query);
     }
+
+    // 统一收单交易 交易预创建
+    public function tradePrecreate($query)
+    {
+        $query['route'] = '/payment/trade/precreate';
+        return self::returnCData($query);
+    }
+
+    // 统一收单交易 退款
+    public function tradeRefund($query)
+    {
+        $query['route'] = '/payment/trade/refund';
+        return self::returnCData($query);
+    }
 }

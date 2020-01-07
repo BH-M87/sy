@@ -91,13 +91,6 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
-    // 统一收单交易 退款
-    public function tradeRefund($query)
-    {
-        $query['route'] = '/payment/trade/refund';
-        return self::returnCData($query);
-    }
-
     // 会员第三方信息查询
     public function thirdRelation($query)
     {

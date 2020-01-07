@@ -97,29 +97,31 @@ class BillController extends UserBaseController
         }
     }
 
-    //提交账单，返回付款二维码
+    // 提交账单，返回付款二维码
     public function actionAddBill()
     {
-        $params['community_id'] = F::value($this->params, 'community_id', '');
-        $params['room_id'] = F::value($this->params, 'room_id', '');
-        $params['bill_list'] = F::value($this->params, 'bill_list', []);
-        if (!$params['community_id']) {
+        $p['community_id'] = F::value($this->params, 'community_id', '');
+        $p['room_id'] = F::value($this->params, 'room_id', '');
+        $p['bill_list'] = F::value($this->params, 'bill_list', []);
+
+        if (!$p['community_id']) {
             return F::apiFailed('请输入小区id！');
         }
-        if (!$params['room_id']) {
+
+        if (!$p['room_id']) {
             return F::apiFailed('请输入房屋id！');
         }
-        if (!$params['bill_list']) {
+
+        if (!$p['bill_list']) {
             return F::apiFailed('请选择需要收款的账单！');
         }
-        $reqArr = array_merge($this->userInfo, $this->params);
-        $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
-        $reqArr['bill_list'] = !empty($reqArr['bill_list']) ? json_decode($reqArr['bill_list'], true) : '';
-        $result = BillDingService::service()->addBill($reqArr,$this->userInfo);
-        if ($result['code']) {
-            return F::apiFailed($result['data']);
+
+        $r = BillDingService::service()->addBill($this->params, $this->userInfo);
+        
+        if ($r['code']) {
+            return F::apiFailed($r['data']);
         } else {
-            return F::apiSuccess($result);
+            return F::apiSuccess($r);
         }
     }
 

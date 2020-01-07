@@ -161,81 +161,66 @@ class BillDingService extends BaseService
         return $this->success(['list' => $dataList, 'room_info' => $address]);
     }
 
-    //提交账单，返回付款二维码
-    public function addBill($params, $user_info)
+    // 提交账单，返回付款二维码
+    public function addBill($p, $user_info)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $bill_list = PsCommon::get($params, 'bill_list');
-        $room_id = PsCommon::get($params, 'room_id');
+        $communityId = PsCommon::get($p, 'community_id');
+        $bill_list = PsCommon::get($p, 'bill_list');
+        $room_id = PsCommon::get($p, 'room_id');
+        
         if (!$communityId) {
             return $this->failed("小区id不能为空！");
         }
-        if (!in_array($communityId, $params['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
+
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
+
         if (!is_array($bill_list)) {
             return $this->failed('账单格式错误');
         }
-        //小区id
-        $community_no = PsCommunityModel::find()->select('community_no')
-            ->where(['id' => $communityId])
-            ->scalar();
-        //房屋地址
-        $room_info = PsCommunityRoominfo::find()->select('`group`,building,unit,room,address,out_room_id')
-            ->where(['id' => $room_id])->asArray()->one();
-        //收款金额
+
+        // 房屋地址
+        $room = JavaService::service()->roomDetail(['id' => $p['room_id'], 'token' => $p['token']]);
+
+        // 收款金额
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1])
             ->scalar();
         if(empty($total_money)){
             return $this->failed('账单不存在');
         }
+
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1,'status'=>1])
             ->scalar();
         if(empty($total_money)){
             return $this->failed('账单已收款');
         }
-        //查询支付宝账单是否有锁定账单
-        $batchId='';
-        $roomId=$room_info['out_room_id'];
-        $page='';
-        $result = AlipayBillService::service($community_no)->queryBill($community_no, $batchId, $roomId, $page);
-        if(!empty($result['bill_result_set'])){
-            foreach ($result['bill_result_set'] as $item) {
-                if($item['status']=='UNDER_PAYMENT'){
-                    return $this->failed('账单已锁定');
-                }
-            }
-        }
-        $data = [
-            "community_id" => $community_no,
-            "out_trade_no" => $this->_generateBatchId(),
-            "total_amount" => $total_money,
-            "subject" => $room_info['address'],
-            "timeout_express" => "30m",
-            "qr_code_timeout_express" => "30m",
-        ];
+
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
-            $ding_url=Yii::$app->params['external_invoke_ding_address'];
-            $result = AlipayBillService::service($community_no)->tradeRefund($data,$ding_url);//调用接口
-            if ($result['code'] == 10000) {//二维码生成成功
-                $out_trade_no = !empty($result['out_trade_no']) ? $result['out_trade_no'] : '';
-                $qr_code = !empty($result['qr_code']) ? $result['qr_code'] : '';
+            $data = [
+                "orderNo" => $this->_generateBatchId(),
+                "subject" => $room['communityName'].$room['groupName'].$room['buildingName'].$room['unitName'].$room['roomName'],
+                "totalAmount" => $total_money,
+                "token" => $p['token'],
+                "notifyUrl" => Yii::$app->params['external_invoke_ding_address'],
+            ];
+
+            $r = JavaService::service()->tradePrecreate($data); // 调用java接口
+            if ($r['code'] == 1) { // 二维码生成成功
+                $out_trade_no = !empty($r['data']['outTradeNo']) ? $r['data']['outTradeNo'] : '';
+                $qr_code = !empty($r['data']['qrCode']) ? $r['data']['qrCode'] : '';
                 $qr_img = AlipayBillService::service()->create_erweima($qr_code, $out_trade_no);//调用七牛方法生成二维码
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                //新增收款记录
+                // 新增收款记录
                 $incomeData['room_id'] = $room_id;              //房屋id
                 $incomeData['out_trade_no'] = $out_trade_no;        //交易流水
                 $incomeData['community_id'] = $communityId;     //小区
-                $incomeData['group'] = $room_info['group'];
-                $incomeData['building'] = $room_info['building'];
-                $incomeData['unit'] = $room_info['unit'];
-                $incomeData['room'] = $room_info['room'];
+                $incomeData['group_id'] = $room['groupId'];
+                $incomeData['building_id'] = $room['buildingId'];
+                $incomeData['unit_id'] = $room['unitId'];
                 $incomeData['pay_money'] = $total_money;        //收款金额
                 $incomeData['trade_type'] = 1;                  //交易类型 1收款 2退款
                 $incomeData['pay_type'] = 1;                    //收款类型 1线上收款 2线下收款
@@ -243,7 +228,7 @@ class BillDingService extends BaseService
                 $incomeData['pay_status'] = 0;                  //初始化，交易状态 1支付成功 2交易关闭
                 $incomeData['check_status'] = 1;                  //状态 1未复核 2已复核 3待核销 4已核销
                 $incomeData['payee_id'] = $user_info['id'];    //收款操作人
-                $incomeData['payee_name'] = $user_info['username'];//收款人名称
+                $incomeData['payee_name'] = $user_info['truename'];//收款人名称
                 $incomeData['income_time'] = time();
                 $incomeData['qr_code'] = $qr_img;               //收款二维码
                 $incomeData['batch_id'] = $batch_id;
@@ -262,6 +247,8 @@ class BillDingService extends BaseService
                 } else {
                     return $this->failed('收款失败');
                 }
+            } else {
+                return $this->failed($r['message']);
             }
             //提交事务
             $trans->commit();
@@ -269,6 +256,7 @@ class BillDingService extends BaseService
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+
         return $this->success(['qr_img' => $qr_img, 'id' => $income_id, 'pay_money' => $total_money]);
     }
 

@@ -476,7 +476,7 @@ Class BillIncomeService extends BaseService
                 "totalAmount" => $model['pay_money'],
                 "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];
-            $result = JavaOfCService::service()->tradeRefund($dataParams);
+            $result = JavaService::service()->tradeRefund($dataParams);
             if ($result['code'] == 1) { // 支付宝退款成功
                 foreach ($billList as $data) {
                     //======================================第二步，新增一条负数的账单==================================

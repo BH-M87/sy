@@ -212,9 +212,11 @@ class BillSmallService extends BaseService
             return $this->failed('账单不存在');
         }
 
-        $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
+        $model = PsBill::find()->select('sum(bill_entry_amount) as money, company_id')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
-            ->scalar();
+            ->asArray()->one();
+
+        $total_money = $model['money'];
         if (empty($total_money)) {
             return $this->failed('账单已收款');
         }
@@ -228,13 +230,15 @@ class BillSmallService extends BaseService
                 "subject" => $room_info['fullName'],
                 "totalAmount" => $total_money,
                 "token" => $p['token'],
+                "corpId" => $model['company_id'],
                 "notifyUrl" => Yii::$app->params['external_invoke_small_address'],
             ];
 
             $r = JavaOfCService::service()->tradeCreate($data); // 调用java接口
-            if ($r['code'] == 1) { // 生成成功
-                $out_trade_no = !empty($r['data']['out_trade_no']) ? $r['data']['out_trade_no'] : '';
-                $trade_no = !empty($r['data']['trade_no']) ? $r['data']['trade_no'] : '';
+
+            if (!empty($r['outTradeNo']) && !empty($r['tradeNo'])) { // 生成成功
+                $out_trade_no = !empty($r['outTradeNo']) ? $r['outTradeNo'] : '';
+                $trade_no = !empty($r['tradeNo']) ? $r['tradeNo'] : '';
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                 // 新增收款记录
                 $incomeData['app_user_id'] = $app_user_id; // 用户支付宝id
@@ -271,8 +275,6 @@ class BillSmallService extends BaseService
                 } else {
                     return $this->failed('收款失败');
                 }
-            } else {
-                return $this->failed($r['message']);
             }
             // 提交事务
             $trans->commit();
