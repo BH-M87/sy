@@ -1153,7 +1153,7 @@ class BillService extends BaseService
             return $this->_response($result, 'fail', '空数据');
         }
         //查询收款记录
-        $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
+        $incomeInfo = PsBillIncome::find()->where(['trade_no' =>  $result['trade_no']])->asArray()->one();
         if(empty($incomeInfo)){
             Yii::$app->redis->lpush('error_notify', '收款记录不存在' . '|' . date("Y-m-d H:i", time()));
             return $this->_response($result, 'fail', '收款记录不存在');
@@ -1191,7 +1191,7 @@ class BillService extends BaseService
                 // 添加账单变更统计表中
                 $split_bill['bill_id'] = $bill['bill_id'];  //账单id
                 $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
-                //BillTractContractService::service()->payContractBill($split_bill);
+                BillTractContractService::service()->payContractBill($split_bill);
             }
 
             return $this->_response($result, 'success');

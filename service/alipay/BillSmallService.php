@@ -250,6 +250,7 @@ class BillSmallService extends BaseService
                 $incomeData['group_id'] = $room_info['groupId'];
                 $incomeData['building_id'] = $room_info['buildingId'];
                 $incomeData['unit_id'] = $room_info['unitId'];
+                $incomeData['room_address'] = $room_info['fullName'];
                 $incomeData['pay_money'] = $total_money; // 收款金额
                 $incomeData['trade_type'] = 1; // 交易类型 1收款 2退款
                 $incomeData['pay_type'] = 1; // 收款类型 1线上收款 2线下收款
