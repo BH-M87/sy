@@ -1011,10 +1011,11 @@ class VoteService extends BaseService
             if( $voteArr["permission_type"] == 3) {
                 $memberArr = [];
                 foreach ( $data["appoint_members"] as $member) {
-                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"], "created_at" => $now_time]);
+                    $member['user_id'] = !empty($member['user_id'])?$member['user_id']:'';
+                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'user_id'=> $member['user_id'],'room_id' => $member["room_id"], "created_at" => $now_time]);
                 }
                 $connection->createCommand()->batchInsert('ps_vote_member_appoint',
-                    ['vote_id', 'member_id', 'room_id', 'created_at'],
+                    ['vote_id', 'member_id', 'room_id', 'user_id','created_at'],
                     $memberArr
                 )->execute();
             }
@@ -1056,6 +1057,14 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$data["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $voteId;
+            $sendParams['sendType'] = 1;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
+
             //java日志
             $javaService = new JavaService();
             $javaParam['moduleKey'] = "vote_module";
@@ -1065,6 +1074,64 @@ class VoteService extends BaseService
             return $this->success($re);
         }catch (Exception $e) {
             return $this->failed('系统错误');
+        }
+    }
+
+    /*
+     *  发送消息通知 调用java接口
+     *  input: vote_id token sendType(1预发布 2已公布) corpId trueName
+     */
+    public function sendMessage($params){
+        if(empty($params['vote_id'])){
+            return $this->failed('投票id必传');
+        }
+        $model = PsVote::find()->select(['id','vote_name','permission_type','community_id'])->where(['=','id',$params['vote_id']])->asArray()->one();
+        if( empty( $model)) {
+            return $this->failed('未找到投票');
+        }
+        //获得人员
+        $userIdList = [];
+        $service = new JavaService();
+        if($model['permission_type']==3){
+            $userIdList = PsVoteMemberAppoint::find()->select(['user_id'])
+                                                     ->where(['=','vote_id',$params['vote_id']])
+                                                     ->andWhere(['!=','user_id',''])
+                                                     ->asArray()->all();
+        }else{
+            //获得java数据
+            $javaParams['token'] = $params['token'];
+            $javaParams['communityId'] = $model['community_id'];
+            $result = $service->residentSelectAllByCommunityId($javaParams);
+            if(!empty($result['list'])){
+                $userIdList = array_column($result['list'],'memberId');
+            }
+        }
+        if(!empty($userIdList)){
+            //发送消息
+            switch($params['sendType']){
+                case 1: //预发布
+                    $content = '问卷投票已发布，期待您的参与';
+                    $pushTime = date('Y-m-d H:m');
+                    break;
+                case 2: //已公布
+                    $content = '问卷投票已发布公告，请您查看';
+                    $pushTime = date('Y-m-d H:m');
+                    break;
+            }
+            $sendParams['createPeople'] = $params['trueName'];
+            $sendParams['appletFlag'] = true;
+            $sendParams['corpId'] = $params['corpId'];
+            $sendParams['appFlag'] = true;
+            $sendParams['pushTime'] = $pushTime;
+            $sendParams['tmallFlag'] = true;
+            $sendParams['timestamp'] = time();
+            $sendParams['token'] = $params['token'];
+            $sendParams['userIdList'] = $userIdList;
+            $sendParams['bizType'] = 'vote';
+            $sendParams['bizId'] = $model['id'];
+            $sendParams['title'] = $model['vote_name'];
+            $sendParams['content'] = $content;
+            $sendResult = $service->memberMessageInsert($sendParams);
         }
     }
     
