@@ -1012,7 +1012,7 @@ class VoteService extends BaseService
                 $memberArr = [];
                 foreach ( $data["appoint_members"] as $member) {
                     $member['user_id'] = !empty($member['user_id'])?$member['user_id']:'';
-                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'user_id'=> $member['user_id'],'room_id' => $member["room_id"], "created_at" => $now_time]);
+                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"],'user_id'=> $member['user_id'], "created_at" => $now_time]);
                 }
                 $connection->createCommand()->batchInsert('ps_vote_member_appoint',
                     ['vote_id', 'member_id', 'room_id', 'user_id','created_at'],
@@ -1093,10 +1093,13 @@ class VoteService extends BaseService
         $userIdList = [];
         $service = new JavaService();
         if($model['permission_type']==3){
-            $userIdList = PsVoteMemberAppoint::find()->select(['user_id'])
+            $appointResult = PsVoteMemberAppoint::find()->select(['user_id'])
                                                      ->where(['=','vote_id',$params['vote_id']])
                                                      ->andWhere(['!=','user_id',''])
                                                      ->asArray()->all();
+            if(!empty($appointResult)){
+                $userIdList = array_column($appointResult,'user_id');
+            }
         }else{
             //获得java数据
             $javaParams['token'] = $params['token'];
