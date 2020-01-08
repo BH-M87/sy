@@ -194,8 +194,8 @@ class JavaService extends BaseService
     }
 
     //新增消息推送
-    public function memberMessageInsert($query){
-        $query['route'] = '/member/message/insert';
+    public function messageInsert($query){
+        $query['route'] = '/message/insert';
         return self::returnCData($query);
     }
 }
