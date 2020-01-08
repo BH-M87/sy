@@ -1134,7 +1134,7 @@ class VoteService extends BaseService
             $sendParams['bizId'] = $model['id'];
             $sendParams['title'] = $model['vote_name'];
             $sendParams['content'] = $content;
-            $sendResult = $service->memberMessageInsert($sendParams);
+            $sendResult = $service->messageInsert($sendParams);
         }
     }
     
