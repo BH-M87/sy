@@ -182,6 +182,7 @@ class BillDingService extends BaseService
 
         // 房屋地址
         $room = JavaService::service()->roomDetail(['id' => $p['room_id'], 'token' => $p['token']]);
+        $address = $room['communityName'].$room['groupName'].$room['buildingName'].$room['unitName'].$room['roomName'];
 
         // 收款金额
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
@@ -191,9 +192,10 @@ class BillDingService extends BaseService
             return $this->failed('账单不存在');
         }
 
-        $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
-            ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1,'status'=>1])
-            ->scalar();
+        $model = PsBill::find()->select('sum(bill_entry_amount) as money, company_id')
+            ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
+            ->asArray()->one();
+        $total_money = $model['money'];
         if(empty($total_money)){
             return $this->failed('账单已收款');
         }
@@ -202,16 +204,19 @@ class BillDingService extends BaseService
         try {
             $data = [
                 "orderNo" => $this->_generateBatchId(),
-                "subject" => $room['communityName'].$room['groupName'].$room['buildingName'].$room['unitName'].$room['roomName'],
+                "subject" => $address,
                 "totalAmount" => $total_money,
                 "token" => $p['token'],
+                "corpId" => $model['company_id'],
                 "notifyUrl" => Yii::$app->params['external_invoke_ding_address'],
             ];
 
             $r = JavaService::service()->tradePrecreate($data); // 调用java接口
-            if ($r['code'] == 1) { // 二维码生成成功
-                $out_trade_no = !empty($r['data']['outTradeNo']) ? $r['data']['outTradeNo'] : '';
-                $qr_code = !empty($r['data']['qrCode']) ? $r['data']['qrCode'] : '';
+
+            $out_trade_no = $r['outTradeNo'];
+            $qr_code = $r['qrCode'];
+
+            if (!empty($out_trade_no) && !empty($qr_code)) { // 二维码生成成功
                 $qr_img = AlipayBillService::service()->create_erweima($qr_code, $out_trade_no);//调用七牛方法生成二维码
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                 // 新增收款记录
@@ -221,6 +226,7 @@ class BillDingService extends BaseService
                 $incomeData['group_id'] = $room['groupId'];
                 $incomeData['building_id'] = $room['buildingId'];
                 $incomeData['unit_id'] = $room['unitId'];
+                $incomeData['room_address'] = $address;
                 $incomeData['pay_money'] = $total_money;        //收款金额
                 $incomeData['trade_type'] = 1;                  //交易类型 1收款 2退款
                 $incomeData['pay_type'] = 1;                    //收款类型 1线上收款 2线下收款
@@ -247,8 +253,6 @@ class BillDingService extends BaseService
                 } else {
                     return $this->failed('收款失败');
                 }
-            } else {
-                return $this->failed($r['message']);
             }
             //提交事务
             $trans->commit();

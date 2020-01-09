@@ -136,7 +136,7 @@ class UploadService extends BaseService
      */
     public function saveQiniu($keyName, $filePath)
     {
-        $bucket    = Yii::$app->params['bucket'];
+        $bucket = Yii::$app->params['bucket'];
         $result = ImageManage::getInstance()->upfile($bucket, $keyName, $filePath);
         if (!$result) {
             return "";
