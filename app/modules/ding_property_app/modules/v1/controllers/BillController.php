@@ -118,10 +118,10 @@ class BillController extends UserBaseController
 
         $r = BillDingService::service()->addBill($this->params, $this->userInfo);
         
-        if ($r['code']) {
-            return F::apiFailed($r['data']);
+        if ($r['code'] == 1) {
+            return F::apiSuccess($r['data']);
         } else {
-            return F::apiSuccess($r);
+            return F::apiFailed($r['msg']);
         }
     }
 
