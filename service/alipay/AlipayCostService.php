@@ -1437,7 +1437,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "bill_entry_amount" => $bill_entry_amount,
                     "release_day" => date("Ymd", strtotime("-1 day")),
                     "deadline" => "20991231",
-                    "status" => "3",
+//                    "status" => "3",
+                    "status" => "1",
                     "create_at" => time(),
                 ];
                 //新增账单
