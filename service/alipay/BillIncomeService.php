@@ -286,14 +286,15 @@ Class BillIncomeService extends BaseService
     // 收款总金额
     public function totalMoney($params)
     {
-        $params['pay_status'] = 1; // 交易成功
+        $params['trade_type'] = 2; // 退款
+        $refund = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->scalar();
 
-        $money = $this->_billIncomeSearch($params)->select('
-            sum(CASE WHEN A.trade_type = 1 THEN A.pay_money END) AS amount,
-            sum(CASE WHEN A.trade_type = 2 THEN A.pay_money END) AS refund')->asArray()->one();
+        $params['pay_status'] = 1; // 交易成功
+        $params['trade_type'] = 1; // 收款
+        $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->scalar();
         
-        $money['amount'] = $money['amount'] ?? 0;
-        $money['refund'] = $money['refund'] ?? 0;
+        $money['amount'] = $amount ?? 0;
+        $money['refund'] = $refund ?? 0;
 
         return $money;
     }
