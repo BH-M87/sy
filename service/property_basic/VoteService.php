@@ -1510,6 +1510,7 @@ class VoteService extends BaseService
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1528,6 +1529,7 @@ class VoteService extends BaseService
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1555,6 +1557,7 @@ class VoteService extends BaseService
                 $element = [];
                 $element['home'] = !empty($value['home'])?$value['home']:'';
                 $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                 $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
