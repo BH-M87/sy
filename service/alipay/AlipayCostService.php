@@ -357,22 +357,22 @@ class AlipayCostService extends BaseService
         //查询数量语句sql
         switch ($source) {
             case 1://应收
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
             case 2://已收
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
             case 3://优惠
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
             case 4://待收
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
             case 5://待生成
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
             default://应收
-                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
         }
         if ($count['total_num'] == 0) {
@@ -425,7 +425,13 @@ class AlipayCostService extends BaseService
             $arr[$key]['create_at'] = $model['create_at'] ? date("Y-m-d H:i:s", $model['create_at']) : '';
             $arr[$key]['pay_time'] = $model['pay_time'] ? date("Y-m-d H:i:s", $model['pay_time']) : '';
         }
-        return $this->success(['totals' => $count['total_num'], 'list' => $arr, "bill_entry_amount" => $count['bill_entry_amount'] ? $count['bill_entry_amount'] : 0, "paid_entry_amount" => $count['paid_entry_amount'] ? $count['paid_entry_amount'] : 0]);
+        return $this->success([
+            'totals' => $count['total_num'],
+            'list' => $arr,
+            "bill_entry_amount" => $count['bill_entry_amount'] ? $count['bill_entry_amount'] : 0,
+            "paid_entry_amount" => $count['paid_entry_amount'] ? $count['paid_entry_amount'] : 0,
+            "prefer_entry_amount" => $count['prefer_entry_amount'] ? $count['prefer_entry_amount'] : 0,
+        ]);
     }
 
     //账单列表-待生成
