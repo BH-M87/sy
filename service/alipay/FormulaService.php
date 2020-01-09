@@ -208,7 +208,7 @@ class FormulaService extends BaseService
                 if ($phase_list) {
                     foreach ($phase_list as $key => $phase) {
                         $ton = $phase['ton'] == 0 ? "X" : $phase['ton'];
-                        $msg = $ton . "元/立方米，单价:" . $phase["price"] . "*用水量<br>";
+                        $msg = $ton . "立方米，单价:" . $phase["price"] . "*用水量<br>";
                         $result["formula_desc"] .= $msg;
                     }
                 }
