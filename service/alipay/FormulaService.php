@@ -201,14 +201,14 @@ class FormulaService extends BaseService
         if (!empty($model)) {
             if ($model['type'] == 1) {//按固定
                 $result["price"] = $model["price"];
-                $result["formula_desc"] = $model["price"] . "*用水量";
+                $result["formula_desc"] = $model["price"] . "元/立方米";
             } else {//安阶梯
                 $sql = "select * from ps_phase_formula where community_id=:community_id  and rule_type=1";
                 $phase_list = Yii::$app->db->createCommand($sql, $param)->queryAll();
                 if ($phase_list) {
                     foreach ($phase_list as $key => $phase) {
                         $ton = $phase['ton'] == 0 ? "X" : $phase['ton'];
-                        $msg = $ton . "立方米，单价:" . $phase["price"] . "*用水量<br>";
+                        $msg = $ton . "立方米，单价:" . $phase["price"] . "元/立方米<br>";
                         $result["formula_desc"] .= $msg;
                     }
                 }
@@ -332,7 +332,7 @@ class FormulaService extends BaseService
         if (!empty($model)) {
             if ($model['type'] == 1) {//按固定
                 $result["price"] = $model["price"];
-                $result["formula_desc"] = $model["price"] . "*用电量";
+                $result["formula_desc"] = $model["price"] . "元/度";
                 $result["type_msg"] = '固定价';
             } else {//安阶梯
                 $sql = "select * from ps_phase_formula where community_id=:community_id  and rule_type=2";
@@ -340,7 +340,7 @@ class FormulaService extends BaseService
                 if ($phase_list) {
                     foreach ($phase_list as $key => $phase) {
                         $ton = $phase['ton'] == 0 ? "X" : $phase['ton'];
-                        $msg = $ton . "度，单价:" . $phase["price"] . "*用电量<br>";
+                        $msg = $ton . "度，单价:" . $phase["price"] . "元/度<br>";
                         $result["formula_desc"] .= $msg;
                     }
                 }
