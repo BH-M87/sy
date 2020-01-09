@@ -486,7 +486,7 @@ class VoteService extends BaseService
      * @author wenchao.feng
      * @return bool
      */
-    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0)
+    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0,$userId='')
     {
 
         $connection = Yii::$app->db;
@@ -526,6 +526,7 @@ class VoteService extends BaseService
                         $params['option_id'] = $v['option_id'];
                         $params['member_id'] = $memberId;
                         $params['member_name'] = $memberName;
+                        $params['user_id'] = $userId;
                         $params['vote_channel'] = $voteChannel == 'off' ? 2 : 1;
 
                         if ($model->load($params, '') && $model->validate() && $model->saveData()) {

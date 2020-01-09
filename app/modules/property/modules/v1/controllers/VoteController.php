@@ -325,6 +325,7 @@ class VoteController extends BaseController
         $roomId = PsCommon::get($this->request_params, 'room_id');
         $voteId = PsCommon::get($this->request_params, 'vote_id');
         $voteDetail = PsCommon::get($this->request_params, 'vote_det');
+        $userId = PsCommon::get($this->request_params, 'user_id');
         if (!$voteId) {
             return PsCommon::responseFailed('投票id不能为空');
         }
@@ -373,7 +374,7 @@ class VoteController extends BaseController
             return PsCommon::responseFailed('用户不存在');
         }
 
-        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId);
+        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId,$userId);
         if ($doVote === true) {
             return PsCommon::responseSuccess();
         } elseif ($doVote === false) {
