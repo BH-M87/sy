@@ -1086,30 +1086,12 @@ class VoteService extends BaseService
         if(empty($params['vote_id'])){
             return $this->failed('投票id必传');
         }
+        $service = new JavaService();
         $model = PsVote::find()->select(['id','vote_name','permission_type','community_id'])->where(['=','id',$params['vote_id']])->asArray()->one();
         if( empty( $model)) {
             return $this->failed('未找到投票');
         }
-        //获得人员
-        $userIdList = [];
-        $service = new JavaService();
-        if($model['permission_type']==3){
-            $appointResult = PsVoteMemberAppoint::find()->select(['user_id'])
-                                                     ->where(['=','vote_id',$params['vote_id']])
-                                                     ->andWhere(['!=','user_id',''])
-                                                     ->asArray()->all();
-            if(!empty($appointResult)){
-                $userIdList = array_column($appointResult,'user_id');
-            }
-        }else{
-            //获得java数据
-            $javaParams['token'] = $params['token'];
-            $javaParams['communityId'] = $model['community_id'];
-            $result = $service->residentSelectAllByCommunityId($javaParams);
-            if(!empty($result['list'])){
-                $userIdList = array_column($result['list'],'memberId');
-            }
-        }
+        $userIdList = self::getSendMessageUser($model,$params);
         if(!empty($userIdList)){
             //发送消息
             switch($params['sendType']){
@@ -1137,6 +1119,44 @@ class VoteService extends BaseService
             $sendParams['content'] = $content;
             $sendResult = $service->messageInsert($sendParams);
         }
+    }
+
+    // 获得消息推送成员列表
+    public function getSendMessageUser($model,$params){
+
+        //获得人员
+        $userIdList = [];
+        if($params['sendType']==1){
+            if($model['permission_type']==3){
+                $appointResult = PsVoteMemberAppoint::find()->select(['user_id'])
+                    ->where(['=','vote_id',$model['id']])
+                    ->andWhere(['!=','user_id',''])
+                    ->asArray()->all();
+                if(!empty($appointResult)){
+                    $userIdList = array_column($appointResult,'user_id');
+                }
+            }else{
+                //获得java数据
+                $service = new JavaService();
+                $javaParams['token'] = $params['token'];
+                $javaParams['communityId'] = $model['community_id'];
+                $result = $service->residentSelectAllByCommunityId($javaParams);
+                if(!empty($result['list'])){
+                    $userIdList = array_column($result['list'],'memberId');
+                }
+            }
+        }else{
+            //投过票人员
+            $voteMemberResult = PsVoteMemberDet::find()->select(['user_id'])->distinct()
+                                                       ->where(['=','vote_id',$model['id']])
+                                                       ->andWhere(['!=','user_id',''])
+                                                       ->asArray()->all();
+            if(!empty($voteMemberResult)){
+                $userIdList = array_column($voteMemberResult,'user_id');
+            }
+
+        }
+        return $userIdList;
     }
     
     // 编辑投票结束时间
@@ -1176,7 +1196,7 @@ class VoteService extends BaseService
     }
 
     // 编辑投票结果
-    public function editResult($data) 
+    public function editResult($data,$userinfo)
     {
         $connection = Yii::$app->db;
         /*上架或者进行中*/
@@ -1200,6 +1220,13 @@ class VoteService extends BaseService
                     "created_at" =>time(),
                 ]
             )->execute();
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $data["vote_id"];
+            $sendParams['sendType'] = 2;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
         } else {
             $connection->createCommand()->update('ps_vote_result',
                 [

@@ -290,7 +290,7 @@ class VoteController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
 
-        $result = VoteService::service()->editResult($this->request_params);
+        $result = VoteService::service()->editResult($this->request_params,$this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
