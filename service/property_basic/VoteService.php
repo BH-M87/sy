@@ -1113,11 +1113,11 @@ class VoteService extends BaseService
             //发送消息
             switch($params['sendType']){
                 case 1: //预发布
-                    $content = '问卷投票已发布，期待您的参与';
+                    $content = '"'.$model['vote_name'].'"问卷投票已发布，期待您的参与';
                     $pushTime = date('Y-m-d H:m');
                     break;
                 case 2: //已公布
-                    $content = '问卷投票已发布公告，请您查看';
+                    $content = '"'.$model['vote_name'].'"问卷投票已发布公告，请您查看';
                     $pushTime = date('Y-m-d H:m');
                     break;
             }
@@ -1132,7 +1132,7 @@ class VoteService extends BaseService
             $sendParams['userIdList'] = $userIdList;
             $sendParams['bizType'] = 'vote';
             $sendParams['bizId'] = $model['id'];
-            $sendParams['title'] = $model['vote_name'];
+            $sendParams['title'] = "投票通知";
             $sendParams['content'] = $content;
             $sendResult = $service->messageInsert($sendParams);
         }
