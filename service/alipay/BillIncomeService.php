@@ -423,6 +423,10 @@ Class BillIncomeService extends BaseService
             return $this->failed('退款原因不能为空！');
         }
 
+        if (mb_strlen($refund_note, 'UTF8') > 100) {
+            return $this->failed('款原因只能包含至多100个字符！');
+        }
+
         $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
         if (empty($model)) {
             return $this->failed('收款记录不存在！');
