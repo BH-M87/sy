@@ -119,6 +119,11 @@ class BillCostService extends BaseService
             if (!$cost) {
                 return '数据不存在';
             }
+
+            if ($cost->company_id == 0) {
+                return '初始化项目不能编辑';
+            }
+
             // 查看缴费项名称是否重复,不能放model这，因为还需要根据物业公司来过滤
             $costInfo = PsBillCost::find()
                 ->where(['or', ['company_id' => $cost['company_id']], ['company_id' => 0]])
@@ -234,6 +239,11 @@ class BillCostService extends BaseService
     {
         if (!empty($params['id'])) {
             $result =  PsBillCost::find()->where(['id' => $params['id']])->asArray()->one();
+            
+            if ($result['company_id'] == 0) {
+                return '初始化项目不能删除';
+            }
+
             if($result){
                 PsBillCost::deleteAll(['id' => $params['id']]);
                 return $this->success();
