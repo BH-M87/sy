@@ -14,6 +14,7 @@ use service\alipay\AlipayCostService;
 use service\manage\CommunityService;
 use service\rbac\UserService;
 use service\alipay\TemplateService;
+use service\property_basic\JavaService;
 use app\modules\property\controllers\BaseController;
 
 Class BillIncomeController extends BaseController
@@ -60,6 +61,10 @@ Class BillIncomeController extends BaseController
     // 收款复核 列表
     public function actionCheckList()
     {
+        $javaResult = JavaService::service()->communityNameList(['token' => $this->request_params['token']]);
+
+        $this->request_params['communityIds'] = !empty($javaResult['list']) ? array_column($javaResult['list'], 'key') : [];
+
         $money = BillIncomeService::service()->totalMoney($this->request_params);
 
         $r['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
