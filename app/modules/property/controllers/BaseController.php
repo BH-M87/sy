@@ -94,10 +94,10 @@ class BaseController extends \yii\web\Controller
             }
             $body = $bodys;
         }
+        $body = !empty($body)?$body:F::request();   //如果raw没有值 默认取form-data
         $this->body = $body;
         $this->request_params = $body;
     }
-
 
     /**
      * Notes: token验证

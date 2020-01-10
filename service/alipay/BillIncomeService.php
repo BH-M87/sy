@@ -3,6 +3,7 @@ namespace service\alipay;
 
 use service\message\MessageService;
 use service\BaseService;
+use service\property_basic\CommonService;
 use Yii;
 use yii\db\Query;
 use yii\base\Exception;
@@ -18,6 +19,7 @@ use service\alipay\AlipayBillService;
 use service\alipay\BillService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
+use service\property_basic\JavaService;
 
 Class BillIncomeService extends BaseService
 {
@@ -30,15 +32,25 @@ Class BillIncomeService extends BaseService
     // 收款记录 新增
     public function billIncomeAdd($params, $bill_list, $userinfo)
     {
-        $room = PsCommunityRoominfo::findOne($params['room_id']);
+//        $room = PsCommunityRoominfo::findOne($params['room_id']);
+        $aliPayService = new AlipayCostService();
+        $roomParams['token'] = $params['token'];
+        $roomParams['community_id'] = $params['community_id'];
+        $roomParams['roomId'] = $params['room_id'];
+        $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
+        if(empty($roomInfoResult[0])){
+            return $this->failed("未找到房屋");
+        }
+        $room = $roomInfoResult[0];
+
         $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
         $param['trade_no'] = $batch_id;        //交易流水
         $param['room_id'] = $params['room_id'];
-        $param['community_id'] = $room['community_id'];
-        $param['group'] = $room['group'];
-        $param['building'] = $room['building'];
-        $param['unit'] = $room['unit'];
-        $param['room'] = $room['room'];
+        $param['community_id'] = $room['communityId'];
+        $param['group_id'] = $room['groupId'];
+        $param['building_id'] = $room['buildingId'];
+        $param['unit_id'] = $room['unitId'];
+        $param['room_address'] = $room['home'];
         $param['note'] = $params['content'];
         $param['pay_channel'] = $params['pay_channel'];
         $param['income_time'] = time();
@@ -224,14 +236,17 @@ Class BillIncomeService extends BaseService
             ->andFilterWhere(['>', 'A.pay_status', 0])
             ->andFilterWhere(['=', 'A.community_id', PsCommon::get($params, 'community_id')])
             ->andFilterWhere(['in', 'A.community_id', PsCommon::get($params, 'communityIds')])
-            ->andFilterWhere(['=', 'A.group', PsCommon::get($params, 'group')])
+            ->andFilterWhere(['=', 'A.group_id', PsCommon::get($params, 'group_id')])
             ->andFilterWhere(['=', 'A.pay_type', PsCommon::get($params, 'pay_type')])
-            ->andFilterWhere(['=', 'A.building', PsCommon::get($params, 'building')])
-            ->andFilterWhere(['=', 'A.unit', PsCommon::get($params, 'unit')])
-            ->andFilterWhere(['=', 'A.room', PsCommon::get($params, 'room')])
+            ->andFilterWhere(['=', 'A.building_id', PsCommon::get($params, 'building_id')])
+            ->andFilterWhere(['=', 'A.unit_id', PsCommon::get($params, 'unit_id')])
+            ->andFilterWhere(['=', 'A.room_id', PsCommon::get($params, 'room_id')])
             ->andFilterWhere(['=', 'A.check_status', PsCommon::get($params, 'check_status')])
+            ->andFilterWhere(['=', 'A.pay_channel', PsCommon::get($params, 'pay_channel')])
+            ->andFilterWhere(['=', 'A.trade_type', PsCommon::get($params, 'trade_type')])
             ->andFilterWhere(['>=', 'A.check_status', PsCommon::get($params, 'c_status')])
             ->andFilterWhere(['like', 'B.invoice_no', PsCommon::get($params, 'invoice_no')])
+            ->andFilterWhere(['like', 'A.trade_no', PsCommon::get($params, 'trade_no')])
             ->andFilterWhere(['>=', 'A.income_time', $income_start])
             ->andFilterWhere(['<=', 'A.income_time', $income_end])
             ->andFilterWhere(['=', 'A.entry_at', $entry_at])
@@ -241,28 +256,21 @@ Class BillIncomeService extends BaseService
     }
 
     // 收款记录 列表
-    public function billIncomeList($params)
+    public function billIncomeList($p)
     {
-        $page = PsCommon::get($params, 'page');
-        $rows = PsCommon::get($params, 'rows');
+        $page = PsCommon::get($p, 'page');
+        $rows = PsCommon::get($p, 'rows');
 
-        $model = $this->_billIncomeSearch($params)
-            ->select('A.*, B.invoice_no')
-            ->orderBy('id desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)
-            ->asArray()->all();
+        $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
+            A.pay_channel, A.income_time, A.trade_no')
+            ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
         if (!empty($model)) {
-            foreach ($model as $k => $v) {
-                $model[$k]['community_name'] = PsCommunityModel::findOne($v['community_id'])->name;
-                $model[$k]['room_info'] = $v['group'] . $v['building'] . $v['unit'] . $v['room'];
-                $model[$k]['trade_type_str'] = self::$trade_type[$v['trade_type']];
-                $model[$k]['pay_status'] = self::$pay_status[$v['pay_status']];
-                $model[$k]['pay_channel'] = self::$pay_channel[$v['pay_channel']] . '-' . self::$pay_type[$v['pay_type']];
-                $model[$k]['check_status_str'] = self::$check_status[$v['check_status']];
-                $model[$k]['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
-                $model[$k]['entry_at'] = !empty($v['entry_at']) ? date('Y-m', $v['entry_at']) : '';
-                $model[$k]['review_at'] = !empty($v['review_at']) ? date('Y-m-d H:i:s', $v['review_at']) : '';
+            foreach ($model as $k => &$v) {
+                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
+                $v['community_name'] = $community['communityName'];
+                $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
+                $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
+                $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
             }
         }
 
@@ -278,14 +286,14 @@ Class BillIncomeService extends BaseService
     // 收款总金额
     public function totalMoney($params)
     {
+        $refund = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 2])->scalar();
+
         $params['pay_status'] = 1; // 交易成功
-
-        $money = $this->_billIncomeSearch($params)->select('sum(pay_money)')->scalar();
-
-        if (empty($money)) {
-            $money = 0;
-        }
+        $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 1])->scalar();
         
+        $money['amount'] = $amount ?? 0;
+        $money['refund'] = $refund ?? 0;
+
         return $money;
     }
 
@@ -306,7 +314,7 @@ Class BillIncomeService extends BaseService
 
         $arr['note'] = !empty($model['note']) ? $model['note'] : '';
         $arr['pay_channel'] = self::$pay_channel[$model['pay_channel']];
-        $arr['room_info'] = $model['group'] . $model['building'] . $model['unit'] . $model['room'];
+        $arr['room_address'] = $model['room_address'];
         $arr['trade_no'] = $model['trade_no'];
 
         $bill = PsBillIncomeRelation::find()->alias("A")
@@ -402,43 +410,54 @@ Class BillIncomeService extends BaseService
     }
 
     // 发票退款操作
-    public function refundAdd($params, $userinfo)
+    public function refundAdd($p, $userinfo)
     {
-        $income_id = PsCommon::get($params, 'id');
-        $refund_note = PsCommon::get($params, 'refund_note');
+        $income_id = PsCommon::get($p, 'id');
+        $refund_note = PsCommon::get($p, 'refund_note');
+
         if (empty($income_id)) {
             return $this->failed('收款记录ID不能为空！');
         }
+
         if (empty($refund_note)) {
             return $this->failed('退款原因不能为空！');
         }
-        $model = PsBillIncome::find()
-            ->where(['=', 'id', $income_id])
-            ->asArray()->one();
+
+        if (mb_strlen($refund_note, 'UTF8') > 100) {
+            return $this->failed('款原因只能包含至多100个字符！');
+        }
+
+        $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
         if (empty($model)) {
             return $this->failed('收款记录不存在！');
         }
+
         if ($model['pay_status'] == 2) {
             return $this->failed('当前收款记录已退款！');
         }
-        //根据收款记录查询对应的账单明细
+
+        // 根据收款记录查询对应的账单明细
         $billList = PsBillIncomeRelation::find()->alias('rela')
             ->where(['rela.income_id' => $income_id])
             ->leftJoin("ps_bill bill", "bill.id=rela.bill_id")
             ->select(['bill.*'])->asArray()->all();
-        //获取小区信息
-        $communityInfo = CommunityService::service()->getInfoById($model['community_id']);
-        if (empty($communityInfo)) {
-            return $this->failed("请选择有效小区");
+
+        if ($model['pay_type'] == 1) {// 线上收款，退款要走线上退款流程
+            $result = $this->refundOnlineBill($p, $model, $billList);
+        } else {// 线下收款，走线下退款流程
+            $result = $this->refundOfflineBill($p, $model, $billList);
         }
-        if ($model['pay_type'] == 1) {//线上收款，退款要走线上退款流程
-            $result = $this->refundOnlineBill($params, $model, $billList, $communityInfo);
-        } else {//线下收款，走线下退款流程
-            $result = $this->refundOfflineBill($params, $model, $billList, $communityInfo);
-        }
+
         if ($result['code']) {
-            //添加日志
-            OperateService::addComm($userinfo, ["community_id" => $model['community_id'], "operate_menu" => "缴费管理", "operate_type" => "撤销收款", "operate_content" => "收款记录id：" . $income_id]);
+            // 添加日志
+            $javaService = new JavaService();
+            $javaParam = [
+                'token' => $p['token'],
+                'moduleKey' => 'bill_module',
+                'content' => "收款记录id：" . $income_id,
+
+            ];
+            $javaService->logAdd($javaParam);
             //修改收款记录,状态为交易关闭
             PsBillIncome::updateAll(['pay_status' => 2, 'trade_type' => 2, 'refund_time' => time()], ['id' => $income_id]);
             return $this->success();
@@ -448,21 +467,20 @@ Class BillIncomeService extends BaseService
     }
 
     //账单退款，线上流程
-    public function refundOnlineBill($params, $model, $billList, $communityInfo)
+    public function refundOnlineBill($params, $model, $billList)
     {
         $connection = Yii::$app->db;
         $transaction = $connection->beginTransaction();
         try {
             //======================================第一步，调用支付宝接口撤销退款====================================
             $dataParams = [
-                "community_id" => $communityInfo['community_no'],
-                "trade_no" => $model['trade_no'],
-                "refund_amount" => $model['pay_money'],
-                "refund_reason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
+                "token" => $params['token'],
+                "orderNo" => $model['trade_no'],
+                "totalAmount" => $model['pay_money'],
+                "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];
-            $result = AlipayBillService::service($communityInfo['community_no'])->refundBill($dataParams);
-            if ($result['code'] == 10000) {//支付宝退款成功
-                $push_arr = [];   //需要推送的支付宝账单
+            $result = JavaService::service()->tradeRefund($dataParams);
+            if ($result['code'] == 1) { // 支付宝退款成功
                 foreach ($billList as $data) {
                     //======================================第二步，新增一条负数的账单==================================
                     $billInfo = $data;
@@ -521,14 +539,14 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 3;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为未发布
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
                         if ($diff_order_result['code']) {
                             //更新账单表的订单id字段
                             Yii::$app->db->createCommand("update ps_bill set order_id={$diff_order_result['data']} where id={$diff_bill_result['data']}")->execute();
-                            array_push($push_arr, $diff_bill_result["data"]);
+
                             //修复账单拆分表
                             $trade_bill['trade_id']=$data["id"];//说明是退款账单的id
                             $trade_bill['bill_id']=$diff_bill_result['data'];//说明是新增的账单id
@@ -544,15 +562,8 @@ Class BillIncomeService extends BaseService
                         return $this->failed($diff_bill_result['msg']);
                     }
                 }
-                if (!empty($push_arr)) {
-                    //调用批量发布账单功能
-                    $pushResult = BillService::service()->pubByIds($push_arr, $model['community_id'],2);
-                    if (!$pushResult['code']) {//失败抛出异常
-                        throw new Exception($pushResult['sub_msg']);
-                    }
-                }
             } else {
-                throw new Exception($result['sub_msg']);
+                throw new Exception($result['message']);
             }
             //提交事务
             $transaction->commit();
@@ -564,10 +575,9 @@ Class BillIncomeService extends BaseService
     }
 
     //账单退款，线下流程
-    public function refundOfflineBill($params, $model, $billList, $communityInfo)
+    public function refundOfflineBill($params, $model, $billList)
     {
-        $connection = Yii::$app->db;
-        $transaction = $connection->beginTransaction();
+        $transaction = Yii::$app->db->beginTransaction();
         try {
             $push_arr = [];   //需要推送的支付宝账单
             foreach ($billList as $data) {
@@ -628,16 +638,7 @@ Class BillIncomeService extends BaseService
                                 ]
                             ]
                         ];
-                        //验证小区是否发布到支付宝生活服务
-                        if($communityInfo['ali_status']=='ONLINE'){
-                            $pushResult = AlipayBillService::service($communityInfo['community_no'])->batchUpdateBill($dataInfo);
-                        }else{
-                            $pushResult['code'] = '10000';
-                            $pushResult['msg'] = 'success';
-                        }
-                        if (!$pushResult['code']) {//失败抛出异常
-                            throw new Exception($pushResult['msg']);
-                        }
+
                         //将系统的账单与订单金额修改
                         PsBill::updateAll(['bill_entry_amount' => $split_bill['bill_entry_amount'] + $billInfo['bill_entry_amount']], ['id' => $split_bill['id']]);
                         PsOrder::updateAll(['bill_amount' => $split_bill['bill_entry_amount'] + $billInfo['bill_entry_amount']], ['bill_id' => $split_bill['id']]);
@@ -658,7 +659,7 @@ Class BillIncomeService extends BaseService
                     $billToInfo = $data;
                     unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                    $billToInfo['status'] = 3;//账单状态为未发布
+                    $billToInfo['status'] = 1;//账单状态为未发布
                     $billToInfo['is_del'] = 1;
                     $billToInfo['create_at'] = time();
                     //新增账单数据
@@ -668,14 +669,14 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 3;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为未发布
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
                         if ($diff_order_result['code']) {
                             //更新账单表的订单id字段
                             Yii::$app->db->createCommand("update ps_bill set order_id={$diff_order_result['data']} where id={$diff_bill_result['data']}")->execute();
-                            array_push($push_arr, $diff_bill_result["data"]);
+
                             //修复账单拆分表
                             $trade_bill['trade_id']=$data["id"];//说明是退款账单的id
                             $trade_bill['bill_id']=$diff_bill_result['data'];//说明是新增的账单id
@@ -692,13 +693,7 @@ Class BillIncomeService extends BaseService
                     }
                 }
             }
-            if (!empty($push_arr)) {
-                //调用批量发布账单功能
-                $pushResult = BillService::service()->pubByIds($push_arr, $model['community_id'],2);
-                if (!$pushResult['code']) {//失败抛出异常
-                    throw new Exception($pushResult['msg']);
-                }
-            }
+  
             //提交事务
             $transaction->commit();
         } catch (Exception $e) {

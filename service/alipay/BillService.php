@@ -1074,152 +1074,121 @@ class BillService extends BaseService
 
     }
 
-
-    /**
-     * 钉钉扫码账单缴费回调
-     */
-    public function alipayNotifyDing($result)
+    // 钉钉扫码账单缴费回调
+    public function alipayNotifyDing($p)
     {
         Yii::$app->response->format = Response::FORMAT_RAW;
         Yii::$app->response->headers->add('Content-Type', 'text/xml; charset=UTF-8');
-        if (!$result) {
-            //Yii::$app->redis->lpush('error_notify', '空数据' . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '空数据');
+        if (!$p) {
+            return $this->_response($p, 'fail', '空数据');
         }
-        //查询收款记录
-        $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
-        if(empty($incomeInfo)){
+        // 查询收款记录
+        $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $p['out_trade_no']])->asArray()->one();
+        if (empty($incomeInfo)) {
             Yii::$app->redis->lpush('error_notify', '钉钉收款记录不存在' . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '钉钉收款记录不存在');
+            return $this->_response($p, 'fail', '钉钉收款记录不存在');
         }
-        if($incomeInfo['pay_status']>=1){
-            return $this->_response($result, 'success');
+
+        if ($incomeInfo['pay_status'] >= 1) {
+            return $this->_response($p, 'success');
         }
-        $id=$incomeInfo['id'];
+
+        $id = $incomeInfo['id'];
         //交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS（交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
-        if ($result['trade_status'] == 'TRADE_SUCCESS') {
-            $community_no = PsCommunityModel::find()->select('community_no')->where(['id' => $incomeInfo['community_id']])->scalar();
-            $incomeData['trade_no'] = $result['trade_no'];
-            $incomeData['create_at'] = strtotime($result['gmt_payment']);
-            $incomeData['income_time'] = strtotime($result['gmt_payment']);
+        if ($p['trade_status'] == 'TRADE_SUCCESS') {
+            $incomeData['trade_no'] = $p['trade_no'];
+            $incomeData['create_at'] = strtotime($p['gmt_payment']);
+            $incomeData['income_time'] = strtotime($p['gmt_payment']);
             $incomeData['pay_status'] = 1;
             PsBillIncome::updateAll($incomeData, ['id' => $id]);
-            //修复账单表
-            $billAll=PsBillIncomeRelation::find()->where(["income_id"=>$id])->asArray()->all();
-            $del_arr = [];   //需要删除的支付宝账单
-            $bill_msg = '';
-            foreach ($billAll as $bill){
-                $billInfo=PsBill::find()->where(['id'=>$bill['bill_id']])->asArray()->one();
-                $bill_msg .= "缴费项目：".$billInfo['cost_name'].";账期：".date("Y-m-d",$billInfo['acct_period_start']).'-'.date("Y-m-d",$billInfo['acct_period_end']).';金额：'.$billInfo['bill_entry_amount'].'<br>';
-                array_push($del_arr, $billInfo["bill_entry_id"]);
+            // 修复账单表
+            $billAll = PsBillIncomeRelation::find()->where(["income_id" => $id])->asArray()->all();
+
+            foreach ($billAll as $bill) {
+                $billInfo = PsBill::find()->where(['id' => $bill['bill_id']])->asArray()->one();
+
                 $bill_params = [":id" =>$bill['bill_id']];
                 Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='2',paid_entry_amount=bill_entry_amount WHERE id=:id", $bill_params)->execute();
                 //修复订单表
                 $params = [
                     ":bill_id" => $bill['bill_id'],
-                    ":trade_no" => $result['trade_no'],
-                    ":buyer_account" => $result['buyer_logon_id'],
+                    ":trade_no" => $p['trade_no'],
+                    ":buyer_account" => $p['buyer_logon_id'],
                     ":remark" => '钉钉二维码收款',
-                    ":pay_time" => strtotime($result['gmt_payment']),
+                    ":pay_time" => strtotime($p['gmt_payment']),
                 ];
                 //修复账单表数据
-                $sql = "UPDATE ps_order  SET `status`='2',pay_status=1, trade_no=:trade_no,pay_channel=2, remark=:remark, pay_time=:pay_time,pay_amount=bill_amount,buyer_account=:buyer_account WHERE bill_id=:bill_id";
+                $sql = "UPDATE ps_order SET `status`='2',pay_status=1, trade_no=:trade_no,pay_channel=2, remark=:remark, pay_time=:pay_time,pay_amount=bill_amount,buyer_account=:buyer_account WHERE bill_id=:bill_id";
                 Yii::$app->db->createCommand($sql, $params)->execute();
                 //添加账单变更统计表中
                 $split_bill['bill_id'] = $bill['bill_id'];  //账单id
                 $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
                 BillTractContractService::service()->payContractBill($split_bill);
             }
-            //删除退款过的支付宝账单
-            AlipayBillService::service($community_no)->deleteBill($community_no, $del_arr);
-            return $this->_response($result, 'success');
-        }elseif ($result['trade_status'] == 'WAIT_BUYER_PAY') {
-            //Yii::$app->redis->lpush('error_notify', '初始状态,DD交易流水号：' . $result['out_trade_no'] . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '初始状态');
-        }elseif ($result['trade_status'] == 'TRADE_CLOSED') {
+
+            return $this->_response($p, 'success');
+        } elseif ($p['trade_status'] == 'WAIT_BUYER_PAY') {
+            return $this->_response($p, 'fail', '初始状态');
+        } elseif ($p['trade_status'] == 'TRADE_CLOSED') {
             $data['is_del'] = 2;
             PsBillIncome::updateAll($data, ['id' => $id]);
         }
     }
 
-    /**
-     * 小程序账单缴费回调
-     */
-    public function alipayNotifySmall($result)
+    // 小程序账单缴费回调
+    public function alipayNotifySmall($p)
     {
         Yii::$app->response->format = Response::FORMAT_RAW;
         Yii::$app->response->headers->add('Content-Type', 'text/xml; charset=UTF-8');
-        if (!$result) {
-            //Yii::$app->redis->lpush('error_notify', '空数据' . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '空数据');
-        }
-        \Yii::info("--small-notify-content".json_encode($result), 'api');
-        $checkRe = AliCommonService::service()->notifyVerify($result);
-        if (!$checkRe) {
-            //记录支付宝验签失败
-            \Yii::info("--small notify sign verify fail", 'api');
-            die("fail");
+        if (!$p) {
+            return $this->_response($p, 'fail', '空数据');
         }
         //查询收款记录
-        $incomeInfo = PsBillIncome::find()->where(['out_trade_no' =>  $result['out_trade_no']])->asArray()->one();
+        $incomeInfo = PsBillIncome::find()->where(['trade_no' =>  $p['trade_no']])->asArray()->one();
         if(empty($incomeInfo)){
             Yii::$app->redis->lpush('error_notify', '收款记录不存在' . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '收款记录不存在');
+            return $this->_response($p, 'fail', '收款记录不存在');
         }
+
         if($incomeInfo['pay_status']>=1){
-            return $this->_response($result, 'success');
+            return $this->_response($p, 'success');
         }
+
         $id=$incomeInfo['id'];
         //交易状态：WAIT_BUYER_PAY（交易创建，等待买家付款）、TRADE_CLOSED（未付款交易超时关闭，或支付完成后全额退款）、TRADE_SUCCESS（交易支付成功）、TRADE_FINISHED（交易结束，不可退款）
-        if ($result['trade_status'] == 'TRADE_SUCCESS') {
-            $community_no = PsCommunityModel::find()->select('community_no')->where(['id' => $incomeInfo['community_id']])->scalar();
-            $community_name = PsCommunityModel::find()->select('name')->where(['id' => $incomeInfo['community_id']])->scalar();
-            $incomeData['trade_no'] = $result['trade_no'];
-            $incomeData['create_at'] = strtotime($result['gmt_payment']);
-            $incomeData['income_time'] = strtotime($result['gmt_payment']);
+        if ($p['trade_status'] == 'TRADE_SUCCESS') {
+            $incomeData['trade_no'] = $p['trade_no'];
+            $incomeData['create_at'] = strtotime($p['gmt_payment']);
+            $incomeData['income_time'] = strtotime($p['gmt_payment']);
             $incomeData['pay_status'] = 1;
             PsBillIncome::updateAll($incomeData, ['id' => $id]);
-            //修复账单表
-            $billAll=PsBillIncomeRelation::find()->where(["income_id"=>$id])->asArray()->all();
-            $del_arr = [];   //需要删除的支付宝账单
-            $his_arr =[];   //新增用户缴费的历史记录
-            $bill_msg = '';
+            // 修复账单表
+            $billAll = PsBillIncomeRelation::find()->where(["income_id" => $id])->asArray()->all();
+
             foreach ($billAll as $bill){
-                $billInfo=PsBill::find()->where(['id'=>$bill['bill_id']])->asArray()->one();
-                $bill_msg .= "缴费项目：".$billInfo['cost_name'].";账期：".date("Y-m-d",$billInfo['acct_period_start']).'-'.date("Y-m-d",$billInfo['acct_period_end']).';金额：'.$billInfo['bill_entry_amount'].'<br>';
-                array_push($del_arr, $billInfo["bill_entry_id"]);
                 $bill_params = [":id" =>$bill['bill_id']];
                 Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='2',paid_entry_amount=bill_entry_amount WHERE id=:id", $bill_params)->execute();
-                //修复订单表
+                // 修复订单表
                 $params = [
                     ":bill_id" => $bill['bill_id'],
-                    ":trade_no" => $result['trade_no'],
-                    ":buyer_account" => $result['buyer_logon_id'],
+                    ":trade_no" => $p['trade_no'],
+                    ":buyer_account" => $p['buyer_logon_id'],
                     ":remark" => '小程序付款',
-                    ":pay_time" => strtotime($result['gmt_payment']),
+                    ":pay_time" => strtotime($p['gmt_payment']),
                 ];
-                //修复账单表数据
+                // 修复账单表数据
                 $sql = "UPDATE ps_order  SET `status`='2',pay_status=1, trade_no=:trade_no,pay_channel=2, remark=:remark, pay_time=:pay_time,pay_amount=bill_amount,buyer_account=:buyer_account WHERE bill_id=:bill_id";
                 Yii::$app->db->createCommand($sql, $params)->execute();
-                //添加账单变更统计表中
+                // 添加账单变更统计表中
                 $split_bill['bill_id'] = $bill['bill_id'];  //账单id
                 $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
                 BillTractContractService::service()->payContractBill($split_bill);
             }
-            //新增用户的缴费历史记录
-            $his['app_user_id'] = $incomeInfo['app_user_id'];
-            $his['community_id'] = $incomeInfo['community_id'];
-            $his['community_name'] = $community_name;
-            $his['room_id'] = $incomeInfo['room_id'];
-            $his['room_address'] = $incomeInfo['group'].$incomeInfo['building'].$incomeInfo['unit'].$incomeInfo['room'];
-            BillService::service()->setPayRoomHistory($his);
-            //删除退款过的支付宝账单
-            AlipayBillService::service($community_no)->deleteBill($community_no, $del_arr);
-            return $this->_response($result, 'success');
-        }elseif ($result['trade_status'] == 'WAIT_BUYER_PAY') {
-            //Yii::$app->redis->lpush('error_notify', '初始状态,small交易流水号:' . $result['out_trade_no'] . '|' . date("Y-m-d H:i", time()));
-            return $this->_response($result, 'fail', '初始状态');
-        }elseif ($result['trade_status'] == 'TRADE_CLOSED') {
+
+            return $this->_response($p, 'success');
+        }elseif ($p['trade_status'] == 'WAIT_BUYER_PAY') {
+            return $this->_response($p, 'fail', '初始状态');
+        }elseif ($p['trade_status'] == 'TRADE_CLOSED') {
             $data['is_del'] = 2;
             PsBillIncome::updateAll($data, ['id' => $id]);
         }
