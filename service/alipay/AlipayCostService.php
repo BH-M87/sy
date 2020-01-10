@@ -1579,7 +1579,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $commonService = new CommonService();
             $javaCommunityParams['community_id'] = $params['community_id'];
             $javaCommunityParams['token'] = $params['token'];
-            if(!$commonService->communityVerification($javaCommunityParams)){
+            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+            if(empty($communityName)){
                 return $this->failed("未找到小区信息");
             }
             //验证任务
@@ -1598,6 +1599,14 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             ReceiptService::addReceiptTask($params);
         } else {
             return $this->failed("未接受到有效数据");
+        }
+
+        //查询java 所有房屋数据
+        $javaParams['token'] = $params['token'];
+        $javaParams['community_id'] = $params['community_id'];
+        $javaRoomResult = self::getJavaRoomAll($javaParams);
+        if(empty($javaRoomResult)){
+            return $this->failed("该小区下，没有房屋信息");
         }
 
         $defeat_count = $success_count = $error_count = 0;
@@ -1651,7 +1660,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
                 continue;
             }
-            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
+//            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
+            $roomKey = $communityName.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
+            $ps_room = $javaRoomResult[$roomKey];
             if (empty($ps_room)) {
                 $error_count++;
                 $errorCsv[$defeat_count] = $val;
