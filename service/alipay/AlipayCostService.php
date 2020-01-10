@@ -2369,7 +2369,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $roomIds = Yii::$app->db->createCommand("select room_id from ps_bill where " . $where, $params)->queryColumn();
             foreach ($allRooms as $key => $val) {
                 //判断当前缴费项目在当前账期内是否已存在并未删除的账单，存在则不新增
-                if (in_array($val["id"], $roomIds)) {
+                if (in_array($val["roomId"], $roomIds)) {
                     $defeat_count++;
                     $error_info[] = ['账单已存在'];
                     continue;
@@ -2377,7 +2377,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 //物业账单id
                 $bill_entry_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . $success_count;
                 //应缴费用，根据缴费项目与计算公式
-                $f = str_replace('h', $val["charge_area"], $formulaVar);
+                $f = str_replace('h', $val["areaSize"], $formulaVar);
                 $bill_entry_amount = eval("return $f;");
                 //根据计算公式配置对金额做四舍五入等转换
                 $bill_entry_amount = $this->getBillAmountByFormula($formulaInfo, $bill_entry_amount);
