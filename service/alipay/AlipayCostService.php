@@ -1337,6 +1337,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             $defeat_count = $error_count = $success_count = 0;//上传总数与成功导入数量
+            //查询java 所有房屋数据
+            $javaParams['token'] = $params['token'];
+            $javaParams['community_id'] = $communityId;
+            $javaRoomResult = self::getJavaRoomAll($javaParams);
+            if(empty($javaRoomResult)){
+                return $this->failed("该小区下，没有房屋信息");
+            }
             //去重数组
             $uniqueBillInfo = [];
             for ($i = 3; $i <= count($sheetData); $i++) {
@@ -1371,15 +1378,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     $errorCsv[$defeat_count]["error"] = "收费项不正确";
                     continue;
                 }
-                $roomArr = [
-                    "group" => trim($val["A"]),
-                    "building" => trim($val["B"]),
-                    "unit" => trim($val["C"]),
-                    "room" => trim($val["D"]),
-                    "community_id" => $communityId,
-                ];
+//                $roomArr = [
+//                    "group" => trim($val["A"]),
+//                    "building" => trim($val["B"]),
+//                    "unit" => trim($val["C"]),
+//                    "room" => trim($val["D"]),
+//                    "community_id" => $communityId,
+//                ];
                 //验证方式是否存在
-                $roomInfo = $this->getRoom($roomArr,$params['token']);
+//                $roomInfo = $this->getRoom($roomArr,$params['token']);
+                $roomKey = $commonResult.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
+                $roomInfo = $javaRoomResult[$roomKey];
                 if (empty($roomInfo)) {
                     $error_count++;
                     $errorCsv[$defeat_count] = $val;
@@ -1503,6 +1512,22 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'error_url' => $error_url,
         ];
         return $this->success($result);
+    }
+
+    /*
+     * 获得java所有房屋数据 返回key-value 形式
+     * input: token, community_id
+     */
+    public function getJavaRoomAll($params){
+        $javaService = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $params['community_id'];
+        $javaResult = $javaService->roomQueryList($javaParams);
+        $data = [];
+        if(!empty($javaResult['list'])){
+            $data = array_column($javaResult['list'],null,'home');
+        }
+        return $data;
     }
 
     // 添加错误至excel
