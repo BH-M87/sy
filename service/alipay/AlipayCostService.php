@@ -2832,7 +2832,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             ->andWhere(["is_del" => '1'])
             ->andWhere(["not in", "trade_defend", [1, 2, 3]])
             ->andWhere(["<=", "acct_period_start", $acctPeriodEnd])
-            ->andWhere([">", "acct_period_end", $acctPeriodStart])
+//            ->andWhere([">", "acct_period_end", $acctPeriodStart])
+            ->andWhere([">=", "acct_period_end", $acctPeriodStart])
             ->count();
         return $totals > 0 ? true : false;
     }
