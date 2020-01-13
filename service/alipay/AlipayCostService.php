@@ -1558,187 +1558,195 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     //确认导入
     public function billBatchImport($params, $userinfo)
     {
-        //================================================数据验证操作==================================================
-        if ($params && !empty($params)) {
-            $model = new PsReceiptFrom();
-            $model->setScenario('import-post');
-            foreach ($params as $key => $val) {
-                $form['PsReceiptFrom'][$key] = $val;
-            }
-            $model->load($form);
-            if (!$model->validate()) {
-                $errorMsg = array_values($model->errors);
-                return $this->failed($errorMsg[0][0]);
-            }
-            //验证小区
-//            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
-//            if (empty($community_info)) {
-//                return $this->failed("未找到小区信息");
-//            }
-            //java 验证小区
-            $commonService = new CommonService();
-            $javaCommunityParams['community_id'] = $params['community_id'];
-            $javaCommunityParams['token'] = $params['token'];
-            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
-            if(empty($communityName)){
-                return $this->failed("未找到小区信息");
-            }
-            //验证任务
-            $task = ReceiptService::getReceiptTask($params["task_id"]);
-            if (empty($task)) {
-                return $this->failed("未找到上传任务");
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+
+            //================================================数据验证操作==================================================
+            if ($params && !empty($params)) {
+                $model = new PsReceiptFrom();
+                $model->setScenario('import-post');
+                foreach ($params as $key => $val) {
+                    $form['PsReceiptFrom'][$key] = $val;
+                }
+                $model->load($form);
+                if (!$model->validate()) {
+                    $errorMsg = array_values($model->errors);
+                    return $this->failed($errorMsg[0][0]);
+                }
+                //验证小区
+    //            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
+    //            if (empty($community_info)) {
+    //                return $this->failed("未找到小区信息");
+    //            }
+                //java 验证小区
+                $commonService = new CommonService();
+                $javaCommunityParams['community_id'] = $params['community_id'];
+                $javaCommunityParams['token'] = $params['token'];
+                $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+                if(empty($communityName)){
+                    return $this->failed("未找到小区信息");
+                }
+                //验证任务
+                $task = ReceiptService::getReceiptTask($params["task_id"]);
+                if (empty($task)) {
+                    return $this->failed("未找到上传任务");
+                }
+
+                $typefile = F::excelPath('receipt') . $task['next_name'];
+                $PHPExcel = \PHPExcel_IOFactory::load($typefile);
+                $currentSheet = $PHPExcel->getActiveSheet();
+                $sheetData = $currentSheet->toArray(null, false, false, true);
+                if (empty($sheetData)) {
+                    return $this->failed("表格里面为空");
+                }
+                ReceiptService::addReceiptTask($params);
+            } else {
+                return $this->failed("未接受到有效数据");
             }
 
-            $typefile = F::excelPath('receipt') . $task['next_name'];
-            $PHPExcel = \PHPExcel_IOFactory::load($typefile);
-            $currentSheet = $PHPExcel->getActiveSheet();
-            $sheetData = $currentSheet->toArray(null, false, false, true);
-            if (empty($sheetData)) {
-                return $this->failed("表格里面为空");
+            //查询java 所有房屋数据
+            $javaParams['token'] = $params['token'];
+            $javaParams['community_id'] = $params['community_id'];
+            $javaRoomResult = self::getJavaRoomAll($javaParams);
+            if(empty($javaRoomResult)){
+                return $this->failed("该小区下，没有房屋信息");
             }
-            ReceiptService::addReceiptTask($params);
-        } else {
-            return $this->failed("未接受到有效数据");
-        }
 
-        //查询java 所有房屋数据
-        $javaParams['token'] = $params['token'];
-        $javaParams['community_id'] = $params['community_id'];
-        $javaRoomResult = self::getJavaRoomAll($javaParams);
-        if(empty($javaRoomResult)){
-            return $this->failed("该小区下，没有房屋信息");
-        }
+            $defeat_count = $success_count = $error_count = 0;
+            for ($i = 3; $i <= $task["totals"]; $i++) {
+                $defeat_count++;
+                $receiptArr = [];
+                $bill_entry_ids = [];
+                $bill_ids = [];
+                $val = $sheetData[$i];
 
-        $defeat_count = $success_count = $error_count = 0;
-        for ($i = 3; $i <= $task["totals"]; $i++) {
-            $defeat_count++;
-            $receiptArr = [];
-            $bill_entry_ids = [];
-            $bill_ids = [];
-            $val = $sheetData[$i];
+                if (\PHPExcel_Shared_Date::ExcelToPHP($val["F"]) > 0) {
+                    $val["F"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["F"]));
+                }
+                if (\PHPExcel_Shared_Date::ExcelToPHP($val["G"]) > 0) {
+                    $val["G"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["G"]));
+                }
+                $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['corpId']]);
+                //验证收费项
+                if (empty($cost) || empty($val["E"])) {
+                    $error_count++;
+                    $errorCsv[$defeat_count] = $val;
+                    $errorCsv[$defeat_count]["error"] = "缴费项不存在";
+                    continue;
+                }
+                //验证金额
+                if (!is_numeric($val["H"])) {
+                    $error_count++;
+                    $errorCsv[$defeat_count] = $val;
+                    $errorCsv[$defeat_count]["error"] = "缴费金额错误";
+                    continue;
+                }
+                $receiptArr["PsReceiptFrom"]["community_id"] = $params["community_id"];
+                $receiptArr["PsReceiptFrom"]["group"] = trim($val["A"]);
+                $receiptArr["PsReceiptFrom"]["building"] = trim($val["B"]);
+                $receiptArr["PsReceiptFrom"]["cost_id"] = $cost['id'];
+                $receiptArr["PsReceiptFrom"]["cost_type"] = $cost['cost_type'];
+                $receiptArr["PsReceiptFrom"]["unit"] = trim($val["C"]);
+                $receiptArr["PsReceiptFrom"]["room"] = trim($val["D"]);
+                $receiptArr['PsReceiptFrom']["acct_period_start"] = trim($val["F"]);
+                $receiptArr['PsReceiptFrom']["acct_period_end"] = trim($val["G"]);
+                $receiptArr["PsReceiptFrom"]["paid_entry_amount"] = $val["H"];
+                /*校验上传数据是否合法*/
+                $model = new PsReceiptFrom();
+                $model->setScenario('import-data');
 
-            if (\PHPExcel_Shared_Date::ExcelToPHP($val["F"]) > 0) {
-                $val["F"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["F"]));
-            }
-            if (\PHPExcel_Shared_Date::ExcelToPHP($val["G"]) > 0) {
-                $val["G"] = gmdate("Y-m-d", \PHPExcel_Shared_Date::ExcelToPHP($val["G"]));
-            }
-            $cost = BillCostService::service()->getCostByCompanyId(['name' => trim($val["E"]), 'company_id' => $userinfo['corpId']]);
-            //验证收费项
-            if (empty($cost) || empty($val["E"])) {
-                $error_count++;
-                $errorCsv[$defeat_count] = $val;
-                $errorCsv[$defeat_count]["error"] = "缴费项不存在";
-                continue;
-            }
-            //验证金额
-            if (!is_numeric($val["H"])) {
-                $error_count++;
-                $errorCsv[$defeat_count] = $val;
-                $errorCsv[$defeat_count]["error"] = "缴费金额错误";
-                continue;
-            }
-            $receiptArr["PsReceiptFrom"]["community_id"] = $params["community_id"];
-            $receiptArr["PsReceiptFrom"]["group"] = trim($val["A"]);
-            $receiptArr["PsReceiptFrom"]["building"] = trim($val["B"]);
-            $receiptArr["PsReceiptFrom"]["cost_id"] = $cost['id'];
-            $receiptArr["PsReceiptFrom"]["cost_type"] = $cost['cost_type'];
-            $receiptArr["PsReceiptFrom"]["unit"] = trim($val["C"]);
-            $receiptArr["PsReceiptFrom"]["room"] = trim($val["D"]);
-            $receiptArr['PsReceiptFrom']["acct_period_start"] = trim($val["F"]);
-            $receiptArr['PsReceiptFrom']["acct_period_end"] = trim($val["G"]);
-            $receiptArr["PsReceiptFrom"]["paid_entry_amount"] = $val["H"];
-            /*校验上传数据是否合法*/
-            $model = new PsReceiptFrom();
-            $model->setScenario('import-data');
+                $model->load($receiptArr);
+                if (!$model->validate()) {
+                    $errorMsg = array_values($model->errors);
+                    $error_count++;
+                    $errorCsv[$defeat_count] = $val;
+                    $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
+                    continue;
+                }
+    //            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
+                $roomKey = $communityName.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
+                $ps_room = $javaRoomResult[$roomKey];
+                if (empty($ps_room)) {
+                    $error_count++;
+                    $errorCsv[$defeat_count] = $val;
+                    $errorCsv[$defeat_count]["error"] = "未找到系统内对应得小区的房屋信息";
+                    continue;
+                }
+                /*验证数据库中是否已存在*/
+                $release_time = strtotime(date("Y-m-d 00:00:00", strtotime($receiptArr['PsReceiptFrom']["acct_period_start"])));
+                $release_end_time = strtotime(date("Y-m-d 23:59:59", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
+                if($cost['cost_type']==2 || $cost['cost_type']==3){//水费电费账单的账期结束时间去掉了时分
+                    $release_end_time = strtotime(date("Y-m-d", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
+                }
+                $bill_params = [
+                    ":room_id" => $ps_room["roomId"],
+                    ":cost_id" => $cost['id'],
+                    ":community_id" => $params["community_id"],
+                    ":acct_period_start" => $release_time,
+                    ":acct_period_end" => $release_end_time
+                ];
+                $bill_sql = "select id,order_id,bill_entry_id,bill_entry_amount,status from ps_bill where status=1 and is_del=1 and room_id=:room_id and cost_id=:cost_id and community_id=:community_id and acct_period_start=:acct_period_start and acct_period_end=:acct_period_end";
+                $bill = Yii::$app->db->createCommand($bill_sql, $bill_params)->queryOne();
+                if (empty($bill) || !$bill['order_id']) {
+                    $error_count++;
+                    $errorCsv[$defeat_count] = $val;
+                    $errorCsv[$defeat_count]["error"] = "未找到该订单";
+                    continue;
+                }
+                $receiptArr["PsReceiptFrom"]["prefer_entry_amount"] = 0;//默认优惠金额0
+                if ($receiptArr["PsReceiptFrom"]["paid_entry_amount"] < $bill["bill_entry_amount"]) {
+                    $receiptArr["PsReceiptFrom"]["prefer_entry_amount"] = $bill["bill_entry_amount"] - $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
+                }
+                array_push($bill_entry_ids, $bill["bill_entry_id"]);
+                array_push($bill_ids, $bill["id"]);
+                $arr = [];
+                $arr[$bill["bill_entry_id"]]["pay_amount"] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
+                $arr[$bill["bill_entry_id"]]["prefer_entry_amount"] = $receiptArr["PsReceiptFrom"]["prefer_entry_amount"];
+                $arr[$bill["bill_entry_id"]]["bill_id"] = $bill["id"];
+                $arr[$bill["bill_entry_id"]]["order_id"] = $bill["order_id"];
+                $arr[$bill["bill_entry_id"]]["data"] = $val;
 
-            $model->load($receiptArr);
-            if (!$model->validate()) {
-                $errorMsg = array_values($model->errors);
-                $error_count++;
-                $errorCsv[$defeat_count] = $val;
-                $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
-                continue;
+                //添加日志
+                $operate = [
+                    "community_id" => $params["community_id"],
+                    "operate_menu" => "缴费管理",
+                    "operate_type" => "批量收款",
+                    "operate_content" => "",
+                ];
+                OperateService::addComm($userinfo, $operate);
+                //修复账单表的信息
+                $this->repairBillData(["bill_list" => array_values($arr), "pay_channel" => $params["pay_channel"]]);
+                //添加收款记录
+                $income['room_id'] = $ps_room['roomId'];//房屋id
+                $income['community_id'] = $params['community_id'];//小区id
+                $income['token'] = $params['token'];//token
+                $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
+                $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
+                $income['content'] = '批量收款';
+                BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
+                //添加账单变更统计表中
+                $split_bill['bill_id'] = $bill['id'];  //账单id
+                $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
+                BillTractContractService::service()->payContractBill($split_bill);
+                unset($arr["data"]);
+                $success_count++;
             }
-//            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
-            $roomKey = $communityName.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
-            $ps_room = $javaRoomResult[$roomKey];
-            if (empty($ps_room)) {
-                $error_count++;
-                $errorCsv[$defeat_count] = $val;
-                $errorCsv[$defeat_count]["error"] = "未找到系统内对应得小区的房屋信息";
-                continue;
+
+            $error_url = "";
+            if ($error_count > 0) {
+                $error_url = $this->savePayError($errorCsv);
             }
-            /*验证数据库中是否已存在*/
-            $release_time = strtotime(date("Y-m-d 00:00:00", strtotime($receiptArr['PsReceiptFrom']["acct_period_start"])));
-            $release_end_time = strtotime(date("Y-m-d 23:59:59", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
-            if($cost['cost_type']==2 || $cost['cost_type']==3){//水费电费账单的账期结束时间去掉了时分
-                $release_end_time = strtotime(date("Y-m-d", strtotime($receiptArr['PsReceiptFrom']["acct_period_end"])));
-            }
-            $bill_params = [
-                ":room_id" => $ps_room["roomId"],
-                ":cost_id" => $cost['id'],
-                ":community_id" => $params["community_id"],
-                ":acct_period_start" => $release_time,
-                ":acct_period_end" => $release_end_time
+            $result = [
+                'totals' => $success_count + $error_count,
+                'success' => $success_count,
+                'error_url' => $error_url,
             ];
-            $bill_sql = "select id,order_id,bill_entry_id,bill_entry_amount,status from ps_bill where status=1 and is_del=1 and room_id=:room_id and cost_id=:cost_id and community_id=:community_id and acct_period_start=:acct_period_start and acct_period_end=:acct_period_end";
-            $bill = Yii::$app->db->createCommand($bill_sql, $bill_params)->queryOne();
-            if (empty($bill) || !$bill['order_id']) {
-                $error_count++;
-                $errorCsv[$defeat_count] = $val;
-                $errorCsv[$defeat_count]["error"] = "未找到该订单";
-                continue;
-            }
-            $receiptArr["PsReceiptFrom"]["prefer_entry_amount"] = 0;//默认优惠金额0
-            if ($receiptArr["PsReceiptFrom"]["paid_entry_amount"] < $bill["bill_entry_amount"]) {
-                $receiptArr["PsReceiptFrom"]["prefer_entry_amount"] = $bill["bill_entry_amount"] - $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
-            }
-            array_push($bill_entry_ids, $bill["bill_entry_id"]);
-            array_push($bill_ids, $bill["id"]);
-            $arr = [];
-            $arr[$bill["bill_entry_id"]]["pay_amount"] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
-            $arr[$bill["bill_entry_id"]]["prefer_entry_amount"] = $receiptArr["PsReceiptFrom"]["prefer_entry_amount"];
-            $arr[$bill["bill_entry_id"]]["bill_id"] = $bill["id"];
-            $arr[$bill["bill_entry_id"]]["order_id"] = $bill["order_id"];
-            $arr[$bill["bill_entry_id"]]["data"] = $val;
-
-            //添加日志
-            $operate = [
-                "community_id" => $params["community_id"],
-                "operate_menu" => "缴费管理",
-                "operate_type" => "批量收款",
-                "operate_content" => "",
-            ];
-            OperateService::addComm($userinfo, $operate);
-            //修复账单表的信息
-            $this->repairBillData(["bill_list" => array_values($arr), "pay_channel" => $params["pay_channel"]]);
-            //添加收款记录
-            $income['room_id'] = $ps_room['roomId'];//房屋id
-            $income['community_id'] = $params['community_id'];//小区id
-            $income['token'] = $params['token'];//token
-            $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
-            $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
-            $income['content'] = '批量收款';
-            BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
-            //添加账单变更统计表中
-            $split_bill['bill_id'] = $bill['id'];  //账单id
-            $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
-            BillTractContractService::service()->payContractBill($split_bill);
-            unset($arr["data"]);
-            $success_count++;
+            $trans->commit();
+            return $this->success($result);
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
-
-        $error_url = "";
-        if ($error_count > 0) {
-            $error_url = $this->savePayError($errorCsv);
-        }
-        $result = [
-            'totals' => $success_count + $error_count,
-            'success' => $success_count,
-            'error_url' => $error_url,
-        ];
-        return $this->success($result);
     }
 
     public function getRoom($data,$token)
