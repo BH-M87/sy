@@ -29,87 +29,78 @@ use app\models\PsAppUser;
 use service\BaseService;
 use yii\db\Exception;
 use Yii;
+use service\property_basic\JavaOfCService;
 
 class BillSmallService extends BaseService
 {
-    //收款记录列表
-    public function billIncomeList($reqArr)
+    // 收款记录列表
+    public function billIncomeList($p)
     {
-        $community_id = !empty($reqArr['community_id']) ? $reqArr['community_id'] : '';
-        $room_id = !empty($reqArr['room_id']) ? $reqArr['room_id'] : '';
-        $app_user_id = !empty($reqArr['app_user_id']) ? $reqArr['app_user_id'] : '';
+        $community_id = !empty($p['community_id']) ? $p['community_id'] : '';
+        $room_id = !empty($p['room_id']) ? $p['room_id'] : '';
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+        $page = !empty($p['page']) ? $p['page'] : 1;
+        $rows = !empty($p['rows']) ? $p['rows'] : 20;
+        
         if (!$community_id || !$room_id || !$app_user_id) {
             return $this->failed('参数错误！');
         }
-        //验证用户与房屋的权限
-//        $validate = $this->validateUser($app_user_id, $room_id);
-//        if ($validate !== true) {
-//            return $this->failed($validate);
-//        }
-        //获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
-        //获取小区名称
-        $community = PsCommunityModel::find()->select('id, name')->where(['id' => $community_id])->asArray()->one();
-        //房屋地址
-        $address = PsCommunityRoominfo::find()->select('id,address')
-            ->where(['id' => $room_id])
-            ->asArray()->one();
-        $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
-        $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : 20;
+
+        $m = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $room_id]);
 
         $result = PsBillIncome::find()->alias('income')->select(['rela.bill_id','income.income_time'])
             ->leftJoin("ps_bill_income_relation rela", "income.id=rela.income_id")
             ->where(['income.is_del' => 1, 'income.pay_type' => 1])
             ->andFilterWhere(['=', 'income.community_id', $community_id])
             ->andFilterWhere(['=', 'income.room_id', $room_id])
-            ->andWhere(['or',['income.member_id' => $member_id],['income.app_user_id' => $app_user_id]])
+            ->andWhere(['or', ['income.member_id' => $member_id], ['income.app_user_id' => $app_user_id]])
             ->andFilterWhere(['=', 'income.pay_status', 1]);
 
         $totals = $result->count();
         $incomeResult = $result->orderBy('income.income_time desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)
-            ->asArray()->all();
+            ->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
         if (!empty($incomeResult)) {
             foreach ($incomeResult as $income) {
                 $data['id'] = $income['bill_id'];
                 $data['income_time'] = date("Y-m-d H:i", $income['income_time']);
-                $billInfo = PsBill::find()->select(['cost_name', 'acct_period_start', 'acct_period_end','paid_entry_amount'])->where(['id' => $income['bill_id']])->asArray()->one();
+                $billInfo = PsBill::find()->select(['cost_name', 'acct_period_start', 'acct_period_end','paid_entry_amount'])
+                    ->where(['id' => $income['bill_id']])->asArray()->one();
                 $data['cost_name'] = $billInfo['cost_name'];
                 $data['pay_money'] = $billInfo['paid_entry_amount'];
                 $data['bill_info'] = date("Y-m-d", $billInfo['acct_period_start']) . '至' . date("Y-m-d", $billInfo['acct_period_end']);
                 $dataLst[] = $data;
             }
         }
-        return $this->success(['list' => !empty($dataLst) ? $dataLst : [], 'totals' => $totals, 'room_info' => $address['address'], 'community_name' => $community['name']]);
+
+        return $this->success(['list' => !empty($dataLst) ? $dataLst : [], 'totals' => $totals, 'room_info' => $m['fullName'], 'community_name' => $m['communityName']]);
     }
 
-    //收款记录详情
-    public function billIncomeInfo($reqArr)
+    // 收款记录详情
+    public function billIncomeInfo($p)
     {
-        $id = !empty($reqArr['id']) ? $reqArr['id'] : 0;
-        $app_user_id = !empty($reqArr['app_user_id']) ? $reqArr['app_user_id'] : '';
+        $id = !empty($p['id']) ? $p['id'] : 0;
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+
         if (!$id) {
             return $this->failed('收款记录id不能为空！');
         }
+
         if (!$app_user_id) {
             return $this->failed('用户id不能为空！');
         }
 
-        $incomeInfo = PsBillIncome::find()->alias('income')
-            ->where(['income.id' => $id])
-            ->select(['income.id', 'income.community_id', 'income.income_time', 'income.pay_money', 'income.group', 'income.building', 'income.unit', 'income.room', 'income.pay_status', 'income.trade_no', 'income.refund_time'])
-            ->asArray()
-            ->one();
-        if (!empty($incomeInfo)) {
-            //获取小区名称
-            $community = CommunityService::service()->getCommunityName($incomeInfo['community_id']);
-            //根据收款记录查询对应的账单明细
+        $m = PsBillIncome::find()
+            ->select('id, community_id, income_time, pay_money, group_id, building_id, unit_id, room_id, 
+                pay_status, trade_no, refund_time, room_address')
+            ->where(['id' => $id])->asArray()->one();
+        if (!empty($m)) {
+            $room = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $m['room_id']]);
+            // 根据收款记录查询对应的账单明细
             $bill_data = PsBillIncomeRelation::find()->alias('rela')
                 ->where(['rela.income_id' => $id])
                 ->leftJoin("ps_bill bill", "bill.id=rela.bill_id")
                 ->select(['bill.id', 'bill.acct_period_start', 'bill.acct_period_end', 'bill.cost_name', 'bill.paid_entry_amount'])->asArray()->all();
-            //组装账单明细数据给前台
+            // 组装账单明细数据给前台
             if (!empty($bill_data)) {
                 foreach ($bill_data as $bill) {
                     $billData['id'] = $bill['id'];
@@ -119,60 +110,54 @@ class BillSmallService extends BaseService
                     $billDataList[] = $billData;
                 }
             }
-            $data['id'] = $incomeInfo['id'];
-            $data['community_name'] = $community['name'];
-            $data['income_time'] = date("Y-m-d H:i", $incomeInfo['income_time']);   //收款时间
-            $data['refund_time'] = !empty($incomeInfo['refund_time']) ? date("Y-m-d H:i", $incomeInfo['refund_time']) : '';   //退款时间
-            $data['trade_no'] = $incomeInfo['trade_no'];            //交易流水
-            $data['pay_status'] = $incomeInfo['pay_status'];        //收款状态：1支付成功，2支付关闭
-            $data['pay_money'] = $incomeInfo['pay_money'];          //收款金额
-            $data['room_info'] = $incomeInfo['group'] . $incomeInfo['building'] . $incomeInfo['unit'] . $incomeInfo['room'];//房屋信息
+
+            $data['id'] = $m['id'];
+            $data['community_name'] = $room['communityName'];
+            $data['income_time'] = date("Y-m-d H:i", $m['income_time']);   //收款时间
+            $data['refund_time'] = !empty($m['refund_time']) ? date("Y-m-d H:i", $m['refund_time']) : '';   //退款时间
+            $data['trade_no'] = $m['trade_no'];            //交易流水
+            $data['pay_status'] = $m['pay_status'];        //收款状态：1支付成功，2支付关闭
+            $data['pay_money'] = $m['pay_money'];          //收款金额
+            $data['room_address'] = $m['room_address'];//房屋信息
             $data['bill_list'] = $billDataList; //收款记录对应的账单明细
+            
             return $this->success(!empty($data) ? $data : []);
         }
+
         return $this->failed('收款记录不存在！');
     }
 
     //获取账单列表
-    public function getBillList($reqArr)
+    public function getBillList($p)
     {
-        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        $room_id = !empty($reqArr['room_id']) ? $reqArr['room_id'] : '';
-        $app_user_id = !empty($reqArr['app_user_id']) ? $reqArr['app_user_id'] : '';
+        $communityId = !empty($p['community_id']) ? $p['community_id'] : 0;
+        $room_id = !empty($p['room_id']) ? $p['room_id'] : '';
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+        
         if (!$communityId || !$room_id || !$app_user_id) {
             return $this->failed('请求参数不完整！');
         }
-        //验证用户与房屋的权限
-//        $validate = $this->validateUser($app_user_id, $room_id);
-//        if ($validate !== true) {
-//            return $this->failed($validate);
-//        }
-        //获取小区名称
-        $community = PsCommunityModel::find()->select('id, name,pro_company_id')->where(['id' => $communityId])->asArray()->one();
-        //查询物业公司是否签约
-        $alipay = PsPropertyAlipay::find()->andWhere(['company_id'=>$community['pro_company_id'],'status'=>'2'])->asArray()->one();
-        //房屋地址
-        $address = PsCommunityRoominfo::find()->select('id,address')
-            ->where(['id' => $room_id])
-            ->asArray()->one();
-        //查询已支付账单
+
+        $m = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $room_id]);
+
+        // 查询已支付账单
         $payBill = PsBillIncome::find()->alias('income')->select(['rela.bill_id'])
-            ->leftJoin("ps_bill_income_relation rela", "income.id=rela.income_id")
+            ->leftJoin("ps_bill_income_relation rela", "income.id = rela.income_id")
             ->andFilterWhere(['=', 'income.community_id', $communityId])
             ->andFilterWhere(['=', 'income.room_id', $room_id])
             ->andFilterWhere(['=', 'income.pay_status', 1])
             ->asArray()->column();
-        //所有的缴费项
+        // 所有的缴费项
         $bill_cost = PsBill::find()->select('cost_id,cost_name,sum(bill_entry_amount) as total_money')
             ->where(['community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
             ->andWhere(["<", 'trade_defend', time()])
             ->andFilterWhere(['not in', 'id', $payBill])
-            ->groupBy("cost_id")
-            ->asArray()->all();
-        if (empty($bill_cost) || empty($alipay)) {
-            return $this->success(['list' => [], 'room_info' => $address['address'], 'community_name' => $community['name']]);
+            ->groupBy("cost_id")->asArray()->all();
+        
+        if (empty($bill_cost)) {
+            return $this->success(['list' => [], 'room_info' => $m['fullName'], 'community_name' => $m['communityName']]);
         }
-        //根据缴费项获取当前缴费项的明细账单
+        // 根据缴费项获取当前缴费项的明细账单
         $dataList = [];
         foreach ($bill_cost as $cost) {
             $data = $cost;
@@ -190,112 +175,97 @@ class BillSmallService extends BaseService
             $data['bill_list'] = !empty($billDataList) ? $billDataList : [];
             $dataList[] = $data;
         }
-        return $this->success(['list' => $dataList, 'room_info' => $address['address'], 'community_name' => $community['name']]);
+
+        return $this->success(['list' => $dataList, 'room_info' => $m['fullName'], 'community_name' => $m['communityName']]);
     }
 
     //提交账单，返回付款支付宝交易号
-    public function addBill($params)
+    public function addBill($p)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $bill_list = PsCommon::get($params, 'bill_list');
-        $room_id = PsCommon::get($params, 'room_id');
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $communityId = PsCommon::get($p, 'community_id');
+        $bill_list = PsCommon::get($p, 'bill_list');
+        $room_id = PsCommon::get($p, 'room_id');
+        $app_user_id = !empty($p['app_user_id']) ? $p['app_user_id'] : '';
+        
         if (!$communityId || !$room_id || !$app_user_id) {
             return $this->failed('请求参数不完整！');
         }
-        //验证用户与房屋的权限,2019-2-25去除该验证，获取用户所有缴费过的记录
-//        $validate = $this->validateUser($app_user_id, $room_id);
-//        if ($validate !== true) {
-//        return $this->failed($validate);
-//        }
-        //获取业主id
-        $member_id = $this->getMemberByUser($app_user_id);
-        //获取业主名称
-        $member_name = $this->getMemberNameByUser($member_id);
-        //获取支付宝id
-        $buyer_id = $this->getBuyerIdr($app_user_id);
+
+        // 调Java接口 获取业主id $member_id 和 支付宝id $buyer_id
+        $thirdR = JavaOfCService::service()->thirdRelation(['token' => $p['token'], 'type' => 1]);
 
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
+
         if (!is_array($bill_list)) {
             return $this->failed('账单格式错误');
         }
-        //小区id
-        $community_no = PsCommunityModel::find()->select('community_no')
-            ->where(['id' => $communityId])
-            ->scalar();
-        //房屋地址
-        $room_info = PsCommunityRoominfo::find()->select('`group`,building,unit,room,address,out_room_id')
-            ->where(['id' => $room_id])->asArray()->one();
-        //收款金额
+
+        // 调Java接口获取 房屋信息
+        $room_info = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $room_id]);
+        // 收款金额
         $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1])
             ->scalar();
         if (empty($total_money)) {
             return $this->failed('账单不存在');
         }
-        $total_money = PsBill::find()->select('sum(bill_entry_amount) as money')
+
+        $model = PsBill::find()->select('sum(bill_entry_amount) as money, company_id')
             ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
-            ->scalar();
+            ->asArray()->one();
+
+        $total_money = $model['money'];
         if (empty($total_money)) {
             return $this->failed('账单已收款');
         }
-        //查询支付宝账单是否有锁定账单
-        $batchId = '';
-        $roomId = $room_info['out_room_id'];
-        $page = '';
-        $result = AlipayBillService::service($community_no)->queryBill($community_no, $batchId, $roomId, $page);
-        if (!empty($result['bill_result_set'])) {
-            foreach ($result['bill_result_set'] as $item) {
-                if ($item['status'] == 'UNDER_PAYMENT') {
-                    return $this->failed('账单已锁定');
-                }
-            }
-        }
-        $data = [
-            "community_id" => $community_no,
-            "out_trade_no" => $this->_generateBatchId(),
-            "total_amount" => $total_money,
-            "subject" => $room_info['address'],
-            "buyer_id" => $buyer_id,
-            "timeout_express" => "30m"
-        ];
+
         $trans = Yii::$app->getDb()->beginTransaction();
         $income_id = $out_trade_no = $trade_no = '';
         try {
-            $small_url = Yii::$app->params['external_invoke_small_address'];
-            $result = AlipayBillService::service($community_no)->tradeCreate($data, $small_url);//调用接口
-            if ($result['code'] == 10000) {//生成成功
-                $out_trade_no = !empty($result['out_trade_no']) ? $result['out_trade_no'] : '';
-                $trade_no = !empty($result['trade_no']) ? $result['trade_no'] : '';
+            $data = [
+                "orderNo" => $this->_generateBatchId(),
+                "buyerId" => $thirdR['onlyNumber'],
+                "subject" => $room_info['fullName'],
+                "totalAmount" => $total_money,
+                "token" => $p['token'],
+                "corpId" => $model['company_id'],
+                "notifyUrl" => Yii::$app->params['external_invoke_small_address'],
+            ];
+
+            $r = JavaOfCService::service()->tradeCreate($data); // 调用java接口
+
+            if (!empty($r['outTradeNo']) && !empty($r['tradeNo'])) { // 生成成功
+                $out_trade_no = !empty($r['outTradeNo']) ? $r['outTradeNo'] : '';
+                $trade_no = !empty($r['tradeNo']) ? $r['tradeNo'] : '';
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                //新增收款记录
-                $incomeData['app_user_id'] = $app_user_id;              //用户支付宝id
-                $incomeData['member_id'] = $member_id;              //用户id
-                $incomeData['room_id'] = $room_id;              //房屋id
-                $incomeData['out_trade_no'] = $out_trade_no;        //交易流水
-                $incomeData['trade_no'] = $trade_no;        //交易流水
-                $incomeData['community_id'] = $communityId;     //小区
-                $incomeData['group'] = $room_info['group'];
-                $incomeData['building'] = $room_info['building'];
-                $incomeData['unit'] = $room_info['unit'];
-                $incomeData['room'] = $room_info['room'];
-                $incomeData['pay_money'] = $total_money;        //收款金额
-                $incomeData['trade_type'] = 1;                  //交易类型 1收款 2退款
-                $incomeData['pay_type'] = 1;                    //收款类型 1线上收款 2线下收款
-                $incomeData['pay_channel'] = 2;                 //收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
-                $incomeData['pay_status'] = 0;                  //初始化，交易状态 1支付成功 2交易关闭
-                $incomeData['check_status'] = 1;                  //状态 1未复核 2已复核 3待核销 4已核销
-                $incomeData['payee_id'] = 1;    //收款操作人
-                $incomeData['payee_name'] = 'system';//收款人名称
+                // 新增收款记录
+                $incomeData['app_user_id'] = $app_user_id; // 用户支付宝id
+                $incomeData['member_id'] = $thirdR['id']; // 用户id
+                $incomeData['room_id'] = $room_id; // 房屋id
+                $incomeData['out_trade_no'] = $out_trade_no; // 交易流水
+                $incomeData['trade_no'] = $trade_no; // 交易流水
+                $incomeData['community_id'] = $communityId; // 小区
+                $incomeData['group_id'] = $room_info['groupId'];
+                $incomeData['building_id'] = $room_info['buildingId'];
+                $incomeData['unit_id'] = $room_info['unitId'];
+                $incomeData['room_address'] = $room_info['communityName'].$room_info['fullName'];
+                $incomeData['pay_money'] = $total_money; // 收款金额
+                $incomeData['trade_type'] = 1; // 交易类型 1收款 2退款
+                $incomeData['pay_type'] = 1; // 收款类型 1线上收款 2线下收款
+                $incomeData['pay_channel'] = 2; // 收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
+                $incomeData['pay_status'] = 0; // 初始化，交易状态 1支付成功 2交易关闭
+                $incomeData['check_status'] = 1; // 状态 1未复核 2已复核 3待核销 4已核销
+                $incomeData['payee_id'] = 1; // 收款操作人
+                $incomeData['payee_name'] = 'system'; // 收款人名称
                 $incomeData['income_time'] = time();
                 $incomeData['batch_id'] = $batch_id;
                 $incomeData['create_at'] = time();
                 $income = Yii::$app->db->createCommand()->insert('ps_bill_income', $incomeData)->execute();
                 if (!empty($income)) {
-                    $income_id = Yii::$app->db->getLastInsertID(); //获取收款记录id
-                    //新增收款记录与账单的关系表
+                    $income_id = Yii::$app->db->getLastInsertID(); // 获取收款记录id
+                    // 新增收款记录与账单的关系表
                     foreach ($bill_list as $bill_id) {
                         $rela_income = [];
                         $rela_income['batch_id'] = $batch_id;
@@ -306,15 +276,14 @@ class BillSmallService extends BaseService
                 } else {
                     return $this->failed('收款失败');
                 }
-            } else {
-                return $this->failed($result['sub_msg']);
             }
-            //提交事务
+            // 提交事务
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+
         return $this->success(['id' => $income_id, 'pay_money' => $total_money, 'out_trade_no' => $out_trade_no, "trade_no" => $trade_no]);
     }
 

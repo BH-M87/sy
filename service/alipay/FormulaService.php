@@ -1,17 +1,20 @@
 <?php
 namespace service\alipay;
 
-use common\core\PsCommon;
-use service\BaseService;
 use Yii;
-use yii\base\Exception;
 use yii\db\Query;
+use yii\base\Exception;
+
+use common\core\PsCommon;
+
+use service\BaseService;
+
 use service\manage\CommunityService;
 use service\rbac\OperateService;
+use service\property_basic\JavaService;
 
 class FormulaService extends BaseService
 {
-
     /*
      * 查看物业公司下用户列表
      * $data 查询条件
@@ -120,13 +123,8 @@ class FormulaService extends BaseService
             "operator_name" => $data["operator_name"],
             "create_at" => time(),
         ];
-        $operate = [
-            "community_id" => $data["community_id"],
-            "operate_menu" => "缴费管理",
-            "operate_type" => "公式管理：新增公式",
-            "operate_content" => $data["name"],
-        ];
-        OperateService::addComm($user_info, $operate);
+
+        self::_logAdd($data['token'], "公式管理：新增公式，".$data["name"]);
 
         $connection->createCommand()->insert('ps_formula', $park_arr)->execute();
         $result = ["status" => '20000'];
@@ -160,13 +158,8 @@ class FormulaService extends BaseService
             "formula" => $data["formula"],
             "update" => time(),
         ];
-        $operate = [
-            "community_id" => $formula["community_id"],
-            "operate_menu" => "缴费管理",
-            "operate_type" => "公式管理：编辑公式",
-            "operate_content" => $formula["name"],
-        ];
-        OperateService::addComm($user_info, $operate);
+
+        self::_logAdd($data['token'], "公式管理：编辑公式，".$formula["name"]);
 
         $connection->createCommand()->update('ps_formula',
             $formula_arr,
@@ -190,13 +183,8 @@ class FormulaService extends BaseService
             $result = ["status" => '20001', "errorMsg" => "使用中,请稍后删除"];
             return $result;
         }
-        $operate = [
-            "community_id" => $formula["community_id"],
-            "operate_menu" => "缴费管理",
-            "operate_type" => "公式管理：删除公式",
-            "operate_content" => $formula["name"],
-        ];
-        OperateService::addComm($user_info, $operate);
+
+        self::_logAdd($data['token'], "删除公式，".$formula["name"]);
 
         $connection->createCommand()->delete('ps_formula', "id=:formula_id", $params)->execute();
         $result = ["status" => '20000', "errorMsg" => "删除成功"];
@@ -213,18 +201,19 @@ class FormulaService extends BaseService
         if (!empty($model)) {
             if ($model['type'] == 1) {//按固定
                 $result["price"] = $model["price"];
-                $result["formula_desc"] = $model["price"] . "*用水量";
+                $result["formula_desc"] = $model["price"] . "元/立方米";
             } else {//安阶梯
                 $sql = "select * from ps_phase_formula where community_id=:community_id  and rule_type=1";
                 $phase_list = Yii::$app->db->createCommand($sql, $param)->queryAll();
                 if ($phase_list) {
                     foreach ($phase_list as $key => $phase) {
                         $ton = $phase['ton'] == 0 ? "X" : $phase['ton'];
-                        $msg = ($key + 1) . "档用量:" . $ton . "，单价:" . $phase["price"] . "*用水量<br>";
+                        $msg = $ton . "立方米，单价:" . $phase["price"] . "元/立方米<br>";
                         $result["formula_desc"] .= $msg;
                     }
                 }
             }
+            $result["type"] = $model["type"];
             $result["calcRule"] = PsCommon::getFormulaRule($model["calc_rule"]) . '/' . PsCommon::getFormulaWay($model['del_decimal_way']);           //计算规则
         }
         return $result;
@@ -250,7 +239,7 @@ class FormulaService extends BaseService
         }
     }
 
-    /*编辑固定水价*/
+    // 编辑固定水价
     public function editFixedWater($data, $user_info)
     {
         $db = Yii::$app->db;
@@ -323,13 +312,8 @@ class FormulaService extends BaseService
                 }
             }
             $transaction->commit();
-            $operate = [
-                "community_id" => $data["community_id"],
-                "operate_menu" => "公式管理",
-                "operate_type" => "水费编辑",
-                "operate_content" => "",
-            ];
-            OperateService::addComm($user_info, $operate);
+
+            self::_logAdd($data['token'], "水费编辑");
             return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -348,7 +332,7 @@ class FormulaService extends BaseService
         if (!empty($model)) {
             if ($model['type'] == 1) {//按固定
                 $result["price"] = $model["price"];
-                $result["formula_desc"] = $model["price"] . "*用电量";
+                $result["formula_desc"] = $model["price"] . "元/度";
                 $result["type_msg"] = '固定价';
             } else {//安阶梯
                 $sql = "select * from ps_phase_formula where community_id=:community_id  and rule_type=2";
@@ -356,11 +340,12 @@ class FormulaService extends BaseService
                 if ($phase_list) {
                     foreach ($phase_list as $key => $phase) {
                         $ton = $phase['ton'] == 0 ? "X" : $phase['ton'];
-                        $msg = ($key + 1) . "档用量:" . $ton . "，单价:" . $phase["price"] . "*用电量<br>";
+                        $msg = $ton . "度，单价:" . $phase["price"] . "元/度<br>";
                         $result["formula_desc"] .= $msg;
                     }
                 }
             }
+            $result["type"] = $model["type"];
             $result["calcRule"] = PsCommon::getFormulaRule($model["calc_rule"]) . '/' . PsCommon::getFormulaWay($model['del_decimal_way']);           //计算规则
         }
         return $result;
@@ -442,13 +427,9 @@ class FormulaService extends BaseService
                 }
             }
             $transaction->commit();
-            $operate = [
-                "community_id" => $data["community_id"],
-                "operate_menu" => "公式管理",
-                "operate_type" => "电费编辑",
-                "operate_content" => "",
-            ];
-            OperateService::addComm($user_info, $operate);
+
+            self::_logAdd($data['token'], "电费编辑");
+
             return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -462,10 +443,7 @@ class FormulaService extends BaseService
         if (!$data['community_id']) {
             return $this->failed("小区id不能为空");
         }
-        $community_info = CommunityService::service()->getCommunityInfo($data['community_id']);
-        if (empty($community_info)) {
-            return $this->failed("未找到小区信息");
-        }
+
         $param = [":community_id" => $data['community_id']];
         $sql = "select id,community_id,name,type,operator_id,operator_name,price,rule_type,calc_rule,del_decimal_way,create_at from ps_water_formula where community_id=:community_id and rule_type=2 ";
         $model = Yii::$app->db->createCommand($sql, $param)->queryOne();
@@ -494,6 +472,7 @@ class FormulaService extends BaseService
         $model = Yii::$app->db->createCommand($sql, $param)->queryOne();
         $result["formula_desc"] = "";
         if (!empty($model)) {
+            $result["type"] = $model["type"];
             $result["price"] = round($model["price"],2);
             $result["formula_desc"] = round($model["price"],2) . "*用电量";
         }
@@ -529,13 +508,9 @@ class FormulaService extends BaseService
                 Yii::$app->db->createCommand()->update("ps_water_formula", $edit_arr, 'rule_type=4 and community_id=' . $data["community_id"])->execute();
             }
             $transaction->commit();
-            $operate = [
-                "community_id" => $data["community_id"],
-                "operate_menu" => "公式管理",
-                "operate_type" => "电费编辑",
-                "operate_content" => "",
-            ];
-            OperateService::addComm($user_info, $operate);
+
+            self::_logAdd($data['token'], "电费编辑");
+
             return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -549,10 +524,7 @@ class FormulaService extends BaseService
         if (!$data['community_id']) {
             return $this->failed("小区id不能为空");
         }
-        $community_info = CommunityService::service()->getCommunityInfo($data['community_id']);
-        if (empty($community_info)) {
-            return $this->failed("未找到小区信息");
-        }
+
         $param = [":community_id" => $data['community_id']];
         $sql = "select id,community_id,name,operator_id,operator_name,price,create_at from ps_water_formula where community_id=:community_id and rule_type=4 ";
         $model = Yii::$app->db->createCommand($sql, $param)->queryOne();
@@ -572,6 +544,7 @@ class FormulaService extends BaseService
         $model = Yii::$app->db->createCommand($sql, $param)->queryOne();
         $result["formula_desc"] = "";
         if (!empty($model)) {
+            $result["type"] = $model["type"];
             $result["price"] = round($model["price"],2);
             $result["formula_desc"] = round($model["price"],2) . "*用水量";
         }
@@ -607,13 +580,9 @@ class FormulaService extends BaseService
                 Yii::$app->db->createCommand()->update("ps_water_formula", $edit_arr, 'rule_type=3 and community_id=' . $data["community_id"])->execute();
             }
             $transaction->commit();
-            $operate = [
-                "community_id" => $data["community_id"],
-                "operate_menu" => "公式管理",
-                "operate_type" => "水费编辑",
-                "operate_content" => "",
-            ];
-            OperateService::addComm($user_info, $operate);
+
+            self::_logAdd($data['token'], "水费编辑");
+
             return $this->success();
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -627,10 +596,7 @@ class FormulaService extends BaseService
         if (!$data['community_id']) {
             return $this->failed("小区id不能为空");
         }
-        $community_info = CommunityService::service()->getCommunityInfo($data['community_id']);
-        if (empty($community_info)) {
-            return $this->failed("未找到小区信息");
-        }
+
         $param = [":community_id" => $data['community_id']];
         $sql = "select id,community_id,name,operator_id,operator_name,price,create_at from ps_water_formula where community_id=:community_id and rule_type=3 ";
         $model = Yii::$app->db->createCommand($sql, $param)->queryOne();
@@ -661,5 +627,18 @@ class FormulaService extends BaseService
         $sql = "select id,name,formula from ps_formula where " . $where . " order by id desc ";
         $models = Yii::$app->db->createCommand($sql, $params)->queryAll();
         return ["list" => $models, 'totals' => $count];
+    }
+
+     // 添加java日志
+    public function _logAdd($token, $content)
+    {
+        $javaService = new JavaService();
+        $javaParam = [
+            'token' => $token,
+            'moduleKey' => 'bill_module',
+            'content' => $content,
+
+        ];
+        $javaService->logAdd($javaParam);
     }
 }

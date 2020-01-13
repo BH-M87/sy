@@ -14,12 +14,13 @@ use service\alipay\AlipayCostService;
 use service\manage\CommunityService;
 use service\rbac\UserService;
 use service\alipay\TemplateService;
+use service\property_basic\JavaService;
 use app\modules\property\controllers\BaseController;
 
 Class BillIncomeController extends BaseController
 {
     //重复请求过滤方法
-    public $repeatAction = ['refund-add','refund-add-offline','check-list'];
+    public $repeatAction = ['refund-add','refund-add-offline'];
 
     // 收款记录 批量 复核/撤销核销
     public function actionBillIncomeCheck()
@@ -60,10 +61,18 @@ Class BillIncomeController extends BaseController
     // 收款复核 列表
     public function actionCheckList()
     {
-        $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
-        $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
-        $data['total_money'] = BillIncomeService::service()->totalMoney($this->request_params);
-        return PsCommon::responseSuccess($data);
+        $javaResult = JavaService::service()->communityNameList(['token' => $this->request_params['token']]);
+
+        $this->request_params['communityIds'] = !empty($javaResult['list']) ? array_column($javaResult['list'], 'key') : [];
+
+        $money = BillIncomeService::service()->totalMoney($this->request_params);
+
+        $r['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
+        $r['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
+        $r['amount'] = $money['amount'];
+        $r['refund'] = $money['refund'];
+
+        return PsCommon::responseSuccess($r);
     }
 
     // 财务核销 列表
@@ -90,13 +99,13 @@ Class BillIncomeController extends BaseController
     // 收款记录 收款复核 财务核销 详情
     public function actionBillIncomeShow()
     {
-        $data = BillIncomeService::service()->billIncomeShow($this->request_params);
+        $r = BillIncomeService::service()->billIncomeShow($this->request_params);
         
-        if (!$data['code']) {
-            return PsCommon::responseFailed($data['msg']);
+        if (!$r['code']) {
+            return PsCommon::responseFailed($r['msg']);
         }
 
-        return PsCommon::responseSuccess($data['data']);
+        return PsCommon::responseSuccess($r['data']);
     }
 
     // 发票记录 编辑 新增 {"income_id":"1","type":"1","invoice_no":"1234565","title":"朱佳怡","tax_no":"w222"}

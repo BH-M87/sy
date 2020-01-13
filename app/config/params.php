@@ -15,15 +15,24 @@ if (YII_ENV == "dev" || YII_ENV == "test") {
     $data['property_isv_app_id'] = '2018032802464092';
     $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/wlsq/alipay_public.txt";
     $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/wlsq/rsa_private.txt";
+
+    $data['bucket'] = "wuyetest";
+    $data['fileHostUrl'] = "https://static.elive99.com/";
 } else {
     $data['property_isv_app_id'] = '2019091167205649';
     $data['property_isv_alipay_public_key_file'] = $basePath."/common/rsa_files/sqwn/alipay_public.txt";
     $data['property_isv_merchant_private_key_file'] = $basePath."/common/rsa_files/sqwn/rsa_private.txt";
+
+    $data['bucket'] = "formal";
+    $data['fileHostUrl'] = "http://static.zje.com/";
 }
+
 /*****************可变配置*****************/
 $data['host_name'] = $paramsConfig[YII_ENV]['host_name'];
 $data['api_host_url'] = $data['host_name'];
 
+//钉钉扫码支付回调地址
+$data['external_invoke_ding_address'] = $data['host_name'].'/property/v1/notify/ding';
 //小程序支付回调地址
 $data['external_invoke_small_address'] = $data['host_name'].'/property/v1/notify/small';
 //小程序与钉钉报事报修支付回调地址

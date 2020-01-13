@@ -37,6 +37,7 @@ class BaseController extends \yii\web\Controller
     public $pageSize = 10;
     //当前登录用户的小区列表
     public $community_list = [];
+    public $repeatAction = [];//验证重复请求的方法数组
 
     public function init(){
         //跨域
@@ -63,6 +64,11 @@ class BaseController extends \yii\web\Controller
                 $this->_validateToken($action);
                 $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
                 $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+
+                //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
+                if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
+                    exit($this->ajaxReturn('请勿重复请求，30s后重试'));
+                }
             }
             //所有验证通过
             return true;
@@ -94,10 +100,10 @@ class BaseController extends \yii\web\Controller
             }
             $body = $bodys;
         }
+        $body = !empty($body)?$body:F::request();   //如果raw没有值 默认取form-data
         $this->body = $body;
         $this->request_params = $body;
     }
-
 
     /**
      * Notes: token验证

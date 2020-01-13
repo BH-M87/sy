@@ -186,4 +186,60 @@ class JavaService extends BaseService
         $query['route'] = '/resident/memberRelation';
         return self::returnCData($query);
     }
+
+    // 获得单元树
+    public function unitTree($query){
+        $query['route'] = '/unit/unitTree';
+        $result = self::returnCData($query);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                if(!empty($value['children'])){
+                    foreach($value['children'] as $ck=>$cv){
+                        if(!empty($cv['children'])){
+                            unset($result['list'][$key]['children'][$ck]['children']);
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    //根据条件查询房屋列表
+    public function roomQueryList($query){
+        $query['route'] = '/room/query/list';
+        return self::returnCData($query);
+    }
+
+    //根据条件查询房屋列表(分页)
+    public function roomQueryPagingList($query){
+        $query['route'] = '/room/query/paging/list';
+        return self::returnCData($query);
+    }
+
+    //登录密码验证
+    public function userValidatePwd($query){
+        $query['route'] = '/user/validate-pwd';
+        return self::returnCData($query);
+    }
+
+    //根据名称查询房屋详情
+    public function roomQueryByName($query){
+        $query['route'] = '/room/query/by-name';
+        return self::returnCData($query);
+    }
+
+    // 统一收单交易 交易预创建
+    public function tradePrecreate($query)
+    {
+        $query['route'] = '/payment/trade/precreate';
+        return self::returnCData($query);
+    }
+
+    // 统一收单交易 退款
+    public function tradeRefund($query)
+    {
+        $query['route'] = '/payment/trade/refund';
+        return self::returnCData($query);
+    }
 }

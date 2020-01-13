@@ -1,71 +1,72 @@
 <?php
 namespace service\alipay;
 
-use app\models\PsBillCost;
-use service\BaseService;
 use Yii;
-use service\rbac\OperateService;
+
 use common\core\PsCommon;
+
+use service\BaseService;
+use service\rbac\OperateService;
+use service\property_basic\JavaService;
+
+use app\models\PsBillCost;
 
 class BillCostService extends BaseService
 {
-    //缴费项目列表
+    // 缴费项目列表
     public function getAll($params, $userinfo)
     {
-        $requestArr['company_id'] = $userinfo['property_company_id'];
+        $requestArr['company_id'] = $userinfo['corpId'];
         $requestArr['name'] = !empty($params['name']) ? $params['name'] : '';              //缴费项目名称
         $requestArr['status'] = !empty($params['status']) ? $params['status'] : '';        //状态：1启用2禁用
         $page = (empty($params['page']) || $params['page'] < 1) ? 1 : $params['page'];
         $rows = !empty($params['rows']) ? $params['rows'] : 20;
-
-        $db = Yii::$app->db;
 
         $where = "1=1 ";
         $params = [];
         if (!$requestArr['company_id']) {
             return $this->failed("物业公司不存在");
         }
+
         if ($requestArr['company_id']) {
             $where .= " AND ( company_id=:company_id or company_id=0) ";
             $params = array_merge($params, [':company_id' => $requestArr['company_id']]);
         }
+
         if ($requestArr['name']) {
             $where .= " AND name like :name";
             $params = array_merge($params, [':name' => '%' . $requestArr['name'] . '%']);
         }
+
         if ($requestArr['status']) {
             $where .= " AND status=:status";
             $params = array_merge($params, [':status' => $requestArr['status']]);
         }
-        $total = $db->createCommand("select count(id) from ps_bill_cost where " . $where, $params)->queryScalar();
+
+        $total = Yii::$app->db->createCommand("select count(id) from ps_bill_cost where " . $where, $params)->queryScalar();
         if ($total == 0) {
             $data["totals"] = 0;
             $data["list"] = [];
             return $this->success($data);
         }
+
         $page = $page > ceil($total / $rows) ? ceil($total / $rows) : $page;
         $limit = ($page - 1) * $rows;
-        $costList = $db->createCommand("select  *  from ps_bill_cost where " . $where . " order by  id desc limit $limit,$rows", $params)->queryAll();
-        foreach ($costList as $key => $cost) {
-            $arr[$key]['id'] = $cost['id'];
-            $arr[$key]['company_id'] = $cost['company_id'];
-            $arr[$key]['name'] = $cost['name'];
-            $arr[$key]['describe'] = $cost['describe'];
-            $arr[$key]['cost_type'] = $cost['cost_type'];
-            $arr[$key]['status'] = $cost['status'];
-            $arr[$key]['status_msg'] = $cost['status'] == 1 ? '启用' : '禁用';
-            $arr[$key]['create_at'] = date('Y-m-d H:i:s', $cost['create_at']);
+        $costList = Yii::$app->db->createCommand("SELECT  *  from ps_bill_cost where " . $where . " order by  id desc limit $limit,$rows", $params)->queryAll();
+
+        foreach ($costList as $key => &$val) {
+            $val['status_msg'] = $val['status'] == 1 ? '启用' : '禁用';
+            $val['create_at'] = date('Y-m-d H:i:s', $val['create_at']);
         }
-        $data["totals"] = $total;
-        $data['list'] = $arr;
-        return $this->success($data);
+
+        return $this->success(['list' => $costList, 'totals' => $total]);
     }
 
     //生成账单的缴费项目列表
     public function getAllByPay($userinfo)
     {
         $params=[];
-        $requestArr['company_id'] = $userinfo['property_company_id'];
+        $requestArr['company_id'] = $userinfo['corpId'];
         $where = " 1=1 AND `status`=1 AND ( company_id=:company_id or company_id=0 )";
         $params = array_merge($params, [':company_id' => $requestArr['company_id']]);
         $result = Yii::$app->db->createCommand("select  id as `value`,id as `key`,`name` as label,cost_type  from ps_bill_cost where " . $where . " order by  cost_type asc,id desc ", $params)->queryAll();
@@ -78,73 +79,68 @@ class BillCostService extends BaseService
         return $this->success($result);
     }
 
-    //新增缴费项
-    public function addCost($params, $userinfo)
+    // 新增缴费项
+    public function addCost($p, $userinfo)
     {
-        $params['company_id'] = $userinfo['property_company_id'];
-        $cost = new PsBillCost();
-        $cost->scenario = 'add';  # 设置数据验证场景为 新增
-        $cost->load($params, '');   # 加载数据
-        if ($cost->validate()) {  # 验证数据
-            //查看缴费项名称是否重复,不能放model这，因为还需要根据物业公司来过滤
-            $con=['or', ['company_id' => $params['company_id']], ['company_id' => 0]];
-            $costInfo = PsBillCost::find()
-                ->where($con)
-                ->andFilterWhere([
-                    'name'=>$params['name']
-                ])->one();
-            if ($costInfo) {
+        $p['company_id'] = $userinfo['corpId'];
+
+        $m = new PsBillCost();
+        $m->scenario = 'add';  # 设置数据验证场景为 新增
+        $m->load($p, '');   # 加载数据
+        
+        if ($m->validate()) {  # 验证数据
+            $cost = PsBillCost::find()
+                ->where(['or', ['company_id' => $p['company_id']], ['company_id' => 0]])
+                ->andFilterWhere(['name' => $p['name']])->one();
+            
+            if ($cost) { // 查看缴费项名称是否重复,不能放model这，因为还需要根据物业公司来过滤
                 return $this->failed('缴费项目不能重复');
             }
-            if ($cost->save()) {  # 保存新增数据
-                $content = "计费项目名称:" . $cost->name . ',';
-                $content .= "计费项目描述:" . $cost->describe . ',';
-                $content .= "状态:" . ($cost->status == 1 ? "启用" : "禁用") . ',';
-                $operate = [
-                    "community_id" => $params['community_id'],
-                    "operate_menu" => "计费项目",
-                    "operate_type" => "新增计费项目",
-                    "operate_content" => $content,
-                ];
-                OperateService::addComm($userinfo, $operate);
+
+            if ($m->save()) {  # 保存新增数据
+                $content = "计费项目名称:" . $m->name . ',';
+                $content .= "计费项目描述:" . $m->describe . ',';
+                $content .= "状态:" . ($m->status == 1 ? "启用" : "禁用") . ',';
+
+                self::_logAdd($p['token'], "新增计费项目，" . $content);
             }
+
             return $this->success();
         }
-        return $this->failed($cost->getErrors());
+
+        return $this->failed(PsCommon::getModelError($m));
     }
 
-    //编辑缴费项
-    public function editCost($params, $userinfo)
+    // 编辑缴费项
+    public function editCost($p, $userinfo)
     {
-        if (!empty($params['id'])) {
-            $cost = PsBillCost::findOne($params['id']);
+        if (!empty($p['id'])) {
+            $cost = PsBillCost::findOne($p['id']);
             if (!$cost) {
                 return '数据不存在';
             }
-            //查看缴费项名称是否重复,不能放model这，因为还需要根据物业公司来过滤
-            $con=['or', ['company_id' => $cost['company_id']], ['company_id' => 0]];
+
+            if ($cost->company_id == 0) {
+                return $this->failed('初始化项目不能编辑');
+            }
+
+            // 查看缴费项名称是否重复,不能放model这，因为还需要根据物业公司来过滤
             $costInfo = PsBillCost::find()
-                ->where($con)
-                ->andFilterWhere([
-                    'name'=>$params['name']
-                ])->one();
-            if ($costInfo && $costInfo->id!=$cost->id) {
+                ->where(['or', ['company_id' => $cost['company_id']], ['company_id' => 0]])
+                ->andFilterWhere(['name' => $p['name']])->one();
+            if ($costInfo && $costInfo->id != $cost->id) {
                 return $this->failed('缴费项目不能重复');
             }
+
             $cost->scenario = 'edit';  # 设置数据验证场景为 编辑
-            $cost->load($params, '');   # 加载数据
+            $cost->load($p, '');   # 加载数据
             if ($cost->validate()) {  # 验证数据
                 if ($cost->save()) {  # 保存新增数据
                     $content = "计费项目名称:" . $cost->name . ',';
                     $content .= "计费项目描述:" . $cost->describe . ',';
                     $content .= "状态:" . ($cost->status == 1 ? "启用" : "禁用") . ',';
-                    $operate = [
-                        "community_id" => $params['community_id'],
-                        "operate_menu" => "计费项目管理",
-                        "operate_type" => "编辑计费项目",
-                        "operate_content" => $content,
-                    ];
-                    OperateService::addComm($userinfo, $operate);
+
+                    self::_logAdd($p['token'], "编辑计费项目" . $content);
                 }
                 return $this->success();
             }
@@ -153,29 +149,30 @@ class BillCostService extends BaseService
         return $this->failed("收费项目id不能为空");
     }
 
-    //编辑缴费项状态
-    public function editCostStatus($params, $userinfo)
+    // 编辑缴费项状态
+    public function editCostStatus($p, $userinfo)
     {
-        if (!empty($params['id'])) {
-            if (!$params['status']) {
-                return $this->failed("状态不存在");
-            }
-            $cost = PsBillCost::findOne($params['id']);
+        if (!empty($p['id'])) {
+            $cost = PsBillCost::findOne($p['id']);
             if (!$cost) {
                 return $this->failed('数据不存在');
             }
-            $cost->status = $params['status'];
+
+            if ($cost->company_id == 0) {
+                return $this->failed('初始化项目不能编辑');
+            }
+
+            if ($cost->status == 1) {
+                $cost->status = 2;
+            } else {
+                $cost->status = 1;
+            }
             if ($cost->save()) {  # 保存新增数据
                 $content = "计费项目名称:" . $cost->name . ',';
                 $content .= "计费项目描述:" . $cost->describe . ',';
                 $content .= "状态:" . ($cost->status == 1 ? "启用" : "禁用") . ',';
-                $operate = [
-                    "community_id" => $params['community_id'],
-                    "operate_menu" => "计费项目管理",
-                    "operate_type" => "编辑计费项目",
-                    "operate_content" => $content,
-                ];
-                OperateService::addComm($userinfo, $operate);
+
+                self::_logAdd($p['token'], "编辑计费项目" . $content);
             } else {
                 return $this->failed($cost->getErrors());
             }
@@ -184,14 +181,14 @@ class BillCostService extends BaseService
         return $this->failed('收费项目id不能为空');
     }
 
-    //缴费项目详情
-    public function getCostInfo($params)
+    // 缴费项目详情
+    public function getCostInfo($p)
     {
-        if (!empty($params['id'])) {
-            $result =  PsBillCost::find()->where(['id' => $params['id']])->asArray()->one();
-            if($result){
-                return $this->success($result);
-            }else{
+        if (!empty($p['id'])) {
+            $r =  PsBillCost::find()->where(['id' => $p['id']])->asArray()->one();
+            if ($r) {
+                return $this->success($r);
+            } else {
                 return $this->failed('收费项目不存在');
             }
         }
@@ -246,6 +243,11 @@ class BillCostService extends BaseService
     {
         if (!empty($params['id'])) {
             $result =  PsBillCost::find()->where(['id' => $params['id']])->asArray()->one();
+            
+            if ($result['company_id'] == 0) {
+                return $this->failed('初始化项目不能删除');
+            }
+
             if($result){
                 PsBillCost::deleteAll(['id' => $params['id']]);
                 return $this->success();
@@ -296,5 +298,18 @@ class BillCostService extends BaseService
             $params = array_merge($params, [':cost_type' => $requestArr['cost_type']]);
         }
         return $db->createCommand("select  *  from ps_bill_cost where " . $where, $params)->queryOne();
+    }
+
+    // 添加java日志
+    public function _logAdd($token, $content)
+    {
+        $javaService = new JavaService();
+        $javaParam = [
+            'token' => $token,
+            'moduleKey' => 'bill_module',
+            'content' => $content,
+
+        ];
+        $javaService->logAdd($javaParam);
     }
 }

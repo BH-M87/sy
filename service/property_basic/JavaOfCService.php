@@ -83,4 +83,18 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/integral/grant';
         return self::returnCData($query);
     }
+
+    // 统一收单交易 创建
+    public function tradeCreate($query)
+    {
+        $query['route'] = '/payment/trade/create';
+        return self::returnCData($query);
+    }
+
+    // 会员第三方信息查询
+    public function thirdRelation($query)
+    {
+        $query['route'] = '/member/api/thirdRelation';
+        return self::returnCData($query);
+    }
 }
