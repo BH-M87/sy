@@ -30,18 +30,20 @@ Class BillIncomeService extends BaseService
     public static $check_status = ['1' => '待复核', '2' => '已复核', '3' => '待核销', '4' => '已核销'];
 
     // 收款记录 新增
-    public function billIncomeAdd($params, $bill_list, $userinfo)
+    public function billIncomeAdd($params, $bill_list, $userinfo,$room=null)
     {
-//        $room = PsCommunityRoominfo::findOne($params['room_id']);
-        $aliPayService = new AlipayCostService();
-        $roomParams['token'] = $params['token'];
-        $roomParams['community_id'] = $params['community_id'];
-        $roomParams['roomId'] = $params['room_id'];
-        $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
-        if(empty($roomInfoResult[0])){
-            return $this->failed("未找到房屋");
+        if(empty($room)){
+    //        $room = PsCommunityRoominfo::findOne($params['room_id']);
+            $aliPayService = new AlipayCostService();
+            $roomParams['token'] = $params['token'];
+            $roomParams['community_id'] = $params['community_id'];
+            $roomParams['roomId'] = $params['room_id'];
+            $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
+            if(empty($roomInfoResult[0])){
+                return $this->failed("未找到房屋");
+            }
+            $room = $roomInfoResult[0];
         }
-        $room = $roomInfoResult[0];
 
         $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
         $param['trade_no'] = $batch_id;        //交易流水

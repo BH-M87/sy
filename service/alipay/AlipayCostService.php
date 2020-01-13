@@ -1723,7 +1723,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
                 $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
                 $income['content'] = '批量收款';
-                BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
+                BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo,$ps_room);
                 //添加账单变更统计表中
                 $split_bill['bill_id'] = $bill['id'];  //账单id
                 $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
