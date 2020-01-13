@@ -1558,8 +1558,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     //确认导入
     public function billBatchImport($params, $userinfo)
     {
-        $trans = Yii::$app->db->beginTransaction();
-        try{
+//        $trans = Yii::$app->db->beginTransaction();
+//        try{
 
             //================================================数据验证操作==================================================
             if ($params && !empty($params)) {
@@ -1741,12 +1741,12 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 'success' => $success_count,
                 'error_url' => $error_url,
             ];
-            $trans->commit();
+//            $trans->commit();
             return $this->success($result);
-        }catch (Exception $e) {
-            $trans->rollBack();
-            return $this->failed($e->getMessage());
-        }
+//        }catch (Exception $e) {
+//            $trans->rollBack();
+//            return $this->failed($e->getMessage());
+//        }
     }
 
     public function getRoom($data,$token)
