@@ -475,7 +475,7 @@ Class BillIncomeService extends BaseService
             //======================================第一步，调用支付宝接口撤销退款====================================
             $dataParams = [
                 "token" => $params['token'],
-                "orderNo" => $model['trade_no'],
+                "orderNo" => $model['orderNo'],
                 "totalAmount" => $model['pay_money'],
                 "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];

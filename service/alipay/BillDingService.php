@@ -214,6 +214,7 @@ class BillDingService extends BaseService
             $r = JavaService::service()->tradePrecreate($data); // 调用java接口
 
             $out_trade_no = $r['outTradeNo'];
+            $orderNo = $r['orderNo'];
             $qr_code = $r['qrCode'];
 
             if (!empty($out_trade_no) && !empty($qr_code)) { // 二维码生成成功
@@ -222,6 +223,7 @@ class BillDingService extends BaseService
                 // 新增收款记录
                 $incomeData['room_id'] = $room_id;              //房屋id
                 $incomeData['out_trade_no'] = $out_trade_no;        //交易流水
+                $incomeData['orderNo'] = $orderNo;        // PHP生成的交易流水
                 $incomeData['community_id'] = $communityId;     //小区
                 $incomeData['group_id'] = $room['groupId'];
                 $incomeData['building_id'] = $room['buildingId'];
