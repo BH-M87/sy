@@ -19,7 +19,7 @@ use app\models\PsVoteProblem;
 use app\models\PsVoteProblemOption;
 use app\models\PsVoteResult;
 
-class VoteService extends BaseService 
+class VoteService extends BaseService
 {
     public static $Vote_Type = ['1' => '文字投票', '2'  => '图文投票'];
     public static $Permission_Type = ['1'  => '每户一票', '2'  => '每人一票', '3'  => '指定业主投票'];
@@ -37,7 +37,7 @@ class VoteService extends BaseService
             $model->andWhere(['like', 'name', $name]);
         }
         $comms = $model->select(['id', 'name', 'address'])->asArray()->all();
-        
+
         return $comms;
     }
 
@@ -64,7 +64,7 @@ class VoteService extends BaseService
     }
 
     // 获取投票列表
-    public function voteList($reqArr) 
+    public function voteList($reqArr)
     {
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : '';
         $voteName = !empty($reqArr['vote_name']) ? $reqArr['vote_name'] : '';
@@ -80,7 +80,7 @@ class VoteService extends BaseService
         $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
         $query = new Query();
         $query->from('ps_vote') ->where("1=1");
-        
+
         if ($communityId) {
             $query->andWhere(['community_id' => $communityId]);
         }else{
@@ -135,7 +135,7 @@ class VoteService extends BaseService
     }
 
     // 街道办后台获取投票列表
-    public function streetVoteList($reqArr) 
+    public function streetVoteList($reqArr)
     {
         unset($reqArr['community_name']);
 
@@ -144,7 +144,7 @@ class VoteService extends BaseService
         $page = !empty($reqArr['page']) ? $reqArr['page'] : 1;
         $rows = !empty($reqArr['rows']) ? $reqArr['rows'] : Yii::$app->params['list_rows'];
         $voteStatus = !empty($reqArr['vote_status']) ? $reqArr['vote_status'] : 0;
-        
+
         $query = new Query();
         if ($voteStatus == 1) { // 进行中
             $query->from('ps_vote') ->where("status=1 and start_time <".time()." and end_time >".time());
@@ -345,7 +345,7 @@ class VoteService extends BaseService
 
 
     // 获取投票详情
-    public function showVote($vote_id, $member_id = 0, $roomId = 0) 
+    public function showVote($vote_id, $member_id = 0, $roomId = 0)
     {
         $vote = Yii::$app->db->createCommand("select * from ps_vote where id=:vote_id", [":vote_id" => $vote_id])->queryOne();
         if (!empty($vote)) {
@@ -472,7 +472,7 @@ class VoteService extends BaseService
         $re['online_data_show'] = $onlineDataShow;
         $re['underline_data_show'] = $underLineDataShow;
         $re['total_data_show'] = $totalDataShow;
-        
+
         return $re;
     }
 
@@ -486,7 +486,7 @@ class VoteService extends BaseService
      * @author wenchao.feng
      * @return bool
      */
-    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0)
+    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0,$userId='')
     {
 
         $connection = Yii::$app->db;
@@ -526,6 +526,7 @@ class VoteService extends BaseService
                         $params['option_id'] = $v['option_id'];
                         $params['member_id'] = $memberId;
                         $params['member_name'] = $memberName;
+                        $params['user_id'] = $userId;
                         $params['vote_channel'] = $voteChannel == 'off' ? 2 : 1;
 
                         if ($model->load($params, '') && $model->validate() && $model->saveData()) {
@@ -546,7 +547,7 @@ class VoteService extends BaseService
 //                        $model->vote_channel = $voteChannel == 'off' ? 2 : 1;
 //                        $model->created_at  = time();
 //                        if ($model->save()) {
-                            // 给选项增加投票数量
+                        // 给选项增加投票数量
 //                            $suc++;
 //                            $optionModel = PsVoteProblemOption::findOne($v['option_id']);
 //                            $optionModel->totals = $optionModel->totals + 1;
@@ -838,7 +839,7 @@ class VoteService extends BaseService
         return false;
     }
 
-    private function getMemberAppoint($vote_id, $community_id) 
+    private function getMemberAppoint($vote_id, $community_id)
     {
         $query = new Query();
 
@@ -861,7 +862,7 @@ class VoteService extends BaseService
         return !empty($models) ? $models : [];
     }
 
-    private function getVoteProblem( $vote_id, $membeId = 0, $roomId = 0) 
+    private function getVoteProblem( $vote_id, $membeId = 0, $roomId = 0)
     {
         $query = new Query();
         $problems =  $query->select([ 'B.id as problem_id','B.option_type','B.title','B.vote_type','B.totals as problem_total',
@@ -896,9 +897,9 @@ class VoteService extends BaseService
                         ->select(['id'])
                         ->where(['problem_id' => $problem['problem_id']])
                         ->andWhere(['option_id' => $problem['option_id'], 'member_id' => $membeId]);
-                        if (!empty($roomId)) {
-                            $memberDetModel->andWhere(['room_id' => $roomId]);
-                        }
+                    if (!empty($roomId)) {
+                        $memberDetModel->andWhere(['room_id' => $roomId]);
+                    }
                     $result = $memberDetModel->asArray()->one();
                     if ($result) {
                         $hasChecked = 1;
@@ -950,7 +951,7 @@ class VoteService extends BaseService
     }
 
     // 新增投票
-    public function addVote( $data, $userinfo = '') 
+    public function addVote( $data, $userinfo = '')
     {
         $now_time = time();
         $connection = Yii::$app->db;
@@ -1011,10 +1012,11 @@ class VoteService extends BaseService
             if( $voteArr["permission_type"] == 3) {
                 $memberArr = [];
                 foreach ( $data["appoint_members"] as $member) {
-                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"], "created_at" => $now_time]);
+                    $member['user_id'] = !empty($member['user_id'])?$member['user_id']:'';
+                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"],'user_id'=> $member['user_id'], "created_at" => $now_time]);
                 }
                 $connection->createCommand()->batchInsert('ps_vote_member_appoint',
-                    ['vote_id', 'member_id', 'room_id', 'created_at'],
+                    ['vote_id', 'member_id', 'room_id', 'user_id','created_at'],
                     $memberArr
                 )->execute();
             }
@@ -1056,6 +1058,14 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$data["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $voteId;
+            $sendParams['sendType'] = 1;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
+
             //java日志
             $javaService = new JavaService();
             $javaParam['moduleKey'] = "vote_module";
@@ -1073,7 +1083,7 @@ class VoteService extends BaseService
      *  input: vote_id token sendType(1预发布 2已公布) corpId trueName
      */
     public function sendMessage($params){
-        
+
         if(empty($params['vote_id'])){
             return $this->failed('投票id必传');
         }
@@ -1139,9 +1149,9 @@ class VoteService extends BaseService
         }else{
             //投过票人员
             $voteMemberResult = PsVoteMemberDet::find()->select(['user_id'])->distinct()
-                                                       ->where(['=','vote_id',$model['id']])
-                                                       ->andWhere(['!=','user_id',''])
-                                                       ->asArray()->all();
+                ->where(['=','vote_id',$model['id']])
+                ->andWhere(['!=','user_id',''])
+                ->asArray()->all();
             if(!empty($voteMemberResult)){
                 $userIdList = array_column($voteMemberResult,'user_id');
             }
@@ -1149,9 +1159,9 @@ class VoteService extends BaseService
         }
         return $userIdList;
     }
-    
+
     // 编辑投票结束时间
-    public function editEndTime($data, $userinfo = '') 
+    public function editEndTime($data, $userinfo = '')
     {
         $connection = Yii::$app->db;
         /*上架或者进行中*/
@@ -1187,7 +1197,7 @@ class VoteService extends BaseService
     }
 
     // 编辑投票结果
-    public function editResult($data) 
+    public function editResult($data,$userinfo)
     {
         $connection = Yii::$app->db;
         /*上架或者进行中*/
@@ -1211,6 +1221,13 @@ class VoteService extends BaseService
                     "created_at" =>time(),
                 ]
             )->execute();
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $data["vote_id"];
+            $sendParams['sendType'] = 2;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
         } else {
             $connection->createCommand()->update('ps_vote_result',
                 [
@@ -1222,17 +1239,17 @@ class VoteService extends BaseService
         }
         //修改投票状态为已公式
         $connection->createCommand()->update('ps_vote',
-                [
-                    "vote_status"=>4
-                ],
-                "id=:vote_id",[":vote_id" => $data["vote_id"]
+            [
+                "vote_status"=>4
+            ],
+            "id=:vote_id",[":vote_id" => $data["vote_id"]
             ]
         )->execute();
         return $this->success();
     }
 
     // 查看投票结果
-    public function showResult( $vote_id) 
+    public function showResult( $vote_id)
     {
         $result =  Yii::$app->db->createCommand("select id,vote_id,result_content,created_at from ps_vote_result where vote_id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
         if( !empty( $result)) {
@@ -1260,7 +1277,7 @@ class VoteService extends BaseService
     }
 
     // 编辑投票展示时间
-    public function editShowTime($data, $userinfo = '') 
+    public function editShowTime($data, $userinfo = '')
     {
         $connection = Yii::$app->db;
         /*上架或者进行中*/
@@ -1341,7 +1358,7 @@ class VoteService extends BaseService
     }
 
     // 上/下架投票
-    public function onOffVote($data, $userinfo = '') 
+    public function onOffVote($data, $userinfo = '')
     {
         $connection = Yii::$app->db;
         $model = $connection->createCommand("select * from ps_vote where id=:id",[":id"=>$data["vote_id"]])->queryOne();
@@ -1373,7 +1390,7 @@ class VoteService extends BaseService
 
     //投票人员列表
     public function voteMemberList($data){
-        
+
         $page = !empty($data["page"]) ?  $data["page"] : 1;
         $page = $page < 1 ? 1 : $page;
         $rows = !empty($data["rows"]) ?  $data["rows"] : Yii::$app->params['list_rows'];
@@ -1502,7 +1519,7 @@ class VoteService extends BaseService
     /*
      *  获得java数据 做自己显示数据
      *   javaData   java返回数据
-     *   params     输入参数 ces 
+     *   params     输入参数 ces
      */
     public function doVoteMemberListData($javaData,$params){
         $list = $voteChannel = $voteCreate = [];
@@ -1514,14 +1531,15 @@ class VoteService extends BaseService
                 //获得投票数据
                 $memberIds = array_column($javaData['list'],'residentId');
                 $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
-                                ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
-                                ->asArray()->all();
+                    ->where(['=','vote_id',$params['vote_id']])->andWhere(['in','member_id',$memberIds])
+                    ->asArray()->all();
                 $voteChannel = array_column($votedResult,'vote_channel','member_id');
                 $voteCreate = array_column($votedResult,'created_at','member_id');
                 foreach($javaData['list'] as $key=>$value){
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1540,6 +1558,7 @@ class VoteService extends BaseService
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1554,7 +1573,7 @@ class VoteService extends BaseService
                 }
             }
         }else{
-            
+
             //获得投票数据
             $memberIds = array_column($javaData['list'],'residentId');
             $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
@@ -1568,6 +1587,7 @@ class VoteService extends BaseService
                 $element = [];
                 $element['home'] = !empty($value['home'])?$value['home']:'';
                 $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                 $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1584,7 +1604,7 @@ class VoteService extends BaseService
         return ['totals'=>$totals,'list'=>$list];
     }
 
-    public function showMember($data) 
+    public function showMember($data)
     {
         $page = !empty($data["page"]) ?  $data["page"] : 1;
         $page = $page < 1 ? 1 : $page;
@@ -1603,7 +1623,7 @@ class VoteService extends BaseService
         return $result;
     }
 
-    private function getAppiontVote($data, $vote, $page = 1, $rows, $type = '') 
+    private function getAppiontVote($data, $vote, $page = 1, $rows, $type = '')
     {
         $where = " 1=1 ";
         $param = [];
@@ -1705,7 +1725,7 @@ class VoteService extends BaseService
         return  array_merge( ["list" => $models, 'totals' => $count],$this->getCountTotal($vote));
     }
 
-    private function  getHouseVote($data, $vote, $page, $rows, $type = '') 
+    private function  getHouseVote($data, $vote, $page, $rows, $type = '')
     {
         $where = " 1=1 ";
         $param = [];
@@ -1817,7 +1837,7 @@ class VoteService extends BaseService
         return  array_merge(["list" => $models, 'totals' => $count], $this->getCountTotal($vote));
     }
 
-    private function getMemberVote($data, $vote, $page, $rows, $type) 
+    private function getMemberVote($data, $vote, $page, $rows, $type)
     {
         $where = "1=1";
         $param = [];
@@ -1906,7 +1926,7 @@ class VoteService extends BaseService
         return  array_merge( ["list" => $models, 'totals' => $count],$this->getCountTotal($vote));
     }
 
-    public function exportVote($data) 
+    public function exportVote($data)
     {
         $vote = Yii::$app->db->createCommand("select id,community_id,permission_type from ps_vote where id=:id",[":id"=>$data["vote_id"]])->queryOne();
         $result =['all_total'=>0,'vote_total'=>0,'totals'=>0,'list'=>[]];
@@ -1920,7 +1940,7 @@ class VoteService extends BaseService
         return $result;
     }
 
-    public function getCountTotal($vote) 
+    public function getCountTotal($vote)
     {
         if( $vote["permission_type"]==2 ) {
             $all_total =Yii::$app->db->createCommand("select count( distinct member_id)  as total from ps_room_user where community_id=:community_id and status=2",[":community_id"=>$vote["community_id"]])->queryScalar();
@@ -2070,7 +2090,7 @@ class VoteService extends BaseService
     }
 
 
-    public function showMemberDet($vote_id, $member_id, $room_id) 
+    public function showMemberDet($vote_id, $member_id, $room_id)
     {
         $db = Yii::$app->db;
         $vote = $db->createCommand("select vote_name,vote_desc from ps_vote where id=:vote_id",[":vote_id"=>$vote_id])->queryOne();
@@ -2093,7 +2113,7 @@ class VoteService extends BaseService
     }
 
     // 查询已选中的option项 zhd
-    private function getVoteProblemOption( $vote_id, $member_id, $room_id, $vote) 
+    private function getVoteProblemOption( $vote_id, $member_id, $room_id, $vote)
     {
         $db = Yii::$app->db;
         //查询该问题用户选中的option
@@ -2116,14 +2136,14 @@ class VoteService extends BaseService
         return $vote;
     }
 
-    public function exportData($vote_id) 
+    public function exportData($vote_id)
     {
         $problems = PsVoteProblem::find()->where(['vote_id' => $vote_id])->asArray()->all();
         $optionData = $this->_getOptionData($problems);
         return $optionData;
     }
 
-    public function getProblems($vote_id) 
+    public function getProblems($vote_id)
     {
         $query = new Query();
 
@@ -2153,7 +2173,7 @@ class VoteService extends BaseService
         return array_values($arr);
     }
 
-    public function getMemberOption($vote_id, $vote_type) 
+    public function getMemberOption($vote_id, $vote_type)
     {
         $query = new Query();
         $dets = $query->select([ 'A.problem_id',"A.room_id","A.member_id","B.title"])->from(' ps_vote_member_det A')
@@ -2339,7 +2359,7 @@ class VoteService extends BaseService
                 $element['problem'][] = $problemEle;
             }
         }
-        
+
         $element['msg'] = '当前投票活动已结束';
         return [
             'voting'=>[],
