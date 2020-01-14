@@ -1097,11 +1097,11 @@ class VoteService extends BaseService
             switch($params['sendType']){
                 case 1: //预发布
                     $content = '"'.$model['vote_name'].'"问卷投票已发布，期待您的参与';
-                    $pushTime = date('Y-m-d H:m');
+                    $pushTime = date('Y-m-d H:i');
                     break;
                 case 2: //已公布
                     $content = '"'.$model['vote_name'].'"问卷投票已发布公告，请您查看';
-                    $pushTime = date('Y-m-d H:m');
+                    $pushTime = date('Y-m-d H:i');
                     break;
             }
             $sendParams['createPeople'] = $params['trueName'];
