@@ -486,7 +486,7 @@ class VoteService extends BaseService
      * @author wenchao.feng
      * @return bool
      */
-    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0)
+    public function doVote($voteId, $memberId, $memberName, $voteDetail, $communityId, $voteChannel = 'on', $room_id=0,$userId='')
     {
 
         $connection = Yii::$app->db;
@@ -526,6 +526,7 @@ class VoteService extends BaseService
                         $params['option_id'] = $v['option_id'];
                         $params['member_id'] = $memberId;
                         $params['member_name'] = $memberName;
+                        $params['user_id'] = $userId;
                         $params['vote_channel'] = $voteChannel == 'off' ? 2 : 1;
 
                         if ($model->load($params, '') && $model->validate() && $model->saveData()) {
@@ -1011,10 +1012,11 @@ class VoteService extends BaseService
             if( $voteArr["permission_type"] == 3) {
                 $memberArr = [];
                 foreach ( $data["appoint_members"] as $member) {
-                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"], "created_at" => $now_time]);
+                    $member['user_id'] = !empty($member['user_id'])?$member['user_id']:'';
+                    array_push($memberArr, ["vote_id" => $voteId, "member_id" => $member["member_id"], 'room_id' => $member["room_id"],'user_id'=> $member['user_id'], "created_at" => $now_time]);
                 }
                 $connection->createCommand()->batchInsert('ps_vote_member_appoint',
-                    ['vote_id', 'member_id', 'room_id', 'created_at'],
+                    ['vote_id', 'member_id', 'room_id', 'user_id','created_at'],
                     $memberArr
                 )->execute();
             }
@@ -1056,6 +1058,14 @@ class VoteService extends BaseService
                 "operate_content" => '投票标题'.$data["vote_name"]
             ];
             OperateService::addComm($userinfo, $operate);
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $voteId;
+            $sendParams['sendType'] = 1;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
+
             //java日志
             $javaService = new JavaService();
             $javaParam['moduleKey'] = "vote_module";
@@ -1066,6 +1076,87 @@ class VoteService extends BaseService
         }catch (Exception $e) {
             return $this->failed('系统错误');
         }
+    }
+
+    /*
+     *  发送消息通知 调用java接口
+     *  input: vote_id token sendType(1预发布 2已公布) corpId trueName
+     */
+    public function sendMessage($params){
+        if(empty($params['vote_id'])){
+            return $this->failed('投票id必传');
+        }
+        $service = new JavaService();
+        $model = PsVote::find()->select(['id','vote_name','permission_type','community_id'])->where(['=','id',$params['vote_id']])->asArray()->one();
+        if( empty( $model)) {
+            return $this->failed('未找到投票');
+        }
+        $userIdList = self::getSendMessageUser($model,$params);
+        if(!empty($userIdList)){
+            //发送消息
+            switch($params['sendType']){
+                case 1: //预发布
+                    $content = '"'.$model['vote_name'].'"问卷投票已发布，期待您的参与';
+                    $pushTime = date('Y-m-d H:i');
+                    break;
+                case 2: //已公布
+                    $content = '"'.$model['vote_name'].'"问卷投票已发布公告，请您查看';
+                    $pushTime = date('Y-m-d H:i');
+                    break;
+            }
+            $sendParams['createPeople'] = $params['trueName'];
+            $sendParams['appletFlag'] = true;
+            $sendParams['corpId'] = $params['corpId'];
+            $sendParams['appFlag'] = true;
+            $sendParams['pushTime'] = $pushTime;
+            $sendParams['tmallFlag'] = true;
+            $sendParams['timestamp'] = time();
+            $sendParams['token'] = $params['token'];
+            $sendParams['userIdList'] = $userIdList;
+            $sendParams['bizType'] = 'vote';
+            $sendParams['bizId'] = $model['id'];
+            $sendParams['title'] = "投票通知";
+            $sendParams['content'] = $content;
+            $sendResult = $service->messageInsert($sendParams);
+        }
+    }
+
+    // 获得消息推送成员列表
+    public function getSendMessageUser($model,$params){
+
+        //获得人员
+        $userIdList = [];
+        if($params['sendType']==1){
+            if($model['permission_type']==3){
+                $appointResult = PsVoteMemberAppoint::find()->select(['user_id'])
+                    ->where(['=','vote_id',$model['id']])
+                    ->andWhere(['!=','user_id',''])
+                    ->asArray()->all();
+                if(!empty($appointResult)){
+                    $userIdList = array_column($appointResult,'user_id');
+                }
+            }else{
+                //获得java数据
+                $service = new JavaService();
+                $javaParams['token'] = $params['token'];
+                $javaParams['communityId'] = $model['community_id'];
+                $result = $service->residentSelectAllByCommunityId($javaParams);
+                if(!empty($result['list'])){
+                    $userIdList = array_column($result['list'],'memberId');
+                }
+            }
+        }else{
+            //投过票人员
+            $voteMemberResult = PsVoteMemberDet::find()->select(['user_id'])->distinct()
+                                                       ->where(['=','vote_id',$model['id']])
+                                                       ->andWhere(['!=','user_id',''])
+                                                       ->asArray()->all();
+            if(!empty($voteMemberResult)){
+                $userIdList = array_column($voteMemberResult,'user_id');
+            }
+
+        }
+        return $userIdList;
     }
     
     // 编辑投票结束时间
@@ -1105,7 +1196,7 @@ class VoteService extends BaseService
     }
 
     // 编辑投票结果
-    public function editResult($data) 
+    public function editResult($data,$userinfo)
     {
         $connection = Yii::$app->db;
         /*上架或者进行中*/
@@ -1129,6 +1220,13 @@ class VoteService extends BaseService
                     "created_at" =>time(),
                 ]
             )->execute();
+            //发送消息通知
+            $sendParams['token'] = $data['token'];
+            $sendParams['vote_id'] = $data["vote_id"];
+            $sendParams['sendType'] = 2;
+            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['corpId'] = $userinfo['corpId'];
+            self::sendMessage($sendParams);
         } else {
             $connection->createCommand()->update('ps_vote_result',
                 [
@@ -1440,6 +1538,7 @@ class VoteService extends BaseService
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1458,6 +1557,7 @@ class VoteService extends BaseService
                     $element = [];
                     $element['home'] = !empty($value['home'])?$value['home']:'';
                     $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                    $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                     $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                     $element['name'] = !empty($value['name'])?$value['name']:'';
                     $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';
@@ -1485,6 +1585,7 @@ class VoteService extends BaseService
                 $element = [];
                 $element['home'] = !empty($value['home'])?$value['home']:'';
                 $element['member_id'] = !empty($value['residentId'])?$value['residentId']:'';
+                $element['user_id'] = !empty($value['memberId'])?$value['memberId']:'';
                 $element['room_id'] = !empty($value['roomId'])?$value['roomId']:'';
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['mobile'] = !empty($value['mobile'])?$value['mobile']:'';

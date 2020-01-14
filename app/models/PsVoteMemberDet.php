@@ -14,7 +14,8 @@ class PsVoteMemberDet extends BaseModel
     {
         return [
             [['vote_id','problem_id', 'room_id','option_id' , 'member_id', 'member_name','vote_channel'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
-            [['vote_id', 'problem_id', 'room_id', 'option_id', 'member_id', 'created_at','vote_channel'], 'integer'],
+            [['vote_id', 'problem_id', 'option_id', 'created_at','vote_channel'], 'integer'],
+            [['room_id', 'member_id', 'user_id'], 'string','max' => 30],
             [['member_name'], 'string', 'max' => 50],
             [["created_at"],"default",'value' => time(),'on'=>['add']],
             [['vote_id','problem_id','option_id','room_id','member_id'], 'repeatData', 'on' => ['add']],
@@ -30,6 +31,7 @@ class PsVoteMemberDet extends BaseModel
             'room_id' => '房屋id',
             'option_id' => '选项id',
             'member_id' => '住户id',
+            'user_id' => '用户id',
             'member_name' => '住户名称',
             'created_at' => '新增时间',
             'vote_channel' => '投票渠道',
