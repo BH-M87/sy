@@ -1519,7 +1519,7 @@ class VoteService extends BaseService
     /*
      *  获得java数据 做自己显示数据
      *   javaData   java返回数据
-     *   params     输入参数
+     *   params     输入参数 ces 
      */
     public function doVoteMemberListData($javaData,$params){
         $list = $voteChannel = $voteCreate = [];
