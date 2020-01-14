@@ -1083,6 +1083,7 @@ class VoteService extends BaseService
      *  input: vote_id token sendType(1预发布 2已公布) corpId trueName
      */
     public function sendMessage($params){
+        
         if(empty($params['vote_id'])){
             return $this->failed('投票id必传');
         }
