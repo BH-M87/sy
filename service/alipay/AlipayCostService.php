@@ -1337,6 +1337,13 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             $defeat_count = $error_count = $success_count = 0;//上传总数与成功导入数量
+            //查询java 所有房屋数据
+            $javaParams['token'] = $params['token'];
+            $javaParams['community_id'] = $communityId;
+            $javaRoomResult = self::getJavaRoomAll($javaParams);
+            if(empty($javaRoomResult)){
+                return $this->failed("该小区下，没有房屋信息");
+            }
             //去重数组
             $uniqueBillInfo = [];
             for ($i = 3; $i <= count($sheetData); $i++) {
@@ -1371,15 +1378,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     $errorCsv[$defeat_count]["error"] = "收费项不正确";
                     continue;
                 }
-                $roomArr = [
-                    "group" => trim($val["A"]),
-                    "building" => trim($val["B"]),
-                    "unit" => trim($val["C"]),
-                    "room" => trim($val["D"]),
-                    "community_id" => $communityId,
-                ];
+//                $roomArr = [
+//                    "group" => trim($val["A"]),
+//                    "building" => trim($val["B"]),
+//                    "unit" => trim($val["C"]),
+//                    "room" => trim($val["D"]),
+//                    "community_id" => $communityId,
+//                ];
                 //验证方式是否存在
-                $roomInfo = $this->getRoom($roomArr,$params['token']);
+//                $roomInfo = $this->getRoom($roomArr,$params['token']);
+                $roomKey = $commonResult.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
+                $roomInfo = $javaRoomResult[$roomKey];
                 if (empty($roomInfo)) {
                     $error_count++;
                     $errorCsv[$defeat_count] = $val;
@@ -1505,6 +1514,22 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $this->success($result);
     }
 
+    /*
+     * 获得java所有房屋数据 返回key-value 形式
+     * input: token, community_id
+     */
+    public function getJavaRoomAll($params){
+        $javaService = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['communityId'] = $params['community_id'];
+        $javaResult = $javaService->roomQueryList($javaParams);
+        $data = [];
+        if(!empty($javaResult['list'])){
+            $data = array_column($javaResult['list'],null,'home');
+        }
+        return $data;
+    }
+
     // 添加错误至excel
     public function saveError($data)
     {
@@ -1554,7 +1579,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $commonService = new CommonService();
             $javaCommunityParams['community_id'] = $params['community_id'];
             $javaCommunityParams['token'] = $params['token'];
-            if(!$commonService->communityVerification($javaCommunityParams)){
+            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+            if(empty($communityName)){
                 return $this->failed("未找到小区信息");
             }
             //验证任务
@@ -1573,6 +1599,14 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             ReceiptService::addReceiptTask($params);
         } else {
             return $this->failed("未接受到有效数据");
+        }
+
+        //查询java 所有房屋数据
+        $javaParams['token'] = $params['token'];
+        $javaParams['community_id'] = $params['community_id'];
+        $javaRoomResult = self::getJavaRoomAll($javaParams);
+        if(empty($javaRoomResult)){
+            return $this->failed("该小区下，没有房屋信息");
         }
 
         $defeat_count = $success_count = $error_count = 0;
@@ -1626,7 +1660,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $errorCsv[$defeat_count]["error"] = $errorMsg[0][0];
                 continue;
             }
-            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
+//            $ps_room = $this->getRoom($receiptArr["PsReceiptFrom"],$params['token']);
+            $roomKey = $communityName.trim($val["A"]).trim($val["B"]).trim($val["C"]).trim($val["D"]);
+            $ps_room = $javaRoomResult[$roomKey];
             if (empty($ps_room)) {
                 $error_count++;
                 $errorCsv[$defeat_count] = $val;
@@ -1684,7 +1720,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $income['total_money'] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];//支付金额
             $income['pay_channel'] = $params["pay_channel"];//收款方式 1现金 2支付宝 3微信 4刷卡 5对公 6支票
             $income['content'] = '批量收款';
-            BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo);
+            BillIncomeService::service()->billIncomeAdd($income, $bill_ids, $userinfo,$ps_room);
             //添加账单变更统计表中
             $split_bill['bill_id'] = $bill['id'];  //账单id
             $split_bill['pay_type'] = 1;  //支付方式：1一次付清，2分期付
@@ -2333,7 +2369,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $roomIds = Yii::$app->db->createCommand("select room_id from ps_bill where " . $where, $params)->queryColumn();
             foreach ($allRooms as $key => $val) {
                 //判断当前缴费项目在当前账期内是否已存在并未删除的账单，存在则不新增
-                if (in_array($val["id"], $roomIds)) {
+                if (in_array($val["roomId"], $roomIds)) {
                     $defeat_count++;
                     $error_info[] = ['账单已存在'];
                     continue;
@@ -2341,7 +2377,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 //物业账单id
                 $bill_entry_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . $success_count;
                 //应缴费用，根据缴费项目与计算公式
-                $f = str_replace('h', $val["charge_area"], $formulaVar);
+                $f = str_replace('H', $val["areaSize"], $formulaVar);
                 $bill_entry_amount = eval("return $f;");
                 //根据计算公式配置对金额做四舍五入等转换
                 $bill_entry_amount = $this->getBillAmountByFormula($formulaInfo, $bill_entry_amount);
@@ -2796,7 +2832,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             ->andWhere(["is_del" => '1'])
             ->andWhere(["not in", "trade_defend", [1, 2, 3]])
             ->andWhere(["<=", "acct_period_start", $acctPeriodEnd])
-            ->andWhere([">", "acct_period_end", $acctPeriodStart])
+//            ->andWhere([">", "acct_period_end", $acctPeriodStart])
+            ->andWhere([">=", "acct_period_end", $acctPeriodStart])
             ->count();
         return $totals > 0 ? true : false;
     }
