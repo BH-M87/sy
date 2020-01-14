@@ -239,13 +239,15 @@ class BillSmallService extends BaseService
             if (!empty($r['outTradeNo']) && !empty($r['tradeNo'])) { // 生成成功
                 $out_trade_no = !empty($r['outTradeNo']) ? $r['outTradeNo'] : '';
                 $trade_no = !empty($r['tradeNo']) ? $r['tradeNo'] : '';
+                $orderNo = !empty($r['orderNo']) ? $r['orderNo'] : '';
                 $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                 // 新增收款记录
                 $incomeData['app_user_id'] = $app_user_id; // 用户支付宝id
                 $incomeData['member_id'] = $thirdR['id']; // 用户id
                 $incomeData['room_id'] = $room_id; // 房屋id
                 $incomeData['out_trade_no'] = $out_trade_no; // 交易流水
-                $incomeData['trade_no'] = $trade_no; // 交易流水
+                $incomeData['trade_no'] = $trade_no; // 支付宝的交易流水
+                $incomeData['orderNo'] = $orderNo; // php生成的流水号
                 $incomeData['community_id'] = $communityId; // 小区
                 $incomeData['group_id'] = $room_info['groupId'];
                 $incomeData['building_id'] = $room_info['buildingId'];
