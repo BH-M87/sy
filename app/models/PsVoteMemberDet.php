@@ -52,7 +52,7 @@ class PsVoteMemberDet extends BaseModel
     public function repeatData($attribute){
         if(!empty($this->vote_id)){
             $res = static::find()->select(['id'])
-                    ->where('vote_id=:vote_id and problem_id=:problem_id and option_id=:option_id and room_id=:room_id and member_id=:member_id',[':vote_id'=>$this->vote_id,':problem_id'=>$this->problem_id,":option_id"=>$this->option_id,":room_id"=>$this->room_id,":member_id"=>$this->member_id])->asArray()->one();
+                ->where('vote_id=:vote_id and problem_id=:problem_id and option_id=:option_id and room_id=:room_id and member_id=:member_id',[':vote_id'=>$this->vote_id,':problem_id'=>$this->problem_id,":option_id"=>$this->option_id,":room_id"=>$this->room_id,":member_id"=>$this->member_id])->asArray()->one();
             if (!empty($res)) {
                 $this->addError($attribute, "该数据已经存在,请不要重复提交！");
             }
