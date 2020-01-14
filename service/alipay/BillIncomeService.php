@@ -30,18 +30,20 @@ Class BillIncomeService extends BaseService
     public static $check_status = ['1' => '待复核', '2' => '已复核', '3' => '待核销', '4' => '已核销'];
 
     // 收款记录 新增
-    public function billIncomeAdd($params, $bill_list, $userinfo)
+    public function billIncomeAdd($params, $bill_list, $userinfo,$room=null)
     {
-//        $room = PsCommunityRoominfo::findOne($params['room_id']);
-        $aliPayService = new AlipayCostService();
-        $roomParams['token'] = $params['token'];
-        $roomParams['community_id'] = $params['community_id'];
-        $roomParams['roomId'] = $params['room_id'];
-        $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
-        if(empty($roomInfoResult[0])){
-            return $this->failed("未找到房屋");
+        if(empty($room)){
+    //        $room = PsCommunityRoominfo::findOne($params['room_id']);
+            $aliPayService = new AlipayCostService();
+            $roomParams['token'] = $params['token'];
+            $roomParams['community_id'] = $params['community_id'];
+            $roomParams['roomId'] = $params['room_id'];
+            $roomInfoResult = $aliPayService->getBatchRoomData($roomParams);
+            if(empty($roomInfoResult[0])){
+                return $this->failed("未找到房屋");
+            }
+            $room = $roomInfoResult[0];
         }
-        $room = $roomInfoResult[0];
 
         $batch_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
         $param['trade_no'] = $batch_id;        //交易流水
@@ -475,12 +477,12 @@ Class BillIncomeService extends BaseService
             //======================================第一步，调用支付宝接口撤销退款====================================
             $dataParams = [
                 "token" => $params['token'],
-                "orderNo" => $model['trade_no'],
+                "orderNo" => $model['orderNo'],
                 "totalAmount" => $model['pay_money'],
                 "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];
             $result = JavaService::service()->tradeRefund($dataParams);
-            if ($result['code'] == 1) { // 支付宝退款成功
+            if (!empty($result['orderNo'])) { // 支付宝退款成功
                 foreach ($billList as $data) {
                     //======================================第二步，新增一条负数的账单==================================
                     $billInfo = $data;
@@ -528,7 +530,7 @@ Class BillIncomeService extends BaseService
                     $billToInfo = $data;
                     unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                    $billToInfo['status'] = 3;//账单状态为未发布
+                    $billToInfo['status'] = 1;// 账单状态为线上未缴
                     $billToInfo['is_del'] = 1;
                     $billToInfo['trade_defend'] = !empty($model['qr_code'])?0:time();//详情过滤当前账单,还得知道是钉钉扫码支付还是支付宝支付。支付宝支付的账单第二天才能在我们系统处理
                     $billToInfo['create_at'] = time();
@@ -539,7 +541,7 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 1;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为线上未缴
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
@@ -562,8 +564,6 @@ Class BillIncomeService extends BaseService
                         return $this->failed($diff_bill_result['msg']);
                     }
                 }
-            } else {
-                throw new Exception($result['message']);
             }
             //提交事务
             $transaction->commit();
@@ -659,7 +659,7 @@ Class BillIncomeService extends BaseService
                     $billToInfo = $data;
                     unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
-                    $billToInfo['status'] = 1;//账单状态为未发布
+                    $billToInfo['status'] = 1;//账单状态为线上未缴
                     $billToInfo['is_del'] = 1;
                     $billToInfo['create_at'] = time();
                     //新增账单数据
@@ -669,7 +669,7 @@ Class BillIncomeService extends BaseService
                         unset($orderInfo['id'], $orderInfo['bill_id'], $orderInfo['status'],$orderInfo['pay_status'],$orderInfo['trade_no'],$orderInfo['pay_channel'],$orderInfo['remark'],$orderInfo['pay_time'],$orderInfo['pay_id']);
                         $orderToInfo = $orderInfo;
                         $orderToInfo['bill_id'] = $diff_bill_result['data'];//订单中的账单id
-                        $orderToInfo['status'] = 1;//订单状态为未发布
+                        $orderToInfo['status'] = 1;//订单状态为线上未缴
                         $orderToInfo['is_del'] = 1;
                         //新增订单数据
                         $diff_order_result = OrderService::service()->addOrder($orderToInfo);
