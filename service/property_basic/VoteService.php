@@ -1554,6 +1554,7 @@ class VoteService extends BaseService
                 }
             }
         }else{
+            
             //获得投票数据
             $memberIds = array_column($javaData['list'],'residentId');
             $votedResult = PsVoteMemberDet::find()->select(['member_id','vote_channel','created_at'])
