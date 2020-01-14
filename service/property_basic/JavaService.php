@@ -241,5 +241,16 @@ class JavaService extends BaseService
     {
         $query['route'] = '/payment/trade/refund';
         return self::returnCData($query);
+    }	
+    //根据小区ID查询全部住户
+    public function residentSelectAllByCommunityId($query){
+        $query['route'] = '/resident/selectAllByCommunityId';
+        return self::returnCData($query);
+    }
+
+    //新增消息推送
+    public function messageInsert($query){
+        $query['route'] = '/message/insert';
+        return self::returnCData($query);
     }
 }
