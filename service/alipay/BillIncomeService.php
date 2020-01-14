@@ -482,7 +482,7 @@ Class BillIncomeService extends BaseService
                 "refundReason" => !empty($params['refund_note']) ? $params['refund_note'] : '正常退款'
             ];
             $result = JavaService::service()->tradeRefund($dataParams);
-            if ($result['code'] == 1) { // 支付宝退款成功
+            if (!empty($result['orderNo'])) { // 支付宝退款成功
                 foreach ($billList as $data) {
                     //======================================第二步，新增一条负数的账单==================================
                     $billInfo = $data;
@@ -564,8 +564,6 @@ Class BillIncomeService extends BaseService
                         return $this->failed($diff_bill_result['msg']);
                     }
                 }
-            } else {
-                throw new Exception($result['message']);
             }
             //提交事务
             $transaction->commit();
