@@ -139,7 +139,7 @@ class BillDingService extends BaseService
             ->asArray()->all();
         if (empty($bill_cost)) {
             return $this->success(['list' => [], 'room_info' => $address]);
-        }print_r($bill_cost);die;
+        }
         // 根据缴费项获取当前缴费项的明细账单
         $dataList = [];
         foreach ($bill_cost as $cost) {
