@@ -65,6 +65,7 @@ class CommonController extends Controller
     {
         \Yii::info("PhpGateway-params-test:" . json_encode($this->params, JSON_UNESCAPED_UNICODE), 'api');
 
+        $this->params['data']['OpenAuthorization'] = Yii::$app->request->getHeaders()->get('OpenAuthorization');
         $options['CURLOPT_HTTPHEADER'] = [
             "application/json;charset=UTF-8",
         ];
