@@ -158,10 +158,18 @@ class Curl
     public static function raw($url, $query = '')
     {
         if (!empty($query)) {
+            $AppKey = $query['AppKey'];
+            $OpenAuthorization = $query['OpenAuthorization'];
+            $header = [
+                "Content-Type: application/json; charset=utf-8",
+                "OpenAuthorization: $OpenAuthorization",
+                "AppKey: $AppKey",
+            ];
+            $query = json_encode($query);
             curl_setopt(self::$ch, CURLOPT_URL, $url);
             curl_setopt(self::$ch, CURLOPT_POST, 1);    //POST
             curl_setopt(self::$ch, CURLOPT_RETURNTRANSFER, 1);    //
-            curl_setopt(self::$ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json; charset=utf-8"]);
+            curl_setopt(self::$ch, CURLOPT_HTTPHEADER, $header);
 
             if (is_array($query)) {
                 $parameters = http_build_query($query, null, '&');
