@@ -31,7 +31,7 @@ class VoteController extends BaseController
         $result["option_type"] = PsCommon::returnKeyValue(VoteService::$Option_Type);
         $result["status"] = PsCommon::returnKeyValue(VoteService::$status);
         $result["vote_channel"] = PsCommon::returnKeyValue(VoteService::$Vote_Channel);
-        
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -42,7 +42,7 @@ class VoteController extends BaseController
 //            return PsCommon::responseFailed('小区不能为空！');
 //        }
         $result = VoteService::service()->voteList($this->request_params);
-        
+
         return PsCommon::responseSuccess($result);
     }
 
@@ -290,7 +290,7 @@ class VoteController extends BaseController
             return PsCommon::responseFailed($valid["errorMsg"]);
         }
 
-        $result = VoteService::service()->editResult($this->request_params);
+        $result = VoteService::service()->editResult($this->request_params,$this->user_info);
         if ($result["code"]) {
             return PsCommon::responseSuccess();
         } else {
@@ -325,6 +325,7 @@ class VoteController extends BaseController
         $roomId = PsCommon::get($this->request_params, 'room_id');
         $voteId = PsCommon::get($this->request_params, 'vote_id');
         $voteDetail = PsCommon::get($this->request_params, 'vote_det');
+        $userId = PsCommon::get($this->request_params, 'user_id');
         if (!$voteId) {
             return PsCommon::responseFailed('投票id不能为空');
         }
@@ -373,7 +374,7 @@ class VoteController extends BaseController
             return PsCommon::responseFailed('用户不存在');
         }
 
-        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId);
+        $doVote = VoteService::service()->doVote($voteId, $javaResult['residentId'], $javaResult['memberName'], $voteDetail, $javaResult['communityId'], 'off', $roomId,$userId);
         if ($doVote === true) {
             return PsCommon::responseSuccess();
         } elseif ($doVote === false) {
