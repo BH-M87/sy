@@ -266,28 +266,19 @@ class BillDingService extends BaseService
         return $this->success(['qr_img' => $qr_img, 'id' => $income_id, 'pay_money' => $total_money]);
     }
 
-    //确认收款
-    public function verifyBill($params)
+    // 确认收款
+    public function verifyBill($p)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $id = PsCommon::get($params, 'id');
-        if (!$communityId) {
-            return $this->failed("小区id不能为空！");
-        }
-        if (!in_array($communityId, $params['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-        if (!$id) {
-            return $this->failed("收款记录id不能为空！");
-        }
-        $incomeInfo = PsBillIncome::find()->where(['id' => $id])->asArray()->one();
-        if (!empty($incomeInfo)) {
-            if ($incomeInfo['pay_status']==1) {
-                return $this->success($incomeInfo);
-            }else{
+        $m = PsBillIncome::find()->where(['id' => $p['income_id'], 'community_id' => $p['community_id']])->asArray()->one();
+        
+        if (!empty($m)) {
+            if ($m['pay_status'] == 1) {
+                return $this->success();
+            } else {
                 return $this->failed("账单未支付！");
             }
         }
+
         return $this->failed("收款记录不存在！");
     }
 
