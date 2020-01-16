@@ -165,6 +165,7 @@ class Curl
                 "OpenAuthorization: $OpenAuthorization",
                 "AppKey: $AppKey",
             ];
+            unset($query['OpenAuthorization']);
             $query = json_encode($query);
             curl_setopt(self::$ch, CURLOPT_URL, $url);
             curl_setopt(self::$ch, CURLOPT_POST, 1);    //POST
