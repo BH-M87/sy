@@ -2,7 +2,7 @@
 
 namespace app\models;
 
-use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 ;
 
@@ -22,7 +22,6 @@ use yii\behaviors\TimestampBehavior;
  */
 class PsInspectPlan extends BaseModel
 {
-    public $time_list = [];
 
     /**
      * @inheritdoc
@@ -38,15 +37,22 @@ class PsInspectPlan extends BaseModel
     public function rules()
     {
         return [
-            [['name', 'community_id', 'line_id', 'exec_type', 'user_list', 'status', 'operator_id'], 'required'],
-            [['community_id', 'line_id', 'exec_type', 'status', 'operator_id', 'create_at'], 'integer'],
+            [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
+            [['community_id','name'],'nameUnique','on'=>'add'],   //计划名称唯一
+            [['id', 'line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
-            [['name'], 'string', 'max' => 15],
+            [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
+            [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
+            [['start_at','end_at'],'date', 'format'=>'yyyy-MM-dd','message' => '{attribute}格式错误'],
+            [['start_at','end_at'],'planTimeVerification','on'=>'add'],
+            [['name'], 'string', 'max' => 30],
+            [['task_name'], 'string', 'max' => 20],
             [['user_list'], 'string', 'max' => 500],
-            ['time_list', 'validateType'],
+            [['exec_type_msg'], 'string', 'max' => 200],
+            [['community_id','operator_id'],'string','max'=>30],
             ['status', 'default', 'value' => 1],
-            ['create_at', 'default', 'value' => time()],
-            [['id', 'community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id'], 'required', 'message' => '{attribute}不能为空!'],
+            [['create_at','update_at'], 'default', 'value' => time(),'on'=>'add'],
+            [['status'], 'default', 'value' => 3,'on'=>'add'],
         ];
     }
 
@@ -56,34 +62,125 @@ class PsInspectPlan extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'name' => '计划名称',
-            'community_id' => '小区',
-            'line_id' => '线路',
-            'exec_type' => '执行类型',
-            'user_list' => '执行人员',
-            'status' => '状态',
-            'operator_id' => '创建人',
-            'create_at' => '创建时间',
-            'time_list' => '执行时间',
+            'id'            => 'PK 主键',
+            'name'          => '计划名称',
+            'type'          => '计划类型',
+            'community_id'  => '小区Id',
+            'line_id'       => '线路Id',
+            'start_at'      => '计划开始时间',
+            'end_at'        => '计划结束时间',
+            'task_name'     => '任务名称',
+            'user_list'     => '执行人员',
+            'exec_type'     => '执行类型',
+            'exec_interval' => '执行间隔',
+            'exec_type_msg' => '执行类型自定义日期',
+            'error_minute'  => '允许误差分钟',
+            'status'        => '计划状态',
+            'operator_id'   => '创建人id',
+            'create_at'     => '创建时间',
+            'update_at'     => '修改时间',
         ];
     }
 
-    public function scenarios()
-    {
-        $scenarios = parent::scenarios();
-        //各个场景的活动属性
-        $scenarios['add'] = ['community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id', 'exec_type','create_at'];//新增
-        $scenarios['update'] = ['id', 'community_id', 'name', 'line_id', 'user_list', 'time_list', 'operator_id', 'exec_type'];//编辑
-        return $scenarios;
+    /*
+     * 计划名称唯一
+     */
+    public function nameUnique($attribute){
+        if(!empty($this->community_id)&&!empty($this->name)){
+            $res = self::find()->where('community_id=:community_id and name=:name and status!=:status',[":community_id"=>$this->community_id,":name"=>$this->name,":status"=>3])->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "计划名称唯一");
+            }
+        }
     }
 
-    public function validateType($attribute)
-    {
-        if (!is_array($this->$attribute)) {
-            $this->addError($this->$attribute, $attribute . '类型有误');
-            return false;
+    /*
+     * 计划时间验证
+     */
+    public function planTimeVerification($attribute){
+        $nowTime = time();
+        if(!empty($this->start_at)&&!empty($this->end_at)){
+            $starTime = strtotime($this->start_at);
+            $endTime = strtotime($this->end_at);
+            if($starTime<$nowTime){
+                return $this->addError($attribute, "有效时间开始时间需大于当前时间");
+            }
+            if($starTime>$endTime){
+                return $this->addError($attribute, "有效时间结束时间需大于开始时间");
+            }
         }
-        return true;
+    }
+
+    /*
+     * 计划执行间隔类型验证
+     */
+    public function execVerification($attribute){
+        if(!empty($this->exec_type)){
+            switch($this->exec_type){
+                case 1:     //天
+                    if(!empty($this->exec_type_msg)){
+                        return $this->addError($attribute, "执行类型自定义为空");
+                    }
+                    break;
+                case 2:     //周
+                    $temp = explode(",",$this->exec_type_msg);
+                    if(empty($temp)){
+                        return $this->addError($attribute, "执行类型自定义格式错误");
+                    }
+                    foreach($temp as $value){
+                        $value = intval($value);
+                        if(!is_int($value)){
+                            return $this->addError($attribute, "执行类型自定义格式错误");
+                        }
+                        if($value<1||$value>7){
+                            return $this->addError($attribute, "执行类型自定义格式错误");
+                        }
+                    }
+                    break;
+                case 3:     //月  32 默认最后一天
+                    $temp = explode(",",$this->exec_type_msg);
+                    if(empty($temp)){
+                        return $this->addError($attribute, "执行类型自定义格式错误");
+                    }
+                    foreach($temp as $value){
+                        $value = intval($value);
+                        if(!is_int($value)){
+                            return $this->addError($attribute, "执行类型自定义格式错误");
+                        }
+                        if($value<1||$value>31){
+                            return $this->addError($attribute, "执行类型自定义格式错误");
+                        }
+                        if($value==32&&mb_strlen($this->exec_type_msg)!=2){
+                            //月最后一天 值唯一
+                            return $this->addError($attribute, "执行类型自定义格式错误");
+                        }
+                    }
+                    break;
+                case 4:     //年
+                    if(!empty($this->exec_type_msg)){
+                        return $this->addError($attribute, "执行类型自定义为空");
+                    }
+                    break;
+            }
+        }
+    }
+
+    /***
+     * 新增
+     * @return bool
+     */
+    public function saveData()
+    {
+        return $this->save();
+    }
+
+    /***
+     * 修改
+     * @return bool
+     */
+    public function edit($param)
+    {
+        $param['update_at'] = time();
+        return self::updateAll($param, ['id' => $param['id']]);
     }
 }

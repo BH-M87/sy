@@ -86,4 +86,19 @@ class CommonService extends BaseService  {
         $flag = $service->userValidatePwd($params);
         return $flag;
     }
+
+    /*
+     * 获得部门下用户转换成key-value
+     * input token
+     */
+    public function userUnderDeptVerification($params){
+        $service = new JavaService();
+        $javaParams['token'] = $params['token'];
+        $result = $service->listUserUnderDept($javaParams);
+        $user = [];
+        if(!empty($result['list'])){
+            $user = array_column($result['list'],null,'id');
+        }
+        return $user;
+    }
 }

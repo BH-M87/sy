@@ -16,6 +16,7 @@ use service\inspect\PlanService;
 use service\inspect\PointService;
 use service\inspect\StatisticService;
 use service\inspect\TaskService;
+use yii\base\Exception;
 
 class InspectController extends BaseController
 {
@@ -178,12 +179,14 @@ class InspectController extends BaseController
      */
     public function actionPlanAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-        $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
-
-        PlanService::service()->add($this->request_params, $this->user_info);
-        return PsCommon::responseSuccess();
+        try{
+            $params = $this->request_params;
+            $params['type'] = 1;
+            $result = PlanService::service()->planAdd($params, $this->user_info);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
     }
 
     /**
