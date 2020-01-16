@@ -108,7 +108,6 @@ class PlanService extends BaseService
                 //新建任务
                 $taskParams['id'] = $model->attributes['id'];
                 $taskParams = array_merge($taskParams,$params);
-                print_r($taskParams);die;
                 foreach ($user_list as $user_id) {
                     self::addPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
                 }
@@ -167,6 +166,7 @@ class PlanService extends BaseService
         $dateParams['exec_type_msg'] = $params['exec_type_msg'];
         $dateParams['exec_interval'] = $params['exec_interval'];
         $dateAll = self::getExecDate($dateParams);
+        $lineResult = PsInspectLine::find()->select(['name'])->where(['=','id',$params['line_id']])->asArray()->one();
         if(!empty($dateAll)){
                        //批量插入任务
             $nowTime = time();
@@ -183,6 +183,19 @@ class PlanService extends BaseService
                     $element['dd_user_id'] = $user['ddUserId'];
                     $element['plan_id'] = $params['id'];
                     $element['line_id'] = $params['line_id'];
+                    $element['task_name'] = $params['task_name'];
+                    $element['line_name'] = $lineResult['name'];
+                    $element['head_name'] = $user['trueName'];
+                    $element['head_mobile'] = $user['mobile'];
+                    $element['task_at'] = strtotime($date);
+                    $element['check_start_at'] = strtotime($date.' '.$pv['start']);
+                    $element['check_end_at'] = strtotime($date.' '.$pv['end']);
+                    $element['error_minute'] = $params['error_minute'];
+
+                    $element['point_count'] = $params['line_id'];
+                    $element['create_at'] = $nowTime;
+                    $element['update_at'] = $nowTime;
+
                     $data[] = $element;
                 }
             }
