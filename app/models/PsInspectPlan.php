@@ -52,7 +52,8 @@ class PsInspectPlan extends BaseModel
             [['community_id','operator_id'],'string','max'=>30],
             ['status', 'default', 'value' => 1],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>'add'],
-            [['status'], 'default', 'value' => 3,'on'=>'add'],
+            [['status'], 'default', 'value' => 1,'on'=>'add'],
+            [['line_id','community_id'],'lineExist',"on"=>'add'],
         ];
     }
 
@@ -90,6 +91,18 @@ class PsInspectPlan extends BaseModel
             $res = self::find()->where('community_id=:community_id and name=:name and status!=:status',[":community_id"=>$this->community_id,":name"=>$this->name,":status"=>3])->asArray()->one();
             if(!empty($res)){
                 return $this->addError($attribute, "计划名称唯一");
+            }
+        }
+    }
+
+    /*
+     *
+     */
+    public function lineExist($attribute){
+        if(!empty($this->line_id)&&!empty($this->community_id)){
+            $model = PsInspectLine::find()->select(['id'])->where(['=','id',$this->line_id])->andWhere(['=','communityId',$this->community_id])->asArray()->one();
+            if(empty($model)){
+                return $this->addError($attribute, "巡检线路不存在");
             }
         }
     }
