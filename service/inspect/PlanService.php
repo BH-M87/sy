@@ -32,10 +32,10 @@ use yii\db\Exception;
 class PlanService extends BaseService
 {
     public static $exec_type = [
-        '1' => '按天',
-        '2' => '按周',
-        '3' => '按月',
-        '4' => '按年'
+        '1' => '天',
+        '2' => '周',
+        '3' => '月',
+        '4' => '年'
     ];
     public static $week_type = [
         '1' => '星期一',
@@ -47,14 +47,19 @@ class PlanService extends BaseService
         '7' => '星期日'
     ];
 
+    public static $plan_type = [
+        '1' => '长期计划',
+        '2' => '临时计划',
+    ];
+
     public static $WORK_DAY = [
-        1 => ['en' => 'Monday', 'cn' => '一'],
-        2 => ['en' => 'Tuesday', 'cn' => '二'],
-        3 => ['en' => 'Wednesday', 'cn' => '三'],
-        4 => ['en' => 'Thursday', 'cn' => '四'],
-        5 => ['en' => 'Friday', 'cn' => '五'],
-        6 => ['en' => 'Saturday', 'cn' => '六'],
-        7 => ['en' => 'Sunday', 'cn' => '日'],
+        1 => ['en' => 'Monday', 'cn' => '周一'],
+        2 => ['en' => 'Tuesday', 'cn' => '周二'],
+        3 => ['en' => 'Wednesday', 'cn' => '周三'],
+        4 => ['en' => 'Thursday', 'cn' => '周四'],
+        5 => ['en' => 'Friday', 'cn' => '周五'],
+        6 => ['en' => 'Saturday', 'cn' => '周六'],
+        7 => ['en' => 'Sunday', 'cn' => '周日'],
     ];
 
     public function planAdd($params,$userInfo){
@@ -814,38 +819,59 @@ class PlanService extends BaseService
 
     public function planList($params)
     {
-        $page = PsCommon::get($params, 'page');
-        $rows = PsCommon::get($params, 'rows');
-        $query = self::searchList($params);
-        $totals = $query->count();
-        if ($totals == 0) {
-            return ['list' => [], 'totals' => 0];
-        }
-        $list = $query
-            ->select('A.id, A.community_id, A.name, B.name as line_name, A.exec_type, A.status, A.user_list')
-            ->orderBy('A.id desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)
-            ->asArray()->all();
-
-        if (!empty($list)) {
-            foreach ($list as $k => $v) {
-                $list[$k]['status'] = $v['status'] == 1 ? '已启用' : '已停用';
-                $list[$k]['exec_type'] = self::$exec_type[$v['exec_type']];
-                $user_list = json_decode($v['user_list'], true);
-                if (!empty($user_list)) {
-                    $arr = [];
-                    foreach ($user_list as $key => $user_id) {
-                        $userInfo = PsUser::findOne($user_id);
-                        $arr[$key]['user_id'] = $user_id;
-                        $arr[$key]['user_name'] = $userInfo->truename;
+        $model = new PsInspectPlan();
+        //获得所有小区id
+        $commonService = new CommonService();
+        $javaParams['token'] = $params['token'];
+        $communityInfo = $commonService->getCommunityInfo($javaParams);
+        $params['communityIds'] = $communityInfo['communityIds'];
+        $result = $model->getList($params);
+        $data = [];
+        if(!empty($result['data'])){
+            foreach($result['data'] as $key=>$value){
+                $element['id'] = !empty($value['id'])?$value['id']:'';
+                $element['community_id'] = !empty($value['community_id'])?$value['community_id']:'';
+                $element['community_name'] = $communityInfo['communityResult'][$value['community_id']];
+                $element['type'] = !empty($value['type'])?$value['type']:'';
+                $element['type_msg'] = !empty($value['type'])?self::$plan_type[$value['type']]:'';
+                $element['name'] = !empty($value['name'])?$value['name']:'';
+                $element['start_at_msg'] = !empty($value['start_at'])?date('Y.m.d',$value['start_at']):'';
+                $element['end_at_msg'] = !empty($value['end_at'])?date('Y.m.d',$value['end_at']):'';
+                $element['line_name'] = !empty($value['line_name'])?$value['line_name']:'';
+                $exec_msg = '';
+                if(!empty($value['exec_type'])){
+                    switch($value['exec_type']){
+                        case 1:
+                        case 4:
+                            $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']];
+                            break;
+                        case 2:
+                            if($value['exec_type_msg']){
+                                $tempArr = explode(',',$value['exec_type_msg']);
+                                $msg = '';
+                                foreach($tempArr as $tv){
+                                    $msg .= self::$WORK_DAY[$tv]['cn'].",";
+                                }
+                                $msg = mb_substr($msg,0,-1);
+                                $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."的".$msg;
+                            }
+                            break;
+                        case 3:
+                            if($value['exec_type_msg']){
+                                if(mb_strlen($value['exec_type_msg']==2)){
+                                    $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."中的最后一天";
+                                }else{
+                                    $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."中的".$value['exec_type_msg']."号";
+                                }
+                            }
+                            break;
                     }
-
-                    $list[$k]['user_list'] = $arr;
                 }
+                $element['exec_msg'] = $exec_msg;
+                $data[] = $element;
             }
         }
-        return ['list' => $list, 'totals' => $totals];
+        return ['list'=>$data,'totals'=>$result['count']];
     }
 
     // 巡检计划 搜索

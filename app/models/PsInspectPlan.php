@@ -206,4 +206,25 @@ class PsInspectPlan extends BaseModel
         $param['update_at'] = time();
         return self::updateAll($param, ['id' => $param['id']]);
     }
+
+    /*
+     * 巡检列表查询
+     */
+    public function getList($params){
+        $fields = ['p.id','p.type','p.name','p.start_at','p.end_at','p.community_id','p.exec_type','p.exec_interval','p.exec_type_msg','l.name as line_name'];
+        $model = self::find()->alias("p")->select($fields)
+                    ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
+                    ->andFilterWhere(['in', 'p.community_id', $params['communityIds']])
+                    ->andFilterWhere(['=', 'p.community_id', $params['community_id']])
+                    ->andFilterWhere(['like', 'p.name', $params['name']])
+                    ->andFilterWhere(['=', 'p.line_id', $params['line_id']]);
+        $count = $model->count();
+        $page = intval($params['page']);
+        $pageSize = intval($params['pageSize']);
+        $offset = ($page-1)*$pageSize;
+        $model->offset($offset)->limit($pageSize);
+        $model->orderBy(["p.id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
+    }
 }
