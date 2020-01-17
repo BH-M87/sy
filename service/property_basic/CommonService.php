@@ -61,6 +61,23 @@ class CommonService extends BaseService  {
     }
 
     /*
+     * 返回当前账号下所有小区ids
+     * 返回当前账号下所有小区key-value
+     */
+    public function getCommunityInfo($params){
+        //获得小区下拉
+        $service = new JavaService();
+        $javaParam['token'] = $params['token'];
+        $result = $service->communityNameList($javaParam);
+        $communityIds = [];
+        if(!empty($result['list'][0])){
+            $communityIds = array_column($result['list'],'key');
+            $communityResult = array_column($result['list'],'name','key');
+        }
+        return ['communityIds'=>$communityIds,'communityResult'=>$communityResult];
+    }
+
+    /*
      * 验证房屋是否存在
      * input: token,roomId,communityId,groupId,buildingId,unitId
      */

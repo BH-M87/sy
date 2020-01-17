@@ -239,8 +239,15 @@ class InspectController extends BaseController
      */
     public function actionPlanList()
     {
-        $result = PlanService::service()->planList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $result = PlanService::service()->planList($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
     }
 
     /**
