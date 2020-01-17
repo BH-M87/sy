@@ -839,6 +839,10 @@ class PlanService extends BaseService
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['start_at_msg'] = !empty($value['start_at'])?date('Y.m.d',$value['start_at']):'';
                 $element['end_at_msg'] = !empty($value['end_at'])?date('Y.m.d',$value['end_at']):'';
+                $element['time_msg'] = $element['start_at_msg'];
+                if($value['type']==1){  //长期
+                    $element['time_msg'] = $element['start_at_msg'].'-'.$element['end_at_msg'];
+                }
                 $element['line_name'] = !empty($value['line_name'])?$value['line_name']:'';
                 $exec_msg = '';
                 if(!empty($value['exec_type'])){
@@ -880,6 +884,18 @@ class PlanService extends BaseService
             }
         }
         return ['list'=>$data,'totals'=>$result['count']];
+    }
+
+    //巡检计划详情
+    public function planDetail($params){
+        $model = new PsInspectPlan(['scenario'=>'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $result = $model->getDetail($params);
+            print_r($result);die;
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
     }
 
     // 巡检计划 搜索

@@ -39,6 +39,8 @@ class PsInspectPlan extends BaseModel
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','operator_id'], 'required','on'=>'tempAdd'],
+            [['id'], 'required','on'=>'detail'],
+            [['id'],'infoData','on'=>["detail"]],
             [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
             [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
@@ -64,7 +66,7 @@ class PsInspectPlan extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id'            => 'PK 主键',
+            'id'            => '计划id',
             'name'          => '计划名称',
             'type'          => '计划类型',
             'community_id'  => '小区Id',
@@ -188,6 +190,21 @@ class PsInspectPlan extends BaseModel
         }
     }
 
+
+    /***
+     * 验证是否存在
+     * @param $attribute
+     */
+    public function infoData($attribute)
+    {
+        if (!empty($this->id)) {
+            $res = static::find()->select(['id'])->where('id=:id', [':id' => $this->id])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该计划不存在!");
+            }
+        }
+    }
+
     /***
      * 新增
      * @return bool
@@ -234,5 +251,20 @@ class PsInspectPlan extends BaseModel
         $model->orderBy(["p.id"=>SORT_DESC]);
         $result = $model->asArray()->all();
         return ['count'=>$count,'data'=>$result];
+    }
+
+    /*
+     * 计划详情
+     */
+    public function getDetail($params){
+        $fields = [
+                    'p.id','p.type','p.status','p.name','p.start_at','p.end_at','p.community_id','p.exec_type',
+                    'p.exec_interval','p.exec_type_msg','l.name as line_name','p.user_list','p.error_minute'
+        ];
+        $model = self::find()->alias("p")->select($fields)
+            ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
+            ->with('taskStartAsc')
+            ->andFilterWhere(['=', 'p.id', $params['id']]);
+        return $model->asArray()->one();
     }
 }
