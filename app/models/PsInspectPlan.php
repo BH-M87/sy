@@ -39,11 +39,10 @@ class PsInspectPlan extends BaseModel
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
             [['community_id','name'],'nameUnique','on'=>'add'],   //计划名称唯一
-            [['id', 'line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
+            [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
-            [['start_at','end_at'],'date', 'format'=>'yyyy-MM-dd','message' => '{attribute}格式错误'],
             [['start_at','end_at'],'planTimeVerification','on'=>'add'],
             [['name'], 'string', 'max' => 30],
             [['task_name'], 'string', 'max' => 20],
@@ -113,12 +112,10 @@ class PsInspectPlan extends BaseModel
     public function planTimeVerification($attribute){
         $nowTime = time();
         if(!empty($this->start_at)&&!empty($this->end_at)){
-            $starTime = strtotime($this->start_at);
-            $endTime = strtotime($this->end_at);
-            if($starTime<$nowTime){
+            if($this->start_at<$nowTime){
                 return $this->addError($attribute, "有效时间开始时间需大于当前时间");
             }
-            if($starTime>$endTime){
+            if($this->start_at>$this->end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
             }
         }

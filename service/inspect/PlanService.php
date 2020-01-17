@@ -82,6 +82,11 @@ class PlanService extends BaseService
                 return PsCommon::responseFailed('小区不存在');
             }
 
+            $start_at = $params['start_at'];
+            $end_at = $params['end_at'];
+            $params['start_at'] = strtotime($params['start_at']);
+            $params['end_at'] = strtotime($params['end_at']);
+
             if ($model->load($params, '') && $model->validate()) {
                 $user_list = explode(',',$params['user_list']);
                 //调用java接口 验证用户是否存在
@@ -99,6 +104,7 @@ class PlanService extends BaseService
                         return PsCommon::responseFailed('执行时间是一个数组');
                     }
                 }
+
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
                 }
@@ -109,9 +115,13 @@ class PlanService extends BaseService
                 //新建任务
                 $taskParams['id'] = $model->attributes['id'];
                 $taskParams = array_merge($taskParams,$params);
+                $taskParams['start_at'] = $start_at;
+                $taskParams['end_at'] = $end_at;
                 foreach ($user_list as $user_id) {
                     self::addPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
                 }
+                $trans->commit();
+                return ['id'=>$model->attributes['id']];
             }else {
                 $resultMsg = array_values($model->errors)[0][0];
                 return PsCommon::responseFailed($resultMsg);
@@ -131,11 +141,11 @@ class PlanService extends BaseService
      *
      */
     public function addPlanTime($params){
-        $model = new PsInspectPlanTime(['scenario'=>'add']);
         foreach($params['planTime'] as $key=>$value){
             $var['start'] = $value['start'];
             $var['end'] = $value['end'];
             $var['plan_id'] = $params['id'];
+            $model = new PsInspectPlanTime(['scenario'=>'add']);
             if ($model->load($var, '') && $model->validate()) {
                 if(!$model->saveData()){
                     throw new Exception("巡检计划执行时间新增失败");
