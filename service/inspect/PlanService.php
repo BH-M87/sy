@@ -834,6 +834,7 @@ class PlanService extends BaseService
                 $element['community_id'] = !empty($value['community_id'])?$value['community_id']:'';
                 $element['community_name'] = $communityInfo['communityResult'][$value['community_id']];
                 $element['type'] = !empty($value['type'])?$value['type']:'';
+                $element['status'] = !empty($value['status'])?$value['status']:'';
                 $element['type_msg'] = !empty($value['type'])?self::$plan_type[$value['type']]:'';
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['start_at_msg'] = !empty($value['start_at'])?date('Y.m.d',$value['start_at']):'';

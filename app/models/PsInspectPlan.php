@@ -218,7 +218,7 @@ class PsInspectPlan extends BaseModel
      * 巡检列表查询
      */
     public function getList($params){
-        $fields = ['p.id','p.type','p.name','p.start_at','p.end_at','p.community_id','p.exec_type','p.exec_interval','p.exec_type_msg','l.name as line_name'];
+        $fields = ['p.id','p.type','p.status','p.name','p.start_at','p.end_at','p.community_id','p.exec_type','p.exec_interval','p.exec_type_msg','l.name as line_name'];
         $model = self::find()->alias("p")->select($fields)
                     ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
                     ->with('taskStartAsc')
