@@ -10,6 +10,7 @@ namespace service\inspect;
 
 use app\models\PsGroups;
 use app\models\PsInspectLine;
+use app\models\PsInspectLinePoint;
 use app\models\PsInspectPlanContab;
 use app\models\PsInspectPlanTime;
 use app\models\PsInspectRecord;
@@ -167,6 +168,7 @@ class PlanService extends BaseService
         $dateParams['exec_interval'] = $params['exec_interval'];
         $dateAll = self::getExecDate($dateParams);
         $lineResult = PsInspectLine::find()->select(['name'])->where(['=','id',$params['line_id']])->asArray()->one();
+        $pointCount = PsInspectLinePoint::find()->select(['id'])->where(['=','lineId',$params['line_id']])->count();
         if(!empty($dateAll)){
                        //批量插入任务
             $nowTime = time();
@@ -192,7 +194,7 @@ class PlanService extends BaseService
                     $element['check_end_at'] = strtotime($date.' '.$pv['end']);
                     $element['error_minute'] = $params['error_minute'];
 
-                    $element['point_count'] = $params['line_id'];
+                    $element['point_count'] = $pointCount;
                     $element['create_at'] = $nowTime;
                     $element['update_at'] = $nowTime;
 
