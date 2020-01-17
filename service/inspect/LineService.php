@@ -19,7 +19,7 @@ class LineService extends BaseService
     // 新增
     public function add($p, $userInfo = [])
     {
-        $p['created_at'] = time();
+        $p['createAt'] = time();
         self::checkCommon($p, $userInfo, 'add');
     }
 
@@ -38,9 +38,8 @@ class LineService extends BaseService
             if (empty($model)) {
                 throw new MyException('巡检线路不存在!');
             }
-        } else {
-            unset($p['id']);
         }
+
         if (!is_array($p['point'])) {
             throw new MyException('巡检点格式错误，传数组!');
         }
@@ -48,31 +47,36 @@ class LineService extends BaseService
         if (count($p['point']) < 1) {
             throw new MyException('巡检点不能为空!');
         }
-        //查看巡检线路点名称是否重复
-        $query = PsInspectLine::find()->where(['name' => $p['name'], 'community_id' => $p['community_id']]);
+
+        // 查看巡检线路点名称是否重复
+        $query = PsInspectLine::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']]);
         if ($scenario == 'update') {
             $line = $query->andWhere(['!=', 'id', $p['id']])->one();
         } else {
             $line = $query->one();
         }
+
         if (!empty($line)) {
             throw new MyException('巡检线路已存在!');
         }
+
         $model->setAttributes($p);
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             if ($model->save()) {  # 保存新增数据
-                //先清空老数据
+                // 先清空老数据
                 if ($scenario == 'update') {
-                    PsInspectLinePoint::deleteAll(['line_id' => $p['id']]);
+                    PsInspectLinePoint::deleteAll(['lineId' => $p['id']]);
                 }
-                foreach ($p['pointList'] as $point_id) {
+
+                foreach ($p['point'] as $point_id) 
+                {
                     $point = PsInspectPoint::findOne($point_id);
                     if (empty($point)) {
                         throw new MyException('巡检点不存在!');
                     }
-                    $pointArr['point_id'] = $point_id;
-                    $pointArr['line_id'] = $model->id;
+                    $pointArr['pointId'] = $point_id;
+                    $pointArr['lineId'] = $model->id;
                     Yii::$app->db->createCommand()->insert('ps_inspect_line_point', $pointArr)->execute();
                 }
             } else {
@@ -87,107 +91,107 @@ class LineService extends BaseService
         return true;
     }
 
-    //详情
-    public function view($params)
+    // 详情
+    public function view($p)
     {
-        if (empty($params['id'])) {
+        if (empty($p['id'])) {
             throw new MyException('巡检线路id不能为空');
         }
-        $model = self::lineOne($params['id']);
-        $result = $model->toArray();
-        if (!empty($result)) {
-            //获取对应的巡检点
-            $line_point = PsInspectLinePoint::find()->alias("line_point")
-                ->where(['line_point.line_id' => $params['id']])
-                ->select(['point.id', 'point.name'])
-                ->leftJoin("ps_inspect_point point", "point.id=line_point.point_id")
+
+        $r = self::lineOne($p['id'])->toArray();
+        if (!empty($r)) {
+            // 获取对应的巡检点
+            $r['pointList'] = PsInspectLinePoint::find()->alias("A")->select(['B.id', 'B.name'])
+                ->leftJoin("ps_inspect_point B", "B.id = A.pointId")
+                ->where(['A.lineId' => $p['id']])
                 ->asArray()->all();
-            $result['pointList'] = $line_point;
-            return $result;
+
+            return $r;
         }
         throw new MyException('巡检线路不存在');
     }
 
-    //列表
-    public function lineList($params)
+    // 列表
+    public function lineList($p)
     {
-        $page = PsCommon::get($params, 'page');
-        $rows = PsCommon::get($params, 'rows');
-        $query = self::lineSearch($params);
+        $page = PsCommon::get($p, 'page');
+        $rows = PsCommon::get($p, 'rows');
+        $query = self::lineSearch($p);
         $totals = $query->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => $totals];
         }
+
         $list = $query
-            ->select('A.id, A.community_id, A.name, A.head_name, A.head_mobile')
             ->orderBy('A.id desc')
             ->offset(($page - 1) * $rows)
             ->limit($rows)
             ->asArray()->all();
-        if (!empty($model)) {
-            foreach ($model as $k => $v) {
-                $model[$k]['pointList'] = PsInspectLinePoint::find()->alias("A")
-                    ->where(['A.line_id' => $v['id']])
-                    ->select(['B.id', 'B.name'])
-                    ->leftJoin("ps_inspect_point B", "B.id = A.point_id")
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $arr = PsInspectLinePoint::find()->alias("A")->select(['B.id', 'B.name'])
+                    ->leftJoin("ps_inspect_point B", "B.id = A.pointId")
+                    ->where(['A.lineId' => $v['id']])
                     ->asArray()->all();
+                $v['point'] = '';
+                if ($arr) {
+                    foreach ($arr as $key => $val) {
+                        $point .= $val['name'] . ',';
+                    }
+                    $v['point'] = substr($point, 0, -1);
+                }  
             }
         }
         return ['list' => $list, 'totals' => $totals];
     }
 
-    //删除
-    public function del($params, $userInfo = [])
+    // 删除
+    public function del($p, $userInfo = [])
     {
-        if (empty($params['id'])) {
+        if (empty($p['id'])) {
             throw new MyException('巡检线路id不能为空');
         }
-        //查询线路是否有配置巡检点
-        $planPoint = PlanService::planOne('','','','id',$params['id']);
+
+        // 查询线路是否有配置巡检点
+        $planPoint = PlanService::planOne('','','','id',$p['id']);
         if (!empty($planPoint)) {
             throw new MyException('请先修改对应计划！');
         }
-        $info = PsInspectLine::find()->select('name,head_name')->where(['id' => $params['id']])->asArray()->one();
-        $result = PsInspectLine::deleteAll(['id' => $params['id']]);
-        if (!empty($result)) {
-            //删除对于关系
-            PsInspectLinePoint::deleteAll(['line_id' => $params['id']]);
-            if (!empty($userinfo)) {
-                $name = $info['name'] ?? "";
-                $head_name = $info['head_name'] ?? "";
-            }
+
+        $r = PsInspectLine::deleteAll(['id' => $p['id']]);
+        if (!empty($r)) {
+            // 删除对于关系
+            PsInspectLinePoint::deleteAll(['lineId' => $p['id']]);
             return true;
         }
+
         throw new MyException('删除失败，巡检线路不存在');
     }
 
     // 巡检线路 搜索
-    private static function lineSearch($params)
+    private static function lineSearch($p)
     {
         $model = PsInspectLine::find()->alias("A")->distinct()
-            ->leftJoin("ps_inspect_line_point B", "A.id = B.line_id")
-            ->filterWhere(['like', 'A.head_name', PsCommon::get($params, 'head_name')])
-            ->orFilterWhere(['like', 'A.head_mobile', PsCommon::get($params, 'head_name')])
-            ->andFilterWhere(['=', 'B.point_id', PsCommon::get($params, 'point_id')])
-            ->andFilterWhere(['=', 'A.community_id', PsCommon::get($params, 'community_id')])
-            ->andFilterWhere(['=', 'A.id', PsCommon::get($params, 'line_id')]);
+            ->leftJoin("ps_inspect_line_point B", "A.id = B.lineId")
+            ->andFilterWhere(['=', 'B.pointId', PsCommon::get($p, 'pointId')])
+            ->andFilterWhere(['=', 'A.communityId', PsCommon::get($p, 'communityId')])
+            ->andFilterWhere(['=', 'A.id', PsCommon::get($p, 'lineId')]);
         return $model;
     }
 
     public static function lineOne($id, $select = "")
     {
-        $select = $select ?? ['line.id', 'comm.id as community_id', 'comm.name as community_name', 'line.name', 'line.head_name', 'line.head_mobile'];
+        $select = $select ?? '*';
         return PsInspectLine::find()->alias("line")
             ->where(['line.id' => $id])
             ->select($select)
-            ->leftJoin("ps_community comm", "comm.id=line.community_id")
             ->one();
     }
 
-    //巡检线路列表-线路新增页面使用
-    public function getlineList($params)
+    // 巡检线路列表-线路新增页面使用
+    public function getlineList($p)
     {
-        $arr = PsInspectLine::find()->where(['community_id' => $params['community_id']])
+        $arr = PsInspectLine::find()->andFilterWhere(['communityId' => $p['communityId']])
             ->select(['id', 'name'])->orderBy('id desc')->asArray()->all();
         return ['list' => $arr];
     }
