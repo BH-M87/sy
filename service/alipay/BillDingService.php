@@ -54,9 +54,10 @@ class BillDingService extends BaseService
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
         $m = PsBillIncome::find()
-            ->where(['room_id' => $p['room_id'], 'is_del' => 1, 'pay_type' => 1])
+            ->where(['is_del' => 1, 'pay_type' => 1])
             ->select('id, income_time, pay_money, room_id')
             ->andFilterWhere(['>', 'pay_status', 0])
+            ->andFilterWhere(['=', 'room_id', $p['room_id']])
             ->andFilterWhere(['not', ['qr_code' => null]])
             ->orderBy('id desc')->offset(($page - 1) * $rows)
             ->limit($rows)->asArray()->all();
