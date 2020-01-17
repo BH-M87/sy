@@ -17,6 +17,7 @@ use app\models\PsInspectRecord;
 use app\models\PsUser;
 use app\models\PsInspectPlan;
 use app\models\PsUserCommunity;
+use app\models\TempTaskForm;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
@@ -431,37 +432,43 @@ class PlanService extends BaseService
      * 临时任务数据
      */
     public function tempTaskData($params){
+        $model = new TempTaskForm(['scenario'=>'add']);
+        if($model->load($params,'')&&$model->validate()){
 
-        //获得执行日期
-        $dateParams['start_at'] = $params['start_at'];
-        $dateParams['end_at'] = $params['end_at'];
-        $dateParams['exec_type'] = $params['exec_type'];
-        $dateParams['exec_type_msg'] = $params['exec_type_msg'];
-        $dateParams['exec_interval'] = $params['exec_interval'];
-        $dateAll = self::getExecDate($dateParams);
-        $data = [];
-        if(!empty($dateAll)){
-            //获得所有用户
-            $user_list = explode(',',$params['user_list']);
-            //调用java接口 验证用户是否存在
-            $commonService = new CommonService();
-            $commonParams['token'] = $params['token'];
-            $userResult = $commonService->userUnderDeptVerification($commonParams);
-            $users = [];
-            foreach ($user_list as $user_id) {
-                if(empty($userResult[$user_id])){
-                    return PsCommon::responseFailed('选择的人员不存在');
+            //获得执行日期
+            $dateParams['start_at'] = $params['start_at'];
+            $dateParams['end_at'] = $params['end_at'];
+            $dateParams['exec_type'] = $params['exec_type'];
+            $dateParams['exec_type_msg'] = $params['exec_type_msg'];
+            $dateParams['exec_interval'] = $params['exec_interval'];
+            $dateAll = self::getExecDate($dateParams);
+            $data = [];
+            if(!empty($dateAll)){
+                //获得所有用户
+                $user_list = explode(',',$params['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonService = new CommonService();
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                $users = [];
+                foreach ($user_list as $user_id) {
+                    if(empty($userResult[$user_id])){
+                        return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                    array_push($users,$userResult[$user_id]['trueName']);
                 }
-                array_push($users,$userResult[$user_id]['trueName']);
+                foreach($dateAll as $date){
+                    $element['time'] = $date;
+                    $element['user_list'] = $users;
+                    $element['planTime'] = $params['planTime'];
+                    $data[] = $element;
+                }
             }
-            foreach($dateAll as $date){
-                $element['time'] = $date;
-                $element['user_list'] = $users;
-                $element['planTime'] = $params['planTime'];
-                $data[] = $element;
-            }
+            return ['list'=>$data];
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
         }
-        return $data;
     }
 
 

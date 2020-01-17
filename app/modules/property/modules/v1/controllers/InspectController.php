@@ -192,7 +192,7 @@ class InspectController extends BaseController
     /*
      * 巡检计划生成任务 数据
      */
-    public function actionTempTask(){
+    public function actionTempTaskData(){
         try{
             $params = $this->request_params;
             $result = PlanService::service()->tempTaskData($params);
