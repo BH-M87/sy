@@ -53,7 +53,7 @@ class BillDingService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $m = PsBillIncome::find()->alias('A')->select('A.id, A.income_time, A.pay_money, A.room_id, B.bill_id')
+        $m = PsBillIncome::find()->alias('A')->select('A.income_time, A.pay_money, A.room_id, B.bill_id')
             ->leftJoin("ps_bill_income_relation B", "A.id = B.income_id")
             ->where(['A.is_del' => 1, 'A.pay_type' => 1])
             ->andFilterWhere(['=', 'A.pay_status', 1])
@@ -65,7 +65,6 @@ class BillDingService extends BaseService
         if (!empty($m)) {
             foreach ($m as $v) {
                 $room = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $v['room_id']]);
-                $data['id'] = $v['id'];
                 $data['income_time'] = date("Y-m-d H:i", $v['income_time']);
                 $data['room_info'] = $room['communityName'] . $room['groupName'] . $room['buildingName'] . $room['unitName'] . $room['roomName'];
                 $billInfo = PsBill::find()->select(['cost_name', 'acct_period_start', 'acct_period_end','paid_entry_amount'])
