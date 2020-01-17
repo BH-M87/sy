@@ -22,154 +22,107 @@ class InspectController extends BaseController
 {
     public $repeatAction = ['point-add'];
 
-    /**
-     * @api 巡检点新增
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点新增
     public function actionPointAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         PointService::service()->add($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点编辑
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点编辑
     public function actionPointEdit()
     {
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         PointService::service()->edit($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点列表
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点列表
     public function actionPointList()
     {
-        $result = PointService::service()->pointList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = PointService::service()->pointList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检点详情
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点详情
     public function actionPointShow()
     {
-        $result = PointService::service()->view($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = PointService::service()->view($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检点删除
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点删除
     public function actionPointDelete()
     {
         PointService::service()->del($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点管理下拉
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点管理下拉
     public function actionPointDropDown()
     {
         $result = PointService::service()->getPoint($this->request_params);
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * @api 下载二维码
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 下载二维码
     public function actionDownloadCode()
     {
         $result = PointService::service()->downloadCode($this->request_params, $this->systemType);
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * @api 巡检线路新增
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路新增
     public function actionLineAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         LineService::service()->add($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路编辑
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路编辑
     public function actionLineEdit()
     {
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-
         LineService::service()->edit($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路列表
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路列表
     public function actionLineList()
     {
-        $result = LineService::service()->lineList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->lineList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检线路详情
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路详情
     public function actionLineShow()
     {
-        $result = LineService::service()->view($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->view($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检线路删除
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路删除
     public function actionLineDelete()
     {
         LineService::service()->del($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路下拉
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路下拉
     public function actionLineDropDown()
     {
-        $result = LineService::service()->getlineList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->getlineList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
     /**
