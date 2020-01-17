@@ -53,13 +53,13 @@ class BillDingService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $m = PsBillIncome::find()
-            ->where(['is_del' => 1, 'pay_type' => 1])
-            ->select('id, income_time, pay_money, room_id')
-            ->andFilterWhere(['>', 'pay_status', 0])
-            ->andFilterWhere(['=', 'room_id', $p['room_id']])
-            ->andFilterWhere(['not', ['qr_code' => null]])
-            ->orderBy('id desc')->offset(($page - 1) * $rows)
+        $m = PsBillIncome::find()->alias('A')->select('A.id, A.income_time, A.pay_money, A.room_id, B.bill_id')
+            ->leftJoin("ps_bill_income_relation B", "A.id = B.income_id")
+            ->where(['A.is_del' => 1, 'A.pay_type' => 1])
+            ->andFilterWhere(['=', 'A.pay_status', 1])
+            ->andFilterWhere(['=', 'A.room_id', $p['room_id']])
+            ->andFilterWhere(['not', ['A.qr_code' => null]])
+            ->orderBy('A.id desc')->offset(($page - 1) * $rows)
             ->limit($rows)->asArray()->all();
 
         if (!empty($m)) {
@@ -67,8 +67,12 @@ class BillDingService extends BaseService
                 $room = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $v['room_id']]);
                 $data['id'] = $v['id'];
                 $data['income_time'] = date("Y-m-d H:i", $v['income_time']);
-                $data['pay_money'] = $v['pay_money'];
                 $data['room_info'] = $room['communityName'] . $room['groupName'] . $room['buildingName'] . $room['unitName'] . $room['roomName'];
+                $billInfo = PsBill::find()->select(['cost_name', 'acct_period_start', 'acct_period_end','paid_entry_amount'])
+                    ->where(['id' => $v['bill_id']])->asArray()->one();
+                $data['cost_name'] = $billInfo['cost_name'];
+                $data['pay_money'] = $billInfo['paid_entry_amount'];
+                $data['bill_info'] = date("Y-m-d", $billInfo['acct_period_start']) . '至' . date("Y-m-d", $billInfo['acct_period_end']);
                 
                 $dataLst[] = $data;
             }
