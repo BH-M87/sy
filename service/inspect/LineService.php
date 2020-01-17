@@ -41,10 +41,11 @@ class LineService extends BaseService
         } else {
             unset($p['id']);
         }
-        if (!is_array($p['pointList'])) {
-            throw new MyException('巡检点格式错误!');
+        if (!is_array($p['point'])) {
+            throw new MyException('巡检点格式错误，传数组!');
         }
-        if (count($p['pointList']) < 1) {
+
+        if (count($p['point']) < 1) {
             throw new MyException('巡检点不能为空!');
         }
         //查看巡检线路点名称是否重复
