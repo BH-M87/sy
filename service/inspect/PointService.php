@@ -2,6 +2,7 @@
 namespace service\inspect;
 
 use Yii;
+use yii\db\Query;
 
 use common\MyException;
 use common\core\F;
@@ -199,6 +200,48 @@ class PointService extends BaseService
         $downUrl = F::downloadUrl($systemType, 'inspect/' . $img_name, 'qrcode', $fileName);
 
         return ['down_url' => $downUrl];
+    }
+
+    // 设备列表
+    public function listDevice($p)
+    {
+        $query = new Query();
+        $query->from('ps_inspect_device')
+            ->andfilterWhere(['communityId' => $p['communityId']])
+            ->andfilterWhere(['like', 'name', $p['name']])
+            ->andfilterWhere(['like', 'deviceNo', $p['deviceNo']]);
+
+        $r['totals'] = $query->count();
+
+        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('id desc')->createCommand()->queryAll();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $v['communityName'] = '';
+                if (!empty($v['communityId'])) {
+                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
+                    $v['communityName'] = $community['communityName'];
+                }
+                $point = PsInspectPoint::find()->select('name')->where(['=', 'deviceId', $v['id']])->scalar();
+                $v['point'] = $v['point'] ?? '';
+            }
+        }
+        
+        $r['list'] = $m;
+
+        return $r;
+    }
+
+    // 设备名称下拉列表
+    public function deviceDropDown($p)
+    {
+        $query = new Query();
+        $query->from('ps_inspect_device')->select('id, name')
+            ->andfilterWhere(['<=', 'communityId', 0]);
+
+        $m = $query->orderBy('id desc')->createCommand()->queryAll();
+
+        return $m;
     }
 
     /**  物业后台接口 end */

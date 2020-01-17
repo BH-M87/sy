@@ -22,6 +22,22 @@ class InspectController extends BaseController
 {
     public $repeatAction = ['point-add'];
 
+    // 设备列表
+    public function actionListDevice()
+    {
+        $r = PointService::service()->listDevice($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 设备名称下拉列表
+    public function actionDeviceDropDown()
+    {
+        $r = PointService::service()->deviceDropDown($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 巡检点新增
     public function actionPointAdd()
     {
