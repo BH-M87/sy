@@ -139,6 +139,82 @@ class PlanService extends BaseService
     }
 
     /*
+     * 新建临时计划
+     */
+    public function planTempAdd($params,$userInfo){
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+
+            $model = new PsInspectPlan(['scenario'=>'tempAdd']);
+            $params['operator_id'] = $userInfo['id'];
+
+            //小区验证 java
+            $commonService = new CommonService();
+            $communityParams['token'] = $params['token'];
+            $communityParams['community_id'] = $params['community_id'];
+            $communityName = $commonService->communityVerificationReturnName($communityParams);
+            if(empty($communityName)){
+                return PsCommon::responseFailed('小区不存在');
+            }
+
+            $start_at = $params['start_at'];
+            $end_at = $params['end_at'];
+            $params['start_at'] = strtotime($params['start_at']);
+            $params['end_at'] = strtotime($params['end_at']);
+
+            if ($model->load($params, '') && $model->validate()) {
+
+                $user_list = explode(',',$params['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                foreach ($user_list as $user_id) {
+                    if(empty($userResult[$user_id])){
+                        return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                }
+                if(empty($params['planTime'])){
+                    return PsCommon::responseFailed('执行时间不能为空');
+                }else{
+                    if(!is_array($params['planTime'])){
+                        return PsCommon::responseFailed('执行时间是一个数组');
+                    }
+                }
+
+                if(!$model->saveData()){
+                    return PsCommon::responseFailed("计划新增失败");
+                }
+                //新建执行时间
+                $planTimeParams['id'] = $model->attributes['id'];
+                $planTimeParams['planTime'] = $params['planTime'];
+                self::addPlanTime($planTimeParams);
+                //新建任务
+                $taskParams['id'] = $model->attributes['id'];
+                $taskParams = array_merge($taskParams,$params);
+                $taskParams['start_at'] = $start_at;
+                $taskParams['end_at'] = $end_at;
+                foreach ($user_list as $user_id) {
+                    self::addTempPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
+                }
+
+                $trans->commit();
+                if (!empty($userInfo)) {
+                    self::addLog($userInfo, $params['name'], $params['community_id'], "add");
+                }
+                return ['id'=>$model->attributes['id']];
+            }else {
+                $resultMsg = array_values($model->errors)[0][0];
+                return PsCommon::responseFailed($resultMsg);
+            }
+
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+
+    /*
      * 新建执行时间
      *  input
      *      id 计划id
@@ -158,6 +234,48 @@ class PlanService extends BaseService
             }else{
                 throw new Exception(array_values($model->errors)[0][0]);
             }
+        }
+    }
+
+    /*
+     * 新建临时计划任务
+     */
+    public function addTempPlanTask($params,$user){
+        set_time_limit(20);
+        //获得执行日期
+        $lineResult = PsInspectLine::find()->select(['name'])->where(['=','id',$params['line_id']])->asArray()->one();
+        $pointCount = PsInspectLinePoint::find()->select(['id'])->where(['=','lineId',$params['line_id']])->count();
+        if(!empty($dateAll)){
+            //批量插入任务
+            $nowTime = time();
+            $fields = [
+                'community_id','user_id','dd_user_id','plan_id','line_id','task_name','line_name','head_name',
+                'head_mobile','task_at','check_start_at','check_end_at','error_minute','point_count','create_at',
+                'update_at'
+            ];
+            $data = [];
+            foreach($params['planTime'] as $pk=>$pv){
+                $element['community_id'] = $params['community_id'];
+                $element['user_id'] = $user['id'];
+                $element['dd_user_id'] = $user['ddUserId'];
+                $element['plan_id'] = $params['id'];
+                $element['line_id'] = $params['line_id'];
+                $element['task_name'] = $params['task_name'];
+                $element['line_name'] = $lineResult['name'];
+                $element['head_name'] = $user['trueName'];
+                $element['head_mobile'] = $user['mobile'];
+                $element['task_at'] = strtotime($params['start_at']);
+                $element['check_start_at'] = strtotime($params['start_at'].' '.$pv['start']);
+                $element['check_end_at'] = strtotime($params['start_at'].' '.$pv['end']);
+                $element['error_minute'] = !empty($params['error_minute'])?$params['error_minute']:0;
+
+                $element['point_count'] = $pointCount;
+                $element['create_at'] = $nowTime;
+                $element['update_at'] = $nowTime;
+
+                $data[] = $element;
+            }
+            Yii::$app->db->createCommand()->batchInsert('ps_inspect_record',$fields,$data)->execute();
         }
     }
 
@@ -207,7 +325,7 @@ class PlanService extends BaseService
                     $element['task_at'] = strtotime($date);
                     $element['check_start_at'] = strtotime($date.' '.$pv['start']);
                     $element['check_end_at'] = strtotime($date.' '.$pv['end']);
-                    $element['error_minute'] = $params['error_minute'];
+                    $element['error_minute'] = !empty($params['error_minute'])?$params['error_minute']:0;
 
                     $element['point_count'] = $pointCount;
                     $element['create_at'] = $nowTime;
