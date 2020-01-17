@@ -10,17 +10,24 @@ namespace service\inspect;
 
 use app\models\PsGroups;
 use app\models\PsInspectLine;
+use app\models\PsInspectLinePoint;
 use app\models\PsInspectPlanContab;
+use app\models\PsInspectPlanTime;
+use app\models\PsInspectRecord;
 use app\models\PsUser;
 use app\models\PsInspectPlan;
 use app\models\PsUserCommunity;
+use app\models\TempTaskForm;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
+use service\property_basic\CommonService;
+use service\property_basic\JavaService;
 use service\rbac\GroupService;
 use service\rbac\OperateService;
 use service\rbac\UserService;
 use Yii;
+use yii\db\Exception;
 
 class PlanService extends BaseService
 {
@@ -39,6 +46,431 @@ class PlanService extends BaseService
         '6' => '星期六',
         '7' => '星期日'
     ];
+
+    public static $WORK_DAY = [
+        1 => ['en' => 'Monday', 'cn' => '一'],
+        2 => ['en' => 'Tuesday', 'cn' => '二'],
+        3 => ['en' => 'Wednesday', 'cn' => '三'],
+        4 => ['en' => 'Thursday', 'cn' => '四'],
+        5 => ['en' => 'Friday', 'cn' => '五'],
+        6 => ['en' => 'Saturday', 'cn' => '六'],
+        7 => ['en' => 'Sunday', 'cn' => '日'],
+    ];
+
+    public function planAdd($params,$userInfo){
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+//            $taskParams['id'] = 1;
+//            $taskParams['planTime'] = $params['planTime'];
+//            $taskParams['start_at'] = $params['start_at'];
+//            $taskParams['end_at'] = $params['end_at'];
+//            $taskParams['exec_type'] = $params['exec_type'];
+//            $taskParams['exec_interval'] = $params['exec_interval'];
+//            $taskParams['exec_type_msg'] = $params['exec_type_msg'];
+//            $taskParams['error_minute'] = $params['error_minute'];
+//            self::addPlanTask($taskParams);
+//            die;
+            $model = new PsInspectPlan(['scenario'=>'add']);
+            $params['operator_id'] = $userInfo['id'];
+
+            //小区验证 java
+            $commonService = new CommonService();
+            $communityParams['token'] = $params['token'];
+            $communityParams['community_id'] = $params['community_id'];
+            $communityName = $commonService->communityVerificationReturnName($communityParams);
+            if(empty($communityName)){
+                return PsCommon::responseFailed('小区不存在');
+            }
+
+            $start_at = $params['start_at'];
+            $end_at = $params['end_at'];
+            $params['start_at'] = strtotime($params['start_at']);
+            $params['end_at'] = strtotime($params['end_at']);
+
+            if ($model->load($params, '') && $model->validate()) {
+                $user_list = explode(',',$params['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                foreach ($user_list as $user_id) {
+                    if(empty($userResult[$user_id])){
+                        return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                }
+                if(empty($params['planTime'])){
+                    return PsCommon::responseFailed('执行时间不能为空');
+                }else{
+                    if(!is_array($params['planTime'])){
+                        return PsCommon::responseFailed('执行时间是一个数组');
+                    }
+                }
+
+                if(!$model->saveData()){
+                    return PsCommon::responseFailed("计划新增失败");
+                }
+                //新建执行时间
+                $planTimeParams['id'] = $model->attributes['id'];
+                $planTimeParams['planTime'] = $params['planTime'];
+                self::addPlanTime($planTimeParams);
+                //新建任务
+                $taskParams['id'] = $model->attributes['id'];
+                $taskParams = array_merge($taskParams,$params);
+                $taskParams['start_at'] = $start_at;
+                $taskParams['end_at'] = $end_at;
+                foreach ($user_list as $user_id) {
+                    self::addPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
+                }
+                $trans->commit();
+                return ['id'=>$model->attributes['id']];
+            }else {
+                $resultMsg = array_values($model->errors)[0][0];
+                return PsCommon::responseFailed($resultMsg);
+            }
+
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 新建执行时间
+     *  input
+     *      id 计划id
+     *      planTime 执行时间段
+     *
+     */
+    public function addPlanTime($params){
+        foreach($params['planTime'] as $key=>$value){
+            $var['start'] = $value['start'];
+            $var['end'] = $value['end'];
+            $var['plan_id'] = $params['id'];
+            $model = new PsInspectPlanTime(['scenario'=>'add']);
+            if ($model->load($var, '') && $model->validate()) {
+                if(!$model->saveData()){
+                    throw new Exception("巡检计划执行时间新增失败");
+                }
+            }else{
+                throw new Exception(array_values($model->errors)[0][0]);
+            }
+        }
+    }
+
+    /*
+     * 新建任务
+     *  input
+     *      id       计划id
+     *      planTime 执行时间段
+     *      start_at 有效时间开始
+     *      end_at   有效时间结束
+     *      exec_type 执行类型
+     *      exec_interval 执行间隔
+     *      exec_type_msg 执行类型自定义日期
+     *      error_minute 允许误差分钟
+     */
+    public function addPlanTask($params,$user){
+        set_time_limit(20);
+        //获得执行日期
+        $dateParams['start_at'] = $params['start_at'];
+        $dateParams['end_at'] = $params['end_at'];
+        $dateParams['exec_type'] = $params['exec_type'];
+        $dateParams['exec_type_msg'] = $params['exec_type_msg'];
+        $dateParams['exec_interval'] = $params['exec_interval'];
+        $dateAll = self::getExecDate($dateParams);
+        $lineResult = PsInspectLine::find()->select(['name'])->where(['=','id',$params['line_id']])->asArray()->one();
+        $pointCount = PsInspectLinePoint::find()->select(['id'])->where(['=','lineId',$params['line_id']])->count();
+        if(!empty($dateAll)){
+                       //批量插入任务
+            $nowTime = time();
+            $fields = [
+                        'community_id','user_id','dd_user_id','plan_id','line_id','task_name','line_name','head_name',
+                        'head_mobile','task_at','check_start_at','check_end_at','error_minute','point_count','create_at',
+                        'update_at'
+            ];
+            $data = [];
+            foreach($dateAll as $date){
+                foreach($params['planTime'] as $pk=>$pv){
+                    $element['community_id'] = $params['community_id'];
+                    $element['user_id'] = $user['id'];
+                    $element['dd_user_id'] = $user['ddUserId'];
+                    $element['plan_id'] = $params['id'];
+                    $element['line_id'] = $params['line_id'];
+                    $element['task_name'] = $params['task_name'];
+                    $element['line_name'] = $lineResult['name'];
+                    $element['head_name'] = $user['trueName'];
+                    $element['head_mobile'] = $user['mobile'];
+                    $element['task_at'] = strtotime($date);
+                    $element['check_start_at'] = strtotime($date.' '.$pv['start']);
+                    $element['check_end_at'] = strtotime($date.' '.$pv['end']);
+                    $element['error_minute'] = $params['error_minute'];
+
+                    $element['point_count'] = $pointCount;
+                    $element['create_at'] = $nowTime;
+                    $element['update_at'] = $nowTime;
+
+                    $data[] = $element;
+                }
+            }
+            Yii::$app->db->createCommand()->batchInsert('ps_inspect_record',$fields,$data)->execute();
+        }
+    }
+
+    /*
+     * 获得执行日期
+     */
+    public function getExecDate($params){
+        $dateAll = [];
+        switch ($params['exec_type']){
+            case 1:   //天
+                $dateAll = self::getDayIntervalDate($params['start_at'],$params['end_at'],$params['exec_interval']);
+                break;
+            case 2:   //周
+                $exec_type_msg = explode(",",$params['exec_type_msg']);
+                foreach($exec_type_msg as $value){
+                    $dateList = self::getWeeklyBuyDate($params['start_at'],$params['end_at'],$value,$params['exec_interval']);
+                    if(empty($dateAll)){
+                        $dateAll = $dateList;
+                    }else{
+                        $dateAll = array_merge($dateAll,$dateList);
+                    }
+                }
+                asort($dateAll);
+                break;
+            case 3:   //月
+                $exec_type_msg = explode(",",$params['exec_type_msg']);
+                foreach($exec_type_msg as $value){
+                    if($value<32){
+                        $dateList = self::getMonthlyBuyDate($params['start_at'],$params['end_at'],$value,$params['exec_interval']);
+                    }else{
+                        //月最后一天
+                        $dateList = self::getMonthlyLastDate($params['start_at'],$params['end_at'],$params['exec_interval']);
+                    }
+                    if(empty($dateAll)){
+                        $dateAll = $dateList;
+                    }else{
+                        $dateAll = array_merge($dateAll,$dateList);
+                    }
+                }
+                asort($dateAll);
+                break;
+            case 4:   //年
+                $dateAll = self::getYearIntervalDate($params['start_at'],$params['end_at'],$params['exec_interval']);
+                break;
+        }
+        return $dateAll;
+    }
+
+
+    /**
+     * desc 获取每x周X执行的所有日期
+     * @param string $start 开始日期, 2016-10-17
+     * @param string $end 结束日期, 2016-10-17
+     * @param int $interval 隔几年
+     * @return array
+     */
+    public function getYearIntervalDate($start, $end, $interval){
+
+        $start = empty($start) ? date('Y-m-d') : $start;
+        $startTime = strtotime($start);
+        $endTime = strtotime($end);
+        $list = [];
+
+        for ($i=0;;) {
+            $dayOf = strtotime("+{$i} year", $startTime); //每周x
+            if ($dayOf > $endTime) {
+                break;
+            }
+            $list[] = date('Y-m-d', $dayOf);
+            $i = $i+$interval;
+        }
+        return $list;
+    }
+
+    /**
+     * desc 获取每x周X执行的所有日期
+     * @param string $start 开始日期, 2016-10-17
+     * @param string $end 结束日期, 2016-10-17
+     * @param int $interval 隔几天
+     * @return array
+     */
+    public function getDayIntervalDate($start, $end, $interval){
+
+        $start = empty($start) ? date('Y-m-d') : $start;
+        $startTime = strtotime($start);
+        $endTime = strtotime($end);
+        $list = [];
+
+        for ($i=0;;) {
+            $dayOf = strtotime("+{$i} day", $startTime); //每周x
+            if ($dayOf > $endTime) {
+                break;
+            }
+            $list[] = date('Y-m-d', $dayOf);
+            $i = $i+$interval;
+        }
+        return $list;
+    }
+
+
+    /**
+     * desc 获取每x周X执行的所有日期
+     * @param string $start 开始日期, 2016-10-17
+     * @param string $end 结束日期, 2016-10-17
+     * @param int $weekDay 1~5
+     * @param int $interval
+     * @return array
+     */
+    public function getWeeklyBuyDate($start, $end, $weekDay,$interval)
+    {
+        //获取每周要执行的日期 例如: 2016-01-02
+        $start = empty($start) ? date('Y-m-d') : $start;
+        $startTime = strtotime($start);
+        $startDay = date('N', $startTime);
+        if ($startDay <= $weekDay) {
+            $startTime = strtotime(self::$WORK_DAY[$weekDay]['en'], strtotime($start)); //本周x开始, 例如, 今天(周二)用户设置每周四执行, 那本周四就会开始执行
+        } else {
+            $startTime = strtotime('next '.self::$WORK_DAY[$weekDay]['en'], strtotime($start));//下一个周x开始, 今天(周二)用户设置每周一执行, 那应该是下周一开始执行
+        }
+
+        $endTime = strtotime($end);
+        $list = [];
+        for ($i=0;;) {
+
+            $dayOfWeek = strtotime("+{$i} week", $startTime); //每周x
+            if ($dayOfWeek > $endTime) {
+                break;
+            }
+            $list[] = date('Y-m-d', $dayOfWeek);
+            $i = $i+$interval;
+        }
+        return $list;
+    }
+
+    /**
+     * desc 获取每月最后一天
+     * @param string $start 开始日期, 2016-10-17
+     * @param string $end 结束日期, 2016-10-17
+     * @return array
+     */
+    public function getMonthlyLastDate($start, $end, $interval)
+    {
+        $start = empty($start) ? date('Y-m-d') : $start;
+        $startTime = strtotime($start);
+        $endTime = strtotime($end);
+
+        $list = [];
+        for ($i=0;;) {
+            $tempDate = date('Y-m',strtotime("+{$i} month",$startTime));
+            $tempDay = date("t",strtotime($tempDate));
+
+            $dayOfMonth = strtotime($tempDate.'-'.$tempDay);//每月最后一号
+            if ($dayOfMonth > $endTime) {
+                break;
+            }
+            $list[] = date('Y-m-d', $dayOfMonth);
+            $i = $i+$interval;
+        }
+        return $list;
+    }
+    /**
+     * desc 获取每月X号执行的所有日期
+     * @param string $start 开始日期, 2016-10-17
+     * @param string $end 结束日期, 2016-10-17
+     * @param int $monthDay 1~28
+     * @return array
+     */
+    public function getMonthlyBuyDate($start, $end, $monthDay,$interval)
+    {
+        $monthDay = str_pad($monthDay, 2, '0', STR_PAD_LEFT); //左边补零
+        $start = empty($start) ? date('Y-m-d') : $start;
+        $startTime = strtotime($start);
+        $startDay = substr($start, 8, 2);
+
+        if (strcmp($startDay, $monthDay) <= 0) {
+            $startMonthDayTime = strtotime(date('Y-m-', strtotime($start)).$monthDay); //本月开始执行, 今天(例如,26号)用户设置每月28号执行, 那么本月就开始执行
+        } else  {
+            $startMonthDayTime = strtotime(date('Y-m-', strtotime('+1 month', $startTime)).$monthDay); //从下个月开始
+        }
+        $endTime = strtotime($end);
+
+        $list = [];
+        for ($i=0;;) {
+            $tempDate = date('Y-m',strtotime("+{$i} month",$startTime));
+            $tempArr = explode('-',$tempDate);
+            $tempDay = date("t",strtotime($tempDate));
+            if($monthDay==29){
+                //判断当前月是否是2月份
+                if($tempArr[1]=='02'){
+                    //判断是否是闰年，平年， 平年2月28天，闰年2月29天
+                    $time = mktime(20,20,20,4,20,$tempArr[0]);//取得一个日期的 Unix 时间戳;
+                    if (date("L",$time)!=1){ //格式化时间，并且判断是不是闰年，后面的等于一也可以省略；
+                        $i = $i+$interval;
+                        continue;
+                    }
+                }
+            }else if($monthDay==30 && $tempDay<$monthDay){
+                    $i = $i+$interval;
+                    continue;
+            }else if($monthDay==31 && $tempDay<$monthDay){
+                $i = $i+$interval;
+                continue;
+            }
+
+            $dayOfMonth = strtotime("+{$i} month", $startMonthDayTime);//每月x号
+            if ($dayOfMonth > $endTime) {
+                break;
+            }
+            $list[] = date('Y-m-d', $dayOfMonth);
+
+            $i = $i+$interval;
+        }
+        return $list;
+    }
+
+    /*
+     * 临时任务数据
+     */
+    public function tempTaskData($params){
+        $model = new TempTaskForm(['scenario'=>'add']);
+        if($model->load($params,'')&&$model->validate()){
+
+            //获得执行日期
+            $dateParams['start_at'] = $params['start_at'];
+            $dateParams['end_at'] = $params['end_at'];
+            $dateParams['exec_type'] = $params['exec_type'];
+            $dateParams['exec_type_msg'] = $params['exec_type_msg'];
+            $dateParams['exec_interval'] = $params['exec_interval'];
+            $dateAll = self::getExecDate($dateParams);
+            $data = [];
+            if(!empty($dateAll)){
+                //获得所有用户
+                $user_list = explode(',',$params['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonService = new CommonService();
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                $users = [];
+                foreach ($user_list as $user_id) {
+                    if(empty($userResult[$user_id])){
+                        return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                    array_push($users,$userResult[$user_id]['trueName']);
+                }
+                foreach($dateAll as $date){
+                    $element['time'] = $date;
+                    $element['user_list'] = $users;
+                    $element['planTime'] = $params['planTime'];
+                    $data[] = $element;
+                }
+            }
+            return ['list'=>$data];
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
+    }
+
 
     /**  物业后台接口 start */
     public function add($params, $userInfo = [])
@@ -371,7 +803,9 @@ class PlanService extends BaseService
                 $timeData = PsInspectPlancontab::find()->where(['plan_id' => $plan_id])->select(['month_start', 'day_start', 'hours_start', 'month_end', 'day_end', 'hours_end'])->asArray()->all();
                 break;
         }
-        return $timeData;
+        return
+
+            $timeData;
     }
 
     //获取执行时间-钉钉详情页面专用

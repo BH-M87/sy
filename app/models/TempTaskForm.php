@@ -1,35 +1,26 @@
 <?php
-
+/**
+ * Created by PhpStorm.
+ * User: zhouph
+ * Date: 2020/1/17
+ * Time: 10:38
+ * Desc: 临时任务参数验证
+ */
 namespace app\models;
 
-use yii\db\ActiveRecord;
-
-;
 
 
-/**
- * This is the model class for table "ps_inspect_plan".
- *
- * @property integer $id
- * @property string $name
- * @property integer $community_id
- * @property integer $line_id
- * @property integer $exec_type
- * @property string $user_list
- * @property integer $status
- * @property integer $operator_id
- * @property integer $create_at
- */
-class PsInspectPlan extends BaseModel
-{
+use yii\base\Model;
 
-    /**
-     * @inheritdoc
-     */
-    public static function tableName()
-    {
-        return 'ps_inspect_plan';
-    }
+class TempTaskForm extends Model  {
+
+    public $start_at;
+    public $end_at;
+    public $user_list;
+    public $exec_type;
+    public $exec_interval;
+    public $exec_type_msg;
+    public $planTime;
 
     /**
      * @inheritdoc
@@ -37,22 +28,14 @@ class PsInspectPlan extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
-            [['community_id','name'],'nameUnique','on'=>'add'],   //计划名称唯一
-            [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
+            [['start_at','end_at','user_list','exec_interval','exec_type','planTime'], 'required','on'=>'add'],
+            [['exec_type', 'exec_interval', ], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
-            [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
+            [['start_at','end_at'],'date', 'format'=>'yyyy-MM-dd','message' => '{attribute}格式错误'],
             [['start_at','end_at'],'planTimeVerification','on'=>'add'],
-            [['name'], 'string', 'max' => 30],
-            [['task_name'], 'string', 'max' => 20],
             [['user_list'], 'string', 'max' => 500],
             [['exec_type_msg'], 'string', 'max' => 200],
-            [['community_id','operator_id'],'string','max'=>30],
-            ['status', 'default', 'value' => 1],
-            [['create_at','update_at'], 'default', 'value' => time(),'on'=>'add'],
-            [['status'], 'default', 'value' => 1,'on'=>'add'],
-            [['line_id','community_id'],'lineExist',"on"=>'add'],
         ];
     }
 
@@ -62,49 +45,16 @@ class PsInspectPlan extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id'            => 'PK 主键',
-            'name'          => '计划名称',
-            'type'          => '计划类型',
-            'community_id'  => '小区Id',
-            'line_id'       => '线路Id',
             'start_at'      => '计划开始时间',
             'end_at'        => '计划结束时间',
-            'task_name'     => '任务名称',
             'user_list'     => '执行人员',
             'exec_type'     => '执行类型',
             'exec_interval' => '执行间隔',
             'exec_type_msg' => '执行类型自定义日期',
-            'error_minute'  => '允许误差分钟',
-            'status'        => '计划状态',
-            'operator_id'   => '创建人id',
-            'create_at'     => '创建时间',
-            'update_at'     => '修改时间',
+            'planTime'      => '执行时间',
         ];
     }
 
-    /*
-     * 计划名称唯一
-     */
-    public function nameUnique($attribute){
-        if(!empty($this->community_id)&&!empty($this->name)){
-            $res = self::find()->where('community_id=:community_id and name=:name and status!=:status',[":community_id"=>$this->community_id,":name"=>$this->name,":status"=>3])->asArray()->one();
-            if(!empty($res)){
-                return $this->addError($attribute, "计划名称唯一");
-            }
-        }
-    }
-
-    /*
-     *
-     */
-    public function lineExist($attribute){
-        if(!empty($this->line_id)&&!empty($this->community_id)){
-            $model = PsInspectLine::find()->select(['id'])->where(['=','id',$this->line_id])->andWhere(['=','communityId',$this->community_id])->asArray()->one();
-            if(empty($model)){
-                return $this->addError($attribute, "巡检线路不存在");
-            }
-        }
-    }
 
     /*
      * 计划时间验证
@@ -112,10 +62,12 @@ class PsInspectPlan extends BaseModel
     public function planTimeVerification($attribute){
         $nowTime = time();
         if(!empty($this->start_at)&&!empty($this->end_at)){
-            if($this->start_at<$nowTime){
+            $start_at = strtotime($this->start_at);
+            $end_at = strtotime($this->end_at);
+            if($start_at<$nowTime){
                 return $this->addError($attribute, "有效时间开始时间需大于当前时间");
             }
-            if($this->start_at>$this->end_at){
+            if($start_at>$end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
             }
         }
@@ -173,24 +125,5 @@ class PsInspectPlan extends BaseModel
                     break;
             }
         }
-    }
-
-    /***
-     * 新增
-     * @return bool
-     */
-    public function saveData()
-    {
-        return $this->save();
-    }
-
-    /***
-     * 修改
-     * @return bool
-     */
-    public function edit($param)
-    {
-        $param['update_at'] = time();
-        return self::updateAll($param, ['id' => $param['id']]);
     }
 }
