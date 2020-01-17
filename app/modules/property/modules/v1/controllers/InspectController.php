@@ -189,6 +189,19 @@ class InspectController extends BaseController
         }
     }
 
+    /*
+     * 巡检计划生成任务 数据
+     */
+    public function actionTempTask(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->tempTaskData($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     /**
      * @api 巡检计划编辑
      * @author wyf
