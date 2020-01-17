@@ -232,6 +232,20 @@ class PsInspectPlan extends BaseModel
     }
 
     /*
+     * 关联任务
+     */
+    public function getTask(){
+        return self::hasMany(PsInspectRecord::className(),['plan_id'=>'id']);
+    }
+
+    /*
+     * 关联时间段
+     */
+    public function getPlanTime(){
+        return self::hasMany(PsInspectPlanTime::className(),['plan_id'=>'id']);
+    }
+
+    /*
      * 巡检列表查询
      */
     public function getList($params){
@@ -263,7 +277,7 @@ class PsInspectPlan extends BaseModel
         ];
         $model = self::find()->alias("p")->select($fields)
             ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
-            ->with('taskStartAsc')
+            ->with('task','planTime')
             ->andFilterWhere(['=', 'p.id', $params['id']]);
         return $model->asArray()->one();
     }

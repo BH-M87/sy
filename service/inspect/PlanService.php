@@ -844,39 +844,11 @@ class PlanService extends BaseService
                     $element['time_msg'] = $element['start_at_msg'].'-'.$element['end_at_msg'];
                 }
                 $element['line_name'] = !empty($value['line_name'])?$value['line_name']:'';
-                $exec_msg = '';
-                if(!empty($value['exec_type'])){
-                    switch($value['exec_type']){
-                        case 1:
-                        case 4:
-                            $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']];
-                            break;
-                        case 2:
-                            if($value['exec_type_msg']){
-                                $tempArr = explode(',',$value['exec_type_msg']);
-                                $msg = '';
-                                foreach($tempArr as $tv){
-                                    $msg .= self::$WORK_DAY[$tv]['cn'].",";
-                                }
-                                $msg = mb_substr($msg,0,-1);
-                                $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."的".$msg;
-                            }
-                            break;
-                        case 3:
-                            if($value['exec_type_msg']){
-                                if(mb_strlen($value['exec_type_msg']==2)){
-                                    $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."中的最后一天";
-                                }else{
-                                    $exec_msg .= "每".$value['exec_interval'].self::$exec_type[$value['exec_type']]."中的".$value['exec_type_msg']."号";
-                                }
-                            }
-                            break;
-                    }
-                }
-                $element['exec_msg'] = $exec_msg;
+                $exec_msg = self::doExecMsg($value);
+                $element['exec_msg'] = !empty($exec_msg)?$exec_msg:'';
                 $element['is_delete'] = 1;      //允许删除
                 if(!empty($value['taskStartAsc'][0])){
-                    if($value['taskStartAsc'][0]['check_start_at']>=$nowTime){
+                    if($value['taskStartAsc'][0]['check_start_at']<=$nowTime){
                         $element['is_delete'] = 2; //不允许删除
                     }
                 }
@@ -885,6 +857,41 @@ class PlanService extends BaseService
         }
         return ['list'=>$data,'totals'=>$result['count']];
     }
+
+    //做执行间隔数据
+    public function doExecMsg($params){
+        $exec_msg = '';
+        if(!empty($params['exec_type'])){
+            switch($params['exec_type']){
+                case 1:
+                case 4:
+                    $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']];
+                    break;
+                case 2:
+                    if($params['exec_type_msg']){
+                        $tempArr = explode(',',$params['exec_type_msg']);
+                        $msg = '';
+                        foreach($tempArr as $tv){
+                            $msg .= self::$WORK_DAY[$tv]['cn'].",";
+                        }
+                        $msg = mb_substr($msg,0,-1);
+                        $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."的".$msg;
+                    }
+                    break;
+                case 3:
+                    if($params['exec_type_msg']){
+                        if(mb_strlen($params['exec_type_msg']==2)){
+                            $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的最后一天";
+                        }else{
+                            $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的".$params['exec_type_msg']."号";
+                        }
+                    }
+                    break;
+            }
+        }
+        return $exec_msg;
+    }
+
 
     //巡检计划详情
     public function planDetail($params){
