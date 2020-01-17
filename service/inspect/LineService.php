@@ -1,76 +1,72 @@
 <?php
-/**
- * Created by PhpStorm
- * User: wyf
- * Date: 2019/8/12
- * Time: 10:42
- */
-
 namespace service\inspect;
+
+use Yii;
+
+use common\core\PsCommon;
+use common\MyException;
+
+use service\BaseService;
 
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
-use common\core\PsCommon;
-use common\MyException;
-use service\BaseService;
-use service\rbac\OperateService;
-use Yii;
 
 class LineService extends BaseService
 {
     /**  物业后台接口 start */
 
-    //新增
-    public function add($params, $userInfo = [])
+    // 新增
+    public function add($p, $userInfo = [])
     {
-        $params['created_at'] = time();
-        self::checkCommon($params, $userInfo, 'add');
+        $p['created_at'] = time();
+        self::checkCommon($p, $userInfo, 'add');
     }
 
-    //编辑
-    public function edit($params, $userInfo = [])
+    // 编辑
+    public function edit($p, $userInfo = [])
     {
-        self::checkCommon($params, $userInfo, 'update');
+        self::checkCommon($p, $userInfo, 'update');
     }
 
-    protected static function checkCommon($params, $userInfo = [], $scenario = 'add')
+    protected static function checkCommon($p, $userInfo = [], $scenario = 'add')
     {
         $model = new PsInspectLine();
-        $params = $model->validParamArr($params, $scenario);
+        $p = $model->validParamArr($p, $scenario);
         if ($scenario == 'update') {
-            $model = PsInspectLine::findOne($params['id']);
+            $model = PsInspectLine::findOne($p['id']);
             if (empty($model)) {
                 throw new MyException('巡检线路不存在!');
             }
         } else {
-            unset($params['id']);
+            unset($p['id']);
         }
-        if (!is_array($params['pointList'])) {
-            throw new MyException('巡检点格式错误!');
+        if (!is_array($p['point'])) {
+            throw new MyException('巡检点格式错误，传数组!');
         }
-        if (count($params['pointList']) < 1) {
+
+        if (count($p['point']) < 1) {
             throw new MyException('巡检点不能为空!');
         }
         //查看巡检线路点名称是否重复
-        $query = PsInspectLine::find()->where(['name' => $params['name'], 'community_id' => $params['community_id']]);
+        $query = PsInspectLine::find()->where(['name' => $p['name'], 'community_id' => $p['community_id']]);
         if ($scenario == 'update') {
-            $line = $query->andWhere(['!=', 'id', $params['id']])->one();
+            $line = $query->andWhere(['!=', 'id', $p['id']])->one();
         } else {
             $line = $query->one();
         }
         if (!empty($line)) {
             throw new MyException('巡检线路已存在!');
         }
-        $model->setAttributes($params);
+        $model->setAttributes($p);
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             if ($model->save()) {  # 保存新增数据
                 //先清空老数据
                 if ($scenario == 'update') {
-                    PsInspectLinePoint::deleteAll(['line_id' => $params['id']]);
+                    PsInspectLinePoint::deleteAll(['line_id' => $p['id']]);
                 }
-                foreach ($params['pointList'] as $point_id) {
+                foreach ($p['pointList'] as $point_id) {
                     $point = PsInspectPoint::findOne($point_id);
                     if (empty($point)) {
                         throw new MyException('巡检点不存在!');
@@ -84,40 +80,11 @@ class LineService extends BaseService
             }
             //提交事务
             $trans->commit();
-            if (!empty($userInfo)) {
-                self::addLog($userInfo, $params['name'], $params['head_name'], $params['community_id'], $scenario);
-            }
         } catch (\Exception $e) {
             $trans->rollBack();
             throw new MyException($e->getMessage());
         }
         return true;
-    }
-
-    //统一日志新增
-    private static function addLog($userInfo, $name, $head_name, $community_id, $operate_type = "")
-    {
-        switch ($operate_type) {
-            case 'add':
-                $operate_name = '新增';
-                break;
-            case 'update':
-                $operate_name = '编辑';
-                break;
-            case 'del':
-                $operate_name = '删除';
-                break;
-            default:
-                return;
-        }
-        $content = "线路名称:" . $name . '负责人:' . $head_name;
-        $operate = [
-            "community_id" => $community_id,
-            "operate_menu" => "设备巡检",
-            "operate_type" => "巡检线路" . $operate_name,
-            "operate_content" => $content,
-        ];
-        OperateService::addComm($userInfo, $operate);
     }
 
     //详情
@@ -188,7 +155,6 @@ class LineService extends BaseService
             if (!empty($userinfo)) {
                 $name = $info['name'] ?? "";
                 $head_name = $info['head_name'] ?? "";
-                self::addLog($userInfo,$name,$head_name,$params['community_id'],'del');
             }
             return true;
         }

@@ -125,24 +125,25 @@ class BillController extends UserBaseController
         }
     }
 
-    //确认收款
+    // 确认收款
     public function actionVerifyBill()
     {
-        $params['community_id'] = F::value($this->params, 'community_id', '');
-        $params['id'] = F::value($this->params, 'id', '');
-        if (!$params['community_id']) {
+        $p['community_id'] = F::value($this->params, 'community_id', '');
+        $p['income_id'] = F::value($this->params, 'income_id', '');
+
+        if (!$p['community_id']) {
             return F::apiFailed('请输入小区id！');
         }
-        if (!$params['id']) {
+
+        if (!$p['income_id']) {
             return F::apiFailed('请输入收款记录id！');
         }
-        $reqArr = array_merge($this->userInfo, $this->params);
-        $reqArr['communitys'] = CommunityService::service()->getUserCommunityIds($this->userInfo['id']);
-        $result = BillDingService::service()->verifyBill($reqArr);
-        if ($result['code']) {
-            return F::apiFailed($result['data']);
+
+        $r = BillDingService::service()->verifyBill($this->params);
+        if ($r['code'] == 1) {
+            return F::apiSuccess($r['data']);
         } else {
-            return F::apiSuccess($result);
+            return F::apiFailed($r['msg']);
         }
     }
 
