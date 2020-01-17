@@ -121,7 +121,11 @@ class PlanService extends BaseService
                 foreach ($user_list as $user_id) {
                     self::addPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
                 }
+
                 $trans->commit();
+                if (!empty($userInfo)) {
+                    self::addLog($userInfo, $params['name'], $params['community_id'], "add");
+                }
                 return ['id'=>$model->attributes['id']];
             }else {
                 $resultMsg = array_values($model->errors)[0][0];
