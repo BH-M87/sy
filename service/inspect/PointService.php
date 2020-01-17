@@ -201,13 +201,6 @@ class PointService extends BaseService
         return ['down_url' => $downUrl];
     }
 
-    //获取设备分类
-    protected static function deviceCategoryOne($id, $select = '')
-    {
-        $select = $select ?? '*';
-        return PsDeviceCategory::find()->select($select)->where(['id' => $id])->one();
-    }
-
     /**  物业后台接口 end */
 
     /**  钉钉接口 start */
