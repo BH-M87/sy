@@ -208,12 +208,20 @@ class PsInspectPlan extends BaseModel
     }
 
     /*
+     * 关联任务 任务开始时间升序排序
+     */
+    public function getTaskStartAsc(){
+        return self::hasMany(PsInspectRecord::className(),['plan_id'=>'id'])->orderBy(['check_start_at'=>SORT_ASC]);
+    }
+
+    /*
      * 巡检列表查询
      */
     public function getList($params){
         $fields = ['p.id','p.type','p.name','p.start_at','p.end_at','p.community_id','p.exec_type','p.exec_interval','p.exec_type_msg','l.name as line_name'];
         $model = self::find()->alias("p")->select($fields)
                     ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
+                    ->with('taskStartAsc')
                     ->andFilterWhere(['in', 'p.community_id', $params['communityIds']])
                     ->andFilterWhere(['=', 'p.community_id', $params['community_id']])
                     ->andFilterWhere(['like', 'p.name', $params['name']])

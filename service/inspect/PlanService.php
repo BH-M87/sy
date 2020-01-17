@@ -828,6 +828,7 @@ class PlanService extends BaseService
         $result = $model->getList($params);
         $data = [];
         if(!empty($result['data'])){
+            $nowTime = time();
             foreach($result['data'] as $key=>$value){
                 $element['id'] = !empty($value['id'])?$value['id']:'';
                 $element['community_id'] = !empty($value['community_id'])?$value['community_id']:'';
@@ -868,6 +869,12 @@ class PlanService extends BaseService
                     }
                 }
                 $element['exec_msg'] = $exec_msg;
+                $element['is_delete'] = 1;      //允许删除
+                if(!empty($value['taskStartAsc'][0])){
+                    if($value['taskStartAsc'][0]['check_start_at']>=$nowTime){
+                        $element['is_delete'] = 2; //不允许删除
+                    }
+                }
                 $data[] = $element;
             }
         }
