@@ -38,21 +38,23 @@ class PsInspectPlan extends BaseModel
     {
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
-            [['community_id','name'],'nameUnique','on'=>'add'],   //计划名称唯一
+            [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','operator_id'], 'required','on'=>'tempAdd'],
+            [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
             [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
-            [['start_at','end_at'],'planTimeVerification','on'=>'add'],
+            [['start_at','end_at'],'planTimeVerification','on'=>['add']],
+            [['start_at','end_at'],'planTimeEqualVerification','on'=>['tempAdd']],
             [['name'], 'string', 'max' => 30],
             [['task_name'], 'string', 'max' => 20],
             [['user_list'], 'string', 'max' => 500],
             [['exec_type_msg'], 'string', 'max' => 200],
             [['community_id','operator_id'],'string','max'=>30],
             ['status', 'default', 'value' => 1],
-            [['create_at','update_at'], 'default', 'value' => time(),'on'=>'add'],
-            [['status'], 'default', 'value' => 1,'on'=>'add'],
-            [['line_id','community_id'],'lineExist',"on"=>'add'],
+            [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add','tempAdd']],
+            [['status'], 'default', 'value' => 1,'on'=>['add','tempAdd']],
+            [['line_id','community_id'],'lineExist',"on"=>['add','tempAdd']],
         ];
     }
 
@@ -117,6 +119,17 @@ class PsInspectPlan extends BaseModel
             }
             if($this->start_at>$this->end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
+            }
+        }
+    }
+
+    /*
+     * 计划时间相等验证
+     */
+    public function planTimeEqualVerification($attribute){
+        if(!empty($this->start_at)&&!empty($this->end_at)){
+            if($this->start_at!=$this->end_at){
+                return $this->addError($attribute, "有效时间开始时间需等于当前时间");
             }
         }
     }
