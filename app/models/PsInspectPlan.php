@@ -44,7 +44,8 @@ class PsInspectPlan extends BaseModel
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
-            [['start_at','end_at'],'planTimeVerification','on'=>['add','tempAdd']],
+            [['start_at','end_at'],'planTimeVerification','on'=>['add']],
+            [['start_at','end_at'],'planTimeEqualVerification','on'=>['tempAdd']],
             [['name'], 'string', 'max' => 30],
             [['task_name'], 'string', 'max' => 20],
             [['user_list'], 'string', 'max' => 500],
@@ -118,6 +119,17 @@ class PsInspectPlan extends BaseModel
             }
             if($this->start_at>$this->end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
+            }
+        }
+    }
+
+    /*
+     * 计划时间相等验证
+     */
+    public function planTimeEqualVerification($attribute){
+        if(!empty($this->start_at)&&!empty($this->end_at)){
+            if($this->start_at!=$this->end_at){
+                return $this->addError($attribute, "有效时间开始时间需等于当前时间");
             }
         }
     }

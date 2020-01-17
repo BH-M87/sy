@@ -245,38 +245,36 @@ class PlanService extends BaseService
         //获得执行日期
         $lineResult = PsInspectLine::find()->select(['name'])->where(['=','id',$params['line_id']])->asArray()->one();
         $pointCount = PsInspectLinePoint::find()->select(['id'])->where(['=','lineId',$params['line_id']])->count();
-        if(!empty($dateAll)){
-            //批量插入任务
-            $nowTime = time();
-            $fields = [
-                'community_id','user_id','dd_user_id','plan_id','line_id','task_name','line_name','head_name',
-                'head_mobile','task_at','check_start_at','check_end_at','error_minute','point_count','create_at',
-                'update_at'
-            ];
-            $data = [];
-            foreach($params['planTime'] as $pk=>$pv){
-                $element['community_id'] = $params['community_id'];
-                $element['user_id'] = $user['id'];
-                $element['dd_user_id'] = $user['ddUserId'];
-                $element['plan_id'] = $params['id'];
-                $element['line_id'] = $params['line_id'];
-                $element['task_name'] = $params['task_name'];
-                $element['line_name'] = $lineResult['name'];
-                $element['head_name'] = $user['trueName'];
-                $element['head_mobile'] = $user['mobile'];
-                $element['task_at'] = strtotime($params['start_at']);
-                $element['check_start_at'] = strtotime($params['start_at'].' '.$pv['start']);
-                $element['check_end_at'] = strtotime($params['start_at'].' '.$pv['end']);
-                $element['error_minute'] = !empty($params['error_minute'])?$params['error_minute']:0;
+        //批量插入任务
+        $nowTime = time();
+        $fields = [
+            'community_id','user_id','dd_user_id','plan_id','line_id','task_name','line_name','head_name',
+            'head_mobile','task_at','check_start_at','check_end_at','error_minute','point_count','create_at',
+            'update_at'
+        ];
+        $data = [];
+        foreach($params['planTime'] as $pk=>$pv){
+            $element['community_id'] = $params['community_id'];
+            $element['user_id'] = $user['id'];
+            $element['dd_user_id'] = $user['ddUserId'];
+            $element['plan_id'] = $params['id'];
+            $element['line_id'] = $params['line_id'];
+            $element['task_name'] = $params['task_name'];
+            $element['line_name'] = $lineResult['name'];
+            $element['head_name'] = $user['trueName'];
+            $element['head_mobile'] = $user['mobile'];
+            $element['task_at'] = strtotime($params['start_at']);
+            $element['check_start_at'] = strtotime($params['start_at'].' '.$pv['start']);
+            $element['check_end_at'] = strtotime($params['start_at'].' '.$pv['end']);
+            $element['error_minute'] = !empty($params['error_minute'])?$params['error_minute']:0;
 
-                $element['point_count'] = $pointCount;
-                $element['create_at'] = $nowTime;
-                $element['update_at'] = $nowTime;
+            $element['point_count'] = $pointCount;
+            $element['create_at'] = $nowTime;
+            $element['update_at'] = $nowTime;
 
-                $data[] = $element;
-            }
-            Yii::$app->db->createCommand()->batchInsert('ps_inspect_record',$fields,$data)->execute();
+            $data[] = $element;
         }
+        Yii::$app->db->createCommand()->batchInsert('ps_inspect_record',$fields,$data)->execute();
     }
 
     /*
