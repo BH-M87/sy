@@ -837,8 +837,8 @@ class PlanService extends BaseService
                 $element['status'] = !empty($value['status'])?$value['status']:'';
                 $element['type_msg'] = !empty($value['type'])?self::$plan_type[$value['type']]:'';
                 $element['name'] = !empty($value['name'])?$value['name']:'';
-                $element['start_at_msg'] = !empty($value['start_at'])?date('Y.m.d',$value['start_at']):'';
-                $element['end_at_msg'] = !empty($value['end_at'])?date('Y.m.d',$value['end_at']):'';
+                $element['start_at_msg'] = !empty($value['start_at'])?date('Y/m/d',$value['start_at']):'';
+                $element['end_at_msg'] = !empty($value['end_at'])?date('Y/m/d',$value['end_at']):'';
                 $element['time_msg'] = $element['start_at_msg'];
                 if($value['type']==1){  //长期
                     $element['time_msg'] = $element['start_at_msg'].'-'.$element['end_at_msg'];
@@ -897,8 +897,47 @@ class PlanService extends BaseService
     public function planDetail($params){
         $model = new PsInspectPlan(['scenario'=>'detail']);
         if ($model->load($params, '') && $model->validate()) {
+            //获得所有小区id
+            $commonService = new CommonService();
+            $javaParams['token'] = $params['token'];
+            $communityInfo = $commonService->getCommunityInfo($javaParams);
+
             $result = $model->getDetail($params);
-            print_r($result);die;
+            $task = !empty($result['task'])?$result['task']:[];
+            $planTime = !empty($result['planTime'])?$result['planTime']:[];
+            unset($result['task'],$result['planTime']);
+            $element['id'] = !empty($result['id'])?$result['id']:'';
+            $element['error_minute'] = !empty($result['error_minute'])?$result['error_minute']:0;
+            $element['task_name'] = !empty($result['task_name'])?$result['task_name']:'';
+            $element['community_id'] = !empty($result['community_id'])?$result['community_id']:'';
+            $element['community_name'] = $communityInfo['communityResult'][$result['community_id']];
+            $element['type'] = !empty($result['type'])?$result['type']:'';
+            $element['status'] = !empty($result['status'])?$result['status']:'';
+            $element['type_msg'] = !empty($result['type'])?self::$plan_type[$result['type']]:'';
+            $element['name'] = !empty($result['name'])?$result['name']:'';
+            $element['start_at_msg'] = !empty($result['start_at'])?date('Y/m/d',$result['start_at']):'';
+            $element['end_at_msg'] = !empty($result['end_at'])?date('Y/m/d',$result['end_at']):'';
+            $element['time_msg'] = $element['start_at_msg'];
+            if($result['type']==1){  //长期
+                $element['time_msg'] = $element['start_at_msg'].'-'.$element['end_at_msg'];
+            }
+            $element['line_name'] = !empty($result['line_name'])?$result['line_name']:'';
+            $exec_msg = self::doExecMsg($result);
+            $element['exec_msg'] = !empty($exec_msg)?$exec_msg:'';
+            //执行人员
+            $user_msg = '';
+            $user_list = explode(',',$result['user_list']);
+            //调用java接口 验证用户是否存在
+            $commonParams['token'] = $params['token'];
+            $userResult = $commonService->userUnderDeptVerification($commonParams);
+            foreach ($user_list as $user_id) {
+                $user_msg .= $userResult[$user_id]['trueName']."、";
+            }
+            $user_msg = mb_substr($user_msg,0,-1);
+            $element['user_msg'] = $user_msg;
+            $element['planTime'] = $planTime;
+
+            return $element;
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
