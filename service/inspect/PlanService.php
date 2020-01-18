@@ -960,8 +960,9 @@ class PlanService extends BaseService
      * 巡检计划 启用/禁用
      */
     public function planEditStatus($params){
+
+        $trans = Yii::$app->getDb()->beginTransaction();
         try{
-            $trans = Yii::$app->getDb()->beginTransaction();
             $model = new PsInspectPlan(['scenario'=>'editStatus']);
             if ($model->load($params, '') && $model->validate()) {
                 $detail = $model->getPlanOne($params);
