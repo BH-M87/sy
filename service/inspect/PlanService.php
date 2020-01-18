@@ -996,6 +996,20 @@ class PlanService extends BaseService
     }
 
     /*
+     * 巡检计划-复制
+     */
+    public function planCopy($params){
+        $model = new PsInspectPlan(['scenario'=>'copy']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->getCopy($params);
+            print_r($detail);die;
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
+    }
+
+    /*
      * 巡检计划 启用/禁用
      */
     public function planEditStatus($params){

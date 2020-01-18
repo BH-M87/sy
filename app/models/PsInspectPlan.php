@@ -39,8 +39,8 @@ class PsInspectPlan extends BaseModel
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','operator_id'], 'required','on'=>'tempAdd'],
-            [['id','community_id'], 'required','on'=>['detail','editStatus']],
-            [['id','community_id'],'infoData','on'=>["detail",'editStatus']],
+            [['id','community_id'], 'required','on'=>['detail','editStatus','copy']],
+            [['id','community_id'],'infoData','on'=>["detail",'editStatus','copy']],
             [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
             [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
@@ -288,6 +288,21 @@ class PsInspectPlan extends BaseModel
             ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")
             ->with('task','planTime')
             ->andFilterWhere(['=', 'p.id', $params['id']]);
+        return $model->asArray()->one();
+    }
+
+    /*
+     * 计划复制
+     */
+    public function getCopy($params){
+        $fields = [
+            'id','type','status','name','start_at','end_at','community_id','exec_type',
+            'exec_interval','exec_type_msg','user_list','error_minute',
+            'task_name'
+        ];
+        $model = self::find()->select($fields)
+            ->with('planTime')
+            ->andFilterWhere(['=', 'id', $params['id']]);
         return $model->asArray()->one();
     }
 }
