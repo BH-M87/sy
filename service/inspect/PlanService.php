@@ -14,6 +14,7 @@ use app\models\PsInspectLinePoint;
 use app\models\PsInspectPlanContab;
 use app\models\PsInspectPlanTime;
 use app\models\PsInspectRecord;
+use app\models\PsInspectRecordPoint;
 use app\models\PsUser;
 use app\models\PsInspectPlan;
 use app\models\PsUserCommunity;
@@ -1006,6 +1007,38 @@ class PlanService extends BaseService
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
+        }
+    }
+
+    /*
+     * 巡检计划-批量删除
+     */
+    public function planBatchDel($params){
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+            if(empty($params['ids'])){
+                return PsCommon::responseFailed("计划ids必填");
+            }
+            if(!is_array($params['ids'])){
+                return PsCommon::responseFailed("计划ids是一个数组");
+            }
+            $planIds = $params['ids'];
+            $recordResult = PsInspectRecord::find()->select(['id'])->where(['in','plan_id',$params['ids']])->asArray()->all();
+            $recordIds = !empty($recordResult)?array_column($recordResult,'id'):[];
+            //批量删除计划
+            PsInspectPlan::deleteAll(['in','id',$params['ids']]);
+            //批量删除计划时间段
+            PsInspectPlanTime::deleteAll(['in','plan_id',$planIds]);
+            //批量删除任务
+            PsInspectRecord::deleteAll(['in','plan_id',$planIds]);
+            //批量删除任务点
+            if(!empty($recordIds)){
+                PsInspectRecordPoint::deleteAll(['in','record_id',$recordIds]);
+            }
+            $trans->commit();
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
         }
     }
 
