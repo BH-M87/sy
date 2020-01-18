@@ -130,7 +130,7 @@ class PsInspectPlan extends BaseModel
      */
     public function planTimeEqualVerification($attribute){
         if(!empty($this->start_at)&&!empty($this->end_at)){
-            if($this->start_at!=$this->end_at){
+            if(date('Y-m-d',$this->start_at)!=date('Y-m-d',$this->end_at)){
                 return $this->addError($attribute, "有效时间开始时间需等于当前时间");
             }
         }
