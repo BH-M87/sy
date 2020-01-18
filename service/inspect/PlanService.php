@@ -948,12 +948,51 @@ class PlanService extends BaseService
             $user_msg = mb_substr($user_msg,0,-1);
             $element['user_msg'] = $user_msg;
             $element['planTime'] = $planTime;
-
+            $element['taskList'] = [];
+            if(!empty($task)&&!empty($planTime)){
+                $element['taskList'] = self::doTaskCalendar($task,$planTime);
+            }
             return $element;
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
         }
+    }
+
+    public function doTaskCalendar($task,$planTime){
+        $data = [];
+        $taskStatus = [
+            '1'=>'待巡检',
+            '2'=>'巡检中',
+            '3'=>'已完成',
+            '4'=>'已关闭',
+        ];
+        if(!empty($task)){
+            //获得所有日期
+            $dateData = array_unique(array_column($task,'task_at'));
+            foreach($dateData as $date){
+                $element['time'] = date("Y-m-d",$date);
+                $element['planTime'] = [];
+                foreach($planTime as $key=>$value){
+                    $pElement['start'] = $value['start'];
+                    $pElement['end'] = $value['end'];
+                    $pElement['user_list'] = [];
+                    foreach($task as $tk => $tv){
+                        $tempStart = strtotime($element['time']." ".$value['start']);
+                        $tempEnd = strtotime($element['time']." ".$value['end']);
+                        if($date==$tv['task_at']&&$tempStart==$tv['check_start_at']&&$tempEnd==$tv['check_end_at']){
+                            $ele['name'] = $tv['head_name'];
+                            $ele['status'] = $tv['status'];
+                            $ele['status_msg'] = $taskStatus[$tv['status']];
+                            $pElement['user_list'][] = $ele;
+                        }
+                    }
+                    $element['planTime'] = $pElement;
+                }
+                $data[] = $element;
+            }
+        }
+        return $data;
     }
 
     /*
