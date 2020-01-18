@@ -90,8 +90,14 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            $params['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
-            $params['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']." 23:59:59"):'';
+            if(empty($start_at)||(date('Y-m-d', strtotime($start_at))!=$start_at)){
+                return PsCommon::responseFailed('有效时间开始时间格式有误');
+            }
+            if(empty($end_at)||(date('Y-m-d', strtotime($end_at))!=$end_at)){
+                return PsCommon::responseFailed('有效时间结束时间格式有误');
+            }
+            $params['start_at'] = strtotime($start_at);
+            $params['end_at'] = strtotime($end_at." 23:59:59");
 
             if ($model->load($params, '') && $model->validate()) {
                 $user_list = explode(',',$params['user_list']);
@@ -164,8 +170,14 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            $params['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
-            $params['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']." 23:59:59"):'';
+            if(empty($start_at)||(date('Y-m-d', strtotime($start_at))!=$start_at)){
+                return PsCommon::responseFailed('有效时间开始时间格式有误');
+            }
+            if(empty($end_at)||(date('Y-m-d', strtotime($end_at))!=$end_at)){
+                return PsCommon::responseFailed('有效时间结束时间格式有误');
+            }
+            $params['start_at'] = strtotime($start_at);
+            $params['end_at'] = strtotime($end_at." 23:59:59");
 
             if ($model->load($params, '') && $model->validate()) {
 
