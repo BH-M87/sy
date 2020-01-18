@@ -90,8 +90,8 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            $params['start_at'] = strtotime($params['start_at']);
-            $params['end_at'] = strtotime($params['end_at']);
+            $params['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
+            $params['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']." 23:59:59"):'';
 
             if ($model->load($params, '') && $model->validate()) {
                 $user_list = explode(',',$params['user_list']);
@@ -164,8 +164,8 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            $params['start_at'] = strtotime($params['start_at']);
-            $params['end_at'] = strtotime($params['end_at']);
+            $params['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
+            $params['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']." 23:59:59"):'';
 
             if ($model->load($params, '') && $model->validate()) {
 
@@ -941,6 +941,32 @@ class PlanService extends BaseService
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
+        }
+    }
+
+    /*
+     * 巡检计划 启用/禁用
+     */
+    public function planEditStatus($params){
+        try{
+            $trans = Yii::$app->getDb()->beginTransaction();
+            $model = new PsInspectPlan(['scenario'=>'editStatus']);
+            if ($model->load($params, '') && $model->validate()) {
+                $detail = $model->getPlanOne($params);
+                $editParams['id'] = $params['id'];
+                $editParams['status'] = $detail['status']==1?2:1;
+                print_r($editParams);die;
+                if(!$model->edit($editParams)){
+                    $resultMsg = array_values($model->errors)[0][0];
+                    return PsCommon::responseFailed($resultMsg);
+                }
+            }else{
+                $resultMsg = array_values($model->errors)[0][0];
+                return PsCommon::responseFailed($resultMsg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
         }
     }
 

@@ -39,8 +39,8 @@ class PsInspectPlan extends BaseModel
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','operator_id'], 'required','on'=>'tempAdd'],
-            [['id'], 'required','on'=>'detail'],
-            [['id'],'infoData','on'=>["detail"]],
+            [['id'], 'required','on'=>['detail','editStatus']],
+            [['id'],'infoData','on'=>["detail",'editStatus']],
             [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
             [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
@@ -243,6 +243,14 @@ class PsInspectPlan extends BaseModel
      */
     public function getPlanTime(){
         return self::hasMany(PsInspectPlanTime::className(),['plan_id'=>'id']);
+    }
+
+    /*
+     * 计划单表
+     */
+    public function getPlanOne($params){
+        $model = self::find()->select(['status',''])->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
     }
 
     /*

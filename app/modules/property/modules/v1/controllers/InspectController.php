@@ -232,6 +232,19 @@ class InspectController extends BaseController
         }
     }
 
+    /*
+     * 巡检计划启用/禁用
+     */
+    public function actionPlanEditStatus(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planEditStatus($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     /**
      * @api 巡检计划管详情
      * @author wyf
