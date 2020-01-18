@@ -965,13 +965,20 @@ class PlanService extends BaseService
             $model = new PsInspectPlan(['scenario'=>'editStatus']);
             if ($model->load($params, '') && $model->validate()) {
                 $detail = $model->getPlanOne($params);
+                if($detail['end_at']<time()){
+                    return PsCommon::responseFailed("当前计划已结束，不能进行该操作");
+                }
                 $editParams['id'] = $params['id'];
                 $editParams['status'] = $detail['status']==1?2:1;
-                print_r($editParams);die;
                 if(!$model->edit($editParams)){
                     $resultMsg = array_values($model->errors)[0][0];
                     return PsCommon::responseFailed($resultMsg);
                 }
+                $batchParams['plan_id'] = $params['id'];
+                $batchParams['status'] = $editParams['status'];
+                self::batchEditPlanTask($batchParams);
+                $trans->commit();
+                return ['id'=>$params['id']];
             }else{
                 $resultMsg = array_values($model->errors)[0][0];
                 return PsCommon::responseFailed($resultMsg);
@@ -981,6 +988,23 @@ class PlanService extends BaseService
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    /*
+     *  巡检任务-启用/禁用操作
+     * input :
+     *  plan_id,status 1 启用 2禁用
+     */
+    public function batchEditPlanTask($params){
+        if($params['status']==1){ //启用
+            //启用
+            PsInspectRecord::updateAll(['status'=>1],"plan_id=:plan_id and status=:status and check_start_at>:check_start_at",[":plan_id"=>$params['plan_id'],":status"=>4,":check_start_at"=>time()]);
+        }else{
+            //禁用
+            PsInspectRecord::updateAll(['status'=>4],['plan_id'=>$params['plan_id'],'status'=>1]);
+        }
+
+    }
+
 
     // 巡检计划 搜索
     private static function searchList($params)

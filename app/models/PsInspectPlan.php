@@ -39,8 +39,8 @@ class PsInspectPlan extends BaseModel
         return [
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','exec_interval','exec_type', 'operator_id'], 'required','on'=>'add'],
             [['community_id','name','start_at','end_at','task_name','line_id', 'user_list','operator_id'], 'required','on'=>'tempAdd'],
-            [['id'], 'required','on'=>['detail','editStatus']],
-            [['id'],'infoData','on'=>["detail",'editStatus']],
+            [['id','community_id'], 'required','on'=>['detail','editStatus']],
+            [['id','community_id'],'infoData','on'=>["detail",'editStatus']],
             [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
             [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
@@ -197,8 +197,8 @@ class PsInspectPlan extends BaseModel
      */
     public function infoData($attribute)
     {
-        if (!empty($this->id)) {
-            $res = static::find()->select(['id'])->where('id=:id', [':id' => $this->id])->asArray()->one();
+        if (!empty($this->id)&&!empty($this->community_id)) {
+            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该计划不存在!");
             }
@@ -249,7 +249,7 @@ class PsInspectPlan extends BaseModel
      * 计划单表
      */
     public function getPlanOne($params){
-        $model = self::find()->select(['status',''])->where(['=','id',$params['id']]);
+        $model = self::find()->select(['status','start_at','end_at'])->where(['=','id',$params['id']]);
         return $model->asArray()->one();
     }
 
