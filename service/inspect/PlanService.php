@@ -1003,7 +1003,11 @@ class PlanService extends BaseService
         $model = new PsInspectPlan(['scenario'=>'copy']);
         if ($model->load($params, '') && $model->validate()) {
             $detail = $model->getCopy($params);
-            print_r($detail);die;
+            $detail['start_at'] = date('Y-m-d',$detail['start_at']);
+            $detail['end_at'] = date('Y-m-d',$detail['end_at']);
+            $detail['user_list'] = !empty($detail['user_list'])?explode(",",$detail['user_list']):[];
+            $detail['exec_type_msg'] = !empty($detail['exec_type_msg'])?explode(",",$detail['exec_type_msg']):[];
+            return $detail;
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
