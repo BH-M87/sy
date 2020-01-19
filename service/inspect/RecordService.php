@@ -9,8 +9,11 @@
 namespace service\inspect;
 
 use app\models\PsInspectRecord;
+use app\models\PsInspectRecordPoint;
 use common\core\PsCommon;
 use service\property_basic\CommonService;
+use yii\db\Exception;
+use Yii;
 
 class RecordService extends BaseService {
 
@@ -102,16 +105,36 @@ class RecordService extends BaseService {
 
     //任务删除
     public function deleteRecord($params){
-        $model = new PsInspectRecord(['scenario'=>'detail']);
-        if($model->load($params,'')&&$model->validate()){
-            $detail = $model->getDataOne($params);
-            if(!in_array($detail['status'],[1,4])){
-                return PsCommon::responseFailed("只能删除已关闭、待巡检的任务");
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+        try {
+
+            if(empty($params['ids'])){
+                return PsCommon::responseFailed("任务ids必填");
             }
-            print_r("asdf");die;
-        }else{
-            $resultMsg = array_values($model->errors)[0][0];
-            return PsCommon::responseFailed($resultMsg);
+            if(!is_array($params['ids'])){
+                return PsCommon::responseFailed("任务ids必须是一个数组");
+            }
+            //判断是否符合条件
+            $result = PsInspectRecord::find()->select(['id','status'])->where(['in','id',$params['ids']])->asArray()->all();
+            if(empty($result)){
+                return PsCommon::responseFailed("任务不存在");
+            }
+            foreach($result as $key=>$value){
+                if(!in_array($value['status'],[1,4])){
+                    return PsCommon::responseFailed("只能删除已关闭、待巡检的任务");
+                }
+            }
+
+            //批量删除任务
+            PsInspectRecord::deleteAll(['in','id',$params['ids']]);
+            //批量删除任务点
+            PsInspectRecordPoint::deleteAll(['in','record_id',$params['ids']]);
+            $trans->commit();
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return PsCommon::responseFailed($e->getMessage());
         }
+
     }
 }
