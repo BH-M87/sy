@@ -47,11 +47,6 @@ class PointService extends BaseService
             $p['createAt'] = time();
         }
 
-        $device = PsInspectDevice::findOne($p['deviceId']);
-        if (!$device || !empty($device->communityId)) {
-            throw new MyException('设备不存在!');
-        }
-
         if (in_array('2', $p['type'])) { // 当选择需要定位时判断是否有经纬度
             if (empty($p['location']) || empty($p['lon']) || empty($p['lat'])) {
                 throw new MyException('定位经纬度与位置不能为空!');
@@ -65,6 +60,11 @@ class PointService extends BaseService
         if (in_array('3', $p['type'])) {
             if (empty($p['deviceId'])) {
                 throw new MyException('请选择智点名称!');
+            }
+
+            $device = PsInspectDevice::findOne($p['deviceId']);
+            if (!$device || !empty($device->communityId)) {
+                throw new MyException('设备不存在!');
             }
         } else {
             $p['deviceId'] = '0';
