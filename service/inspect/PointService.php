@@ -93,7 +93,8 @@ class PointService extends BaseService
 
         $p['type'] = implode(',', $p['type']);
 
-        $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])->one();
+        $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])
+            ->andFilterWhere(['!=', 'id', $p['id']])->one();
         if (!empty($point)) {
             throw new MyException('巡检点已存在!');
         }
