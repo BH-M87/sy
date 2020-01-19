@@ -8,6 +8,9 @@
  */
 namespace service\inspect;
 
+use app\models\PsInspectRecord;
+use service\property_basic\CommonService;
+
 class RecordService extends BaseService {
 
     //任务状态
@@ -27,7 +30,13 @@ class RecordService extends BaseService {
 
     //巡检列表
     public function recordList($params){
-
+        //获得所有小区id
+        $commonService = new CommonService();
+        $javaParams['token'] = $params['token'];
+        $communityInfo = $commonService->getCommunityInfo($javaParams);
+        $params['communityIds'] = $communityInfo['communityIds'];
+        $model = new PsInspectRecord();
+        print_r($params);die;
     }
 
     //任务状态下拉

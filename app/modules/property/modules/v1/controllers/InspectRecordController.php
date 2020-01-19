@@ -19,6 +19,8 @@ class InspectRecordController extends BaseController {
     public function actionRecordList(){
         try{
             $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
             $service = new RecordService();
             $result = $service->recordList($params);
             return PsCommon::responseSuccess($result);
