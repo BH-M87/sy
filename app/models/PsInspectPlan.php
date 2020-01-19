@@ -297,7 +297,7 @@ class PsInspectPlan extends BaseModel
         $fields = [
             'id','type','status','name','start_at','end_at','community_id','exec_type',
             'exec_interval','exec_type_msg','user_list','error_minute',
-            'task_name'
+            'task_name','line_id'
         ];
         $model = self::find()->select($fields)
             ->with('planTime')
