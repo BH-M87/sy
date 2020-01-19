@@ -35,7 +35,7 @@ class InspectController extends BaseController
     {
         $r = PointService::service()->deviceDropDown($this->request_params);
 
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r, false);
     }
 
     // 巡检点新增
