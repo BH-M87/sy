@@ -13,6 +13,7 @@ use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPlanContab;
 use app\models\PsInspectPlanTime;
+use app\models\PsInspectPoint;
 use app\models\PsInspectRecord;
 use app\models\PsInspectRecordPoint;
 use app\models\PsUser;
@@ -67,6 +68,11 @@ class PlanService extends BaseService
 
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
+            //新建任务点
+            $pointParams['plan_id'] = 3;
+            $pointParams['line_id'] = 4;
+            self::addPlanTaskPoint($pointParams);
+            die;
 //            $taskParams['id'] = 1;
 //            $taskParams['planTime'] = $params['planTime'];
 //            $taskParams['start_at'] = $params['start_at'];
@@ -133,6 +139,10 @@ class PlanService extends BaseService
                 foreach ($user_list as $user_id) {
                     self::addPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
                 }
+                //新建任务点
+                $pointParams['plan_id'] = $model->attributes['id'];
+                $pointParams['line_id'] = $params['line_id'];
+                self::addPlanTaskPoint($pointParams);
 
                 $trans->commit();
                 if (!empty($userInfo)) {
@@ -351,6 +361,29 @@ class PlanService extends BaseService
                 }
             }
             Yii::$app->db->createCommand()->batchInsert('ps_inspect_record',$fields,$data)->execute();
+        }
+    }
+
+    /*
+     * 新建任务点
+     * input: plan_id 计划id line_id 路线id
+     */
+    public function addPlanTaskPoint($params){
+        //获得所有任务
+        $taskAll = PsInspectRecord::find()->select(['id'])->where(['=','plan_id',$params['plan_id']])->asArray()->all();
+        if(!empty($taskAll)){
+            //获得路线点
+            $fields = ['p.*'];
+            $pointAll = PsInspectPoint::find()->alias('p')->select($fields)
+                                    ->leftJoin(['r'=>PsInspectLinePoint::tableName()],"p.id=r.pointId")
+                                    ->where(['=','r.lineId',$params['line_id']])->asArray()->all();
+            if(!empty($pointAll)){
+                $insetFields = ['community_id','','','','','',''];
+                $insertData = [];
+                foreach($pointAll as $pk=>$pv){
+
+                }
+            }
         }
     }
 
