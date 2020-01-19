@@ -349,15 +349,15 @@ class TaskService extends BaseService
 
     /**  钉钉接口 start */
 
-    //列表
-    public function getList($params)
+    // 列表
+    public function getList($p)
     {
-        $task_time = !empty($params['task_time']) ? strtotime($params['task_time']) : strtotime(date('Y-m-d', time()));
-        $task_date = !empty($params['task_time']) ? $params['task_time'] : date('Y-m-d', time());
-        $page = !empty($params['page']) ? $params['page'] : 1;
-        $rows = !empty($params['rows']) ? $params['rows'] : 5;
+        $task_time = !empty($p['task_time']) ? strtotime($p['task_time']) : strtotime(date('Y-m-d', time()));
+        $task_date = !empty($p['task_time']) ? $p['task_time'] : date('Y-m-d', time());
+        $page = !empty($p['page']) ? $p['page'] : 1;
+        $rows = !empty($p['rows']) ? $p['rows'] : 5;
         $resultAll = PsInspectRecord::find()->alias("record")
-            ->where(['record.user_id' => $params['user_id']])
+            ->where(['record.user_id' => $p['user_id']])
             ->select(['record.id', 'comm.name as community_name', 'record.task_name', 'record.status', 'record.line_name', 'record.head_name', 'record.head_mobile',
                 'record.plan_start_at', 'record.plan_end_at', 'record.check_start_at', 'record.check_end_at', 'record.point_count', 'record.finish_count'
             ])

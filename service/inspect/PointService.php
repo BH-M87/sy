@@ -15,6 +15,7 @@ use service\common\QrcodeService;
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
 use app\models\PsInspectDevice;
+use app\models\PsInspectLine;
 
 class PointService extends BaseService
 {
@@ -46,11 +47,6 @@ class PointService extends BaseService
             $p['createAt'] = time();
         }
 
-        $device = PsInspectDevice::findOne($p['deviceId']);
-        if (!$device || !empty($device->communityId)) {
-            throw new MyException('设备不存在!');
-        }
-
         if (in_array('2', $p['type'])) { // 当选择需要定位时判断是否有经纬度
             if (empty($p['location']) || empty($p['lon']) || empty($p['lat'])) {
                 throw new MyException('定位经纬度与位置不能为空!');
@@ -64,6 +60,11 @@ class PointService extends BaseService
         if (in_array('3', $p['type'])) {
             if (empty($p['deviceId'])) {
                 throw new MyException('请选择智点名称!');
+            }
+
+            $device = PsInspectDevice::findOne($p['deviceId']);
+            if (!$device || !empty($device->communityId)) {
+                throw new MyException('设备不存在!');
             }
         } else {
             $p['deviceId'] = '0';
@@ -243,6 +244,150 @@ class PointService extends BaseService
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
 
         return $m;
+    }
+
+    public function dingList($p, $type)
+    {
+        switch ($type) {
+            case '1':
+                $end = strtotime(date('Y-m-d').'00:00:00') - 1;
+                break;
+            case '3':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400;
+                break;
+            case '4':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 2;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 2;
+                break;
+            case '5':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 3;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 3;
+                break;
+            case '6':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 4;
+                $end = strtotime(date('Y-m-d').'23:59:59') + 86400 * 4;
+                break;
+            case '7':
+                $start = strtotime(date('Y-m-d').'00:00:00') + 86400 * 5;
+                break;
+            default:
+                $start = strtotime(date('Y-m-d').'00:00:00');
+                $end = strtotime(date('Y-m-d').'23:59:59');
+                break;
+        }
+
+        $query = new Query();
+        $query->from('ps_inspect_record')->where("1=1")
+            ->andfilterWhere(['user_id' => $p['user_id']])
+            ->andfilterWhere(['status' => [1,2]])
+            ->andfilterWhere(['and', 
+                ['>=', 'check_start_at', $start], 
+                ['<', 'check_end_at', $end]
+            ]);
+
+        $r['totals'] = $query->count();
+
+        $query->select('id, status, run_status, line_name, point_count, finish_count, check_start_at, check_end_at');
+        $query->orderBy('id desc');
+
+        $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+
+        $m = $query->createCommand()->queryAll();
+        foreach ($m as $k => &$v) {
+            $v['status_msg'] = $v['status'] == 1 ? '代巡检' : '巡检中';
+
+            if ($v['run_status'] == 1) {
+                $v['run_status_msg'] = '逾期';
+            } else if ($v['run_status'] == 2) {
+                $v['run_status_msg'] = '旷巡';
+            } else {
+                $v['run_status_msg'] = '正常';
+            }
+
+            $v['img'] = PsInspectLine::findOne($v['line_id'])->img;
+
+            $v['check_at'] = date('Y/m/d H:i', $v['check_start_at']) . '-' . date('H:i', $v['check_end_at']);
+        }
+
+        $r['list'] = $m;
+
+        return $r;
+    }
+
+    public function dayTime($p)
+    {
+        $w = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+
+        $arr['day']['day_1'] = self::dingList($p, 1);
+        $arr['day']['day_2'] = self::dingList($p, 2);
+        $arr['day']['day_3'] = self::dingList($p, 3);
+        $arr['day']['day_4'] = self::dingList($p, 4);
+        $arr['day']['day_5'] = self::dingList($p, 5);
+        $arr['day']['day_6'] = self::dingList($p, 6);
+        $arr['day']['day_7'] = self::dingList($p, 7);
+
+        $arr['time']['time_1'] = '过去';
+        $arr['time']['time_2'] = '今天';
+        $arr['time']['time_3'] = $w[date("w", time() + 86400*1)];
+        $arr['time']['time_4'] = $w[date("w", time() + 86400*2)];
+        $arr['time']['time_5'] = $w[date("w", time() + 86400*3)];
+        $arr['time']['time_6'] = $w[date("w", time() + 86400*4)];
+        $arr['time']['time_7'] = '将来';
+
+        return $arr;
+    }
+
+    // 代办列表
+    public function taskList($p)
+    {
+        $dt = self::dayTime($p);
+
+        switch ($p['type']) {
+            case '1':
+                $m = $dt['day']['day_1'];
+                $r['time'] = $dt['time']['time_1'];
+                break;
+            case '3':
+                $m = $dt['day']['day_3'];
+                $r['time'] = $dt['time']['time_3'];
+                break;
+            case '4':
+                $m = $dt['day']['day_4'];
+                $r['time'] = $dt['time']['time_4'];
+                break;
+            case '5':
+                $m = $dt['day']['day_5'];
+                $r['time'] = $dt['time']['time_5'];
+                break;
+            case '6':
+                $m = $dt['day']['day_6'];
+                $r['time'] = $dt['time']['time_6'];
+                break;
+            case '7':
+                $m = $dt['day']['day_7'];
+                $r['time'] = $dt['time']['time_7'];
+                break;
+            default:
+                $m = $dt['day']['day_2'];
+                $r['time'] = $dt['time']['time_2'];
+                break;
+        }
+
+        $r['timeList'] = [
+            ['name' => $dt['time']['time_1'], 'num' => $dt['day']['day_1']['totals'], 'type' => '1'],
+            ['name' => $dt['time']['time_2'], 'num' => $dt['day']['day_2']['totals'], 'type' => '2'],
+            ['name' => $dt['time']['time_3'], 'num' => $dt['day']['day_3']['totals'], 'type' => '3'],
+            ['name' => $dt['time']['time_4'], 'num' => $dt['day']['day_4']['totals'], 'type' => '4'],
+            ['name' => $dt['time']['time_5'], 'num' => $dt['day']['day_5']['totals'], 'type' => '5'],
+            ['name' => $dt['time']['time_6'], 'num' => $dt['day']['day_6']['totals'], 'type' => '6'],
+            ['name' => $dt['time']['time_7'], 'num' => $dt['day']['day_7']['totals'], 'type' => '7']
+        ];
+
+        $r['list'] = $m['list'];
+        $r['totals'] = $m['totals'];
+
+        return $r;
     }
 
     /**  物业后台接口 end */
