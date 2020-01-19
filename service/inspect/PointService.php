@@ -260,7 +260,7 @@ class PointService extends BaseService
         $query = new Query();
         $query->from('ps_inspect_device')->select('id, name')
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
-            ->andfilterWhere(['=', 'communityId', $p['communityId']]);
+            ->andfilterWhere(['<=', 'communityId', 0]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
 
