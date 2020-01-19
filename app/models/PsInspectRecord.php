@@ -138,6 +138,26 @@ class PsInspectRecord extends BaseModel
         $fields = ['status'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         return $model->asArray()->one();
+    }
 
+    /*
+     * 关联任务点
+     */
+    public function getPoint(){
+        return self::hasMany(PsInspectRecordPoint::className(),['record_id'=>'id']);
+    }
+
+    /*
+     * 任务详情
+     */
+    public function getDetail($params){
+        $fields = [
+                    'id','community_id','task_name','task_at','check_start_at','check_end_at','head_name',
+                    'line_name','status','run_status','result_status','point_count','finish_count','update_at'
+        ];
+        $model = self::find()->select($fields)
+                        ->with('point')
+                        ->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
     }
 }

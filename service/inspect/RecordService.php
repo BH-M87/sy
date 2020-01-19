@@ -137,4 +137,44 @@ class RecordService extends BaseService {
         }
 
     }
+
+    //巡检任务-详情
+    public function recordDetail($params){
+        $model = new PsInspectRecord(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            //获得所有小区id
+            $commonService = new CommonService();
+            $javaParams['token'] = $params['token'];
+            $communityInfo = $commonService->getCommunityInfo($javaParams);
+            $result = $model->getDetail($params);
+            $element['id'] = !empty($result['id'])?$result['id']:'';
+            $element['community_id'] = !empty($result['community_id'])?$result['community_id']:'';
+            $element['community_name'] = $communityInfo['communityResult'][$result['community_id']];
+            $element['task_name'] = !empty($result['task_name'])?$result['task_name']:'';
+            $element['task_date_msg'] = !empty($result['task_at'])?date('Y/m/d',$result['task_at']):'';
+            $element['task_time_msg'] = '';
+            if(!empty($result['check_start_at'])&&!empty($result['check_end_at'])){
+                $element['task_time_msg'] = date('H:i',$result['check_start_at'])."-".date('H:i',$result['check_end_at']);
+            }
+            $element['head_name'] = !empty($result['head_name'])?$result['head_name']:'';
+            $element['line_name'] = !empty($result['line_name'])?$result['line_name']:'';
+
+            $element['status'] = !empty($result['status'])?$result['status']:'';
+            $element['status_msg'] = !empty($result['status'])?$this->status[$result['status']]['name']:'';
+            $element['run_status'] = !empty($result['run_status'])?$result['run_status']:'';
+            $element['run_status_msg'] = !empty($result['run_status'])?$this->runStatus[$result['run_status']]['name']:'';
+            $element['result_status'] = !empty($result['result_status'])?$result['result_status']:'';
+            $element['result_status_msg'] = !empty($result['result_status'])?$this->resultStatus[$result['result_status']]['name']:'';
+            $element['point_count'] = !empty($result['point_count'])?$result['point_count']:0;
+            $element['finish_count'] = !empty($result['finish_count'])?$result['finish_count']:0;
+            $element['finish_time_msg'] = '';
+            if($result['status']==3){
+                $element['finish_time_msg'] = date('Y/m/d',$result['update_at']);
+            }
+            print_r($element);die;
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
+    }
 }
