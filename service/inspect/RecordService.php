@@ -9,6 +9,7 @@
 namespace service\inspect;
 
 use app\models\PsInspectRecord;
+use common\core\PsCommon;
 use service\property_basic\CommonService;
 
 class RecordService extends BaseService {
@@ -76,5 +77,26 @@ class RecordService extends BaseService {
     //任务执行状态下拉
     public function runStatusDrop(){
         return ['list' => array_values($this->runStatus)];
+    }
+
+    //任务关闭
+    public function closeRecord($params){
+        $model = new PsInspectRecord(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model->getDataOne($params);
+            if(!in_array($detail['status'],[1,2])){
+                return PsCommon::responseFailed("只能关闭待巡检及巡检中的任务");
+            }
+            $editParams['id'] = $params['id'];
+            $editParams['status'] = 4;
+            if(!$model->edit($editParams)){
+                $resultMsg = array_values($model->errors)[0][0];
+                return PsCommon::responseFailed($resultMsg);
+            }
+            return ['id'=>$params['id']];
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
     }
 }

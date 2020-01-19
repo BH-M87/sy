@@ -130,4 +130,14 @@ class PsInspectRecord extends BaseModel
         $result = $model->asArray()->all();
         return ['count'=>$count,'data'=>$result];
     }
+
+    /*
+     * 任务单表
+     */
+    public function getDataOne($params){
+        $fields = ['status'];
+        $model = self::find()->select($fields)->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
+
+    }
 }
