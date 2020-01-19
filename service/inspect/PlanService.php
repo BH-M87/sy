@@ -988,7 +988,7 @@ class PlanService extends BaseService
                             $pElement['user_list'][] = $ele;
                         }
                     }
-                    $element['planTime'] = $pElement;
+                    $element['planTime'][] = $pElement;
                 }
                 $data[] = $element;
             }

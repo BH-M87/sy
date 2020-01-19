@@ -99,4 +99,19 @@ class RecordService extends BaseService {
             return PsCommon::responseFailed($resultMsg);
         }
     }
+
+    //任务删除
+    public function deleteRecord($params){
+        $model = new PsInspectRecord(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model->getDataOne($params);
+            if(!in_array($detail['status'],[1,4])){
+                return PsCommon::responseFailed("只能删除已关闭、待巡检的任务");
+            }
+            print_r("asdf");die;
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
+    }
 }
