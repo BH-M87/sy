@@ -137,4 +137,16 @@ class RecordService extends BaseService {
         }
 
     }
+
+    //巡检任务-详情
+    public function recordDetail($params){
+        $model = new PsInspectRecord(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getDetail($params);
+            print_r($result);die;
+        }else{
+            $resultMsg = array_values($model->errors)[0][0];
+            return PsCommon::responseFailed($resultMsg);
+        }
+    }
 }
