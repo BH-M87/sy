@@ -223,7 +223,7 @@ class PointService extends BaseService
                     $v['communityName'] = $community['communityName'];
                 }
                 $point = PsInspectPoint::find()->select('name')->where(['=', 'deviceId', $v['id']])->scalar();
-                $v['point'] = $v['point'] ?? '';
+                $v['point'] = $point['name'] ?? '';
             }
         }
         
@@ -237,7 +237,8 @@ class PointService extends BaseService
     {
         $query = new Query();
         $query->from('ps_inspect_device')->select('id, name')
-            ->andfilterWhere(['<=', 'communityId', 0]);
+            ->andfilterWhere(['=', 'companyId', $p['corp_id']])
+            ->andfilterWhere(['=', 'communityId', $p['communityId']]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
 
