@@ -69,10 +69,10 @@ class PlanService extends BaseService
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
             //新建任务点
-            $pointParams['plan_id'] = 3;
-            $pointParams['line_id'] = 4;
-            self::addPlanTaskPoint($pointParams);
-            die;
+//            $pointParams['plan_id'] = 3;
+//            $pointParams['line_id'] = 4;
+//            self::addPlanTaskPoint($pointParams);
+//            die;
 //            $taskParams['id'] = 1;
 //            $taskParams['planTime'] = $params['planTime'];
 //            $taskParams['start_at'] = $params['start_at'];
@@ -225,6 +225,11 @@ class PlanService extends BaseService
                     self::addTempPlanTask($taskParams,$userResult[$user_id]); //生成单个用户
                 }
 
+                //新建任务点
+                $pointParams['plan_id'] = $model->attributes['id'];
+                $pointParams['line_id'] = $params['line_id'];
+                self::addPlanTaskPoint($pointParams);
+
                 $trans->commit();
                 if (!empty($userInfo)) {
                     self::addLog($userInfo, $params['name'], $params['community_id'], "add");
@@ -369,6 +374,7 @@ class PlanService extends BaseService
      * input: plan_id 计划id line_id 路线id
      */
     public function addPlanTaskPoint($params){
+        set_time_limit(20);
         //获得所有任务
         $taskAll = PsInspectRecord::find()->select(['id'])->where(['=','plan_id',$params['plan_id']])->asArray()->all();
         if(!empty($taskAll)){
@@ -378,11 +384,24 @@ class PlanService extends BaseService
                                     ->leftJoin(['r'=>PsInspectLinePoint::tableName()],"p.id=r.pointId")
                                     ->where(['=','r.lineId',$params['line_id']])->asArray()->all();
             if(!empty($pointAll)){
-                $insetFields = ['community_id','','','','','',''];
+                $nowTime = time();
+                $insetFields = ['community_id','record_id','point_id','location','lon','lat','point_name','type','create_at'];
                 $insertData = [];
-                foreach($pointAll as $pk=>$pv){
-
+                foreach($taskAll as $key=>$value){
+                    foreach($pointAll as $pk=>$pv){
+                        $element['community_id'] = $pv['communityId'];
+                        $element['record_id'] = $value['id'];
+                        $element['point_id'] = $pv['id'];
+                        $element['location'] = $pv['address'];
+                        $element['lon'] = $pv['lon'];
+                        $element['lat'] = $pv['lat'];
+                        $element['point_name'] = $pv['name'];
+                        $element['type'] = $pv['type'];
+                        $element['create_at'] = $nowTime;
+                        $insertData[] = $element;
+                    }
                 }
+                Yii::$app->db->createCommand()->batchInsert('ps_inspect_record_point',$insetFields,$insertData)->execute();
             }
         }
     }
