@@ -9,10 +9,18 @@ use service\inspect\PointService;
 
 class InspectController extends UserBaseController
 {
-    // 设备列表
+    // 巡检代办列表
     public function actionTaskList()
     {
         $r = PointService::service()->taskList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检详情
+    public function actionTaskShow()
+    {
+        $r = PointService::service()->taskShow($this->request_params);
 
         return PsCommon::responseSuccess($r);
     }

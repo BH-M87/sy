@@ -16,9 +16,30 @@ use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
 use app\models\PsInspectDevice;
 use app\models\PsInspectLine;
+use app\models\PsInspectRecord;
+use app\models\PsInspectRecordPoint;
 
 class PointService extends BaseService
 {
+    public static $recordStatus = [
+        "1" => "待巡检",
+        "2" => "巡检中",
+        "3" => "已完成",
+        "4" => "已关闭",
+    ];
+
+    public static $runStatus = [
+        "1" => "逾期",
+        "2" => "旷巡",
+        "3" => "正常"
+    ];
+
+    public static $deviceStatus = [
+        "1" => "正常",
+        "2" => "异常",
+        "0" => "-"
+    ];
+
     /**  物业后台接口 start */
 
     //巡检点新增
@@ -388,6 +409,46 @@ class PointService extends BaseService
         $r['totals'] = $m['totals'];
 
         return $r;
+    }
+
+    // 详情
+    public function taskShow($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $r = PsInspectRecord::find()
+            ->where(['id' => $p['id'], 'user_id' => $p['user_id']])
+            ->select('id, task_name, status, line_name, check_start_at, check_end_at, point_count, finish_count, run_status')
+            ->asArray()->one();
+        if (!empty($r)) {
+            $r['check_start_at'] = !empty($r['check_start_at']) ? date('Y/m/d H:i', $r['check_start_at']) : '???';
+            $r['check_end_at'] = !empty($r['check_end_at']) ? date('H:i', $r['check_end_at']) : '???';
+            $r['check_at'] = $r['check_start_at'] . '-' . $r['check_end_at']; // 巡检时间
+            $r['status_msg'] = !empty($r['status']) ? self::$recordStatus[$r['status']] : "未知";
+            $r['run_status_msg'] = !empty($r['run_status']) ? self::$runStatus[$r['run_status']] : "未知";
+            // 获取任务下的巡检点
+            $pointList = PsInspectRecordPoint::find()
+                ->where(['record_id' => $p['id']])
+                ->select('id, finish_at, device_status, status, point_name, location, point_id, record_note, imgs, type, device_status')
+                ->asArray()->all();
+
+            if (!empty($pointList)) {
+                foreach ($pointList as &$v) {
+                    $pointInfo = PsInspectPoint::findOne($v['point_id']);
+                    $v['finish_at'] = !empty($v['finish_at']) ? date("Y-m-d H:i", $v['finish_at']) : '';
+                    $v['device_status_msg'] = self::$deviceStatus[$v['device_status']];
+                    $v['imgs'] = explode(',', $v['imgs']);
+                    $v['type'] = explode(',', $v['type']);
+                }
+            }
+            $r['pointList'] = $pointList;
+
+            return $r;
+        }
+
+        throw new MyException('任务不存在');
     }
 
     /**  物业后台接口 end */
