@@ -63,8 +63,9 @@ class CommonController extends Controller
     //java透传接口
     public function actionPhpGateway()
     {
-        \Yii::info("PhpGateway-params:" . json_encode($this->params, JSON_UNESCAPED_UNICODE), 'api');
+        \Yii::info("PhpGateway-params-test:" . json_encode($this->params, JSON_UNESCAPED_UNICODE), 'api');
 
+        $this->params['data']['OpenAuthorization'] = Yii::$app->request->getHeaders()->get('OpenAuthorization');
         $options['CURLOPT_HTTPHEADER'] = [
             "application/json;charset=UTF-8",
         ];

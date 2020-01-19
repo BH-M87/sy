@@ -53,21 +53,25 @@ class BillDingService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $m = PsBillIncome::find()
-            ->where(['room_id' => $p['room_id'], 'is_del' => 1, 'pay_type' => 1])
-            ->select('id, income_time, pay_money, room_id')
-            ->andFilterWhere(['>', 'pay_status', 0])
-            ->andFilterWhere(['not', ['qr_code' => null]])
-            ->orderBy('id desc')->offset(($page - 1) * $rows)
+        $m = PsBillIncome::find()->alias('A')->select('A.income_time, A.pay_money, A.room_id, B.bill_id')
+            ->leftJoin("ps_bill_income_relation B", "A.id = B.income_id")
+            ->where(['A.is_del' => 1, 'A.pay_type' => 1])
+            ->andFilterWhere(['=', 'A.pay_status', 1])
+            ->andFilterWhere(['=', 'A.room_id', $p['room_id']])
+            ->andFilterWhere(['not', ['A.qr_code' => null]])
+            ->orderBy('A.id desc')->offset(($page - 1) * $rows)
             ->limit($rows)->asArray()->all();
 
         if (!empty($m)) {
             foreach ($m as $v) {
                 $room = JavaService::service()->roomDetail(['token' => $p['token'], 'id' => $v['room_id']]);
-                $data['id'] = $v['id'];
                 $data['income_time'] = date("Y-m-d H:i", $v['income_time']);
-                $data['pay_money'] = $v['pay_money'];
                 $data['room_info'] = $room['communityName'] . $room['groupName'] . $room['buildingName'] . $room['unitName'] . $room['roomName'];
+                $billInfo = PsBill::find()->select(['cost_name', 'acct_period_start', 'acct_period_end','paid_entry_amount'])
+                    ->where(['id' => $v['bill_id']])->asArray()->one();
+                $data['cost_name'] = $billInfo['cost_name'];
+                $data['pay_money'] = $billInfo['paid_entry_amount'];
+                $data['bill_info'] = date("Y-m-d", $billInfo['acct_period_start']) . '至' . date("Y-m-d", $billInfo['acct_period_end']);
                 
                 $dataLst[] = $data;
             }
@@ -139,7 +143,7 @@ class BillDingService extends BaseService
             ->asArray()->all();
         if (empty($bill_cost)) {
             return $this->success(['list' => [], 'room_info' => $address]);
-        }print_r($bill_cost);die;
+        }
         // 根据缴费项获取当前缴费项的明细账单
         $dataList = [];
         foreach ($bill_cost as $cost) {
@@ -266,28 +270,19 @@ class BillDingService extends BaseService
         return $this->success(['qr_img' => $qr_img, 'id' => $income_id, 'pay_money' => $total_money]);
     }
 
-    //确认收款
-    public function verifyBill($params)
+    // 确认收款
+    public function verifyBill($p)
     {
-        $communityId = PsCommon::get($params, 'community_id');
-        $id = PsCommon::get($params, 'id');
-        if (!$communityId) {
-            return $this->failed("小区id不能为空！");
-        }
-        if (!in_array($communityId, $params['communitys'])) {
-            return $this->failed('无此小区权限!');
-        }
-        if (!$id) {
-            return $this->failed("收款记录id不能为空！");
-        }
-        $incomeInfo = PsBillIncome::find()->where(['id' => $id])->asArray()->one();
-        if (!empty($incomeInfo)) {
-            if ($incomeInfo['pay_status']==1) {
-                return $this->success($incomeInfo);
-            }else{
+        $m = PsBillIncome::find()->where(['id' => $p['income_id'], 'community_id' => $p['community_id']])->asArray()->one();
+        
+        if (!empty($m)) {
+            if ($m['pay_status'] == 1) {
+                return $this->success();
+            } else {
                 return $this->failed("账单未支付！");
             }
         }
+
         return $this->failed("收款记录不存在！");
     }
 
