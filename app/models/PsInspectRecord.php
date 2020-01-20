@@ -124,14 +124,15 @@ class PsInspectRecord extends BaseModel
             $model->andWhere(['>=','task_at',strtotime($params['task_start'])]);
         }
         if(!empty($params['task_end'])){
-            $model->andWhere(['<=','task_at',strtotime($params['task_start']." 23:59:59")]);
+            $model->andWhere(['<=','task_at',strtotime($params['task_end']." 23:59:59")]);
         }
         $count = $model->count();
         $page = intval($params['page']);
         $pageSize = intval($params['pageSize']);
         $offset = ($page-1)*$pageSize;
         $model->offset($offset)->limit($pageSize);
-        $model->orderBy(["id"=>SORT_DESC]);
+        $sort = !empty($params['sort'])?$params['sort']:SORT_DESC;
+        $model->orderBy(["id"=>$sort]);
         $result = $model->asArray()->all();
         return ['count'=>$count,'data'=>$result];
     }
@@ -147,8 +148,13 @@ class PsInspectRecord extends BaseModel
             ->andFilterWhere(['like', 'task_name', $params['task_name']])
             ->andFilterWhere(['=', 'status', $params['status']])
             ->andFilterWhere(['=', 'user_id', $params['user_id']])
-            ->andFilterWhere(['=', 'task_at', $params['task_at']])
             ->andFilterWhere(['=', 'run_status', $params['run_status']]);
+        if(!empty($params['task_start'])){
+            $model->andWhere(['>=','task_at',strtotime($params['task_start'])]);
+        }
+        if(!empty($params['task_end'])){
+            $model->andWhere(['<=','task_at',strtotime($params['task_end']." 23:59:59")]);
+        }
         $count = $model->count();
         return $count;
     }
