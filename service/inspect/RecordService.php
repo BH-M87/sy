@@ -10,7 +10,9 @@ namespace service\inspect;
 
 use app\models\PsInspectRecord;
 use app\models\PsInspectRecordPoint;
+use common\core\F;
 use common\core\PsCommon;
+use service\common\ExcelService;
 use service\property_basic\CommonService;
 use yii\db\Exception;
 use Yii;
@@ -47,6 +49,7 @@ class RecordService extends BaseService {
         $communityInfo = $commonService->getCommunityInfo($javaParams);
         $params['communityIds'] = $communityInfo['communityIds'];
         $model = new PsInspectRecord();
+        $params['task_at'] = !empty($params['task_at'])?strtotime($params['task_at']):'';
         $result = $model->getList($params);
         $data = [];
         if(!empty($result['data'])){
@@ -190,6 +193,56 @@ class RecordService extends BaseService {
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
+        }
+    }
+
+    /*
+     * 任务导出
+     */
+    public function recordExport($params){
+
+        //获得所有小区id
+        $commonService = new CommonService();
+        $javaParams['token'] = $params['token'];
+        $communityInfo = $commonService->getCommunityInfo($javaParams);
+        $params['communityIds'] = $communityInfo['communityIds'];
+        $model = new PsInspectRecord();
+        //查询任务数量
+        $totals = $model->getCount($params);
+        $cycle = ceil($totals / 1000);
+        $config["sheet_config"] = [
+            'A' => ['title' => '小区名称', 'width' => 20, 'data_type' => 'str', 'field' => 'community_name'],
+            'B' => ['title' => '任务名称', 'width' => 30, 'data_type' => 'str', 'field' => 'task_name'],
+            'C' => ['title' => '任务时间', 'width' => 25, 'data_type' => 'str', 'field' => 'task_time_msg'],
+            'D' => ['title' => '执行人', 'width' => 10, 'data_type' => 'str', 'field' => 'head_name'],
+            'E' => ['title' => '任务状态', 'width' => 10, 'data_type' => 'str', 'field' => 'status_msg'],
+            'F' => ['title' => '执行状态', 'width' => 10, 'data_type' => 'str', 'field' => 'run_status_msg'],
+            'G' => ['title' => '巡检结果', 'width' => 10, 'data_type' => 'str', 'field' => 'result_status_msg'],
+        ];
+        $config["save"] = true;
+        $savePath = Yii::$app->basePath . '/web/store/zip/record/';
+        $config["save_path"] = $savePath;
+        //房屋数量查过一千则导出压缩文件
+        if ($cycle == 1) {//下载单个文件
+            $config["file_name"] = "Task1.xlsx";
+            $params['page'] = 1;
+            $params['pageSize'] = 1000;
+            $result = self::recordList($params);
+            $file_name = ExcelService::service()->recordDown($result["list"], $config);
+            $downUrl = F::downloadUrl('record/' .  $file_name, 'zip');
+            return PsCommon::responseSuccess(['down_url' => $downUrl]);
+        } else {//下载zip压缩包
+            for ($i = 1; $i <= $cycle; $i++) {
+                $config["file_name"] = "Task".$i.".xlsx";
+                $params['page'] = $i;
+                $params['pageSize'] = 1000;
+                $result = self::recordList($params);
+                ExcelService::service()->recordDown($result["list"], $config);
+            }
+            $path = $savePath . 'recordTask.zip';
+            ExcelService::service()->addZip($savePath, $path);
+            $downUrl = F::downloadUrl('record/'.'recordTask.zip', 'zip');
+            return PsCommon::responseSuccess(['down_url' => $downUrl]);
         }
     }
 

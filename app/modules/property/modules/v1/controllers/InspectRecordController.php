@@ -88,4 +88,16 @@ class InspectRecordController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //巡检任务-导出
+    public function actionRecordExport(){
+        try{
+            $params = $this->request_params;
+            $service = new RecordService();
+            $result = $service->recordExport($params,$this->user_info);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

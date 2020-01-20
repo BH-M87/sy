@@ -136,6 +136,40 @@ class ExcelService extends BaseService
         return $file_name;
     }
 
+    public function recordDown($datas, $excel_config){
+        $objPHPExcel = new \PHPExcel();
+        $objPHPExcel->getProperties()->setTitle("TestExcel");
+        $objActSheet = $objPHPExcel->getActiveSheet();;
+//        $objPHPExcel->getActiveSheet()->setCellValue('A1', "请按照模板填写收费项目，最多上传1000条");
+//        $objPHPExcel->getActiveSheet()->mergeCells('A1:I1');
+//        $objActSheet->getStyle('A1')->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        $sheet_config = $excel_config['sheet_config'];
+        foreach ($sheet_config as $item => $value) {
+            $objPHPExcel->getActiveSheet()->getColumnDimension($item)->setWidth($value['width'] ? $value['width'] : 20);
+//            $objPHPExcel->getActiveSheet()->setCellValue($item . '2', $value['title']);
+            $objPHPExcel->getActiveSheet()->setCellValue($item . '1', $value['title']);
+        }
+        if (!empty($datas)) {
+            foreach ($datas as $key => $data) {
+                foreach ($sheet_config as $item => $config) {
+                    switch ($config['data_type']) {
+                        case 'str':
+                            $objPHPExcel->getActiveSheet()->setCellValueExplicit($item . ($key + 2), $data[$config["field"]], 'str');
+                            break;
+                    }
+                }
+            }
+        }
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        if (!file_exists($excel_config["save_path"])) {
+            FileHelper::createDirectory($excel_config["save_path"], 0755, true);
+        }
+        $file_name = $excel_config['file_name'];
+        $objWriter->save($excel_config["save_path"] . $file_name);
+        return $file_name;
+    }
+
     public function payBill($excel_config)
     {
         $objPHPExcel = new \PHPExcel();

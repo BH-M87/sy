@@ -132,6 +132,23 @@ class PsInspectRecord extends BaseModel
     }
 
     /*
+     * 根据条件 获得总数
+     */
+    public function getCount($params){
+        $fields = ['id','community_id','task_name','check_start_at','check_end_at','user_id','head_name','status','run_status','result_status'];
+        $model = self::find()->select($fields)
+            ->andFilterWhere(['in', 'community_id', $params['communityIds']])
+            ->andFilterWhere(['=', 'community_id', $params['community_id']])
+            ->andFilterWhere(['like', 'task_name', $params['task_name']])
+            ->andFilterWhere(['=', 'status', $params['status']])
+            ->andFilterWhere(['=', 'user_id', $params['user_id']])
+            ->andFilterWhere(['=', 'task_at', $params['task_at']])
+            ->andFilterWhere(['=', 'run_status', $params['run_status']]);
+        $count = $model->count();
+        return $count;
+    }
+
+    /*
      * 任务单表
      */
     public function getDataOne($params){
