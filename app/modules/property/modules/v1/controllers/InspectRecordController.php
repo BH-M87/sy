@@ -15,6 +15,8 @@ use yii\base\Exception;
 
 class InspectRecordController extends BaseController {
 
+    public $repeatAction = ['record-export'];
+
     //巡检任务-列表
     public function actionRecordList(){
         try{
