@@ -153,15 +153,15 @@ class PointService extends BaseService
         try {
             if (is_array($p['id']) && !empty($p['id'])) {
                 foreach ($p['id'] as $k => $v) {
-                    if (empty($p['id'])) {
+                    if (empty($v)) {
                         throw new MyException('巡检点id不能为空');
                     }
 
-                    if (PsInspectLinePoint::find()->where(['pointId' => $p['id']])->exists()) {
+                    if (PsInspectLinePoint::find()->where(['pointId' => $v])->exists()) {
                         throw new MyException('请先修改巡检线路');
                     }
 
-                    PsInspectPoint::deleteAll(['id' => $p['id']]);
+                    PsInspectPoint::deleteAll(['id' => $v]);
                 }
 
                 $transaction->commit();
@@ -173,7 +173,6 @@ class PointService extends BaseService
             $transaction->rollBack();
             return $e->getMessage();
         }
-
     }
 
     // 巡检点列表
