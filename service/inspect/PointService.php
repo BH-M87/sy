@@ -3,6 +3,7 @@ namespace service\inspect;
 
 use Yii;
 use yii\db\Query;
+use yii\base\Exception;
 
 use common\MyException;
 use common\core\F;
@@ -148,20 +149,31 @@ class PointService extends BaseService
     // 巡检点删除
     public function del($p, $userInfo)
     {
-        if (empty($p['id'])) {
-            throw new MyException('巡检点id不能为空');
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (is_array($p['id']) && !empty($p['id'])) {
+                foreach ($p['id'] as $k => $v) {
+                    if (empty($p['id'])) {
+                        throw new MyException('巡检点id不能为空');
+                    }
+
+                    if (PsInspectLinePoint::find()->where(['pointId' => $p['id']])->exists()) {
+                        throw new MyException('请先修改巡检线路');
+                    }
+
+                    PsInspectPoint::deleteAll(['id' => $p['id']]);
+                }
+
+                $transaction->commit();
+                return true;
+            } else {
+                throw new MyException('巡检点id不能为空');
+            }
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            return $e->getMessage();
         }
 
-        if (PsInspectLinePoint::find()->where(['pointId' => $p['id']])->exists()) {
-            throw new MyException('请先修改巡检线路');
-        }
-
-        $r = PsInspectPoint::deleteAll(['id' => $p['id']]);
-        if (!empty($r)) {
-            return true;
-        }
-
-        throw new MyException('删除失败，巡检点不存在');
     }
 
     // 巡检点列表
