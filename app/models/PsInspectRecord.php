@@ -119,8 +119,13 @@ class PsInspectRecord extends BaseModel
             ->andFilterWhere(['like', 'task_name', $params['task_name']])
             ->andFilterWhere(['=', 'status', $params['status']])
             ->andFilterWhere(['=', 'user_id', $params['user_id']])
-            ->andFilterWhere(['=', 'task_at', $params['task_at']])
             ->andFilterWhere(['=', 'run_status', $params['run_status']]);
+        if(!empty($params['task_start'])){
+            $model->andWhere(['>=','task_at',strtotime($params['task_start'])]);
+        }
+        if(!empty($params['task_end'])){
+            $model->andWhere(['<=','task_at',strtotime($params['task_start']." 23:59:59")]);
+        }
         $count = $model->count();
         $page = intval($params['page']);
         $pageSize = intval($params['pageSize']);

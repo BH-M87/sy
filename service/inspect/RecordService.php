@@ -49,7 +49,6 @@ class RecordService extends BaseService {
         $communityInfo = $commonService->getCommunityInfo($javaParams);
         $params['communityIds'] = $communityInfo['communityIds'];
         $model = new PsInspectRecord();
-        $params['task_at'] = !empty($params['task_at'])?strtotime($params['task_at']):'';
         $result = $model->getList($params);
         $data = [];
         if(!empty($result['data'])){
