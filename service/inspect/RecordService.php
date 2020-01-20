@@ -182,7 +182,7 @@ class RecordService extends BaseService {
                     $ele['device_status_msg'] = !empty($value['device_status'])?$device_status[$value['device_status']]:'';
                     $ele['record_note'] = !empty($value['record_note'])?$value['record_note']:'';
                     $ele['picture'] = !empty($value['picture'])?$value['picture']:'';           //打卡图片
-                    $ele['imgs'] = !empty($value['imgs'])?explode(',',$value['imgs']):'';       //备注图片
+                    $ele['imgs'] = !empty($value['imgs'])?explode(',',$value['imgs']):[];       //备注图片
                     $element['point'][] = $ele;
                 }
             }
