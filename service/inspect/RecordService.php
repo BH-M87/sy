@@ -171,7 +171,22 @@ class RecordService extends BaseService {
             if($result['status']==3){
                 $element['finish_time_msg'] = date('Y/m/d',$result['update_at']);
             }
-            print_r($element);die;
+            $element['point'] = [];
+            if(!empty($result['point'])){
+                $device_status = ['1'=>'正常','2'=>'异常'];
+                foreach($result['point'] as $key=>$value){
+                    $ele['point_name'] = !empty($value['point_name'])?$value['point_name']:'';
+                    $ele['status'] = !empty($value['status'])?$value['status']:'';
+                    $ele['location'] = !empty($value['location'])?$value['location']:'';
+                    $ele['finish_at_msg'] = !empty($value['finish_at'])?date('Y/m/d H:i',$value['finish_at']):'';
+                    $ele['device_status_msg'] = !empty($value['device_status'])?$device_status[$value['device_status']]:'';
+                    $ele['record_note'] = !empty($value['record_note'])?$value['record_note']:'';
+                    $ele['picture'] = !empty($value['picture'])?$value['picture']:'';           //打卡图片
+                    $ele['imgs'] = !empty($value['imgs'])?explode(',',$value['imgs']):[];       //备注图片
+                    $element['point'][] = $ele;
+                }
+            }
+            return $element;
         }else{
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
