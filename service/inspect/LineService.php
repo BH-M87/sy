@@ -7,6 +7,7 @@ use common\core\PsCommon;
 use common\MyException;
 
 use service\BaseService;
+use service\property_basic\JavaService;
 
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
@@ -139,7 +140,9 @@ class LineService extends BaseService
                         $point .= $val['name'] . ',';
                     }
                     $v['point'] = substr($point, 0, -1);
-                }  
+                }
+                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
+                $v['communityName'] = $community['communityName'];  
             }
         }
         return ['list' => $list, 'totals' => $totals];
@@ -148,24 +151,37 @@ class LineService extends BaseService
     // 删除
     public function del($p, $userInfo = [])
     {
-        if (empty($p['id'])) {
-            throw new MyException('巡检线路id不能为空');
-        }
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            if (is_array($p['id']) && !empty($p['id'])) {
+                foreach ($p['id'] as $k => $v) {
+                    $model = PsInspectLine::findOne($v);
+                    if (empty($model)) {
+                        throw new MyException('巡检线路不存在');
+                    }
 
-        // 查询线路是否有配置巡检点
-        $planPoint = PlanService::planOne('','','','id',$p['id']);
-        if (!empty($planPoint)) {
-            throw new MyException('请先修改对应计划！');
-        }
+                    // 查询线路是否有配置巡检点
+                    $planPoint = PlanService::planOne('','','','id',$v);
+                    if (!empty($planPoint)) {
+                        throw new MyException('请先修改对应计划！');
+                    }
 
-        $r = PsInspectLine::deleteAll(['id' => $p['id']]);
-        if (!empty($r)) {
-            // 删除对于关系
-            PsInspectLinePoint::deleteAll(['lineId' => $p['id']]);
-            return true;
-        }
+                    $r = PsInspectLine::deleteAll(['id' => $v]);
 
-        throw new MyException('删除失败，巡检线路不存在');
+                    if (!empty($r)) { // 删除对于关系
+                        PsInspectLinePoint::deleteAll(['lineId' => $v]);
+                    }
+                }
+
+                $transaction->commit();
+                return true;
+            } else {
+                throw new MyException('巡检线路id不能为空');
+            }
+        } catch (Exception $e) {
+            $transaction->rollBack();
+            return $e->getMessage();
+        }
     }
 
     // 巡检线路 搜索
