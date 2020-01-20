@@ -385,16 +385,16 @@ class PlanService extends BaseService
                                     ->where(['=','r.lineId',$params['line_id']])->asArray()->all();
             if(!empty($pointAll)){
                 $nowTime = time();
-                $insetFields = ['community_id','record_id','point_id','location','lon','lat','point_name','type','create_at'];
+                $insetFields = ['community_id','record_id','point_id','point_location','point_lon','point_lat','point_name','type','create_at'];
                 $insertData = [];
                 foreach($taskAll as $key=>$value){
                     foreach($pointAll as $pk=>$pv){
                         $element['community_id'] = $pv['communityId'];
                         $element['record_id'] = $value['id'];
                         $element['point_id'] = $pv['id'];
-                        $element['location'] = $pv['address'];
-                        $element['lon'] = $pv['lon'];
-                        $element['lat'] = $pv['lat'];
+                        $element['point_location'] = $pv['address'];
+                        $element['point_lon'] = $pv['lon'];
+                        $element['point_lat'] = $pv['lat'];
                         $element['point_name'] = $pv['name'];
                         $element['type'] = $pv['type'];
                         $element['create_at'] = $nowTime;

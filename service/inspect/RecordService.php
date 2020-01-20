@@ -177,7 +177,7 @@ class RecordService extends BaseService {
                 foreach($result['point'] as $key=>$value){
                     $ele['point_name'] = !empty($value['point_name'])?$value['point_name']:'';
                     $ele['status'] = !empty($value['status'])?$value['status']:'';
-                    $ele['location'] = !empty($value['location'])?$value['location']:'';
+                    $ele['point_location'] = !empty($value['point_location'])?$value['point_location']:'';
                     $ele['finish_at_msg'] = !empty($value['finish_at'])?date('Y/m/d H:i',$value['finish_at']):'';
                     $ele['device_status_msg'] = !empty($value['device_status'])?$device_status[$value['device_status']]:'';
                     $ele['record_note'] = !empty($value['record_note'])?$value['record_note']:'';
@@ -191,5 +191,13 @@ class RecordService extends BaseService {
             $resultMsg = array_values($model->errors)[0][0];
             return PsCommon::responseFailed($resultMsg);
         }
+    }
+
+    /*
+     * 任务执行状态变化脚本
+     */
+    public function recordScript(){
+        $fields = [];
+        $modelAll = PsInspectRecord::find()->select();
     }
 }
