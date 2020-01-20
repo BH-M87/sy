@@ -22,26 +22,11 @@ use app\models\PsInspectRecordPoint;
 
 class PointService extends BaseService
 {
-    public static $recordStatus = [
-        "1" => "待巡检",
-        "2" => "巡检中",
-        "3" => "已完成",
-        "4" => "已关闭",
-    ];
+    public static $recordStatus = ["1" => "待巡检", "2" => "巡检中", "3" => "已完成", "4" => "已关闭"];
+    public static $runStatus = ["1" => "逾期", "2" => "旷巡", "3" => "正常"];
+    public static $deviceStatus = ["1" => "正常", "2" => "异常", "0" => "-"];
 
-    public static $runStatus = [
-        "1" => "逾期",
-        "2" => "旷巡",
-        "3" => "正常"
-    ];
-
-    public static $deviceStatus = [
-        "1" => "正常",
-        "2" => "异常",
-        "0" => "-"
-    ];
-
-    /**  物业后台接口 start */
+    // ----------------------------------     后端接口     ------------------------------
 
     //巡检点新增
     public function add($p, $userInfo)
@@ -287,6 +272,105 @@ class PointService extends BaseService
         return $m;
     }
 
+    // ----------------------------------     钉钉端接口     ------------------------------
+
+    // 提交巡检点
+    public function pointAdd($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $trans = \Yii::$app->getDb()->beginTransaction();
+        try {
+            $m = PsInspectRecordPoint::findOne($p['id']);
+            if (empty($m)) {
+                throw new MyException('任务不存在!');
+            }
+
+            if ($m['status'] != 1) {
+                throw new MyException('任务已巡检!');
+            }
+
+            // 得到对应的巡检点信息
+            $point = PsInspectPoint::findOne($m['point_id']);
+            $typeArr = explode(',', $point['type']);
+
+            if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
+                throw new MyException('该任务需扫码,扫码状态不能为空!');
+            }
+
+            if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
+                throw new MyException('该任务需定位,经纬度不能为空!');
+            }
+
+            if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                throw new MyException('该任务需智点,智点状态不能为空!');
+            }
+
+            if (in_array('4', $typeArr) && empty($p['picture'])) {
+                throw new MyException('该任务需拍照,图片不能为空!');
+            }
+
+            $p['status'] = 2;
+            $p['finish_at'] = time();
+
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
+            }
+
+            $type = explode(',', $info['type']);
+            if (in_array('2', $typeArr)) { // 如果需要定位的话判断距离误差
+                $distance = F::getDistance($p['lat'], $p['lon'], $info['point_lat'], $info['point_lon']);
+                if ($distance > \Yii::$app->getModule('property')->params['distance']) {
+                    throw new MyException('当前位置不可巡检！');
+                }
+            }
+
+            $m->scenario = 'edit';  # 设置数据验证场景为 新增
+            $m->load($p, '');   # 加载数据
+            if ($m->validate()) {  # 验证数据
+                if ($m->save()) {  # 保存新增数据
+                    // 更新任务完成数,完成率
+                    $record = PsInspectRecord::findOne($m->record_id);              
+                    $pointInfo = PsInspectPoint::findOne(['id' => $m->point_id]);
+
+                    if ($p['deviceStatus'] == 2) { // 设备异常
+                        PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $m->record_id]);
+                    }
+
+                    $finish_count = $record->finish_count + 1;
+                    $finish_rate = ($finish_count / $record->point_count) * 100;
+                    PsInspectRecord::updateAll(['finish_count' => $finish_count, 'finish_rate' => $finish_rate], ['id' => $m->record_id]);
+                    // 查询是否还有未完成的巡检点,没有则任务是完成状态
+                    $modelInfo = PsInspectRecordPoint::find()
+                        ->where(['record_id' => $m->record_id, 'status' => 1])
+                        ->andWhere(['!=', 'id', $m->id])->one();
+                    if (empty($modelInfo)) {
+                        PsInspectRecord::updateAll(['status' => 3, 'update_at' => time()], ['id' => $m->record_id]);
+                    }
+    
+                    $trans->commit();
+
+                    return $this->success([]);
+                }
+                throw new MyException($model->getErrors());
+            } else {
+                throw new MyException($model->getErrors());
+            }
+        } catch (\Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
+
     public function dingList($p, $type)
     {
         switch ($type) {
@@ -471,86 +555,7 @@ class PointService extends BaseService
         throw new MyException('任务不存在');
     }
 
-    /**  物业后台接口 end */
-
-    /**  钉钉接口 start */
-
-    //巡检点列表
-    public function getList($params)
-    {
-        $page = !empty($params['page']) ? $params['page'] : 1;
-        $rows = !empty($params['rows']) ? $params['rows'] : 5;
-        //列表
-
-        $query = self::pointSearch($params,['point.id', 'comm.name as community_name', 'point.name', 'point.device_name', 'point.need_location', 'point.need_photo', 'point.code_image']);
-
-        $list = $query
-            ->alias('point')
-            ->andwhere(['community_id' => $params['communitys']])
-            ->leftJoin("ps_community comm", "comm.id=point.community_id")
-            ->orderBy('point.id desc')
-            ->offset(($page - 1) * $rows)
-            ->limit($rows)->asArray()->all();
-        return ['list' => $list];
-    }
-
-    //设备列表
-    public function getDeviceList($params)
-    {
-        $arrList = [];
-        //获取分类
-        $resultAll = PsDeviceCategory::find()->select(['id', 'name'])->andWhere(['or', ['=', 'community_id', $params['community_id']], ['=', 'community_id', 0]])->asArray()->all();
-        if (!empty($resultAll)) {
-            foreach ($resultAll as $result) {
-                $deviceAll = PsDevice::find()->alias("device")
-                    ->where(['device.community_id' => $params['community_id'], 'category_id' => $result['id']])
-                    ->select(['id', 'name'])
-                    ->asArray()->all();
-                if (!empty($deviceAll)) {
-                    $arr['category_id'] = $result['id'];
-                    $arr['category_name'] = $result['name'];
-                    //说明需要查询巡检点选择的设备
-                    $deviceList = [];
-                    foreach ($deviceAll as $device) {
-                        $device['is_checked'] = 0;
-                        if (!empty($params['point_id'])) {
-                            $point = PsInspectPoint::find()->where(['id' => $params['point_id']])->asArray()->one();
-                            if (!empty($point) && $point['device_id'] == $device['id']) {
-                                $device['is_checked'] = 1;//说明选择了当前设备
-                            }
-                        }
-                        $deviceList[] = $device;
-                    }
-                    $arr['device_list'] = $deviceList;
-                    $arrList[] = $arr;
-                }
-            }
-            return $arrList;
-        }
-        throw new MyException('设备不存在！');
-    }
-
-    //巡检列表-线路新增页面使用
-    public function getPointList($reqArr)
-    {
-        $query = self::pointSearch(['community_id' => $reqArr['community_id']],'point.id,point.name');
-        $arr = $query->alias('point')->asArray()->all();
-        //说明需要查询线路对应选择的巡检点
-        if (!empty($reqArr['line_id'])) {
-            $sel_point = PsInspectPoint::find()->alias("point")
-                ->where(['community_id' => $reqArr['community_id'], "line_point.line_id" => $reqArr['line_id']])
-                ->select(['point.id', 'point.name'])
-                ->leftJoin("ps_inspect_line_point line_point", "line_point.point_id=point.id")
-                ->asArray()->all();
-        }else{
-            $sel_point = [];
-        }
-        return ['list' => $arr, 'sel_list' => $sel_point];
-    }
-
-    /**  钉钉接口 end */
-
-    /**  公共接口 start */
+    // ----------------------------------     公共接口     ------------------------------
 
     // 列表参数过滤
     private static function pointSearch($p, $filter = '')
@@ -564,8 +569,7 @@ class PointService extends BaseService
         return $m;
     }
 
-
-    //自动验证小区权限
+    // 自动验证小区权限
     public function validaCommunit($params)
     {
         $communitys = $params['communitys'];
@@ -578,5 +582,4 @@ class PointService extends BaseService
         }
         return true;
     }
-    /**  公共接口 end */
 }
