@@ -153,8 +153,9 @@ class PointService extends BaseService
         try {
             if (is_array($p['id']) && !empty($p['id'])) {
                 foreach ($p['id'] as $k => $v) {
-                    if (empty($v)) {
-                        throw new MyException('巡检点id不能为空');
+                    $model = PsInspectPoint::findOne($v);
+                    if (empty($model)) {
+                        throw new MyException('巡检点不存在');
                     }
 
                     if (PsInspectLinePoint::find()->where(['pointId' => $v])->exists()) {
