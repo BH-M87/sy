@@ -7,6 +7,7 @@ use common\core\PsCommon;
 use common\MyException;
 
 use service\BaseService;
+use service\property_basic\JavaService;
 
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
@@ -139,7 +140,9 @@ class LineService extends BaseService
                         $point .= $val['name'] . ',';
                     }
                     $v['point'] = substr($point, 0, -1);
-                }  
+                }
+                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
+                $v['communityName'] = $community['communityName'];  
             }
         }
         return ['list' => $list, 'totals' => $totals];
