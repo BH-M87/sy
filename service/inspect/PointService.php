@@ -64,6 +64,7 @@ class PointService extends BaseService
             if (empty($model)) {
                 throw new MyException('巡检点不存在!');
             }
+            $deviceId = $model->deviceId;
         } else {
             $p['createAt'] = time();
         }
@@ -83,9 +84,11 @@ class PointService extends BaseService
                 throw new MyException('请选择智点名称!');
             }
 
-            $device = PsInspectDevice::findOne($p['deviceId']);
-            if (!$device || !empty($device->communityId)) {
-                throw new MyException('设备不存在!');
+            if ($deviceId != $p['deviceId']) {
+                $device = PsInspectDevice::findOne($p['deviceId']);
+                if (!$device || !empty($device->communityId)) {
+                    throw new MyException('设备不存在!');
+                }
             }
         } else {
             $p['deviceId'] = '0';
@@ -93,7 +96,8 @@ class PointService extends BaseService
 
         $p['type'] = implode(',', $p['type']);
 
-        $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])->one();
+        $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])
+            ->andFilterWhere(['!=', 'id', $p['id']])->one();
         if (!empty($point)) {
             throw new MyException('巡检点已存在!');
         }
@@ -102,6 +106,10 @@ class PointService extends BaseService
         if ($model->save()) { // 保存新增数据
             self::createQrcode($model, $model->id);
             PsInspectDevice::updateAll(['communityId' => $p['communityId']], ['id' => $p['deviceId']]);
+
+            if ($deviceId != $p['deviceId'] && $scenario == 'update') {
+                PsInspectDevice::updateAll(['communityId' => ''], ['id' => $deviceId]);
+            }
             return true;
         } else {
             throw new MyException('操作失败');
@@ -260,7 +268,7 @@ class PointService extends BaseService
         $query = new Query();
         $query->from('ps_inspect_device')->select('id, name')
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
-            ->andfilterWhere(['=', 'communityId', $p['communityId']]);
+            ->andfilterWhere(['<=', 'communityId', 0]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
 
