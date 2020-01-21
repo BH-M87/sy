@@ -109,11 +109,7 @@ class TempTaskForm extends Model  {
                         if(!is_int($value)){
                             return $this->addError($attribute, "执行类型自定义格式错误");
                         }
-                        if($value<1||$value>31){
-                            return $this->addError($attribute, "执行类型自定义格式错误");
-                        }
-                        if($value==32&&mb_strlen($this->exec_type_msg)!=2){
-                            //月最后一天 值唯一
+                        if($value<1||$value>32){
                             return $this->addError($attribute, "执行类型自定义格式错误");
                         }
                     }
