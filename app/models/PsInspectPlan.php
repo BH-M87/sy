@@ -121,6 +121,12 @@ class PsInspectPlan extends BaseModel
             if($this->start_at>$this->end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
             }
+            //时间范围2年内
+            $tempStart = strtotime(date('Y-m-d',$this->start_at)." 23:59:59");
+            $tempTime = strtotime("+2 year", $tempStart);
+            if($this->end_at>$tempTime){
+                return $this->addError($attribute, "有效时间间隔至多两年");
+            }
         }
     }
 

@@ -70,6 +70,11 @@ class TempTaskForm extends Model  {
             if($start_at>$end_at){
                 return $this->addError($attribute, "有效时间结束时间需大于开始时间");
             }
+            //时间范围2年内
+            $tempTime = strtotime("+2 year", $start_at);
+            if($end_at>$tempTime){
+                return $this->addError($attribute, "有效时间间隔至多两年");
+            }
         }
     }
 
