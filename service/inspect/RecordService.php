@@ -271,11 +271,33 @@ class RecordService extends BaseService {
             }
         }
     }
+
     /*
      * 任务执行状态变化脚本
      */
     public function recordScript(){
-        $fields = [];
-        $modelAll = PsInspectRecord::find()->select();
+        set_time_limit(20);
+        $nowTime = time();
+        $fields = ['id','point_count','finish_count'];
+        $modelAll = PsInspectRecord::find()
+                        ->select($fields)
+                        ->where(['=','run_status',3])       //执行状态 正常
+                        ->andWhere(['!=','status',4])       //状态 不等于 已关闭
+                        ->andWhere(['<','check_end_at',$nowTime])   //执行时间已结束
+                        ->asArray()->all();
+        if(!empty($modelAll)){
+            foreach($modelAll as $key=>$value){
+                if($value['finish_count']==0){
+                    //旷巡
+                    $updateParams['run_status'] = 2;
+                }else if($value['finish_count']>0&&$value['point_count']!=$value['finish_count']){
+                    //逾期
+                    $updateParams['run_status'] = 1;
+                }
+                if(!empty($updateParams)){
+                    PsInspectRecord::updateAll($updateParams,['id' => $value['id']]);
+                }
+            }
+        }
     }
 }
