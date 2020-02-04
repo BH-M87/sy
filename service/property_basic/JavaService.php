@@ -122,6 +122,12 @@ class JavaService extends BaseService
         return self::returnCData($query);
     }
 
+    //获取部门下用户
+    public function listUserUnderDept($query){
+        $query['route'] = '/user/listUserUnderDept';
+        return self::returnCData($query);
+    }
+
     /*
      * 房屋详情
      */
