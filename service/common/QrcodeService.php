@@ -90,10 +90,11 @@ Class QrcodeService extends BaseService {
             chmod($savePath . $img_name, 0755);
             $key_name = md5(uniqid(microtime(true), true)) . '.png';
             $new_file = $savePath . $img_name;
+            $imgUrl = UploadService::service()->saveQiniu($key_name, $new_file);
             //return $new_file;
             //图片上传到oss
-            $re = F::uploadToOss($new_file, $key_name);
-            $imgUrl = $re['filepath'];
+            //$re = F::uploadToOss($new_file, $key_name);
+            //$imgUrl = $re['filepath'];
         }
 
         return $imgUrl;
