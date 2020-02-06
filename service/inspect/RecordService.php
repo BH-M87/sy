@@ -36,9 +36,9 @@ class RecordService extends BaseService {
 
     //巡检结果
     public $resultStatus = [
-        ['key'=>1,'name'=>'未完成'],
-        ['key'=>2,'name'=>'异常'],
-        ['key'=>3,'name'=>'正常'],
+        '1'=>['key'=>1,'name'=>'未完成'],
+        '2'=>['key'=>2,'name'=>'异常'],
+        '3'=>['key'=>3,'name'=>'正常'],
     ];
 
     //巡检列表
