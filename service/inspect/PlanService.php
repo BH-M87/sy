@@ -945,8 +945,15 @@ class PlanService extends BaseService
                     break;
                 case 3:
                     if($params['exec_type_msg']){
-                        if(mb_strlen($params['exec_type_msg']==2)){
-                            $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的最后一天";
+                        $tempArr = explode(',',$params['exec_type_msg']);
+                        $tempCount = count($tempArr);
+                        if($tempArr[$tempCount-1]==32){
+                            if($tempCount>1){
+                                array_pop($tempArr);
+                                $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的".implode(",",$tempArr)."号和最后一天";
+                            }else{
+                                $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的最后一天";
+                            }
                         }else{
                             $exec_msg .= "每".$params['exec_interval'].self::$exec_type[$params['exec_type']]."中的".$params['exec_type_msg']."号";
                         }
