@@ -413,7 +413,7 @@ class PointService extends BaseService
 
         $r['totals'] = $query->count();
 
-        $query->select('id, status, run_status, line_id, line_name, point_count, finish_count, check_start_at, check_end_at');
+        $query->select('id, status, run_status, user_id, line_id, line_name, point_count, finish_count, check_start_at, check_end_at');
         $query->orderBy('id desc');
 
         $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
