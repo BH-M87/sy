@@ -535,7 +535,7 @@ class PointService extends BaseService
             // 获取任务下的巡检点
             $pointList = PsInspectRecordPoint::find()
                 ->where(['record_id' => $p['id']])
-                ->select('id, finish_at, device_status, status, point_name, location, point_id, record_note, imgs, type, device_status')
+                ->select('id, finish_at, device_status, picture, status, point_name, location, point_id, record_note, imgs, type, device_status')
                 ->asArray()->all();
 
             if (!empty($pointList)) {
