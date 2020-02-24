@@ -25,6 +25,7 @@ class PointService extends BaseService
     public static $recordStatus = ["1" => "待巡检", "2" => "巡检中", "3" => "已完成", "4" => "已关闭"];
     public static $runStatus = ["1" => "逾期", "2" => "旷巡", "3" => "正常"];
     public static $deviceStatus = ["1" => "正常", "2" => "异常", "0" => "-"];
+    public static $pointType = ["1" => "扫码", "2" => "定位", "3" => "智点", "4" => "拍照"];
 
     // ----------------------------------     后端接口     ------------------------------
 
@@ -544,7 +545,16 @@ class PointService extends BaseService
                     $v['finish_at'] = !empty($v['finish_at']) ? date("Y-m-d H:i", $v['finish_at']) : '';
                     $v['device_status_msg'] = self::$deviceStatus[$v['device_status']];
                     $v['imgs'] = explode(',', $v['imgs']);
-                    $v['type'] = explode(',', $v['type']);
+
+                    $typeArr = explode(',', $v['type']);
+                    $newArr = [];
+                    if ($typeArr) {
+                        foreach ($typeArr as $key => $val) {
+                            $newArr[$key]['id'] = $val;
+                            $newArr[$key]['name'] = self::$pointType[$val];
+                        }
+                    }
+                    $v['type'] = $newArr;
                 }
             }
             $r['pointList'] = $pointList;
