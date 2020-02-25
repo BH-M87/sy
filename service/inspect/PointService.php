@@ -372,6 +372,19 @@ class PointService extends BaseService
         }
     }
 
+    public function pointUpdate()
+    {
+        $m = PsInspectRecordPoint::findOne($p['id']);
+
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        PsInspectRecordPoint::updateAll(['finish_at' => time()], ['id' => $p['id']]);
+
+        return $this->success([]);
+    }
+
     public function dingList($p, $type)
     {
         switch ($type) {
