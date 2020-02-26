@@ -497,7 +497,7 @@ class PointService extends BaseService
         }
         $m['type'] = $newArr;
 
-        return $this->success($m);
+        return $m;
     }
 
     public function dingList($p, $type)
