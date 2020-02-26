@@ -350,14 +350,7 @@ class PointService extends BaseService
                     $finish_count = $record->finish_count + 1;
                     $finish_rate = ($finish_count / $record->point_count) * 100;
                     PsInspectRecord::updateAll(['finish_count' => $finish_count, 'finish_rate' => $finish_rate], ['id' => $m->record_id]);
-                    // 查询是否还有未完成的巡检点,没有则任务是完成状态
-                    $modelInfo = PsInspectRecordPoint::find()
-                        ->where(['record_id' => $m->record_id, 'status' => 1])
-                        ->andWhere(['!=', 'id', $m->id])->one();
-                    if (empty($modelInfo)) {
-                        PsInspectRecord::updateAll(['status' => 3, 'update_at' => time()], ['id' => $m->record_id]);
-                    }
-    
+                    
                     $trans->commit();
 
                     return $this->success([]);
@@ -372,17 +365,113 @@ class PointService extends BaseService
         }
     }
 
-    public function pointUpdate()
+    // 打卡更新
+    public function pointUpdate($p)
     {
-        $m = PsInspectRecordPoint::findOne($p['id']);
-
-        if (empty($m)) {
-            throw new MyException('数据不存在');
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
         }
 
-        PsInspectRecordPoint::updateAll(['finish_at' => time()], ['id' => $p['id']]);
+        $trans = \Yii::$app->getDb()->beginTransaction();
+        try {
+            $m = PsInspectRecordPoint::findOne($p['id']);
+            if (empty($m)) {
+                throw new MyException('任务不存在!');
+            }
 
-        return $this->success([]);
+            if ($m['status'] != 1) {
+                throw new MyException('任务已巡检!');
+            }
+
+            // 得到对应的巡检点信息
+            $point = PsInspectPoint::findOne($m['point_id']);
+            $typeArr = explode(',', $point['type']);
+
+            if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
+                throw new MyException('该任务需扫码,扫码状态不能为空!');
+            }
+
+            if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
+                throw new MyException('该任务需定位,经纬度不能为空!');
+            }
+
+            if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                throw new MyException('该任务需智点,智点状态不能为空!');
+            }
+
+            if (in_array('4', $typeArr) && empty($p['picture'])) {
+                throw new MyException('该任务需拍照,图片不能为空!');
+            }
+
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
+            }
+
+            $type = explode(',', $info['type']);
+            if (in_array('2', $typeArr)) { // 如果需要定位的话判断距离误差
+                $distance = F::getDistance($p['lat'], $p['lon'], $info['point_lat'], $info['point_lon']);
+                if ($distance > \Yii::$app->getModule('property')->params['distance']) {
+                    throw new MyException('当前位置不可巡检！');
+                }
+            }
+
+            $device_status = $m['device_status'];
+
+            $m->scenario = 'edit';  # 设置数据验证场景为 新增
+            $m->load($p, '');   # 加载数据
+            if ($m->validate()) {  # 验证数据
+                if ($m->save()) {  # 保存新增数据
+                    // 更新任务完成数,完成率
+                    $record = PsInspectRecord::findOne($m->record_id);              
+
+                    if ($p['deviceStatus'] == 2 && $device_status == 1) { // 设备异常 原来正常
+                        PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $m->record_id]);
+                    }
+
+                    if ($p['deviceStatus'] == 1 && $device_status == 2) { // 设备正常 原来异常
+                        PsInspectRecord::updateAll(['issue_count' => $record->issue_count - 1], ['id' => $m->record_id]);
+                    }
+                    
+                    $trans->commit();
+
+                    return $this->success([]);
+                }
+                throw new MyException($model->getErrors());
+            } else {
+                throw new MyException($model->getErrors());
+            }
+        } catch (\Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
+
+    // 标记完成
+    public function pointFinish($p)
+    {
+        $m = PsInspectRecord::findOne($p['id']);
+        if (empty($m)) {
+            throw new MyException('任务不存在!');
+        }
+
+        // 查询是否还有未完成的巡检点,没有则任务是完成状态
+        $m = PsInspectRecordPoint::find()
+            ->where(['record_id' => $p['id'], 'status' => 1])
+            ->one();
+        if (empty($m)) {
+            PsInspectRecord::updateAll(['status' => 3, 'update_at' => time()], ['id' => $p['id']]);
+
+            return $this->success([]);
+        } else {
+            throw new MyException('还有未打卡的巡检点!');
+        }
     }
 
     public function dingList($p, $type)

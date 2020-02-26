@@ -40,5 +40,13 @@ class InspectController extends UserBaseController
 
         return PsCommon::responseSuccess($r['data']);
     }
+
+    // 标记完成
+    public function actionPointFinish()
+    {
+        $r = PointService::service()->pointFinish($this->request_params);
+
+        return PsCommon::responseSuccess($r['data']);
+    }
 }
 
