@@ -474,6 +474,33 @@ class PointService extends BaseService
         }
     }
 
+    // 巡检点详情
+    public function pointShow($p)
+    {
+        $m = PsInspectRecordPoint::find()
+            ->where(['id' => $p['id']])->asArray()->one();
+
+        if (empty($m)) {
+            throw new MyException('数据不存在!');
+        }
+
+        $m['device_status_msg'] = $self::$deviceStatus[$v['device_status']];
+        $m['imgs'] = !empty($m['imgs']) ? explode(',', $m['imgs']) : [];
+        $m['status_msg'] = ;
+
+        $typeArr = explode(',', $m['type']);
+        $newArr = [];
+        if ($typeArr) {
+            foreach ($typeArr as $key => $val) {
+                $newArr[$key]['id'] = $val;
+                $newArr[$key]['name'] = self::$pointType[$val];
+            }
+        }
+        $m['type'] = $newArr;
+
+        return $this->success($m);
+    }
+
     public function dingList($p, $type)
     {
         switch ($type) {
