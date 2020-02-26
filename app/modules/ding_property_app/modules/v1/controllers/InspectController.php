@@ -54,7 +54,7 @@ class InspectController extends UserBaseController
     {
         $r = PointService::service()->pointShow($this->request_params);
 
-        return PsCommon::responseSuccess($r['data']);
+        return PsCommon::responseSuccess($r);
     }
 }
 
