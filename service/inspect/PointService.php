@@ -484,7 +484,7 @@ class PointService extends BaseService
             throw new MyException('数据不存在!');
         }
 
-        $m['device_status_msg'] = $self::$deviceStatus[$v['device_status']];
+        $m['device_status_msg'] = self::$deviceStatus[$v['device_status']];
         $m['imgs'] = !empty($m['imgs']) ? explode(',', $m['imgs']) : [];
 
         $typeArr = explode(',', $m['type']);
