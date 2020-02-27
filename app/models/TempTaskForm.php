@@ -90,6 +90,9 @@ class TempTaskForm extends Model  {
                     }
                     break;
                 case 2:     //周
+                    if(empty($this->exec_type_msg)){
+                        return $this->addError($attribute, "请选择执行间隔时间");
+                    }
                     $temp = explode(",",$this->exec_type_msg);
                     if(empty($temp)){
                         return $this->addError($attribute, "请选择执行间隔时间");
@@ -105,6 +108,9 @@ class TempTaskForm extends Model  {
                     }
                     break;
                 case 3:     //月  32 默认最后一天
+                    if(empty($this->exec_type_msg)){
+                        return $this->addError($attribute, "请选择执行间隔时间");
+                    }
                     $temp = explode(",",$this->exec_type_msg);
                     if(empty($temp)){
                         return $this->addError($attribute, "请选择执行间隔时间");
