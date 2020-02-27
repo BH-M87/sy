@@ -86,42 +86,42 @@ class TempTaskForm extends Model  {
             switch($this->exec_type){
                 case 1:     //天
                     if(!empty($this->exec_type_msg)){
-                        return $this->addError($attribute, "执行类型自定义为空");
+                        return $this->addError($attribute, "执行间隔时间为空");
                     }
                     break;
                 case 2:     //周
                     $temp = explode(",",$this->exec_type_msg);
                     if(empty($temp)){
-                        return $this->addError($attribute, "执行类型自定义格式错误");
+                        return $this->addError($attribute, "请选择执行间隔时间");
                     }
                     foreach($temp as $value){
                         $value = intval($value);
                         if(!is_int($value)){
-                            return $this->addError($attribute, "执行类型自定义格式错误");
+                            return $this->addError($attribute, "执行间隔时间格式错误");
                         }
                         if($value<1||$value>7){
-                            return $this->addError($attribute, "执行类型自定义格式错误");
+                            return $this->addError($attribute, "执行间隔时间格式错误");
                         }
                     }
                     break;
                 case 3:     //月  32 默认最后一天
                     $temp = explode(",",$this->exec_type_msg);
                     if(empty($temp)){
-                        return $this->addError($attribute, "执行类型自定义格式错误");
+                        return $this->addError($attribute, "请选择执行间隔时间");
                     }
                     foreach($temp as $value){
                         $value = intval($value);
                         if(!is_int($value)){
-                            return $this->addError($attribute, "执行类型自定义格式错误");
+                            return $this->addError($attribute, "执行间隔时间格式错误");
                         }
                         if($value<1||$value>32){
-                            return $this->addError($attribute, "执行类型自定义格式错误");
+                            return $this->addError($attribute, "执行间隔时间格式错误");
                         }
                     }
                     break;
                 case 4:     //年
                     if(!empty($this->exec_type_msg)){
-                        return $this->addError($attribute, "执行类型自定义为空");
+                        return $this->addError($attribute, "执行间隔时间为空");
                     }
                     break;
             }
