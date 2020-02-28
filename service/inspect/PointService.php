@@ -552,7 +552,7 @@ class PointService extends BaseService
 
         $m = $query->createCommand()->queryAll();
         foreach ($m as $k => &$v) {
-            $v['status_msg'] = $v['status'] == 1 ? '代巡检' : '巡检中';
+            $v['status_msg'] = $v['status'] == 1 ? '待巡检' : '巡检中';
 
             if ($v['run_status'] == 1) {
                 $v['run_status_msg'] = '逾期';
