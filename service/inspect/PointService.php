@@ -315,6 +315,7 @@ class PointService extends BaseService
 
             $p['status'] = 2;
             $p['finish_at'] = time();
+            $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
 
             $info = PsInspectRecordPoint::find()->alias("A")
                 ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
@@ -402,6 +403,8 @@ class PointService extends BaseService
             if (in_array('4', $typeArr) && empty($p['picture'])) {
                 throw new MyException('该任务需拍照,图片不能为空!');
             }
+
+            $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
 
             $info = PsInspectRecordPoint::find()->alias("A")
                 ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
