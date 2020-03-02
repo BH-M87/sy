@@ -354,6 +354,8 @@ class PointService extends BaseService
                         PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $m->record_id]);
                     }
 
+                    PsInspectRecord::updateAll(['status' => 2, 'update_at' => time()], ['id' => $m->record_id]);
+
                     $finish_count = $record->finish_count + 1;
                     $finish_rate = ($finish_count / $record->point_count) * 100;
                     PsInspectRecord::updateAll(['finish_count' => $finish_count, 'finish_rate' => $finish_rate], ['id' => $m->record_id]);
