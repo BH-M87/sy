@@ -297,20 +297,26 @@ class PointService extends BaseService
             $point = PsInspectPoint::findOne($m['point_id']);
             $typeArr = explode(',', $point['type']);
 
-            if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
-                throw new MyException('该任务需扫码,扫码状态不能为空!');
+            if ($p['device_status'] == 1) { // 正常时需要判断 异常时可以不填
+                if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
+                    throw new MyException('该任务需扫码,扫码状态不能为空!');
+                }
+
+                if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
+                    throw new MyException('该任务需定位,经纬度不能为空!');
+                }
+
+                if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                    throw new MyException('该任务需智点,智点状态不能为空!');
+                }
+
+                if (in_array('4', $typeArr) && empty($p['picture'])) {
+                    throw new MyException('该任务需拍照,图片不能为空!');
+                }
             }
 
-            if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
-                throw new MyException('该任务需定位,经纬度不能为空!');
-            }
-
-            if (in_array('3', $typeArr) && empty($p['device_status'])) {
-                throw new MyException('该任务需智点,智点状态不能为空!');
-            }
-
-            if (in_array('4', $typeArr) && empty($p['picture'])) {
-                throw new MyException('该任务需拍照,图片不能为空!');
+            if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
+                throw new MyException('巡检记录必填!');
             }
 
             $p['status'] = 2;
@@ -356,9 +362,9 @@ class PointService extends BaseService
 
                     return $this->success([]);
                 }
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             } else {
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             }
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -388,20 +394,26 @@ class PointService extends BaseService
             $point = PsInspectPoint::findOne($m['point_id']);
             $typeArr = explode(',', $point['type']);
 
-            if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
-                throw new MyException('该任务需扫码,扫码状态不能为空!');
+            if ($p['device_status'] == 1) { // 正常时需要判断 异常时可以不填
+                if (in_array('1', $typeArr) && empty($p['sweepStatus'])) {
+                    throw new MyException('该任务需扫码,扫码状态不能为空!');
+                }
+
+                if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
+                    throw new MyException('该任务需定位,经纬度不能为空!');
+                }
+
+                if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                    throw new MyException('该任务需智点,智点状态不能为空!');
+                }
+
+                if (in_array('4', $typeArr) && empty($p['picture'])) {
+                    throw new MyException('该任务需拍照,图片不能为空!');
+                }
             }
 
-            if (in_array('2', $typeArr) && (empty($p['lat']) || empty($p['lon']) || empty($p['location']))) {
-                throw new MyException('该任务需定位,经纬度不能为空!');
-            }
-
-            if (in_array('3', $typeArr) && empty($p['device_status'])) {
-                throw new MyException('该任务需智点,智点状态不能为空!');
-            }
-
-            if (in_array('4', $typeArr) && empty($p['picture'])) {
-                throw new MyException('该任务需拍照,图片不能为空!');
+            if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
+                throw new MyException('巡检记录必填!');
             }
 
             $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
@@ -446,9 +458,9 @@ class PointService extends BaseService
 
                     return $this->success([]);
                 }
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             } else {
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             }
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -537,7 +549,8 @@ class PointService extends BaseService
         $query = new Query();
         $query->from('ps_inspect_record')->where("1=1")
             ->andfilterWhere(['user_id' => $p['user_id']])
-            ->andfilterWhere(['status' => [1,2]])
+            ->andfilterWhere(['community_id' => $p['communityId']])
+            ->andfilterWhere(['status' => [1,2,3]])
             ->andfilterWhere(['and', 
                 ['>=', 'check_start_at', $start], 
                 ['<', 'check_end_at', $end]
@@ -552,7 +565,7 @@ class PointService extends BaseService
 
         $m = $query->createCommand()->queryAll();
         foreach ($m as $k => &$v) {
-            $v['status_msg'] = $v['status'] == 1 ? '待巡检' : '巡检中';
+            $v['status_msg'] = self::$recordStatus[$v['status']];
 
             if ($v['run_status'] == 1) {
                 $v['run_status_msg'] = '逾期';
