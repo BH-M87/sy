@@ -289,7 +289,7 @@ class PointService extends BaseService
                 throw new MyException('任务不存在!');
             }
 
-            if ($m['status'] != 1) {
+            if ($m['status'] == 3) {
                 throw new MyException('任务已巡检!');
             }
 
@@ -386,7 +386,7 @@ class PointService extends BaseService
                 throw new MyException('任务不存在!');
             }
 
-            if ($m['status'] != 1) {
+            if ($m['status'] == 3) {
                 throw new MyException('任务已巡检!');
             }
 
