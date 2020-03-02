@@ -408,6 +408,10 @@ class PointService extends BaseService
                 throw new MyException('该任务需拍照,图片不能为空!');
             }
 
+            if ($p['device_status'] == 2 && empty($p['record_note'])) {
+                throw new MyException('巡检记录必填!');
+            }
+
             $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
 
             $info = PsInspectRecordPoint::find()->alias("A")
