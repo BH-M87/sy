@@ -27,6 +27,7 @@ class LineService extends BaseService
     // 编辑
     public function edit($p, $userInfo = [])
     {
+        $p['img'] = !empty($p['img']) ? $p['img'] : '';
         self::checkCommon($p, $userInfo, 'update');
     }
 
