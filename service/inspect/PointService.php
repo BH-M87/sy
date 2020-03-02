@@ -588,6 +588,10 @@ class PointService extends BaseService
             $v['img'] = PsInspectLine::findOne($v['line_id'])->img;
 
             $v['check_at'] = date('Y/m/d H:i', $v['check_start_at']) . '-' . date('H:i', $v['check_end_at']);
+
+            if ($v['status'] == 3) {
+                $r['totals'] = $r['totals'] - 1;
+            }
         }
 
         $r['list'] = $m;
