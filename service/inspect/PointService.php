@@ -356,9 +356,9 @@ class PointService extends BaseService
 
                     return $this->success([]);
                 }
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             } else {
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             }
         } catch (\Exception $e) {
             $trans->rollBack();
@@ -446,9 +446,9 @@ class PointService extends BaseService
 
                     return $this->success([]);
                 }
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             } else {
-                throw new MyException($model->getErrors());
+                throw new MyException($m->getErrors());
             }
         } catch (\Exception $e) {
             $trans->rollBack();
