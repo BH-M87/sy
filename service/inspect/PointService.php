@@ -313,6 +313,10 @@ class PointService extends BaseService
                 throw new MyException('该任务需拍照,图片不能为空!');
             }
 
+            if ($p['device_status'] == 2 && empty($p['record_note'])) {
+                throw new MyException('巡检记录必填!');
+            }
+
             $p['status'] = 2;
             $p['finish_at'] = time();
             $p['imgs'] = !empty($p['imgs']) ? implode(',', $p['imgs']) : '';

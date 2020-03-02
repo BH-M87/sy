@@ -20,7 +20,7 @@ class PsInspectRecordPoint extends BaseModel
             [['imgs'], 'string', 'max' => 500],
             [['record_note', 'picture'], 'string', 'max' => 255],
             // 钉钉端的编辑
-            [['id', 'device_status', 'record_note', 'status'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
+            [['id', 'device_status', 'status'], 'required','message' => '{attribute}不能为空!', 'on' => ['edit']],
         ];
     }
 
