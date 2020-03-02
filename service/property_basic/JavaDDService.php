@@ -17,7 +17,7 @@ class JavaDDService extends BaseService
     /*
      * B 端调用
      */
-    public function returnCData($query)
+    public function returnBData($query)
     {
         $result = JavaDDCurl::getInstance()->pullHandler($query);
         return $result;
@@ -28,6 +28,6 @@ class JavaDDService extends BaseService
     public function getCompanyToken($query)
     {
         $query['route'] = '/dd/access-token';
-        return self::returnCData($query);
+        return self::returnBData($query);
     }
 }
