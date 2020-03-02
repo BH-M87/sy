@@ -483,7 +483,15 @@ class PointService extends BaseService
             ->where(['record_id' => $p['id'], 'status' => 1])
             ->one();
         if (empty($m)) {
-            PsInspectRecord::updateAll(['status' => 3, 'update_at' => time()], ['id' => $p['id']]);
+            $record = PsInspectRecord::findOne($p['id']);
+
+            if ($record->issue_count == 0) {
+                $result_status = 3;
+            } else {
+                $result_status = 2;
+            }
+
+            PsInspectRecord::updateAll(['status' => 3, 'result_status' => $result_status, 'update_at' => time()], ['id' => $p['id']]);
 
             return $this->success([]);
         } else {
@@ -561,7 +569,7 @@ class PointService extends BaseService
         $r['totals'] = $query->count();
 
         $query->select('id, status, task_name, run_status, user_id, line_id, line_name, point_count, finish_count, check_start_at, check_end_at');
-        $query->orderBy('id desc');
+        $query->orderBy('status desc, id desc');
 
         $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
 
