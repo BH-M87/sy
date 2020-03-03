@@ -42,10 +42,9 @@ class InspectionEquipmentService extends BaseService {
         $req->setBizId($this->bizId);
         $req->setEndTime("1606752000");
         $req->setActive("true");
-//        print_r($req);
 
         $resp = $c->execute($req, $access_token);
-        print_r($resp);die;
+        print_r($req);die;
 
         return $resp->biz_inst_id;
         die;
