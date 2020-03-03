@@ -10,6 +10,7 @@ namespace app\modules\ding_property_app\services;
 
 use app\modules\ding_property_app\company_jdk\util\Http;
 use app\modules\ding_property_app\company_jdk\util\Log;
+use service\property_basic\JavaService;
 use Yii;
 
 require_once dirname(__DIR__) .'../../../common/ddsdk/TopSdk.php';
@@ -42,7 +43,9 @@ class TestService
     //获得授权access_token
     public function getAccessToken()
     {
-
+        $service = new JavaService();
+        $result = $service->getDdToken();
+        print_r($result);
 //        $http = new Http();
 //        $response = $http->get("/gettoken",
 //            [

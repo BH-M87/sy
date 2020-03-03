@@ -260,4 +260,11 @@ class JavaService extends BaseService
         $query['route'] = '/message/insert';
         return self::returnCData($query);
     }
+
+    // 获取公司钉钉token
+    public function getDdToken($query)
+    {
+        $query['route'] = '/user/dd-access-token';
+        return self::returnCData($query);
+    }
 }
