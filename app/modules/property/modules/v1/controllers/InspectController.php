@@ -86,10 +86,10 @@ class InspectController extends BaseController
         return PsCommon::responseSuccess($result);
     }
 
-    // 下载二维码
+    // 导出二维码图片
     public function actionDownloadCode()
     {
-        $result = PointService::service()->downloadCode($this->request_params, $this->systemType);
+        $result = PointService::service()->downloadCode($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 

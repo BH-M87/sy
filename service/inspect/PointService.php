@@ -12,6 +12,7 @@ use common\core\PsCommon;
 use service\BaseService;
 use service\property_basic\JavaService;
 use service\common\QrcodeService;
+use service\common\ExcelService;
 
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
@@ -204,30 +205,38 @@ class PointService extends BaseService
         return array_values($m);
     }
 
-    //下载二维码
-    public function downloadCode($params, $systemType)
+    // 导出二维码图片
+    public function downloadCode($p)
     {
-        $data = $this->view($params);
+        if (!empty($p['id']) && is_array($p['id'])) {
+            $time = time();
+            $savePath = Yii::$app->basePath . '/web/store/zip/inspect/' . $time . '/';
+            foreach ($p['id'] as $id) {
+                $m = PsInspectPoint::findOne($id);
+                if (empty($m->codeImg)) {
+                    return PsCommon::responseFailed("二维码不存在！");
+                }
 
-        if (empty($data['data']['code_image'])) {
-            return PsCommon::responseFailed("二维码不存在！");
+                $img_name = $m->name . '.png';
+
+                if (!file_exists($savePath . $img_name)) { // 文件不存在，去七牛下载
+                    F::curlImage($m->codeImg, $savePath, $img_name);
+                }
+
+                if (!file_exists($savePath . $img_name)) { // 下载未成功
+                    return PsCommon::responseFailed('二维码不存在');
+                }
+            }
+
+            $path = $savePath . 'qrcode.zip';
+            ExcelService::service()->addZip($savePath, $path);
+
+            $downUrl = F::downloadUrl('inspect/'.$time.'/qrcode.zip', 'zip');
+
+            return ['down_url' => $downUrl];
+        } else {
+            return PsCommon::responseFailed("巡检点id必须是数组格式！");
         }
-
-        $savePath = F::imagePath('inspect'); // 图片保存的位置
-        $img_name = $data['data']['id'] . '.png';
-        $fileName = $data['data']['name'] . '.png';
-
-        if (!file_exists($savePath . $img_name)) { // 文件不存在，去七牛下载
-            F::curlImage($data['data']['code_image'], F::imagePath('inspect'), $img_name);
-        }
-
-        if (!file_exists($savePath . $img_name)) { // 下载未成功
-            return PsCommon::responseFailed('二维码不存在');
-        }
-
-        $downUrl = F::downloadUrl($systemType, 'inspect/' . $img_name, 'qrcode', $fileName);
-
-        return ['down_url' => $downUrl];
     }
 
     // 设备列表
