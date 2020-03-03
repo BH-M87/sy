@@ -38,6 +38,7 @@ class PsInspectPlanTime extends BaseModel
             [['start','end'],'string','max'=>10],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['start','end'],'planTimeVerification','on'=>'add'],
+            [['plan_id','start','end'],'onlyVerification','on'=>'add'],
             [['create_at'], 'default', 'value' => time(),'on'=>'add'],
         ];
     }
@@ -58,8 +59,18 @@ class PsInspectPlanTime extends BaseModel
 
     public function planTimeVerification($attribute){
         if(!empty($this->start)&&!empty($this->end)){
-            if($this->start>$this->end){
+            if($this->start>=$this->end){
                 return $this->addError($attribute, "执行结束时间需大于执行开始时间");
+            }
+        }
+    }
+
+    //验证数据唯一
+    public function onlyVerification($attribute){
+        if(!empty($this->plan_id)&&!empty($this->start)&&!empty($this->end)){
+            $res = self::find()->select(['id'])->where('plan_id=:plan_id and start=:start and end=:end',[':end'=>$this->end,':start'=>$this->start,':plan_id'=>$this->plan_id])->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "执行时间唯一");
             }
         }
     }
