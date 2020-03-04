@@ -142,7 +142,7 @@ class InspectionEquipmentService extends BaseService {
         $req->setBizInstId($params['biz_inst_id']);
         $req->setType("100");
         $req->setCursor($params['cursor']);
-        $req->setSize("1");
+        $req->setSize("20");
         $resp = $c->execute($req, $params['access_token']);
         return $resp;
 //        if ($resp->errcode == 0) {
