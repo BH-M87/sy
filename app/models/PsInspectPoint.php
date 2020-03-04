@@ -11,7 +11,7 @@ class PsInspectPoint extends BaseModel
     public function rules()
     {
         return [
-            [['deviceId', 'createAt'], 'integer'],
+            [['createAt'], 'integer'],
             [['lon', 'lat'], 'number'],
             [['communityId', 'name', 'deviceId', 'id'], 'required', 'message' => '{attribute}不能为空!'],
             [['name', 'location'], 'string', 'max' => 50, 'tooLong' => '{attribute}长度不能超过50个字'],

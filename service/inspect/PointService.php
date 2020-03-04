@@ -73,13 +73,18 @@ class PointService extends BaseService
             }
 
             if ($deviceId != $p['deviceId']) {
-                $device = PsInspectDevice::findOne($p['deviceId']);
-                if (!$device || !empty($device->communityId)) {
+                $device = PsInspectDevice::find()->where(['deviceNo' => $p['deviceId']])->one();
+                if (empty($device)) {
                     throw new MyException('设备不存在!');
+                }
+
+                $inspectPoint = PsInspectPoint::find()->where(['deviceId' => $p['deviceId']])->one();
+                if (!empty($inspectPoint)) {
+                    throw new MyException('设备已经被绑定!');
                 }
             }
         } else {
-            $p['deviceId'] = '0';
+            $p['deviceId'] = '';
         }
 
         $p['type'] = implode(',', $p['type']);
@@ -93,11 +98,11 @@ class PointService extends BaseService
         $model->setAttributes($p, false);
         if ($model->save()) { // 保存新增数据
             self::createQrcode($model, $model->id);
-            PsInspectDevice::updateAll(['communityId' => $p['communityId']], ['id' => $p['deviceId']]);
+            /*PsInspectDevice::updateAll(['communityId' => $p['communityId']], ['id' => $p['deviceId']]);
 
             if ($deviceId != $p['deviceId'] && $scenario == 'update') {
                 PsInspectDevice::updateAll(['communityId' => ''], ['id' => $deviceId]);
-            }
+            }*/
             return true;
         } else {
             throw new MyException('操作失败');
@@ -243,14 +248,16 @@ class PointService extends BaseService
     public function listDevice($p)
     {
         $query = new Query();
-        $query->from('ps_inspect_device')
-            ->andfilterWhere(['communityId' => $p['communityId']])
-            ->andfilterWhere(['like', 'name', $p['name']])
-            ->andfilterWhere(['like', 'deviceNo', $p['deviceNo']]);
+        $query->from('ps_inspect_device A')
+            ->leftJoin('ps_inspect_point B', 'A.deviceNo = B.deviceId')
+            ->select('A.id, A.companyId, A.name, A.deviceType, A.deviceNo, B.communityId, B.name as point')
+            ->andfilterWhere(['B.communityId' => $p['communityId']])
+            ->andfilterWhere(['like', 'A.name', $p['name']])
+            ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
 
         $r['totals'] = $query->count();
 
-        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('id desc')->createCommand()->queryAll();
+        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->createCommand()->queryAll();
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
@@ -259,8 +266,8 @@ class PointService extends BaseService
                     $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                     $v['communityName'] = $community['communityName'];
                 }
-                $point = PsInspectPoint::find()->select('name')->where(['=', 'deviceId', $v['id']])->scalar();
-                $v['point'] = $point['name'] ?? '';
+                $v['point'] = $v['point'] ?? '';
+                $v['communityId'] = $v['communityId'] ?? '';
             }
         }
         
@@ -272,10 +279,13 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
+        $deviceId = PsInspectPoint::find()->select('deviceId')->where(['>', 'deviceId', '0'])->asArray()->all();
+        $arr = array_column($deviceId, 'deviceId');
+
         $query = new Query();
-        $query->from('ps_inspect_device')->select('id, name')
+        $query->from('ps_inspect_device')->select('deviceNo as id, name')
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
-            ->andfilterWhere(['<=', 'communityId', 0]);
+            ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
 
