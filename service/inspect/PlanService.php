@@ -106,6 +106,12 @@ class PlanService extends BaseService
             $params['start_at'] = strtotime($start_at);
             $params['end_at'] = strtotime($end_at." 23:59:59");
 
+            //判断是否使用智点设备
+            $pointB1 = self::getPointB1List($params);
+            if(!empty($pointB1)){
+                $params['b1_sync'] = 2;
+            }
+
             if ($model->load($params, '') && $model->validate()) {
                 $user_list = explode(',',$params['user_list']);
                 //调用java接口 验证用户是否存在
@@ -189,6 +195,12 @@ class PlanService extends BaseService
             }
             $params['start_at'] = strtotime($start_at);
             $params['end_at'] = strtotime($end_at." 23:59:59");
+
+            //判断是否使用智点设备
+            $pointB1 = self::getPointB1List($params);
+            if(!empty($pointB1)){
+                $params['b1_sync'] = 2;
+            }
 
             if ($model->load($params, '') && $model->validate()) {
 
@@ -404,6 +416,23 @@ class PlanService extends BaseService
                 Yii::$app->db->createCommand()->batchInsert('ps_inspect_record_point',$insetFields,$insertData)->execute();
             }
         }
+    }
+
+    /*
+     * 返回b1设备列表
+     */
+    public function getPointB1List($params){
+        $fields = ['p.*'];
+        $pointAll = PsInspectPoint::find()->alias('p')->select($fields)
+            ->leftJoin(['r'=>PsInspectLinePoint::tableName()],"p.id=r.pointId")
+            ->where(['=','r.lineId',$params['line_id']])->andWhere(['!=','p.deviceNo',''])->asArray()->all();
+        $data = [];
+        foreach($pointAll as $key=>$value){
+            $element['position_id'] = $value['deviceNo'];
+            $element['position_type'] = 100;
+            $data[] = $element;
+        }
+        return $data;
     }
 
     /*

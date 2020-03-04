@@ -56,7 +56,7 @@ class InspectionEquipmentController extends BaseController{
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
-            $result = $service->instancePosition($params);
+            $result = $service->instanceAddPosition($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());

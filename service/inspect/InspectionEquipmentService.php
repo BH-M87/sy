@@ -87,6 +87,43 @@ class InspectionEquipmentService extends BaseService {
         }
     }
 
+    /*
+     * 默认生成实例实例组
+     * input start_time end_time task_id Authorization
+     *
+     */
+    public function addTaskInstance($params){
+
+        $access_token = $this->getDdAccessToken($params);
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceCreateRequest;
+        $req->setStartTime($params['start_time']);
+        $req->setOuterId($params['task_id']);
+        $req->setBizId($this->bizId);
+        $req->setEndTime($params['end_time']);
+        $req->setActive("true");
+        $resp = $c->execute($req, $access_token);
+        if($resp->errcode == 0){
+            //生成组
+            $group = new \DingTalkClient("", "", "json");
+            $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
+            $group_param = new \PunchGroupCreateParam;
+            $group_param->biz_inst_id = $resp->biz_inst_id;
+            $group_param->biz_id = $this->bizId;
+            $reqGroup->setGroupParam(json_encode($group_param));
+            $groupResult = $group->execute($reqGroup, $access_token);
+            if($groupResult->errcode == 0){
+                $data['biz_inst_id'] = $resp->biz_inst_id;
+                $data['punch_group_id'] = $groupResult->punch_group_id;
+                return $data;
+            }else{
+                return PsCommon::responseFailed($groupResult->errmsg);
+            }
+        }else{
+            return PsCommon::responseFailed($resp->errmsg);
+        }
+    }
+
     //同步b1设备
     public function synchronizeB1($params){
         //获得实例
@@ -145,13 +182,11 @@ class InspectionEquipmentService extends BaseService {
         $req->setSize("20");
         $resp = $c->execute($req, $params['access_token']);
         return $resp;
-//        if ($resp->errcode == 0) {
-//            if($resp->result->next_cursor){
-//                //有分页
-//            }
-//            //                print_r($resp->result->list->position_vo);
-//        }
     }
+
+    //设置任务实例巡检点
+
+
 
 
     //创建业务实例，比如公司会议、年会、巡查任务等等 返回实例id
@@ -213,6 +248,46 @@ class InspectionEquipmentService extends BaseService {
 //            return $resp->result->list->position_vo;
             print_r($resp->result->list->position_vo);
         }
+        die;
+    }
+
+    //更新打卡组绑定的位置 位置包括 硬件设备、GPS、Wifi等位置描述类型
+    public function instanceAddPosition($params)
+    {
+        $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
+        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
+        $access_token = $this->getDdAccessToken($params);
+
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
+        $sync_param = new \PunchGroupSyncPositionParam;
+
+//        $add_position_list = new \PunchGroupPositionParam;
+//        $add_position_list->position_id = $position_id;
+//        $add_position_list->position_type = "100";
+        $add_position_list = [
+            [
+                'position_id'=>'1089886057',
+                'position_type'=>100,
+            ],
+            [
+                'position_id'=>'2116665250',
+                'position_type'=>100,
+            ],
+        ];
+
+        $sync_param->add_position_list = $add_position_list;
+        $sync_param->punch_group_id = $punch_group_id;
+//        $delete_position_list = new \PunchGroupPositionParam;
+//        $delete_position_list->position_id=$position_id;
+//        $delete_position_list->position_type="100";
+//        $sync_param->DeletePositionList = $delete_position_list;
+        $sync_param->biz_inst_id = $biz_inst_id;
+        $req->setSyncParam(json_encode($sync_param));
+        $resp = $c->execute($req, $access_token);
+
+        print_r($resp);
         die;
     }
 

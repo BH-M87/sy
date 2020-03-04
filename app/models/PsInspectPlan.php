@@ -42,7 +42,7 @@ class PsInspectPlan extends BaseModel
             [['id','community_id'], 'required','on'=>['detail','editStatus','copy']],
             [['id','community_id'],'infoData','on'=>["detail",'editStatus','copy']],
             [['community_id','name'],'nameUnique','on'=>['add','tempAdd']],   //计划名称唯一
-            [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type'], 'integer'],
+            [['id', 'start_at','end_at','line_id', 'exec_type', 'exec_interval', 'error_minute', 'status','create_at','update_at','type','b1_sync'], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
@@ -54,7 +54,7 @@ class PsInspectPlan extends BaseModel
             [['community_id','operator_id'],'string','max'=>30],
             ['status', 'default', 'value' => 1],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add','tempAdd']],
-            [['status'], 'default', 'value' => 1,'on'=>['add','tempAdd']],
+            [['status','b1_sync'], 'default', 'value' => 1,'on'=>['add','tempAdd']],
             [['line_id','community_id'],'lineExist',"on"=>['add','tempAdd']],
         ];
     }
@@ -82,6 +82,7 @@ class PsInspectPlan extends BaseModel
             'operator_id'   => '创建人id',
             'create_at'     => '创建时间',
             'update_at'     => '修改时间',
+            'b1_sync'       => '是否同步b1设备',
         ];
     }
 
