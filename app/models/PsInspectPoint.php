@@ -13,7 +13,7 @@ class PsInspectPoint extends BaseModel
         return [
             [['createAt'], 'integer'],
             [['lon', 'lat'], 'number'],
-            [['communityId', 'name', 'deviceId', 'id'], 'required', 'message' => '{attribute}不能为空!'],
+            [['communityId', 'name', 'deviceNo', 'id'], 'required', 'message' => '{attribute}不能为空!'],
             [['name', 'location'], 'string', 'max' => 50, 'tooLong' => '{attribute}长度不能超过50个字'],
             [['codeImg'], 'string', 'max' => 255],
         ];
@@ -26,7 +26,7 @@ class PsInspectPoint extends BaseModel
             'communityId' => '小区Id',
             'name' => '巡检点名称',
             'address' => '巡检点位置',
-            'deviceId' => '设备id',
+            'deviceNo' => '设备编号',
             'type' => '打卡方式',
             'lon' => '经度',
             'lat' => '纬度',
