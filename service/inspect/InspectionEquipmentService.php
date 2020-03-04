@@ -185,7 +185,56 @@ class InspectionEquipmentService extends BaseService {
     }
 
     //设置任务实例巡检点
+    public function taskInstanceAddPosition($params){
+        $biz_inst_id = $params['biz_inst_id'];
+        $punch_group_id = $params['punch_group_id'];
+        $access_token = $this->getDdAccessToken($params);
 
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
+        $sync_param = new \PunchGroupSyncPositionParam;
+
+
+        $add_position_list = $params['position_list'];
+
+        $sync_param->add_position_list = $add_position_list;
+        $sync_param->punch_group_id = $punch_group_id;
+
+        $sync_param->biz_inst_id = $biz_inst_id;
+        $req->setSyncParam(json_encode($sync_param));
+        $resp = $c->execute($req, $access_token);
+        if($resp->errcode == 0){
+            return true;
+        }else{
+            return PsCommon::responseFailed($resp->errmsg);
+        }
+    }
+
+    //设置任务实例人员
+    public function taskInstanceAddUser($params){
+        $biz_inst_id = $params['biz_inst_id'];
+        $punch_group_id = $params['punch_group_id'];
+        $access_token = $this->getDdAccessToken($params);
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
+        $sync_param = new \PunchGroupSyncMemberParam;
+
+        $add_member_list = $params['member_list'];
+
+        $sync_param->add_member_list = $add_member_list;
+        $sync_param->punch_group_id = $punch_group_id;
+        $sync_param->biz_inst_id = $biz_inst_id;
+        $req->setSyncParam(json_encode($sync_param));
+        $resp = $c->execute($req, $access_token);
+
+        if($resp->errcode == 0){
+            return true;
+        }else{
+            return PsCommon::responseFailed($resp->errmsg);
+        }
+    }
 
 
 
@@ -283,6 +332,35 @@ class InspectionEquipmentService extends BaseService {
 //        $delete_position_list->position_id=$position_id;
 //        $delete_position_list->position_type="100";
 //        $sync_param->DeletePositionList = $delete_position_list;
+        $sync_param->biz_inst_id = $biz_inst_id;
+        $req->setSyncParam(json_encode($sync_param));
+        $resp = $c->execute($req, $access_token);
+
+        print_r($resp);
+        die;
+    }
+
+
+    //创建更新打卡组绑定的成员
+    public function instanceAddUser($biz_inst_id, $punch_group_id)
+    {
+        $biz_inst_id = "588f0ed57c9e4fbd9d458e1ca4bea1b6";
+        $punch_group_id = "c0de0f636e8040cd98db9f01f8ac402a";
+        $access_token = $this->getAccessToken();
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
+        $sync_param = new \PunchGroupSyncMemberParam;
+//        $delete_member_list = new \PunchGroupMemberParam;
+//        $delete_member_list->member_id = "xxxxx";
+//        $delete_member_list->type = "0";
+//        $sync_param->DeleteMemberList = $delete_member_list;  //删除成员
+        $add_member_list = new \PunchGroupMemberParam;
+//        $add_member_list->member_id = "123623046837966337";//陈科浪
+        $add_member_list->member_id = "163559593422058370";//周鹏辉
+        $add_member_list->type = "0";
+        $sync_param->add_member_list = $add_member_list;
+        $sync_param->punch_group_id = $punch_group_id;
         $sync_param->biz_inst_id = $biz_inst_id;
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);

@@ -419,6 +419,73 @@ class PlanService extends BaseService
     }
 
     /*
+     * b1计划同步
+     */
+    public function planB1Sync($params){
+
+
+            $planAll = PsInspectPlan::find()->select(['id','line_id'])->where(['=','b1_sync',2])->andWhere(['=','is_sync',1])->asArray()->all();
+            $equipmentService = new InspectionEquipmentService();
+            if(!empty($planAll)){
+                foreach($planAll as $key => $value){
+                    //拿到b1 设备
+                    $b1List = self::getPointB1List(['line_id'=>$value['line_id']]);
+                    //拿到所有任务
+                    $taskFields = ['id','check_start_at','check_end_at','error_minute','status','dd_user_id'];
+                    $taskAll = PsInspectRecord::find()->select($taskFields)->where(['=','plan_id',$value['id']])->andWhere(['=','status',1])->andWhere(['!=','dd_user_id',''])->asArray()->all();
+                    if(!empty($taskAll)){
+                        foreach($taskAll as $k=>$v){
+                            $instanceParams['task_id'] = $v['id'];
+                            $instanceParams['start_time'] = $v['check_start_at'];
+                            $instanceParams['end_time'] = $v['check_end_at'];
+                            if($v['error_minute']>0){
+                                $second = $v['error_minute']*60;
+                                $instanceParams['end_time'] = $v['check_end_at']+$second;
+                            }
+                            $instanceParams['token'] = $params['token'];
+                            //新增实例
+                            $instance = $equipmentService->addTaskInstance($instanceParams);
+                            if(!empty($instance)){
+                                //新增位置
+                                $positionParams['biz_inst_id'] = $instance['biz_inst_id'];
+                                $positionParams['punch_group_id'] = $instance['punch_group_id'];
+                                $positionParams['position_list'] = $b1List;
+                                $positionParams['token'] = $params['token'];
+                                $positionResult = $equipmentService->taskInstanceAddPosition($positionParams);
+                                if($positionResult){
+                                    $memberList = [
+                                        [
+                                            'member_id'=>$v['dd_user_id'],
+                                            'type'=>0,
+                                        ],
+                                    ];
+                                    //新增人员
+                                    $userParams['biz_inst_id'] = $instance['biz_inst_id'];
+                                    $userParams['punch_group_id'] = $instance['punch_group_id'];
+                                    $userParams['member_list'] = $memberList;
+                                    $userParams['token'] = $params['token'];
+                                    $userResult = $equipmentService->taskInstanceAddUser($userParams);
+                                    if($userResult){
+                                        //修改任务表
+                                        $updateParams['biz_inst_id'] = $instance['biz_inst_id'];
+                                        $updateParams['punch_group_id'] = $instance['punch_group_id'];
+                                        $updateParams['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$params['corp_id']."&p
+    age=pages%2Fpunch%2Findex%3FagentId%3Dvar2%26bizInstId%3D".$instance['biz_inst_id']."%26auto%3Dtrue";
+                                        PsInspectRecord::updateAll($updateParams,['id'=>$v['id']]);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $updatePlanParams['is_sync'] = 2;
+                    PsInspectPlan::updateAll($updatePlanParams,['id'=>$value['id']]);
+                }
+            }
+
+    }
+
+
+    /*
      * 返回b1设备列表
      */
     public function getPointB1List($params){
