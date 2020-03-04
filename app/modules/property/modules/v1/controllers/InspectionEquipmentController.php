@@ -28,6 +28,18 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    //默认新增公司b1实例
+    public function actionAddCompanyInstance(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->addCompanyInstance($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     public function actionTest(){
         try{
             $params = $this->request_params;

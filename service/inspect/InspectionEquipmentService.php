@@ -9,6 +9,9 @@
 namespace service\inspect;
 
 use service\property_basic\JavaService;
+use common\core\PsCommon;
+use Yii;
+use yii\db\Query;
 
 //require_once dirname(__DIR__) .'../app/common/ddsdk/TopSdk.php';
 require_once ('../../app/common/ddsdk/TopSdk.php');
@@ -31,19 +34,71 @@ class InspectionEquipmentService extends BaseService {
         return !empty($result['accessToken'])?$result['accessToken']:'';
     }
 
+    //默认新增公司b1实例
+    public function addCompanyInstance($params){
 
-    //创建业务实例，比如公司会议、年会、巡查任务等等
+        //验证数据库中是否存在
+        $query = new Query();
+        $result = $query->select(['id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->all();
+        if(empty($result)){
+            $params['create_at'] = time();
+            $params['start_time'] = strtotime(date('Y-m-d',time()." 00:00:00"));
+            $params['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
+            $access_token = $this->getDdAccessToken($params);
+            $c = new \DingTalkClient("", "", "json");
+
+            $req = new \OapiPbpInstanceCreateRequest;
+            $req->setStartTime($params['start_time']);
+            $req->setOuterId($params['create_at']);
+            $req->setBizId($this->bizId);
+            $req->setEndTime($params['end_time']);
+            $req->setActive("true");
+            $resp = $c->execute($req, $access_token);
+            if($resp->errcode == 0){
+                //生成组
+                $group = new \DingTalkClient("", "", "json");
+                $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
+                $group_param = new \PunchGroupCreateParam;
+                $group_param->biz_inst_id = $resp->biz_inst_id;
+                $group_param->biz_id = $this->bizId;
+                $reqGroup->setGroupParam(json_encode($group_param));
+                $groupResult = $group->execute($reqGroup, $access_token);
+                if($groupResult->errcode == 0){
+
+                    $data['corp_id'] = $params['corp_id'];
+                    $data['biz_inst_id'] = $resp->biz_inst_id;
+                    $data['punch_group_id'] = $groupResult->punch_group_id;
+                    $data['start_time'] = $params['start_time'];
+                    $data['end_time'] = $params['end_time'];
+                    $data['create_at'] = $params['create_at'];
+                    
+                    Yii::$app->db->createCommand()->insert('ps_b1_instance', $data)->execute();
+                    $id=Yii::$app->db->getLastInsertID();
+                    return PsCommon::responseSuccess(['id'=>$id]);
+                }else{
+                    return PsCommon::responseFailed($groupResult->errmsg);
+                }
+            }else{
+                return PsCommon::responseFailed($resp->errmsg);
+            }
+        }else{
+            return PsCommon::responseFailed("数据已存在");
+        }
+    }
+
+
+    //创建业务实例，比如公司会议、年会、巡查任务等等 返回实例id
     public function instanceAdd($params)
     {
-        return 'e3baa1d29bae4d4a8958f70cd3844cda'; //1010实例id
+//        return 'e3baa1d29bae4d4a8958f70cd3844cda'; //1010实例id
         $access_token = $this->getDdAccessToken($params);
         $c = new \DingTalkClient("", "", "json");
 
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime("1577808000");
-        $req->setOuterId("1010");
+        $req->setOuterId("1011");
         $req->setBizId($this->bizId);
-        $req->setEndTime("1606752000");
+        $req->setEndTime("1583115600");
         $req->setActive("true");
 
         $resp = $c->execute($req, $access_token);
@@ -56,7 +111,7 @@ class InspectionEquipmentService extends BaseService {
     //创建业务实例对应的打卡组
     public function instanceAddGroup($params)
     {
-        $biz_inst_id = "e3baa1d29bae4d4a8958f70cd3844cda";
+        $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
         $access_token = $this->getDdAccessToken($params);
 
         $c = new \DingTalkClient("", "", "json");
@@ -75,7 +130,7 @@ class InspectionEquipmentService extends BaseService {
     //获取企业的位置：也就是获取B1设备列表
     public function instancePosition($params)
     {
-        $biz_inst_id = 'e3baa1d29bae4d4a8958f70cd3844cda';
+        $biz_inst_id = 'c284e7c3cba54ccf940e6327b2e955ec';
         $access_token = $this->getDdAccessToken($params);
 
         $c = new \DingTalkClient("", "", "json");
@@ -93,5 +148,7 @@ class InspectionEquipmentService extends BaseService {
         }
         die;
     }
+
+
 
 }

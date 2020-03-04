@@ -226,7 +226,7 @@ class RecordService extends BaseService {
             $config["file_name"] = "Task1.xlsx";
             $params['page'] = 1;
             $params['pageSize'] = 1000;
-            $params['sort'] = SORT_ASC;
+            $params['sort'] = SORT_DESC;
             $result = self::recordList($params);
             $file_name = ExcelService::service()->recordDown($result["list"], $config);
             $downUrl = F::downloadUrl('record/' .  $file_name, 'zip');
@@ -237,7 +237,7 @@ class RecordService extends BaseService {
                 $config["file_name"] = "Task".$i.".xlsx";
                 $params['page'] = $i;
                 $params['pageSize'] = 1000;
-                $params['sort'] = SORT_ASC;
+                $params['sort'] = SORT_DESC;
                 $result = self::recordList($params);
                 ExcelService::service()->recordDown($result["list"], $config);
             }
