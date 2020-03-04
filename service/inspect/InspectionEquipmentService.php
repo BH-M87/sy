@@ -204,11 +204,12 @@ class InspectionEquipmentService extends BaseService {
         $sync_param->biz_inst_id = $biz_inst_id;
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);
-        if($resp->errcode == 0){
-            return true;
-        }else{
-            return PsCommon::responseFailed($resp->errmsg);
-        }
+        return $resp;
+//        if($resp->errcode == 0){
+//            return true;
+//        }else{
+//            return PsCommon::responseFailed($resp->errmsg);
+//        }
     }
 
     //设置任务实例人员
@@ -228,12 +229,12 @@ class InspectionEquipmentService extends BaseService {
         $sync_param->biz_inst_id = $biz_inst_id;
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);
-
-        if($resp->errcode == 0){
-            return true;
-        }else{
-            return PsCommon::responseFailed($resp->errmsg);
-        }
+        return $resp;
+//        if($resp->errcode == 0){
+//            return true;
+//        }else{
+//            return PsCommon::responseFailed($resp->errmsg);
+//        }
     }
 
 

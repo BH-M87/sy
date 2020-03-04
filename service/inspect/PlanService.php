@@ -445,14 +445,14 @@ class PlanService extends BaseService
                             $instanceParams['token'] = $params['token'];
                             //新增实例
                             $instance = $equipmentService->addTaskInstance($instanceParams);
-                            if(!empty($instance)){
+                            if(!empty($instance['biz_inst_id'])){
                                 //新增位置
                                 $positionParams['biz_inst_id'] = $instance['biz_inst_id'];
                                 $positionParams['punch_group_id'] = $instance['punch_group_id'];
                                 $positionParams['position_list'] = $b1List;
                                 $positionParams['token'] = $params['token'];
                                 $positionResult = $equipmentService->taskInstanceAddPosition($positionParams);
-                                if($positionResult){
+                                if($positionResult->errcode == 0){
                                     $memberList = [
                                         [
                                             'member_id'=>$v['dd_user_id'],
@@ -465,15 +465,21 @@ class PlanService extends BaseService
                                     $userParams['member_list'] = $memberList;
                                     $userParams['token'] = $params['token'];
                                     $userResult = $equipmentService->taskInstanceAddUser($userParams);
-                                    if($userResult){
+                                    if($userResult->errcode == 0 ){
                                         //修改任务表
                                         $updateParams['biz_inst_id'] = $instance['biz_inst_id'];
                                         $updateParams['punch_group_id'] = $instance['punch_group_id'];
                                         $updateParams['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$params['corp_id']."&p
     age=pages%2Fpunch%2Findex%3FagentId%3Dvar2%26bizInstId%3D".$instance['biz_inst_id']."%26auto%3Dtrue";
                                         PsInspectRecord::updateAll($updateParams,['id'=>$v['id']]);
+                                    }else{
+                                        return PsCommon::responseFailed($userResult->errmsg);
                                     }
+                                }else{
+                                    return PsCommon::responseFailed($positionResult->errmsg);
                                 }
+                            }else{
+                                return $instance;
                             }
                         }
                     }
