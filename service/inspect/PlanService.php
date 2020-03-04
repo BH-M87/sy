@@ -346,7 +346,7 @@ class PlanService extends BaseService
                 foreach($params['planTime'] as $pk=>$pv){
                     $element['community_id'] = $params['community_id'];
                     $element['user_id'] = $user['id'];
-                    $element['dd_user_id'] = $user['ddUserId'];
+                    $element['dd_user_id'] = !empty($user['ddUserId'])?$user['ddUserId']:'';
                     $element['plan_id'] = $params['id'];
                     $element['line_id'] = $params['line_id'];
                     $element['task_name'] = $params['task_name'];
