@@ -8,6 +8,7 @@
  */
 namespace service\inspect;
 
+use app\models\PsInspectDevice;
 use service\property_basic\JavaService;
 use common\core\PsCommon;
 use Yii;
@@ -71,7 +72,7 @@ class InspectionEquipmentService extends BaseService {
                     $data['start_time'] = $params['start_time'];
                     $data['end_time'] = $params['end_time'];
                     $data['create_at'] = $params['create_at'];
-                    
+
                     Yii::$app->db->createCommand()->insert('ps_b1_instance', $data)->execute();
                     $id=Yii::$app->db->getLastInsertID();
                     return PsCommon::responseSuccess(['id'=>$id]);
@@ -84,6 +85,72 @@ class InspectionEquipmentService extends BaseService {
         }else{
             return PsCommon::responseFailed("数据已存在");
         }
+    }
+
+    //同步b1设备
+    public function synchronizeB1($params){
+        //获得实例
+        $query = new Query();
+        $result = $query->select(['biz_inst_id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->one();
+        if(!empty($result['biz_inst_id'])){
+            //删除所有b1设备
+            PsInspectDevice::deleteAll(['deviceType'=>'钉钉b1智点']);
+            $access_token = $this->getDdAccessToken($params);
+            $listParams['biz_inst_id'] = $result['biz_inst_id'];
+            $listParams['access_token'] = $access_token;
+            $listParams['cursor'] = '0';
+            $now = time();
+            $dataAll = [];
+            while(1){
+                $result = self::getB1List($listParams);
+                if($result->errcode!=0){
+                    break;
+                }
+                //做数组
+                if(!empty($result->result->list->position_vo)){
+                    foreach($result->result->list->position_vo as $key=>$value){
+                        $element['companyId'] = $params['corp_id'];
+                        $element['name'] = $value->position_name;
+                        $element['deviceType'] = '钉钉b1智点';
+                        $element['deviceNo'] = $value->position_id;
+                        $element['createAt'] = $now;
+                        $dataAll[] = $element;
+                    }
+                }
+                if(empty($result->result->next_cursor)){
+                    break;
+                }
+                $listParams['cursor'] = $result->result->next_cursor;
+            }
+            if(!empty($dataAll)){
+                $fields = ['companyId','name','deviceType','deviceNo','createAt'];
+                Yii::$app->db->createCommand()->batchInsert('ps_inspect_device',$fields,$dataAll)->execute();
+                return PsCommon::responseSuccess();
+            }else{
+                return PsCommon::responseFailed("没有数据");
+            }
+        }else{
+            return PsCommon::responseFailed("公司实例不存在");
+        }
+    }
+
+    //获得b1分页
+    public function getB1List($params){
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstancePositionListRequest;
+        $req->setBizId($this->bizId);
+        $req->setBizInstId($params['biz_inst_id']);
+        $req->setType("100");
+        $req->setCursor($params['cursor']);
+        $req->setSize("1");
+        $resp = $c->execute($req, $params['access_token']);
+        return $resp;
+//        if ($resp->errcode == 0) {
+//            if($resp->result->next_cursor){
+//                //有分页
+//            }
+//            //                print_r($resp->result->list->position_vo);
+//        }
     }
 
 

@@ -40,6 +40,18 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    //同步设备
+    public function actionSynchronizeB1(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->synchronizeB1($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     public function actionTest(){
         try{
             $params = $this->request_params;
