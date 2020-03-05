@@ -293,6 +293,7 @@ class InspectionEquipmentService extends BaseService {
         if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo->id])){
             return PsCommon::responseFailed("设备修改失败");
         }
+        return ['id'=>$params['id']];
     }
 
     //设置任务实例巡检点
@@ -435,24 +436,24 @@ class InspectionEquipmentService extends BaseService {
 //        $add_position_list->position_type = "100";
         $add_position_list = [
 //            [
-//                'position_id'=>'1089886057',
+//                'position_id'=>'2116665250',
 //                'position_type'=>100,
 //            ],
+            [
+                'position_id'=>'1089886057',
+                'position_type'=>100,
+            ],
+        ];
+
+        $del_position_list = [
             [
                 'position_id'=>'2116665250',
                 'position_type'=>100,
             ],
         ];
 
-//        $del_position_list = [
-//            [
-//                'position_id'=>'2116665250',
-//                'position_type'=>100,
-//            ],
-//        ];
-
-        $sync_param->add_position_list = $add_position_list;
-//        $sync_param->delete_position_list = $del_position_list;
+//        $sync_param->add_position_list = $add_position_list;
+        $sync_param->delete_position_list = $del_position_list;
         $sync_param->punch_group_id = $punch_group_id;
 //        $delete_position_list = new \PunchGroupPositionParam;
 //        $delete_position_list->position_id=$position_id;
@@ -501,7 +502,7 @@ class InspectionEquipmentService extends BaseService {
     //打卡组已绑定位置
     public function groupPositionList($params){
 
-        $groupId = 'ba402713821f4a7b8275914b490b5778';
+        $groupId = '909e19a1e1d0443eac2c90375929bdee';
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
