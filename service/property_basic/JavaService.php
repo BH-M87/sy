@@ -128,6 +128,12 @@ class JavaService extends BaseService
         return self::returnCData($query);
     }
 
+    //只返回已绑定钉钉用户
+    public function bindUserList($query){
+        $query['route'] = '/user/bind-user-list';
+        return self::returnCData($query);
+    }
+
     /*
      * 房屋详情
      */
