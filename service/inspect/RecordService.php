@@ -293,6 +293,8 @@ class RecordService extends BaseService {
                 }else if($value['finish_count']>0&&$value['point_count']!=$value['finish_count']){
                     //逾期
                     $updateParams['run_status'] = 1;
+                }else{
+                    $updateParams['run_status'] = 3;
                 }
                 if(!empty($updateParams)){
                     PsInspectRecord::updateAll($updateParams,['id' => $value['id']]);
