@@ -72,6 +72,14 @@ class PsInspectPlanTime extends BaseModel
             if(!empty($res)){
                 return $this->addError($attribute, "执行时间唯一");
             }
+            //事件段不能重复
+            $repeat = self::find()->select(['id'])
+                        ->where(['=','plan_id',$this->plan_id])
+                        ->andWhere(['or',['and',['<=','start',$this->start],['>=','end',$this->start]],['and',['<=','start',$this->end],['>=','end',$this->end]]])
+                        ->asArray()->all();
+            if(!empty($repeat)){
+                return $this->addError($attribute, "执行时间不能重叠");
+            }
         }
     }
 
