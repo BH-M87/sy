@@ -172,7 +172,7 @@ class InspectionEquipmentService extends BaseService {
                 Yii::$app->db->createCommand()->batchInsert('ps_inspect_device',$fields,$dataAll)->execute();
                 return PsCommon::responseSuccess();
             }else{
-                return PsCommon::responseFailed("没有数据");
+                return PsCommon::responseSuccess();
             }
         }else{
             return PsCommon::responseFailed("公司实例不存在");
