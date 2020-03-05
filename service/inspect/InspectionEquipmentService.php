@@ -84,7 +84,7 @@ class InspectionEquipmentService extends BaseService {
                 return PsCommon::responseFailed($resp->errmsg);
             }
         }else{
-            return PsCommon::responseFailed("数据已存在");
+            return [];
         }
     }
 

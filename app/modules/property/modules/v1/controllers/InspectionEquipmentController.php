@@ -48,6 +48,7 @@ class InspectionEquipmentController extends BaseController{
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
+            $service->addCompanyInstance($params);
             $result = $service->synchronizeB1($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
