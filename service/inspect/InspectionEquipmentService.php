@@ -133,7 +133,7 @@ class InspectionEquipmentService extends BaseService {
         $result = $query->select(['biz_inst_id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->one();
         if(!empty($result['biz_inst_id'])){
             //查询本地b1
-            $deviceAll = PsInspectDevice::find()->select(['id','deviceNo'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
+            $deviceAll = PsInspectDevice::find()->select(['id','deviceNo'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->andWhere(['=','is_del',1])->asArray()->all();
             $deviceNoArr = !empty($deviceAll)?array_column($deviceAll,'deviceNo'):[];
             $tokenResult = $this->getDdAccessToken($params);
             $access_token = $tokenResult['accessToken'];
