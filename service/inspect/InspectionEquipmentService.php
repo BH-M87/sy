@@ -206,6 +206,7 @@ class InspectionEquipmentService extends BaseService {
             return PsCommon::responseFailed("该设备不存在");
         }
 
+
         $biz_inst_id = !empty($deviceInfo->biz_inst_id)?$deviceInfo->biz_inst_id:'';
         $punch_group_id = !empty($deviceInfo->punch_group_id)?$deviceInfo->punch_group_id:'';
         if(empty($deviceInfo->biz_inst_id)){
@@ -565,7 +566,7 @@ class InspectionEquipmentService extends BaseService {
     //打卡组已绑定位置
     public function groupPositionList($params){
 
-        $groupId = 'fdec70c744a1459486b5789451a89efc';
+        $groupId = '1773197c4c384542aa3733121c0b758c';
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
@@ -581,7 +582,7 @@ class InspectionEquipmentService extends BaseService {
 
     //打卡组成员列表
     public function groupMemberList($params){
-        $groupId = 'fdec70c744a1459486b5789451a89efc';
+        $groupId = '1773197c4c384542aa3733121c0b758c';
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
