@@ -249,6 +249,7 @@ class PointService extends BaseService
         $query->from('ps_inspect_device A')
             ->leftJoin('ps_inspect_point B', 'A.deviceNo = B.deviceNo')
             ->select('A.id, A.companyId, A.name, A.deviceType, A.deviceNo, B.communityId, B.name as point')
+            ->where(['A.is_del' => 1])
             ->andfilterWhere(['B.communityId' => $p['communityId']])
             ->andfilterWhere(['like', 'A.name', $p['name']])
             ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
@@ -282,6 +283,7 @@ class PointService extends BaseService
 
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
+            ->where(['is_del' => 1])
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
