@@ -352,7 +352,7 @@ class PointService extends BaseService
             }
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
-                throw new MyException('巡检记录必填!');
+                throw new MyException('备注说明必填!');
             }
 
             $p['status'] = 2;
@@ -451,7 +451,7 @@ class PointService extends BaseService
             }
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
-                throw new MyException('巡检记录必填!');
+                throw new MyException('备注说明必填!');
             }
 
             $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
