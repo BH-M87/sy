@@ -331,17 +331,6 @@ class PointService extends BaseService
                     throw new MyException('该任务需拍照,图片不能为空!');
                 }
 
-                $info = PsInspectRecordPoint::find()->alias("A")
-                    ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
-                    ->where(['A.id' => $p['id']])
-                    ->andWhere(['<=', 'B.check_start_at', time()])
-                    ->andWhere(['>=', 'B.check_end_at', time()])
-                    ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
-                    ->asArray()->one();
-                if (empty($info)) {
-                    throw new MyException('当前时间不可执行任务!');
-                }
-
                 $type = explode(',', $info['type']);
                 if (in_array('2', $typeArr)) { // 如果需要定位的话判断距离误差
                     $distance = F::getDistance($p['lat'], $p['lon'], $info['point_lat'], $info['point_lon']);
@@ -353,6 +342,17 @@ class PointService extends BaseService
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
                 throw new MyException('备注说明必填!');
+            }
+
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
             }
 
             $p['status'] = 2;
@@ -429,17 +429,6 @@ class PointService extends BaseService
                 if (in_array('4', $typeArr) && empty($p['picture'])) {
                     throw new MyException('该任务需拍照,图片不能为空!');
                 }
-            
-                $info = PsInspectRecordPoint::find()->alias("A")
-                    ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
-                    ->where(['A.id' => $p['id']])
-                    ->andWhere(['<=', 'B.check_start_at', time()])
-                    ->andWhere(['>=', 'B.check_end_at', time()])
-                    ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
-                    ->asArray()->one();
-                if (empty($info)) {
-                    throw new MyException('当前时间不可执行任务!');
-                }
 
                 $type = explode(',', $info['type']);
                 if (in_array('2', $typeArr)) { // 如果需要定位的话判断距离误差
@@ -452,6 +441,17 @@ class PointService extends BaseService
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
                 throw new MyException('备注说明必填!');
+            }
+
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
             }
 
             $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
