@@ -12,6 +12,7 @@ class InspectController extends UserBaseController
     // 巡检代办列表
     public function actionTaskList()
     {
+        $this->request_params['user_id'] = $this->userId;
         $r = PointService::service()->taskList($this->request_params);
 
         return PsCommon::responseSuccess($r);
