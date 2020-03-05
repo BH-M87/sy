@@ -107,10 +107,10 @@ class PlanService extends BaseService
             $params['end_at'] = strtotime($end_at." 23:59:59");
 
             //判断是否使用智点设备
-            $pointB1 = self::getPointB1List($params);
-            if(!empty($pointB1)){
-                $params['b1_sync'] = 2;
-            }
+//            $pointB1 = self::getPointB1List($params);
+//            if(!empty($pointB1)){
+//                $params['b1_sync'] = 2;
+//            }
 
             if ($model->load($params, '') && $model->validate()) {
                 $user_list = explode(',',$params['user_list']);
@@ -197,10 +197,10 @@ class PlanService extends BaseService
             $params['end_at'] = strtotime($end_at." 23:59:59");
 
             //判断是否使用智点设备
-            $pointB1 = self::getPointB1List($params);
-            if(!empty($pointB1)){
-                $params['b1_sync'] = 2;
-            }
+//            $pointB1 = self::getPointB1List($params);
+//            if(!empty($pointB1)){
+//                $params['b1_sync'] = 2;
+//            }
 
             if ($model->load($params, '') && $model->validate()) {
 
@@ -419,7 +419,7 @@ class PlanService extends BaseService
     }
 
     /*
-     * b1计划同步
+     * b1计划同步(弃用)
      */
     public function planB1Sync($params){
 

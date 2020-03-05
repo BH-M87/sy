@@ -186,6 +186,15 @@ class InspectionEquipmentService extends BaseService {
 
     //设置任务实例巡检点
     public function taskInstanceAddPosition($params){
+        $params['biz_inst_id'] = '9dc22c36d0a146a0a8975d4e6fb3b6c3';
+        $params['punch_group_id'] = 'c4023f1be47c4201a943ea942fd89af9';
+        $params['position_list'] = [
+            [
+                'position_id'=>'2116665250',
+                'position_type'=>100
+            ],
+        ];
+
         $biz_inst_id = $params['biz_inst_id'];
         $punch_group_id = $params['punch_group_id'];
         $access_token = $this->getDdAccessToken($params);
@@ -195,13 +204,11 @@ class InspectionEquipmentService extends BaseService {
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
-
-        $add_position_list = $params['position_list'];
-
-        $sync_param->add_position_list = $add_position_list;
+        $sync_param->add_position_list = $params['position_list'];
         $sync_param->punch_group_id = $punch_group_id;
 
         $sync_param->biz_inst_id = $biz_inst_id;
+
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);
         return $resp;
@@ -304,8 +311,10 @@ class InspectionEquipmentService extends BaseService {
     //更新打卡组绑定的位置 位置包括 硬件设备、GPS、Wifi等位置描述类型
     public function instanceAddPosition($params)
     {
-        $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
-        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
+//        $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
+//        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
+        $biz_inst_id = "e3baa1d29bae4d4a8958f70cd3844cda";
+        $punch_group_id = "909e19a1e1d0443eac2c90375929bdee";
         $access_token = $this->getDdAccessToken($params);
 
 
@@ -317,17 +326,25 @@ class InspectionEquipmentService extends BaseService {
 //        $add_position_list->position_id = $position_id;
 //        $add_position_list->position_type = "100";
         $add_position_list = [
-            [
-                'position_id'=>'1089886057',
-                'position_type'=>100,
-            ],
+//            [
+//                'position_id'=>'1089886057',
+//                'position_type'=>100,
+//            ],
             [
                 'position_id'=>'2116665250',
                 'position_type'=>100,
             ],
         ];
 
+//        $del_position_list = [
+//            [
+//                'position_id'=>'2116665250',
+//                'position_type'=>100,
+//            ],
+//        ];
+
         $sync_param->add_position_list = $add_position_list;
+//        $sync_param->delete_position_list = $del_position_list;
         $sync_param->punch_group_id = $punch_group_id;
 //        $delete_position_list = new \PunchGroupPositionParam;
 //        $delete_position_list->position_id=$position_id;
@@ -343,11 +360,13 @@ class InspectionEquipmentService extends BaseService {
 
 
     //创建更新打卡组绑定的成员
-    public function instanceAddUser($biz_inst_id, $punch_group_id)
+    public function instanceAddUser($params)
     {
-        $biz_inst_id = "588f0ed57c9e4fbd9d458e1ca4bea1b6";
-        $punch_group_id = "c0de0f636e8040cd98db9f01f8ac402a";
-        $access_token = $this->getAccessToken();
+//        $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
+//        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
+        $biz_inst_id = "e3baa1d29bae4d4a8958f70cd3844cda";
+        $punch_group_id = "909e19a1e1d0443eac2c90375929bdee";
+        $access_token = $this->getDdAccessToken($params);
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
@@ -357,8 +376,8 @@ class InspectionEquipmentService extends BaseService {
 //        $delete_member_list->type = "0";
 //        $sync_param->DeleteMemberList = $delete_member_list;  //删除成员
         $add_member_list = new \PunchGroupMemberParam;
-//        $add_member_list->member_id = "123623046837966337";//陈科浪
-        $add_member_list->member_id = "163559593422058370";//周鹏辉
+        $add_member_list->member_id = "123623046837966337";//陈科浪
+//        $add_member_list->member_id = "163559593422058370";//周鹏辉
         $add_member_list->type = "0";
         $sync_param->add_member_list = $add_member_list;
         $sync_param->punch_group_id = $punch_group_id;
@@ -369,6 +388,23 @@ class InspectionEquipmentService extends BaseService {
         print_r($resp);
         die;
     }
+
+    //打卡组已绑定位置
+    public function groupPositionList($params){
+
+        $groupId = 'ba402713821f4a7b8275914b490b5778';
+        $access_token = $this->getDdAccessToken($params);
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupPositionListRequest;
+        $req->setPunchGroupId($groupId);
+        $req->setCursor("0");
+        $req->setSize("20");
+//        $req->setBizId($this->bizId);
+        $resp = $c->execute($req, $access_token);
+        print_r($resp);die;
+    }
+
 
 
 
