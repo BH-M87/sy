@@ -130,8 +130,9 @@ class InspectionEquipmentService extends BaseService {
         $query = new Query();
         $result = $query->select(['biz_inst_id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->one();
         if(!empty($result['biz_inst_id'])){
-            //删除所有b1设备
-            PsInspectDevice::deleteAll(['deviceType'=>'钉钉b1智点']);
+            //查询本地b1
+            $deviceAll = PsInspectDevice::find()->select(['id','deviceNo'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
+            $deviceNoArr = !empty($deviceAll)?array_column($deviceAll,'deviceNo'):[];
             $access_token = $this->getDdAccessToken($params);
             $listParams['biz_inst_id'] = $result['biz_inst_id'];
             $listParams['access_token'] = $access_token;
@@ -146,6 +147,9 @@ class InspectionEquipmentService extends BaseService {
                 //做数组
                 if(!empty($result->result->list->position_vo)){
                     foreach($result->result->list->position_vo as $key=>$value){
+                        if(in_array($value->position_id,$deviceNoArr)){
+                            continue;
+                        }
                         $element['companyId'] = $params['corp_id'];
                         $element['name'] = $value->position_name;
                         $element['deviceType'] = '钉钉b1智点';
@@ -160,6 +164,7 @@ class InspectionEquipmentService extends BaseService {
                 $listParams['cursor'] = $result->result->next_cursor;
             }
             if(!empty($dataAll)){
+                //数据判断
                 $fields = ['companyId','name','deviceType','deviceNo','createAt'];
                 Yii::$app->db->createCommand()->batchInsert('ps_inspect_device',$fields,$dataAll)->execute();
                 return PsCommon::responseSuccess();
