@@ -369,7 +369,7 @@ class PointService extends BaseService
                     $record = PsInspectRecord::findOne($m->record_id);              
                     $pointInfo = PsInspectPoint::findOne(['id' => $m->point_id]);
 
-                    if ($p['deviceStatus'] == 2) { // 设备异常
+                    if ($p['device_status'] == 2) { // 设备异常
                         PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $m->record_id]);
                     }
 
@@ -467,11 +467,11 @@ class PointService extends BaseService
                     // 更新任务完成数,完成率
                     $record = PsInspectRecord::findOne($m->record_id);              
 
-                    if ($p['deviceStatus'] == 2 && $device_status == 1) { // 设备异常 原来正常
+                    if ($p['device_status'] == 2 && $device_status == 1) { // 设备异常 原来正常
                         PsInspectRecord::updateAll(['issue_count' => $record->issue_count + 1], ['id' => $m->record_id]);
                     }
 
-                    if ($p['deviceStatus'] == 1 && $device_status == 2) { // 设备正常 原来异常
+                    if ($p['device_status'] == 1 && $device_status == 2) { // 设备正常 原来异常
                         PsInspectRecord::updateAll(['issue_count' => $record->issue_count - 1], ['id' => $m->record_id]);
                     }
                     
