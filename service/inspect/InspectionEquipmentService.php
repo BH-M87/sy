@@ -306,14 +306,7 @@ class InspectionEquipmentService extends BaseService {
         if(empty($deviceInfo)){
             return PsCommon::responseFailed("该设备不存在");
         }
-        //停用实例
-//        $disableParams['token'] = $params['token'];
-//        $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
-//        $disableResult = self::instanceDisable($disableParams);
-//        if($disableResult->errcode != 0){
-//            return PsCommon::responseFailed($disableResult->errmsg);
-//        }
-//        die;
+
         if(!empty($deviceInfo->biz_inst_id)){
             //移除设备
             $positionParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
