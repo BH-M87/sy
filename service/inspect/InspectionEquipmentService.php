@@ -32,7 +32,7 @@ class InspectionEquipmentService extends BaseService {
         $service = new JavaService();
         $params['appId'] = $this->appId;
         $result = $service->getDdToken($params);
-        return !empty($result['accessToken'])?$result['accessToken']:'';
+        return $result;
     }
 
     //默认新增公司b1实例
@@ -45,7 +45,8 @@ class InspectionEquipmentService extends BaseService {
             $params['create_at'] = time();
             $params['start_time'] = strtotime(date('Y-m-d',time()." 00:00:00"));
             $params['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
-            $access_token = $this->getDdAccessToken($params);
+            $tokenResult = $this->getDdAccessToken($params);
+            $access_token = $tokenResult['accessToken'];
             $c = new \DingTalkClient("", "", "json");
 
             $req = new \OapiPbpInstanceCreateRequest;
@@ -94,7 +95,8 @@ class InspectionEquipmentService extends BaseService {
      */
     public function addTaskInstance($params){
 
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime($params['start_time']);
@@ -133,7 +135,8 @@ class InspectionEquipmentService extends BaseService {
             //查询本地b1
             $deviceAll = PsInspectDevice::find()->select(['id','deviceNo'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
             $deviceNoArr = !empty($deviceAll)?array_column($deviceAll,'deviceNo'):[];
-            $access_token = $this->getDdAccessToken($params);
+            $tokenResult = $this->getDdAccessToken($params);
+            $access_token = $tokenResult['accessToken'];
             $listParams['biz_inst_id'] = $result['biz_inst_id'];
             $listParams['access_token'] = $access_token;
             $listParams['cursor'] = '0';
@@ -189,29 +192,125 @@ class InspectionEquipmentService extends BaseService {
         return $resp;
     }
 
+    //设备人员设置
+    public function deviceUserEdit($params){
+
+        if(empty($params['id'])){
+            return PsCommon::responseFailed("设备id不能为空");
+        }
+        if(empty($params['dd_user_list'])){
+            return PsCommon::responseFailed("人员不能为空");
+        }
+        $deviceInfo = PsInspectDevice::findOne($params['id']);
+        if(empty($deviceInfo)){
+            return PsCommon::responseFailed("该设备不存在");
+        }
+
+        $biz_inst_id = !empty($deviceInfo->biz_inst_id)?$deviceInfo->biz_inst_id:'';
+        $punch_group_id = !empty($deviceInfo->punch_group_id)?$deviceInfo->punch_group_id:'';
+        if(empty($deviceInfo->biz_inst_id)){
+            //生成实例组 有效期十年
+            $instanceParams['start_time'] = strtotime(date('Y-m-d',time()." 00:00:00"));
+            $instanceParams['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
+            $instanceParams['task_id'] = $deviceInfo->id;
+            $instanceParams['token'] = $params['token'];
+            $instanceResult = self::addTaskInstance($instanceParams);
+            if(!empty($instanceResult['biz_inst_id'])){
+                //绑定设备
+                $positionParams['biz_inst_id'] = $instanceResult['biz_inst_id'];
+                $positionParams['punch_group_id'] = $instanceResult['punch_group_id'];
+                $positionParams['add_position_list'] = [
+                    [
+                        'position_id'=>$deviceInfo->deviceNo,
+                        'position_type'=>100
+                    ],
+                ];
+                $positionParams['token'] = $params['token'];
+                $positionResult = self::taskInstanceEditPosition($positionParams);
+                if($positionResult->errcode != 0){
+                    return PsCommon::responseFailed($positionResult->errmsg);
+                }
+                $instanceUpdate['biz_inst_id'] = $instanceResult['biz_inst_id'];
+                $instanceUpdate['punch_group_id'] = $instanceResult['punch_group_id'];
+                $instanceUpdate['start_time'] = $instanceParams['start_time'];
+                $instanceUpdate['end_time'] = $instanceParams['end_time'];
+                $instanceUpdate['updateAt'] = time();
+                if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo->id])){
+                    return PsCommon::responseFailed("设备修改失败");
+                }
+                $biz_inst_id = $instanceResult['biz_inst_id'];
+                $punch_group_id = $instanceResult['punch_group_id'];
+            }else{
+                return $instanceResult;
+            }
+
+        }
+        if(!empty($deviceInfo->dd_user_list)){
+            $userArr = explode(',',$deviceInfo->dd_user_list);
+            $userData = [];
+            foreach($userArr as $value){
+                $element['member_id'] = $value;
+                $element['type'] = 0;
+                $userData[] = $element;
+            }
+            //删除人员
+            $userDelParams['biz_inst_id'] = $biz_inst_id;
+            $userDelParams['punch_group_id'] = $punch_group_id;
+            $userDelParams['token'] = $params['token'];
+            $userDelParams['del_member_list'] = $userData;
+            $userDelResult = self::taskInstanceEditUser($userDelParams);
+            if($userDelResult->errcode != 0){
+                return PsCommon::responseFailed($userDelResult->errmsg);
+            }
+        }
+        //添加人员
+        $userArr = explode(',',$params['dd_user_list']);
+        $userData = [];
+        foreach($userArr as $value){
+            $element['member_id'] = $value;
+            $element['type'] = 0;
+            $userData[] = $element;
+        }
+        $userAddParams['biz_inst_id'] = $biz_inst_id;
+        $userAddParams['punch_group_id'] = $punch_group_id;
+        $userAddParams['token'] = $params['token'];
+        $userAddParams['add_member_list'] = $userData;
+        $userAddResult = self::taskInstanceEditUser($userAddParams);
+        if($userAddResult->errcode != 0){
+            return PsCommon::responseFailed($userAddResult->errmsg);
+        }
+
+        $instanceUpdate['biz_inst_id'] = $biz_inst_id;
+        $instanceUpdate['punch_group_id'] = $punch_group_id;
+        $instanceUpdate['dd_user_list'] = $params['dd_user_list'];
+        if(empty($deviceInfo->dd_mid_url)){
+            $tokenResult = $this->getDdAccessToken($params);
+            $agentId = $tokenResult['agentId'];
+            $instanceUpdate['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$params['corp_id']."&p
+    age=pages%2Fpunch%2Findex%3FagentId%3D".$agentId."%26bizInstId%3D".$biz_inst_id."%26auto%3Dtrue";
+        }
+        $instanceUpdate['updateAt'] = time();
+        if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo->id])){
+            return PsCommon::responseFailed("设备修改失败");
+        }
+    }
+
     //设置任务实例巡检点
-    public function taskInstanceAddPosition($params){
-        $params['biz_inst_id'] = '9dc22c36d0a146a0a8975d4e6fb3b6c3';
-        $params['punch_group_id'] = 'c4023f1be47c4201a943ea942fd89af9';
-        $params['position_list'] = [
-            [
-                'position_id'=>'2116665250',
-                'position_type'=>100
-            ],
-        ];
+    public function taskInstanceEditPosition($params){
 
         $biz_inst_id = $params['biz_inst_id'];
         $punch_group_id = $params['punch_group_id'];
-        $access_token = $this->getDdAccessToken($params);
 
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
-        $sync_param->add_position_list = $params['position_list'];
+        $sync_param->add_position_list = !empty($params['add_position_list'])?$params['add_position_list']:[];
+        $sync_param->delete_position_list = !empty($params['del_position_list'])?$params['del_position_list']:[];
         $sync_param->punch_group_id = $punch_group_id;
-
         $sync_param->biz_inst_id = $biz_inst_id;
 
         $req->setSyncParam(json_encode($sync_param));
@@ -225,18 +324,18 @@ class InspectionEquipmentService extends BaseService {
     }
 
     //设置任务实例人员
-    public function taskInstanceAddUser($params){
+    public function taskInstanceEditUser($params){
         $biz_inst_id = $params['biz_inst_id'];
         $punch_group_id = $params['punch_group_id'];
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
         $sync_param = new \PunchGroupSyncMemberParam;
 
-        $add_member_list = $params['member_list'];
-
-        $sync_param->add_member_list = $add_member_list;
+        $sync_param->add_member_list = !empty($params['add_member_list'])?$params['add_member_list']:[];
+        $sync_param->delete_member_list = !empty($params['del_member_list'])?$params['del_member_list']:[];
         $sync_param->punch_group_id = $punch_group_id;
         $sync_param->biz_inst_id = $biz_inst_id;
         $req->setSyncParam(json_encode($sync_param));
@@ -255,7 +354,8 @@ class InspectionEquipmentService extends BaseService {
     public function instanceAdd($params)
     {
 //        return 'e3baa1d29bae4d4a8958f70cd3844cda'; //1010实例id
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
         $c = new \DingTalkClient("", "", "json");
 
         $req = new \OapiPbpInstanceCreateRequest;
@@ -276,7 +376,8 @@ class InspectionEquipmentService extends BaseService {
     public function instanceAddGroup($params)
     {
         $biz_inst_id = "c284e7c3cba54ccf940e6327b2e955ec";
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupCreateRequest;
@@ -295,7 +396,8 @@ class InspectionEquipmentService extends BaseService {
     public function instancePosition($params)
     {
         $biz_inst_id = 'c284e7c3cba54ccf940e6327b2e955ec';
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstancePositionListRequest;
@@ -320,7 +422,8 @@ class InspectionEquipmentService extends BaseService {
 //        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
         $biz_inst_id = "e3baa1d29bae4d4a8958f70cd3844cda";
         $punch_group_id = "909e19a1e1d0443eac2c90375929bdee";
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
 
         $c = new \DingTalkClient("", "", "json");
@@ -371,7 +474,8 @@ class InspectionEquipmentService extends BaseService {
 //        $punch_group_id = "ba402713821f4a7b8275914b490b5778";
         $biz_inst_id = "e3baa1d29bae4d4a8958f70cd3844cda";
         $punch_group_id = "909e19a1e1d0443eac2c90375929bdee";
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
@@ -398,7 +502,8 @@ class InspectionEquipmentService extends BaseService {
     public function groupPositionList($params){
 
         $groupId = 'ba402713821f4a7b8275914b490b5778';
-        $access_token = $this->getDdAccessToken($params);
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
         $c = new \DingTalkClient("", "", "json");
         $req = new \OapiPbpInstanceGroupPositionListRequest;

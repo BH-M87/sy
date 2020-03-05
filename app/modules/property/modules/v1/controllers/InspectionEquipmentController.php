@@ -16,13 +16,16 @@ use yii\base\Exception;
 
 class InspectionEquipmentController extends BaseController{
 
+    public $repeatAction = ['synchronize-b1','device-user-edit'];
+
     //获取钉钉accessToken
     public function actionGetDdAccessToken(){
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
             $result = $service->getDdAccessToken($params);
-            return PsCommon::responseSuccess($result);
+            $token = $result['accessToken']?$result['accessToken']:'';
+            return PsCommon::responseSuccess($token);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
         }
@@ -51,6 +54,19 @@ class InspectionEquipmentController extends BaseController{
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //设备生成实例 + 设置人员
+    public function actionDeviceUserEdit(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->deviceUserEdit($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
 
     public function actionTest(){
         try{

@@ -451,7 +451,7 @@ class PlanService extends BaseService
                                 $positionParams['punch_group_id'] = $instance['punch_group_id'];
                                 $positionParams['position_list'] = $b1List;
                                 $positionParams['token'] = $params['token'];
-                                $positionResult = $equipmentService->taskInstanceAddPosition($positionParams);
+                                $positionResult = $equipmentService->taskInstanceEditPosition($positionParams);
                                 if($positionResult->errcode == 0){
                                     $memberList = [
                                         [
@@ -464,7 +464,7 @@ class PlanService extends BaseService
                                     $userParams['punch_group_id'] = $instance['punch_group_id'];
                                     $userParams['member_list'] = $memberList;
                                     $userParams['token'] = $params['token'];
-                                    $userResult = $equipmentService->taskInstanceAddUser($userParams);
+                                    $userResult = $equipmentService->taskInstanceEditUser($userParams);
                                     if($userResult->errcode == 0 ){
                                         //修改任务表
                                         $updateParams['biz_inst_id'] = $instance['biz_inst_id'];
