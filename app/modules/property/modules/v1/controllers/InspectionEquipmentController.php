@@ -67,12 +67,24 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    //删除设备
+    public function actionDelDevice(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->delDevice($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
 
     public function actionTest(){
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
-            $result = $service->instanceAddPosition($params);
+            $result = $service->groupMemberList($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());

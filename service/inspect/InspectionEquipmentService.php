@@ -296,6 +296,75 @@ class InspectionEquipmentService extends BaseService {
         return ['id'=>$params['id']];
     }
 
+    //删除设备
+    public function delDevice($params){
+        if(empty($params['id'])){
+            return PsCommon::responseFailed("设备id不能为空");
+        }
+
+        $deviceInfo = PsInspectDevice::findOne($params['id']);
+        if(empty($deviceInfo)){
+            return PsCommon::responseFailed("该设备不存在");
+        }
+        //停用实例
+//        $disableParams['token'] = $params['token'];
+//        $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
+//        $disableResult = self::instanceDisable($disableParams);
+//        if($disableResult->errcode != 0){
+//            return PsCommon::responseFailed($disableResult->errmsg);
+//        }
+//        die;
+        if(!empty($deviceInfo->biz_inst_id)){
+            //移除设备
+            $positionParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
+            $positionParams['punch_group_id'] = $deviceInfo->punch_group_id;
+            $positionParams['del_position_list'] = [
+                [
+                    'position_id'=>$deviceInfo->deviceNo,
+                    'position_type'=>100
+                ],
+            ];
+            $positionParams['token'] = $params['token'];
+            $positionResult = self::taskInstanceEditPosition($positionParams);
+            if($positionResult->errcode != 0){
+                return PsCommon::responseFailed($positionResult->errmsg);
+            }
+            //移除人员
+            if(!empty($deviceInfo->dd_user_list)){
+                $userArr = explode(',',$deviceInfo->dd_user_list);
+                $userData = [];
+                foreach($userArr as $value){
+                    $element['member_id'] = $value;
+                    $element['type'] = 0;
+                    $userData[] = $element;
+                }
+                //删除人员
+                $userDelParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
+                $userDelParams['punch_group_id'] = $deviceInfo->punch_group_id;
+                $userDelParams['token'] = $params['token'];
+                $userDelParams['del_member_list'] = $userData;
+                $userDelResult = self::taskInstanceEditUser($userDelParams);
+                if($userDelResult->errcode != 0){
+                    return PsCommon::responseFailed($userDelResult->errmsg);
+                }
+            }
+            //停用实例
+            $disableParams['token'] = $params['token'];
+            $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
+            $disableResult = self::instanceDisable($disableParams);
+            if($disableResult->errcode != 0){
+                return PsCommon::responseFailed($disableResult->errmsg);
+            }
+
+        }
+        $update['is_del'] = 2;
+        $update['updateAt'] = time();
+        if(!PsInspectDevice::updateAll($update,['id'=>$deviceInfo->id])){
+            return PsCommon::responseFailed("设备修改失败");
+        }
+        return ['id'=>$params['id']];
+    }
+
     //设置任务实例巡检点
     public function taskInstanceEditPosition($params){
 
@@ -317,11 +386,6 @@ class InspectionEquipmentService extends BaseService {
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);
         return $resp;
-//        if($resp->errcode == 0){
-//            return true;
-//        }else{
-//            return PsCommon::responseFailed($resp->errmsg);
-//        }
     }
 
     //设置任务实例人员
@@ -342,13 +406,19 @@ class InspectionEquipmentService extends BaseService {
         $req->setSyncParam(json_encode($sync_param));
         $resp = $c->execute($req, $access_token);
         return $resp;
-//        if($resp->errcode == 0){
-//            return true;
-//        }else{
-//            return PsCommon::responseFailed($resp->errmsg);
-//        }
     }
 
+    //停用实例
+    public function instanceDisable($params){
+        $biz_inst_id = $params['biz_inst_id'];
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceDisableRequest;
+        $req->setBizInstId($biz_inst_id);
+        $resp = $c->execute($req, $access_token);
+        return $resp;
+    }
 
 
     //创建业务实例，比如公司会议、年会、巡查任务等等 返回实例id
@@ -502,7 +572,7 @@ class InspectionEquipmentService extends BaseService {
     //打卡组已绑定位置
     public function groupPositionList($params){
 
-        $groupId = '909e19a1e1d0443eac2c90375929bdee';
+        $groupId = 'fdec70c744a1459486b5789451a89efc';
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
@@ -516,7 +586,22 @@ class InspectionEquipmentService extends BaseService {
         print_r($resp);die;
     }
 
+    //打卡组成员列表
+    public function groupMemberList($params){
+        $groupId = 'fdec70c744a1459486b5789451a89efc';
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
 
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpInstanceGroupMemberListRequest;
+        $req->setPunchGroupId($groupId);
+        $req->setCursor("0");
+        $req->setSize("20");
+//        $req->setBizId($this->bizId);
+        $resp = $c->execute($req, $access_token);
+        print_r($resp);die;
+    }
 
 
 }
