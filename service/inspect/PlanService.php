@@ -544,6 +544,8 @@ class PlanService extends BaseService
                         $dateAll = array_merge($dateAll,$dateList);
                     }
                 }
+                //数组去重
+                $dateAll = array_unique($dateAll);
                 asort($dateAll);
                 break;
             case 4:   //年
