@@ -741,7 +741,7 @@ class PointService extends BaseService
             ->select('id, task_name, status, line_name, check_start_at, check_end_at, point_count, finish_count, run_status, update_at')
             ->asArray()->one();
         if (!empty($r)) {
-            $r['update_at'] = $r['status'] == 3 ? date('Y-m-d H:i', $r['update_at']) : '???';
+            $r['update_at'] = $r['status'] == 3 ? date('Y-m-d H:i', $r['update_at']) : '';
             $r['check_start_at'] = !empty($r['check_start_at']) ? date('Y-m-d H:i', $r['check_start_at']) : '???';
             $r['check_end_at'] = !empty($r['check_end_at']) ? date('H:i', $r['check_end_at']) : '???';
             $r['check_at'] = $r['check_start_at'] . '-' . $r['check_end_at']; // 巡检时间
