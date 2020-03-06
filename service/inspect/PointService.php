@@ -339,7 +339,7 @@ class PointService extends BaseService
                     throw new MyException('该任务需定位,经纬度不能为空!');
                 }
 
-                if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                if (in_array('3', $typeArr) && empty($p['deviceStatus'])) {
                     throw new MyException('该任务需智点,智点状态不能为空!');
                 }
 
@@ -438,7 +438,7 @@ class PointService extends BaseService
                     throw new MyException('该任务需定位,经纬度不能为空!');
                 }
 
-                if (in_array('3', $typeArr) && empty($p['device_status'])) {
+                if (in_array('3', $typeArr) && empty($p['deviceStatus'])) {
                     throw new MyException('该任务需智点,智点状态不能为空!');
                 }
 

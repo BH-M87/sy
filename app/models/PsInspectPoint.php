@@ -11,7 +11,7 @@ class PsInspectPoint extends BaseModel
     public function rules()
     {
         return [
-            [['createAt'], 'integer'],
+            [['createAt', 'deviceStatus', 'sweepStatus'], 'integer'],
             [['lon', 'lat'], 'number'],
             [['communityId', 'name', 'deviceNo', 'id'], 'required', 'message' => '{attribute}不能为空!'],
             [['name', 'location'], 'string', 'max' => 50, 'tooLong' => '{attribute}长度不能超过50个字'],
@@ -28,6 +28,8 @@ class PsInspectPoint extends BaseModel
             'address' => '巡检点位置',
             'deviceNo' => '设备编号',
             'type' => '打卡方式',
+            'deviceStatus' => '智点打卡状态',
+            'sweepStatus' => '扫码打卡状态',
             'lon' => '经度',
             'lat' => '纬度',
             'location' => '地理位置',
