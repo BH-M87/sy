@@ -127,7 +127,7 @@ class PointService extends BaseService
         if (!empty($r)) {
             $r['type'] = explode(',', $r['type']);
             $r['deviceId'] = $r['deviceNo'] ?? '';
-            $r['deviceName'] = PsInspectDevice::find()->where('deviceNo' => $r['deviceNo'])->one()->name;
+            $r['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $r['deviceNo']])->one()->name;
             $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $r['communityId']]);
             $r['communityName'] = $community['communityName'];
             return $r;
