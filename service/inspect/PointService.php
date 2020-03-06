@@ -293,7 +293,7 @@ class PointService extends BaseService
     public function deviceDropDown($p)
     {
         $deviceNo = PsInspectPoint::find()->select('deviceNo')->where(['>', 'deviceNo', '0'])->asArray()->all();
-        $arr = array_column($deviceNo, 'deviceNo');
+        //$arr = array_column($deviceNo, 'deviceNo');
 
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
