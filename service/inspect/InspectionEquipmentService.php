@@ -287,7 +287,8 @@ class InspectionEquipmentService extends BaseService {
         if(empty($deviceInfo->dd_mid_url)){
             $tokenResult = $this->getDdAccessToken($params);
             $agentId = $tokenResult['agentId'];
-            $instanceUpdate['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$params['corp_id']."&page=pages%2Fpunch%2Findex%3FagentId%3D".$agentId."%26bizInstId%3D".$biz_inst_id."%26auto%3Dtrue";
+            $cropId = $tokenResult['ddCorpId'];
+            $instanceUpdate['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$cropId."&page=pages%2Fpunch%2Findex%3FagentId%3D".$agentId."%26bizInstId%3D".$biz_inst_id."%26auto%3Dtrue";
         }
         $instanceUpdate['updateAt'] = time();
         if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo->id])){
