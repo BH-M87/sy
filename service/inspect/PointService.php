@@ -276,7 +276,7 @@ class PointService extends BaseService
                     $userList = explode(',',$v['dd_user_list']);
                     foreach($userList as $value){
                         if($userArr[$value]){
-                            $m[$k]['dd_user_list_msg'] = $userArr[$value]."、";
+                            $m[$k]['dd_user_list_msg'] .= $userArr[$value]."、";
                         }
                     }
                     $m[$k]['dd_user_list_msg'] = mb_substr($m[$k]['dd_user_list_msg'],0,-1);
