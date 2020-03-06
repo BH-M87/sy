@@ -20,8 +20,8 @@ require_once ('../../app/common/ddsdk/TopSdk.php');
 class InspectionEquipmentService extends BaseService {
 
     //测试数字物业配置
-    public $bizId = "patrol_digital_community_TEST";
-    public $appId = '36633';
+    public $bizId = YII_ENV =="master"? 'patrol_digital_community':"patrol_digital_community_TEST";
+    public $appId = YII_ENV =="master"? '36579':'36633';
 //    public $suite_id = "7690001";
 //    public $suite_key = "suiteqviqrccwtzyd26eh";
 //    public $suite_secret = "8RK7ccgXmHwsp1EXfRkiuRYzjHDa4yo44s0LQVQU0psp6G2cLJ8rgXEBwINCI6Li";
