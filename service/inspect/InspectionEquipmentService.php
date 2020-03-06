@@ -21,11 +21,11 @@ class InspectionEquipmentService extends BaseService {
 
     //测试数字物业配置
     public $bizId = "patrol_digital_community_TEST";
-    public $suite_id = "7690001";
-    public $suite_key = "suiteqviqrccwtzyd26eh";
-    public $suite_secret = "8RK7ccgXmHwsp1EXfRkiuRYzjHDa4yo44s0LQVQU0psp6G2cLJ8rgXEBwINCI6Li";
-    public $suiteTicket = "zhujiayi";       //钉钉推送的suiteTicket。测试应用可以随意填写。
     public $appId = '36633';
+//    public $suite_id = "7690001";
+//    public $suite_key = "suiteqviqrccwtzyd26eh";
+//    public $suite_secret = "8RK7ccgXmHwsp1EXfRkiuRYzjHDa4yo44s0LQVQU0psp6G2cLJ8rgXEBwINCI6Li";
+//    public $suiteTicket = "zhujiayi";       //钉钉推送的suiteTicket。测试应用可以随意填写。
 
     //获得钉钉token
     public function getDdAccessToken($params){

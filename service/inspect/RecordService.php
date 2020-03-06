@@ -171,7 +171,7 @@ class RecordService extends BaseService {
             $element['finish_count'] = !empty($result['finish_count'])?$result['finish_count']:0;
             $element['finish_time_msg'] = '';
             if($result['status']==3){
-                $element['finish_time_msg'] = date('Y/m/d',$result['update_at']);
+                $element['finish_time_msg'] = date('Y/m/d H:i',$result['update_at']);
             }
             $element['point'] = [];
             if(!empty($result['point'])){
