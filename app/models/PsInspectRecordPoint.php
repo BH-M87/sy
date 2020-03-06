@@ -14,7 +14,7 @@ class PsInspectRecordPoint extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'record_id', 'point_id', 'device_status', 'finish_at', 'create_at'], 'integer'],
+            [['community_id', 'record_id', 'point_id', 'device_status', 'finish_at', 'create_at', 'deviceStatus', 'sweepStatus'], 'integer'],
             [['lon', 'lat'], 'number'],
             [['location'], 'string', 'max' => 50],
             [['imgs'], 'string', 'max' => 500],
@@ -37,6 +37,8 @@ class PsInspectRecordPoint extends BaseModel
             'lat' => '巡检纬度',
             'imgs' => '巡检图片',
             'picture' => '拍照图片',
+            'deviceStatus' => '智点打卡状态',
+            'sweepStatus' => '扫码打卡状态',
             'record_note' => '巡检记录',
             'finish_at' => '巡检提交时间',
             'status' => '巡检状态',
