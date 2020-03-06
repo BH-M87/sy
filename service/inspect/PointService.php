@@ -248,7 +248,7 @@ class PointService extends BaseService
         $query = new Query();
         $query->from('ps_inspect_device A')
             ->leftJoin('ps_inspect_point B', 'A.deviceNo = B.deviceNo')
-            ->select('A.id, A.companyId, A.name, A.deviceType, A.deviceNo, B.communityId, B.name as point')
+            ->select('A.id, A.companyId, A.name, A.deviceType, A.deviceNo, B.communityId, B.name as point,A.dd_user_list')
             ->where(['A.is_del' => 1])
             ->andfilterWhere(['B.communityId' => $p['communityId']])
             ->andfilterWhere(['like', 'A.name', $p['name']])
@@ -259,6 +259,10 @@ class PointService extends BaseService
         $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->createCommand()->queryAll();
 
         if (!empty($m)) {
+            //获得钉钉绑定人员
+            $service = new JavaService();
+            $userResult = $service->bindUserList($p);
+            $userArr = !empty($userResult['list'])?array_column($userResult['list'],'trueName','ddUserId'):'';
             foreach ($m as $k => &$v) {
                 $v['communityName'] = '';
                 if (!empty($v['communityId'])) {
@@ -267,6 +271,16 @@ class PointService extends BaseService
                 }
                 $v['point'] = $v['point'] ?? '';
                 $v['communityId'] = $v['communityId'] ?? '';
+                $m[$k]['dd_user_list_msg'] = '';
+                if(!empty($v['dd_user_list'])){
+                    $userList = explode(',',$v['dd_user_list']);
+                    foreach($userList as $value){
+                        if($userArr[$value]){
+                            $m[$k]['dd_user_list_msg'] = $userArr[$value]."、";
+                        }
+                    }
+                    $m[$k]['dd_user_list_msg'] = mb_substr($m[$k]['dd_user_list_msg'],0,-1);
+                }
             }
         }
         
