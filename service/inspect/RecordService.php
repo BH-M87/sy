@@ -287,14 +287,13 @@ class RecordService extends BaseService {
                         ->asArray()->all();
         if(!empty($modelAll)){
             foreach($modelAll as $key=>$value){
+                $updateParams['run_status'] = 3;
                 if($value['finish_count']==0){
                     //旷巡
                     $updateParams['run_status'] = 2;
                 }else if($value['finish_count']>0&&$value['point_count']!=$value['finish_count']){
                     //逾期
                     $updateParams['run_status'] = 1;
-                }else{
-                    $updateParams['run_status'] = 3;
                 }
                 if(!empty($updateParams)){
                     PsInspectRecord::updateAll($updateParams,['id' => $value['id']]);
