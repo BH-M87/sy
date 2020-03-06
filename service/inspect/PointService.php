@@ -292,8 +292,10 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
-        //$deviceNo = PsInspectPoint::find()->select('deviceNo')->where(['>', 'deviceNo', '0'])->asArray()->all();
-        //$arr = array_column($deviceNo, 'deviceNo');
+        $deviceNo = PsInspectPoint::find()->select('deviceNo')
+            ->where(['>', 'deviceNo', '0'])
+            ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
+        $arr = array_column($deviceNo, 'deviceNo');
 
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
@@ -302,15 +304,6 @@ class PointService extends BaseService
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
-
-        if (!empty($m)) {
-            foreach ($m as $k => &$v) {
-                $point = PsInspectPoint::find()->where(['deviceNo' => $v['id']])->one();
-                if (!empty($point)) {
-                    $v['name'] .= '(已绑定)';
-                }
-            }
-        }
 
         return $m;
     }
