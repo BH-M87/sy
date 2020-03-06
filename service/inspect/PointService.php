@@ -551,6 +551,11 @@ class PointService extends BaseService
             foreach ($typeArr as $key => $val) {
                 $newArr[$key]['id'] = $val;
                 $newArr[$key]['name'] = self::$pointType[$val];
+
+                if ($val == 3) { // 智点打卡
+                    $deviceNo = PsInspectPoint::findOne($m['point_id'])->deviceNo;
+                    $m['dd_mid_url'] = PsInspectDevice::find()->where(['deviceNo' => $deviceNo, 'is_del' => 1])->one()->dd_mid_url;
+                }
             }
         }
         $m['type'] = $newArr;
