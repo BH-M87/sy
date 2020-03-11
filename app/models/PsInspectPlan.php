@@ -54,6 +54,7 @@ class PsInspectPlan extends BaseModel
             [['community_id','operator_id'],'string','max'=>30],
             ['status', 'default', 'value' => 1],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add','tempAdd']],
+            [['error_minute'], 'default', 'value' => 0,'on'=>['add','tempAdd']],
             [['status'], 'default', 'value' => 1,'on'=>['add','tempAdd']],
             [['line_id','community_id'],'lineExist',"on"=>['add','tempAdd']],
         ];
