@@ -251,7 +251,7 @@ class PointService extends BaseService
             ->select('A.id, A.companyId, A.name, A.deviceType, A.deviceNo, B.communityId, B.name as point,A.dd_user_list')
             ->where(['A.is_del' => 1])
             ->andfilterWhere(['B.communityId' => $p['communityId']])
-            ->andFilterWhere(['in', 'B.communityId', $p['communityList']])
+            //->andFilterWhere(['or', ['B.communityId' => null], ['in', 'B.communityId', $p['communityList']]])
             ->andfilterWhere(['like', 'A.name', $p['name']])
             ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
 
