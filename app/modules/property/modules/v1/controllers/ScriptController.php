@@ -8,6 +8,7 @@
  */
 namespace app\modules\property\modules\v1\controllers;
 
+use service\inspect\RecordService;
 use yii\base\Controller;
 use service\property_basic\VoteService;
 
@@ -18,6 +19,14 @@ class ScriptController extends Controller {
      */
     public function actionVoteScript(){
         VoteService::service()->voteScript();
+    }
+
+    /*
+     * 任务执行状态变化脚本
+     */
+    public function actionInspectRecordScript(){
+        $service = new RecordService();
+        $service->recordScript();
     }
 }
 

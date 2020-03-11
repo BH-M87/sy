@@ -51,4 +51,16 @@ $data['repair_aes_secret'] = '1nj7Axd1H3tfXCoirAvm/w==';
 $data['repair_alipay_public_key_file'] = $basePath."/common/rsa_files/repair/alipay_public.txt";
 $data['repair_rsa_private_key_file'] = $basePath."/common/rsa_files/repair/rsa_private.txt";
 
+//oss文件上传配置
+$data['oss_access_key_id'] = 'LTAIG9QWK20XYpp1';
+$data['oss_secret_key_id'] = 'yWQNFSfw2Yxo3AeKiHYAlS5UH6MOOF';
+$data['oss_bucket'] = 'micro-brain-bucket';
+$data['oss_domain'] = 'http://oss-cn-shanghai.aliyuncs.com';
+
+//oss文件上传使用筑家易oss账号
+$data['zjy_oss_access_key_id'] = 'LTAIRMyJgmFU2NnA';
+$data['zjy_oss_secret_key_id'] = 'x6iozkqapZVgE5BsKBeU23eP3xDA1p';
+$data['zjy_oss_bucket'] = 'sqwn-fy';
+$data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
+
 return $data;

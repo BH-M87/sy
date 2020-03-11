@@ -122,6 +122,18 @@ class JavaService extends BaseService
         return self::returnCData($query);
     }
 
+    //获取部门下用户
+    public function listUserUnderDept($query){
+        $query['route'] = '/user/listUserUnderDept';
+        return self::returnCData($query);
+    }
+
+    //只返回已绑定钉钉用户
+    public function bindUserList($query){
+        $query['route'] = '/user/bind-user-list';
+        return self::returnCData($query);
+    }
+
     /*
      * 房屋详情
      */
@@ -252,6 +264,13 @@ class JavaService extends BaseService
     //新增消息推送
     public function messageInsert($query){
         $query['route'] = '/message/insert';
+        return self::returnCData($query);
+    }
+
+    // 获取公司钉钉token
+    public function getDdToken($query)
+    {
+        $query['route'] = '/user/dd-access-token';
         return self::returnCData($query);
     }
 }

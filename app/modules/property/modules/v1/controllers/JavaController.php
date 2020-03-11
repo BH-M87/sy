@@ -166,4 +166,26 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    //获取部门下用户
+    public function actionListUserUnderDept(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->listUserUnderDept($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    //获取部门下绑定钉钉用户
+    public function actionBindUserList(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->bindUserList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }

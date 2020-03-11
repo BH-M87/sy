@@ -16,159 +16,129 @@ use service\inspect\PlanService;
 use service\inspect\PointService;
 use service\inspect\StatisticService;
 use service\inspect\TaskService;
+use yii\base\Exception;
 
 class InspectController extends BaseController
 {
     public $repeatAction = ['point-add'];
 
-    /**
-     * @api 巡检点新增
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 设备列表
+    public function actionListDevice()
+    {
+        $r = PointService::service()->listDevice($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 设备名称下拉列表
+    public function actionDeviceDropDown()
+    {
+        $r = PointService::service()->deviceDropDown($this->request_params);
+
+        return PsCommon::responseSuccess($r, false);
+    }
+
+    // 巡检点新增
     public function actionPointAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         PointService::service()->add($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点编辑
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点编辑
     public function actionPointEdit()
     {
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         PointService::service()->edit($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点列表
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点列表
     public function actionPointList()
     {
-        $result = PointService::service()->pointList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = PointService::service()->pointList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检点详情
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点详情
     public function actionPointShow()
     {
-        $result = PointService::service()->view($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = PointService::service()->view($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检点删除
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点删除
     public function actionPointDelete()
     {
         PointService::service()->del($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检点管理下拉
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检点管理下拉
     public function actionPointDropDown()
     {
         $result = PointService::service()->getPoint($this->request_params);
+
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * @api 下载二维码
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 导出二维码图片
     public function actionDownloadCode()
     {
-        $result = PointService::service()->downloadCode($this->request_params, $this->systemType);
+        $result = PointService::service()->downloadCode($this->request_params);
         return PsCommon::responseSuccess($result);
     }
 
-    /**
-     * @api 巡检线路新增
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路新增
     public function actionLineAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
         LineService::service()->add($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路编辑
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路编辑
     public function actionLineEdit()
     {
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-
         LineService::service()->edit($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路列表
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路列表
     public function actionLineList()
     {
-        $result = LineService::service()->lineList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->lineList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检线路详情
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路详情
     public function actionLineShow()
     {
-        $result = LineService::service()->view($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->view($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
-    /**
-     * @api 巡检线路删除
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路删除
     public function actionLineDelete()
     {
         LineService::service()->del($this->request_params, $this->user_info);
+
         return PsCommon::responseSuccess();
     }
 
-    /**
-     * @api 巡检线路下拉
-     * @author wyf
-     * @date 2019/8/12
-     */
+    // 巡检线路下拉
     public function actionLineDropDown()
     {
-        $result = LineService::service()->getlineList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        $r = LineService::service()->getlineList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
     }
 
     /**
@@ -178,13 +148,59 @@ class InspectController extends BaseController
      */
     public function actionPlanAdd()
     {
-        $this->request_params['id'] = 0;
-        $this->request_params['operator_id'] = $this->user_info['id']; // 创建人
-        $this->request_params['user_list'] = json_encode($this->request_params['user_list']);
-
-        PlanService::service()->add($this->request_params, $this->user_info);
-        return PsCommon::responseSuccess();
+        try{
+            $params = $this->request_params;
+            $params['type'] = 1;
+            $result = PlanService::service()->planAdd($params, $this->user_info);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
     }
+
+    /*
+     * 巡检计划生成任务 数据
+     */
+    public function actionTempTaskData(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->tempTaskData($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /**
+     * @api 巡检计划新增临时计划
+     * @author wyf
+     * @date 2019/8/12
+     */
+    public function actionPlanTempAdd()
+    {
+        try{
+            $params = $this->request_params;
+            $params['type'] = 2;
+            $result = PlanService::service()->planTempAdd($params, $this->user_info);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 计划b1钉钉同步
+     */
+    public function actionPlanB1Sync(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planB1Sync($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
 
     /**
      * @api 巡检计划编辑
@@ -206,8 +222,67 @@ class InspectController extends BaseController
      */
     public function actionPlanList()
     {
-        $result = PlanService::service()->planList($this->request_params);
-        return PsCommon::responseSuccess($result);
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $result = PlanService::service()->planList($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 巡检计划详情
+     */
+    public function actionPlanDetail(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planDetail($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 巡检计划启用/禁用
+     */
+    public function actionPlanEditStatus(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planEditStatus($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 巡检计划-复制
+     */
+    public function actionPlanCopy(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planCopy($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 巡检计划-删除（批量删除）
+     */
+    public function actionPlanBatchDel(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planBatchDel($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
     }
 
     /**
