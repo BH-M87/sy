@@ -138,6 +138,14 @@ class BaseController extends \yii\web\Controller
         ];
         //todo::调用java接口
         $result = JavaCurl::getInstance()->pullHandler($params);
+        // 用户的小区权限
+        $community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['authorization']]);
+        if (!empty($community['list'])) {
+            foreach ($community['list'] as $k => $v) {
+                $this->community_list[] = $v['key'];
+            }
+        } 
+
         $this->user_info = $result;
         $this->user_info['propertyMark'] = 1; // 后台标记需要添加操作日志
         $this->user_info['truename'] = $result['trueName'];
@@ -145,6 +153,8 @@ class BaseController extends \yii\web\Controller
         $this->request_params['create_id'] = $result['id'];
         $this->request_params['create_name'] = $result['trueName'];
         $this->request_params['corp_id'] = $result['corpId'];
+        $this->request_params['corp_id'] = $result['corpId'];
+        $this->request_params['communityList'] = $this->community_list;
     }
 
     /**
