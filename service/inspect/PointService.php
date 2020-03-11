@@ -205,7 +205,7 @@ class PointService extends BaseService
                 }
             }
         }
-        return array_values($m);
+        return !empty($m) ? array_values($m) : [];
     }
 
     // 导出二维码图片
