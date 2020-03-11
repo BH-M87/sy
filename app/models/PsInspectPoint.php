@@ -13,7 +13,7 @@ class PsInspectPoint extends BaseModel
         return [
             [['createAt'], 'integer'],
             [['lon', 'lat'], 'number'],
-            [['communityId', 'name', 'deviceNo', 'id'], 'required', 'message' => '{attribute}不能为空!'],
+            [['communityId', 'name', 'id'], 'required', 'message' => '{attribute}不能为空!'],
             [['name', 'location'], 'string', 'max' => 50, 'tooLong' => '{attribute}长度不能超过50个字'],
             [['codeImg'], 'string', 'max' => 255],
         ];
@@ -42,8 +42,8 @@ class PsInspectPoint extends BaseModel
     {
         $scenarios = parent::scenarios();
         //各个场景的活动属性
-        $scenarios['add'] = ['community_id', 'name', 'category_id', 'device_id', 'need_location', 'need_photo', 'name'];//新增
-        $scenarios['update'] = ['id', 'community_id', 'name', 'category_id', 'device_id', 'need_location', 'need_photo'];//编辑
+        $scenarios['add'] = ['community_id', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo', 'name'];//新增
+        $scenarios['update'] = ['id', 'community_id', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo'];//编辑
         return $scenarios;
     }
 }
