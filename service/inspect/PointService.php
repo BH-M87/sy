@@ -102,7 +102,7 @@ class PointService extends BaseService
             self::createQrcode($model, $model->id);
             return true;
         } else {
-            throw new MyException('操作失败');
+            throw new MyException(array_values($model->errors)[0][0]);
         }
     }
 
