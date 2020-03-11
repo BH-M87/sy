@@ -192,6 +192,7 @@ class LineService extends BaseService
             ->leftJoin("ps_inspect_line_point B", "A.id = B.lineId")
             ->andFilterWhere(['=', 'B.pointId', PsCommon::get($p, 'pointId')])
             ->andFilterWhere(['=', 'A.communityId', PsCommon::get($p, 'communityId')])
+            ->andFilterWhere(['in', 'A.communityId', PsCommon::get($p, 'communityList')])
             ->andFilterWhere(['like', 'A.name', PsCommon::get($p, 'name')])
             ->andFilterWhere(['=', 'A.id', PsCommon::get($p, 'lineId')]);
         return $model;
