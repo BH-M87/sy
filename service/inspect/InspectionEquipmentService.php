@@ -321,7 +321,8 @@ class InspectionEquipmentService extends BaseService {
             $positionParams['token'] = $params['token'];
             $positionResult = self::taskInstanceEditPosition($positionParams);
             if($positionResult->errcode != 0){
-                return PsCommon::responseFailed($positionResult->errmsg);
+                return self::delDeviceRecord($params);
+//                return PsCommon::responseFailed($positionResult->errmsg);
             }
             //移除人员
             if(!empty($deviceInfo->dd_user_list)){
@@ -339,7 +340,8 @@ class InspectionEquipmentService extends BaseService {
                 $userDelParams['del_member_list'] = $userData;
                 $userDelResult = self::taskInstanceEditUser($userDelParams);
                 if($userDelResult->errcode != 0){
-                    return PsCommon::responseFailed($userDelResult->errmsg);
+                    return self::delDeviceRecord($params);
+//                    return PsCommon::responseFailed($userDelResult->errmsg);
                 }
             }
             //停用实例
@@ -347,17 +349,30 @@ class InspectionEquipmentService extends BaseService {
             $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
             $disableResult = self::instanceDisable($disableParams);
             if($disableResult->errcode != 0){
-                return PsCommon::responseFailed($disableResult->errmsg);
+                return self::delDeviceRecord($params);
+//                return PsCommon::responseFailed($disableResult->errmsg);
             }
 
         }
+        return self::delDeviceRecord($params);
+//        $update['is_del'] = 2;
+//        $update['updateAt'] = time();
+//        if(!PsInspectDevice::updateAll($update,['id'=>$deviceInfo->id])){
+//            return PsCommon::responseFailed("设备修改失败");
+//        }
+//        return ['id'=>$params['id']];
+    }
+
+    //数据删除
+    public function delDeviceRecord($params){
         $update['is_del'] = 2;
         $update['updateAt'] = time();
-        if(!PsInspectDevice::updateAll($update,['id'=>$deviceInfo->id])){
+        if(!PsInspectDevice::updateAll($update,['id'=>$params['id']])){
             return PsCommon::responseFailed("设备修改失败");
         }
         return ['id'=>$params['id']];
     }
+
 
     //设置任务实例巡检点
     public function taskInstanceEditPosition($params){
