@@ -9,6 +9,7 @@
 namespace service\inspect;
 
 use app\models\PsInspectDevice;
+use service\property_basic\JavaDDService;
 use service\property_basic\JavaService;
 use common\core\PsCommon;
 use Yii;
@@ -20,8 +21,9 @@ require_once ('../../app/common/ddsdk/TopSdk.php');
 class InspectionEquipmentService extends BaseService {
 
     //测试数字物业配置
-    public $bizId = YII_ENV =="master"? 'patrol_digital_community':"patrol_digital_community_TEST";
-    public $appId = YII_ENV =="master"? '36579':'36633';
+    public $bizId = YII_ENV == "master" ? 'patrol_digital_community':"patrol_digital_community_TEST";
+    public $appId = YII_ENV == "master" ? '36579':'36633';
+    public $suiteId = YII_ENV == "master" ? "7600016":"7690001";
 //    public $suite_id = "7690001";
 //    public $suite_key = "suiteqviqrccwtzyd26eh";
 //    public $suite_secret = "8RK7ccgXmHwsp1EXfRkiuRYzjHDa4yo44s0LQVQU0psp6G2cLJ8rgXEBwINCI6Li";
@@ -321,7 +323,8 @@ class InspectionEquipmentService extends BaseService {
             $positionParams['token'] = $params['token'];
             $positionResult = self::taskInstanceEditPosition($positionParams);
             if($positionResult->errcode != 0){
-                return PsCommon::responseFailed($positionResult->errmsg);
+                return self::delDeviceRecord($params);
+//                return PsCommon::responseFailed($positionResult->errmsg);
             }
             //移除人员
             if(!empty($deviceInfo->dd_user_list)){
@@ -339,7 +342,8 @@ class InspectionEquipmentService extends BaseService {
                 $userDelParams['del_member_list'] = $userData;
                 $userDelResult = self::taskInstanceEditUser($userDelParams);
                 if($userDelResult->errcode != 0){
-                    return PsCommon::responseFailed($userDelResult->errmsg);
+                    return self::delDeviceRecord($params);
+//                    return PsCommon::responseFailed($userDelResult->errmsg);
                 }
             }
             //停用实例
@@ -347,17 +351,57 @@ class InspectionEquipmentService extends BaseService {
             $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
             $disableResult = self::instanceDisable($disableParams);
             if($disableResult->errcode != 0){
-                return PsCommon::responseFailed($disableResult->errmsg);
+                return self::delDeviceRecord($params);
+//                return PsCommon::responseFailed($disableResult->errmsg);
             }
 
         }
+        return self::delDeviceRecord($params);
+//        $update['is_del'] = 2;
+//        $update['updateAt'] = time();
+//        if(!PsInspectDevice::updateAll($update,['id'=>$deviceInfo->id])){
+//            return PsCommon::responseFailed("设备修改失败");
+//        }
+//        return ['id'=>$params['id']];
+    }
+
+    //数据删除
+    public function delDeviceRecord($params){
         $update['is_del'] = 2;
         $update['updateAt'] = time();
-        if(!PsInspectDevice::updateAll($update,['id'=>$deviceInfo->id])){
+        if(!PsInspectDevice::updateAll($update,['id'=>$params['id']])){
             return PsCommon::responseFailed("设备修改失败");
         }
         return ['id'=>$params['id']];
     }
+
+    //b1打卡记录
+    public function b1RecordList($params){
+
+        if(empty($params['biz_inst_id'])){
+            return PsCommon::responseFailed("业务实例id必填");
+        }
+
+        $tokenResult = self::getDdAccessToken($params);
+        $ddService = new JavaDDService();
+        $javaParams['bizInstId'] = $params['biz_inst_id'];
+        $javaParams['pageNum'] = $params['page'];
+        $javaParams['pageSize'] = $params['pageSize'];
+        $javaParams['corpId'] = $tokenResult['ddCorpId'];
+        $javaParams['suiteId'] = $this->suiteId;
+        if(!empty($params['punchStartTime'])){
+            $javaParams['punchStartTime'] = $params['punchStartTime'];
+        }
+        if(!empty($params['punchEndTime'])){
+            $javaParams['punchEndTime'] = $params['punchEndTime'];
+        }
+        if(!empty($params['userId'])){
+            $javaParams['userId'] = $params['userId'];
+        }
+        $result = $ddService->getB1List($javaParams);
+        print_r($result);die;
+    }
+
 
     //设置任务实例巡检点
     public function taskInstanceEditPosition($params){

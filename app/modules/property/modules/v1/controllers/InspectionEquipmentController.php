@@ -16,7 +16,7 @@ use yii\base\Exception;
 
 class InspectionEquipmentController extends BaseController{
 
-    public $repeatAction = ['synchronize-b1','device-user-edit','del-device'];
+//    public $repeatAction = ['synchronize-b1','device-user-edit','del-device'];
 
     //获取钉钉accessToken
     public function actionGetDdAccessToken(){
@@ -74,6 +74,20 @@ class InspectionEquipmentController extends BaseController{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
             $result = $service->delDevice($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //b1打卡记录
+    public function actionB1RecordList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new InspectionEquipmentService();
+            $result = $service->b1RecordList($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
