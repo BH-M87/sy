@@ -15,7 +15,7 @@ use common\core\JavaCurl;
 class JavaService extends BaseService
 {
     /*
-     * c 端调用
+     * b 端调用
      */
     public function returnCData($query)
     {

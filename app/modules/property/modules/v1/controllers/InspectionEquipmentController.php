@@ -80,6 +80,20 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    //b1打卡记录
+    public function actionB1RecordList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new InspectionEquipmentService();
+            $result = $service->b1RecordList($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
 
     public function actionTest(){
         try{

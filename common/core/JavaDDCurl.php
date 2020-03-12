@@ -190,11 +190,11 @@ class JavaDDCurl {
     {
         switch (YII_ENV) {
             case "master":
-                $api_host = "https://communityb.lvzhuyun.com";
+                $api_host = "https://community-ddserver.lvzhuyun.com";
                 $c_api_host = "https://communityc.lvzhuyun.com";
                 break;
             case "test":
-                $api_host = "http://121.196.202.254:20000";
+                $api_host = "https://test-community-ddserver.lvzhuyun.com";
                 $c_api_host = "https://test-communityc.lvzhuyun.com";
                 break;
             default :
