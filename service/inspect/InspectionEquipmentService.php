@@ -377,7 +377,7 @@ class InspectionEquipmentService extends BaseService {
 
     //b1打卡记录
     public function b1RecordList($params){
-
+        
         if(empty($params['biz_inst_id'])){
             return PsCommon::responseFailed("业务实例id必填");
         }
@@ -399,9 +399,36 @@ class InspectionEquipmentService extends BaseService {
             $javaParams['userId'] = $params['userId'];
         }
         $result = $ddService->getB1List($javaParams);
-        print_r($result);die;
+        if(!empty($result['list'])){
+            //绑定钉钉用户
+            $userService = new JavaService();
+            $userParams['token'] = $params['token'];
+            $userAll = $userService->bindUserList($userParams);
+            $userAllArr = !empty($userAll['list'])?array_column($userAll['list'],'trueName','ddUserId'):[];
+            foreach($result['list'] as $key=>$value){
+
+                $result['list'][$key]['punchTime_msg'] = self::getMsecToDate($value['punchTime']);
+                $result['list'][$key]['userName'] = '';
+                if($userAllArr[$value['userId']]){
+                    $result['list'][$key]['userName'] = $userAllArr[$value['userId']];
+                }
+            }
+        }
+        return $result;
     }
 
+    //微妙转 时分秒
+    public function getMsecToDate($msectime){
+        $msectime = $msectime * 0.001;
+        if(strstr($msectime,'.')){
+            sprintf("%01.3f",$msectime);
+            list($usec, $sec) = explode(".",$msectime);
+        }else{
+            $usec = $msectime;
+        }
+        $date = date("Y-m-d H:i:s",$usec);
+        return $date;
+    }
 
     //设置任务实例巡检点
     public function taskInstanceEditPosition($params){
