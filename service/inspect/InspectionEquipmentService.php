@@ -155,7 +155,7 @@ class InspectionEquipmentService extends BaseService {
                     foreach($result->result->list->position_vo as $key=>$value){
                         if(in_array($value->position_id,$deviceNoArr)){
                             if($deviceNoNameArr[$value->position_id]!=$value->position_name){
-                                Yii::$app->db->createCommand()->update('ps_inspect_device',['name'=>$value->position_name],['is_del'=>1,'deviceNo'=>$value->position_id,'deviceType'=>100])->execute();
+                                Yii::$app->db->createCommand()->update('ps_inspect_device',['name'=>$value->position_name],['is_del'=>1,'deviceNo'=>$value->position_id,'deviceType'=>'钉钉b1智点'])->execute();
                             }
                             continue;
                         }
