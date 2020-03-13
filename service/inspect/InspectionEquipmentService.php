@@ -135,8 +135,9 @@ class InspectionEquipmentService extends BaseService {
         $result = $query->select(['biz_inst_id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->one();
         if(!empty($result['biz_inst_id'])){
             //查询本地b1
-            $deviceAll = PsInspectDevice::find()->select(['id','deviceNo'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->andWhere(['=','is_del',1])->asArray()->all();
+            $deviceAll = PsInspectDevice::find()->select(['id','deviceNo','name'])->where(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->andWhere(['=','is_del',1])->asArray()->all();
             $deviceNoArr = !empty($deviceAll)?array_column($deviceAll,'deviceNo'):[];
+            $deviceNoNameArr = !empty($deviceAll)?array_column($deviceAll,'name','deviceNo'):[];
             $tokenResult = $this->getDdAccessToken($params);
             $access_token = $tokenResult['accessToken'];
             $listParams['biz_inst_id'] = $result['biz_inst_id'];
@@ -153,6 +154,9 @@ class InspectionEquipmentService extends BaseService {
                 if(!empty($result->result->list->position_vo)){
                     foreach($result->result->list->position_vo as $key=>$value){
                         if(in_array($value->position_id,$deviceNoArr)){
+                            if($deviceNoNameArr[$value->position_id]!=$value->position_name){
+                                Yii::$app->db->createCommand()->update('ps_inspect_device',['name'=>$value->position_name],['is_del'=>1,'deviceNo'=>$value->position_id,'deviceType'=>'钉钉b1智点'])->execute();
+                            }
                             continue;
                         }
                         $element['companyId'] = $params['corp_id'];
@@ -323,6 +327,7 @@ class InspectionEquipmentService extends BaseService {
             $positionParams['token'] = $params['token'];
             $positionResult = self::taskInstanceEditPosition($positionParams);
             if($positionResult->errcode != 0){
+                $params['del_status'] = 2;
                 return self::delDeviceRecord($params);
 //                return PsCommon::responseFailed($positionResult->errmsg);
             }
@@ -342,6 +347,7 @@ class InspectionEquipmentService extends BaseService {
                 $userDelParams['del_member_list'] = $userData;
                 $userDelResult = self::taskInstanceEditUser($userDelParams);
                 if($userDelResult->errcode != 0){
+                    $params['del_status'] = 2;
                     return self::delDeviceRecord($params);
 //                    return PsCommon::responseFailed($userDelResult->errmsg);
                 }
@@ -351,6 +357,7 @@ class InspectionEquipmentService extends BaseService {
             $disableParams['biz_inst_id'] = $deviceInfo->biz_inst_id;
             $disableResult = self::instanceDisable($disableParams);
             if($disableResult->errcode != 0){
+                $params['del_status'] = 2;
                 return self::delDeviceRecord($params);
 //                return PsCommon::responseFailed($disableResult->errmsg);
             }
@@ -369,6 +376,9 @@ class InspectionEquipmentService extends BaseService {
     public function delDeviceRecord($params){
         $update['is_del'] = 2;
         $update['updateAt'] = time();
+        if(!empty($params['del_status'])){
+            $update['del_status'] = $params['del_status'];
+        }
         if(!PsInspectDevice::updateAll($update,['id'=>$params['id']])){
             return PsCommon::responseFailed("设备修改失败");
         }
