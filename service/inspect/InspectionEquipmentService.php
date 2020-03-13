@@ -391,9 +391,15 @@ class InspectionEquipmentService extends BaseService {
         $javaParams['suiteId'] = $this->suiteId;
         if(!empty($params['punchStartTime'])){
             $javaParams['punchStartTime'] = $params['punchStartTime'];
+            if(date('Y-m-d', strtotime($params['punchStartTime']))  != $params['punchStartTime']){
+                return PsCommon::responseFailed("开始时间格式不正确");
+            }
         }
         if(!empty($params['punchEndTime'])){
             $javaParams['punchEndTime'] = $params['punchEndTime'];
+            if(date('Y-m-d', strtotime($params['punchEndTime']))  != $params['punchEndTime']){
+                return PsCommon::responseFailed("结算时间格式不正确");
+            }
         }
         if(!empty($params['userId'])){
             $javaParams['userId'] = $params['userId'];
