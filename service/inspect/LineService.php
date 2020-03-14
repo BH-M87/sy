@@ -136,6 +136,7 @@ class LineService extends BaseService
                     ->where(['A.lineId' => $v['id']])
                     ->asArray()->all();
                 $v['point'] = '';
+                $point = '';
                 if ($arr) {
                     foreach ($arr as $key => $val) {
                         $point .= $val['name'] . ',';
