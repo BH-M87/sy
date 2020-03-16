@@ -16,7 +16,7 @@ use yii\base\Exception;
 
 class InspectionEquipmentController extends BaseController{
 
-//    public $repeatAction = ['synchronize-b1','device-user-edit','del-device'];
+    public $repeatAction = ['synchronize-b1','device-user-edit','del-device'];
 
     //获取钉钉accessToken
     public function actionGetDdAccessToken(){
