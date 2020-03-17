@@ -187,10 +187,9 @@ class InspectionEquipmentService extends BaseService {
 
     //设备实例化、管理钉钉人员默认同步
     public function synchronizeB1InstanceUser($params){
-
         //获得所有已同步b1设备
         $fields = ['id','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url'];
-        $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->asArray()->all();
+        $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->andWhere(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
         if(!empty($deviceAll)){
             //获得所所有钉钉人员
             $userService = new JavaService();
