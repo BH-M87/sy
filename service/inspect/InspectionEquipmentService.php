@@ -185,6 +185,114 @@ class InspectionEquipmentService extends BaseService {
         }
     }
 
+    //设备实例化、管理钉钉人员默认同步
+    public function synchronizeB1InstanceUser($params){
+        //获得所有已同步b1设备
+        $fields = ['id','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url'];
+        $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->andWhere(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
+        if(!empty($deviceAll)){
+            //获得所所有钉钉人员
+            $userService = new JavaService();
+            $userResult = $userService->bindUserList($params);
+            if(empty($userResult['list'])){
+                return PsCommon::responseSuccess();
+            }
+            $params['dd_user_list'] = implode(array_column($userResult['list'],'ddUserId'),',');
+            foreach($deviceAll as $key => $deviceInfo){
+                $biz_inst_id = !empty($deviceInfo['biz_inst_id'])?$deviceInfo['biz_inst_id']:'';
+                $punch_group_id = !empty($deviceInfo['punch_group_id'])?$deviceInfo['punch_group_id']:'';
+                if(empty($deviceInfo['biz_inst_id'])){
+                    //生成实例组 有效期十年
+                    $instanceParams['start_time'] = strtotime(date('Y-m-d',time()." 00:00:00"));
+                    $instanceParams['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
+                    $instanceParams['task_id'] = $deviceInfo['id'];
+                    $instanceParams['token'] = $params['token'];
+                    $instanceResult = self::addTaskInstance($instanceParams);
+                    if(!empty($instanceResult['biz_inst_id'])){
+                        //绑定设备
+                        $positionParams['biz_inst_id'] = $instanceResult['biz_inst_id'];
+                        $positionParams['punch_group_id'] = $instanceResult['punch_group_id'];
+                        $positionParams['add_position_list'] = [
+                            [
+                                'position_id'=>$deviceInfo['deviceNo'],
+                                'position_type'=>100
+                            ],
+                        ];
+                        $positionParams['token'] = $params['token'];
+                        $positionResult = self::taskInstanceEditPosition($positionParams);
+                        if($positionResult->errcode != 0){
+                            return PsCommon::responseFailed($positionResult->errmsg);
+                        }
+                        $instanceUpdate['biz_inst_id'] = $instanceResult['biz_inst_id'];
+                        $instanceUpdate['punch_group_id'] = $instanceResult['punch_group_id'];
+                        $instanceUpdate['start_time'] = $instanceParams['start_time'];
+                        $instanceUpdate['end_time'] = $instanceParams['end_time'];
+                        $instanceUpdate['updateAt'] = time();
+                        if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo['id']])){
+                            return PsCommon::responseFailed("设备修改失败");
+                        }
+                        $biz_inst_id = $instanceResult['biz_inst_id'];
+                        $punch_group_id = $instanceResult['punch_group_id'];
+                    }else{
+                        return $instanceResult;
+                    }
+
+                }
+                if(!empty($deviceInfo['dd_user_list'])){
+                    $userArr = explode(',',$deviceInfo['dd_user_list']);
+                    $userData = [];
+                    foreach($userArr as $value){
+                        $element['member_id'] = $value;
+                        $element['type'] = 0;
+                        $userData[] = $element;
+                    }
+                    //删除人员
+                    $userDelParams['biz_inst_id'] = $biz_inst_id;
+                    $userDelParams['punch_group_id'] = $punch_group_id;
+                    $userDelParams['token'] = $params['token'];
+                    $userDelParams['del_member_list'] = $userData;
+                    $userDelResult = self::taskInstanceEditUser($userDelParams);
+                    if($userDelResult->errcode != 0){
+                        return PsCommon::responseFailed($userDelResult->errmsg);
+                    }
+                }
+                //添加人员
+                $userArr = explode(',',$params['dd_user_list']);
+                $userData = [];
+                foreach($userArr as $value){
+                    $element['member_id'] = $value;
+                    $element['type'] = 0;
+                    $userData[] = $element;
+                }
+                $userAddParams['biz_inst_id'] = $biz_inst_id;
+                $userAddParams['punch_group_id'] = $punch_group_id;
+                $userAddParams['token'] = $params['token'];
+                $userAddParams['add_member_list'] = $userData;
+                $userAddResult = self::taskInstanceEditUser($userAddParams);
+                if($userAddResult->errcode != 0){
+                    return PsCommon::responseFailed($userAddResult->errmsg);
+                }
+
+                $instanceUpdate['biz_inst_id'] = $biz_inst_id;
+                $instanceUpdate['punch_group_id'] = $punch_group_id;
+                $instanceUpdate['dd_user_list'] = $params['dd_user_list'];
+                if(empty($deviceInfo['dd_mid_url'])){
+                    $tokenResult = $this->getDdAccessToken($params);
+                    $agentId = $tokenResult['agentId'];
+                    $cropId = $tokenResult['ddCorpId'];
+                    $instanceUpdate['dd_mid_url'] = "dingtalk://dingtalkclient/action/open_mini_app?miniAppId=2021001104691052&query=corpId%3D".$cropId."&page=pages%2Fpunch%2Findex%3FagentId%3D".$agentId."%26bizInstId%3D".$biz_inst_id."%26auto%3Dtrue";
+                }
+                $instanceUpdate['updateAt'] = time();
+                if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo['id']])){
+                    return PsCommon::responseFailed("设备修改失败");
+                }
+                return PsCommon::responseSuccess();
+            }
+        }
+        return PsCommon::responseSuccess();
+    }
+
+
     //获得b1分页
     public function getB1List($params){
         $c = new \DingTalkClient("", "", "json");

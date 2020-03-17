@@ -156,6 +156,9 @@ class F
     public static function _repeatCacheField()
     {
         $url = Yii::$app->request->getPathInfo();//路由，不包括get参数
+        if(empty($url)){
+            $url = Yii::$app->controller->action->uniqueId;
+        }
         $token = self::request('token');
         return 'lyl:repeat:cache' . md5(json_encode([$url, $token]));
     }
