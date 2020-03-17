@@ -286,7 +286,6 @@ class InspectionEquipmentService extends BaseService {
                 if(!PsInspectDevice::updateAll($instanceUpdate,['id'=>$deviceInfo['id']])){
                     return PsCommon::responseFailed("设备修改失败");
                 }
-                return PsCommon::responseSuccess();
             }
         }
         return PsCommon::responseSuccess();
