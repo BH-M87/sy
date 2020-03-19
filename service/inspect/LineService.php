@@ -212,6 +212,7 @@ class LineService extends BaseService
     public function getlineList($p)
     {
         $arr = PsInspectLine::find()->andFilterWhere(['communityId' => $p['communityId']])
+            ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
             ->select(['id', 'name'])->orderBy('id desc')->asArray()->all();
         return ['list' => $arr];
     }
