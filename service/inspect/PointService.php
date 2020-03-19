@@ -193,7 +193,9 @@ class PointService extends BaseService
     {
         $checked = PsCommon::get($p, 'checked');
         $m = PsInspectPoint::find()->select('id, name')
-            ->filterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])->asArray()->all();
+            ->filterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])
+            ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
+            ->asArray()->all();
         if (!empty($m)) {
             foreach ($m as $k => $v) {
                 $point = PsInspectLinePoint::find()
