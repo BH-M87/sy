@@ -211,7 +211,8 @@ class LineService extends BaseService
     // 巡检线路列表-线路新增页面使用
     public function getlineList($p)
     {
-        $arr = PsInspectLine::find()->andFilterWhere(['communityId' => $p['communityId']])
+        $arr = PsInspectLine::find()
+            ->filterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])
             ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
             ->select(['id', 'name'])->orderBy('id desc')->asArray()->all();
         return ['list' => $arr];
