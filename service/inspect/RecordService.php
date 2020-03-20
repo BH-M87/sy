@@ -209,6 +209,7 @@ class RecordService extends BaseService {
         //查询任务数量
         $totals = $model->getCount($params);
         $cycle = ceil($totals / 1000);
+        $cycle = !empty($cycle)?$cycle:1;
         $config["sheet_config"] = [
             'A' => ['title' => '小区名称', 'width' => 20, 'data_type' => 'str', 'field' => 'community_name'],
             'B' => ['title' => '任务名称', 'width' => 30, 'data_type' => 'str', 'field' => 'task_name'],
