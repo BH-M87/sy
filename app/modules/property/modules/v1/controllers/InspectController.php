@@ -83,7 +83,7 @@ class InspectController extends BaseController
     {
         $result = PointService::service()->getPoint($this->request_params);
 
-        return PsCommon::responseSuccess($result);
+        return PsCommon::responseSuccess($result, false);
     }
 
     // 导出二维码图片
