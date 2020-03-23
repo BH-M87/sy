@@ -164,7 +164,7 @@ class PlanService extends BaseService
                     $inspectParams['msg'] = [
                         "msgtype"=>"text",
                         "text"=>[
-                            "content"=>"您有一条新的巡更计划：".$model->attributes['name']
+                            "content"=>"您有一条新的巡检计划：".$model->attributes['name']
                         ]
                     ];
                     $inspectService->sendMessage($inspectParams);
@@ -275,7 +275,7 @@ class PlanService extends BaseService
                     $inspectParams['msg'] = [
                         "msgtype"=>"text",
                         "text"=>[
-                            "content"=>"您有一条新的巡更计划：".$model->attributes['name']
+                            "content"=>"您有一条新的巡检计划：".$model->attributes['name']
                         ]
                     ];
                     $inspectService->sendMessage($inspectParams);
