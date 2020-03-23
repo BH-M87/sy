@@ -608,6 +608,29 @@ class InspectionEquipmentService extends BaseService {
         return $resp;
     }
 
+    /*
+     * 给钉钉用户发送消息通知
+     * input
+     *  token
+     *  userIdList 钉钉用户id 逗号隔开
+     *  msg 消息内容 数组格式 ["msgtype"=>"text","text"=>["content"=>"消息内容"]]
+     */
+    public function sendMessage($params){
+
+
+        $tokenResult = $this->getDdAccessToken($params);
+        $agentId = $tokenResult['agentId'];
+        $access_token = $tokenResult['accessToken'];
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiMessageCorpconversationAsyncsendV2Request;
+        $req->setAgentId($agentId);
+        $req->setUseridList($params['userIdList']);
+        $req->setMsg(json_encode($params['msg'],JSON_UNESCAPED_UNICODE));
+        $resp = $c->execute($req, $access_token);
+        return $resp;
+    }
+
 
     //创建业务实例，比如公司会议、年会、巡查任务等等 返回实例id
     public function instanceAdd($params)

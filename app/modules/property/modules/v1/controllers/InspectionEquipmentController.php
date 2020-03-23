@@ -117,4 +117,19 @@ class InspectionEquipmentController extends BaseController{
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //消息测试
+    public function actionSendMsg(){
+        $params = $this->request_params;
+        $inspectService = new InspectionEquipmentService();
+        $inspectParams['token'] = $params['token'];
+        $inspectParams['userIdList'] = '123623046837966337,163559593422058370';
+        $inspectParams['msg'] = [
+            "msgtype"=>"text",
+            "text"=>[
+                "content"=>"消息内容"
+            ]
+        ];
+        $result = $inspectService->sendMessage($inspectParams);
+    }
 }
