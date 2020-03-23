@@ -117,9 +117,13 @@ class PlanService extends BaseService
                 //调用java接口 验证用户是否存在
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
+                $userIdList = '';
                 foreach ($user_list as $user_id) {
                     if(empty($userResult[$user_id])){
                         return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                    if(!empty($userResult[$user_id]['ddUserId'])){
+                        $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
                 }
                 if(empty($params['planTime'])){
@@ -129,6 +133,7 @@ class PlanService extends BaseService
                         return PsCommon::responseFailed('执行时间是一个数组');
                     }
                 }
+
 
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
@@ -149,6 +154,21 @@ class PlanService extends BaseService
                 $pointParams['plan_id'] = $model->attributes['id'];
                 $pointParams['line_id'] = $params['line_id'];
                 self::addPlanTaskPoint($pointParams);
+
+                //消息发送
+                if(!empty($userIdList)){
+                    $userIdList = mb_substr($userIdList,0,-1);
+                    $inspectService = new InspectionEquipmentService();
+                    $inspectParams['token'] = $params['token'];
+                    $inspectParams['userIdList'] = $userIdList;
+                    $inspectParams['msg'] = [
+                        "msgtype"=>"text",
+                        "text"=>[
+                            "content"=>"您有一条新的巡更计划：".$model->attributes['name']
+                        ]
+                    ];
+                    $inspectService->sendMessage($inspectParams);
+                }
 
                 $trans->commit();
                 if (!empty($userInfo)) {
@@ -205,12 +225,16 @@ class PlanService extends BaseService
             if ($model->load($params, '') && $model->validate()) {
 
                 $user_list = explode(',',$params['user_list']);
+                $userIdList = '';
                 //调用java接口 验证用户是否存在
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
                 foreach ($user_list as $user_id) {
                     if(empty($userResult[$user_id])){
                         return PsCommon::responseFailed('选择的人员不存在');
+                    }
+                    if(!empty($userResult[$user_id]['ddUserId'])){
+                        $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
                 }
                 if(empty($params['planTime'])){
@@ -241,6 +265,21 @@ class PlanService extends BaseService
                 $pointParams['plan_id'] = $model->attributes['id'];
                 $pointParams['line_id'] = $params['line_id'];
                 self::addPlanTaskPoint($pointParams);
+
+                //消息发送
+                if(!empty($userIdList)){
+                    $userIdList = mb_substr($userIdList,0,-1);
+                    $inspectService = new InspectionEquipmentService();
+                    $inspectParams['token'] = $params['token'];
+                    $inspectParams['userIdList'] = $userIdList;
+                    $inspectParams['msg'] = [
+                        "msgtype"=>"text",
+                        "text"=>[
+                            "content"=>"您有一条新的巡更计划：".$model->attributes['name']
+                        ]
+                    ];
+                    $inspectService->sendMessage($inspectParams);
+                }
 
                 $trans->commit();
                 if (!empty($userInfo)) {
