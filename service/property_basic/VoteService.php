@@ -1062,7 +1062,7 @@ class VoteService extends BaseService
             $sendParams['token'] = $data['token'];
             $sendParams['vote_id'] = $voteId;
             $sendParams['sendType'] = 1;
-            $sendParams['trueName'] = $userinfo['truename'];
+            $sendParams['truename'] = $userinfo['truename'];
             $sendParams['corpId'] = $userinfo['corpId'];
             self::sendMessage($sendParams);
 
@@ -1080,7 +1080,7 @@ class VoteService extends BaseService
 
     /*
      *  发送消息通知 调用java接口
-     *  input: vote_id token sendType(1预发布 2已公布) corpId trueName
+     *  input: vote_id token sendType(1预发布 2已公布) corpId truename
      */
     public function sendMessage($params){
 
@@ -1225,7 +1225,7 @@ class VoteService extends BaseService
             $sendParams['token'] = $data['token'];
             $sendParams['vote_id'] = $data["vote_id"];
             $sendParams['sendType'] = 2;
-            $sendParams['trueName'] = $userinfo['truename'];
+            $sendParams['truename'] = $userinfo['truename'];
             $sendParams['corpId'] = $userinfo['corpId'];
             self::sendMessage($sendParams);
         } else {
