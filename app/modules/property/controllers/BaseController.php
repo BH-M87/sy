@@ -148,10 +148,10 @@ class BaseController extends \yii\web\Controller
 
         $this->user_info = $result;
         $this->user_info['propertyMark'] = 1; // 后台标记需要添加操作日志
-        $this->user_info['truename'] = $result['trueName'];
+        $this->user_info['truename'] = !empty($result['trueName'])?$result['trueName']:$result['accountName'];
         $this->request_params['token'] = $header['authorization'];
         $this->request_params['create_id'] = $result['id'];
-        $this->request_params['create_name'] = $result['trueName'];
+        $this->request_params['create_name'] = !empty($result['trueName'])?$result['trueName']:$result['accountName'];
         $this->request_params['corp_id'] = $result['corpId'];
         $this->request_params['corp_id'] = $result['corpId'];
         $this->request_params['communityList'] = $this->community_list;
