@@ -1062,7 +1062,7 @@ class VoteService extends BaseService
             $sendParams['token'] = $data['token'];
             $sendParams['vote_id'] = $voteId;
             $sendParams['sendType'] = 1;
-            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['trueName'] = $userinfo['truename'];
             $sendParams['corpId'] = $userinfo['corpId'];
             self::sendMessage($sendParams);
 
@@ -1105,7 +1105,7 @@ class VoteService extends BaseService
                     $pushTime = date('Y-m-d H:i');
                     break;
             }
-            $sendParams['createPeople'] = $params['trueName'];
+            $sendParams['createPeople'] = $params['truename'];
             $sendParams['appletFlag'] = true;
             $sendParams['corpId'] = $params['corpId'];
             $sendParams['appFlag'] = true;
@@ -1225,7 +1225,7 @@ class VoteService extends BaseService
             $sendParams['token'] = $data['token'];
             $sendParams['vote_id'] = $data["vote_id"];
             $sendParams['sendType'] = 2;
-            $sendParams['trueName'] = $userinfo['trueName'];
+            $sendParams['trueName'] = $userinfo['truename'];
             $sendParams['corpId'] = $userinfo['corpId'];
             self::sendMessage($sendParams);
         } else {
