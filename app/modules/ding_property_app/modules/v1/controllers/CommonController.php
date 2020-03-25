@@ -15,14 +15,24 @@ use common\core\PsCommon;
 
 class CommonController extends Controller {
 
-    public $query = [];
+    public $request_params = [];
 
     public function beforeAction($action){
         if(!parent::beforeAction($action)) return false;
         if (!Yii::$app->request->isPost) {
             exit(PsCommon::responseFailed("只能post请求"));
         }
-        $this->query = $_REQUEST;
+        $body = [];
+        if (!empty(Yii::$app->request->getRawBody())) {
+            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".Yii::$app->request->getRawBody() . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/front_req.log');
+            $bodys = json_decode(Yii::$app->request->getRawBody(), true);
+            if (!is_array($bodys)){
+                exit(PsCommon::responseFailed("参数错误"));
+            }
+            $body = $bodys;
+        }
+        
+        $this->request_params = $body;
         return true;
     }
 
@@ -30,7 +40,7 @@ class CommonController extends Controller {
     public function actionGetAddress()
     {
         try{
-            $params = $this->query;
+            $params = $this->request_params;
             $service = new CommonService();
             $result = $service->getGeoInfo($params);
             return PsCommon::responseSuccess($result);
