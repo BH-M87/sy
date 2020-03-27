@@ -284,6 +284,26 @@ class PsInspectPlan extends BaseModel
     }
 
     /*
+     * 巡检列表钉钉端
+     */
+    public function getListOfDing($params){
+        $fields = ['p.id','p.status','p.name','p.start_at','p.end_at','p.community_id'];
+        $model = self::find()->alias("p")->select($fields)
+            ->with('taskStartAsc')
+            ->andFilterWhere(['=', 'p.community_id', $params['community_id']])
+            ->andFilterWhere(['=', 'p.status', $params['status']])
+            ->andFilterWhere(['like', 'p.name', $params['name']]);
+        $count = $model->count();
+        $page = intval($params['page']);
+        $pageSize = intval($params['pageSize']);
+        $offset = ($page-1)*$pageSize;
+        $model->offset($offset)->limit($pageSize);
+        $model->orderBy(["p.id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
+    }
+
+    /*
      * 计划详情
      */
     public function getDetail($params){

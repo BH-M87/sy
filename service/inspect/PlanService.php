@@ -1025,6 +1025,37 @@ class PlanService extends BaseService
         throw new MyException('删除失败，巡检计划不存在');
     }
 
+    //钉钉端计划列表
+    public function planListOfDing($params){
+        if(empty($params['community_id'])){
+            return PsCommon::responseFailed('小区id不能为空');
+        }
+
+        $model = new PsInspectPlan();
+        $result = $model->getListOfDing($params);
+        $data = [];
+        if(!empty($result['data'])){
+            $nowTime = time();
+            foreach($result['data'] as $key=>$value){
+                $element['id'] = !empty($value['id'])?$value['id']:'';
+                $element['status'] = !empty($value['status'])?$value['status']:'';
+                $element['name'] = !empty($value['name'])?$value['name']:'';
+                $element['start_at_msg'] = !empty($value['start_at'])?date('Y/m/d',$value['start_at']):'';
+                $element['end_at_msg'] = !empty($value['end_at'])?date('Y/m/d',$value['end_at']):'';
+                $element['is_delete'] = 1;      //允许删除
+                if(!empty($value['taskStartAsc'][0])){
+                    if($value['taskStartAsc'][0]['check_start_at']<=$nowTime){
+                        $element['is_delete'] = 2; //不允许删除
+                    }
+                }
+                $data[] = $element;
+            }
+        }
+        return ['list'=>$data,'totals'=>$result['count']];
+
+
+    }
+
     public function planList($params)
     {
         $model = new PsInspectPlan();
