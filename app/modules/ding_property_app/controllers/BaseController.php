@@ -98,6 +98,8 @@ class BaseController extends Controller
 
         $this->params['token'] = $header['OpenAuthorization'];
         $this->params['appKey'] = $header['AppKey'];
+        $this->request_params['token'] = $header['OpenAuthorization'];
+        $this->request_params['appKey'] = $header['AppKey'];
     }
 
     // 统一JSON返回
