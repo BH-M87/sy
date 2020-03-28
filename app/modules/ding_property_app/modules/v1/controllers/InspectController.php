@@ -5,6 +5,9 @@ use app\modules\ding_property_app\controllers\UserBaseController;
 
 use common\core\PsCommon;
 
+use yii\base\Exception;
+
+use service\inspect\InspectionEquipmentService;
 use service\inspect\PointService;
 use service\inspect\LineService;
 
@@ -77,6 +80,21 @@ class InspectController extends UserBaseController
         $r = PointService::service()->deviceDropDown($this->params);
 
         return PsCommon::responseSuccess($r, false);
+    }
+
+    // 同步设备
+    public function actionDeviceData()
+    {
+        try {
+            $params = $this->params;
+            $service = new InspectionEquipmentService();
+            $service->addCompanyInstance($params);
+            $service->synchronizeB1($params);
+            $result = $service->synchronizeB1InstanceUser($params);
+            return PsCommon::responseSuccess($result);
+        } catch(Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
     }
 
     // ----------------------------------     巡检点     ------------------------------
@@ -173,7 +191,7 @@ class InspectController extends UserBaseController
         $id = $this->params['id'];
         unset($this->params['id']);
         $this->params['id'][] = $id;
-        
+
         LineService::service()->del($this->params, $this->userInfo);
 
         return PsCommon::responseSuccess();
