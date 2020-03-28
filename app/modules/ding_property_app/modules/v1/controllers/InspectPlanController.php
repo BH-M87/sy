@@ -54,4 +54,21 @@ class InspectPlanController extends UserBaseController {
         }
     }
 
+    /**
+     * @api 巡检计划新增
+     * @author wyf
+     * @date 2019/8/12
+     */
+    public function actionPlanAdd()
+    {
+        try{
+            $params = $this->request_params;
+            $params['type'] = 1;
+            $result = PlanService::service()->planAdd($params, $this->userInfo);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
 }
