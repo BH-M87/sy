@@ -20,7 +20,7 @@ use yii\base\Exception;
 
 class InspectController extends BaseController
 {
-    public $repeatAction = ['point-add'];
+    public $repeatAction = ['point-add','plan-add','plan-temp-add'];
 
     // 设备列表
     public function actionListDevice()

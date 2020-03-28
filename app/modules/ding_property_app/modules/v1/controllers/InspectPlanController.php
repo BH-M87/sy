@@ -14,6 +14,8 @@ use yii\base\Exception;
 
 
 class InspectPlanController extends UserBaseController {
+
+    public $repeatAction = ['plan-add','plan-temp-add'];
     
     //列表
     public function actionPlanList(){
