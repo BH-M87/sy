@@ -100,4 +100,17 @@ class InspectPlanController extends UserBaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    /*
+     * 巡检计划详情
+     */
+    public function actionPlanDetail(){
+        try{
+            $params = $this->request_params;
+            $result = PlanService::service()->planDetail($params);
+            return PsCommon::responseSuccess($result);
+        }catch (Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
