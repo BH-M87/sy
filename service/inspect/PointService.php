@@ -169,6 +169,9 @@ class PointService extends BaseService
     // 巡检点列表
     public function pointList($p)
     {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
         $totals = self::pointSearch($p,'id')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];

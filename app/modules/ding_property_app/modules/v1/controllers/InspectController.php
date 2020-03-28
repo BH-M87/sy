@@ -59,11 +59,130 @@ class InspectController extends UserBaseController
         return PsCommon::responseSuccess($r);
     }
 
+    // ----------------------------------     巡检设备     ------------------------------
+
     // 巡检设备列表
     public function actionListDevice()
     {
         $this->params['communityList'] = $this->params['communityId'];
         $r = PointService::service()->listDevice($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 设备名称下拉列表
+    public function actionDeviceDropDown()
+    {
+        $this->params['corp_id'] = $this->userInfo['corpId'];
+        $r = PointService::service()->deviceDropDown($this->params);
+
+        return PsCommon::responseSuccess($r, false);
+    }
+
+    // ----------------------------------     巡检点     ------------------------------
+
+    // 巡检点新增
+    public function actionAddPoint()
+    {
+        PointService::service()->add($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检点编辑
+    public function actionEditPoint()
+    {
+        PointService::service()->edit($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检点列表
+    public function actionPointList()
+    {
+        $r = PointService::service()->pointList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检点删除
+    public function actionPointDelete()
+    {
+        $id = $this->params['id'];
+        unset($this->params['id']);
+        $this->params['id'][] = $id;
+        
+        PointService::service()->del($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检点详情
+    public function actionShowPoint()
+    {
+        $r = PointService::service()->view($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检点管理下拉
+    public function actionPointDropDown()
+    {
+        $result = PointService::service()->getPoint($this->params);
+
+        return PsCommon::responseSuccess($result, false);
+    }
+
+    // ----------------------------------     巡检线路     ------------------------------
+
+    // 巡检线路新增
+    public function actionLineAdd()
+    {
+        LineService::service()->add($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检线路编辑
+    public function actionLineEdit()
+    {
+        LineService::service()->edit($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检线路列表
+    public function actionLineList()
+    {
+        $r = LineService::service()->lineList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检线路详情
+    public function actionLineShow()
+    {
+        $r = LineService::service()->view($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检线路删除
+    public function actionLineDelete()
+    {
+        $id = $this->params['id'];
+        unset($this->params['id']);
+        $this->params['id'][] = $id;
+        
+        LineService::service()->del($this->params, $this->userInfo);
+
+        return PsCommon::responseSuccess();
+    }
+
+    // 巡检线路下拉
+    public function actionLineDropDown()
+    {
+        $r = LineService::service()->getlineList($this->params);
 
         return PsCommon::responseSuccess($r);
     }
