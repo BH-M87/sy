@@ -137,6 +137,26 @@ class PsInspectRecord extends BaseModel
         return ['count'=>$count,'data'=>$result];
     }
 
+    //列表 钉钉端
+    public function getListOfDing($params){
+        $fields = ['id','community_id','task_name','check_start_at','check_end_at','line_name','status','run_status','result_status','point_count','finish_count'];
+        $model = self::find()->select($fields)
+            ->andFilterWhere(['=', 'community_id', $params['community_id']])
+            ->andFilterWhere(['like', 'task_name', $params['task_name']])
+            ->andFilterWhere(['=', 'status', $params['status']])
+            ->andFilterWhere(['=', 'run_status', $params['run_status']]);
+
+        $count = $model->count();
+        $page = intval($params['page']);
+        $pageSize = intval($params['pageSize']);
+        $offset = ($page-1)*$pageSize;
+        $model->offset($offset)->limit($pageSize);
+        $sort = !empty($params['sort'])?$params['sort']:SORT_DESC;
+        $model->orderBy(["id"=>$sort]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
+    }
+
     /*
      * 根据条件 获得总数
      */
