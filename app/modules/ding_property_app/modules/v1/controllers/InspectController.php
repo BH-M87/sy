@@ -6,6 +6,7 @@ use app\modules\ding_property_app\controllers\UserBaseController;
 use common\core\PsCommon;
 
 use service\inspect\PointService;
+use service\inspect\LineService;
 
 class InspectController extends UserBaseController
 {
@@ -54,6 +55,15 @@ class InspectController extends UserBaseController
     public function actionPointShow()
     {
         $r = PointService::service()->pointShow($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 巡检设备列表
+    public function actionListDevice()
+    {
+        $this->params['communityList'] = $this->params['communityId'];
+        $r = PointService::service()->listDevice($this->params);
 
         return PsCommon::responseSuccess($r);
     }

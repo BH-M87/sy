@@ -247,6 +247,7 @@ class PointService extends BaseService
     // 设备列表
     public function listDevice($p)
     {
+        $p['communityList'] = !empty($p['communityList']) ? $p['communityList'] : '';
         $query = new Query();
         $query->from('ps_inspect_device A')
             ->leftJoin('ps_inspect_point B', 'A.deviceNo = B.deviceNo')
