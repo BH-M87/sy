@@ -521,6 +521,7 @@ class InspectionEquipmentService extends BaseService {
         if(!empty($params['userId'])){
             $javaParams['userId'] = $params['userId'];
         }
+        $javaParams['token'] = $params['token'];
         $result = $ddService->getB1List($javaParams);
         if(!empty($result['list'])){
             //绑定钉钉用户
