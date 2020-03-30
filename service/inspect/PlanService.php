@@ -1042,6 +1042,11 @@ class PlanService extends BaseService
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['start_at_msg'] = !empty($value['start_at'])?date('Y/m/d',$value['start_at']):'';
                 $element['end_at_msg'] = !empty($value['end_at'])?date('Y/m/d',$value['end_at']):'';
+                //判断是否过期
+                $element['is_expired'] = 1;       //没有过期
+                if($value['end_at']<$nowTime){
+                    $element['is_expired'] = 2;   //已经过期
+                }
                 $element['is_delete'] = 1;      //允许删除
                 if(!empty($value['taskStartAsc'][0])){
                     if($value['taskStartAsc'][0]['check_start_at']<=$nowTime){
