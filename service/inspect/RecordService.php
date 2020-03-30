@@ -216,6 +216,7 @@ class RecordService extends BaseService {
             $element['point'] = [];
             if(!empty($result['point'])){
                 $device_status = ['1'=>'正常','2'=>'异常'];
+                $typeArr = ['1'=>'扫码', '2'=>'定位', '3'=>'智点', '4'=>'拍照'];
                 foreach($result['point'] as $key=>$value){
                     $ele['point_name'] = !empty($value['point_name'])?$value['point_name']:'';
                     $ele['status'] = !empty($value['status'])?$value['status']:'';
@@ -225,6 +226,13 @@ class RecordService extends BaseService {
                     $ele['record_note'] = !empty($value['record_note'])?$value['record_note']:'';
                     $ele['picture'] = !empty($value['picture'])?$value['picture']:'';           //打卡图片
                     $ele['imgs'] = !empty($value['imgs'])?explode(',',$value['imgs']):[];       //备注图片
+                    $ele['type'] = [];
+                    if(!empty($value['type'])){
+                        $temp = explode(',',$value['type']);
+                        foreach($temp as $k=>$v){
+                            array_push($ele['type'],$typeArr[$v]);
+                        }
+                    }
                     $element['point'][] = $ele;
                 }
             }
