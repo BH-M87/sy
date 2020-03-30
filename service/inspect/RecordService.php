@@ -83,6 +83,12 @@ class RecordService extends BaseService {
 
         $model = new PsInspectRecord();
         $result = $model->getListOfDing($params);
+        //获得待巡检数量
+        $pending_count = PsInspectRecord::find()->select(['id'])
+                                            ->where(['=','status',1])
+                                            ->andWhere(['=','community_id',$params['community_id']])
+                                            ->count();
+
         $data = [];
         if(!empty($result['data'])){
             foreach($result['data'] as $key=>$value){
@@ -105,7 +111,7 @@ class RecordService extends BaseService {
                 $data[] = $element;
             }
         }
-        return ['list'=>$data,'totals'=>$result['count']];
+        return ['list'=>$data,'totals'=>$result['count'],'pending_count'=>$pending_count];
     }
 
     //任务状态下拉
