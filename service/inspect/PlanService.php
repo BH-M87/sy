@@ -792,6 +792,8 @@ class PlanService extends BaseService
                 }
                 foreach($dateAll as $date){
                     $element['time'] = $date;
+                    $element['tag'] = '任务';
+                    $element['tagColor'] = '3';
                     $element['user_list'] = $users;
                     $element['planTime'] = $params['planTime'];
                     $data[] = $element;
@@ -1213,6 +1215,8 @@ class PlanService extends BaseService
                 $element['time'] = date("Y-m-d",$date);
                 $element['planTime'] = [];
                 foreach($planTime as $key=>$value){
+                    $pElement['tag'] = '任务';
+                    $pElement['tagColor'] = '3';
                     $pElement['start'] = $value['start'];
                     $pElement['end'] = $value['end'];
                     $pElement['user_list'] = [];
