@@ -1044,6 +1044,8 @@ class PlanService extends BaseService
                 $element['name'] = !empty($value['name'])?$value['name']:'';
                 $element['start_at_msg'] = !empty($value['start_at'])?date('Y/m/d',$value['start_at']):'';
                 $element['end_at_msg'] = !empty($value['end_at'])?date('Y/m/d',$value['end_at']):'';
+                $element['type'] = !empty($value['type'])?$value['type']:'';
+                $element['type_msg'] = !empty($value['type'])?self::$plan_type[$value['type']]:'';
                 //判断是否过期
                 $element['is_expired'] = 1;       //没有过期
                 if($value['end_at']<$nowTime){

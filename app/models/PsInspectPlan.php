@@ -287,7 +287,7 @@ class PsInspectPlan extends BaseModel
      * 巡检列表钉钉端
      */
     public function getListOfDing($params){
-        $fields = ['p.id','p.status','p.name','p.start_at','p.end_at','p.community_id'];
+        $fields = ['p.id','p.status','p.name','p.start_at','p.end_at','p.community_id','p.type'];
         $model = self::find()->alias("p")->select($fields)
             ->with('taskStartAsc')
             ->andFilterWhere(['=', 'p.community_id', $params['community_id']])
