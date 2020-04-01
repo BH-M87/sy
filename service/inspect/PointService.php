@@ -59,8 +59,8 @@ class PointService extends BaseService
             $p['createAt'] = time();
         }
 
-        if (empty($p['type']) || !is_array($p['type'])) {
-            throw new MyException('打卡方式必填!');
+        if (!is_array($p['type'])) {
+            throw new MyException('打卡方式必填是数组格式!');
         }
 
         if (in_array('2', $p['type'])) { // 当选择需要定位时判断是否有经纬度
@@ -94,6 +94,10 @@ class PointService extends BaseService
         }
 
         $p['type'] = implode(',', $p['type']);
+
+        if (empty($p['type'])) {
+            throw new MyException('打卡方式必填!');
+        }
 
         $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])
             ->andFilterWhere(['!=', 'id', $p['id']])->one();
