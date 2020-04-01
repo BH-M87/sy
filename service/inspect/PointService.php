@@ -59,6 +59,10 @@ class PointService extends BaseService
             $p['createAt'] = time();
         }
 
+        if (empty($p['type']) || !is_array($p['type'])) {
+            throw new MyException('打卡方式必填!');
+        }
+
         if (in_array('2', $p['type'])) { // 当选择需要定位时判断是否有经纬度
             if (empty($p['location']) || empty($p['lon']) || empty($p['lat'])) {
                 throw new MyException('定位经纬度与位置不能为空!');
