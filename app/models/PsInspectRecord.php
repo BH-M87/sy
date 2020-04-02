@@ -92,11 +92,9 @@ class PsInspectRecord extends BaseModel
      */
     public function infoData($attribute)
     {
-        if (!empty($this->id)&&!empty($this->community_id)) {
-            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
-            if (empty($res)) {
-                $this->addError($attribute, "该任务不存在!");
-            }
+        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        if (empty($res)) {
+            $this->addError($attribute, "该任务不存在!");
         }
     }
 
