@@ -194,6 +194,7 @@ class PointService extends BaseService
                 $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                 $v['communityName'] = $community['communityName'];
                 $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
+                $v['right'] =  ["type" => 'delete', "text" => '删除', "fColor" => 'white' ];
             }
         }
 
