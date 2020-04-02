@@ -205,11 +205,9 @@ class PsInspectPlan extends BaseModel
      */
     public function infoData($attribute)
     {
-        if (!empty($this->id)&&!empty($this->community_id)) {
-            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
-            if (empty($res)) {
-                $this->addError($attribute, "该计划不存在!");
-            }
+        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        if (empty($res)) {
+            $this->addError($attribute, "该计划不存在!");
         }
     }
 
@@ -289,10 +287,16 @@ class PsInspectPlan extends BaseModel
     public function getListOfDing($params){
         $fields = ['p.id','p.status','p.name','p.start_at','p.end_at','p.community_id','p.type'];
         $model = self::find()->alias("p")->select($fields)
-            ->with('taskStartAsc')
-            ->andFilterWhere(['=', 'p.community_id', $params['community_id']])
-            ->andFilterWhere(['=', 'p.status', $params['status']])
-            ->andFilterWhere(['like', 'p.name', $params['name']]);
+            ->with('taskStartAsc');
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=', 'p.community_id', $params['community_id']]);
+        }
+        if(!empty($params['status'])){
+            $model->andWhere(['=', 'p.status', $params['status']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like', 'p.name', $params['name']]);
+        }
         $count = $model->count();
         $page = intval($params['page']);
         $pageSize = intval($params['pageSize']);
