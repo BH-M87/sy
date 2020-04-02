@@ -12,6 +12,7 @@ use common\core\F;
 use common\core\PsCommon;
 use yii\base\Controller;
 use Yii;
+use common\core\JavaCurl;
 
 class BaseController extends Controller
 {
@@ -24,6 +25,7 @@ class BaseController extends Controller
     public $repeatAction = []; // 验证重复请求的方法数组
     public $userId;
     public $token;
+    public $community_list = []; //当前登录用户的小区列表
 
     public function beforeAction($action)
     {
@@ -95,11 +97,21 @@ class BaseController extends Controller
         if (!isset($header['OpenAuthorization']) || empty($header['OpenAuthorization'])) {
             //exit($this->ajaxReturn('OpenAuthorization不能为空'));
         }
+        
+        // 用户的小区权限
+        $community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['OpenAuthorization']]);
+        if (!empty($community['list'])) {
+            foreach ($community['list'] as $k => $v) {
+                $this->community_list[] = $v['key'];
+            }
+        } 
 
         $this->params['token'] = $header['OpenAuthorization'];
         $this->params['appKey'] = $header['AppKey'];
+        $this->params['communityList'] = $this->community_list;
         $this->request_params['token'] = $header['OpenAuthorization'];
         $this->request_params['appKey'] = $header['AppKey'];
+        $this->request_params['communityList'] = $this->community_list;
     }
 
     // 统一JSON返回
