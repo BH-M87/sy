@@ -193,6 +193,7 @@ class PointService extends BaseService
             foreach ($list as $k => &$v) {
                 $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                 $v['communityName'] = $community['communityName'];
+                $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
             }
         }
 

@@ -119,6 +119,7 @@ class InspectController extends UserBaseController
     public function actionPointList()
     {
         $r = PointService::service()->pointList($this->params);
+        $r['right'] =  ["type" => 'delete', "text" => '删除', "fColor" => 'white' ];
 
         return PsCommon::responseSuccess($r);
     }
