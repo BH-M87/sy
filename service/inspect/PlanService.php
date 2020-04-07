@@ -20,6 +20,7 @@ use app\models\PsUser;
 use app\models\PsInspectPlan;
 use app\models\PsUserCommunity;
 use app\models\TempTaskForm;
+use app\models\TempTaskTimeForm;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
@@ -297,6 +298,20 @@ class PlanService extends BaseService
         }
     }
 
+    /*
+     * 验证临时数据执行时间
+     */
+    public function tempTaskTimeVerification($params){
+        foreach($params['planTime'] as $key=>$value){
+            $var['start'] = $value['start'];
+            $var['end'] = $value['end'];
+            $model = new TempTaskTimeForm(['scenario'=>'add']);
+            if (!$model->load($var, '') || !$model->validate()) {
+                throw new Exception(array_values($model->errors)[0][0]);
+            }
+        }
+        return true;
+    }
 
     /*
      * 新建执行时间
@@ -790,14 +805,27 @@ class PlanService extends BaseService
                     }
                     array_push($users,$userResult[$user_id]['trueName']);
                 }
-                foreach($dateAll as $date){
-                    $element['time'] = $date;
-                    $element['tag'] = '任务';
-                    $element['tagColor'] = '3';
-                    $element['user_list'] = $users;
-                    $element['planTime'] = $params['planTime'];
-                    $data[] = $element;
+
+                if(empty($params['planTime'])){
+                    return PsCommon::responseFailed('执行时间不能为空');
+                }else{
+                    if(!is_array($params['planTime'])){
+                        return PsCommon::responseFailed('执行时间是一个数组');
+                    }
                 }
+
+                if(self::tempTaskTimeVerification(['planTime'=>$params['planTime']])){
+
+                    foreach($dateAll as $date){
+                        $element['time'] = $date;
+                        $element['tag'] = '任务';
+                        $element['tagColor'] = '3';
+                        $element['user_list'] = $users;
+                        $element['planTime'] = $params['planTime'];
+                        $data[] = $element;
+                    }
+                }
+
             }
             return ['list'=>$data];
         }else{

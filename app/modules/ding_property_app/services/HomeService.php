@@ -8,7 +8,9 @@
 namespace app\modules\ding_property_app\services;
 use app\models\PsRepair;
 use service\BaseService;
+use service\inspect\InspectionEquipmentService;
 use service\issue\RepairService;
+use service\property_basic\JavaDDService;
 use Yii;
 
 class HomeService extends BaseService
@@ -104,8 +106,35 @@ class HomeService extends BaseService
      */
     public function getDingHomeIndex($reqArr)
     {
-        $menus = UserService::service()->getDingUserMenu($reqArr);
-        return $menus;
+        //物业公司是否设置收款账号
+        print_r($reqArr);die;
+
+        //判断小区是否有账单
+
+
+        $menu= [
+          [
+                'icon'=>"http://static.zje.com/2020040710054928444.png",
+                'name'=>"报事报修",
+                'url'=>"/pages/index/typeRepair/index"
+          ],
+          [
+                'icon'=>"http://static.zje.com/2020040710071219575.png",
+                'name'=>"巡检执行",
+                'url'=>"/pages/Inspection/index/index"
+          ],
+          [
+                'icon'=>"http://static.zje.com/2020040710074024088.png",
+                'name'=>"物业收费",
+                'url'=>"/pages/property-payment/index/index"
+          ],
+          [
+                'icon'=>"http://static.zje.com/2020040710080931069.png",
+                'name'=>"巡检管理",
+                'url'=>"/pages/patrolManagement/index/index"
+          ]
+        ];
+        return $menu;
     }
 
     /**
