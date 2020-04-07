@@ -144,7 +144,8 @@ class LineService extends BaseService
                     $v['point'] = substr($point, 0, -1);
                 }
                 $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-                $v['communityName'] = $community['communityName'];  
+                $v['communityName'] = $community['communityName'];
+                $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];  
             }
         }
         return ['list' => $list, 'totals' => $totals];
