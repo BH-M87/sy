@@ -1230,7 +1230,7 @@ class PlanService extends BaseService
             //判断是否过期
             $element['is_expired'] = 1;       //没有过期
             if($result['end_at']<time()){
-                $element['is_expired'] = 2;   //没有过期
+                $element['is_expired'] = 2;   //已经过期
             }
             return $element;
         }else{
