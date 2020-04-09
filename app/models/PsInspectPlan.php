@@ -314,7 +314,7 @@ class PsInspectPlan extends BaseModel
         $fields = [
                     'p.id','p.type','p.status','p.name','p.start_at','p.end_at','p.community_id','p.exec_type',
                     'p.exec_interval','p.exec_type_msg','l.name as line_name','p.user_list','p.error_minute',
-                    'p.task_name'
+                    'p.task_name','p.user_list_name'
         ];
         $model = self::find()->alias("p")->select($fields)
             ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")

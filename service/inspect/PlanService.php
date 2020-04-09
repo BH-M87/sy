@@ -125,6 +125,7 @@ class PlanService extends BaseService
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
                 $userIdList = '';
+                $userNameList = '';
                 foreach ($user_list as $user_id) {
                     if(empty($userResult[$user_id])){
                         return PsCommon::responseFailed('选择的人员不存在');
@@ -132,6 +133,7 @@ class PlanService extends BaseService
                     if(!empty($userResult[$user_id]['ddUserId'])){
                         $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
+                    $userNameList .= $userResult[$user_id]['trueName'].",";
                 }
                 if(empty($params['planTime'])){
                     return PsCommon::responseFailed('执行时间不能为空');
@@ -145,6 +147,10 @@ class PlanService extends BaseService
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
                 }
+
+                $userNameList = mb_substr($userNameList,0,-1);
+                $model->edit(['id'=>$model->attributes['id'],'user_list_name'=>$userNameList]);
+
                 //新建执行时间
                 $planTimeParams['id'] = $model->attributes['id'];
                 $planTimeParams['planTime'] = $params['planTime'];
@@ -243,6 +249,7 @@ class PlanService extends BaseService
 
                 $user_list = explode(',',$params['user_list']);
                 $userIdList = '';
+                $userNameList = '';
                 //调用java接口 验证用户是否存在
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
@@ -253,6 +260,7 @@ class PlanService extends BaseService
                     if(!empty($userResult[$user_id]['ddUserId'])){
                         $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
+                    $userNameList .= $userResult[$user_id]['trueName'].",";
                 }
                 if(empty($params['planTime'])){
                     return PsCommon::responseFailed('执行时间不能为空');
@@ -265,6 +273,10 @@ class PlanService extends BaseService
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
                 }
+
+                $userNameList = mb_substr($userNameList,0,-1);
+                $model->edit(['id'=>$model->attributes['id'],'user_list_name'=>$userNameList]);
+
                 //新建执行时间
                 $planTimeParams['id'] = $model->attributes['id'];
                 $planTimeParams['planTime'] = $params['planTime'];
@@ -1228,16 +1240,17 @@ class PlanService extends BaseService
             $exec_msg = self::doExecMsg($result);
             $element['exec_msg'] = !empty($exec_msg)?$exec_msg:'';
             //执行人员
-            $user_msg = '';
-            $user_list = explode(',',$result['user_list']);
-            //调用java接口 验证用户是否存在
-            $commonParams['token'] = $params['token'];
-            $userResult = $commonService->userUnderDeptVerification($commonParams);
-            foreach ($user_list as $user_id) {
-                $user_msg .= $userResult[$user_id]['trueName']."、";
-            }
-            $user_msg = mb_substr($user_msg,0,-1);
-            $element['user_msg'] = $user_msg;
+//            $user_msg = '';
+//            $user_list = explode(',',$result['user_list']);
+//            //调用java接口 验证用户是否存在
+//            $commonParams['token'] = $params['token'];
+//            $userResult = $commonService->userUnderDeptVerification($commonParams);
+//            foreach ($user_list as $user_id) {
+//                $user_msg .= $userResult[$user_id]['trueName']."、";
+//            }
+//            $user_msg = mb_substr($user_msg,0,-1);
+//            $element['user_msg'] = $user_msg;
+            $element['user_msg'] = $result['user_list_name'];
             $element['planTime'] = $planTime;
             $element['taskList'] = [];
             if(!empty($task)&&!empty($planTime)){

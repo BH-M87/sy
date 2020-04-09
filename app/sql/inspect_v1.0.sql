@@ -62,3 +62,5 @@ CREATE TABLE `ps_device` (
   `createAt` int(11) NOT NULL DEFAULT '0' COMMENT '操作时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='智点设备表';
+
+ALTER TABLE ps_inspect_plan add `user_list_name` varchar(500) NOT NULL COMMENT '执行人员id 逗号分隔' AFTER user_list;
