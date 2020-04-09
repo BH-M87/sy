@@ -109,6 +109,23 @@ class HomeService extends BaseService
      */
     public function getDingHomeIndex($reqArr)
     {
+        return [
+            [
+                'icon'=>"http://static.zje.com/2020040710054928444.png",
+                'name'=>"报事报修",
+                'url'=>"/pages/index/typeRepair/index"
+            ],
+            [
+                'icon'=>"http://static.zje.com/2020040710071219575.png",
+                'name'=>"巡检执行",
+                'url'=>"/pages/Inspection/index/index"
+            ],
+//            [
+//                'icon'=>"http://static.zje.com/2020040710080931069.png",
+//                'name'=>"巡检管理",
+//                'url'=>"/pages/patrolManagement/index/index"
+//            ]
+        ];
         if(empty($reqArr['community_id'])){
             return PsCommon::responseFailed('小区id必填');
         }
@@ -128,11 +145,11 @@ class HomeService extends BaseService
                 'name'=>"巡检执行",
                 'url'=>"/pages/Inspection/index/index"
             ],
-            [
-                'icon'=>"http://static.zje.com/2020040710080931069.png",
-                'name'=>"巡检管理",
-                'url'=>"/pages/patrolManagement/index/index"
-            ]
+//            [
+//                'icon'=>"http://static.zje.com/2020040710080931069.png",
+//                'name'=>"巡检管理",
+//                'url'=>"/pages/patrolManagement/index/index"
+//            ]
         ];
         if($javaResult){
             //判断小区是否有账单
@@ -154,11 +171,11 @@ class HomeService extends BaseService
                         'name'=>"物业收费",
                         'url'=>"/pages/property-payment/index/index"
                   ],
-                  [
-                        'icon'=>"http://static.zje.com/2020040710080931069.png",
-                        'name'=>"巡检管理",
-                        'url'=>"/pages/patrolManagement/index/index"
-                  ]
+//                  [
+//                        'icon'=>"http://static.zje.com/2020040710080931069.png",
+//                        'name'=>"巡检管理",
+//                        'url'=>"/pages/patrolManagement/index/index"
+//                  ]
                 ];
             }
         }
