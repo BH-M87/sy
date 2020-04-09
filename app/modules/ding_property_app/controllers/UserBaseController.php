@@ -30,7 +30,9 @@ class UserBaseController extends BaseController
         //$userInfo['trueName'] = '周文斌';
         //$userInfo['sensitiveInf'] = '15067035302';
         $this->userInfo = $userInfo;
-        $this->userInfo['truename'] = $userInfo['trueName'];
+//        $this->userInfo['truename'] = $userInfo['trueName'];
+        $this->userInfo['truename'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];;
+
 
         $this->userId = $userInfo['id'];
         $this->userMobile = $this->userInfo['mobile'];

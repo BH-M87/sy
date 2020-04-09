@@ -273,4 +273,10 @@ class JavaService extends BaseService
         $query['route'] = '/user/dd-access-token';
         return self::returnCData($query);
     }
+
+    //判断是否绑定收款账户
+    public function authJudgeAuth($query){
+        $query['route'] = '/account/auth/judgeAuth';
+        return self::returnCData($query);
+    }
 }

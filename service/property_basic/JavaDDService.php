@@ -28,4 +28,10 @@ class JavaDDService extends BaseService
         $query['route'] = '/ddserver/biz/b1-list';
         return self::returnData($query);
     }
+
+    //未来社区用户token
+    public function communityAccessToken($query){
+        $query['route'] = '/ddserver/dd/community-access-token';
+        return self::returnData($query);
+    }
 }

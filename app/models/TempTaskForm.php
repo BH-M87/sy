@@ -14,8 +14,12 @@ use yii\base\Model;
 
 class TempTaskForm extends Model  {
 
+    public $community_id;
+    public $name;
+    public $task_name;
     public $start_at;
     public $end_at;
+    public $line_id;
     public $user_list;
     public $exec_type;
     public $exec_interval;
@@ -28,7 +32,7 @@ class TempTaskForm extends Model  {
     public function rules()
     {
         return [
-            [['start_at','end_at','user_list','exec_interval','exec_type','planTime'], 'required','on'=>'add'],
+            [['community_id','name','task_name','start_at','end_at','line_id','user_list','exec_interval','exec_type','planTime'], 'required','on'=>'add'],
             [['exec_type', 'exec_interval', ], 'integer'],
             [['exec_type'], 'in', 'range' => [1, 2, 3, 4], 'message' => '{attribute}取值范围错误'],
             [['exec_type','exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
@@ -36,6 +40,7 @@ class TempTaskForm extends Model  {
             [['start_at','end_at'],'planTimeVerification','on'=>'add'],
             [['user_list'], 'string', 'max' => 500],
             [['exec_type_msg'], 'string', 'max' => 200],
+            [['name','task_name'], 'string', 'max' => 30],
         ];
     }
 
@@ -45,8 +50,12 @@ class TempTaskForm extends Model  {
     public function attributeLabels()
     {
         return [
+            'community_id'  => '小区id',
+            'name'          => '计划名称',
+            'task_name'     => '任务名称',
             'start_at'      => '计划开始时间',
             'end_at'        => '计划结束时间',
+            'line_id'       => '巡检路线',
             'user_list'     => '执行人员',
             'exec_type'     => '执行类型',
             'exec_interval' => '执行间隔',

@@ -59,6 +59,10 @@ class PointService extends BaseService
             $p['createAt'] = time();
         }
 
+        if (!is_array($p['type'])) {
+            throw new MyException('打卡方式必填是数组格式!');
+        }
+
         if (in_array('2', $p['type'])) { // 当选择需要定位时判断是否有经纬度
             if (empty($p['location']) || empty($p['lon']) || empty($p['lat'])) {
                 throw new MyException('定位经纬度与位置不能为空!');
@@ -90,6 +94,10 @@ class PointService extends BaseService
         }
 
         $p['type'] = implode(',', $p['type']);
+
+        if (empty($p['type'])) {
+            throw new MyException('打卡方式必填!');
+        }
 
         $point = PsInspectPoint::find()->where(['name' => $p['name'], 'communityId' => $p['communityId']])
             ->andFilterWhere(['!=', 'id', $p['id']])->one();
@@ -169,6 +177,9 @@ class PointService extends BaseService
     // 巡检点列表
     public function pointList($p)
     {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
         $totals = self::pointSearch($p,'id')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
@@ -182,6 +193,8 @@ class PointService extends BaseService
             foreach ($list as $k => &$v) {
                 $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                 $v['communityName'] = $community['communityName'];
+                $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
+                $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];
             }
         }
 
@@ -247,6 +260,7 @@ class PointService extends BaseService
     // 设备列表
     public function listDevice($p)
     {
+        $p['communityList'] = !empty($p['communityList']) ? $p['communityList'] : '';
         $query = new Query();
         $query->from('ps_inspect_device A')
             ->leftJoin('ps_inspect_point B', 'A.deviceNo = B.deviceNo')

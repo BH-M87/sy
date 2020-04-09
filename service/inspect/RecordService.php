@@ -74,6 +74,46 @@ class RecordService extends BaseService {
         return ['list'=>$data,'totals'=>$result['count']];
     }
 
+    //巡检任务列表
+    public function recordListOfDing($params){
+
+        if(empty($params['community_id'])){
+            return PsCommon::responseFailed("小区id必填");
+        }
+
+        $model = new PsInspectRecord();
+        $result = $model->getListOfDing($params);
+        //获得待巡检数量
+        $pending_count = PsInspectRecord::find()->select(['id'])
+                                            ->where(['=','status',1])
+                                            ->andWhere(['=','community_id',$params['community_id']])
+                                            ->count();
+
+        $data = [];
+        if(!empty($result['data'])){
+            foreach($result['data'] as $key=>$value){
+                $element['id'] = !empty($value['id'])?$value['id']:'';
+                $element['community_id'] = !empty($value['community_id'])?$value['community_id']:'';
+                $element['point_count'] = !empty($value['point_count'])?$value['point_count']:'';
+                $element['finish_count'] = !empty($value['finish_count'])?$value['finish_count']:'';
+                $element['task_name'] = !empty($value['task_name'])?$value['task_name']:'';
+                $element['line_name'] = !empty($value['line_name'])?$value['line_name']:'';
+                $element['task_time_msg'] = '';
+                if(!empty($value['check_start_at'])&&!empty($value['check_end_at'])){
+                    $element['task_time_msg'] = date('Y/m/d',$value['check_start_at'])." ".date('H:i',$value['check_start_at'])."-".date('H:i',$value['check_end_at']);
+                }
+                $element['status'] = !empty($value['status'])?$value['status']:'';
+                $element['status_msg'] = !empty($value['status'])?$this->status[$value['status']]['name']:'';
+                $element['run_status'] = !empty($value['run_status'])?$value['run_status']:'';
+                $element['run_status_msg'] = !empty($value['run_status'])?$this->runStatus[$value['run_status']]['name']:'';
+                $element['result_status'] = !empty($value['result_status'])?$value['result_status']:'';
+                $element['result_status_msg'] = !empty($value['result_status'])?$this->resultStatus[$value['result_status']]['name']:'';
+                $data[] = $element;
+            }
+        }
+        return ['list'=>$data,'totals'=>$result['count'],'pending_count'=>$pending_count];
+    }
+
     //任务状态下拉
     public function statusDrop(){
         return ['list' => array_values($this->status)];
@@ -176,6 +216,7 @@ class RecordService extends BaseService {
             $element['point'] = [];
             if(!empty($result['point'])){
                 $device_status = ['1'=>'正常','2'=>'异常'];
+                $typeArr = ['1'=>'扫码', '2'=>'定位', '3'=>'智点', '4'=>'拍照'];
                 foreach($result['point'] as $key=>$value){
                     $ele['point_name'] = !empty($value['point_name'])?$value['point_name']:'';
                     $ele['status'] = !empty($value['status'])?$value['status']:'';
@@ -185,6 +226,13 @@ class RecordService extends BaseService {
                     $ele['record_note'] = !empty($value['record_note'])?$value['record_note']:'';
                     $ele['picture'] = !empty($value['picture'])?$value['picture']:'';           //打卡图片
                     $ele['imgs'] = !empty($value['imgs'])?explode(',',$value['imgs']):[];       //备注图片
+                    $ele['type'] = [];
+                    if(!empty($value['type'])){
+                        $temp = explode(',',$value['type']);
+                        foreach($temp as $k=>$v){
+                            array_push($ele['type'],$typeArr[$v]);
+                        }
+                    }
                     $element['point'][] = $ele;
                 }
             }

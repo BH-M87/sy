@@ -20,6 +20,7 @@ use app\models\PsUser;
 use app\models\PsInspectPlan;
 use app\models\PsUserCommunity;
 use app\models\TempTaskForm;
+use app\models\TempTaskTimeForm;
 use common\core\PsCommon;
 use common\MyException;
 use service\BaseService;
@@ -97,10 +98,16 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            if(empty($start_at)||(date('Y-m-d', strtotime($start_at))!=$start_at)){
+            if(empty($start_at)){
+                return PsCommon::responseFailed('有效时间开始时间不能为空');
+            }
+            if(date('Y-m-d', strtotime($start_at))!=$start_at){
                 return PsCommon::responseFailed('有效时间开始时间格式有误');
             }
-            if(empty($end_at)||(date('Y-m-d', strtotime($end_at))!=$end_at)){
+            if(empty($end_at)){
+                return PsCommon::responseFailed('有效时间结束时间不能为空');
+            }
+            if(date('Y-m-d', strtotime($end_at))!=$end_at){
                 return PsCommon::responseFailed('有效时间结束时间格式有误');
             }
             $params['start_at'] = strtotime($start_at);
@@ -118,6 +125,7 @@ class PlanService extends BaseService
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
                 $userIdList = '';
+                $userNameList = '';
                 foreach ($user_list as $user_id) {
                     if(empty($userResult[$user_id])){
                         return PsCommon::responseFailed('选择的人员不存在');
@@ -125,6 +133,7 @@ class PlanService extends BaseService
                     if(!empty($userResult[$user_id]['ddUserId'])){
                         $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
+                    $userNameList .= $userResult[$user_id]['trueName'].",";
                 }
                 if(empty($params['planTime'])){
                     return PsCommon::responseFailed('执行时间不能为空');
@@ -138,6 +147,10 @@ class PlanService extends BaseService
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
                 }
+
+                $userNameList = mb_substr($userNameList,0,-1);
+                $model->edit(['id'=>$model->attributes['id'],'user_list_name'=>$userNameList]);
+
                 //新建执行时间
                 $planTimeParams['id'] = $model->attributes['id'];
                 $planTimeParams['planTime'] = $params['planTime'];
@@ -207,11 +220,21 @@ class PlanService extends BaseService
 
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
-            if(empty($start_at)||(date('Y-m-d', strtotime($start_at))!=$start_at)){
-                return PsCommon::responseFailed('有效时间开始时间格式有误');
+            if(empty($start_at)){
+//                return PsCommon::responseFailed('有效时间开始时间不能为空');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
-            if(empty($end_at)||(date('Y-m-d', strtotime($end_at))!=$end_at)){
-                return PsCommon::responseFailed('有效时间结束时间格式有误');
+            if(date('Y-m-d', strtotime($start_at))!=$start_at){
+//                return PsCommon::responseFailed('有效时间开始时间格式有误');
+                return PsCommon::responseFailed('有效时间不能为空');
+            }
+            if(empty($end_at)){
+//                return PsCommon::responseFailed('有效时间结束时间不能为空');
+                return PsCommon::responseFailed('有效时间不能为空');
+            }
+            if(date('Y-m-d', strtotime($end_at))!=$end_at){
+//                return PsCommon::responseFailed('有效时间结束时间格式有误');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
             $params['start_at'] = strtotime($start_at);
             $params['end_at'] = strtotime($end_at." 23:59:59");
@@ -226,6 +249,7 @@ class PlanService extends BaseService
 
                 $user_list = explode(',',$params['user_list']);
                 $userIdList = '';
+                $userNameList = '';
                 //调用java接口 验证用户是否存在
                 $commonParams['token'] = $params['token'];
                 $userResult = $commonService->userUnderDeptVerification($commonParams);
@@ -236,6 +260,7 @@ class PlanService extends BaseService
                     if(!empty($userResult[$user_id]['ddUserId'])){
                         $userIdList .= $userResult[$user_id]['ddUserId'].",";
                     }
+                    $userNameList .= $userResult[$user_id]['trueName'].",";
                 }
                 if(empty($params['planTime'])){
                     return PsCommon::responseFailed('执行时间不能为空');
@@ -248,6 +273,10 @@ class PlanService extends BaseService
                 if(!$model->saveData()){
                     return PsCommon::responseFailed("计划新增失败");
                 }
+
+                $userNameList = mb_substr($userNameList,0,-1);
+                $model->edit(['id'=>$model->attributes['id'],'user_list_name'=>$userNameList]);
+
                 //新建执行时间
                 $planTimeParams['id'] = $model->attributes['id'];
                 $planTimeParams['planTime'] = $params['planTime'];
@@ -297,6 +326,20 @@ class PlanService extends BaseService
         }
     }
 
+    /*
+     * 验证临时数据执行时间
+     */
+    public function tempTaskTimeVerification($params){
+        foreach($params['planTime'] as $key=>$value){
+            $var['start'] = $value['start'];
+            $var['end'] = $value['end'];
+            $model = new TempTaskTimeForm(['scenario'=>'add']);
+            if (!$model->load($var, '') || !$model->validate()) {
+                throw new Exception(array_values($model->errors)[0][0]);
+            }
+        }
+        return true;
+    }
 
     /*
      * 新建执行时间
@@ -790,12 +833,27 @@ class PlanService extends BaseService
                     }
                     array_push($users,$userResult[$user_id]['trueName']);
                 }
-                foreach($dateAll as $date){
-                    $element['time'] = $date;
-                    $element['user_list'] = $users;
-                    $element['planTime'] = $params['planTime'];
-                    $data[] = $element;
+
+                if(empty($params['planTime'])){
+                    return PsCommon::responseFailed('执行时间不能为空');
+                }else{
+                    if(!is_array($params['planTime'])){
+                        return PsCommon::responseFailed('执行时间是一个数组');
+                    }
                 }
+
+                if(self::tempTaskTimeVerification(['planTime'=>$params['planTime']])){
+
+                    foreach($dateAll as $date){
+                        $element['time'] = $date;
+                        $element['tag'] = '任务';
+                        $element['tagColor'] = '3';
+                        $element['user_list'] = $users;
+                        $element['planTime'] = $params['planTime'];
+                        $data[] = $element;
+                    }
+                }
+
             }
             return ['list'=>$data];
         }else{
@@ -1025,6 +1083,48 @@ class PlanService extends BaseService
         throw new MyException('删除失败，巡检计划不存在');
     }
 
+    //钉钉端计划列表
+    public function planListOfDing($params){
+        if(empty($params['community_id'])){
+            return PsCommon::responseFailed('小区id不能为空');
+        }
+
+        $model = new PsInspectPlan();
+        $result = $model->getListOfDing($params);
+        $data = [];
+        if(!empty($result['data'])){
+            $nowTime = time();
+            foreach($result['data'] as $key=>$value){
+                $element['id'] = !empty($value['id'])?$value['id']:'';
+                $element['status'] = !empty($value['status'])?$value['status']:'';
+                $element['name'] = !empty($value['name'])?$value['name']:'';
+                $element['start_at_msg'] = !empty($value['start_at'])?date('Y/m/d',$value['start_at']):'';
+                $element['end_at_msg'] = !empty($value['end_at'])?date('Y/m/d',$value['end_at']):'';
+                $element['type'] = !empty($value['type'])?$value['type']:'';
+                $element['type_msg'] = !empty($value['type'])?self::$plan_type[$value['type']]:'';
+                $element['time_msg'] = $element['start_at_msg'];
+                if($value['type']==1){  //长期
+                    $element['time_msg'] = $element['start_at_msg'].'-'.$element['end_at_msg'];
+                }
+                //判断是否过期
+                $element['is_expired'] = 1;       //没有过期
+                if($value['end_at']<$nowTime){
+                    $element['is_expired'] = 2;   //已经过期
+                }
+                $element['is_delete'] = 1;      //允许删除
+                if(!empty($value['taskStartAsc'][0])){
+                    if($value['taskStartAsc'][0]['check_start_at']<=$nowTime){
+                        $element['is_delete'] = 2; //不允许删除
+                    }
+                }
+                $data[] = $element;
+            }
+        }
+        return ['list'=>$data,'totals'=>$result['count']];
+
+
+    }
+
     public function planList($params)
     {
         $model = new PsInspectPlan();
@@ -1139,21 +1239,31 @@ class PlanService extends BaseService
             $element['line_name'] = !empty($result['line_name'])?$result['line_name']:'';
             $exec_msg = self::doExecMsg($result);
             $element['exec_msg'] = !empty($exec_msg)?$exec_msg:'';
-            //执行人员
-            $user_msg = '';
-            $user_list = explode(',',$result['user_list']);
-            //调用java接口 验证用户是否存在
-            $commonParams['token'] = $params['token'];
-            $userResult = $commonService->userUnderDeptVerification($commonParams);
-            foreach ($user_list as $user_id) {
-                $user_msg .= $userResult[$user_id]['trueName']."、";
+
+            $element['user_msg'] = $result['user_list_name'];
+            if(empty($result['user_list_name'])){
+                //执行人员
+                $user_msg = '';
+                $user_list = explode(',',$result['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                foreach ($user_list as $user_id) {
+                    $user_msg .= $userResult[$user_id]['trueName']."、";
+                }
+                $user_msg = mb_substr($user_msg,0,-1);
+                $element['user_msg'] = $user_msg;
             }
-            $user_msg = mb_substr($user_msg,0,-1);
-            $element['user_msg'] = $user_msg;
+
             $element['planTime'] = $planTime;
             $element['taskList'] = [];
             if(!empty($task)&&!empty($planTime)){
                 $element['taskList'] = self::doTaskCalendar($task,$planTime);
+            }
+            //判断是否过期
+            $element['is_expired'] = 1;       //没有过期
+            if($result['end_at']<time()){
+                $element['is_expired'] = 2;   //已经过期
             }
             return $element;
         }else{
@@ -1176,6 +1286,8 @@ class PlanService extends BaseService
             foreach($dateData as $date){
                 $element['time'] = date("Y-m-d",$date);
                 $element['planTime'] = [];
+                $element['tag'] = '任务';
+                $element['tagColor'] = '3';
                 foreach($planTime as $key=>$value){
                     $pElement['start'] = $value['start'];
                     $pElement['end'] = $value['end'];

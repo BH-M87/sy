@@ -42,8 +42,8 @@ class PsInspectPoint extends BaseModel
     {
         $scenarios = parent::scenarios();
         //各个场景的活动属性
-        $scenarios['add'] = ['community_id', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo', 'name'];//新增
-        $scenarios['update'] = ['id', 'community_id', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo'];//编辑
+        $scenarios['add'] = ['communityId', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo', 'name'];//新增
+        $scenarios['update'] = ['id', 'communityId', 'name', 'category_id', 'deviceNo', 'need_location', 'need_photo'];//编辑
         return $scenarios;
     }
 }

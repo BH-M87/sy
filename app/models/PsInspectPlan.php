@@ -205,11 +205,9 @@ class PsInspectPlan extends BaseModel
      */
     public function infoData($attribute)
     {
-        if (!empty($this->id)&&!empty($this->community_id)) {
-            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
-            if (empty($res)) {
-                $this->addError($attribute, "该计划不存在!");
-            }
+        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        if (empty($res)) {
+            $this->addError($attribute, "该计划不存在!");
         }
     }
 
@@ -284,13 +282,39 @@ class PsInspectPlan extends BaseModel
     }
 
     /*
+     * 巡检列表钉钉端
+     */
+    public function getListOfDing($params){
+        $fields = ['p.id','p.status','p.name','p.start_at','p.end_at','p.community_id','p.type'];
+        $model = self::find()->alias("p")->select($fields)
+            ->with('taskStartAsc');
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=', 'p.community_id', $params['community_id']]);
+        }
+        if(!empty($params['status'])){
+            $model->andWhere(['=', 'p.status', $params['status']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like', 'p.name', $params['name']]);
+        }
+        $count = $model->count();
+        $page = intval($params['page']);
+        $pageSize = intval($params['pageSize']);
+        $offset = ($page-1)*$pageSize;
+        $model->offset($offset)->limit($pageSize);
+        $model->orderBy(["p.id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
+    }
+
+    /*
      * 计划详情
      */
     public function getDetail($params){
         $fields = [
                     'p.id','p.type','p.status','p.name','p.start_at','p.end_at','p.community_id','p.exec_type',
                     'p.exec_interval','p.exec_type_msg','l.name as line_name','p.user_list','p.error_minute',
-                    'p.task_name'
+                    'p.task_name','p.user_list_name'
         ];
         $model = self::find()->alias("p")->select($fields)
             ->leftJoin(['l'=>PsInspectLine::tableName()], "p.line_id = l.id")

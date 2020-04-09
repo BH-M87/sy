@@ -6,15 +6,15 @@
  * Time: 14:49
  * Desc: 调用java接口
  */
-namespace app\modules\property\modules\v1\controllers;
+namespace app\modules\ding_property_app\modules\v1\controllers;
 
 use service\property_basic\JavaService;
-use app\modules\property\controllers\BaseController;
+use app\modules\ding_property_app\controllers\UserBaseController;
 use common\core\PsCommon;
 
 use yii\base\Exception;
 
-class JavaController extends BaseController{
+class JavaController extends UserBaseController{
 
 
     /*
@@ -118,9 +118,6 @@ class JavaController extends BaseController{
         try{
             $data = $this->request_params;
             $result = JavaService::service()->treeList($data);
-
-            array_unshift($result['children'], ['id' => '0', 'name' => '全部', 'children' => []]);
-            
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());
@@ -133,7 +130,6 @@ class JavaController extends BaseController{
     public function actionUserList(){
         try{
             $data = $this->request_params;
-            $data['id'] = !empty($data['id']) ? $data['id'] : 0;
             $result = JavaService::service()->userList($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {

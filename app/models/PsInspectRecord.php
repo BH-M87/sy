@@ -92,11 +92,9 @@ class PsInspectRecord extends BaseModel
      */
     public function infoData($attribute)
     {
-        if (!empty($this->id)&&!empty($this->community_id)) {
-            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
-            if (empty($res)) {
-                $this->addError($attribute, "该任务不存在!");
-            }
+        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        if (empty($res)) {
+            $this->addError($attribute, "该任务不存在!");
         }
     }
 
@@ -126,6 +124,26 @@ class PsInspectRecord extends BaseModel
         if(!empty($params['task_end'])){
             $model->andWhere(['<=','task_at',strtotime($params['task_end']." 23:59:59")]);
         }
+        $count = $model->count();
+        $page = intval($params['page']);
+        $pageSize = intval($params['pageSize']);
+        $offset = ($page-1)*$pageSize;
+        $model->offset($offset)->limit($pageSize);
+        $sort = !empty($params['sort'])?$params['sort']:SORT_DESC;
+        $model->orderBy(["id"=>$sort]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
+    }
+
+    //列表 钉钉端
+    public function getListOfDing($params){
+        $fields = ['id','community_id','task_name','check_start_at','check_end_at','line_name','status','run_status','result_status','point_count','finish_count'];
+        $model = self::find()->select($fields)
+            ->andFilterWhere(['=', 'community_id', $params['community_id']])
+            ->andFilterWhere(['like', 'task_name', $params['task_name']])
+            ->andFilterWhere(['=', 'status', $params['status']])
+            ->andFilterWhere(['=', 'run_status', $params['run_status']]);
+
         $count = $model->count();
         $page = intval($params['page']);
         $pageSize = intval($params['pageSize']);

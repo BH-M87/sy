@@ -414,7 +414,9 @@ class RepairController extends UserBaseController
     public function actionGroup()
     {
         $r = JavaService::service()->treeList($this->params);
-        
+
+        array_unshift($r['children'], ['id' => '0', 'name' => '全部', 'children' => []]);
+
         return F::apiSuccess($r);
     }
 
@@ -424,7 +426,7 @@ class RepairController extends UserBaseController
         $p['group_id'] = F::value($this->params, 'group_id', 0);
 
         if (!$p['group_id']) {
-            return F::apiFailed("请输入组id！");
+            //return F::apiFailed("请输入组id！");
         }
 
         $this->params['id'] = $p['group_id'];
