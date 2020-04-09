@@ -1239,18 +1239,22 @@ class PlanService extends BaseService
             $element['line_name'] = !empty($result['line_name'])?$result['line_name']:'';
             $exec_msg = self::doExecMsg($result);
             $element['exec_msg'] = !empty($exec_msg)?$exec_msg:'';
-            //执行人员
-//            $user_msg = '';
-//            $user_list = explode(',',$result['user_list']);
-//            //调用java接口 验证用户是否存在
-//            $commonParams['token'] = $params['token'];
-//            $userResult = $commonService->userUnderDeptVerification($commonParams);
-//            foreach ($user_list as $user_id) {
-//                $user_msg .= $userResult[$user_id]['trueName']."、";
-//            }
-//            $user_msg = mb_substr($user_msg,0,-1);
-//            $element['user_msg'] = $user_msg;
+
             $element['user_msg'] = $result['user_list_name'];
+            if(empty($result['user_list_name'])){
+                //执行人员
+                $user_msg = '';
+                $user_list = explode(',',$result['user_list']);
+                //调用java接口 验证用户是否存在
+                $commonParams['token'] = $params['token'];
+                $userResult = $commonService->userUnderDeptVerification($commonParams);
+                foreach ($user_list as $user_id) {
+                    $user_msg .= $userResult[$user_id]['trueName']."、";
+                }
+                $user_msg = mb_substr($user_msg,0,-1);
+                $element['user_msg'] = $user_msg;
+            }
+
             $element['planTime'] = $planTime;
             $element['taskList'] = [];
             if(!empty($task)&&!empty($planTime)){
