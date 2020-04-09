@@ -415,7 +415,7 @@ class RepairController extends UserBaseController
     {
         $r = JavaService::service()->treeList($this->params);
 
-        array_unshift($r['children'], ['id' => '', 'name' => '全部', 'children' => []]);
+        array_unshift($r['children'], ['id' => '0', 'name' => '全部', 'children' => []]);
 
         return F::apiSuccess($r);
     }
