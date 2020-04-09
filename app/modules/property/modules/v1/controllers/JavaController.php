@@ -133,6 +133,7 @@ class JavaController extends BaseController{
     public function actionUserList(){
         try{
             $data = $this->request_params;
+            $data['id'] = !empty($data['id']) ? $data['id'] : 0;
             $result = JavaService::service()->userList($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
