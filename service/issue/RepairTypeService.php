@@ -18,6 +18,33 @@ use Yii;
 
 class RepairTypeService extends BaseService
 {
+    // 同步报修类目
+    public function addType($community_id)
+    {
+        $arr = [
+            ['name' => '居家报修', 'icon_url' => 'https://community-static.zje.com/community-1577427310864-hbk43s8238g00.jpg'],
+            ['name' => '小区报修', 'icon_url' => 'https://community-static.zje.com/community-1577427328603-90yci88tikg00.jpg'],
+            ['name' => '小区卫生', 'icon_url' => 'https://community-static.zje.com/community-1577427746705-jgwnga7z0u800.jpg'],
+            ['name' => '小区绿化', 'icon_url' => 'https://community-static.zje.com/community-1577427761239-53nw6ge9vg400.jpg'],
+            ['name' => '小区安全', 'icon_url' => 'https://community-static.zje.com/community-1577427775439-7fbeyep0vys00.jpg']
+        ];
+
+        foreach ($arr as $k => $v) {
+            $m = PsRepairType::find()->where(['name' => $v['name']])->andWhere(['community_id' => $community_id])->one();
+            if (empty($m)) {
+                $mod = new PsRepairType();
+                $mod->community_id = $community_id;
+                $mod->name = $v['name'];
+                $mod->level = 1;
+                $mod->status = 1;
+                $mod->created_at = time();
+                $mod->icon_url = $v['icon_url'];
+                $mod->is_relate_room = 2;
+                $mod->save();
+            }
+        }
+    }
+
     //获取报修类目列表
     public function getRepairTypeList($params)
     {
@@ -26,6 +53,12 @@ class RepairTypeService extends BaseService
         $communityIds = !empty($javaResult['list'])?array_column($javaResult['list'],'key'):[];
         $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
         $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
+
+        if (!empty($communityIds)) {
+            foreach ($communityIds as $c_id) {
+                self::addType($c_id);
+            }
+        }
 
         $is_relate_room = PsCommon::get($params, 'is_relate_room');
         $name = PsCommon::get($params, 'name');
