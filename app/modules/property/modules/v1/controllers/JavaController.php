@@ -119,7 +119,7 @@ class JavaController extends BaseController{
             $data = $this->request_params;
             $result = JavaService::service()->treeList($data);
 
-            array_unshift($result['children'], ['id' => '', 'name' => '全部', 'children' => []]);
+            array_unshift($result['children'], ['id' => '0', 'name' => '全部', 'children' => []]);
             
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
