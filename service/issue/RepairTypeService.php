@@ -55,7 +55,7 @@ class RepairTypeService extends BaseService
         $javaResult = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
         $communityId = !empty($params['community_id'])?$params['community_id']:$communityIds;
 
-        if (!empty($communityIds)) {
+        if (!empty($communityIds)) { // 同步报修类目
             foreach ($communityIds as $c_id) {
                 self::addType($c_id);
             }
@@ -243,6 +243,10 @@ class RepairTypeService extends BaseService
     // 小程序报修类目树，结构与后台不一样
     public function getSmallAppRepairTypeTree($params)
     {
+        if (!empty($params['community_id'])) { // 同步报修类目
+            self::addType($params['community_id']);
+        }
+        
         $model = new RepairType();
         
         $list = $model::find()
