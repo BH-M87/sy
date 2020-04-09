@@ -414,7 +414,9 @@ class RepairController extends UserBaseController
     public function actionGroup()
     {
         $r = JavaService::service()->treeList($this->params);
-        
+
+        array_unshift($r['children'], ['id' => '', 'name' => '全部', 'children' => []]);
+
         return F::apiSuccess($r);
     }
 
