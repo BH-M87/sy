@@ -215,16 +215,20 @@ class PlanService extends BaseService
             $start_at = $params['start_at'];
             $end_at = $params['end_at'];
             if(empty($start_at)){
-                return PsCommon::responseFailed('有效时间开始时间不能为空');
+//                return PsCommon::responseFailed('有效时间开始时间不能为空');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
             if(date('Y-m-d', strtotime($start_at))!=$start_at){
-                return PsCommon::responseFailed('有效时间开始时间格式有误');
+//                return PsCommon::responseFailed('有效时间开始时间格式有误');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
             if(empty($end_at)){
-                return PsCommon::responseFailed('有效时间结束时间不能为空');
+//                return PsCommon::responseFailed('有效时间结束时间不能为空');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
             if(date('Y-m-d', strtotime($end_at))!=$end_at){
-                return PsCommon::responseFailed('有效时间结束时间格式有误');
+//                return PsCommon::responseFailed('有效时间结束时间格式有误');
+                return PsCommon::responseFailed('有效时间不能为空');
             }
             $params['start_at'] = strtotime($start_at);
             $params['end_at'] = strtotime($end_at." 23:59:59");
