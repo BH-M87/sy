@@ -37,6 +37,7 @@ class RepairTypeService extends BaseService
                 $mod->name = $v['name'];
                 $mod->level = 1;
                 $mod->status = 1;
+                $mod->type = 2;
                 $mod->created_at = time();
                 $mod->icon_url = $v['icon_url'];
                 $mod->is_relate_room = 2;
@@ -152,6 +153,11 @@ class RepairTypeService extends BaseService
     {
         $params['created_at'] = time();
         $mod = PsRepairType::findOne(PsCommon::get($params, 'id', 0));
+
+        if ($mod->type == 2) {
+            throw new MyException('默认类型不可编辑');
+        }
+
         $mod->community_id = $params['community_id'];
         $mod->name = $params['name'];
         $mod->icon_url = $params['icon_url'];
