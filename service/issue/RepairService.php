@@ -33,6 +33,7 @@ use app\models\PsRepairAppraise;
 use app\models\PsCommunityModel;
 use app\models\PsRepairMaterials;
 use app\models\PsRepairBillMaterial;
+use app\models\PsInspectRecord;
 
 class RepairService extends BaseService
 {
@@ -193,6 +194,7 @@ class RepairService extends BaseService
 
     public function dingList($p, $type)
     {
+        // 开始时间 结束时间
         switch ($type) {
             case '1':
                 $end = strtotime(date('Y-m-d').'00:00:00') - 1;
@@ -221,7 +223,7 @@ class RepairService extends BaseService
                 $end = strtotime(date('Y-m-d').'23:59:59');
                 break;
         }
-
+        // 报事报修
         $query = new Query();
         $query->from('ps_repair A')->where("1=1")
             ->andfilterWhere(['A.community_id' => $p['community_id']])
@@ -240,19 +242,60 @@ class RepairService extends BaseService
         ]);
 
         $r['totals'] = $query->count();
+        // 巡更巡检
+        $inspect = new Query();
+        $inspect->from('ps_inspect_record')->where("1=1")
+            ->andfilterWhere(['user_id' => $p['user_id']])
+            ->andfilterWhere(['community_id' => $p['community_id']])
+            ->andfilterWhere(['status' => [1,2]])
+            ->andfilterWhere(['and', 
+                ['>=', 'check_start_at', $start], 
+                ['<', 'check_end_at', $end]
+            ]);
 
-        if (empty($p['onlyTotal'])) {
+        $r['totals'] += $inspect->count();
+
+        if (empty($p['onlyTotal'])) { // 查列表
+            // 报事报修
             $query->select('A.id issue_id, A.repair_time, A.repair_content, A.expired_repair_time');
             $query->orderBy('A.repair_time desc');
 
             $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
-
+          
             $m = $query->createCommand()->queryAll();
-            foreach ($m as $k => &$v) {
-                $v['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
+            $mRepair = [];
+            foreach ($m as $k => $v) {
+                $mRepair[$k]['nameTitle'] = '描述';
+                $mRepair[$k]['timeTitle'] = '截止时间';
+                $mRepair[$k]['type'] = 'repair';
+                $mRepair[$k]['issue_id'] = $v['issue_id'];
+                $mRepair[$k]['repair_content'] = $v['repair_content'];
+                $mRepair[$k]['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
+                $mRepair[$k]['orderAt'] = $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time'];
             }
 
-            $r['list'] = $m;
+            // 巡更巡检
+            $inspect->select('id, task_name, check_start_at, check_end_at');
+            $inspect->orderBy('status asc, id desc');
+
+            $inspect->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+
+            $m = $inspect->createCommand()->queryAll();
+            $mInspect = [];
+            foreach ($m as $k => $v) {
+                $mInspect[$k]['nameTitle'] = '巡检任务';
+                $mInspect[$k]['timeTitle'] = '巡检时间';
+                $mInspect[$k]['type'] = 'inspect';
+                $mInspect[$k]['issue_id'] = $v['id'];
+                $mInspect[$k]['repair_content'] = $v['task_name'];
+                $mInspect[$k]['end_at'] = date('Y/m/d H:i', $v['check_start_at']) . '-' . date('H:i', $v['check_end_at']);
+                $mInspect[$k]['orderAt'] = $v['check_end_at'];
+            }
+
+            $r['list'] = array_merge($mRepair, $mInspect);
+
+            $timeKey =  array_column($r['list'], 'orderAt'); // 取出数组中serverTime的一列，返回一维数组
+            array_multisort($timeKey, SORT_DESC, $r['list']); // 排序，根据$serverTime 排序
         }
 
         return $r;
@@ -1915,6 +1958,7 @@ class RepairService extends BaseService
         $p['start_at'] = strtotime(date("Y-m-d", time())." 0:0:0");
         $p['end_at'] = strtotime(date("Y-m-d", time())." 24:00:00");
         $listRepair = self::_searchRepair($p);
+        $listInspect = self::_searchInspect($p);
         
         $p['hard_type'] = 2;
         $listHard = self::_searchRepair($p);
@@ -1930,6 +1974,7 @@ class RepairService extends BaseService
         $p['end_at'] = $p['start_at'] + 7*86400;
         $p['late_at'] = '';
         $weekRepair = self::_searchRepair($p);
+        $weekInspect = self::_searchInspect($p);
 
         $p['hard_type'] = 2;
         $p['late_at'] = '';
@@ -1944,6 +1989,7 @@ class RepairService extends BaseService
         $p['start_at'] = mktime(0, 0, 0, date('m', time()), 1, date('Y', time()));
         $p['end_at'] = mktime(0, 0, 0, date('m', strtotime('+1 month')), 1, date('Y', strtotime('+1 month')));
         $monthRepair = self::_searchRepair($p);
+        $monthInspect = self::_searchInspect($p);
 
         $p['hard_type'] = 2;
         $monthHard = self::_searchRepair($p);
@@ -1955,7 +2001,7 @@ class RepairService extends BaseService
         return [
             'list' => [
                 'repair' => $listRepair, 
-                'task' => '0', 
+                'task' => $listInspect, 
                 'hard' => $listHard, 
                 'late' => $listLate, 
                 'user' => '0',
@@ -1966,18 +2012,31 @@ class RepairService extends BaseService
             ], 
             'week' => [
                 'repair' => $weekRepair, 
-                'task' => '0', 
+                'task' => $weekInspect, 
                 'hard' => $weekHard, 
                 'late' => $weekLate, 
                 'time' => $weekStart.'~'.$weekEnd
             ], 
             'month' => [
                 'repair' => $monthRepair, 
-                'task' => '0', 
+                'task' => $monthInspect, 
                 'hard' => $monthHard, 
                 'late' => $monthLate, 
                 'time' => date('m', time()).'月'
             ]
         ];
+    }
+
+    public function _searchInspect($p)
+    {
+        $start_at = !empty($p['start_at']) ? $p['start_at'] : '';
+        $end_at = !empty($p['end_at']) ? $p['end_at'] : '';
+
+        return PsInspectRecord::find()->where(['community_id' => $p['community_id']])
+            ->andFilterWhere(['user_id' => $p['user_id']])
+            ->andfilterWhere(['and', 
+                ['>=', 'check_start_at', $start_at], 
+                ['<', 'check_end_at', $end_at]
+            ])->count();
     }
 }
