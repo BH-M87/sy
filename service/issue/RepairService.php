@@ -275,7 +275,7 @@ class RepairService extends BaseService
             }
 
             // 巡更巡检
-            $inspect->select('id, task_name, check_start_at, check_end_at');
+            $inspect->select('id, task_name, check_start_at, check_end_at, user_id');
             $inspect->orderBy('status asc, id desc');
 
             $inspect->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
@@ -287,6 +287,7 @@ class RepairService extends BaseService
                 $mInspect[$k]['timeTitle'] = '巡检时间';
                 $mInspect[$k]['type'] = 'inspect';
                 $mInspect[$k]['issue_id'] = $v['id'];
+                $mInspect[$k]['user_id'] = $v['user_id'];
                 $mInspect[$k]['repair_content'] = $v['task_name'];
                 $mInspect[$k]['end_at'] = date('Y/m/d H:i', $v['check_start_at']) . '-' . date('H:i', $v['check_end_at']);
                 $mInspect[$k]['orderAt'] = $v['check_end_at'];
@@ -2034,6 +2035,7 @@ class RepairService extends BaseService
 
         return PsInspectRecord::find()->where(['community_id' => $p['community_id']])
             ->andFilterWhere(['user_id' => $p['user_id']])
+            ->andFilterWhere(['in', 'status', [1,2,3]])
             ->andfilterWhere(['and', 
                 ['>=', 'check_start_at', $start_at], 
                 ['<', 'check_end_at', $end_at]
