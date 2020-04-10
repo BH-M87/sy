@@ -267,7 +267,7 @@ class RepairService extends BaseService
             foreach ($m as $k => $v) {
                 $mRepair[$k]['nameTitle'] = '描述';
                 $mRepair[$k]['timeTitle'] = '截止时间';
-                $mRepair[$k]['type'] = 'repair';
+                $mRepair[$k]['type'] = '报事报修';
                 $mRepair[$k]['issue_id'] = $v['issue_id'];
                 $mRepair[$k]['repair_content'] = $v['repair_content'];
                 $mRepair[$k]['end_at'] = date('Y年m月d', $v['expired_repair_time'] > 0 ? $v['expired_repair_time'] : $v['repair_time']);
@@ -285,7 +285,7 @@ class RepairService extends BaseService
             foreach ($m as $k => $v) {
                 $mInspect[$k]['nameTitle'] = '巡检任务';
                 $mInspect[$k]['timeTitle'] = '巡检时间';
-                $mInspect[$k]['type'] = 'inspect';
+                $mInspect[$k]['type'] = '巡更巡检';
                 $mInspect[$k]['issue_id'] = $v['id'];
                 $mInspect[$k]['user_id'] = $v['user_id'];
                 $mInspect[$k]['repair_content'] = $v['task_name'];
