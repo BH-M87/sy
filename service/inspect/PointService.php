@@ -345,6 +345,17 @@ class PointService extends BaseService
                 throw new MyException('任务已巡检!');
             }
 
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
+            }
+
             // 得到对应的巡检点信息
             $point = PsInspectPoint::findOne($m['point_id']);
             $typeArr = explode(',', $point['type']);
@@ -381,17 +392,6 @@ class PointService extends BaseService
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
                 throw new MyException('备注说明必填!');
-            }
-
-            $info = PsInspectRecordPoint::find()->alias("A")
-                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
-                ->where(['A.id' => $p['id']])
-                ->andWhere(['<=', 'B.check_start_at', time()])
-                ->andWhere(['>=', 'B.check_end_at', time()])
-                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
-                ->asArray()->one();
-            if (empty($info)) {
-                throw new MyException('当前时间不可执行任务!');
             }
 
             $p['status'] = 2;
@@ -448,6 +448,17 @@ class PointService extends BaseService
                 throw new MyException('任务已巡检!');
             }
 
+            $info = PsInspectRecordPoint::find()->alias("A")
+                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
+                ->where(['A.id' => $p['id']])
+                ->andWhere(['<=', 'B.check_start_at', time()])
+                ->andWhere(['>=', 'B.check_end_at', time()])
+                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
+                ->asArray()->one();
+            if (empty($info)) {
+                throw new MyException('当前时间不可执行任务!');
+            }
+
             // 得到对应的巡检点信息
             $point = PsInspectPoint::findOne($m['point_id']);
             $typeArr = explode(',', $point['type']);
@@ -484,17 +495,6 @@ class PointService extends BaseService
 
             if ($p['device_status'] == 2 && empty($p['record_note'])) { // 异常时必填
                 throw new MyException('备注说明必填!');
-            }
-
-            $info = PsInspectRecordPoint::find()->alias("A")
-                ->select('A.id, A.device_status, A.point_name, A.type, A.status, A.point_lat, A.point_lon')
-                ->where(['A.id' => $p['id']])
-                ->andWhere(['<=', 'B.check_start_at', time()])
-                ->andWhere(['>=', 'B.check_end_at', time()])
-                ->leftJoin("ps_inspect_record B", "B.id = A.record_id")
-                ->asArray()->one();
-            if (empty($info)) {
-                throw new MyException('当前时间不可执行任务!');
             }
 
             $p['imgs'] = is_array($p['imgs']) ? implode(',', $p['imgs']) : '';
