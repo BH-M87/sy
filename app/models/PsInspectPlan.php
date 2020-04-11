@@ -70,7 +70,7 @@ class PsInspectPlan extends BaseModel
             'name'          => '计划名称',
             'type'          => '计划类型',
             'community_id'  => '小区Id',
-            'line_id'       => '线路Id',
+            'line_id'       => '巡检线路',
             'start_at'      => '计划开始时间',
             'end_at'        => '计划结束时间',
             'task_name'     => '任务名称',

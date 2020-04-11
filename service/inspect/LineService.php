@@ -100,7 +100,13 @@ class LineService extends BaseService
             throw new MyException('巡检线路id不能为空');
         }
 
-        $r = self::lineOne($p['id'])->toArray();
+        $r = self::lineOne($p['id']);
+
+        if (empty($r)) {
+            throw new MyException('巡检线路不存在');
+        }
+        
+        $r = $r->toArray();
         if (!empty($r)) {
             // 获取对应的巡检点
             $r['pointList'] = PsInspectLinePoint::find()->alias("A")->select(['B.id', 'B.name'])

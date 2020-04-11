@@ -119,7 +119,18 @@ class JavaService extends BaseService
     public function userList($query)
     {
         $query['route'] = '/user/simple-list';
-        return self::returnCData($query);
+
+        $r = self::returnCData($query);
+
+        if (!empty($r['list'])) {
+            foreach ($r['list'] as $k => $v) {
+                if (empty($v['trueName'])) {
+                    unset($r['list'][$k]);
+                }
+            }
+        }
+        
+        return ['list' => !empty($r['list']) ? array_values($r['list']) : []];
     }
 
     //获取部门下用户

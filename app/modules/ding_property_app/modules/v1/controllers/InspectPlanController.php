@@ -96,6 +96,7 @@ class InspectPlanController extends UserBaseController {
         try{
             $params = $this->request_params;
             $params['type'] = 2;
+            unset($params['exec_type'],$params['exec_interval']);
             $result = PlanService::service()->planTempAdd($params, $this->userInfo);
             return PsCommon::responseSuccess($result);
         }catch (Exception $e){
