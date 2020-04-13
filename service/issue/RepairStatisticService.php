@@ -17,26 +17,20 @@ use yii\db\Query;
 
 class RepairStatisticService extends BaseService
 {
-    //按照数量统计
-    public function status($params)
+    // 按照数量统计
+    public function status($p)
     {
-        $result = [];
-        $community_id = $params['community_id'];
-        $result['week'] = self::getOrderStatistic($community_id, 'week', 'order');
-        $result['month'] = self::getOrderStatistic($community_id, 'month', 'order');
-        $result['year'] = self::getOrderStatistic($community_id, 'year', 'order');
-        return $result;
+        $r = self::getOrderStatistic($p, 'order');
+
+        return $r ?? [];
     }
 
-    //按照渠道统计
-    public function channels($params)
+    // 按照渠道统计
+    public function channels($p)
     {
-        $result = [];
-        $community_id = $params['community_id'];
-        $result['week'] = self::getOrderStatistic($community_id, 'week', 'channel');
-        $result['month'] = self::getOrderStatistic($community_id, 'month', 'channel');
-        $result['year'] = self::getOrderStatistic($community_id, 'year', 'channel');
-        return $result;
+        $r = self::getOrderStatistic($p, 'channel');
+
+        return $r ?? [];
     }
 
     //按照类型统计
@@ -141,56 +135,44 @@ class RepairStatisticService extends BaseService
         return $return;
     }
 
-    private function getOrderStatistic($community_id, $day, $type)
+    private function getOrderStatistic($p, $type)
     {
+        $start = !empty($p['start']) ? strtotime($p['start']) : '';
+        $end = !empty($p['end']) ? strtotime($p['end'] . " 23:59:59") : '';
+
         $query = new Query();
-        $query->from('ps_repair')->where(["community_id" => $community_id]);
-        $start = strtotime(date('Y-m-d', strtotime('-1 ' . $day)) . " 00:00:00");
-        $end = strtotime(date('Y-m-d', time()) . " 23:59:59");
-        if ($start) {
+        $query->from('ps_repair')->where(["community_id" => $p['community_id']]);
+
+        if (!empty($start)) {
             $query->andWhere(['>=', 'create_at', $start]);
         }
-        if ($end) {
+
+        if (!empty($end)) {
             $query->andWhere(['<=', 'create_at', $end]);
         }
-        $command = $query->createCommand();
-        $list = $command->queryAll();
 
-        $process = 0;   //待处理
-        $confirm = 0;   //待确定
-        $reject = 0;    //驳回
-        $pending = 0;   //待完成
-        $completed = 0; //已完成
-        $end = 0;       //已结束
-        $review = 0;    //已复核
-        $nullify = 0;   //作废
-        $recheck = 0;   //复核不通过
+        $list = $query->createCommand()->queryAll();
 
-        $life = 0;      //小区生活号报修
-        $property = 0;  //物业内部报修
-        $dingding = 0;  //钉钉报修
-        $front = 0;     //前台报修
-        $phone = 0;     //电话报修
-        $reviews = 0;   //复查工单
+        $confirm = 0;   // 待处理 = 7
+        $process = 0;   // 处理中 = 1
+        $completed = 0; // 已完成 = 3
+        $nullify = 0;   // 已关闭 = 6
+
+        $life = 0; // 支付宝小程序
+        $dingding = 0; // 钉钉报修
+        $front = 0; // 物业前台报修
+        $phone = 0; // 电话报修
+        $other = 0; // 其他
 
         if ($list) {
-            foreach ($list as $key => $value) {
+            foreach ($list as $v) {
                 if ($type == 'order') {
-                    switch ($value['status']) {
+                    switch ($v['status']) {
                         case "1":
                             $process += 1;
                             break;
-                        case "2":
-                            $pending += 1;
-                            break;
                         case "3":
                             $completed += 1;
-                            break;
-                        case "4":
-                            $end += 1;
-                            break;
-                        case "5":
-                            $review += 1;
                             break;
                         case "6":
                             $nullify += 1;
@@ -198,47 +180,43 @@ class RepairStatisticService extends BaseService
                         case "7";
                             $confirm += 1;
                             break;
-                        case "8":
-                            $reject += 1;
-                            break;
-                        case "9":
-                            $recheck += 1;
-                            break;
                     }
                 }
+
                 if ($type == 'channel') {
-                    switch ($value['repair_from']) {
-                        case "1":
+                    switch ($v['repair_from']) {
+                        case "1": // 支付宝小程序
                             $life += 1;
                             break;
-                        case "2":
-                            $property += 1;
-                            break;
-                        case "3":
+                        case "3": // 钉钉报修
                             $dingding += 1;
                             break;
-                        case "4":
+                        case "4": // 物业前台报修
                             $front += 1;
                             break;
-                        case "5":
+                        case "5": // 电话报修
                             $phone += 1;
                             break;
-                        case "6":
-                            $reviews += 1;
+                        default : // 其他
+                            $other += 1;
                             break;
                     }
                 }
             }
         }
-        $return = [];
+
+        $r = [];
         if ($type == 'order') {
-            $return = compact('process', 'confirm', 'reject', 'pending', 'completed', 'end', 'review', 'nullify', 'recheck');
+            $r = compact('process', 'confirm', 'completed', 'nullify', 'other');
         }
+
         if ($type == 'channel') {
-            $return = compact('life', 'property', 'dingding', 'front', 'phone', 'reviews');
+            $r = compact('life', 'dingding', 'front', 'phone', 'other');
         }
-        $return['total_num'] = count($list);
-        return $return;
+
+        $r['total_num'] = count($list);
+
+        return $r;
     }
 
     private function dealPercent($num, $total, $name = '')

@@ -1736,12 +1736,6 @@ class RepairService extends BaseService
             return PsCommon::getModelError($model);
         }
 
-        // 更新订单状态
-        $repair_arr["status"] = self::STATUS_COMPLETE;
-        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,
-            "id = :id", [":id" => $p["repair_id"]]
-        )->execute();
-        
         return true;
     }
 

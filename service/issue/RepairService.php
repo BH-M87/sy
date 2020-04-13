@@ -63,21 +63,15 @@ class RepairService extends BaseService
     public static $_is_assign = ['1' => '已分配', '2' => '未分配'];
     // 报修来源
     public static $_repair_from = [
-        '1' => '支付宝小程序', '2' => '物业内部报修', '3' => '钉钉报修', 
-        '4' => '前台报修', '5' => '电话报修', '6' => '二次维修',
+        '1' => '支付宝小程序', '3' => '物业钉钉', 
+        '4' => '物业前台', '5' => '电话报修', '9' => '其它',
     ];
 
     public static $_repair_status = [
-        '1' => '待处理',
-        '2' => '待完成',
-        '3' => '已完成(待支付)',
-        '10' => '已完成(待评价)',
-        '4' => '已结束',
-        '5' => '已复核',
-        '6' => '已作废',
-        '7' => '待确认',
-        '8' => '已驳回',
-        '9' => '复核不通过',
+        '7' => '待处理',
+        '1' => '处理中',
+        '3' => '已完成',
+        '6' => '已关闭',
     ];
 
     public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
@@ -542,7 +536,7 @@ class RepairService extends BaseService
         $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
         $model->is_assign = 2; // 是否已分配 1已分配 2未分配
         $model->hard_type = 1; // 1 一般问题，2 疑难问题
-        $model->status = 1; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
+        $model->status = 7; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
         $model->day = date('Y-m-d'); // 报修日期
         $model->create_at = time(); // 提交订单时间
 
@@ -652,7 +646,7 @@ class RepairService extends BaseService
             $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
-            $repair_arr["status"] = 7;
+            $repair_arr["status"] = 1;
             if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
                 $repair_arr["leave_msg"] = $p["leave_msg"];
             }
@@ -683,7 +677,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => '',
                 'repair_imgs' => '',
-                'status' => '7',
+                'status' => '1',
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
@@ -740,7 +734,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => $p["repair_content"],
                 'repair_imgs' => $repairImages,
-                'status' => 2,
+                'status' => 1,
                 'create_at' => time(),
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user["trueName"],
@@ -765,7 +759,7 @@ class RepairService extends BaseService
             $r["is_assign"] = 1;
             $r["operator_id"] = $p["user_id"];
             $r["operator_name"] = $user["trueName"];
-            $r["status"] = 2;
+            $r["status"] = 1;
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
             
@@ -1741,12 +1735,6 @@ class RepairService extends BaseService
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
-
-        // 更新订单状态
-        $repair_arr["status"] = self::STATUS_COMPLETE;
-        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,
-            "id = :id", [":id" => $p["repair_id"]]
-        )->execute();
         
         return true;
     }
