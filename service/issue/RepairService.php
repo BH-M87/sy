@@ -1416,7 +1416,9 @@ class RepairService extends BaseService
             'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-markDifficult', 
             'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel'
         ];
-        // 用户已有权限
+        /**
+         * 2020-4-13 陈科浪注释；暂时不查权限
+         * 用户已有权限
         $role_list = JavaService::service()->permissions(['token' => $token])['list'];
         foreach ($role_list as $item) {
             if(in_array($item['key'], $repair_role)){
@@ -1424,7 +1426,10 @@ class RepairService extends BaseService
                 $data[] = $repair_role_name[$item['key']];
             }
         }
-
+        */
+        foreach ($repair_role as $item) {
+            $data[] = $repair_role_name[$item];
+        }
         return $data;
     }
 
