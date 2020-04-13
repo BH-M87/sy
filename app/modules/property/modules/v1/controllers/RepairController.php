@@ -295,7 +295,7 @@ class RepairController extends BaseController {
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
 
-    // 接单 订单状态 1处理中 3已完成 6已关闭 7待处理
+    // 接单 订单状态 1已接单 2开始处理 3已完成 6已关闭 7待处理
     public function actionAccept()
     {
         if (empty($this->request_params)) {

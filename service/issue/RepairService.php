@@ -69,7 +69,8 @@ class RepairService extends BaseService
 
     public static $_repair_status = [
         '7' => '待处理',
-        '1' => '处理中',
+        '1' => '已接单',
+        '2' => '开始处理',
         '3' => '已完成',
         '6' => '已关闭',
     ];
@@ -1297,8 +1298,8 @@ class RepairService extends BaseService
             $query->andWhere(['or', ['pra.user_id' => $userInfo['id']], ['pr.created_id' => $userInfo['id']]]);
         }
 
-        if ($p['status'] == 3) { // 待支付
-            $query->andFilterWhere(['pr.is_pay' => 1]);
+        if ($p['status'] == 11) { // 待支付
+            $query->andFilterWhere(['pr.is_pay' => 1])->andFilterWhere(['pr.status' => 2]);
         } else if ($p['status'] == 10) { // 待评价
             $p['status'] = 3;
             $query->andFilterWhere(['pr.is_pay' => 2]);
@@ -1355,7 +1356,7 @@ class RepairService extends BaseService
         // 钉钉报事报修权限组装前端数据
         $repair_role_name = [
             'gov-sy-repair-assign' => [
-                'name' => '工单分配',
+                'name' => '分配工单',
                 'img' => '../../../images/repairDetails_icon1.png',
                 'url' => '/pages/myDetails/distributionOrder/distributionOrder',
                 'key' => '',
@@ -1375,7 +1376,7 @@ class RepairService extends BaseService
                 'key' => '',
                 'status' => ["1","2","7","8"],
             ],
-            'gov-sy-repair-markDifficult' => [
+            /*'gov-sy-repair-markDifficult' => [
                 'name' => '标记疑难',
                 'img' => '../../../images/repairDetails_icon4.png',
                 'url' => '/pages/myDetails/makeDifficult/makeDifficult',
@@ -1395,9 +1396,9 @@ class RepairService extends BaseService
                 'url' => '',
                 'key' => 'repair',
                 'status' => ["9"],
-            ],
+            ],*/
             'gov-sy-repair-cancel' => [
-                'name' => '工单作废',
+                'name' => '关闭工单',
                 'img' => '../../../images/repairDetails_icon5.png',
                 'url' => '',
                 'key' => 'markInvalid',
@@ -1757,7 +1758,7 @@ class RepairService extends BaseService
     }
 
     /**
-     * 小程序列表搜索
+     * 小程序列表搜索 7待处理 1处理中 11待付款 12待评价
      * @param $status
      * @return array
      */
@@ -1765,25 +1766,23 @@ class RepairService extends BaseService
     {
         $searchFilter = [];
         switch ($status) {
+            case 7:
+                $searchFilter = ['A.status' => 7];
+                break;
             case 1:
                 $searchFilter = ['A.status' => 1];
                 break;
-            case 2:
-                $searchFilter = ['A.status' => [2, 7, 8]];
+            case 11: // 开始处理 待支付
+                $searchFilter = ['A.status' => 2, 'A.is_pay' => 1];
                 break;
-            case 3:
-                $searchFilter = ['A.status' => 3, 'A.is_pay' => 1];
-                break;
-            case 4:
-                $searchFilter = ['AND', 'A.status = 3', ['>', 'A.is_pay', 1]];
-                break;
-            case 5:
-                $searchFilter = ['A.status' => [4, 5, 6, 9]];
+            case 12: // 已完成 待评价
+                $searchFilter = ['AND', 'A.status = 3', ['=', 'A.repair_appraise_id', 0]];
                 break;
             default:
-                $searchFilter = ['A.status' => 1];
+                $searchFilter = [];
                 break;
         }
+
         return $searchFilter;
     }
 
