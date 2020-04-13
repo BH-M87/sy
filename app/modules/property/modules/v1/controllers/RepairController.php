@@ -294,4 +294,25 @@ class RepairController extends BaseController {
         $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
+
+    // 接单
+    public function actionAccept()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+
+        $this->request_params["status"] = 1; // 接单
+
+        if (!$this->request_params['repair_id']) {
+            return PsCommon::responseFailed('请输入工单ID');
+        }
+
+        $result = RepairService::service()->acceptIssue($this->request_params, $this->user_info);
+        if (is_array($result)) {
+            return PsCommon::responseSuccess($result);
+        }
+
+        return PsCommon::responseFailed($result);
+    }
 }
