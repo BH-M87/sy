@@ -542,7 +542,7 @@ class RepairService extends BaseService
         $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
         $model->is_assign = 2; // 是否已分配 1已分配 2未分配
         $model->hard_type = 1; // 1 一般问题，2 疑难问题
-        $model->status = 1; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
+        $model->status = 7; // 订单状态 1处理中 3已完成 6已关闭 7待处理
         $model->day = date('Y-m-d'); // 报修日期
         $model->create_at = time(); // 提交订单时间
 
