@@ -13,7 +13,7 @@ use app\modules\property\controllers\BaseController;
 use service\common\CsvService;
 
 use service\issue\modules\v2\RepairService;
-use service\issue\modules\v2\RepairTypeService;
+use service\issue\RepairTypeService;
 
 class RepairController extends BaseController 
 {
