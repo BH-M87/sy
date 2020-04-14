@@ -1762,10 +1762,7 @@ class RepairService extends BaseService
                 $searchFilter = ['A.status' => 7];
                 break;
             case 1:
-                $searchFilter = ['A.status' => 1];
-                break;
-            case 2:
-                $searchFilter = ['A.status' => 2];
+                $searchFilter = ['AND', 'A.is_pay = 3', ['in', 'A.status', [1,2]]];
                 break;
             case 3:
                 $searchFilter = ['A.status' => 3];
@@ -1798,12 +1795,12 @@ class RepairService extends BaseService
             if ($p['is_pay'] == 1) {
                 return "待付款";
             } else {
-                return "开始处理";
+                return "处理中";
             }
         } elseif ($p['status'] == 6) {
             return "已关闭";
-        } elseif ($p['status'] == 1) {
-            return "已接单";
+        } elseif ($p['status'] == 1 || $p['status'] == 2) {
+            return "处理中";
         } elseif ($p['status'] == 7) {
             return "待处理";
         } else {
