@@ -72,7 +72,14 @@ class RepairController extends BaseController {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        return PsCommon::responseSuccess(RepairService::service()->getCommon($this->request_params));
+
+        $r = RepairService::service()->getCommon($this->request_params);
+        // 后台接口不显示 支付宝小程序和钉钉的报修来源
+        unset($r['repair_from'][0]);
+        unset($r['repair_from'][1]);
+        $r['repair_from'] = array_values($r['repair_from']);
+
+        return PsCommon::responseSuccess($r);
     }
 
     // 获取报修分类

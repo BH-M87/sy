@@ -1764,6 +1764,12 @@ class RepairService extends BaseService
             case 1:
                 $searchFilter = ['A.status' => 1];
                 break;
+            case 2:
+                $searchFilter = ['A.status' => 2];
+                break;
+            case 3:
+                $searchFilter = ['A.status' => 3];
+                break;
             case 11: // 开始处理 待支付
                 $searchFilter = ['A.status' => 2, 'A.is_pay' => 1];
                 break;
@@ -1784,19 +1790,21 @@ class RepairService extends BaseService
      * @param $repair
      * @return string
      */
-    protected function transStatus($repair)
+    protected function transStatus($p)
     {
-        if ($repair['status'] == 3) {
-            if ($repair['is_pay'] == 1) {
+        if ($p['status'] == 3 && $p['repair_appraise_id'] == 0) {
+            return "待评价";
+        } elseif ($p['status'] == 2) {
+            if ($p['is_pay'] == 1) {
                 return "待付款";
             } else {
-                return "待评价";
+                return "开始处理";
             }
-        } elseif ($repair['status'] == 2 || $repair['status'] == 7 || $repair['status'] == 8) {
-            return "处理中";
-        } elseif ($repair['status'] == 4 || $repair['status'] == 5 || $repair['status'] == 6 || $repair['status'] == 9) {
-            return "已结束";
-        } elseif ($repair['status'] == 1) {
+        } elseif ($p['status'] == 6) {
+            return "已关闭";
+        } elseif ($p['status'] == 1) {
+            return "已接单";
+        } elseif ($p['status'] == 7) {
             return "待处理";
         } else {
             return "";
