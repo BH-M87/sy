@@ -64,7 +64,7 @@ class RepairService extends BaseService
     // 报修来源
     public static $_repair_from = [
         '1' => '支付宝小程序', '3' => '物业钉钉', 
-        '4' => '物业前台', '5' => '电话报修', '9' => '其它',
+        '4' => '物业前台', '5' => '电话报修', '9' => '其他',
     ];
 
     public static $_repair_status = [
