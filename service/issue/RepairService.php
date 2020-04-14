@@ -1102,17 +1102,10 @@ class RepairService extends BaseService
         if (!empty($m)) {
             foreach ($m as $key => $model) {
                 if ($p['use_as'] == "dingding") {
-                    if ($model['status'] == 2 && $model['is_pay'] == 1) {
-                        $m[$key]["status_label"] = self::$_repair_status[11];
-                    } else {
-                        $m[$key]['status_label'] = self::$_repair_status[$model['status']];
-                    }
+                    $m[$key]['status_label'] = self::$_repair_status[$model['status']];
                 } else {
                     $m[$key]["status_name"] = self::getStatusName($model['status']);
                     $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
-                    if ($model['status'] == 2 && $model['is_pay'] == 1) {
-                        $m[$key]["status_label"] = self::$_repair_status[11];
-                    } 
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
