@@ -73,6 +73,7 @@ class RepairService extends BaseService
         '2' => '开始处理',
         '3' => '已完成',
         '6' => '已关闭',
+        '11' => '待付款',
     ];
 
     public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
@@ -404,6 +405,9 @@ class RepairService extends BaseService
         $models = $command->queryAll();
         foreach ($models as $key => &$val) {
             $val['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+            if ($val['status'] == 2 && $val['is_pay'] == 1) {
+                $val['status'] = 11; // 待付款
+            }
             if ($params['use_as'] == "dingding") {
                 $val['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
                 $val['status_label'] = self::$_repair_status[$val['status']];
@@ -589,7 +593,10 @@ class RepairService extends BaseService
         $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
         $m['amount'] = $m['amount'] > 0 ? $m['amount'] : '';
-
+        
+        if ($m['status'] == 2 && $m['is_pay'] == 1) {
+            $m['status'] = 11; // 待付款
+        }
         $m['status_desc'] = self::$_repair_status[$m['status']];
 
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
@@ -1320,8 +1327,8 @@ class RepairService extends BaseService
             foreach ($m as $k => &$v) {
                 $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
                 $v['status'] = $v['status'];
-                if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
-                    $v['status_label'] = self::$_repair_status[10];
+                if ($v['status'] == 2 && $v['is_pay'] == 1) {
+                    $v['status_label'] = self::$_repair_status[11];
                 } else {
                     $v['status_label'] = self::$_repair_status[$v['status']];
                 }
@@ -1419,8 +1426,9 @@ class RepairService extends BaseService
         $m['is_relate_room'] = $releateRoom ? 1 : 2;
         $m['repair_from_label'] =
             isset(self::$_repair_from[$m['repair_from']]) ? self::$_repair_from[$m['repair_from']] : '未知';
-        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
-            $m['status_label'] = self::$_repair_status[10];
+        
+        if ($m['status'] == 2 && $m['is_pay'] == 1) {
+            $m['status_label'] = self::$_repair_status[11];
         } else {
             $m['status_label'] = self::$_repair_status[$m['status']];
         }
@@ -1651,11 +1659,7 @@ class RepairService extends BaseService
             $repair_info['other_charge'] = $billMaterialInfo['other_charge'];
         }
 
-        if ($repair_info['repair_status'] == self::STATUS_DONE) {
-            $repair_info['repair_status_desc'] = $repair_info['is_pay'] == 1 ? "待付款" : "待评价";
-        } else {
-            $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
-        }
+        $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
 
         $repair_info["appraise_content"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
         $repair_info['repair_image'] = empty($repair_info['repair_image']) ? [] : explode(',', $repair_info['repair_image']);
@@ -1759,11 +1763,11 @@ class RepairService extends BaseService
             if ($p['is_pay'] == 1) {
                 return "待付款";
             } else {
-                return "处理中";
+                return "开始处理";
             }
         } elseif ($p['status'] == 6) {
             return "已关闭";
-        } elseif ($p['status'] == 1 || $p['status'] == 2) {
+        } elseif ($p['status'] == 1) {
             return "处理中";
         } elseif ($p['status'] == 7) {
             return "待处理";
