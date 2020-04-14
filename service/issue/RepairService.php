@@ -1475,6 +1475,8 @@ class RepairService extends BaseService
         }
 
         $repair_arr['status'] = $repairStatus;
+        $repair_arr['operator_id'] = $userInfo['id'];
+        $repair_arr['operator_name'] = $userInfo['operator_name'];
         Yii::$app->db->createCommand()->update('ps_repair',
             $repair_arr, "id = :id", [":id" => $p["repair_id"]]
         )->execute();
@@ -1567,7 +1569,7 @@ class RepairService extends BaseService
             ->leftJoin('ps_repair_type prt', 'A.repair_type_id = prt.id')
             ->where("1=1");
         if ($communityId) {
-            $query->andWhere(['A.community_id' => $communityId]);
+            $query->andWhere(['A.community_id1' => $communityId]);
         }
 
         if ($status) {
@@ -1690,6 +1692,9 @@ class RepairService extends BaseService
         if (!$model->save()) {
             return PsCommon::getModelError($model);
         }
+
+        $repair_arr['repair_appraise_id'] = $model->id;
+        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr, "id = :id", [":id" => $p["repair_id"]])->execute();
         
         return true;
     }
@@ -1712,7 +1717,7 @@ class RepairService extends BaseService
     }
 
     /**
-     * 小程序列表搜索 7待处理 1处理中 11待付款 12待评价
+     * 小程序列表搜索 7待处理 1处理中 3已完成 11待付款 12待评价
      * @param $status
      * @return array
      */
@@ -1724,7 +1729,7 @@ class RepairService extends BaseService
                 $searchFilter = ['A.status' => 7];
                 break;
             case 1:
-                $searchFilter = ['AND', 'A.is_pay = 3', ['in', 'A.status', [1,2]]];
+                $searchFilter = ['AND', 'A.is_pay != 1', ['in', 'A.status', [1,2]]];
                 break;
             case 3:
                 $searchFilter = ['A.status' => 3];
