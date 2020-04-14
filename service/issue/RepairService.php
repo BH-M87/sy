@@ -1360,28 +1360,28 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon1.png',
                 'url' => '/pages/myDetails/distributionOrder/distributionOrder',
                 'key' => '',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-markSuccess' => [
                 'name' => '标记完成',
                 'img' => '../../../images/repairDetails_icon2.png',
                 'url' => '/pages/myDetails/makeComplete/makeComplete',
                 'key' => '',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-addRecord' => [
                 'name' => '添加记录',
                 'img' => '../../../images/repairDetails_icon3.png',
                 'url' => '/pages/myDetails/makeRecord/makeRecord',
                 'key' => '',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             /*'gov-sy-repair-markDifficult' => [
                 'name' => '标记疑难',
                 'img' => '../../../images/repairDetails_icon4.png',
                 'url' => '/pages/myDetails/makeDifficult/makeDifficult',
                 'key' => '2',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-secondAudit' => [
                 'name' => '工单复核',
@@ -1402,7 +1402,7 @@ class RepairService extends BaseService
                 'img' => '../../../images/repairDetails_icon5.png',
                 'url' => '',
                 'key' => 'markInvalid',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
         ];
 
