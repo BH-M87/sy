@@ -201,8 +201,13 @@ class PrintService extends BaseService
             ->queryOne();
         $sql = "select id,community_id,ifnull(out_room_id,'') as out_room_id,room_address,community_name,`group_id`,building_id,unit_id,room_id,cost_name,acct_period_start,acct_period_end,bill_entry_amount,cost_type from ps_bill where " . $where . " and status=1  and trade_defend!=1 and trade_defend!=2 order by `group_id`,building_id,unit_id,room_id asc";
 
+        $is_down = !empty($data['is_down']) ? $data['is_down'] : 1;//1正常查询，2下载
         $offset = ($data['page']-1)*$data['pageSize'];
         $limit = $data['pageSize'];
+        if ($is_down == 2) {//说明是下载，需要全部数据
+            $offset = 0;
+            $limit = intval($model["total"]);
+        }
         $models = Yii::$app->db->createCommand($sql." LIMIT :offset,:limit", $params)->bindParam(':offset', $offset)->bindParam(':limit', $limit)->queryAll();
         $house = [];
         $nowTime = time();

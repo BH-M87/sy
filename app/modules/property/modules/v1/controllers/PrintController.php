@@ -2,9 +2,11 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
+use common\core\F;
 use common\core\PsCommon;
 use app\models\PsPrintModel;
 use app\models\PsTemplateBill;
+use service\common\CsvService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\alipay\PrintService;
@@ -196,6 +198,41 @@ class PrintController extends BaseController
             }
         } else {
             return PsCommon::responseFailed('未接受到有效数据');
+        }
+    }
+
+    //催缴单导出
+    public function actionDownExportBill()
+    {
+        $data = $this->request_params;
+        $data['is_down'] = 2;
+        $result = $result = PrintService::service()->billList($data);
+        print_r($result);die;
+        if ($result['code']) {
+            $config = [
+                'A' => ['title' => '房屋信息', 'width' => 32, 'data_type' => 'str', 'field' => 'room_msg', 'default' => '-'],
+                'B' => ['title' => '应缴金额', 'width' => 14, 'data_type' => 'str', 'field' => 'bill_entry_amount', 'default' => '-'],
+                'C' => ['title' => '已缴金额', 'width' => 14, 'data_type' => 'str', 'field' => 'paid_entry_amount', 'default' => '-'],
+                'D' => ['title' => '优惠金额', 'width' => 14, 'data_type' => 'str', 'field' => 'prefer_entry_amount', 'default' => '-'],
+                'E' => ['title' => '欠费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'owe_entry_amount', 'default' => '-'],
+            ];
+            $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
+//            $filePath = F::originalFile().'temp/'.$fileName;
+//            $day = date('Y-m-d');
+            $downUrl = F::downloadUrl($fileName, 'temp', 'BillAmount.csv');
+//            $fileRe = F::uploadFileToOss($filePath);
+//            $url = $fileRe['filepath'];
+            //保存日志
+            $log = [
+                "operate_menu" => "催缴单管理",
+                "operate_type" => "导出催缴单",
+                "operate_content" => ''
+            ];
+            OperateService::addComm($this->user_info, $log);
+
+            return PsCommon::responseSuccess(['down_url' => $downUrl]);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
         }
     }
 
