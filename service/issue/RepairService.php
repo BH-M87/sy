@@ -445,7 +445,6 @@ class RepairService extends BaseService
             $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
             $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
-            $val['operator_name'] = $val['status'] == 1 ? '' : $val['operator_name'];
         }
 
         $re['list'] = $models;
