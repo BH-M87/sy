@@ -1476,7 +1476,7 @@ class RepairService extends BaseService
 
         $repair_arr['status'] = $repairStatus;
         $repair_arr['operator_id'] = $userInfo['id'];
-        $repair_arr['operator_name'] = $userInfo['operator_name'];
+        $repair_arr['operator_name'] = $userInfo['truename'];
         Yii::$app->db->createCommand()->update('ps_repair',
             $repair_arr, "id = :id", [":id" => $p["repair_id"]]
         )->execute();
