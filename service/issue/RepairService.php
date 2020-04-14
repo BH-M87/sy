@@ -1588,7 +1588,7 @@ class RepairService extends BaseService
         $query->orderBy('A.id desc');
         $re['totals'] = $query->count();
         $query->select(['A.id', 'A.community_id', 'A.repair_no', 'A.status', 'A.repair_content', 'A.create_at',
-            'A.is_pay', 'bill.id as bill_id',
+            'A.is_pay', 'bill.id as bill_id', 'A.repair_appraise_id',
             'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
         $offset = ($params['page'] - 1) * $params['rows'];
@@ -1758,6 +1758,8 @@ class RepairService extends BaseService
     {
         if ($p['status'] == 3 && $p['repair_appraise_id'] == 0) {
             return "待评价";
+        } elseif  ($p['status'] == 3) {
+            return "已完成";
         } elseif ($p['status'] == 2) {
             if ($p['is_pay'] == 1) {
                 return "待付款";
