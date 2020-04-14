@@ -406,11 +406,7 @@ class RepairService extends BaseService
             $val['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
             if ($params['use_as'] == "dingding") {
                 $val['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
-                if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $val['status_label'] = self::$_repair_status[10];
-                } else {
-                    $val['status_label'] = self::$_repair_status[$val['status']];
-                }
+                $val['status_label'] = self::$_repair_status[$val['status']];
                 $val['issue_id'] = $val['id'];
                 $val['issue_bill_no'] = $val['repair_no'];
                 $val['repair_type_label'] = $val['repair_type_desc'];
@@ -420,11 +416,7 @@ class RepairService extends BaseService
             } else {
                 $val['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
                 $val['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
-                if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $val['status_desc'] = self::$_repair_status[10];
-                } else {
-                    $val['status_desc'] = self::$_repair_status[$val['status']];
-                }
+                $val['status_desc'] = self::$_repair_status[$val['status']];
                 $val['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
                 $val['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
@@ -598,11 +590,7 @@ class RepairService extends BaseService
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
         $m['amount'] = $m['amount'] > 0 ? $m['amount'] : '';
 
-        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
-            $m['status_desc'] = self::$_repair_status[10];
-        } else {
-            $m['status_desc'] = self::$_repair_status[$m['status']];
-        }
+        $m['status_desc'] = self::$_repair_status[$m['status']];
 
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
         $m['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
