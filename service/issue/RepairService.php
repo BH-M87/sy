@@ -533,7 +533,7 @@ class RepairService extends BaseService
         $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
         $model->is_assign = 2; // 是否已分配 1已分配 2未分配
         $model->hard_type = 1; // 1 一般问题，2 疑难问题
-        $model->status = 7; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
+        $model->status = 7; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已关闭 7待确认 8已驳回 9复核不通过
         $model->day = date('Y-m-d'); // 报修日期
         $model->create_at = time(); // 提交订单时间
 
@@ -891,7 +891,7 @@ class RepairService extends BaseService
         return '系统错误,标记为疑难失败';
     }
 
-    // 工单作废
+    // 工单关闭
     public function markInvalid($p, $u = [])
     {
         $m = $this->getRepairInfoById($p['repair_id']);
@@ -909,7 +909,7 @@ class RepairService extends BaseService
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
                 'status' => 6,
-                'content' => '工单作废',
+                'content' => '工单关闭',
                 'create_at' => time(),
                 'operator_id' => $u["id"],
                 'operator_name' => $u["truename"],
@@ -917,13 +917,13 @@ class RepairService extends BaseService
             ])->execute();
             
             if (!empty($u['propertyMark'])) { // 添加操作日志
-                self::_logAdd($p['token'], "工单作废，工单号" . $m['repair_no']);
+                self::_logAdd($p['token'], "工单关闭，工单号" . $m['repair_no']);
             }
 
             return true;
         }
 
-        return "系统错误,工作作废失败";
+        return "系统错误,工作关闭失败";
     }
 
     //工单标记为支付
