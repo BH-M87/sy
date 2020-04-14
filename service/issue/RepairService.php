@@ -1922,8 +1922,6 @@ class RepairService extends BaseService
         $listHard = self::_searchRepair($p);
         
         $p['hard_type'] = '';
-        $p['start_at'] = '';
-        $p['end_at'] = '';
         $p['late_at'] = time();
         $listLate = self::_searchRepair($p);
         // 本周
