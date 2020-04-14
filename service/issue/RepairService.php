@@ -466,9 +466,9 @@ class RepairService extends BaseService
             ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
             ['title' => '工单金额', 'field' => 'amount'],
             ['title' => '状态', 'field' => 'status_desc'],
-            ['title' => '是否疑难问题', 'field' => 'hard_type_desc'],
-            ['title' => '疑难标记说明', 'field' => 'hard_remark'],
-            ['title' => '疑难标记时间', 'field' => 'hard_check_at'],
+            //['title' => '是否疑难问题', 'field' => 'hard_type_desc'],
+            //['title' => '疑难标记说明', 'field' => 'hard_remark'],
+            //['title' => '疑难标记时间', 'field' => 'hard_check_at'],
             ['title' => '提交人', 'field' => 'created_username'],
             ['title' => '处理人', 'field' => 'operator_name'],
         ];
