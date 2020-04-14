@@ -1569,7 +1569,7 @@ class RepairService extends BaseService
             ->leftJoin('ps_repair_type prt', 'A.repair_type_id = prt.id')
             ->where("1=1");
         if ($communityId) {
-            $query->andWhere(['A.community_id1' => $communityId]);
+            $query->andWhere(['A.community_id' => $communityId]);
         }
 
         if ($status) {
