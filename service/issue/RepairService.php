@@ -734,7 +734,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => $p["repair_content"],
                 'repair_imgs' => $repairImages,
-                'status' => 1,
+                'status' => $m['status'],
                 'create_at' => time(),
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user["trueName"],
@@ -759,7 +759,6 @@ class RepairService extends BaseService
             $r["is_assign"] = 1;
             $r["operator_id"] = $p["user_id"];
             $r["operator_name"] = $user["trueName"];
-            $r["status"] = 1;
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
             
