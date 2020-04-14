@@ -78,23 +78,32 @@ Class BillIncomeController extends BaseController
     // 财务核销 列表
     public function actionReviewList()
     {
-        if (empty($this->request_params['check_status'])) {
-            $this->request_params['c_status'] = 3; // 3待核销 4已核销
-        }
 
-        if (empty($this->request_params['entry_at'])) {
-            $data['list'] = [];
-            $data['totals'] = 0;
-        } else {
-            $communityIds = CommunityService::service()->getUserCommunityIds(UserService::currentUser('id'));
-            $this->request_params['communityIds'] = $communityIds;
-
-            $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
-            $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
-        }
+        $this->request_params['communityIds'] = $this->request_params['communityList'];
+        $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
+        $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
 
         return PsCommon::responseSuccess($data);
     }
+//    public function actionReviewList()
+//    {
+//        if (empty($this->request_params['check_status'])) {
+//            $this->request_params['c_status'] = 3; // 3待核销 4已核销
+//        }
+//
+//        if (empty($this->request_params['entry_at'])) {
+//            $data['list'] = [];
+//            $data['totals'] = 0;
+//        } else {
+//            $communityIds = CommunityService::service()->getUserCommunityIds(UserService::currentUser('id'));
+//            $this->request_params['communityIds'] = $communityIds;
+//
+//            $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
+//            $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
+//        }
+//
+//        return PsCommon::responseSuccess($data);
+//    }
 
     // 收款记录 收款复核 财务核销 详情
     public function actionBillIncomeShow()

@@ -264,15 +264,29 @@ Class BillIncomeService extends BaseService
         $rows = PsCommon::get($p, 'rows');
 
         $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
-            A.pay_channel, A.income_time, A.trade_no')
+            A.pay_channel, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
             ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+
+        //获得所有小区
+        $javaService = new JavaService();
+        $javaParams['token'] = $p['token'];
+        $javaResult = $javaService->communityNameList($javaParams);
+        $communityName = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+
+        //状态
+        $checkArr = ['1'=>'待核销', '2'=>'已核销'];
+
         if (!empty($model)) {
             foreach ($model as $k => &$v) {
-                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
-                $v['community_name'] = $community['communityName'];
+
+                $v['community_name'] = $communityName[$v['community_id']];
                 $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
+                $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
+                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m-d',$v['entry_at']):'';
+                $v['review_at_msg'] = !empty($v['review_at'])?date('Y-m-d',$v['review_at']):'';   //核销日期
+                $v['check_status_msg'] = $checkArr[$v['check_status']];
             }
         }
 
