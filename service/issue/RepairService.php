@@ -1376,27 +1376,6 @@ class RepairService extends BaseService
                 'key' => '',
                 'status' => ["1","2","8"],
             ],
-            /*'gov-sy-repair-markDifficult' => [
-                'name' => '标记疑难',
-                'img' => '../../../images/repairDetails_icon4.png',
-                'url' => '/pages/myDetails/makeDifficult/makeDifficult',
-                'key' => '2',
-                'status' => ["1","2","8"],
-            ],
-            'gov-sy-repair-secondAudit' => [
-                'name' => '工单复核',
-                'img' => '../../../images/repairDetails_icon7.png',
-                'url' => '/pages/myDetails/reviewOrder/reviewOrder',
-                'key' => '',
-                'status' => ["3","4"],
-            ],
-            'gov-sy-repair-secondRepair' => [
-                'name' => '二次维修',
-                'img' => '../../../images/repairDetails_icon6.png',
-                'url' => '',
-                'key' => 'repair',
-                'status' => ["9"],
-            ],*/
             'gov-sy-repair-cancel' => [
                 'name' => '关闭工单',
                 'img' => '../../../images/repairDetails_icon5.png',
@@ -1408,8 +1387,7 @@ class RepairService extends BaseService
 
         // 钉钉报事报修权限
         $repair_role = [
-            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-markDifficult', 
-            'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel'
+            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel'
         ];
         /**
          * 2020-4-13 陈科浪注释；暂时不查权限

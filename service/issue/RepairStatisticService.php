@@ -171,6 +171,9 @@ class RepairStatisticService extends BaseService
                         case "1":
                             $process += 1;
                             break;
+                        case "2":
+                            $process += 1;
+                            break;
                         case "3":
                             $completed += 1;
                             break;
