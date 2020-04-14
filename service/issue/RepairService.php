@@ -1489,19 +1489,15 @@ class RepairService extends BaseService
         }
 
         if ($model['status'] != 7) {
-            return "工单不是待确认状态";
+            return "工单不是待处理状态";
         }
 
-        if ($p['status'] == 1) { // 确认
-            $repairStatus = self::STATUS_UN_DO; 
-        } elseif ($p['status'] == 2) { // 驳回
-            $repairStatus = self::STATUS_REJECTED; 
-        }
+        $repairStatus = 1; 
 
         // 保存操作记录
         $recordModel = new PsRepairRecord();
         $recordModel->repair_id = $p['repair_id'];
-        $recordModel->content = $p['status'] == 2 ? $p['reason'] : '已确认';
+        $recordModel->content = '已接单';
         $recordModel->status = $repairStatus;
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
@@ -1520,11 +1516,7 @@ class RepairService extends BaseService
         $re['issue_id'] = $p['repair_id'];
         
         if (!empty($userInfo['propertyMark'])) { // 添加操作日志
-            if ($p['status'] == 1) { // 确认
-                self::_logAdd($p['token'], "确认工单，工单号" . $model['repair_no']);
-            } elseif ($p['status'] == 2) { // 驳回
-                self::_logAdd($p['token'], "驳回工单，工单号" . $model['repair_no']);
-            }
+            self::_logAdd($p['token'], "接单，工单号" . $model['repair_no']);
         }
 
         return $re;
