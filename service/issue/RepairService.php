@@ -441,6 +441,7 @@ class RepairService extends BaseService
             $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
             $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
+            $val['operator_name'] = $val['status'] == 7 ? '' : $val['operator_name'];
         }
 
         $re['list'] = $models;
@@ -1101,17 +1102,17 @@ class RepairService extends BaseService
         if (!empty($m)) {
             foreach ($m as $key => $model) {
                 if ($p['use_as'] == "dingding") {
-                    if ($model['status'] == self::STATUS_DONE) {
-                        $m[$key]["status_label"] = '已完成';
+                    if ($model['status'] == 2 && $model['is_pay'] == 1) {
+                        $m[$key]["status_label"] = self::$_repair_status[11];
                     } else {
                         $m[$key]['status_label'] = self::$_repair_status[$model['status']];
                     }
                 } else {
                     $m[$key]["status_name"] = self::getStatusName($model['status']);
                     $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
-                    if ($model['status'] == self::STATUS_DONE) {
-                        $m[$key]['status_desc'] = "已完成";
-                    }
+                    if ($model['status'] == 2 && $model['is_pay'] == 1) {
+                        $m[$key]["status_label"] = self::$_repair_status[11];
+                    } 
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
