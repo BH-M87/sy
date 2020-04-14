@@ -174,6 +174,8 @@ class PrintController extends BaseController
     public function actionBillList()
     {
         $data = $this->request_params;
+        $data['page'] = $data['page'];
+        $data['pageSize'] = $data['rows'];
         if (!empty($data)) {
             $model = new PsPrintModel();
             $model->setScenario('bill-list');
@@ -183,7 +185,11 @@ class PrintController extends BaseController
             $model->load($form);
             if ($model->validate()) {
                 $result = PrintService::service()->billList($data);
-                return PsCommon::response($result);
+                if ($result['code']) {
+                    return PsCommon::responseSuccess($result['data']);
+                } else {
+                    return PsCommon::responseFailed($result['msg']);
+                }
             } else {
                 $errorMsg = array_values($model->errors);
                 return PsCommon::responseFailed($errorMsg[0][0]);
