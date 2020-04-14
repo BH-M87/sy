@@ -647,7 +647,7 @@ class RepairService extends BaseService
             $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
-            $repair_arr["status"] = 1;
+            $repair_arr["status"] = 2;
             if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
                 $repair_arr["leave_msg"] = $p["leave_msg"];
             }
@@ -678,7 +678,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => '',
                 'repair_imgs' => '',
-                'status' => '1',
+                'status' => '2',
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
