@@ -3781,11 +3781,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
      */
     public function getBillPayAmount($bill_pay_amount,$recharge_amount){
         $result['recharge'] = 0;    //说明没有预存
+        $result['pay_amount'] = $bill_pay_amount-$recharge_amount;//实际需要支付宝的金额
         if($recharge_amount>=$bill_pay_amount) {//预存大与账单:计算剩余可以使用的预存
             $result['recharge'] = $recharge_amount - $bill_pay_amount;    //预存金额：预存减去账单金额
             $result['pay_amount'] = 0;//实际需要支付宝的金额
         }
-        $result['pay_amount'] = $bill_pay_amount-$recharge_amount;//实际需要支付宝的金额
         return $result;
     }
 }
