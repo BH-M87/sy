@@ -869,16 +869,16 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr['disabled'] = false;
             $arr['cost_type'] = $model['cost_type'];    //收费类型
             $arr['cost_name'] = $model['cost_name'];    //收费项名称
-            $arr['bill_all_amount'] = $model['bill_entry_amount'];    //账单总金额
+            $arr['bill_all_amount'] = (int)$model['bill_entry_amount'];    //账单总金额
             //应收金额=账单金总金额减去预收金额
             $payResult =self::getBillPayAmount($model['bill_entry_amount'],$calc_recharge_amount);
-            $arr['bill_entry_amount'] = $payResult['pay_amount'];//账单应缴金额
-            $arr['bill_recharge_amount'] = $model['bill_entry_amount']-$payResult['pay_amount'];//剩余预存抵扣金额
+            $arr['bill_entry_amount'] = (int)$payResult['pay_amount'];//账单应缴金额
+            $arr['bill_recharge_amount'] = (int)($model['bill_entry_amount']-$payResult['pay_amount']);//剩余预存抵扣金额
             //剩余可使用的预存
             $calc_recharge_amount = $payResult['recharge'];
             if (!empty($status)) {
-                $arr['paid_entry_amount'] = $model['paid_entry_amount'];    //已收金额
-                $arr['prefer_entry_amount'] = $model['prefer_entry_amount'];    //优惠金额
+                $arr['paid_entry_amount'] = (int)$model['paid_entry_amount'];    //已收金额
+                $arr['prefer_entry_amount'] = (int)$model['prefer_entry_amount'];    //优惠金额
             }
             $arr['pay_channel'] = PsCommon::getPayChannel($model['pay_channel']);    //支付方式
             $arr['acct_period_time_msg'] = date("Y-m-d", $model['acct_period_start']) . ' ' . date("Y-m-d", $model['acct_period_end']);
@@ -3781,9 +3781,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
      */
     public function getBillPayAmount($bill_pay_amount,$recharge_amount){
         $result['recharge'] = 0;    //说明没有预存
-        $result['pay_amount'] = $bill_pay_amount-$recharge_amount;//实际需要支付宝的金额
+        $result['pay_amount'] = (int)($bill_pay_amount-$recharge_amount);//实际需要支付宝的金额
         if($recharge_amount>=$bill_pay_amount) {//预存大与账单:计算剩余可以使用的预存
-            $result['recharge'] = $recharge_amount - $bill_pay_amount;    //预存金额：预存减去账单金额
+            $result['recharge'] = (int)($recharge_amount - $bill_pay_amount);    //预存金额：预存减去账单金额
             $result['pay_amount'] = 0;//实际需要支付宝的金额
         }
         return $result;
