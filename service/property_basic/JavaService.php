@@ -290,4 +290,10 @@ class JavaService extends BaseService
         $query['route'] = '/account/auth/judgeAuth';
         return self::returnCData($query);
     }
+
+    //根据批量房号查询住户信息
+    public function residentListByRoomIdList($query){
+        $query['route'] = '/resident/listByRoomIdList';
+        return self::returnCData($query);
+    }
 }

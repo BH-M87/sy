@@ -207,19 +207,23 @@ class PrintController extends BaseController
         $data = $this->request_params;
         $data['is_down'] = 2;
         $result = $result = PrintService::service()->billList($data);
-        print_r($result);die;
         if ($result['code']) {
             $config = [
-                'A' => ['title' => '房屋信息', 'width' => 32, 'data_type' => 'str', 'field' => 'room_msg', 'default' => '-'],
-                'B' => ['title' => '应缴金额', 'width' => 14, 'data_type' => 'str', 'field' => 'bill_entry_amount', 'default' => '-'],
-                'C' => ['title' => '已缴金额', 'width' => 14, 'data_type' => 'str', 'field' => 'paid_entry_amount', 'default' => '-'],
-                'D' => ['title' => '优惠金额', 'width' => 14, 'data_type' => 'str', 'field' => 'prefer_entry_amount', 'default' => '-'],
-                'E' => ['title' => '欠费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'owe_entry_amount', 'default' => '-'],
+                'A' => ['title' => '小区', 'width' => 32, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
+                'B' => ['title' => '房屋信息', 'width' => 64, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
+                'C' => ['title' => '缴费项目', 'width' => 20, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
+                'D' => ['title' => '账单开始日期', 'width' => 20, 'data_type' => 'str', 'field' => 'acct_period_start', 'default' => '-'],
+                'E' => ['title' => '账单结束日期', 'width' => 20, 'data_type' => 'str', 'field' => 'acct_period_end', 'default' => '-'],
+                'F' => ['title' => '逾期', 'width' => 14, 'data_type' => 'str', 'field' => 'overdue_day', 'default' => '-'],
+                'G' => ['title' => '账单金额', 'width' => 14, 'data_type' => 'str', 'field' => 'bill_entry_amount', 'default' => '-'],
+                'H' => ['title' => '业主', 'width' => 20, 'data_type' => 'str', 'field' => 'resident_name', 'default' => '-'],
+                'I' => ['title' => '电话', 'width' => 20, 'data_type' => 'str', 'field' => 'resident_phone', 'default' => '-'],
             ];
+
             $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
 //            $filePath = F::originalFile().'temp/'.$fileName;
 //            $day = date('Y-m-d');
-            $downUrl = F::downloadUrl($fileName, 'temp', 'BillAmount.csv');
+            $downUrl = F::downloadUrl($fileName, 'temp', 'DunningNote.csv');
 //            $fileRe = F::uploadFileToOss($filePath);
 //            $url = $fileRe['filepath'];
             //保存日志

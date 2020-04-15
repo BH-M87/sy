@@ -212,6 +212,17 @@ class PrintService extends BaseService
         $house = [];
         $nowTime = time();
         if (!empty($models)) {
+            //获得所有房屋住户信息
+            $roomIds = array_values(array_unique(array_column($models,'room_id')));
+            $javaParams['token'] = $data['token'];
+            $javaParams['memberType'] = 1;
+            $javaParams['roomIds'] = $roomIds;
+            $service = new JavaService();
+            $javaResult = $service->residentListByRoomIdList($javaParams);
+            $residentAll = [];
+            if(!empty($javaResult['list'])){
+                $residentAll = array_column($javaResult['list'],null,'roomId');
+            }
             foreach ($models as $key => $val) {
 
                 $val['overdue_day'] = '-'; //逾期天数
@@ -220,6 +231,12 @@ class PrintService extends BaseService
                 }
                 $val['acct_period_start'] = date("Y-m-d", $val["acct_period_start"]);
                 $val['acct_period_end'] = date("Y-m-d", $val["acct_period_end"]);
+                $val['resident_name'] = '';
+                $val['resident_phone'] = '';
+                if(!empty($residentAll[$val['room_id']])){
+                    $val['resident_name'] = $residentAll[$val['room_id']]['name'];
+                    $val['resident_phone'] = $residentAll[$val['room_id']]['mobile'];
+                }
                 array_push($house, $val);
             }
         }
