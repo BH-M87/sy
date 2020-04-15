@@ -299,6 +299,13 @@ Class BillIncomeService extends BaseService
         return $this->_billIncomeSearch($params)->count();
     }
 
+    // 收款记录金额总数
+    public function billIncomeMoney($params)
+    {
+        $result = $this->_billIncomeSearch($params)->select(['sum(A.pay_money) as all_money'])->asArray()->one();
+        return !empty($result['all_money'])?$result['all_money']:0;
+    }
+
     // 收款总金额
     public function totalMoney($params)
     {
