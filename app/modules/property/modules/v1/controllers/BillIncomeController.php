@@ -261,4 +261,17 @@ Class BillIncomeController extends BaseController
             return PsCommon::responseFailed($result["msg"]);
         }
     }
+
+    //核销全部
+    public function actionConfirmAll(){
+
+        $params = $this->request_params;
+
+        $result = BillIncomeService::service()->writeOffAll($params,$this->user_info);
+        if ($result['code']) {
+            return PsCommon::responseSuccess();
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
 }
