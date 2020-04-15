@@ -264,15 +264,29 @@ Class BillIncomeService extends BaseService
         $rows = PsCommon::get($p, 'rows');
 
         $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
-            A.pay_channel, A.income_time, A.trade_no')
+            A.pay_channel, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
             ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+
+        //获得所有小区
+        $javaService = new JavaService();
+        $javaParams['token'] = $p['token'];
+        $javaResult = $javaService->communityNameList($javaParams);
+        $communityName = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+
+        //状态
+        $checkArr = ['1'=>'待核销', '2'=>'已核销'];
+
         if (!empty($model)) {
             foreach ($model as $k => &$v) {
-                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
-                $v['community_name'] = $community['communityName'];
+
+                $v['community_name'] = $communityName[$v['community_id']];
                 $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
+                $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
+                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m-d',$v['entry_at']):'';
+                $v['review_at_msg'] = !empty($v['review_at'])?date('Y-m-d',$v['review_at']):'';   //核销日期
+                $v['check_status_msg'] = $checkArr[$v['check_status']];
             }
         }
 
@@ -283,6 +297,13 @@ Class BillIncomeService extends BaseService
     public function billIncomeCount($params)
     {
         return $this->_billIncomeSearch($params)->count();
+    }
+
+    // 收款记录金额总数
+    public function billIncomeMoney($params)
+    {
+        $result = $this->_billIncomeSearch($params)->select(['sum(A.pay_money) as all_money'])->asArray()->one();
+        return !empty($result['all_money'])?$result['all_money']:0;
     }
 
     // 收款总金额
@@ -735,5 +756,91 @@ Class BillIncomeService extends BaseService
         return $this->success();
 
 
+    }
+
+    //批量核销
+    public function batchWriteOff($data,$user)
+    {
+        $check_status = 2;
+        if(empty($data['income_id'])){
+            return $this->failed("核销记录id不能为空");
+        }
+        if(!is_array($data['income_id'])){
+            return $this->failed("核销记录id是数组格式");
+        }
+
+        if(empty($data['entry_at'])){
+            return $this->failed("入账时间不能为空");
+        }
+        if($data['entry_at'] != date('Y-m',strtotime($data['entry_at']))){
+            return $this->failed("入账时间格式有误");
+        }
+
+        //验证数据是否存在
+        $exit_count = PsBillIncome::find()->where(['in','id',$data['income_id']])->andWhere(['=','check_status',1])->count();
+        if($exit_count != count($data['income_id'])){
+            return $this->failed("订单不存在");
+        }
+
+        $updateParams['check_status'] = $check_status;
+        $updateParams['review_id'] = $data['create_id'];
+        $updateParams['review_name'] = $data['create_name'];
+        $updateParams['review_at'] = time();
+        $updateParams['entry_at'] = strtotime($data['entry_at']);
+
+        if(!PsBillIncome::updateAll($updateParams,['in','id',$data['income_id']])){
+            return $this->failed("操作失败");
+        }
+
+//        添加系统日志
+        $content = "核销id:" . implode(",",$data['income_id']);
+        $operate = [
+            "operate_menu" => "财务核销",
+            "operate_type" => "财务核销",
+            "operate_content" => $content,
+        ];
+        OperateService::addComm($user, $operate);
+
+        return $this->success();
+    }
+
+    //核销全部
+    public function writeOffAll($data,$user){
+        $check_status = 2;
+
+        if(empty($data['entry_at'])){
+            return $this->failed("入账时间不能为空");
+        }
+        if($data['entry_at'] != date('Y-m',strtotime($data['entry_at']))){
+            return $this->failed("入账时间格式有误");
+        }
+
+        $incomeResult = PsBillIncome::find()->select(['id'])->andWhere(['=','check_status',1])->asArray()->all();
+        if(!empty($incomeResult)){
+
+            $income_id = array_column($incomeResult,'id');
+            $updateParams['check_status'] = $check_status;
+            $updateParams['review_id'] = $data['create_id'];
+            $updateParams['review_name'] = $data['create_name'];
+            $updateParams['review_at'] = time();
+            $updateParams['entry_at'] = strtotime($data['entry_at']);
+
+            if(!PsBillIncome::updateAll($updateParams,['in','id',$income_id])){
+                return $this->failed("操作失败");
+            }
+
+    //        添加系统日志
+            $content = "核销id:" . implode(",",$income_id);
+            $operate = [
+                "operate_menu" => "财务核销",
+                "operate_type" => "财务核销",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($user, $operate);
+            return $this->success();
+
+        }else{
+            return $this->failed("数据不存在");
+        }
     }
 }

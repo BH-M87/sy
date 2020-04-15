@@ -6,6 +6,7 @@ use app\models\PsPrintModel;
 use app\models\PsRoomUser;
 use app\models\PsBill;
 use service\BaseService;
+use service\property_basic\JavaService;
 use service\rbac\OperateService;
 use Yii;
 use yii\base\Exception;
@@ -128,31 +129,42 @@ class PrintService extends BaseService
     // 物业后台-》计费管理-》催缴单打印 列表
     public  function billList($data)
     {
+
         $params = $arr = [];
-        $where = " community_id=:community_id ";
-        $arr = [':community_id' => $data["community_id"]];
-        $params = array_merge($params, $arr);
-
-        $arr = [':group' => $data["group"]];
-        $params = array_merge($params, $arr);
-        $where .= " AND `group`=:group";
-        
-        if(!empty($data["building"])){
-            $arr = [':building' => $data["building"]];
-            $params = array_merge($params, $arr);
-            $where .= " AND building=:building";
+        $where = " 1=1 ";
+        if(!empty($data['communityList'])){
+            $communityList = implode(",",$data['communityList']);
+            $where .= " and community_id in (".$communityList.")";
         }
 
-        if(!empty($data["unit"])){
-            $arr = [':unit' => $data["unit"]];
+        if(!empty($data['community_id'])){
+            $arr = [':community_id' => $data["community_id"]];
             $params = array_merge($params, $arr);
-            $where .= " AND unit=:unit";
+            $where .= " and community_id=:community_id ";
         }
 
-        if(!empty($data["room"])){
-            $arr = [':room' => $data["room"]];
+        if(!empty($data['group_id'])){
+            $arr = [':group_id' => $data["group_id"]];
             $params = array_merge($params, $arr);
-            $where .= " AND room=:room";
+            $where .= " AND `group_id`=:group_id";
+        }
+
+        if(!empty($data["building_id"])){
+            $arr = [':building_id' => $data["building_id"]];
+            $params = array_merge($params, $arr);
+            $where .= " AND building_id=:building_id";
+        }
+
+        if(!empty($data["unit_id"])){
+            $arr = [':unit_id' => $data["unit_id"]];
+            $params = array_merge($params, $arr);
+            $where .= " AND unit_id=:unit_id";
+        }
+
+        if(!empty($data["room_id"])){
+            $arr = [':room_id' => $data["room_id"]];
+            $params = array_merge($params, $arr);
+            $where .= " AND room_id=:room_id";
         }
 
         $arr = [':is_del' => 1];
@@ -187,14 +199,44 @@ class PrintService extends BaseService
         }
         $model = Yii::$app->db->createCommand("SELECT count(*) as total,sum(bill_entry_amount) as entry_amounts  FROM ps_bill WHERE   " . $where." and status=1  and trade_defend!=1 and trade_defend!=2 ", $params)
             ->queryOne();
-        $sql = "select id,out_room_id,`group`,building,unit,room,cost_name,acct_period_start,acct_period_end,bill_entry_amount,cost_type 
-              from ps_bill where " . $where . " and status=1  and trade_defend!=1 and trade_defend!=2 order by `group`,building,unit,room asc";
-        $models = Yii::$app->db->createCommand($sql, $params)->queryAll();
+        $sql = "select id,community_id,ifnull(out_room_id,'') as out_room_id,room_address,community_name,`group_id`,building_id,unit_id,room_id,cost_name,acct_period_start,acct_period_end,bill_entry_amount,cost_type from ps_bill where " . $where . " and status=1  and trade_defend!=1 and trade_defend!=2 order by `group_id`,building_id,unit_id,room_id asc";
+
+        $is_down = !empty($data['is_down']) ? $data['is_down'] : 1;//1正常查询，2下载
+        $offset = ($data['page']-1)*$data['pageSize'];
+        $limit = $data['pageSize'];
+        if ($is_down == 2) {//说明是下载，需要全部数据
+            $offset = 0;
+            $limit = intval($model["total"]);
+        }
+        $models = Yii::$app->db->createCommand($sql." LIMIT :offset,:limit", $params)->bindParam(':offset', $offset)->bindParam(':limit', $limit)->queryAll();
         $house = [];
+        $nowTime = time();
         if (!empty($models)) {
+            //获得所有房屋住户信息
+            $roomIds = array_values(array_unique(array_column($models,'room_id')));
+            $javaParams['token'] = $data['token'];
+            $javaParams['memberType'] = 1;
+            $javaParams['roomIds'] = $roomIds;
+            $service = new JavaService();
+            $javaResult = $service->residentListByRoomIdList($javaParams);
+            $residentAll = [];
+            if(!empty($javaResult['list'])){
+                $residentAll = array_column($javaResult['list'],null,'roomId');
+            }
             foreach ($models as $key => $val) {
+
+                $val['overdue_day'] = '-'; //逾期天数
+                if($nowTime>($val['acct_period_end']+86399)){
+                    $val['overdue_day'] = floor(($nowTime-$val['acct_period_end'])/86400); //逾期天数
+                }
                 $val['acct_period_start'] = date("Y-m-d", $val["acct_period_start"]);
                 $val['acct_period_end'] = date("Y-m-d", $val["acct_period_end"]);
+                $val['resident_name'] = '';
+                $val['resident_phone'] = '';
+                if(!empty($residentAll[$val['room_id']])){
+                    $val['resident_name'] = $residentAll[$val['room_id']]['name'];
+                    $val['resident_phone'] = $residentAll[$val['room_id']]['mobile'];
+                }
                 array_push($house, $val);
             }
         }
