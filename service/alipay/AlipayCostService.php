@@ -3768,7 +3768,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 
     //获取房屋下的预存金额
     public function getRoomRecharge($roomId){
-        $where = " and bill.room_id = :room_id ";
+        $where = " and room_id = :room_id ";
         $params = [':room_id' => $roomId];
         $billTotal = Yii::$app->db->createCommand("select  sum(recharge_amount-deduct_amount) as amount from ps_bill where 1=1 {$where};", $params)->queryOne();
         return !empty($billTotal['amount'])?$billTotal['amount']:0;
