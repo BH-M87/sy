@@ -2,7 +2,9 @@
 
 namespace app\models;
 
-class PsPrintModel extends BaseModel
+use yii\base\Model;
+
+class PsPrintModel extends Model
 {
     public $community_id;
     public $model_type;
