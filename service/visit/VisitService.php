@@ -58,7 +58,7 @@ class VisitService extends BaseService
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
         	$r['type'] = 1;
-            if ($r['visit_at'] < strtotime(date('Y-m-d'), time())) {
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
             	$r['type'] = 3;
             }
 
@@ -90,6 +90,10 @@ class VisitService extends BaseService
     {
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                throw new MyException('已失效!');
+            }
+
             PsRoomVisitor::updateAll(['pass_at' => time(), 'status' => 2], ['id' => $p['id']]);
             return ['id' => $p['id']];
         }
