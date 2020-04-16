@@ -873,7 +873,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             //应收金额=账单金总金额减去预收金额
             $payResult =self::getBillPayAmount($model['bill_entry_amount'],$calc_recharge_amount);
             $arr['bill_entry_amount'] = (int)$payResult['pay_amount'];//账单应缴金额
-            $arr['bill_recharge_amount'] = (int)($model['bill_entry_amount']-$payResult['pay_amount']);//剩余预存抵扣金额
+            $arr['bill_recharge_amount'] = (int)($model['bill_entry_amount']-$payResult['pay_amount']);//使用预存抵扣金额
             //剩余可使用的预存
             $calc_recharge_amount = $payResult['recharge'];
             if (!empty($status)) {
@@ -1063,10 +1063,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //                    return $this->failed("分期支付不支持预存抵扣 ");
 //                }
                 //分期支付才判断支付金额是否大于应收金额
-                if ($data['pay_amount'] == $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] == $data['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额等于实收金额时不能分次付清");
                 }
-                if ($data['pay_amount'] > $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] > $data['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额小于实收金额时不能分次付清 ");
                 }
 
