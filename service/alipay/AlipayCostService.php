@@ -1053,10 +1053,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     return $this->failed("不是未缴账单不能支付");
                 }
                 //20
-                $recharge_amount = !empty($bill['recharge_amount'])?$bill['recharge_amount']:0;  //抵扣金额
+                $data['deduct_amount'] = !empty($bill['recharge_amount'])?$bill['recharge_amount']:0;  //抵扣金额
                 //原始的应缴金额=账单金额-预存金额
                 //80=100-20
-                $data['bill_pay_amount'] = $billInfo['bill_entry_amount']-$recharge_amount;  //原始的应缴金额
+                $data['bill_pay_amount'] = $billInfo['bill_entry_amount']-$data['deduct_amount'];  //原始的应缴金额
                 //账单的预存金额
                 $data['recharge_amount'] = 0;
 //                if ($data['bill_recharge_amount'] > 0 && $data['pay_type'] == 2) {
@@ -1091,7 +1091,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     array_push($diff_arr, $bill['bill_id']);
                 } else {//分期支付的数据
                     $data['partial_amount'] = 0;   //分期付清：新账单的应收金额
-                    $data['deduct_amount'] = $billInfo['bill_entry_amount'] - $data['bill_pay_amount'];   //分期付清：新账单的预存抵扣金额
                     if ($data['pay_amount'] < $data['bill_pay_amount']) {//支付金额小于应收金额则剩余的差额
                         $data['partial_amount'] = $data['bill_pay_amount'] - $data['pay_amount'];
                     }
@@ -1164,8 +1163,14 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     public function repairBillCollectData($val)
     {
         //修复账单表
-        $bill_params = [":id" => $val["bill_id"], ":paid_entry_amount" => $val["pay_amount"], ":prefer_entry_amount" => !empty($val["diff_amount"]) ? $val["diff_amount"] : 0, ":recharge_amount" => !empty($val["recharge_amount"]) ? $val["recharge_amount"] : 0];
-        Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount,recharge_amount=:recharge_amount WHERE id=:id", $bill_params)->execute();
+        $bill_params = [
+            ":id" => $val["bill_id"],
+            ":paid_entry_amount" => $val["pay_amount"],
+            ":prefer_entry_amount" => !empty($val["diff_amount"]) ? $val["diff_amount"] : 0,
+            ":recharge_amount" => !empty($val["recharge_amount"]) ? $val["recharge_amount"] : 0,
+            ":deduct_amount" => !empty($val["deduct_amount"]) ? $val["deduct_amount"] : 0
+        ];
+        Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount,recharge_amount=:recharge_amount,deduct_amount=:deduct_amount WHERE id=:id", $bill_params)->execute();
         //添加支付成功日志表
         $str = "1000000000" + $val["bill_id"];
         $trad_no = date("YmdHi") . 'x' . $str;
