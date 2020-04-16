@@ -56,12 +56,18 @@ class VisitService extends BaseService
     {
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
+        	$r['type'] = 1;
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time())) {
+            	$r['type'] = 3;
+            }
+
             $r['sex'] = $r['sex'] == 2 ? '女' : '男';
             $r['visit_at'] = date('Y-m-d', $r['visit_at']);
-            return $r;
+        } else {
+        	$r['type'] = 2;
         }
 
-        throw new MyException('访客不存在!');
+        return $r;
     }
 
     // 确认放行
