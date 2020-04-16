@@ -341,7 +341,7 @@ Class BillIncomeService extends BaseService
         $arr['trade_no'] = $model['trade_no'];
 
         $bill = PsBillIncomeRelation::find()->alias("A")
-            ->select("B.cost_name, B.acct_period_start, B.acct_period_end, B.bill_entry_amount, B.paid_entry_amount, B.prefer_entry_amount")
+            ->select("B.cost_name, B.acct_period_start, B.acct_period_end, B.bill_entry_amount, B.paid_entry_amount, B.prefer_entry_amount,B.recharge_amount,B.deduct_amount")
             ->leftJoin("ps_bill B", "A.bill_id = B.id")
             ->filterWhere(['=', 'A.income_id', PsCommon::get($params, 'id')])
             ->orderBy('B.id desc')
@@ -351,7 +351,10 @@ Class BillIncomeService extends BaseService
             foreach ($bill as $k => $v) {
                 $bill_arr[$k]['acct_period'] = date('Y-m-d', $v['acct_period_start']) . '~' . date('Y-m-d', $v['acct_period_end']);
                 $bill_arr[$k]['cost_name'] = $v['cost_name'];
-                $bill_arr[$k]['bill_entry_amount'] = $v['bill_entry_amount'];
+                $bill_arr[$k]['bill_all_amount'] = $v['bill_entry_amount'];
+                $bill_arr[$k]['bill_entry_amount'] = $v['bill_entry_amount']-$v['deduct_amount'];
+                $bill_arr[$k]['recharge_amount'] = $v['recharge_amount'];
+                $bill_arr[$k]['deduct_amount'] = $v['deduct_amount'];
                 $bill_arr[$k]['paid_entry_amount'] = $v['paid_entry_amount'];
                 $bill_arr[$k]['prefer_entry_amount'] = $v['prefer_entry_amount'];
             }
