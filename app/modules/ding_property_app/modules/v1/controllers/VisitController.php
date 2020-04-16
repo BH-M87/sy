@@ -15,8 +15,6 @@ use service\property_basic\JavaOfCService;
 
 class VisitController extends UserBaseController
 {
-    public $repeatAction = ['add'];
-
     // 访客列表
     public function actionList()
     {
