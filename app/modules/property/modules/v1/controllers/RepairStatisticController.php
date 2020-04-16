@@ -16,6 +16,21 @@ use service\issue\RepairStatisticService;
 
 class RepairStatisticController extends BaseController
 {
+    // 报修统计
+    public function actionStatistic()
+    {
+        if (empty($this->request_params['community_id'])) {
+            return PsCommon::responseFailed("小区ID不能为空！");
+        }
+
+        $r['status'] = RepairStatisticService::service()->status($this->request_params);
+        $r['channels'] = RepairStatisticService::service()->channels($this->request_params);
+        $r['types'] = RepairStatisticService::service()->types($this->request_params);
+        $r['score'] = RepairStatisticService::service()->score($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+    
     //数量统计
     public function actionStatus()
     {

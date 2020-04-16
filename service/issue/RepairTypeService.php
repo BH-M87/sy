@@ -155,7 +155,7 @@ class RepairTypeService extends BaseService
         $mod = PsRepairType::findOne(PsCommon::get($params, 'id', 0));
 
         if ($mod->type == 2) {
-            throw new MyException('默认类型不可编辑');
+            throw new MyException('默认区域不可编辑');
         }
 
         $mod->community_id = $params['community_id'];
@@ -179,6 +179,11 @@ class RepairTypeService extends BaseService
         if (!$mod) {
             return "类目不存在！";
         }
+
+        if ($mod->type == 2) {
+            throw new MyException('默认区域不可隐藏');
+        }
+
         $mod->status = $status;
         if (!$mod->save()) {
             return "更新失败！";

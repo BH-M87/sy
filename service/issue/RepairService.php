@@ -63,21 +63,17 @@ class RepairService extends BaseService
     public static $_is_assign = ['1' => '已分配', '2' => '未分配'];
     // 报修来源
     public static $_repair_from = [
-        '1' => '支付宝小程序', '2' => '物业内部报修', '3' => '钉钉报修', 
-        '4' => '前台报修', '5' => '电话报修', '6' => '二次维修',
+        '1' => '支付宝小程序', '3' => '物业钉钉', 
+        '4' => '物业前台', '5' => '电话报修', '9' => '其他',
     ];
 
     public static $_repair_status = [
-        '1' => '待处理',
-        '2' => '待完成',
-        '3' => '已完成(待支付)',
-        '10' => '已完成(待评价)',
-        '4' => '已结束',
-        '5' => '已复核',
-        '6' => '已作废',
-        '7' => '待确认',
-        '8' => '已驳回',
-        '9' => '复核不通过',
+        '7' => '待处理',
+        '1' => '已接单',
+        '2' => '开始处理',
+        '3' => '已完成',
+        '6' => '已关闭',
+        '11' => '待付款',
     ];
 
     public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
@@ -409,13 +405,12 @@ class RepairService extends BaseService
         $models = $command->queryAll();
         foreach ($models as $key => &$val) {
             $val['community_name'] = !empty($val['community_id'])?$javaResult[$val['community_id']]:'';
+            if ($val['status'] == 2 && $val['is_pay'] == 1) {
+                $val['status'] = 11; // 待付款
+            }
             if ($params['use_as'] == "dingding") {
                 $val['expired_repair_time'] = $this->transformDate($val['expired_repair_time'], $val['expired_repair_type']);
-                if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $val['status_label'] = self::$_repair_status[10];
-                } else {
-                    $val['status_label'] = self::$_repair_status[$val['status']];
-                }
+                $val['status_label'] = self::$_repair_status[$val['status']];
                 $val['issue_id'] = $val['id'];
                 $val['issue_bill_no'] = $val['repair_no'];
                 $val['repair_type_label'] = $val['repair_type_desc'];
@@ -425,11 +420,7 @@ class RepairService extends BaseService
             } else {
                 $val['hide_contact_mobile'] = $val['contact_mobile'] ? mb_substr($val['contact_mobile'],0,3)."****".mb_substr($val['contact_mobile'],-4): '';
                 $val['expired_repair_time'] = $val['expired_repair_time'] ? date("Y-m-d", $val['expired_repair_time']) : '';
-                if ($val['status'] == self::STATUS_DONE && $val['is_pay'] > 1) {
-                    $val['status_desc'] = self::$_repair_status[10];
-                } else {
-                    $val['status_desc'] = self::$_repair_status[$val['status']];
-                }
+                $val['status_desc'] = self::$_repair_status[$val['status']];
                 $val['is_pay_desc'] = isset(self::$_is_pay[$val['is_pay']]) ? self::$_is_pay[$val['is_pay']] : '未知';
                 $val['repair_from_desc'] =
                     isset(self::$_repair_from[$val['repair_from']]) ? self::$_repair_from[$val['repair_from']] : '未知';
@@ -450,7 +441,7 @@ class RepairService extends BaseService
             $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
             $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
-            $val['operator_name'] = $val['status'] == 1 ? '' : $val['operator_name'];
+            $val['operator_name'] = $val['status'] == 7 ? '' : $val['operator_name'];
         }
 
         $re['list'] = $models;
@@ -469,16 +460,16 @@ class RepairService extends BaseService
             ['title' => '工单号', 'field' => 'repair_no'],
             ['title' => '报修时间', 'field' => 'create_at'],
             ['title' => '小区', 'field' => 'community_name'],
-            ['title' => '报修类别', 'field' => 'repair_type_desc'],
-            ['title' => '报修位置', 'field' => 'export_room_address'],
+            ['title' => '报修区域', 'field' => 'repair_type_desc'],
+            ['title' => '报修位置', 'field' => 'room_address'],
             ['title' => '报修内容', 'field' => 'repair_content'],
             ['title' => '报修来源', 'field' => 'repair_from_desc'],
             ['title' => '期望上门时间', 'field' => 'export_expired_repair_type_desc'],
             ['title' => '工单金额', 'field' => 'amount'],
             ['title' => '状态', 'field' => 'status_desc'],
-            ['title' => '是否疑难问题', 'field' => 'hard_type_desc'],
-            ['title' => '疑难标记说明', 'field' => 'hard_remark'],
-            ['title' => '疑难标记时间', 'field' => 'hard_check_at'],
+            //['title' => '是否疑难问题', 'field' => 'hard_type_desc'],
+            //['title' => '疑难标记说明', 'field' => 'hard_remark'],
+            //['title' => '疑难标记时间', 'field' => 'hard_check_at'],
             ['title' => '提交人', 'field' => 'created_username'],
             ['title' => '处理人', 'field' => 'operator_name'],
         ];
@@ -542,7 +533,7 @@ class RepairService extends BaseService
         $model->repair_from = $params["repair_from"]; // 报事报修来源  1：C端报修  2物业后台报修  3邻易联app报修
         $model->is_assign = 2; // 是否已分配 1已分配 2未分配
         $model->hard_type = 1; // 1 一般问题，2 疑难问题
-        $model->status = 1; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已作废 7待确认 8已驳回 9复核不通过
+        $model->status = 7; // 订单状态 1待处理 2待完成 3已完成 4已结束 5已复核 6已关闭 7待确认 8已驳回 9复核不通过
         $model->day = date('Y-m-d'); // 报修日期
         $model->create_at = time(); // 提交订单时间
 
@@ -603,12 +594,11 @@ class RepairService extends BaseService
         $m['repair_from_desc'] = self::$_repair_from[$m['repair_from']] ?? '未知';
         $m['hard_type_desc'] = $m['hard_type'] == 2 ? '是' : '否';
         $m['amount'] = $m['amount'] > 0 ? $m['amount'] : '';
-
-        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
-            $m['status_desc'] = self::$_repair_status[10];
-        } else {
-            $m['status_desc'] = self::$_repair_status[$m['status']];
+        
+        if ($m['status'] == 2 && $m['is_pay'] == 1) {
+            $m['status'] = 11; // 待付款
         }
+        $m['status_desc'] = self::$_repair_status[$m['status']];
 
         $repairTypeInfo = RepairTypeService::service()->getRepairTypeById($m['repair_type_id']);
         $m['repair_type_desc'] = $repairTypeInfo ? $repairTypeInfo['name'] : '';
@@ -652,7 +642,7 @@ class RepairService extends BaseService
             $repair_arr["operator_id"] = $p["user_id"];
             $repair_arr["operator_name"] = $user['trueName'];
             $repair_arr["is_assign"] = 1;
-            $repair_arr["status"] = 7;
+            $repair_arr["status"] = 2;
             if (!empty($p["leave_msg"]) && $p["leave_msg"]) {
                 $repair_arr["leave_msg"] = $p["leave_msg"];
             }
@@ -683,7 +673,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => '',
                 'repair_imgs' => '',
-                'status' => '7',
+                'status' => '2',
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
@@ -740,7 +730,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => $p["repair_content"],
                 'repair_imgs' => $repairImages,
-                'status' => 2,
+                'status' => $m['status'],
                 'create_at' => time(),
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user["trueName"],
@@ -765,7 +755,6 @@ class RepairService extends BaseService
             $r["is_assign"] = 1;
             $r["operator_id"] = $p["user_id"];
             $r["operator_name"] = $user["trueName"];
-            $r["status"] = 2;
             Yii::$app->db->createCommand()->update('ps_repair',
                 $r, "id=:repair_id", [":repair_id" => $p["repair_id"]])->execute();
             
@@ -902,7 +891,7 @@ class RepairService extends BaseService
         return '系统错误,标记为疑难失败';
     }
 
-    // 工单作废
+    // 工单关闭
     public function markInvalid($p, $u = [])
     {
         $m = $this->getRepairInfoById($p['repair_id']);
@@ -920,7 +909,7 @@ class RepairService extends BaseService
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
                 'status' => 6,
-                'content' => '工单作废',
+                'content' => '工单关闭',
                 'create_at' => time(),
                 'operator_id' => $u["id"],
                 'operator_name' => $u["truename"],
@@ -928,13 +917,13 @@ class RepairService extends BaseService
             ])->execute();
             
             if (!empty($u['propertyMark'])) { // 添加操作日志
-                self::_logAdd($p['token'], "工单作废，工单号" . $m['repair_no']);
+                self::_logAdd($p['token'], "工单关闭，工单号" . $m['repair_no']);
             }
 
             return true;
         }
 
-        return "系统错误,工作作废失败";
+        return "系统错误,工作关闭失败";
     }
 
     //工单标记为支付
@@ -1113,17 +1102,10 @@ class RepairService extends BaseService
         if (!empty($m)) {
             foreach ($m as $key => $model) {
                 if ($p['use_as'] == "dingding") {
-                    if ($model['status'] == self::STATUS_DONE) {
-                        $m[$key]["status_label"] = '已完成';
-                    } else {
-                        $m[$key]['status_label'] = self::$_repair_status[$model['status']];
-                    }
+                    $m[$key]['status_label'] = self::$_repair_status[$model['status']];
                 } else {
                     $m[$key]["status_name"] = self::getStatusName($model['status']);
                     $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
-                    if ($model['status'] == self::STATUS_DONE) {
-                        $m[$key]['status_desc'] = "已完成";
-                    }
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
@@ -1303,8 +1285,8 @@ class RepairService extends BaseService
             $query->andWhere(['or', ['pra.user_id' => $userInfo['id']], ['pr.created_id' => $userInfo['id']]]);
         }
 
-        if ($p['status'] == 3) { // 待支付
-            $query->andFilterWhere(['pr.is_pay' => 1]);
+        if ($p['status'] == 11) { // 待支付
+            $query->andFilterWhere(['pr.is_pay' => 1])->andFilterWhere(['pr.status' => 2]);
         } else if ($p['status'] == 10) { // 待评价
             $p['status'] = 3;
             $query->andFilterWhere(['pr.is_pay' => 2]);
@@ -1339,8 +1321,8 @@ class RepairService extends BaseService
             foreach ($m as $k => &$v) {
                 $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
                 $v['status'] = $v['status'];
-                if ($v['status'] == self::STATUS_DONE && $v['is_pay'] > 1) {
-                    $v['status_label'] = self::$_repair_status[10];
+                if ($v['status'] == 2 && $v['is_pay'] == 1) {
+                    $v['status_label'] = self::$_repair_status[11];
                 } else {
                     $v['status_label'] = self::$_repair_status[$v['status']];
                 }
@@ -1361,60 +1343,38 @@ class RepairService extends BaseService
         // 钉钉报事报修权限组装前端数据
         $repair_role_name = [
             'gov-sy-repair-assign' => [
-                'name' => '工单分配',
+                'name' => '分配工单',
                 'img' => '../../../images/repairDetails_icon1.png',
                 'url' => '/pages/myDetails/distributionOrder/distributionOrder',
                 'key' => '',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-markSuccess' => [
                 'name' => '标记完成',
                 'img' => '../../../images/repairDetails_icon2.png',
                 'url' => '/pages/myDetails/makeComplete/makeComplete',
                 'key' => '',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-addRecord' => [
                 'name' => '添加记录',
                 'img' => '../../../images/repairDetails_icon3.png',
                 'url' => '/pages/myDetails/makeRecord/makeRecord',
                 'key' => '',
-                'status' => ["1","2","7","8"],
-            ],
-            'gov-sy-repair-markDifficult' => [
-                'name' => '标记疑难',
-                'img' => '../../../images/repairDetails_icon4.png',
-                'url' => '/pages/myDetails/makeDifficult/makeDifficult',
-                'key' => '2',
-                'status' => ["1","2","7","8"],
-            ],
-            'gov-sy-repair-secondAudit' => [
-                'name' => '工单复核',
-                'img' => '../../../images/repairDetails_icon7.png',
-                'url' => '/pages/myDetails/reviewOrder/reviewOrder',
-                'key' => '',
-                'status' => ["3","4"],
-            ],
-            'gov-sy-repair-secondRepair' => [
-                'name' => '二次维修',
-                'img' => '../../../images/repairDetails_icon6.png',
-                'url' => '',
-                'key' => 'repair',
-                'status' => ["9"],
+                'status' => ["1","2","8"],
             ],
             'gov-sy-repair-cancel' => [
-                'name' => '工单作废',
+                'name' => '关闭工单',
                 'img' => '../../../images/repairDetails_icon5.png',
                 'url' => '',
                 'key' => 'markInvalid',
-                'status' => ["1","2","7","8"],
+                'status' => ["1","2","8"],
             ],
         ];
 
         // 钉钉报事报修权限
         $repair_role = [
-            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-markDifficult', 
-            'gov-sy-repair-secondAudit', 'gov-sy-repair-secondRepair', 'gov-sy-repair-cancel'
+            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel'
         ];
         /**
          * 2020-4-13 陈科浪注释；暂时不查权限
@@ -1460,8 +1420,9 @@ class RepairService extends BaseService
         $m['is_relate_room'] = $releateRoom ? 1 : 2;
         $m['repair_from_label'] =
             isset(self::$_repair_from[$m['repair_from']]) ? self::$_repair_from[$m['repair_from']] : '未知';
-        if ($m['status'] == self::STATUS_DONE && $m['is_pay'] > 1) {
-            $m['status_label'] = self::$_repair_status[10];
+        
+        if ($m['status'] == 2 && $m['is_pay'] == 1) {
+            $m['status_label'] = self::$_repair_status[11];
         } else {
             $m['status_label'] = self::$_repair_status[$m['status']];
         }
@@ -1494,19 +1455,15 @@ class RepairService extends BaseService
         }
 
         if ($model['status'] != 7) {
-            return "工单不是待确认状态";
+            return "工单不是待处理状态";
         }
 
-        if ($p['status'] == 1) { // 确认
-            $repairStatus = self::STATUS_UN_DO; 
-        } elseif ($p['status'] == 2) { // 驳回
-            $repairStatus = self::STATUS_REJECTED; 
-        }
+        $repairStatus = 1; 
 
         // 保存操作记录
         $recordModel = new PsRepairRecord();
         $recordModel->repair_id = $p['repair_id'];
-        $recordModel->content = $p['status'] == 2 ? $p['reason'] : '已确认';
+        $recordModel->content = '已接单';
         $recordModel->status = $repairStatus;
         $recordModel->create_at = time();
         $recordModel->operator_id = $userInfo['id'];
@@ -1518,6 +1475,8 @@ class RepairService extends BaseService
         }
 
         $repair_arr['status'] = $repairStatus;
+        $repair_arr['operator_id'] = $userInfo['id'];
+        $repair_arr['operator_name'] = $userInfo['truename'];
         Yii::$app->db->createCommand()->update('ps_repair',
             $repair_arr, "id = :id", [":id" => $p["repair_id"]]
         )->execute();
@@ -1525,11 +1484,7 @@ class RepairService extends BaseService
         $re['issue_id'] = $p['repair_id'];
         
         if (!empty($userInfo['propertyMark'])) { // 添加操作日志
-            if ($p['status'] == 1) { // 确认
-                self::_logAdd($p['token'], "确认工单，工单号" . $model['repair_no']);
-            } elseif ($p['status'] == 2) { // 驳回
-                self::_logAdd($p['token'], "驳回工单，工单号" . $model['repair_no']);
-            }
+            self::_logAdd($p['token'], "接单，工单号" . $model['repair_no']);
         }
 
         return $re;
@@ -1633,7 +1588,7 @@ class RepairService extends BaseService
         $query->orderBy('A.id desc');
         $re['totals'] = $query->count();
         $query->select(['A.id', 'A.community_id', 'A.repair_no', 'A.status', 'A.repair_content', 'A.create_at',
-            'A.is_pay', 'bill.id as bill_id',
+            'A.is_pay', 'bill.id as bill_id', 'A.repair_appraise_id',
             'prt.name repair_type_desc', 'prt.is_relate_room']);
         $query->orderBy('A.create_at desc');
         $offset = ($params['page'] - 1) * $params['rows'];
@@ -1700,11 +1655,7 @@ class RepairService extends BaseService
             $repair_info['other_charge'] = $billMaterialInfo['other_charge'];
         }
 
-        if ($repair_info['repair_status'] == self::STATUS_DONE) {
-            $repair_info['repair_status_desc'] = $repair_info['is_pay'] == 1 ? "待付款" : "待评价";
-        } else {
-            $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
-        }
+        $repair_info['repair_status_desc'] = $this->transStatus($repair_info);
 
         $repair_info["appraise_content"] = (object)$this->getAppraise(["repair_id" => $params['repair_id']]);
         $repair_info['repair_image'] = empty($repair_info['repair_image']) ? [] : explode(',', $repair_info['repair_image']);
@@ -1742,11 +1693,8 @@ class RepairService extends BaseService
             return PsCommon::getModelError($model);
         }
 
-        // 更新订单状态
-        $repair_arr["status"] = self::STATUS_COMPLETE;
-        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr,
-            "id = :id", [":id" => $p["repair_id"]]
-        )->execute();
+        $repair_arr['repair_appraise_id'] = $model->id;
+        Yii::$app->db->createCommand()->update('ps_repair', $repair_arr, "id = :id", [":id" => $p["repair_id"]])->execute();
         
         return true;
     }
@@ -1769,7 +1717,7 @@ class RepairService extends BaseService
     }
 
     /**
-     * 小程序列表搜索
+     * 小程序列表搜索 7待处理 1处理中 3已完成 11待付款 12待评价
      * @param $status
      * @return array
      */
@@ -1777,25 +1725,26 @@ class RepairService extends BaseService
     {
         $searchFilter = [];
         switch ($status) {
-            case 1:
-                $searchFilter = ['A.status' => 1];
+            case 7:
+                $searchFilter = ['A.status' => 7];
                 break;
-            case 2:
-                $searchFilter = ['A.status' => [2, 7, 8]];
+            case 1:
+                $searchFilter = ['AND', 'A.is_pay != 1', ['in', 'A.status', [1,2]]];
                 break;
             case 3:
-                $searchFilter = ['A.status' => 3, 'A.is_pay' => 1];
+                $searchFilter = ['A.status' => 3];
                 break;
-            case 4:
-                $searchFilter = ['AND', 'A.status = 3', ['>', 'A.is_pay', 1]];
+            case 11: // 开始处理 待支付
+                $searchFilter = ['A.status' => 2, 'A.is_pay' => 1];
                 break;
-            case 5:
-                $searchFilter = ['A.status' => [4, 5, 6, 9]];
+            case 12: // 已完成 待评价
+                $searchFilter = ['AND', 'A.status = 3', ['=', 'A.repair_appraise_id', 0]];
                 break;
             default:
-                $searchFilter = ['A.status' => 1];
+                $searchFilter = [];
                 break;
         }
+
         return $searchFilter;
     }
 
@@ -1805,19 +1754,23 @@ class RepairService extends BaseService
      * @param $repair
      * @return string
      */
-    protected function transStatus($repair)
+    protected function transStatus($p)
     {
-        if ($repair['status'] == 3) {
-            if ($repair['is_pay'] == 1) {
+        if ($p['status'] == 3 && $p['repair_appraise_id'] == 0) {
+            return "待评价";
+        } elseif  ($p['status'] == 3) {
+            return "已完成";
+        } elseif ($p['status'] == 2) {
+            if ($p['is_pay'] == 1) {
                 return "待付款";
             } else {
-                return "待评价";
+                return "开始处理";
             }
-        } elseif ($repair['status'] == 2 || $repair['status'] == 7 || $repair['status'] == 8) {
+        } elseif ($p['status'] == 6) {
+            return "已关闭";
+        } elseif ($p['status'] == 1) {
             return "处理中";
-        } elseif ($repair['status'] == 4 || $repair['status'] == 5 || $repair['status'] == 6 || $repair['status'] == 9) {
-            return "已结束";
-        } elseif ($repair['status'] == 1) {
+        } elseif ($p['status'] == 7) {
             return "待处理";
         } else {
             return "";
@@ -1970,8 +1923,6 @@ class RepairService extends BaseService
         $listHard = self::_searchRepair($p);
         
         $p['hard_type'] = '';
-        $p['start_at'] = '';
-        $p['end_at'] = '';
         $p['late_at'] = time();
         $listLate = self::_searchRepair($p);
         // 本周
