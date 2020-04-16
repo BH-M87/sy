@@ -189,6 +189,9 @@ class PrintService extends BaseService
             $where .= " And  acct_period_start<= :acct_period_end";
         }
         if (!empty($data["cost_type"])) {
+            if(!is_array($data['cost_type'])){
+                return $this->failed("缴费项目必须是数组格式");
+            }
             $in = "";
             foreach ($data["cost_type"] as $i => $item) {
                 $key = ":cost_type" . $i;
@@ -242,7 +245,7 @@ class PrintService extends BaseService
                 array_push($house, $val);
             }
         }
-        $arr = ['totals' => $model["total"], "entry_amounts" => $model["entry_amounts"], 'list' => array_values($house)];
+        $arr = ['totals' => $model["total"], "entry_amounts" => !empty($model["entry_amounts"])?$model["entry_amounts"]:0, 'list' => array_values($house)];
         return $this->success($arr);
     }
     
