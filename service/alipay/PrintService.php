@@ -129,9 +129,11 @@ class PrintService extends BaseService
     // 物业后台-》计费管理-》催缴单打印 列表
     public  function billList($data)
     {
-
+        $nowTime = time();
         $params = $arr = [];
-        $where = " 1=1 ";
+        $where = " 1=1 and acct_period_end<:acct_period_end";
+        $arr = [':acct_period_end' => $nowTime];
+        $params = array_merge($params, $arr);
         if(!empty($data['communityList'])){
             $communityList = implode(",",$data['communityList']);
             $where .= " and community_id in (".$communityList.")";
@@ -225,7 +227,7 @@ class PrintService extends BaseService
             }
             foreach ($models as $key => $val) {
 
-                $val['overdue_day'] = '-'; //逾期天数
+                $val['overdue_day'] = ''; //逾期天数
                 if($nowTime>($val['acct_period_end']+86399)){
                     $val['overdue_day'] = floor(($nowTime-$val['acct_period_end'])/86400); //逾期天数
                 }
