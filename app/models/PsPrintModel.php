@@ -26,6 +26,10 @@ class PsPrintModel extends BaseModel
     public $room_id;
     public $bill_list;
 
+    public static function tableName()
+    {
+        return 'ps_bill';
+    }
 
     public function rules()
     {

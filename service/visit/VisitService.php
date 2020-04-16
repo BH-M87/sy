@@ -58,7 +58,7 @@ class VisitService extends BaseService
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
         	$r['type'] = 1;
-            if ($r['visit_at'] < strtotime(date('Y-m-d'), time())) {
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
             	$r['type'] = 3;
             }
 
@@ -90,6 +90,10 @@ class VisitService extends BaseService
     {
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                throw new MyException('二维码已失效!');
+            }
+
             PsRoomVisitor::updateAll(['pass_at' => time(), 'status' => 2], ['id' => $p['id']]);
             return ['id' => $p['id']];
         }
@@ -102,8 +106,13 @@ class VisitService extends BaseService
     {
         $r = PsRoomVisitor::find()->where(['password' => $p['password'], 'communityId' => $p['community_id']])->asArray()->one();
         if (!empty($r)) {
+            if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                throw new MyException('密码已失效!');
+            }
+
             $r['sex'] = $r['sex'] == 2 ? '女' : '男';
             $r['visit_at'] = date('Y-m-d', $r['visit_at']);
+
             return $r;
         }
 
