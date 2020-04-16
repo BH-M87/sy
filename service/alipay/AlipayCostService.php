@@ -848,7 +848,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $userParam["roomId"] = $room_id;
         $roomUser = self::getUserData($userParam);
         $roomData['room_user_info'] = !empty($roomUser) ? $roomUser : '';
-
+        //查询房屋下的预存金额
+        $roomData['recharge_amount'] = self::getRoomRecharge($room_id);
+        $calc_recharge_amount = $roomData['recharge_amount'];//这个预存的金额字段是用来循环里使用的
         //查询该房屋下的总计应收，已缴，数量
         $billTotal = Yii::$app->db->createCommand("select  count(bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount from ps_bill as bill,ps_order  as der where {$where};", $params)->queryOne();
         $entry_amount = Yii::$app->db->createCommand("select  bill.room_id,sum(bill.bill_entry_amount) as owe_entry_amount from ps_bill as bill,ps_order  as der where {$where} and (bill.status=1 or bill.status=3);", $params)->queryOne();
@@ -858,7 +860,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             return $this->success(['totals' => 0, 'dataList' => [], 'reportData' => $billTotal, 'roomData' => $roomData]);
         }
         //查询语句sql
-        $sql = "select  bill.id as bill_id,bill.cost_id,bill.cost_type,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.acct_period_start,bill.acct_period_end,der.pay_channel from ps_bill as bill,ps_order  as der where {$where}   order by bill.create_at desc;";
+        $sql = "select  bill.id as bill_id,bill.cost_id,bill.cost_type,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.acct_period_start,bill.acct_period_end,der.pay_channel from ps_bill as bill,ps_order  as der where {$where}   order by bill.acct_period_start asc ;";
         $models = Yii::$app->db->createCommand($sql, $params)->queryAll();
         foreach ($models as $key => $model) {
             $arr = [];
@@ -867,13 +869,20 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr['disabled'] = false;
             $arr['cost_type'] = $model['cost_type'];    //收费类型
             $arr['cost_name'] = $model['cost_name'];    //收费项名称
-            $arr['bill_entry_amount'] = $model['bill_entry_amount'];    //应收金额
+            $arr['bill_all_amount'] = (int)$model['bill_entry_amount'];    //账单总金额
+            //应收金额=账单金总金额减去预收金额
+            $payResult =self::getBillPayAmount($model['bill_entry_amount'],$calc_recharge_amount);
+            $arr['bill_entry_amount'] = (int)$payResult['pay_amount'];//账单应缴金额
+            $arr['bill_recharge_amount'] = (int)($model['bill_entry_amount']-$payResult['pay_amount']);//剩余预存抵扣金额
+            //剩余可使用的预存
+            $calc_recharge_amount = $payResult['recharge'];
             if (!empty($status)) {
-                $arr['paid_entry_amount'] = $model['paid_entry_amount'];    //已收金额
-                $arr['prefer_entry_amount'] = $model['prefer_entry_amount'];    //优惠金额
+                $arr['paid_entry_amount'] = (int)$model['paid_entry_amount'];    //已收金额
+                $arr['prefer_entry_amount'] = (int)$model['prefer_entry_amount'];    //优惠金额
             }
             $arr['pay_channel'] = PsCommon::getPayChannel($model['pay_channel']);    //支付方式
             $arr['acct_period_time_msg'] = date("Y-m-d", $model['acct_period_start']) . ' ' . date("Y-m-d", $model['acct_period_end']);
+
             //如果是水费和电费则还需要查询使用量跟起始度数
 //            if ($model['cost_type'] == 2 || $model['cost_type'] == 3) {
 //                $water = Yii::$app->db->createCommand("select  use_ton,latest_ton,current_ton,formula from ps_water_record where bill_id={$model['bill_id']} ")->queryOne();
@@ -1009,7 +1018,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $roomInf['address'] = $roomInf['communityName'].$roomInf['groupName'].$roomInf['buildingName'].$roomInf['unitName'].$roomInf['roomName'];
 
         $total_money = 0;//支付总金额
-        $lockArr = [];      //锁定状态的账单
         $diff_arr = [];   //分期支付的数据
         $defeat_count = $success_count = 0;
         foreach ($bill_list as $bill) {
@@ -1044,13 +1052,24 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 if ($billInfo['status'] != 1 && $billInfo['status'] != 5) {
                     return $this->failed("不是未缴账单不能支付");
                 }
+                //20
+                $data['deduct_amount'] = !empty($bill['recharge_amount'])?$bill['recharge_amount']:0;  //抵扣金额
+                //原始的应缴金额=账单金额-预存金额
+                //80=100-20
+                $data['bill_pay_amount'] = $billInfo['bill_entry_amount']-$data['deduct_amount'];  //原始的应缴金额
+                //账单的预存金额
+                $data['recharge_amount'] = 0;
+//                if ($data['bill_recharge_amount'] > 0 && $data['pay_type'] == 2) {
+//                    return $this->failed("分期支付不支持预存抵扣 ");
+//                }
                 //分期支付才判断支付金额是否大于应收金额
-                if ($data['pay_amount'] == $billInfo['bill_entry_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] == $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额等于实收金额时不能分次付清");
                 }
-                if ($data['pay_amount'] > $billInfo['bill_entry_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] > $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额小于实收金额时不能分次付清 ");
                 }
+
                 $data['community_id'] = $billInfo['community_id'];  //小区id
                 $data['order_id'] = $billInfo['order_id'];  //订单id
                 $data['pay_channel'] = $pay_channel;  //支付方式:支付渠道，1现金,2支付宝,3微信,4刷卡,5对公,6支票
@@ -1059,9 +1078,11 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 array_push($bill_entry_ids, $billInfo["bill_entry_id"]);//需要删除的账单
                 if ($data['pay_type'] == 1) {
                     $data['diff_amount'] = 0;   //一次付清：优惠金额，分期付清：差额为新账单的应收金额
-                    if ($data['pay_amount'] < $billInfo['bill_entry_amount']) {//支付金额小于应收金额则剩余的差额
-                        $data['diff_amount'] = $billInfo['bill_entry_amount'] - $data['pay_amount'];
+                    if ($data['pay_amount'] <= $data['bill_pay_amount']) {//支付金额小于应收金额则剩余的差额
+                        $data['diff_amount'] = $data['bill_pay_amount'] - $data['pay_amount'];
                         $data['remark'] = $content ? '备注：' . $content . "，优惠金额：" . $data['diff_amount'] : "优惠金额：" . $data['diff_amount'];
+                    }else{//多余的钱就是预存金额
+                        $data['recharge_amount'] = $bill['pay_amount']-$data['bill_pay_amount'];
                     }
                     $collectResult = $this->repairBillCollectData($data);//一次付清的修复账单
                     if (!$collectResult['code']) {
@@ -1070,8 +1091,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     array_push($diff_arr, $bill['bill_id']);
                 } else {//分期支付的数据
                     $data['partial_amount'] = 0;   //分期付清：新账单的应收金额
-                    if ($data['pay_amount'] < $billInfo['bill_entry_amount']) {//支付金额小于应收金额则剩余的差额
-                        $data['partial_amount'] = $billInfo['bill_entry_amount'] - $data['pay_amount'];
+                    if ($data['pay_amount'] < $data['bill_pay_amount']) {//支付金额小于应收金额则剩余的差额
+                        $data['partial_amount'] = $data['bill_pay_amount'] - $data['pay_amount'];
                     }
                     //添加分期账单
                     $diff_result = $this->repairBillBatchData($data, $community_id, $userinfo);
@@ -1142,8 +1163,14 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     public function repairBillCollectData($val)
     {
         //修复账单表
-        $bill_params = [":id" => $val["bill_id"], ":paid_entry_amount" => $val["pay_amount"], ":prefer_entry_amount" => !empty($val["diff_amount"]) ? $val["diff_amount"] : 0];
-        Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount WHERE id=:id", $bill_params)->execute();
+        $bill_params = [
+            ":id" => $val["bill_id"],
+            ":paid_entry_amount" => $val["pay_amount"],
+            ":prefer_entry_amount" => !empty($val["diff_amount"]) ? $val["diff_amount"] : 0,
+            ":recharge_amount" => !empty($val["recharge_amount"]) ? $val["recharge_amount"] : 0,
+            ":deduct_amount" => !empty($val["deduct_amount"]) ? $val["deduct_amount"] : 0
+        ];
+        Yii::$app->db->createCommand("UPDATE ps_bill  SET `status`='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount,recharge_amount=:recharge_amount,deduct_amount=:deduct_amount WHERE id=:id", $bill_params)->execute();
         //添加支付成功日志表
         $str = "1000000000" + $val["bill_id"];
         $trad_no = date("YmdHi") . 'x' . $str;
@@ -1202,6 +1229,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $billNewInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 1;
             $billNewInfo['bill_entry_amount'] = $val['pay_amount'];//设置新的账单应收金额
             $billNewInfo['paid_entry_amount'] = $val['pay_amount'];//设置新的账单应收金额
+            $billNewInfo['deduct_amount'] = $val['deduct_amount'];//设置新的账单抵扣金额
             $billNewInfo['status'] = 7;
             $billNewInfo['is_del'] = 1;
             $billNewInfo['split_bill'] = !empty($billInfo['split_bill']) ? $billInfo['split_bill'] : $val['bill_id'];//分期账单记录原始的账单id
@@ -3743,4 +3771,26 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         return $this->success($result['list'][0]);
     }
 
+    //获取房屋下的预存金额
+    public function getRoomRecharge($roomId){
+        $where = " and room_id = :room_id ";
+        $params = [':room_id' => $roomId];
+        $billTotal = Yii::$app->db->createCommand("select  sum(recharge_amount-deduct_amount) as amount from ps_bill where 1=1 {$where};", $params)->queryOne();
+        return !empty($billTotal['amount'])?$billTotal['amount']:0;
+    }
+
+    /**
+     * 计算实际需要支付的金额
+     * @param $bill_pay_amount  账单金额
+     * @param $recharge_amount  预存金额
+     */
+    public function getBillPayAmount($bill_pay_amount,$recharge_amount){
+        $result['recharge'] = 0;    //说明没有预存
+        $result['pay_amount'] = (int)($bill_pay_amount-$recharge_amount);//实际需要支付宝的金额
+        if($recharge_amount>=$bill_pay_amount) {//预存大与账单:计算剩余可以使用的预存
+            $result['recharge'] = (int)($recharge_amount - $bill_pay_amount);    //预存金额：预存减去账单金额
+            $result['pay_amount'] = 0;//实际需要支付宝的金额
+        }
+        return $result;
+    }
 }
