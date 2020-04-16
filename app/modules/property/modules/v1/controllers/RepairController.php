@@ -72,7 +72,14 @@ class RepairController extends BaseController {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
-        return PsCommon::responseSuccess(RepairService::service()->getCommon($this->request_params));
+
+        $r = RepairService::service()->getCommon($this->request_params);
+        // 后台接口不显示 支付宝小程序和钉钉的报修来源
+        unset($r['repair_from'][0]);
+        unset($r['repair_from'][1]);
+        $r['repair_from'] = array_values($r['repair_from']);
+
+        return PsCommon::responseSuccess($r);
     }
 
     // 获取报修分类
@@ -293,5 +300,26 @@ class RepairController extends BaseController {
 
         $downUrl = RepairService::service()->export($this->request_params, $this->user_info);
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
+    }
+
+    // 接单 订单状态 1已接单 2开始处理 3已完成 6已关闭 7待处理
+    public function actionAccept()
+    {
+        if (empty($this->request_params)) {
+            return PsCommon::responseFailed("未接受到有效数据");
+        }
+
+        $this->request_params["status"] = 1; // 接单
+
+        if (!$this->request_params['repair_id']) {
+            return PsCommon::responseFailed('请输入工单ID');
+        }
+
+        $result = RepairService::service()->acceptIssue($this->request_params, $this->user_info);
+        if (is_array($result)) {
+            return PsCommon::responseSuccess($result);
+        }
+
+        return PsCommon::responseFailed($result);
     }
 }

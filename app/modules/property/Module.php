@@ -15,6 +15,7 @@ class Module extends \yii\base\Module
         //注册版本子模块
         $this->modules = [
             'v1' => ['class' => 'app\modules\property\modules\v1\Module'],
+            'v2' => ['class' => 'app\modules\property\modules\v2\Module'],
         ];
         $this->params = require(__DIR__."/config/parmas.php");
     }
