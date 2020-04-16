@@ -46,6 +46,7 @@ class VisitService extends BaseService
         $m = PsRoomVisitor::find()
             ->select($filter)
             ->filterWhere(['like', 'name', PsCommon::get($p, 'name')])
+            ->andFilterWhere(['=', 'user_id', PsCommon::get($p, 'user_id')])
             ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'community_id')])
             ->andFilterWhere(['=', 'status', PsCommon::get($p, 'status')]);
         return $m;
@@ -68,6 +69,20 @@ class VisitService extends BaseService
         }
 
         return $r;
+    }
+
+    // 访客 详情
+    public function show($p)
+    {
+        $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
+        if (!empty($r)) {
+            $r['sex'] = $r['sex'] == 2 ? '女' : '男';
+            $r['visit_at'] = date('Y-m-d', $r['visit_at']);
+
+            return $r;
+        }
+
+        throw new MyException('访客不存在!');
     }
 
     // 确认放行
@@ -99,7 +114,7 @@ class VisitService extends BaseService
     public function add($p)
     {
         $p['visit_at'] = !empty($p['visit_at']) ? strtotime($p['visit_at']) : '';
-        $p['password'] = substr(md5(microtime(true)), 0, 6);
+        $p['password'] = rand(100,999).rand(100,999);
 
         $m = new PsRoomVisitor(['scenario' => 'add']);
 

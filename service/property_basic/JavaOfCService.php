@@ -97,4 +97,11 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/api/thirdRelation';
         return self::returnCData($query);
     }
+
+    // 我的房屋列表
+    public function myRoomList($query)
+    {
+        $query['route'] = '/member/room/myRoomList';
+        return self::returnCData($query);
+    }
 }
