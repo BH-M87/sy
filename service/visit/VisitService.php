@@ -17,6 +17,78 @@ use app\models\PsRoomVisitor;
 
 class VisitService extends BaseService
 {
+	// 访客 列表
+    public function list($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::visitorSearch($p, 'id')->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::visitorSearch($p)->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])
+            ->orderBy('id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['visit_at'] = date('Y-m-d', $v['visit_at']);
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 列表参数过滤
+    private static function visitorSearch($p, $filter = '')
+    {
+        $filter = $filter ?? "*";
+        $m = PsRoomVisitor::find()
+            ->select($filter)
+            ->filterWhere(['like', 'name', PsCommon::get($p, 'name')])
+            ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'community_id')])
+            ->andFilterWhere(['=', 'status', PsCommon::get($p, 'status')]);
+        return $m;
+    }
+
+	// 访客 详情
+    public function dingdingShow($p)
+    {
+        $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
+        if (!empty($r)) {
+            $r['sex'] = $r['sex'] == 2 ? '女' : '男';
+            $r['visit_at'] = date('Y-m-d', $r['visit_at']);
+            return $r;
+        }
+
+        throw new MyException('访客不存在!');
+    }
+
+    // 确认放行
+    public function pass($p)
+    {
+        $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
+        if (!empty($r)) {
+            PsRoomVisitor::updateAll(['pass_at' => time(), 'status' => 2], ['id' => $p['id']]);
+            return ['id' => $p['id']];
+        }
+
+        throw new MyException('访客不存在!');
+    }
+
+    // 访客 密码验证
+    public function password($p)
+    {
+        $r = PsRoomVisitor::find()->where(['password' => $p['password'], 'communityId' => $p['community_id']])->asArray()->one();
+        if (!empty($r)) {
+            $r['sex'] = $r['sex'] == 2 ? '女' : '男';
+            $r['visit_at'] = date('Y-m-d', $r['visit_at']);
+            return $r;
+        }
+
+        throw new MyException('访客不存在!');
+    }
+
 	// 访客 新增
     public function add($p)
     {

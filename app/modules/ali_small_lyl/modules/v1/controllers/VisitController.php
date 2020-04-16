@@ -30,8 +30,8 @@ class VisitController extends BaseController
         }
 
         $p['member_id'] = $member['id'];
-        $p['room_name'] = $member['trueName'];
-        $p['room_mobile'] = $member['sensitiveInf'];
+        $p['roomName'] = $member['trueName'];
+        $p['roomMobile'] = $member['sensitiveInf'];
 
         $r = VisitService::service()->add($p);
 

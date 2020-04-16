@@ -19,9 +19,9 @@ class PsRoomVisitor extends BaseModel
         return [
             [['room_id', 'communityId', 'groupId', 'buildingId', 'unitId', 'fullName', 'user_id', 'member_id', 'name','mobile'],'required','message'=>'{attribute}不能为空!','on' => ['add']],
             [['is_car', 'sex', 'visit_at', 'pass_at'], 'integer','message'=> '{attribute}格式错误!'],
-            [['communityName', 'room_name', 'room_mobile', 'car_number', 'password'], 'string', 'max' => 30],
+            [['communityName', 'roomName', 'roomMobile', 'car_number', 'password'], 'string', 'max' => 30],
             [['qrcode'], 'string', 'max' => 300, 'on' => ['add']],
-            [['room_mobile', 'mobile'], 'match', 'pattern'=>Regular::telOrPhone(), 'message'=>'{attribute}格式错误','on' => ['add']],
+            [['roomMobile', 'mobile'], 'match', 'pattern'=>Regular::telOrPhone(), 'message'=>'{attribute}格式错误','on' => ['add']],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
             ['status', 'default', 'value' => 1, 'on' => 'add'],
         ];
@@ -32,8 +32,8 @@ class PsRoomVisitor extends BaseModel
         return [
             'id' => 'ID',
             'room_id' => '房屋id',
-            'room_name' => '业主姓名',
-            'room_mobile' => '业主手机号',
+            'roomName' => '业主姓名',
+            'roomobile' => '业主手机号',
             'communityId' => '小区id',
             'communityName' => '小区名称',
             'groupId' => '苑期区',
