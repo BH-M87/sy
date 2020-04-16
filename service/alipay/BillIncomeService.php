@@ -609,11 +609,14 @@ Class BillIncomeService extends BaseService
                 $billInfo = $data;
                 //更新账单表的订单trade_defend字段,详情过滤当前账单
                 Yii::$app->db->createCommand("update ps_bill set trade_defend=1 where id={$billInfo['id']}")->execute();
-                unset($billInfo['id'], $billInfo['order_id'], $billInfo['status']);
+                unset($billInfo['id'], $billInfo['order_id'], $billInfo['status'], $billInfo['prefer_entry_amount'], $billInfo['recharge_amount'], $billInfo['deduct_amount']);
                 $billNewInfo = $billInfo;
                 //物业账单id
                 $billNewInfo['bill_entry_amount'] = $billInfo['bill_entry_amount'] - (2 * ($billInfo['bill_entry_amount']));//设置新的账单应收金额为负数
                 $billNewInfo['paid_entry_amount'] = $billInfo['paid_entry_amount'] - (2 * ($billInfo['paid_entry_amount']));//设置新的账单应收金额为负数
+                $billNewInfo['prefer_entry_amount'] = 0;//优惠为0
+                $billNewInfo['recharge_amount'] = 0;//预存为0
+                $billNewInfo['deduct_amount'] = 0;//抵扣为0
                 $billNewInfo['trade_remark'] = !empty($params['refund_note']) ? $params['refund_note'] : '正常退款';
                 $billNewInfo['trade_type'] = 2;//收款类型：1收款，2退款
                 $billNewInfo['status'] = 7;
@@ -681,7 +684,7 @@ Class BillIncomeService extends BaseService
                 if ($split_status) {
                     //======================================第三步，将当前账单重新发布==================================
                     $billToInfo = $data;
-                    unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
+                    unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount'], $billToInfo['recharge_amount'], $billToInfo['deduct_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                     $billToInfo['status'] = 1;//账单状态为线上未缴
                     $billToInfo['is_del'] = 1;
