@@ -32,6 +32,10 @@ class VisitService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                    $v['type'] = 2; // 可以再次邀约
+                }
+
                 $v['visit_at'] = date('Y-m-d', $v['visit_at']);
             }
         }
