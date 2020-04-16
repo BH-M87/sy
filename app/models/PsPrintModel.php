@@ -2,9 +2,7 @@
 
 namespace app\models;
 
-use yii\base\Model;
-
-class PsPrintModel extends Model
+class PsPrintModel extends BaseModel
 {
     public $community_id;
     public $model_type;
@@ -28,6 +26,10 @@ class PsPrintModel extends Model
     public $room_id;
     public $bill_list;
 
+    public static function tableName()
+    {
+        return 'ps_bill';
+    }
 
     public function rules()
     {
