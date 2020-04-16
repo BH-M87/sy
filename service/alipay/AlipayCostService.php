@@ -1227,7 +1227,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $billNewInfo = $billInfo;
             //物业账单id
             $billNewInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 1;
-            $billNewInfo['bill_entry_amount'] = $val['pay_amount'];//设置新的账单应收金额
+            $billNewInfo['bill_entry_amount'] = $val['pay_amount']+$val['deduct_amount'];//设置新的账单应收金额
             $billNewInfo['paid_entry_amount'] = $val['pay_amount'];//设置新的账单应收金额
             $billNewInfo['deduct_amount'] = $val['deduct_amount'];//设置新的账单抵扣金额
             $billNewInfo['status'] = 7;
