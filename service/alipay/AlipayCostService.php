@@ -990,7 +990,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //        }
 
         //java 验证密码
-//        $commonService = new CommonService();
+        $commonService = new CommonService();
 //        $pwdParams['token'] = $params['token'];
 //        $pwdParams['password'] = $password;
 //        if(!$commonService->passwordVerification($pwdParams)){
