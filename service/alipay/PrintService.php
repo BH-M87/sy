@@ -231,7 +231,7 @@ class PrintService extends BaseService
             foreach ($models as $key => $val) {
 
                 $val['overdue_day'] = ''; //逾期天数
-                if($nowTime>($val['acct_period_end']+86399)){
+                if($nowTime>($val['acct_period_end'])){
                     $val['overdue_day'] = floor(($nowTime-$val['acct_period_end'])/86400); //逾期天数
                 }
                 $val['acct_period_start'] = date("Y-m-d", $val["acct_period_start"]);
