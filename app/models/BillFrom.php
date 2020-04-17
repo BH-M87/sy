@@ -81,7 +81,7 @@ class BillFrom extends Model
             [['out_room_id','pay_channel'],'required','message'=>'{attribute}不能为空!','on'=>'pay-cost'],
             //线下收款的参数验证
             [['bill_id','pay_amount','pay_type'],'required','message'=>'{attribute}不能为空!','on'=>'bill-collect'],
-            ['pay_amount', 'compare', 'compareValue' => 0.005, 'message'=>'金额数值不能低于0.01','operator' => '>','on'=>'bill-collect'],
+            ['pay_amount', 'compare', 'compareValue' => 0, 'message'=>'金额数值不能低于0','operator' => '>','on'=>'bill-collect'],
         ];
     }
 
