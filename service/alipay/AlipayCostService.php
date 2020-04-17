@@ -990,12 +990,12 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
 
         //java 验证密码
-        $commonService = new CommonService();
-        $pwdParams['token'] = $params['token'];
-        $pwdParams['password'] = $password;
-        if(!$commonService->passwordVerification($pwdParams)){
-            return $this->failed("请输入正确的登录密码");
-        }
+//        $commonService = new CommonService();
+//        $pwdParams['token'] = $params['token'];
+//        $pwdParams['password'] = $password;
+//        if(!$commonService->passwordVerification($pwdParams)){
+//            return $this->failed("请输入正确的登录密码");
+//        }
 
 //        $roomInf = RoomService::service()->getRoomById($room_id);
 //        $community_id = $roomInf['community_id'];
