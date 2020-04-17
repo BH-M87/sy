@@ -869,16 +869,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr['disabled'] = false;
             $arr['cost_type'] = $model['cost_type'];    //收费类型
             $arr['cost_name'] = $model['cost_name'];    //收费项名称
-            $arr['bill_all_amount'] = (int)$model['bill_entry_amount'];    //账单总金额
+            $arr['bill_all_amount'] = sprintf("%.2f",$model['bill_entry_amount']);    //账单总金额
             //应收金额=账单金总金额减去预收金额
             $payResult =self::getBillPayAmount($model['bill_entry_amount'],$calc_recharge_amount);
-            $arr['bill_entry_amount'] = (int)$payResult['pay_amount'];//账单应缴金额
-            $arr['bill_recharge_amount'] = (int)($model['bill_entry_amount']-$payResult['pay_amount']);//剩余预存抵扣金额
+
+            $arr['bill_entry_amount'] = sprintf("%.2f",$payResult['pay_amount']);//账单应缴金额
+            $arr['bill_recharge_amount'] = sprintf("%.2f",($model['bill_entry_amount']-$payResult['pay_amount']));//使用预存抵扣金额
             //剩余可使用的预存
             $calc_recharge_amount = $payResult['recharge'];
             if (!empty($status)) {
-                $arr['paid_entry_amount'] = (int)$model['paid_entry_amount'];    //已收金额
-                $arr['prefer_entry_amount'] = (int)$model['prefer_entry_amount'];    //优惠金额
+                $arr['paid_entry_amount'] = sprintf("%.2f",$model['paid_entry_amount']);    //已收金额
+                $arr['prefer_entry_amount'] = sprintf("%.2f",$model['prefer_entry_amount']);    //优惠金额
             }
             $arr['pay_channel'] = PsCommon::getPayChannel($model['pay_channel']);    //支付方式
             $arr['acct_period_time_msg'] = date("Y-m-d", $model['acct_period_start']) . ' ' . date("Y-m-d", $model['acct_period_end']);
@@ -984,17 +985,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
-        if(!$password){
-            return $this->failed("登录密码不能为空");
-        }
+//        if(!$password){
+//            return $this->failed("登录密码不能为空");
+//        }
 
         //java 验证密码
         $commonService = new CommonService();
-        $pwdParams['token'] = $params['token'];
-        $pwdParams['password'] = $password;
-        if(!$commonService->passwordVerification($pwdParams)){
-            return $this->failed("请输入正确的登录密码");
-        }
+//        $pwdParams['token'] = $params['token'];
+//        $pwdParams['password'] = $password;
+//        if(!$commonService->passwordVerification($pwdParams)){
+//            return $this->failed("请输入正确的登录密码");
+//        }
 
 //        $roomInf = RoomService::service()->getRoomById($room_id);
 //        $community_id = $roomInf['community_id'];
@@ -1063,10 +1064,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //                    return $this->failed("分期支付不支持预存抵扣 ");
 //                }
                 //分期支付才判断支付金额是否大于应收金额
-                if ($data['pay_amount'] == $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] == $data['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额等于实收金额时不能分次付清");
                 }
-                if ($data['pay_amount'] > $billInfo['bill_pay_amount'] && $data['pay_type'] == 2) {
+                if ($data['pay_amount'] > $data['bill_pay_amount'] && $data['pay_type'] == 2) {
                     return $this->failed("应缴金额小于实收金额时不能分次付清 ");
                 }
 

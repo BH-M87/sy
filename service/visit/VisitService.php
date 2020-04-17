@@ -12,6 +12,7 @@ use common\core\PsCommon;
 use service\BaseService;
 use service\property_basic\JavaService;
 use service\common\QrcodeService;
+use service\common\CsvService;
 
 use app\models\PsRoomVisitor;
 
@@ -28,11 +29,25 @@ class VisitService extends BaseService
             return ['list' => [], 'totals' => 0];
         }
 
-        $list = self::visitorSearch($p)->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])
-            ->orderBy('id desc')->asArray()->all();
+        $model = self::visitorSearch($p);
+        
+        if (empty($p['use_as'])) {
+            $model->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows']);
+        }
+
+        $list = $model->orderBy('id desc')->asArray()->all();
+
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                    $v['type'] = 2; // 可以再次邀约
+                }
+
                 $v['visit_at'] = date('Y-m-d', $v['visit_at']);
+                $v['pass_at'] = !empty($v['pass_at']) ? date('Y-m-d', $v['pass_at']) : '';
+                $v['statusMsg'] = $v['status'] == 2 ? '已到访' : '未到访';
+                $v['sex'] = $v['sex'] == 2 ? '女' : '男';
+
             }
         }
 
@@ -42,14 +57,51 @@ class VisitService extends BaseService
     // 列表参数过滤
     private static function visitorSearch($p, $filter = '')
     {
+        $start_at = !empty($p['start_at']) ? strtotime($p['start_at']) : '';
+        $end_at = !empty($p['end_at']) ? strtotime($p['end_at'] . '23:59:59') : '';
+
         $filter = $filter ?? "*";
         $m = PsRoomVisitor::find()
             ->select($filter)
             ->filterWhere(['like', 'name', PsCommon::get($p, 'name')])
+            ->andFilterWhere(['like', 'roomName', PsCommon::get($p, 'roomName')])
             ->andFilterWhere(['=', 'user_id', PsCommon::get($p, 'user_id')])
             ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'community_id')])
-            ->andFilterWhere(['=', 'status', PsCommon::get($p, 'status')]);
+            ->andFilterWhere(['=', 'groupId', PsCommon::get($p, 'groupId')])
+            ->andFilterWhere(['=', 'buildingId', PsCommon::get($p, 'buildingId')])
+            ->andFilterWhere(['=', 'unitId', PsCommon::get($p, 'unitId')])
+            ->andFilterWhere(['=', 'room_id', PsCommon::get($p, 'room_id')])
+            ->andFilterWhere(['=', 'status', PsCommon::get($p, 'status')])
+            ->andFilterWhere(['>=', 'visit_at', $start_at])
+            ->andFilterWhere(['<=', 'visit_at', $end_at]);
         return $m;
+    }
+
+    // 导出
+    public function export($p, $user = [])
+    {
+        $p['use_as'] = "export";
+        $r = $this->list($p);
+        
+        $config = [
+            ['title' => '访客姓名', 'field' => 'name'],
+            ['title' => '性别', 'field' => 'sex'],
+            ['title' => '联系电话', 'field' => 'mobile'],
+            ['title' => '车牌号', 'field' => 'car_number'],
+            ['title' => '到访时间', 'field' => 'visit_at'],
+            ['title' => '被访人', 'field' => 'roomName'],
+            ['title' => '被访地址', 'field' => 'fullName'],
+            ['title' => '到访状态', 'field' => 'statusMsg'],
+            ['title' => '实际到访时间', 'field' => 'pass_at'],
+        ];
+
+        $filename = CsvService::service()->saveTempFile(1, $config, $r['list'], 'roomVisitors');
+        $filePath = F::originalFile().'temp/'.$filename;
+        $fileRe = F::uploadFileToOss($filePath);
+        
+        $downUrl = $fileRe['filepath'];
+
+        return ["down_url" => $downUrl];
     }
 
 	// 访客 详情
