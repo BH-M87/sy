@@ -860,7 +860,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             return $this->success(['totals' => 0, 'dataList' => [], 'reportData' => $billTotal, 'roomData' => $roomData]);
         }
         //查询语句sql
-        $sql = "select  bill.id as bill_id,bill.cost_id,bill.cost_type,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.acct_period_start,bill.acct_period_end,der.pay_channel from ps_bill as bill,ps_order  as der where {$where}   order by bill.acct_period_start asc ;";
+        $sql = "select  bill.id as bill_id,bill.cost_id,bill.cost_type,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.acct_period_start,bill.acct_period_end,der.pay_channel from ps_bill as bill,ps_order  as der where {$where}   order by bill.acct_period_start asc,bill.id asc ;";
         $models = Yii::$app->db->createCommand($sql, $params)->queryAll();
         foreach ($models as $key => $model) {
             $arr = [];
