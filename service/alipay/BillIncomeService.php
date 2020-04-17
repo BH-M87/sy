@@ -616,7 +616,7 @@ Class BillIncomeService extends BaseService
                 $billNewInfo['paid_entry_amount'] = $billInfo['paid_entry_amount'] - (2 * ($billInfo['paid_entry_amount']));//设置新的账单应收金额为负数
                 $billNewInfo['prefer_entry_amount'] = 0;//优惠为0
                 $billNewInfo['recharge_amount'] = 0;//预存为0
-                $billNewInfo['deduct_amount'] = $billInfo['paid_entry_amount'] - $billInfo['recharge_amount'];//抵扣为支付金额-预存金额
+                $billNewInfo['deduct_amount'] = $billInfo['recharge_amount'];//抵扣为预存金额
                 $billNewInfo['trade_remark'] = !empty($params['refund_note']) ? $params['refund_note'] : '正常退款';
                 $billNewInfo['trade_type'] = 2;//收款类型：1收款，2退款
                 $billNewInfo['status'] = 7;
