@@ -16,7 +16,7 @@ use app\modules\property\controllers\BaseController;
 
 class PrintController extends BaseController
 {
-    public $repeatAction = ['add'];
+    public $repeatAction = ['add','down-export-bill'];
 
     public function actionList()
     {

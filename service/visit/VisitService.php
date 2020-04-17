@@ -39,14 +39,16 @@ class VisitService extends BaseService
 
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
+                if ($v['visit_at'] < strtotime(date('Y-m-d'), time()) || $v['status'] == 2) {
                     $v['type'] = 2; // 可以再次邀约
+                } else {
+                    $v['type'] = 1;
                 }
 
                 $v['visit_at'] = date('Y-m-d', $v['visit_at']);
                 $v['pass_at'] = !empty($v['pass_at']) ? date('Y-m-d', $v['pass_at']) : '';
                 $v['statusMsg'] = $v['status'] == 2 ? '已到访' : '未到访';
-                $v['sex'] = $v['sex'] == 2 ? '女' : '男';
+                $v['sexMsg'] = $v['sex'] == 2 ? '女' : '男';
 
             }
         }
@@ -85,7 +87,7 @@ class VisitService extends BaseService
         
         $config = [
             ['title' => '访客姓名', 'field' => 'name'],
-            ['title' => '性别', 'field' => 'sex'],
+            ['title' => '性别', 'field' => 'sexMsg'],
             ['title' => '联系电话', 'field' => 'mobile'],
             ['title' => '车牌号', 'field' => 'car_number'],
             ['title' => '到访时间', 'field' => 'visit_at'],
@@ -128,7 +130,7 @@ class VisitService extends BaseService
     {
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['sex'] = $r['sex'] == 2 ? '女' : '男';
+            $r['sexMsg'] = $r['sex'] == 2 ? '女' : '男';
             $r['visit_at'] = date('Y-m-d', $r['visit_at']);
 
             return $r;
