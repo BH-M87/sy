@@ -985,9 +985,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$bill_list) {
             return $this->failed("请选择需要支付的账单");
         }
-        if(!$password){
-            return $this->failed("登录密码不能为空");
-        }
+//        if(!$password){
+//            return $this->failed("登录密码不能为空");
+//        }
 
         //java 验证密码
 //        $commonService = new CommonService();
