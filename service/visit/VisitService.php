@@ -41,6 +41,8 @@ class VisitService extends BaseService
             foreach ($list as $k => &$v) {
                 if ($v['visit_at'] < strtotime(date('Y-m-d'), time()) || $v['status'] == 2) {
                     $v['type'] = 2; // 可以再次邀约
+                } else {
+                    $v['type'] = 1;
                 }
 
                 $v['visit_at'] = date('Y-m-d', $v['visit_at']);
