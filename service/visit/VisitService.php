@@ -172,6 +172,10 @@ class VisitService extends BaseService
                 throw new MyException('密码已失效!');
             }
 
+            if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
+                throw new MyException('未到访问日期!');
+            }
+
             $r['sex'] = $r['sex'] == 2 ? '女' : '男';
             $r['visit_at'] = date('Y-m-d', $r['visit_at']);
 
