@@ -769,10 +769,10 @@ Class BillIncomeService extends BaseService
     {
         $check_status = 2;
         if(empty($data['income_id'])){
-            return $this->failed("核销记录id不能为空");
+            return $this->failed("核销记录不能为空");
         }
         if(!is_array($data['income_id'])){
-            return $this->failed("核销记录id是数组格式");
+            return $this->failed("核销记录是数组格式");
         }
 
         if(empty($data['entry_at'])){
