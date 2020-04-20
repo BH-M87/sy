@@ -352,7 +352,7 @@ Class BillIncomeService extends BaseService
                 $bill_arr[$k]['acct_period'] = date('Y-m-d', $v['acct_period_start']) . '~' . date('Y-m-d', $v['acct_period_end']);
                 $bill_arr[$k]['cost_name'] = $v['cost_name'];
                 $bill_arr[$k]['bill_all_amount'] = $v['bill_entry_amount'];
-                $bill_arr[$k]['bill_entry_amount'] = $v['bill_entry_amount']-$v['deduct_amount'];
+                $bill_arr[$k]['bill_entry_amount'] = sprintf("%.2f",($v['bill_entry_amount']-$v['deduct_amount']));
                 $bill_arr[$k]['recharge_amount'] = $v['recharge_amount'];
                 $bill_arr[$k]['deduct_amount'] = $v['deduct_amount'];
                 $bill_arr[$k]['paid_entry_amount'] = $v['paid_entry_amount'];
