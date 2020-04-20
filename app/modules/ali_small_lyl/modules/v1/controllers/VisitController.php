@@ -16,21 +16,25 @@ class VisitController extends BaseController
         $r = JavaOfCService::service()->myRoomList($this->params);
 
         $arr = [];
+        $key = 0;
         if (!empty($r['certifiedList'])) {
             foreach ($r['certifiedList'] as $k => $v) {
-                $arr[$k]['room_id'] = $v['roomId'];
-                $arr[$k]['fullName'] = $v['roomFullName'];
+                if ($v['communityId'] == $this->params['community_id']) {
+                    $arr[$key]['room_id'] = $v['roomId'];
+                    $arr[$key]['fullName'] = $v['roomFullName'];
 
-                switch ($v['memberType']) {
-                    case '1':
-                        $arr[$k]['userType'] = '业主';
-                        break;
-                    case '2':
-                        $arr[$k]['userType'] = '家人';
-                        break;
-                    default:
-                        $arr[$k]['userType'] = '租客';
-                        break;
+                    switch ($v['memberType']) {
+                        case '1':
+                            $arr[$key]['userType'] = '业主';
+                            break;
+                        case '2':
+                            $arr[$key]['userType'] = '家人';
+                            break;
+                        default:
+                            $arr[$key]['userType'] = '租客';
+                            break;
+                    }
+                    $key++;
                 }
             }
         }
