@@ -3777,7 +3777,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $where = " and room_id = :room_id ";
         $params = [':room_id' => $roomId];
         $billTotal = Yii::$app->db->createCommand("select  sum(recharge_amount-deduct_amount) as amount from ps_bill where 1=1 {$where};", $params)->queryOne();
-        return !empty($billTotal['amount'])?$billTotal['amount']:0;
+        return !empty($billTotal['amount'])?sprintf("%.2f",$billTotal['amount']):0;
     }
 
     /**
@@ -3787,9 +3787,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
      */
     public function getBillPayAmount($bill_pay_amount,$recharge_amount){
         $result['recharge'] = 0;    //说明没有预存
-        $result['pay_amount'] = (int)($bill_pay_amount-$recharge_amount);//实际需要支付宝的金额
+        $result['pay_amount'] = sprintf("%.2f",($bill_pay_amount-$recharge_amount));//实际需要支付宝的金额
         if($recharge_amount>=$bill_pay_amount) {//预存大与账单:计算剩余可以使用的预存
-            $result['recharge'] = (int)($recharge_amount - $bill_pay_amount);    //预存金额：预存减去账单金额
+            $result['recharge'] = sprintf("%.2f",($recharge_amount - $bill_pay_amount));    //预存金额：预存减去账单金额
             $result['pay_amount'] = 0;//实际需要支付宝的金额
         }
         return $result;
