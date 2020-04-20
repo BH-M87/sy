@@ -425,12 +425,17 @@ class AlipayCostService extends BaseService
             $arr[$key]['create_at'] = $model['create_at'] ? date("Y-m-d H:i:s", $model['create_at']) : '';
             $arr[$key]['pay_time'] = $model['pay_time'] ? date("Y-m-d H:i:s", $model['pay_time']) : '';
         }
+
+        //报表查询，查询应收账单，已收账单，优惠账单，待收账单，待生成的数量与金额
+        $reportData = $this->selBillReport($data, $userInfo);
+
         return $this->success([
             'totals' => $count['total_num'],
             'list' => $arr,
             "bill_entry_amount" => $count['bill_entry_amount'] ? $count['bill_entry_amount'] : 0,
             "paid_entry_amount" => $count['paid_entry_amount'] ? $count['paid_entry_amount'] : 0,
             "prefer_entry_amount" => $count['prefer_entry_amount'] ? $count['prefer_entry_amount'] : 0,
+            "reportData" => $reportData,
         ]);
     }
 
