@@ -109,11 +109,13 @@ class VisitService extends BaseService
 	// 访客 详情
     public function dingdingShow($p)
     {
-        $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
+        $r = PsRoomVisitor::find()->where(['id' => $p['id'], 'communityId' => $p['community_id']])->asArray()->one();
         if (!empty($r)) {
         	$r['type'] = 1;
             if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
             	$r['type'] = 3;
+            } else if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
+                $r['type'] = 4;
             }
 
             $r['sex'] = $r['sex'] == 2 ? '女' : '男';
@@ -146,6 +148,10 @@ class VisitService extends BaseService
         if (!empty($r)) {
             if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
                 throw new MyException('二维码已失效!');
+            } 
+
+            if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
+                throw new MyException('未到访问日期!');
             }
 
             PsRoomVisitor::updateAll(['pass_at' => time(), 'status' => 2], ['id' => $p['id']]);
@@ -162,6 +168,10 @@ class VisitService extends BaseService
         if (!empty($r)) {
             if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
                 throw new MyException('密码已失效!');
+            }
+
+            if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
+                throw new MyException('未到访问日期!');
             }
 
             $r['sex'] = $r['sex'] == 2 ? '女' : '男';
