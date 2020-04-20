@@ -46,7 +46,7 @@ class VisitService extends BaseService
                 }
 
                 $v['visit_at'] = date('Y-m-d', $v['visit_at']);
-                $v['pass_at'] = !empty($v['pass_at']) ? date('Y-m-d', $v['pass_at']) : '';
+                $v['pass_at'] = !empty($v['pass_at']) ? date('Y-m-d H:i', $v['pass_at']) : '';
                 $v['statusMsg'] = $v['status'] == 2 ? '已到访' : '未到访';
                 $v['sexMsg'] = $v['sex'] == 2 ? '女' : '男';
 
