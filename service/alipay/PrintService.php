@@ -132,7 +132,7 @@ class PrintService extends BaseService
         $nowTime = time();
         $params = $arr = [];
         $where = " 1=1 and acct_period_end<:acct_period_end";
-        $arr = [':acct_period_endT' => $nowTime];
+        $arr = [':acct_period_end' => $nowTime];
         $params = array_merge($params, $arr);
         if(!empty($data['communityList'])){
             $communityList = implode(",",$data['communityList']);
@@ -179,7 +179,7 @@ class PrintService extends BaseService
             $acct_period_start = strtotime($data["acct_period_start"]);
             $arr = [":acct_period_start" => $acct_period_start];
             $params = array_merge($params, $arr);
-            $where .= " And  acct_period_end>= :acct_period_start";
+            $where .= " And  acct_period_start>= :acct_period_start";
         }
 
         /*账期结束时间*/
@@ -188,7 +188,7 @@ class PrintService extends BaseService
             $acct_period_end = strtotime($data["acct_period_end"]);
             $arr = [":acct_period_end" => $acct_period_end];
             $params = array_merge($params, $arr);
-            $where .= " And  acct_period_start<= :acct_period_end";
+            $where .= " And  acct_period_end<= :acct_period_end";
         }
         if (!empty($data["cost_type"])) {
             if(!is_array($data['cost_type'])){
