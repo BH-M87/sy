@@ -131,8 +131,8 @@ class PrintService extends BaseService
     {
         $nowTime = time();
         $params = $arr = [];
-        $where = " 1=1 and acct_period_end<:acct_period_end";
-        $arr = [':acct_period_end' => $nowTime];
+        $where = " 1=1 and acct_period_end<:acct_period_endT";
+        $arr = [':acct_period_endT' => $nowTime];
         $params = array_merge($params, $arr);
         if(!empty($data['communityList'])){
             $communityList = implode(",",$data['communityList']);
