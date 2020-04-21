@@ -785,7 +785,7 @@ Class BillIncomeService extends BaseService
         //验证数据是否存在
         $exit_count = PsBillIncome::find()->where(['in','id',$data['income_id']])->andWhere(['=','check_status',1])->count();
         if($exit_count != count($data['income_id'])){
-            return $this->failed("订单不存在");
+            return $this->failed("只能核销待核销的账单");
         }
 
         $updateParams['check_status'] = $check_status;
@@ -846,7 +846,7 @@ Class BillIncomeService extends BaseService
             return $this->success();
 
         }else{
-            return $this->failed("数据不存在");
+            return $this->failed("只能核销待核销的账单");
         }
     }
 }
