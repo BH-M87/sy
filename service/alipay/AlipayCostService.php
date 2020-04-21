@@ -1728,6 +1728,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             if ($receiptArr["PsReceiptFrom"]["paid_entry_amount"] < $bill["bill_entry_amount"]) {
                 $receiptArr["PsReceiptFrom"]["prefer_entry_amount"] = $bill["bill_entry_amount"] - $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
             }
+            $receiptArr["PsReceiptFrom"]["recharge_amount"] = 0;//默认预存金额0
+            if ($receiptArr["PsReceiptFrom"]["paid_entry_amount"] > $bill["bill_entry_amount"]) {
+                $receiptArr["PsReceiptFrom"]["recharge_amount"] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"]-$bill["bill_entry_amount"];
+            }
             array_push($bill_entry_ids, $bill["bill_entry_id"]);
             array_push($bill_ids, $bill["id"]);
             $arr = [];
@@ -1804,8 +1808,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
     {
         foreach ($data['bill_list'] as $key => $val) {
             //修复账单表
-            $bill_params = [":id" => $val["bill_id"], ":paid_entry_amount" => $val["pay_amount"], ":prefer_entry_amount" => $val['prefer_entry_amount']];
-            Yii::$app->db->createCommand("UPDATE ps_bill  SET status='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount WHERE id=:id", $bill_params)->execute();
+            $bill_params = [":id" => $val["bill_id"], ":paid_entry_amount" => $val["pay_amount"], ":prefer_entry_amount" => $val['prefer_entry_amount'], ":recharge_amount" => $val['recharge_amount']];
+            Yii::$app->db->createCommand("UPDATE ps_bill  SET status='7',paid_entry_amount=:paid_entry_amount,prefer_entry_amount=:prefer_entry_amount,recharge_amount=:recharge_amount WHERE id=:id", $bill_params)->execute();
             //添加支付成功日志表
             $str = "1000000000" + $val["bill_id"];
             $trad_no = date("YmdHi") . 'x' . $str;
