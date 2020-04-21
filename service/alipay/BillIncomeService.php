@@ -284,7 +284,7 @@ Class BillIncomeService extends BaseService
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
                 $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
-                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m-d',$v['entry_at']):'';
+                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m',$v['entry_at']):'';
                 $v['review_at_msg'] = !empty($v['review_at'])?date('Y-m-d',$v['review_at']):'';   //核销日期
                 $v['check_status_msg'] = $checkArr[$v['check_status']];
             }
