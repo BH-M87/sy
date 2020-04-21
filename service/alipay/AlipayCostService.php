@@ -1737,6 +1737,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $arr = [];
             $arr[$bill["bill_entry_id"]]["pay_amount"] = $receiptArr["PsReceiptFrom"]["paid_entry_amount"];
             $arr[$bill["bill_entry_id"]]["prefer_entry_amount"] = $receiptArr["PsReceiptFrom"]["prefer_entry_amount"];
+            $arr[$bill["bill_entry_id"]]["recharge_amount"] = $receiptArr["PsReceiptFrom"]["recharge_amount"];
             $arr[$bill["bill_entry_id"]]["bill_id"] = $bill["id"];
             $arr[$bill["bill_entry_id"]]["order_id"] = $bill["order_id"];
             $arr[$bill["bill_entry_id"]]["data"] = $val;
