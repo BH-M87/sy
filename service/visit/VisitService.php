@@ -97,11 +97,8 @@ class VisitService extends BaseService
             ['title' => '实际到访时间', 'field' => 'pass_at'],
         ];
 
-        $filename = CsvService::service()->saveTempFile(1, $config, $r['list'], 'roomVisitors');
-        $filePath = F::originalFile().'temp/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        
-        $downUrl = $fileRe['filepath'];
+        $filename = CsvService::service()->saveTempFile(1, $config, $r['list'], 'visitor');
+        $downUrl = F::downloadUrl($filename, 'temp', 'visitor.csv');
 
         return ["down_url" => $downUrl];
     }
