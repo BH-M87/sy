@@ -375,8 +375,20 @@ class AlipayCostService extends BaseService
                 $count = Yii::$app->db->createCommand("select count(distinct bill.id) as total_num,sum(bill.bill_entry_amount) as bill_entry_amount,sum(bill.paid_entry_amount) as paid_entry_amount,sum(bill.prefer_entry_amount) as prefer_entry_amount  from ps_bill as bill,ps_order as der where " . $where, $params)->queryOne();
                 break;
         }
+        //报表查询，查询应收账单，已收账单，优惠账单，待收账单，待生成的数量与金额
+        $reportData = $this->selBillReport($data, $userInfo);
+
         if ($count['total_num'] == 0) {
-            return $this->success(['totals' => 0, 'list' => [], 'reportData' => []]);
+//            return $this->success(['totals' => 0, 'list' => [], 'reportData' => []]);
+            return $this->success([
+                'totals' => $count['total_num'],
+                'list' => [],
+                "bill_entry_amount" => $count['bill_entry_amount'] ? $count['bill_entry_amount'] : 0,
+                "paid_entry_amount" => $count['paid_entry_amount'] ? $count['paid_entry_amount'] : 0,
+                "prefer_entry_amount" => $count['prefer_entry_amount'] ? $count['prefer_entry_amount'] : 0,
+                "reportData" => $reportData,
+            ]);
+
         }
         $page = $page > ceil($count['total_num'] / $rows) ? ceil($count['total_num'] / $rows) : $page;
         $limit = ($page - 1) * $rows;
@@ -386,8 +398,8 @@ class AlipayCostService extends BaseService
         }
         //查询语句sql
         switch ($source) {
-            case 1://应收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
+            case 1://待收
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 2://已收
                 $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
@@ -395,8 +407,8 @@ class AlipayCostService extends BaseService
             case 3://优惠
                 $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
                 break;
-            case 4://待收
-                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
+            case 4://应收
+                $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}   order by  bill.create_at desc limit $limit,$rows ";
                 break;
             case 5://待生成
                 $sql = "select bill.id,bill.community_name,bill.room_id,bill.room_address,bill.group_id,bill.building_id,bill.unit_id,bill.room_id,bill.acct_period_start,bill.acct_period_end,bill.cost_name,bill.bill_entry_amount,bill.paid_entry_amount,bill.prefer_entry_amount,bill.`status`,bill.create_at,der.pay_time from ps_bill as bill,ps_order as der where {$where}  order by  bill.create_at desc limit $limit,$rows ";
@@ -426,8 +438,7 @@ class AlipayCostService extends BaseService
             $arr[$key]['pay_time'] = $model['pay_time'] ? date("Y-m-d H:i:s", $model['pay_time']) : '';
         }
 
-        //报表查询，查询应收账单，已收账单，优惠账单，待收账单，待生成的数量与金额
-        $reportData = $this->selBillReport($data, $userInfo);
+
 
         return $this->success([
             'totals' => $count['total_num'],
