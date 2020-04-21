@@ -63,7 +63,7 @@ class PsPrintModel extends BaseModel
             ['second_area', 'string', 'length' => [1, 500], 'message' => '{attribute}长度不正确', 'on' =>['add']],
             ['note', 'string', 'length' => [1, 500], 'message' => '文本区域长度不正确', 'on' =>['add-advert']],
 //            [['community_id','group'], 'required','message' => '{attribute}不能为空!', 'on' => ['bill-list']],
-            [['acct_period_start','acct_period_end'], 'date','format'=>'yyyy-MM-dd','message'=>'{attribute}不正确!','on'=>'bill-list'],
+            [['acct_period_start','acct_period_end'], 'date','format'=>'yyyy-MM-dd H:i','message'=>'{attribute}不正确!','on'=>'bill-list'],
             ['acct_period_start', 'compare', 'compareAttribute' => 'acct_period_end', 'operator' => '<=' ,'on'=>'bill-list'],
 
         ];
