@@ -61,7 +61,10 @@ class BaseController extends \yii\web\Controller
                 $this->_validateMethod();
                 $this->_validateBody();
                 //token验证
-                $this->_validateToken($action);
+                if(!in_array($action->controller->id, ['data'])) { // 街道接口
+                    $this->_validateToken($action);
+                }
+                
                 $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
                 $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
 

@@ -140,10 +140,10 @@ class OperateService extends  BaseService {
                 "operate_mobile" => $userInfo["mobile"] ? $userInfo["mobile"] : '',
                 "operate_name" => $userInfo["truename"] ?? "",
                 "operate_time" => time(),
-                "operate_menu" => $operate['operate_menu'],
+                "operate_menu" => !empty($operate['operate_menu'])?$operate['operate_menu']:'',
                 "community_id" => !empty($operate['community_id']) ? $operate['community_id'] : 0,
-                "operate_type" => $operate['operate_type'],
-                "operate_content" => $operate['operate_content']
+                "operate_type" => !empty($operate['operate_type']) ? $operate['operate_type']:'',
+                "operate_content" => !empty($operate['operate_content']) ? $operate['operate_content']:''
             ];
             $connection->createCommand()->insert('ps_community_operate_log', $log_arr)->execute();
         }

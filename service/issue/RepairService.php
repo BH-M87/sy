@@ -1997,4 +1997,40 @@ class RepairService extends BaseService
                 ['<', 'check_end_at', $end_at]
             ])->count();
     }
+
+    // 给街道的报修 列表
+    public function streetRepairlist($p)
+    {
+        $totals = self::streetRepairlistSearch($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $model = self::streetRepairlistSearch($p);
+
+        $list = $model->orderBy('repair_time desc')->asArray()->all();
+
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['repair_time'] = !empty($v['repair_time']) ? date('Y-m-d H:i', $v['repair_time']) : '';
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 列表参数过滤
+    private static function streetRepairlistSearch($p)
+    {
+        $start_at = !empty($p['start_at']) ? strtotime($p['start_at']) : '';
+        $end_at = !empty($p['end_at']) ? strtotime($p['end_at'] . '23:59:59') : '';
+
+        $m = PsRepair::find()
+            ->select('id, repair_content, repair_time, community_id')
+            ->filterWhere(['like', 'contact_name', PsCommon::get($p, 'contact_name')])
+            ->andFilterWhere(['=', 'community_id', PsCommon::get($p, 'community_id')])
+            ->andFilterWhere(['>=', 'repair_time', $start_at])
+            ->andFilterWhere(['<=', 'repair_time', $end_at]);
+        return $m;
+    }
 }

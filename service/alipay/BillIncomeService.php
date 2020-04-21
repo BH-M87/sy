@@ -264,15 +264,29 @@ Class BillIncomeService extends BaseService
         $rows = PsCommon::get($p, 'rows');
 
         $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
-            A.pay_channel, A.income_time, A.trade_no')
+            A.pay_channel, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
             ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
+
+        //获得所有小区
+        $javaService = new JavaService();
+        $javaParams['token'] = $p['token'];
+        $javaResult = $javaService->communityNameList($javaParams);
+        $communityName = !empty($javaResult['list'])?array_column($javaResult['list'],'name','key'):[];
+
+        //状态
+        $checkArr = ['1'=>'待核销', '2'=>'已核销'];
+
         if (!empty($model)) {
             foreach ($model as $k => &$v) {
-                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
-                $v['community_name'] = $community['communityName'];
+
+                $v['community_name'] = $communityName[$v['community_id']];
                 $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
+                $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
+                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m',$v['entry_at']):'';
+                $v['review_at_msg'] = !empty($v['review_at'])?date('Y-m-d',$v['review_at']):'';   //核销日期
+                $v['check_status_msg'] = $checkArr[$v['check_status']];
             }
         }
 
@@ -283,6 +297,13 @@ Class BillIncomeService extends BaseService
     public function billIncomeCount($params)
     {
         return $this->_billIncomeSearch($params)->count();
+    }
+
+    // 收款记录金额总数
+    public function billIncomeMoney($params)
+    {
+        $result = $this->_billIncomeSearch($params)->select(['sum(A.pay_money) as all_money'])->asArray()->one();
+        return !empty($result['all_money'])?$result['all_money']:0;
     }
 
     // 收款总金额
@@ -320,7 +341,7 @@ Class BillIncomeService extends BaseService
         $arr['trade_no'] = $model['trade_no'];
 
         $bill = PsBillIncomeRelation::find()->alias("A")
-            ->select("B.cost_name, B.acct_period_start, B.acct_period_end, B.bill_entry_amount, B.paid_entry_amount, B.prefer_entry_amount")
+            ->select("B.cost_name, B.acct_period_start, B.acct_period_end, B.bill_entry_amount, B.paid_entry_amount, B.prefer_entry_amount,B.recharge_amount,B.deduct_amount")
             ->leftJoin("ps_bill B", "A.bill_id = B.id")
             ->filterWhere(['=', 'A.income_id', PsCommon::get($params, 'id')])
             ->orderBy('B.id desc')
@@ -330,7 +351,10 @@ Class BillIncomeService extends BaseService
             foreach ($bill as $k => $v) {
                 $bill_arr[$k]['acct_period'] = date('Y-m-d', $v['acct_period_start']) . '~' . date('Y-m-d', $v['acct_period_end']);
                 $bill_arr[$k]['cost_name'] = $v['cost_name'];
-                $bill_arr[$k]['bill_entry_amount'] = $v['bill_entry_amount'];
+                $bill_arr[$k]['bill_all_amount'] = $v['bill_entry_amount'];
+                $bill_arr[$k]['bill_entry_amount'] = sprintf("%.2f",($v['bill_entry_amount']-$v['deduct_amount']));
+                $bill_arr[$k]['recharge_amount'] = $v['recharge_amount'];
+                $bill_arr[$k]['deduct_amount'] = $v['deduct_amount'];
                 $bill_arr[$k]['paid_entry_amount'] = $v['paid_entry_amount'];
                 $bill_arr[$k]['prefer_entry_amount'] = $v['prefer_entry_amount'];
             }
@@ -426,7 +450,7 @@ Class BillIncomeService extends BaseService
         }
 
         if (mb_strlen($refund_note, 'UTF8') > 100) {
-            return $this->failed('款原因只能包含至多100个字符！');
+            return $this->failed('退款原因只能包含至多100个字符！');
         }
 
         $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
@@ -585,11 +609,14 @@ Class BillIncomeService extends BaseService
                 $billInfo = $data;
                 //更新账单表的订单trade_defend字段,详情过滤当前账单
                 Yii::$app->db->createCommand("update ps_bill set trade_defend=1 where id={$billInfo['id']}")->execute();
-                unset($billInfo['id'], $billInfo['order_id'], $billInfo['status']);
+                unset($billInfo['id'], $billInfo['order_id'], $billInfo['status'], $billInfo['prefer_entry_amount']);
                 $billNewInfo = $billInfo;
                 //物业账单id
                 $billNewInfo['bill_entry_amount'] = $billInfo['bill_entry_amount'] - (2 * ($billInfo['bill_entry_amount']));//设置新的账单应收金额为负数
                 $billNewInfo['paid_entry_amount'] = $billInfo['paid_entry_amount'] - (2 * ($billInfo['paid_entry_amount']));//设置新的账单应收金额为负数
+                $billNewInfo['prefer_entry_amount'] = 0;//优惠为0
+                $billNewInfo['recharge_amount'] = $billInfo['deduct_amount'];//预存为0
+                $billNewInfo['deduct_amount'] = $billInfo['recharge_amount'];//抵扣为预存金额
                 $billNewInfo['trade_remark'] = !empty($params['refund_note']) ? $params['refund_note'] : '正常退款';
                 $billNewInfo['trade_type'] = 2;//收款类型：1收款，2退款
                 $billNewInfo['status'] = 7;
@@ -657,7 +684,7 @@ Class BillIncomeService extends BaseService
                 if ($split_status) {
                     //======================================第三步，将当前账单重新发布==================================
                     $billToInfo = $data;
-                    unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount']);
+                    unset($billToInfo['id'], $billToInfo['order_id'], $billToInfo['status'],$billToInfo['paid_entry_amount'],$billToInfo['prefer_entry_amount'], $billToInfo['recharge_amount'], $billToInfo['deduct_amount']);
                     $billToInfo['bill_entry_id'] = date('YmdHis', time()) . '2' . rand(1000, 9999) . 2;
                     $billToInfo['status'] = 1;//账单状态为线上未缴
                     $billToInfo['is_del'] = 1;
@@ -735,5 +762,91 @@ Class BillIncomeService extends BaseService
         return $this->success();
 
 
+    }
+
+    //批量核销
+    public function batchWriteOff($data,$user)
+    {
+        $check_status = 2;
+        if(empty($data['income_id'])){
+            return $this->failed("核销记录不能为空");
+        }
+        if(!is_array($data['income_id'])){
+            return $this->failed("核销记录是数组格式");
+        }
+
+        if(empty($data['entry_at'])){
+            return $this->failed("入账时间不能为空");
+        }
+        if($data['entry_at'] != date('Y-m',strtotime($data['entry_at']))){
+            return $this->failed("入账时间格式有误");
+        }
+
+        //验证数据是否存在
+        $exit_count = PsBillIncome::find()->where(['in','id',$data['income_id']])->andWhere(['=','check_status',1])->count();
+        if($exit_count != count($data['income_id'])){
+            return $this->failed("只能核销待核销的账单");
+        }
+
+        $updateParams['check_status'] = $check_status;
+        $updateParams['review_id'] = $data['create_id'];
+        $updateParams['review_name'] = $data['create_name'];
+        $updateParams['review_at'] = time();
+        $updateParams['entry_at'] = strtotime($data['entry_at']);
+
+        if(!PsBillIncome::updateAll($updateParams,['in','id',$data['income_id']])){
+            return $this->failed("操作失败");
+        }
+
+//        添加系统日志
+        $content = "核销id:" . implode(",",$data['income_id']);
+        $operate = [
+            "operate_menu" => "财务核销",
+            "operate_type" => "财务核销",
+            "operate_content" => $content,
+        ];
+        OperateService::addComm($user, $operate);
+
+        return $this->success();
+    }
+
+    //核销全部
+    public function writeOffAll($data,$user){
+        $check_status = 2;
+
+        if(empty($data['entry_at'])){
+            return $this->failed("入账时间不能为空");
+        }
+        if($data['entry_at'] != date('Y-m',strtotime($data['entry_at']))){
+            return $this->failed("入账时间格式有误");
+        }
+
+        $incomeResult = PsBillIncome::find()->select(['id'])->andWhere(['=','check_status',1])->asArray()->all();
+        if(!empty($incomeResult)){
+
+            $income_id = array_column($incomeResult,'id');
+            $updateParams['check_status'] = $check_status;
+            $updateParams['review_id'] = $data['create_id'];
+            $updateParams['review_name'] = $data['create_name'];
+            $updateParams['review_at'] = time();
+            $updateParams['entry_at'] = strtotime($data['entry_at']);
+
+            if(!PsBillIncome::updateAll($updateParams,['in','id',$income_id])){
+                return $this->failed("操作失败");
+            }
+
+    //        添加系统日志
+            $content = "核销id:" . implode(",",$income_id);
+            $operate = [
+                "operate_menu" => "财务核销",
+                "operate_type" => "财务核销",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($user, $operate);
+            return $this->success();
+
+        }else{
+            return $this->failed("只能核销待核销的账单");
+        }
     }
 }

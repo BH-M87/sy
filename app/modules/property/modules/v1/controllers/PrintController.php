@@ -2,9 +2,11 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
+use common\core\F;
 use common\core\PsCommon;
 use app\models\PsPrintModel;
 use app\models\PsTemplateBill;
+use service\common\CsvService;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
 use service\alipay\PrintService;
@@ -14,7 +16,7 @@ use app\modules\property\controllers\BaseController;
 
 class PrintController extends BaseController
 {
-    public $repeatAction = ['add'];
+    public $repeatAction = ['add','down-export-bill'];
 
     public function actionList()
     {
@@ -174,6 +176,8 @@ class PrintController extends BaseController
     public function actionBillList()
     {
         $data = $this->request_params;
+        $data['page'] = $data['page'];
+        $data['pageSize'] = $data['rows'];
         if (!empty($data)) {
             $model = new PsPrintModel();
             $model->setScenario('bill-list');
@@ -183,13 +187,57 @@ class PrintController extends BaseController
             $model->load($form);
             if ($model->validate()) {
                 $result = PrintService::service()->billList($data);
-                return PsCommon::response($result);
+                if ($result['code']) {
+                    return PsCommon::responseSuccess($result['data']);
+                } else {
+                    return PsCommon::responseFailed($result['msg']);
+                }
             } else {
                 $errorMsg = array_values($model->errors);
                 return PsCommon::responseFailed($errorMsg[0][0]);
             }
         } else {
             return PsCommon::responseFailed('未接受到有效数据');
+        }
+    }
+
+    //催缴单导出
+    public function actionDownExportBill()
+    {
+        $data = $this->request_params;
+        $data['is_down'] = 2;
+        $result = $result = PrintService::service()->billList($data);
+        if ($result['code']) {
+            $config = [
+                'A' => ['title' => '小区', 'width' => 32, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
+                'B' => ['title' => '房屋信息', 'width' => 64, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
+                'C' => ['title' => '缴费项目', 'width' => 20, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
+                'D' => ['title' => '账单开始日期', 'width' => 20, 'data_type' => 'str', 'field' => 'acct_period_start', 'default' => '-'],
+                'E' => ['title' => '账单结束日期', 'width' => 20, 'data_type' => 'str', 'field' => 'acct_period_end', 'default' => '-'],
+                'F' => ['title' => '逾期', 'width' => 14, 'data_type' => 'str', 'field' => 'overdue_day', 'default' => '-'],
+                'G' => ['title' => '账单金额', 'width' => 14, 'data_type' => 'str', 'field' => 'bill_entry_amount', 'default' => '-'],
+                'H' => ['title' => '业主', 'width' => 20, 'data_type' => 'str', 'field' => 'resident_name', 'default' => '-'],
+                'I' => ['title' => '电话', 'width' => 20, 'data_type' => 'str', 'field' => 'resident_phone', 'default' => '-'],
+            ];
+
+            $fileName = CsvService::service()->saveTempFile(1, array_values($config), $result['data']['list'], 'BillAmount');
+//            $filePath = F::originalFile().'temp/'.$fileName;
+//            $day = date('Y-m-d');
+//            $downUrl = F::downloadUrl($fileName, 'temp', 'DunningNote.csv');
+            $downUrl = F::downloadUrl($fileName, 'temp', '催缴单.csv');
+//            $fileRe = F::uploadFileToOss($filePath);
+//            $url = $fileRe['filepath'];
+            //保存日志
+            $log = [
+                "operate_menu" => "催缴单管理",
+                "operate_type" => "导出催缴单",
+                "operate_content" => ''
+            ];
+            OperateService::addComm($this->user_info, $log);
+
+            return PsCommon::responseSuccess(['down_url' => $downUrl]);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
         }
     }
 
