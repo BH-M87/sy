@@ -450,7 +450,7 @@ Class BillIncomeService extends BaseService
         }
 
         if (mb_strlen($refund_note, 'UTF8') > 100) {
-            return $this->failed('款原因只能包含至多100个字符！');
+            return $this->failed('退款原因只能包含至多100个字符！');
         }
 
         $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
