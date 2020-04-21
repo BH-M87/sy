@@ -228,7 +228,7 @@ class AlipayCostService extends BaseService
     public function billDetailList($data, $userInfo)
     {
         $communityId = PsCommon::get($data, "community_id");  //小区id
-        $source = !empty($data['source']) ? $data['source'] : 1;//1应收，2已收，3优惠，4待收，5待生成
+        $source = !empty($data['source']) ? $data['source'] : 1;//1待收，2已收，3优惠，4应收，5待生成
         $target = !empty($data['target']) ? $data['target'] : 1;//1物业，2运营
         $is_down = !empty($data['is_down']) ? $data['is_down'] : 1;//1正常查询，2下载
         $task_id = PsCommon::get($data, "task_id");  //任务id
@@ -306,8 +306,8 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':status' => $status]);
         } else {
             switch ($source) {
-                case 1:
-                    $where .= " and bill.status!=6 and bill.status!=3 ";
+                case 1://待收
+                    $where .= " and bill.status=1 ";
                     break;
                 case 2://已收
                     $where .= " and (bill.status=2 or bill.status=7)";
@@ -315,11 +315,11 @@ class AlipayCostService extends BaseService
                 case 3://优惠
                     $where .= " and (bill.status=2 or bill.status=7) and prefer_entry_amount>0 ";
                     break;
-                case 4://待收
-                    $where .= " and bill.status=1 ";
+                case 4://应收
+                    $where .= " and bill.status!=6 and bill.status!=3 ";
                     break;
                 case 5://待生成
-                    $where .= " and bill.status=3 ";
+//                    $where .= " and bill.status=3 ";
                     break;
             }
         }
