@@ -284,7 +284,7 @@ Class BillIncomeService extends BaseService
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
                 $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
-                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m-d',$v['entry_at']):'';
+                $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m',$v['entry_at']):'';
                 $v['review_at_msg'] = !empty($v['review_at'])?date('Y-m-d',$v['review_at']):'';   //核销日期
                 $v['check_status_msg'] = $checkArr[$v['check_status']];
             }
@@ -450,7 +450,7 @@ Class BillIncomeService extends BaseService
         }
 
         if (mb_strlen($refund_note, 'UTF8') > 100) {
-            return $this->failed('款原因只能包含至多100个字符！');
+            return $this->failed('退款原因只能包含至多100个字符！');
         }
 
         $model = PsBillIncome::find()->where(['=', 'id', $income_id])->asArray()->one();
@@ -785,7 +785,7 @@ Class BillIncomeService extends BaseService
         //验证数据是否存在
         $exit_count = PsBillIncome::find()->where(['in','id',$data['income_id']])->andWhere(['=','check_status',1])->count();
         if($exit_count != count($data['income_id'])){
-            return $this->failed("订单不存在");
+            return $this->failed("只能核销待核销的账单");
         }
 
         $updateParams['check_status'] = $check_status;
@@ -846,7 +846,7 @@ Class BillIncomeService extends BaseService
             return $this->success();
 
         }else{
-            return $this->failed("数据不存在");
+            return $this->failed("只能核销待核销的账单");
         }
     }
 }

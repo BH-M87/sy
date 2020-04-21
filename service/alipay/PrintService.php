@@ -176,17 +176,19 @@ class PrintService extends BaseService
         /*账期开始时间*/
         if ($data["acct_period_start"]) {
             $acct_period_start = strtotime(date("Y-m-d 00:00:00", strtotime($data["acct_period_start"])));
+//            $acct_period_start = strtotime($data["acct_period_start"]);
             $arr = [":acct_period_start" => $acct_period_start];
             $params = array_merge($params, $arr);
-            $where .= " And  acct_period_end>= :acct_period_start";
+            $where .= " And  acct_period_start>= :acct_period_start";
         }
 
         /*账期结束时间*/
         if ($data["acct_period_end"]) {
             $acct_period_end = strtotime(date("Y-m-d 23:59:59", strtotime($data["acct_period_end"])));
+//            $acct_period_end = strtotime($data["acct_period_end"]);
             $arr = [":acct_period_end" => $acct_period_end];
             $params = array_merge($params, $arr);
-            $where .= " And  acct_period_start<= :acct_period_end";
+            $where .= " And  acct_period_end<= :acct_period_end";
         }
         if (!empty($data["cost_type"])) {
             if(!is_array($data['cost_type'])){
