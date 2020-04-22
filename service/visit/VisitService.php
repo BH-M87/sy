@@ -166,7 +166,7 @@ class VisitService extends BaseService
         $r = PsRoomVisitor::find()->where(['password' => $p['password'], 'communityId' => $p['community_id']])->asArray()->one();
         if (!empty($r)) {
             if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
-                throw new MyException('密码已失效!');
+                throw new MyException('访客码已失效!');
             }
 
             if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
