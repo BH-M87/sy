@@ -67,7 +67,7 @@ class VisitService extends BaseService
             ->select($filter)
             ->filterWhere(['like', 'name', PsCommon::get($p, 'name')])
             ->andFilterWhere(['like', 'roomName', PsCommon::get($p, 'roomName')])
-            ->andFilterWhere(['=', 'user_id', PsCommon::get($p, 'user_id')])
+            ->andFilterWhere(['=', 'member_id', PsCommon::get($p, 'user_id')])
             ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])
             ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'community_id')])
             ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
