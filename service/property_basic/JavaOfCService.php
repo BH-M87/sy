@@ -33,6 +33,13 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
+    // 住户详情
+    public function residentDetail($query)
+    {
+        $query['route'] = '/member/room/residentDetail';
+        return self::returnCData($query);
+    }
+
     // 授权码换取token信息
     public function exchangeAuthValue($query)
     {
