@@ -20,6 +20,7 @@ class PsRoomVisitor extends BaseModel
             [['room_id', 'communityId', 'groupId', 'buildingId', 'unitId', 'fullName', 'user_id', 'member_id', 'name','mobile', 'visit_at'],'required','message'=>'{attribute}不能为空!','on' => ['add']],
             [['is_car', 'sex', 'visit_at', 'pass_at'], 'integer','message'=> '{attribute}格式错误!'],
             [['communityName', 'roomName', 'roomMobile', 'car_number', 'password'], 'string', 'max' => 30],
+            [['name'], 'string', 'max' => 10, 'on' => ['add']],
             [['qrcode'], 'string', 'max' => 300, 'on' => ['add']],
             [['roomMobile', 'mobile'], 'match', 'pattern'=>Regular::telOrPhone(), 'message'=>'{attribute}格式错误','on' => ['add']],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
