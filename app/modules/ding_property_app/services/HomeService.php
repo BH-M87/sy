@@ -132,6 +132,12 @@ class HomeService extends BaseService
                 'icon'=>"http://static.zje.com/2020040710080931069.png",
                 'name'=>"巡检管理",
                 'url'=>"/pages/patrolManagement/index/index"
+            ],
+            [
+
+                 'icon' => "http://static.zje.com/2020041509563541640.png",
+                 'name' => "访客通行",
+                 'url' => "/pages/visitor/index/index"
             ]
         ];
         if($javaResult){
@@ -158,7 +164,13 @@ class HomeService extends BaseService
                         'icon'=>"http://static.zje.com/2020040710080931069.png",
                         'name'=>"巡检管理",
                         'url'=>"/pages/patrolManagement/index/index"
-                  ]
+                  ],
+                    [
+
+                        'icon' => "http://static.zje.com/2020041509563541640.png",
+                        'name' => "访客通行",
+                        'url' => "/pages/visitor/index/index"
+                    ]
                 ];
             }
         }
