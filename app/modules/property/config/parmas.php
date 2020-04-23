@@ -16,7 +16,7 @@ switch (YII_ENV) {
         //生活号页面域名
         $params['web_host'] = 'https://fuwu.zje.com/';
         //钉钉前端域名
-        $params['ding_web_host'] = 'https://ddweb.elive99.com';
+        $params['ding_web_host'] = 'https://ddweb.elive99.com/';
         break;
     case  "test":
         //生活号页面域名
