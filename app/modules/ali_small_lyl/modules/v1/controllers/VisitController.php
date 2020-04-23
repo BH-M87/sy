@@ -23,6 +23,10 @@ class VisitController extends BaseController
                     $arr[$key]['room_id'] = $v['roomId'];
                     $arr[$key]['fullName'] = $v['roomFullName'];
 
+                    $user = JavaOfCService::service()->residentDetail(['id' => $v['id'], 'token' => $this->params['token']]);
+
+                    $arr[$key]['memberName'] = $user['memberName'];
+                    $arr[$key]['memberMobile'] = $user['memberMobile'];
                     switch ($v['memberType']) {
                         case '1':
                             $arr[$key]['userType'] = '业主';

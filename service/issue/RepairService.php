@@ -2013,6 +2013,7 @@ class RepairService extends BaseService
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['repair_time'] = !empty($v['repair_time']) ? date('Y-m-d H:i', $v['repair_time']) : '';
+                $v['statusMsg'] = self::$_repair_status[$v['status']];
             }
         }
 
@@ -2026,7 +2027,7 @@ class RepairService extends BaseService
         $end_at = !empty($p['end_at']) ? strtotime($p['end_at'] . '23:59:59') : '';
 
         $m = PsRepair::find()
-            ->select('id, repair_content, repair_time, community_id')
+            ->select('id, repair_content, repair_time, community_id, status')
             ->filterWhere(['like', 'contact_name', PsCommon::get($p, 'contact_name')])
             ->andFilterWhere(['=', 'community_id', PsCommon::get($p, 'community_id')])
             ->andFilterWhere(['>=', 'repair_time', $start_at])
