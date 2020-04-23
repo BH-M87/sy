@@ -146,7 +146,7 @@ class VisitService extends BaseService
         $r = PsRoomVisitor::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             if ($r['visit_at'] < strtotime(date('Y-m-d'), time()) || $r['status'] == 2) {
-                throw new MyException('二维码已失效!');
+                throw new MyException('验证失败，该通行证不存在!');
             } 
 
             if (date('Y-m-d', $r['visit_at']) != date('Y-m-d', time())) {
@@ -157,7 +157,7 @@ class VisitService extends BaseService
             return ['id' => $p['id']];
         }
 
-        throw new MyException('访客不存在!');
+        throw new MyException('验证失败，该通行证不存在!');
     }
 
     // 访客 密码验证
@@ -179,7 +179,7 @@ class VisitService extends BaseService
             return $r;
         }
 
-        throw new MyException('访客不存在!');
+        throw new MyException('验证失败，该通行证不存在!');
     }
 
 	// 访客 新增
