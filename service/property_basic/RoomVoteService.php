@@ -12,8 +12,60 @@ use service\BaseService;
 use app\models\PsRoomVote;
 use app\models\PsRoomVoteRecord;
 
+use service\property_basic\JavaOfCService;
+
 class RoomVoteService extends BaseService
 {
+    // 投票统计 户数 面积
+    public function statistic($p)
+    {
+        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+
+        $p['type'] = 1;
+        $total_1 = (int)self::voteRecordSearch($p)->count();
+
+        $p['type'] =2;
+        $total_2 = (int)self::voteRecordSearch($p)->count();
+
+        $p['type'] = 3;
+        $total_3 = (int)self::voteRecordSearch($p)->count();
+
+        $total = $arr['totalResident'];
+        $total_9 = $total-$total_1-$total_2-$total_3;
+
+        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
+        $rate9 = $total > 0 ? round($total_9 / $total, 2) * 100 : 0;
+
+        $r = [
+            ['type' => 1, 'total' => $total_1, 'rate' => $rate1],
+            ['type' => 2, 'total' => $total_2, 'rate' => $rate2],
+            ['type' => 3, 'total' => $total_3, 'rate' => $rate3],
+            ['type' => 9, 'total' => $total_9, 'rate' => $rate9]
+        ];
+
+        return $r;
+    }
+
+    // 投票 详情
+    public function blockList($p)
+    {
+        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'][0]['dataList'];
+
+        $arr = [];
+        if (!empty($r)) {
+            foreach ($r as $k => $v) {
+                $arr[$k]['buildingName'] = $v['buildingName'];
+                $arr[$k]['groupName'] = $v['groupName'];
+                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['id']])->count();
+                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['id']])->count();
+            }
+        }
+
+        return $arr;
+    }
+
     // 投票 详情
     public function show($p)
     {

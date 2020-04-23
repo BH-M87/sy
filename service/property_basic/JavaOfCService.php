@@ -71,6 +71,20 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
+    // 选择苑-幢
+    public function blockList($query)
+    {
+        $query['route'] = '/member/room/blockList';
+        return self::returnCData($query);
+    }
+
+    // 小区总户数和总房屋面积
+    public function getTotalResidentAndAreaSize($query)
+    {
+        $query['route'] = '/member/room/getTotalResidentAndAreaSize';
+        return self::returnCData($query);
+    }
+
     // 图片上传
     public function uploadImg($query)
     {
