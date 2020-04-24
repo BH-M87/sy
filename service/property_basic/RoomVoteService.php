@@ -30,6 +30,8 @@ class RoomVoteService extends BaseService
         $m = PsRoomVoteRecord::find()
             ->where(['room_vote_id' => $id, 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
 
+        //$user = JavaOfCService::service()->residentDetail(['id' => $p['memberId'], 'token' => $p['token']]);
+
         return ['voteId' => (int)$id, 'type' => !empty($m) ? 1 : 2];
     }
 
@@ -74,10 +76,10 @@ class RoomVoteService extends BaseService
         $rate9 = $total > 0 ? round($total_9 / $total, 2) : 0;
 
         $r = [
-            ['type' => '赞成', 'data' => $rate1],
-            ['type' => '反对', 'data' => $rate2],
-            ['type' => '弃权', 'data' => $rate3],
-            ['type' => '未表态', 'data' => $rate9]
+            ['type' => '赞成', 'data' => $total_1, 'color' => '#1577FC'],
+            ['type' => '反对', 'data' => $total_2, 'color' => '#F29927'],
+            ['type' => '弃权', 'data' => $total_3, 'color' => '#F35A4C'],
+            ['type' => '未表态', 'data' => $total_9, 'color' => '#9CA4BB']
         ];
 
         return $r;
@@ -106,10 +108,10 @@ class RoomVoteService extends BaseService
         $rate9 = $total > 0 ? round($total_9 / $total, 2) : 0;
 
         $r = [
-            ['type' => '赞成', 'data' => $rate1],
-            ['type' => '反对', 'data' => $rate2],
-            ['type' => '弃权', 'data' => $rate3],
-            ['type' => '未表态', 'data' => $rate9]
+            ['type' => '赞成', 'data' => $total_1, 'color' => '#1577FC'],
+            ['type' => '反对', 'data' => $total_2, 'color' => '#F29927'],
+            ['type' => '弃权', 'data' => $total_3, 'color' => '#F35A4C'],
+            ['type' => '未表态', 'data' => $total_9, 'color' => '#9CA4BB']
         ];
 
         return $r;
