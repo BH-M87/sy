@@ -124,6 +124,13 @@ class RoomVoteService extends BaseService
     // 投票 新增
     public function add($p)
     {
+        $record = PsRoomVoteRecord::find()
+            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+
+        if (!empty($record)) {
+            return PsCommon::responseFailed('不能重复投票！');
+        }
+
         $m = new PsRoomVoteRecord(['scenario' => 'add']);
 
         if (!$m->load($p, '') || !$m->validate()) {
@@ -142,8 +149,11 @@ class RoomVoteService extends BaseService
     // 投票成功
     public function success($p)
     {
+        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+
         $p['type'] = 1;
         $total_1 = self::voteRecordSearch($p)->count();
+        $ticket = ceil($arr['totalResident'] * 0.2 - $total_1);
 
         $p['type'] =2;
         $total_2 = self::voteRecordSearch($p)->count();
@@ -156,11 +166,12 @@ class RoomVoteService extends BaseService
         $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
         $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
 
-        $r = [
+        $r['list'] = [
             ['type' => 1, 'total' => $total_1, 'rate' => $rate1],
             ['type' => 2, 'total' => $total_2, 'rate' => $rate2],
             ['type' => 3, 'total' => $total_3, 'rate' => $rate3]
         ];
+        $r['total'] = $ticket > 0 ? $ticket : 0;
 
         return $r;
     }
