@@ -68,7 +68,7 @@ class RoomVoteController extends BaseController
             $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
             $p['unitName'] = $roomInfo ? $roomInfo['unitName'] : '';
             $p['roomName'] = $roomInfo ? $roomInfo['roomName'] : '';
-            $p['roomArea'] = $roomInfo ? $roomInfo['roomArea'] : '0';
+            $p['roomArea'] = $roomInfo ? $roomInfo['areaSize'] : '0';
         }
         // 查找用户的信息
         $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
