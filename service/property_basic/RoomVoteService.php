@@ -16,6 +16,41 @@ use service\property_basic\JavaOfCService;
 
 class RoomVoteService extends BaseService
 {
+    public function index($p)
+    {
+        $id = PsRoomVote::find()->select('id')->where(['communityId' => $p['communityId']])->scalar();
+
+        if (empty($id)) {
+            $arr['communityId'] = $p['communityId'];
+            $arr['name'] = '业委会申请成立投票';
+            $arr['vote_desc'] = '现需收集各位业主对本会成立意见';
+            $id = self::_voteAdd($arr)['id'];
+        }
+
+        $m = PsRoomVoteRecord::find()
+            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+
+        return ['voteId' => (int)$id, 'type' => !empty($m) ? 1 : 2];
+    }
+
+    // 投票 新增
+    public function _voteAdd($p)
+    {
+        $m = new PsRoomVote(['scenario' => 'add']);
+
+        if (!$m->load($p, '') || !$m->validate()) {
+            return PsCommon::responseFailed($this->getError($m));
+        }
+
+        if (!$m->saveData($scenario, $p)) {
+            return PsCommon::responseFailed($this->getError($m));
+        }
+
+        $id = $m->attributes['id'];
+
+        return ['id' => $id];
+    }
+
     // 投票统计 户数 面积
     public function statistic($p)
     {

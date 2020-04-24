@@ -16,12 +16,16 @@ class RoomVoteController extends BaseController
     // 首页接口
     public function actionIndex()
     {
-        if (!$this->params['user_id']) {
+        if (!$this->params['memberId']) {
             return F::apiFailed('用户ID！');
         }
 
-        if (!$this->params['room_id']) {
+        if (!$this->params['roomId']) {
             return F::apiFailed('房屋ID！');
+        }
+
+        if (!$this->params['communityId']) {
+            return F::apiFailed('小区ID！');
         }
 
         $r = RoomVoteService::service()->index($this->params);
