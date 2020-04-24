@@ -122,15 +122,28 @@ class RoomVoteController extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
-    // 投票统计 户数 面积
-    public function actionStatistic()
+    // 投票统计 户数
+    public function actionStatisticMember()
     {
         $p = $this->params;
         if (!$p['communityId']) {
             return PsCommon::responseFailed('小区id必填！');
         }
 
-        $r = RoomVoteService::service()->statistic($p);
+        $r = RoomVoteService::service()->statisticMember($p);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 投票统计 面积
+    public function actionStatisticArea()
+    {
+        $p = $this->params;
+        if (!$p['communityId']) {
+            return PsCommon::responseFailed('小区id必填！');
+        }
+
+        $r = RoomVoteService::service()->statisticArea($p);
 
         return PsCommon::responseSuccess($r);
     }

@@ -51,8 +51,8 @@ class RoomVoteService extends BaseService
         return ['id' => $id];
     }
 
-    // 投票统计 户数 面积
-    public function statistic($p)
+    // 投票统计 户数
+    public function statisticMember($p)
     {
         $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
 
@@ -68,16 +68,48 @@ class RoomVoteService extends BaseService
         $total = $arr['totalResident'];
         $total_9 = $total-$total_1-$total_2-$total_3;
 
-        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
-        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
-        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
-        $rate9 = $total > 0 ? round($total_9 / $total, 2) * 100 : 0;
+        $rate1 = $total > 0 ? round($total_1 / $total, 2) : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 2) : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 2) : 0;
+        $rate9 = $total > 0 ? round($total_9 / $total, 2) : 0;
 
         $r = [
-            ['type' => 1, 'total' => $total_1, 'rate' => $rate1],
-            ['type' => 2, 'total' => $total_2, 'rate' => $rate2],
-            ['type' => 3, 'total' => $total_3, 'rate' => $rate3],
-            ['type' => 9, 'total' => $total_9, 'rate' => $rate9]
+            ['type' => '赞成', 'data' => $rate1],
+            ['type' => '反对', 'data' => $rate2],
+            ['type' => '弃权', 'data' => $rate3],
+            ['type' => '未表态', 'data' => $rate9]
+        ];
+
+        return $r;
+    }
+
+    // 投票统计 面积
+    public function statisticArea($p)
+    {
+        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+
+        $p['type'] = 1;
+        $total_1 = (int)self::voteRecordSearch($p, 'sum(roomArea)')->scalar();
+
+        $p['type'] =2;
+        $total_2 = (int)self::voteRecordSearch($p, 'sum(roomArea)')->scalar();
+
+        $p['type'] = 3;
+        $total_3 = (int)self::voteRecordSearch($p, 'sum(roomArea)')->scalar();
+
+        $total = $arr['totalAreaSize'];
+        $total_9 = $total-$total_1-$total_2-$total_3;
+
+        $rate1 = $total > 0 ? round($total_1 / $total, 2) : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 2) : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 2) : 0;
+        $rate9 = $total > 0 ? round($total_9 / $total, 2) : 0;
+
+        $r = [
+            ['type' => '赞成', 'data' => $rate1],
+            ['type' => '反对', 'data' => $rate2],
+            ['type' => '弃权', 'data' => $rate3],
+            ['type' => '未表态', 'data' => $rate9]
         ];
 
         return $r;
@@ -179,7 +211,7 @@ class RoomVoteService extends BaseService
     // 投票统计 列表
     public function voteList($p)
     {
-        $m = self::voteRecordSearch($p, 'distinct(roomName)')->orderBy('id desc')->asArray()->all();
+        $m = self::voteRecordSearch($p, 'distinct(roomName)')->select($select)->orderBy('id desc')->asArray()->all();
 
         return $m;
     }
