@@ -110,7 +110,7 @@ class RoomVoteController extends BaseController
     {
         $r = RoomVoteService::service()->voteList($this->params);
         
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r, false);
     }
 
     // 选择苑-幢

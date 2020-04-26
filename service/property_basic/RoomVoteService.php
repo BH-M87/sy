@@ -215,9 +215,42 @@ class RoomVoteService extends BaseService
     // 投票统计 列表
     public function voteList($p)
     {
-        $m = self::voteRecordSearch($p, 'distinct(roomName)')->select($select)->orderBy('id desc')->asArray()->all();
+        if ($p['type'] == 4) { // 4未表态
+            $room = JavaOfCService::service()->roomList(['token' => $p['token'], 'id' => $p['buildingId']])['list'];
 
-        return $m;
+            $arr = [];
+            $i = 0;
+            if (!empty($room)) {
+                foreach ($room as $k => $v) {
+                    if (!empty($v['dataList'])) {
+                        foreach ($v['dataList'] as $key => $val) {
+                            $arr[$i]['roomId'] = $val['id'];
+                            $arr[$i]['roomName'] = $val['roomName'];
+                            $i++;
+                        }
+                    }
+                }
+            }
+
+            $m = self::voteRecordSearch(['buildingId' => $p['buildingId']], 'distinct(roomId), roomName')->orderBy('id desc')->asArray()->all();
+
+            if (!empty($arr)) {
+                foreach ($arr as $k => $v) {
+                    if (!empty($m)) {
+                        foreach ($m as $key => $val) {
+                            if ($val['roomId'] == $v['roomId']) {
+                                unset($arr[$k]);
+                            }
+                        }
+                    }
+                }
+            }
+            return array_values($arr);
+        } else { // 1赞成 2反对 3弃选
+            $m = self::voteRecordSearch($p, 'distinct(roomId), roomName')->orderBy('id desc')->asArray()->all();
+
+            return $m;
+        }
     }
 
     // 列表参数过滤
