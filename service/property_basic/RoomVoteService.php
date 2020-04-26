@@ -215,7 +215,7 @@ class RoomVoteService extends BaseService
     // 投票统计 列表
     public function voteList($p)
     {
-        if ($p['type'] == 4) { // 4未表态
+        if ($p['type'] == 9) { // 9未表态
             $room = JavaOfCService::service()->roomList(['token' => $p['token'], 'id' => $p['buildingId']])['list'];
 
             $arr = [];
