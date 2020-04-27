@@ -210,9 +210,9 @@ class RoomVoteService extends BaseService
         $total_3 = self::voteRecordSearch($p)->count();
 
         $total = $total_1 + $total_2 + $total_3;
-        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
-        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
-        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
+        $rate1 = $total > 0 ? round($total_1 / $total, 4) * 100 : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 4) * 100 : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 4) * 100 : 0;
 
         $r['list'] = [
             ['type' => '赞成', 'total' => $total_1, 'rate' => $rate1],
