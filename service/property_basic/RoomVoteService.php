@@ -120,14 +120,25 @@ class RoomVoteService extends BaseService
     // 投票 详情
     public function blockList($p)
     {
-        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'][0]['dataList'];
+        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'];
 
         $arr = [];
+        $i = 0;
         if (!empty($r)) {
             foreach ($r as $k => $v) {
-                $arr[$k]['buildingId'] = $v['id'];
-                $arr[$k]['buildingName'] = $v['buildingName'];
-                $arr[$k]['groupName'] = $v['groupName'];
+                if (!empty($v['dataList'])) {
+                    foreach ($v['dataList'] as $key => $val) {
+                        $arr[$i]['buildingId'] = $val['id'];
+                        $arr[$i]['buildingName'] = $val['buildingName'];
+                        $arr[$i]['groupName'] = $val['groupName'];
+                        $i++;
+                    }
+                }
+            }
+        }
+
+        if (!empty($arr)) {
+            foreach ($arr as $k => $v) {
                 $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['id']])->count();
                 $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['id']])->count();
                 $arr[$k]['rate'] = $arr[$k]['total'] > 0 ? round($arr[$k]['favor'] / $arr[$k]['total'], 2) * 100 : 0;
