@@ -163,6 +163,7 @@ class RoomVoteService extends BaseService
     public function noticeShow($p)
     {
         $r['title'] = 'Q&A';
+        $r['image'] = 'http://static.zje.com/2020042715303410593.png';
         $r['content'] = 'Q：为什么要成立业主委员会？
 A：因为业主有监督物业的权利，业主委员会是由业主选举产生的，业主委员会代表每个业主的意愿，所以请大家尽量配合，这样物业就不会胡作非为了。
 
