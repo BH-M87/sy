@@ -139,8 +139,8 @@ class RoomVoteService extends BaseService
 
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
-                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['id']])->count();
-                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['id']])->count();
+                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['buildingId']])->count();
+                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['buildingId']])->count();
                 $arr[$k]['rate'] = $arr[$k]['total'] > 0 ? round($arr[$k]['favor'] / $arr[$k]['total'], 2) * 100 : 0;
             }
         }
