@@ -214,9 +214,9 @@ class RoomVoteService extends BaseService
         $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
 
         $r['list'] = [
-            ['type' => 1, 'total' => $total_1, 'rate' => $rate1],
-            ['type' => 2, 'total' => $total_2, 'rate' => $rate2],
-            ['type' => 3, 'total' => $total_3, 'rate' => $rate3]
+            ['type' => '赞成', 'total' => $total_1, 'rate' => $rate1],
+            ['type' => '反对', 'total' => $total_2, 'rate' => $rate2],
+            ['type' => '弃权', 'total' => $total_3, 'rate' => $rate3]
         ];
         $r['total'] = $ticket > 0 ? $ticket : 0;
 
