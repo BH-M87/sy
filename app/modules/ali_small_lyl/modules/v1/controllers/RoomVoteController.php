@@ -13,6 +13,30 @@ use service\property_basic\RoomVoteService;
 
 class RoomVoteController extends BaseController
 {
+    // 首页接口
+    public function actionIndex()
+    {
+        if (!$this->params['memberId']) {
+            return F::apiFailed('用户ID必填！');
+        }
+
+        if (!$this->params['residentId']) {
+            return F::apiFailed('住户ID必填！');
+        }
+
+        if (!$this->params['roomId']) {
+            return F::apiFailed('房屋ID必填！');
+        }
+
+        if (!$this->params['communityId']) {
+            return F::apiFailed('小区ID必填！');
+        }
+
+        $r = RoomVoteService::service()->index($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 投票详情
     public function actionShow()
     {
@@ -48,7 +72,7 @@ class RoomVoteController extends BaseController
             $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
             $p['unitName'] = $roomInfo ? $roomInfo['unitName'] : '';
             $p['roomName'] = $roomInfo ? $roomInfo['roomName'] : '';
-            $p['roomArea'] = $roomInfo ? $roomInfo['roomArea'] : '0';
+            $p['roomArea'] = $roomInfo ? $roomInfo['areaSize'] : '0';
         }
         // 查找用户的信息
         $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
@@ -86,75 +110,45 @@ class RoomVoteController extends BaseController
     {
         $r = RoomVoteService::service()->voteList($this->params);
         
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r, false);
     }
 
-    // 小区列表
-    public function actionCommunitys()
+    // 选择苑-幢
+    public function actionBlockList()
     {
-        $commName = PsCommon::get($this->params, 'name', '');
-        $comms = VoteService::service()->getAllCommunitys($commName);
-        $data['list'] = $comms;
-        return F::apiSuccess($data);
-    }
-
-    // 投票列表
-    public function actionList()
-    {
-        $community_id = $this->params['community_id'];
-        if (!$community_id) {
+        $p = $this->params;
+        if (!$p['communityId']) {
             return PsCommon::responseFailed('小区id必填！');
         }
 
-        $member_id = $this->params['member_id'];
-        if (!$member_id) {
-            return PsCommon::responseFailed('住户id必填！');
-        }
+        $r = RoomVoteService::service()->blockList($p);
 
-        $room_id = $this->params['room_id'];
-        if (!$room_id) {
-            return PsCommon::responseFailed('房屋id必填！');
-        }
-
-        $result = VoteService::service()->voteListOfC($this->params);
-
-        return PsCommon::responseSuccess($result);
+        return PsCommon::responseSuccess($r);
     }
 
-    
-
-    //投票公式查看投票结果
-    public function actionVoteStatistics(){
-        $vote_id = $this->params['vote_id'];
-        if (!$vote_id) {
-            return PsCommon::responseFailed('投票id必填！');
-        }
-
-        $result = VoteService::service()->voteStatisticsOfC($this->params);
-
-        return PsCommon::responseSuccess($result);
-    }
-
-    // 投票详情接口
-    public function actionView()
+    // 投票统计 户数
+    public function actionStatisticMember()
     {
-        $voteId = PsCommon::get($this->params, 'vote_id', 0);
-        $roomId = PsCommon::get($this->params, 'room_id', 0);
-        if (!$voteId || !$roomId) {
-            return PsCommon::responseFailed('参数错误');
+        $p = $this->params;
+        if (!$p['communityId']) {
+            return PsCommon::responseFailed('小区id必填！');
         }
 
-        // 查询member_id
-        $memberId = MemberService::service()->getMemberId($this->appUserId);
-        if (!$memberId) {
-            return PsCommon::responseFailed('用户不存在');
-        }
-        $voteInfo = VoteService::service()->showVote($voteId, $memberId, $roomId);
+        $r = RoomVoteService::service()->statisticMember($p);
 
-        if (!$voteInfo) {
-            return PsCommon::responseFailed('投票信息不存在');
-        } else {
-            return F::apiSuccess($voteInfo);
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 投票统计 面积
+    public function actionStatisticArea()
+    {
+        $p = $this->params;
+        if (!$p['communityId']) {
+            return PsCommon::responseFailed('小区id必填！');
         }
+
+        $r = RoomVoteService::service()->statisticArea($p);
+
+        return PsCommon::responseSuccess($r);
     }
 }

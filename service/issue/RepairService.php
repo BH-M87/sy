@@ -34,6 +34,7 @@ use app\models\PsCommunityModel;
 use app\models\PsRepairMaterials;
 use app\models\PsRepairBillMaterial;
 use app\models\PsInspectRecord;
+use app\models\PsRepairType;
 
 class RepairService extends BaseService
 {
@@ -1269,8 +1270,8 @@ class RepairService extends BaseService
     {
         $query = new Query();
         $query->from('ps_repair pr')
-            ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id')
-            ->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id');
+            //->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
+            ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id');
 
         if ($p['top_status'] == 1) { // 我报修 我提交的报事报修工单
             $query->andWhere(['pr.created_id' => $userInfo['id']]);
@@ -1311,14 +1312,14 @@ class RepairService extends BaseService
         $r['totals'] = $query->count('DISTINCT(pr.id)');
 
         if (empty($p['onlyTotal'])) {
-            $query->select('DISTINCT(pr.id) as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, 
-                prt.name as repair_type_label, pr.repair_content remark')
+            $query->select('DISTINCT(pr.id) as issue_id, pr.repair_no as issue_bill_no, pr.create_at as created_at, pr.expired_repair_time, pr.expired_repair_type, pr.repair_type_id, pr.status, pr.is_pay, pr.repair_content remark')
             ->orderBy('pr.id desc, pr.status asc');
             $offset = ($p['page'] - 1) * $p['rows'];
             $query->offset($offset)->limit($p['rows']);
             $m = $query->createCommand()->queryAll();
 
             foreach ($m as $k => &$v) {
+                $v['repair_type_label'] = PsRepairType::findOne($v['repair_type_id'])->name;
                 $v['created_at'] = $v['created_at'] ? date("Y-m-d H:i", $v['created_at']) : '';
                 $v['status'] = $v['status'];
                 if ($v['status'] == 2 && $v['is_pay'] == 1) {

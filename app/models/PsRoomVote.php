@@ -15,12 +15,18 @@ class PsRoomVote extends BaseModel
     public function rules()
     {
         return [
+            [['communityId', 'name', 'vote_desc'],'required','message'=>'{attribute}不能为空!','on' => ['add']],
+            ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
+            'id' => 'ID',
+            'communityId' => '小区id',
+            'name' => '投票标题',
+            'vote_desc' => '投票描述',
         ];
     }
 
