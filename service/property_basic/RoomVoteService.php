@@ -28,7 +28,7 @@ class RoomVoteService extends BaseService
         }
 
         $m = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId']])->asArray()->one();
 
         $user = JavaOfCService::service()->residentDetail(['id' => $p['residentId'], 'token' => $p['token']]);
 
