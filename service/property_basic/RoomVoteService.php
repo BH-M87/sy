@@ -197,17 +197,20 @@ class RoomVoteService extends BaseService
     // 投票成功
     public function success($p)
     {
-        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomId' => $p['roomId']])->scalar();
 
+        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+        
+        $p['roomId'] = '';
         $p['type'] = 1;
-        $total_1 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
+        $total_1 = self::voteRecordSearch($p)->count();
         $ticket = ceil($arr['totalResident'] * 0.2 - $total_1);
 
         $p['type'] =2;
-        $total_2 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
+        $total_2 = self::voteRecordSearch($p)->count();
 
         $p['type'] = 3;
-        $total_3 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
+        $total_3 = self::voteRecordSearch($p)->count();
 
         $total = $total_1 + $total_2 + $total_3;
         $rate1 = $total > 0 ? round($total_1 / $total, 4) * 100 : 0;
@@ -220,8 +223,6 @@ class RoomVoteService extends BaseService
             ['type' => '3', 'typeMsg' => '弃权', 'total' => $total_3, 'rate' => (string)$rate3]
         ];
         $r['total'] = $ticket > 0 ? $ticket : 0;
-
-        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomId' => $p['roomId']])->scalar();
 
         return $r;
     }
