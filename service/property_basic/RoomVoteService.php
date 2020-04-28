@@ -28,7 +28,7 @@ class RoomVoteService extends BaseService
         }
 
         $m = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId']])->asArray()->one();
 
         $user = JavaOfCService::service()->residentDetail(['id' => $p['residentId'], 'token' => $p['token']]);
 
@@ -70,16 +70,16 @@ class RoomVoteService extends BaseService
         $total = $arr['totalResident'];
         $total_9 = $total-$total_1-$total_2-$total_3;
 
-        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 . '%' : '0%';
-        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 . '%' : '0%';
-        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 . '%' : '0%';
-        $rate9 = $total > 0 ? round($total_9 / $total, 2) * 100 . '%' : '0%';
+        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
+        $rate9 = 100 - $rate1 - $rate2 - $rate3;
 
         $r = [
-            ['type' => '赞成', 'rate' => $rate1, 'data' => $total_1, 'color' => '#1577FC'],
-            ['type' => '反对', 'rate' => $rate2, 'data' => $total_2, 'color' => '#F29927'],
-            ['type' => '弃权', 'rate' => $rate3, 'data' => $total_3, 'color' => '#F35A4C'],
-            ['type' => '未表态', 'rate' => $rate9, 'data' => $total_9, 'color' => '#9CA4BB']
+            ['type' => '赞成', 'rate' => $rate1 . '%', 'data' => $total_1, 'color' => '#1577FC'],
+            ['type' => '反对', 'rate' => $rate2 . '%', 'data' => $total_2, 'color' => '#F29927'],
+            ['type' => '弃权', 'rate' => $rate3 . '%', 'data' => $total_3, 'color' => '#F35A4C'],
+            ['type' => '未表态', 'rate' => $rate9 . '%', 'data' => $total_9, 'color' => '#9CA4BB']
         ];
 
         return $r;
@@ -102,16 +102,16 @@ class RoomVoteService extends BaseService
         $total = $arr['totalAreaSize'];
         $total_9 = $total-$total_1-$total_2-$total_3;
 
-        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 . '%' : '0%';
-        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 . '%' : '0%';
-        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 . '%' : '0%';
-        $rate9 = $total > 0 ? round($total_9 / $total, 2) * 100 . '%' : '0%';
+        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
+        $rate9 = 100 - $rate1 - $rate2 - $rate3;
 
         $r = [
-            ['type' => '赞成', 'rate' => $rate1, 'data' => $total_1, 'color' => '#1577FC'],
-            ['type' => '反对', 'rate' => $rate2, 'data' => $total_2, 'color' => '#F29927'],
-            ['type' => '弃权', 'rate' => $rate3, 'data' => $total_3, 'color' => '#F35A4C'],
-            ['type' => '未表态', 'rate' => $rate9, 'data' => $total_9, 'color' => '#9CA4BB']
+            ['type' => '赞成', 'rate' => $rate1 . '%', 'data' => $total_1, 'color' => '#1577FC'],
+            ['type' => '反对', 'rate' => $rate2 . '%', 'data' => $total_2, 'color' => '#F29927'],
+            ['type' => '弃权', 'rate' => $rate3 . '%', 'data' => $total_3, 'color' => '#F35A4C'],
+            ['type' => '未表态', 'rate' => $rate9 . '%', 'data' => $total_9, 'color' => '#9CA4BB']
         ];
 
         return $r;
@@ -120,16 +120,27 @@ class RoomVoteService extends BaseService
     // 投票 详情
     public function blockList($p)
     {
-        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'][0]['dataList'];
+        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'];
 
         $arr = [];
+        $i = 0;
         if (!empty($r)) {
             foreach ($r as $k => $v) {
-                $arr[$k]['buildingId'] = $v['id'];
-                $arr[$k]['buildingName'] = $v['buildingName'];
-                $arr[$k]['groupName'] = $v['groupName'];
-                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['id']])->count();
-                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['id']])->count();
+                if (!empty($v['dataList'])) {
+                    foreach ($v['dataList'] as $key => $val) {
+                        $arr[$i]['buildingId'] = $val['id'];
+                        $arr[$i]['buildingName'] = $val['buildingName'];
+                        $arr[$i]['groupName'] = $val['groupName'];
+                        $i++;
+                    }
+                }
+            }
+        }
+
+        if (!empty($arr)) {
+            foreach ($arr as $k => $v) {
+                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['buildingId']])->count();
+                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['buildingId']])->count();
                 $arr[$k]['rate'] = $arr[$k]['total'] > 0 ? round($arr[$k]['favor'] / $arr[$k]['total'], 2) * 100 : 0;
             }
         }
@@ -151,9 +162,10 @@ class RoomVoteService extends BaseService
     // 公告 详情
     public function noticeShow($p)
     {
-        $r['title'] = '公告标题';
-        $r['content'] = '公告内容';
-
+        $r['title'] = 'Q&A';
+        $r['image'] = 'http://static.zje.com/2020042715352788422.png';
+        $r['content'] = '<p><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">Q：为什么要成立业主委员会？</span><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">A：因为业主有监督物业的权利，业主委员会是由业主选举产生的，业主委员会代表每个业主的意愿，所以请大家尽量配合，这样物业就不会胡作非为了。</span><br/><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">Q：如何支持成立业主委员会？</span><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">A：1.点击投票界面顶部的【小区显示区域】，根据操作指引，完成房屋认证，获取投票资格。</span><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);"> &nbsp; &nbsp; &nbsp;2.完成房屋认证后，点击投票界面的【去投票】的图片，进入投票界面，选中您的【投票意向】，点击【确认投票】，即表决成功。</span><br/><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">Q：如何查看投票结果？</span><br/><span style="color: rgb(17, 31, 44); font-family: &quot;Microsoft YaHei&quot;, &quot;Segoe UI&quot;, system-ui, Roboto, &quot;Droid Sans&quot;, &quot;Helvetica Neue&quot;, sans-serif, Tahoma, &quot;Segoe UI SymbolMyanmar Text&quot;, 微软雅黑; font-size: 14px; white-space: pre-wrap; background-color: rgb(255, 255, 255);">A：点击下方菜单的【投票统计】查看总的投票情况；点击投票界面的【去投票】图片查看自己的投票记录。</span></p>';
+        
         return $r;
     }
 
@@ -161,10 +173,10 @@ class RoomVoteService extends BaseService
     public function add($p)
     {
         $record = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId']])->asArray()->one();
 
         if (!empty($record)) {
-            return PsCommon::responseFailed('不能重复投票！');
+            return PsCommon::responseFailed('该户已投票！');
         }
 
         $m = new PsRoomVoteRecord(['scenario' => 'add']);
@@ -185,8 +197,11 @@ class RoomVoteService extends BaseService
     // 投票成功
     public function success($p)
     {
-        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomId' => $p['roomId']])->scalar();
 
+        $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
+        
+        $p['roomId'] = '';
         $p['type'] = 1;
         $total_1 = self::voteRecordSearch($p)->count();
         $ticket = ceil($arr['totalResident'] * 0.2 - $total_1);
@@ -198,14 +213,14 @@ class RoomVoteService extends BaseService
         $total_3 = self::voteRecordSearch($p)->count();
 
         $total = $total_1 + $total_2 + $total_3;
-        $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
-        $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
-        $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
+        $rate1 = $total > 0 ? round($total_1 / $total, 4) * 100 : 0;
+        $rate2 = $total > 0 ? round($total_2 / $total, 4) * 100 : 0;
+        $rate3 = $total > 0 ? round($total_3 / $total, 4) * 100 : 0;
 
         $r['list'] = [
-            ['type' => 1, 'total' => $total_1, 'rate' => $rate1],
-            ['type' => 2, 'total' => $total_2, 'rate' => $rate2],
-            ['type' => 3, 'total' => $total_3, 'rate' => $rate3]
+            ['type' => '1', 'typeMsg' => '赞成', 'total' => $total_1, 'rate' => (string)$rate1],
+            ['type' => '2', 'typeMsg' => '反对', 'total' => $total_2, 'rate' => (string)$rate2],
+            ['type' => '3', 'typeMsg' => '弃权', 'total' => $total_3, 'rate' => (string)$rate3]
         ];
         $r['total'] = $ticket > 0 ? $ticket : 0;
 
