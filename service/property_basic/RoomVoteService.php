@@ -200,14 +200,14 @@ class RoomVoteService extends BaseService
         $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
 
         $p['type'] = 1;
-        $total_1 = self::voteRecordSearch($p)->count();
+        $total_1 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
         $ticket = ceil($arr['totalResident'] * 0.2 - $total_1);
 
         $p['type'] =2;
-        $total_2 = self::voteRecordSearch($p)->count();
+        $total_2 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
 
         $p['type'] = 3;
-        $total_3 = self::voteRecordSearch($p)->count();
+        $total_3 = self::voteRecordSearch(['communityId' => $p['communityId']])->count();
 
         $total = $total_1 + $total_2 + $total_3;
         $rate1 = $total > 0 ? round($total_1 / $total, 4) * 100 : 0;
