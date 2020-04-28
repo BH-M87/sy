@@ -173,10 +173,10 @@ class RoomVoteService extends BaseService
     public function add($p)
     {
         $record = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId'], 'memberId' => $p['memberId']])->asArray()->one();
+            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId']])->asArray()->one();
 
         if (!empty($record)) {
-            return PsCommon::responseFailed('不能重复投票！');
+            return PsCommon::responseFailed('该户已投票！');
         }
 
         $m = new PsRoomVoteRecord(['scenario' => 'add']);
