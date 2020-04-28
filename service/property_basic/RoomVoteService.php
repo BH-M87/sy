@@ -69,11 +69,13 @@ class RoomVoteService extends BaseService
 
         $total = $arr['totalResident'];
         $total_9 = $total-$total_1-$total_2-$total_3;
+        $total_9 = $total_9 > 0 ? $total_9 : 0;
 
         $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
         $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
         $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
         $rate9 = 100 - $rate1 - $rate2 - $rate3;
+        $rate9 = $rate9 > 0 ? $rate9 : 0;
 
         $r = [
             ['type' => '赞成', 'rate' => $rate1 . '%', 'data' => $total_1, 'color' => '#1577FC'],
@@ -101,11 +103,13 @@ class RoomVoteService extends BaseService
 
         $total = $arr['totalAreaSize'];
         $total_9 = $total-$total_1-$total_2-$total_3;
+        $total_9 = $total_9 > 0 ? $total_9 : 0;
 
         $rate1 = $total > 0 ? round($total_1 / $total, 2) * 100 : 0;
         $rate2 = $total > 0 ? round($total_2 / $total, 2) * 100 : 0;
         $rate3 = $total > 0 ? round($total_3 / $total, 2) * 100 : 0;
         $rate9 = 100 - $rate1 - $rate2 - $rate3;
+        $rate9 = $rate9 > 0 ? $rate9 : 0;
 
         $r = [
             ['type' => '赞成', 'rate' => $rate1 . '%', 'data' => $total_1, 'color' => '#1577FC'],
