@@ -221,6 +221,8 @@ class RoomVoteService extends BaseService
         ];
         $r['total'] = $ticket > 0 ? $ticket : 0;
 
+        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomId' => $p['roomId']])->scalar();
+
         return $r;
     }
 

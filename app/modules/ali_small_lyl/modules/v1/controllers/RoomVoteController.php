@@ -100,6 +100,10 @@ class RoomVoteController extends BaseController
             return F::apiFailed('请输入小区ID！');
         }
 
+        if (!$this->params['roomId']) {
+            return F::apiFailed('请输入房屋ID！');
+        }
+
         $r = RoomVoteService::service()->success($this->params);
         
         return PsCommon::responseSuccess($r);
