@@ -68,10 +68,6 @@ class RoomVoteService extends BaseService
         $total_3 = (int)self::voteRecordSearch($p)->count();
 
         $total = $arr['totalResident'];
-        $all = $total_1 + $total_2 + $total_3;
-        if ($all > $total) {
-            $total = $all;
-        }
 
         $total_9 = $total-$total_1-$total_2-$total_3;
         $total_9 = $total_9 > 0 ? $total_9 : 0;
@@ -106,11 +102,7 @@ class RoomVoteService extends BaseService
         $total_3 = (int)self::voteRecordSearch($p, 'sum(roomArea)')->scalar();
 
         $total = $arr['totalAreaSize'];
-        $all = $total_1 + $total_2 + $total_3;
-        if ($all > $total) {
-            $total = $all;
-        }
-        
+
         $total_9 = $total-$total_1-$total_2-$total_3;
         $total_9 = $total_9 > 0 ? $total_9 : 0;
 
