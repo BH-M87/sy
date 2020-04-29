@@ -26,13 +26,20 @@ class RoomVoteService extends BaseService
             $arr['vote_desc'] = '现需收集各位业主对本会成立意见';
             $id = self::_voteAdd($arr)['id'];
         }
-
-        $m = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $id, 'roomId' => $p['roomId']])->asArray()->one();
+        
+        if (empty($p['roomId'])) {
+            $type = 3; // 未认证
+        } else {
+            $m = PsRoomVoteRecord::find()->where(['room_vote_id' => $id, 'roomId' => $p['roomId']])->asArray()->one();
+            $type = 2; // 未投票
+            if (!empty($m)) {
+                $type = 1; // 已投票
+            }
+        }
 
         $user = JavaOfCService::service()->residentDetail(['id' => $p['residentId'], 'token' => $p['token']]);
 
-        return ['voteId' => (int)$id, 'type' => !empty($m) ? 1 : 2, 'memberType' => $user['memberType']];
+        return ['voteId' => (int)$id, 'type' => $type, 'memberType' => $user['memberType']];
     }
 
     // 投票 新增
@@ -110,7 +117,7 @@ class RoomVoteService extends BaseService
         if ($all > $total) {
             $total = $all;
         }
-        
+
         $total_9 = $total-$total_1-$total_2-$total_3;
         $total_9 = $total_9 > 0 ? $total_9 : 0;
 
