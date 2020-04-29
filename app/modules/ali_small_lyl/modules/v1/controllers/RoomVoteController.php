@@ -25,7 +25,7 @@ class RoomVoteController extends BaseController
         }
 
         if (!$this->params['roomId']) {
-            return F::apiFailed('房屋ID必填！');
+            //return F::apiFailed('房屋ID必填！');
         }
 
         if (!$this->params['communityId']) {
