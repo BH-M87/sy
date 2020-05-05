@@ -24,8 +24,8 @@ class RoomVoteController extends BaseController
             return F::apiFailed('住户ID必填！');
         }
 
-        if (!$this->params['roomId']) {
-            //return F::apiFailed('房屋ID必填！');
+        if (!$this->params['roomFullName']) {
+            return F::apiFailed('房屋信息必填！');
         }
 
         if (!$this->params['communityId']) {
@@ -61,19 +61,11 @@ class RoomVoteController extends BaseController
     public function actionAdd()
     {
         $p = $this->params;
-        if (!empty($p['roomId'])) {
-            $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $p['roomId']]);
-            $p['communityId'] = $roomInfo ? $roomInfo['communityId'] : '';
-            $p['communityName'] = $roomInfo ? $roomInfo['communityName'] : '';
-            $p['groupId'] = $roomInfo ? $roomInfo['groupId'] : '';
-            $p['groupName'] = $roomInfo ? $roomInfo['groupName'] : '';
-            $p['buildingId'] = $roomInfo ? $roomInfo['buildingId'] : '';
-            $p['buildingName'] = $roomInfo ? $roomInfo['buildingName'] : '';
-            $p['unitId'] = $roomInfo ? $roomInfo['unitId'] : '';
-            $p['unitName'] = $roomInfo ? $roomInfo['unitName'] : '';
-            $p['roomName'] = $roomInfo ? $roomInfo['roomName'] : '';
-            $p['roomArea'] = $roomInfo ? $roomInfo['areaSize'] : '0';
-        }
+
+        $p['buildingFullName'] = $p['groupName'].$p['buildingName'];
+        $p['unitFullName'] = $p['groupName'].$p['buildingName'].$p['unitName'];
+        $p['roomArea'] = $p['areaSize'] ? $p['areaSize'] : '0';
+        
         // 查找用户的信息
         $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
         if (empty($member)) {
@@ -100,8 +92,8 @@ class RoomVoteController extends BaseController
             return F::apiFailed('请输入小区ID！');
         }
 
-        if (!$this->params['roomId']) {
-            return F::apiFailed('请输入房屋ID！');
+        if (!$this->params['roomFullName']) {
+            return F::apiFailed('请输入房屋信息！');
         }
 
         $r = RoomVoteService::service()->success($this->params);
@@ -112,6 +104,20 @@ class RoomVoteController extends BaseController
     // 投票统计 列表
     public function actionVoteList()
     {
+        if (!$this->params['communityId']) {
+            return F::apiFailed('请输入小区ID！');
+        }
+
+        if (!$this->params['groupName']) {
+            return F::apiFailed('请输入苑期区名称！');
+        }
+        
+        if (!$this->params['buildingName']) {
+            return F::apiFailed('请输入楼栋名称！');
+        }
+
+        $this->params['buildingFullName'] = $this->params['groupName'].$this->params['buildingName'];
+
         $r = RoomVoteService::service()->voteList($this->params);
         
         return PsCommon::responseSuccess($r, false);
@@ -140,7 +146,7 @@ class RoomVoteController extends BaseController
 
         $r = RoomVoteService::service()->statisticMember($p);
 
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r); 
     }
 
     // 投票统计 面积

@@ -85,6 +85,13 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
+    // 选择单元-室
+    public function selectRoomList($query)
+    {
+        $query['route'] = '/member/room/selectRoomListForPhp';
+        return self::returnCData($query);
+    }
+
     // 小区总户数和总房屋面积
     public function getTotalResidentAndAreaSize($query)
     {
