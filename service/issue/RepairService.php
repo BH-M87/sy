@@ -1296,7 +1296,9 @@ class RepairService extends BaseService
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
-            ->andFilterWhere(['or', 
+            ->andFilterWhere(['>=', 'repair_time', $p['start']])
+            ->andFilterWhere(['<=', 'repair_time', $p['end']]);
+            /*->andFilterWhere(['or', 
                 ['and', 
                     ['>=', 'expired_repair_time', $p['start']], 
                     ['<=', 'expired_repair_time', $p['end']], 
@@ -1307,7 +1309,7 @@ class RepairService extends BaseService
                     ['<=', 'repair_time', $p['end']], 
                     ['=', 'expired_repair_time', 0]
                 ]
-            ]);
+            ]);*/
 
         $r['totals'] = $query->count('DISTINCT(pr.id)');
 
