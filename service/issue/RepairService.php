@@ -1250,7 +1250,7 @@ class RepairService extends BaseService
                 break;
         }
 
-        $r = self::mineList($p, $userInfo);
+        //$r = self::mineList($p, $userInfo);
         
         if (!empty($p['top_status'])) {
             $p['onlyTotal'] = 1;
