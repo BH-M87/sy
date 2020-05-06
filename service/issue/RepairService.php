@@ -1255,11 +1255,11 @@ class RepairService extends BaseService
         if (!empty($p['top_status'])) {
             $p['onlyTotal'] = 1;
             $p['top_status'] = 1; // 我报修
-            $r['addNum'] = self::mineList($p, $userInfo)['totals'];
+            //$r['addNum'] = self::mineList($p, $userInfo)['totals'];
             $p['top_status'] = 2; // 待处理
-            $r['dealNum'] = self::mineList($p, $userInfo)['totals'];
+            //$r['dealNum'] = self::mineList($p, $userInfo)['totals'];
             $p['top_status'] = 3; // 我处理
-            $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
+            //$r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
 
         return $r;
