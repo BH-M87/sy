@@ -99,7 +99,7 @@ class BaseController extends Controller
         }
         
         // 用户的小区权限
-        //$community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['OpenAuthorization']]);
+        $community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['OpenAuthorization']]);
         if (!empty($community['list'])) {
             foreach ($community['list'] as $k => $v) {
                 $this->community_list[] = $v['key'];
