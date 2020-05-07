@@ -1250,16 +1250,16 @@ class RepairService extends BaseService
                 break;
         }
 
-        //$r = self::mineList($p, $userInfo);
+        $r = self::mineList($p, $userInfo);
         
         if (!empty($p['top_status'])) {
             $p['onlyTotal'] = 1;
             $p['top_status'] = 1; // 我报修
-            //$r['addNum'] = self::mineList($p, $userInfo)['totals'];
+            $r['addNum'] = self::mineList($p, $userInfo)['totals'];
             $p['top_status'] = 2; // 待处理
-            //$r['dealNum'] = self::mineList($p, $userInfo)['totals'];
+            $r['dealNum'] = self::mineList($p, $userInfo)['totals'];
             $p['top_status'] = 3; // 我处理
-            //$r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
+            $r['dealedNum'] = self::mineList($p, $userInfo)['totals'];
         }
 
         return $r;
@@ -1296,9 +1296,7 @@ class RepairService extends BaseService
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
-            ->andFilterWhere(['>=', 'repair_time', $p['start']])
-            ->andFilterWhere(['<=', 'repair_time', $p['end']]);
-            /*->andFilterWhere(['or', 
+            ->andFilterWhere(['or', 
                 ['and', 
                     ['>=', 'expired_repair_time', $p['start']], 
                     ['<=', 'expired_repair_time', $p['end']], 
@@ -1309,7 +1307,7 @@ class RepairService extends BaseService
                     ['<=', 'repair_time', $p['end']], 
                     ['=', 'expired_repair_time', 0]
                 ]
-            ]);*/
+            ]);
 
         $r['totals'] = $query->count('DISTINCT(pr.id)');
 
