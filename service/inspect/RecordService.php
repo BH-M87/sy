@@ -111,6 +111,7 @@ class RecordService extends BaseService {
                 $data[] = $element;
             }
         }
+//        return ['list'=>[],'totals'=>0,'pending_count'=>0];
         return ['list'=>$data,'totals'=>$result['count'],'pending_count'=>$pending_count];
     }
 

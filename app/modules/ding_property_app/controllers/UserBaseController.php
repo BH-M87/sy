@@ -24,16 +24,21 @@ class UserBaseController extends BaseController
             'route' => '/user/validate-token',
             'token' => $this->token,
         ];
+        $token = md5($this->token);
         //设置缓存锁
         $redis = Yii::$app->redis;
-        $userInfo = $redis->get($this->token);
+        $userInfo = $redis->get($token);
         if(!$userInfo){
             //todo::调用java接口
             $userInfo = JavaCurl::getInstance()->pullHandler($params);
             //设置缓存
-            $redis->set($this->token,$userInfo);
+            $redis->set($token,$userInfo);
+            //设置半小时有效期
+            $redis->expire($token,1800);
         }
-
+        //$userInfo['id'] = '1205020963543236609';
+        //$userInfo['trueName'] = '周文斌';
+        //$userInfo['sensitiveInf'] = '15067035302';
         $this->userInfo = $userInfo;
         $this->userInfo['truename'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];;
         $this->userId = $userInfo['id'];
