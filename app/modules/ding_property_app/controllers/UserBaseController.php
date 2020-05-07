@@ -27,12 +27,12 @@ class UserBaseController extends BaseController
         $token = md5($this->token);
         //设置缓存锁
         $redis = Yii::$app->redis;
-        $userInfo = $redis->get($token);
+        $userInfo = json_decode($redis->get($token),true);
         if(!$userInfo){
             //todo::调用java接口
             $userInfo = JavaCurl::getInstance()->pullHandler($params);
             //设置缓存
-            $redis->set($token,$userInfo);
+            $redis->set($token,json_encode($userInfo));
             //设置半小时有效期
             $redis->expire($token,1800);
         }
