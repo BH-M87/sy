@@ -142,7 +142,7 @@ class JavaCurl {
 
         //开启调试，查看请求header信息
         curl_setopt($ch, CURLOPT_VERBOSE, true);
-        curl_setopt($ch, CURLOPT_STDERR, fopen($log,'a+'));
+//        curl_setopt($ch, CURLOPT_STDERR, fopen($log,'a+'));
         $response = curl_exec($ch);
         curl_close($ch);
         $response = json_decode($response, true);
@@ -154,7 +154,7 @@ class JavaCurl {
         }
         
         if (!$response['code'] || !in_array($response['code'], [0,1,200])) {
-            self::pullLog($url . PHP_EOL . $postData."getParams:".json_encode($getData) . PHP_EOL . json_encode($response) . PHP_EOL);
+//            self::pullLog($url . PHP_EOL . $postData."getParams:".json_encode($getData) . PHP_EOL . json_encode($response) . PHP_EOL);
             if ($route != '/member/integral/grant') {
                 self::errorResult($response);
             }
