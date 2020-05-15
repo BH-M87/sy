@@ -124,7 +124,7 @@ class InspectController extends UserBaseController
     // 巡检点列表
     public function actionPointList()
     {
-        if(!$this->downgrade['inspect_list']){
+        if(!$this->downgrade['inspect_point']){
             return PsCommon::responseFailed($this->downgrade['msg']);
         }
         $r = PointService::service()->pointList($this->params);
