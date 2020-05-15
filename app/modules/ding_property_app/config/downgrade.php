@@ -6,7 +6,7 @@ $params = [
     'inspect_plan_list'=>false,             //巡检计划列表
     'inspect_record_list' => false,         //巡检任务列表
     'inspect_device_list' => false,         //巡检设备列表
-    'repair_type' => false,         //报事保修
+    'repair_type' => true,         //报事保修
     'msg' => '模块维护中...',
 ];
 return $params;
