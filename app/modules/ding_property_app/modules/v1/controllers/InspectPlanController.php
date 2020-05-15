@@ -22,7 +22,7 @@ class InspectPlanController extends UserBaseController {
         try{
 
             if(!$this->downgrade['inspect_plan_list']){
-                return PsCommon::responseFailed($this->downgrade['msg']);
+                return PsCommon::responseFailed($this->downgrade['msg'],50003);
             }
 
             $params = $this->request_params;

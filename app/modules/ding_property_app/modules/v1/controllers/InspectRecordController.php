@@ -21,7 +21,7 @@ class InspectRecordController extends UserBaseController {
     public function actionRecordList(){
         try{
             if(!$this->downgrade['inspect_record_list']){
-                return PsCommon::responseFailed($this->downgrade['msg']);
+                return PsCommon::responseFailed($this->downgrade['msg'],50003);
             }
             $params = $this->request_params;
             $params['page'] = $this->page;

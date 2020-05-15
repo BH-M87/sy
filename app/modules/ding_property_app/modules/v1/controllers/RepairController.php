@@ -71,7 +71,7 @@ class RepairController extends UserBaseController
     public function actionType()
     {
         if(!$this->downgrade['repair_type']){
-            return PsCommon::responseFailed($this->downgrade['msg']);
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
         $r = RepairTypeService::service()->getSmallAppRepairTypeTree($this->params);
         return F::apiSuccess($r);

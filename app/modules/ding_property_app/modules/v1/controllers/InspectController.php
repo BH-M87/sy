@@ -17,7 +17,7 @@ class InspectController extends UserBaseController
     public function actionTaskList()
     {
         if(!$this->downgrade['inspect_list']){
-            return PsCommon::responseFailed($this->downgrade['msg']);
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
 
         $this->request_params['user_id'] = $this->userId;
@@ -71,7 +71,7 @@ class InspectController extends UserBaseController
     public function actionListDevice()
     {
         if(!$this->downgrade['inspect_device_list']){
-            return PsCommon::responseFailed($this->downgrade['msg']);
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
         $this->params['communityList'] = $this->params['communityId'];
         $r = PointService::service()->listDevice($this->params);
@@ -125,7 +125,7 @@ class InspectController extends UserBaseController
     public function actionPointList()
     {
         if(!$this->downgrade['inspect_point']){
-            return PsCommon::responseFailed($this->downgrade['msg']);
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
         $r = PointService::service()->pointList($this->params);
 
@@ -182,7 +182,7 @@ class InspectController extends UserBaseController
     public function actionLineList()
     {
         if(!$this->downgrade['inspect_line_list']){
-            return PsCommon::responseFailed($this->downgrade['msg']);
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
         $r = LineService::service()->lineList($this->params);
 
