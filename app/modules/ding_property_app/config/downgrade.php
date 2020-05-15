@@ -1,6 +1,6 @@
 <?php
 $params = [
-    'inspect_list' => false,                //巡检执行入口
+    'inspect_list' => true,                //巡检执行入口
     'inspect_point' => false,               //巡检点入口
     'inspect_line_list' => false,           //巡检路线列表
     'inspect_plan_list'=>false,             //巡检计划列表
