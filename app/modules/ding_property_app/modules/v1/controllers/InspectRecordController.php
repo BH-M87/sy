@@ -20,6 +20,9 @@ class InspectRecordController extends UserBaseController {
     //巡检任务-列表
     public function actionRecordList(){
         try{
+            if(!$this->downgrade['inspect_record_list']){
+                return PsCommon::responseFailed($this->downgrade['msg']);
+            }
             $params = $this->request_params;
             $params['page'] = $this->page;
             $params['pageSize'] = $this->pageSize;

@@ -20,6 +20,11 @@ class InspectPlanController extends UserBaseController {
     //列表
     public function actionPlanList(){
         try{
+
+            if(!$this->downgrade['inspect_plan_list']){
+                return PsCommon::responseFailed($this->downgrade['msg']);
+            }
+
             $params = $this->request_params;
             $params['page'] = $this->page;
             $params['pageSize'] = $this->pageSize;

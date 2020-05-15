@@ -70,6 +70,9 @@ class RepairController extends UserBaseController
     // 工单分类
     public function actionType()
     {
+        if(!$this->downgrade['repair_type']){
+            return PsCommon::responseFailed($this->downgrade['msg']);
+        }
         $r = RepairTypeService::service()->getSmallAppRepairTypeTree($this->params);
         return F::apiSuccess($r);
     }
