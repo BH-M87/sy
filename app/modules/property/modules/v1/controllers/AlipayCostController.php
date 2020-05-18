@@ -811,7 +811,8 @@ Class AlipayCostController extends BaseController
         OperateService::addComm($this->user_info, $operate);
 
         $this->request_params['is_down'] = 2;
-        $result = AlipayCostService::service()->payDetailList($this->request_params, $this->user_info);
+        $result = BillDetailService::service()->payDetailList_($this->request_params, $this->user_info);
+//        $result = AlipayCostService::service()->payDetailList($this->request_params, $this->user_info);
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
@@ -822,7 +823,7 @@ Class AlipayCostController extends BaseController
                     ['title' => '交易流水号', 'width' => 32, 'data_type' => 'str', 'field' => 'trade_no'],
                     ['title' => '账期', 'width' => 32, 'data_type' => 'str', 'field' => 'acct_period'],
                     ['title' => '小区名称', 'width' => 18, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
-                    ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_msg', 'default' => '-'],
+                    ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'width' => 32, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
                     ['title' => '收款类型', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
@@ -835,7 +836,7 @@ Class AlipayCostController extends BaseController
                 $config = [
                     ['title' => '交易流水号', 'field' => 'trade_no'],
                     ['title' => '小区名称', 'field' => 'community_name', 'default' => '-'],
-                    ['title' => '关联房屋', 'field' => 'room_msg', 'default' => '-'],
+                    ['title' => '关联房屋', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'field' => 'total_amount', 'default' => '-'],
                     ['title' => '支付方式', 'field' => 'pay_channel_name'],
@@ -860,20 +861,20 @@ Class AlipayCostController extends BaseController
                     ['title' => '交易流水号', 'width' => 32, 'data_type' => 'str', 'field' => 'trade_no'],
                     ['title' => '账期', 'width' => 32, 'data_type' => 'str', 'field' => 'acct_period'],
                     ['title' => '小区名称', 'width' => 18, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
-                    ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_msg', 'default' => '-'],
+                    ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'width' => 32, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
                     ['title' => '收款类型', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
                     ['title' => '支付方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
                     ['title' => '缴费时间', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_time'],
-                    ['title' => '备注', 'width' => 24, 'data_type' => 'str', 'field' => 'bill_note'],
+                    ['title' => '备注', 'width' => 24, 'data_type' => 'str', 'field' => 'remark'],
                 ];
                 break;
             case 5://报事报修
                 $config = [
                     ['title' => '小区名称', 'width' => 18, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
                     ['title' => '工单编号', 'width' => 18, 'data_type' => 'str', 'field' => 'repair_no'],
-                    ['title' => '报修地址', 'width' => 20, 'data_type' => 'str', 'field' => 'room_msg'],
+                    ['title' => '报修地址', 'width' => 20, 'data_type' => 'str', 'field' => 'room_address'],
                     ['title' => '提交人', 'width' => 15, 'data_type' => 'str', 'field' => 'created_username', 'default' => '-'],
                     ['title' => '联系电话', 'width' => 15, 'data_type' => 'str', 'field' => 'created_mobile', 'default' => '-'],
                     ['title' => '报修类型', 'width' => 15, 'data_type' => 'st -r', 'field' => 'repair_type_str', 'default' => '-'],
@@ -885,10 +886,12 @@ Class AlipayCostController extends BaseController
                 break;
         }
         $filename = CsvService::service()->saveTempFile(1, $config, $result['data']['list'], 'JiaoFeiMingXi');
-        $filePath = F::originalFile().'temp/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+        $downUrl = F::downloadUrl($filename, 'temp', 'JiaoFeiMingXi.csv');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
+//        $filePath = F::originalFile().'temp/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+//        return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
     //=================================================End收缴明细功能相关==============================================
 
