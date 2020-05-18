@@ -16,9 +16,12 @@ class InspectController extends UserBaseController
     // 巡检代办列表
     public function actionTaskList()
     {
+        if(!$this->downgrade['inspect_list']){
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
+        }
+
         $this->request_params['user_id'] = $this->userId;
         $r = PointService::service()->taskList($this->request_params);
-
         return PsCommon::responseSuccess($r);
     }
 
@@ -67,6 +70,9 @@ class InspectController extends UserBaseController
     // 巡检设备列表
     public function actionListDevice()
     {
+        if(!$this->downgrade['inspect_device_list']){
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
+        }
         $this->params['communityList'] = $this->params['communityId'];
         $r = PointService::service()->listDevice($this->params);
 
@@ -118,6 +124,9 @@ class InspectController extends UserBaseController
     // 巡检点列表
     public function actionPointList()
     {
+        if(!$this->downgrade['inspect_point']){
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
+        }
         $r = PointService::service()->pointList($this->params);
 
         return PsCommon::responseSuccess($r);
@@ -172,6 +181,9 @@ class InspectController extends UserBaseController
     // 巡检线路列表
     public function actionLineList()
     {
+        if(!$this->downgrade['inspect_line_list']){
+            return PsCommon::responseFailed($this->downgrade['msg'],50003);
+        }
         $r = LineService::service()->lineList($this->params);
 
         return PsCommon::responseSuccess($r);

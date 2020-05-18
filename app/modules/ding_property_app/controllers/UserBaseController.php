@@ -14,6 +14,7 @@ class UserBaseController extends BaseController
     public $userId;
     public $userMobile;
     public $userInfo = [];
+    public $downgrade = [];
 
     public function beforeAction($action)
     {
@@ -43,6 +44,7 @@ class UserBaseController extends BaseController
         $this->userInfo['truename'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];;
         $this->userId = $userInfo['id'];
         $this->userMobile = $this->userInfo['mobile'];
+        $this->downgrade = Yii::$app->modules['ding_property_app']->params['downgrade'];
         return true;
     }
 }
