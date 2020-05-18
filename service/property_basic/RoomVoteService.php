@@ -153,15 +153,22 @@ class RoomVoteService extends BaseService
             foreach ($r as $k => $v) {
                 if (!empty($v['dataList'])) {
                     foreach ($v['dataList'] as $key => $val) {
-                        $arr[$i]['buildingId'] = $val['id'];
-                        $arr[$i]['buildingName'] = $val['buildingName'];
                         $arr[$i]['buildingFullName'] = $val['groupName'].$val['buildingName'];
                         $arr[$i]['groupName'] = $val['groupName'];
+                        $arr[$i]['buildingId'] = $val['id'];
+                        $arr[$i]['buildingName'] = $val['buildingName'];
+                        
+                        $building[] =  $arr[$i]['buildingFullName'];
                         $i++;
                     }
                 }
             }
         }
+
+        $m = PsRoomVoteRecord::find()->select('distinct(buildingFullName), groupName, buildingId, buildingName')->where(['communityId' => $p['communityId']])
+            ->andFilterWhere(['not in', 'buildingFullName', $building])->asArray()->all();
+
+        $arr = array_merge($arr, $m);
 
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
