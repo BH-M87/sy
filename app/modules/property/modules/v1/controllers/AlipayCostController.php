@@ -778,7 +778,7 @@ Class AlipayCostController extends BaseController
     // 收缴明细表
     public function actionPayDetailList()
     {
-        $r = BillDetailService::service()->payDetailList($this->request_params, $this->user_info);
+        $r = BillDetailService::service()->payDetailList_($this->request_params, $this->user_info);
         
         if ($r['code']) {
             return PsCommon::responseSuccess($r['data']);
