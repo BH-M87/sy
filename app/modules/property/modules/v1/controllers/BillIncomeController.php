@@ -234,6 +234,58 @@ Class BillIncomeController extends BaseController
         }
     }
 
+    // 打印收据
+    public function actionPrintList_()
+    {
+        if (empty($this->request_params['id'])) {
+            return PsCommon::responseFailed("收款记录ID必填！");
+        }
+
+        $income = PsBillIncome::findOne($this->request_params['id']);
+        if (empty($income)) {
+            return PsCommon::responseFailed("数据不存在！");
+        }
+
+        $rela = PsBillIncomeRelation::find()->select('bill_id')->where(['income_id' => $this->request_params['id']])->asArray()->all();
+        if (!empty($rela)) {
+            foreach ($rela as $key => $val) {
+                foreach ($val as $k => $v) {
+                    $arr_rela[] = $v;
+                }
+            }
+        }
+
+        $params['community_id'] = $income['community_id'];
+        $params['room_id'] = $income['room_id'];
+        $params['bill_list'] = $arr_rela;
+
+        if (!empty($params)) {
+            $model = new PsPrintModel();
+            $model->setScenario('print-bill');
+            foreach ($params as $key => $val) {
+                $form['PsPrintModel'][$key] = $val;
+            }
+            $model->load($form);
+
+            if ($model->validate()) {
+                $params['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
+                $result = TemplateService::service()->printBillInfo($params, $this->user_info, $income);
+                if ($result['code']) {
+                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
+
+                    return PsCommon::responseSuccess($data);
+                } else {
+                    return PsCommon::responseFailed($result['msg']);
+                }
+            } else {
+                $errorMsg = array_values($model->errors);
+                return PsCommon::responseFailed($errorMsg[0][0]);
+            }
+        } else {
+            return PsCommon::responseFailed('未接受到有效数据');
+        }
+    }
+
     //核销
     public function actionConfirm() 
     {
