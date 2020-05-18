@@ -124,10 +124,10 @@ class BillDetailService extends BaseService
         $requestArr['costList'] = !empty($data['costList']) ? $data['costList'] : '';                   //缴费项目
         $requestArr['room_status'] = !empty($data['room_status']) ? $data['room_status'] : '';                   //房屋状态
         $requestArr['pay_channel'] = !empty($data['pay_channel']) ? $data['pay_channel'] : '';          //支付方式
-        $requestArr['group'] = !empty($data['group']) ? $data['group'] : '';          //苑期区
-        $requestArr['building'] = !empty($data['building']) ? $data['building'] : '';          //幢
-        $requestArr['room'] = !empty($data['room']) ? $data['room'] : '';          //室
-        $requestArr['unit'] = !empty($data['unit']) ? $data['unit'] : '';          //单元
+        $requestArr['group_id'] = !empty($data['group_id']) ? $data['group_id'] : '';          //苑期区
+        $requestArr['building_id'] = !empty($data['building_id']) ? $data['building_id'] : '';          //幢
+        $requestArr['room_id'] = !empty($data['room_id']) ? $data['room_id'] : '';          //室
+        $requestArr['unit_id'] = !empty($data['unit_id']) ? $data['unit_id'] : '';          //单元
         $requestArr['trade_type'] = !empty($data['trade_type']) ? $data['trade_type'] : '';          //收款类型：1收款，2退款
         $requestArr['source'] = !empty($data['source']) ? $data['source'] : '1';          //1：线上缴费，2：线下扫码，3：临时停车，4：线下收款，5报事报修
         $requestArr['pay_type'] = !empty($data['pay_type']) ? $data['pay_type'] : '';          //1:线下支付，2:线上支付
@@ -196,33 +196,33 @@ class BillDetailService extends BaseService
             $where .= " AND bill.`room_status`=:room_status";
             $params = array_merge($params, [':room_status' => $requestArr["room_status"]]);
         }
-        if (!empty($requestArr["group"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
+        if (!empty($requestArr["group_id"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
             $where .= " AND bill.`group_id`=:group";
-            $params = array_merge($params, [':group' => $requestArr["group"]]);
-        } else if (!empty($requestArr["group"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
+            $params = array_merge($params, [':group' => $requestArr["group_id"]]);
+        } else if (!empty($requestArr["group_id"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
             $where .= " AND rm_info.`group_id`=:group";
-            $params = array_merge($params, [':group' => $requestArr["group"]]);
+            $params = array_merge($params, [':group' => $requestArr["group_id"]]);
         }
-        if (!empty($requestArr["unit"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
+        if (!empty($requestArr["unit_id"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
             $where .= " AND bill.`unit_id`=:unit";
-            $params = array_merge($params, [':unit' => $requestArr["unit"]]);
-        } else if (!empty($requestArr["unit"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
+            $params = array_merge($params, [':unit' => $requestArr["unit_id"]]);
+        } else if (!empty($requestArr["unit_id"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
             $where .= " AND rm_info.`unit_id`=:unit";
-            $params = array_merge($params, [':unit' => $requestArr["unit"]]);
+            $params = array_merge($params, [':unit' => $requestArr["unit_id"]]);
         }
-        if (!empty($requestArr["building"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
+        if (!empty($requestArr["building_id"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
             $where .= " AND bill.`building_id`=:building";
-            $params = array_merge($params, [':building' => $requestArr["building"]]);
-        } else if (!empty($requestArr["building"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
+            $params = array_merge($params, [':building' => $requestArr["building_id"]]);
+        } else if (!empty($requestArr["building_id"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
             $where .= " AND rm_info.`building_id`=:building";
-            $params = array_merge($params, [':building' => $requestArr["building"]]);
+            $params = array_merge($params, [':building' => $requestArr["building_id"]]);
         }
-        if (!empty($requestArr["room"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
+        if (!empty($requestArr["room_id"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 2 || $requestArr['source'] == 4)) {
             $where .= " AND bill.`room_id`=:room";
-            $params = array_merge($params, [':room' => $requestArr["room"]]);
-        } else if (!empty($requestArr["room"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
+            $params = array_merge($params, [':room' => $requestArr["room_id"]]);
+        } else if (!empty($requestArr["room_id"]) && $requestArr['source'] == 5) {//说明是报事报修，查询房屋
             $where .= " AND rm_info.`room_id`=:room";
-            $params = array_merge($params, [':room' => $requestArr["room"]]);
+            $params = array_merge($params, [':room' => $requestArr["room_id"]]);
         }
         if (!empty($requestArr["pay_type"]) && $requestArr['source'] == 5) {//说明是报事报修，查询支付方式
             $where .= " AND der.`pay_type`=:pay_type";
