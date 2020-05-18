@@ -154,7 +154,8 @@ class RoomVoteService extends BaseService
                 if (!empty($v['dataList'])) {
                     foreach ($v['dataList'] as $key => $val) {
                         $arr[$i]['buildingId'] = $val['id'];
-                        $arr[$i]['buildingName'] = $val['groupName'].$val['buildingName'];
+                        $arr[$i]['buildingName'] = $val['buildingName'];
+                        $arr[$i]['buildingFullName'] = $val['groupName'].$val['buildingName'];
                         $arr[$i]['groupName'] = $val['groupName'];
                         $i++;
                     }
@@ -164,8 +165,8 @@ class RoomVoteService extends BaseService
 
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
-                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingFullName' => $v['buildingName'], 'communityId' => $p['communityId']])->count();
-                $arr[$k]['total'] = self::voteRecordSearch(['buildingFullName' => $v['buildingName'], 'communityId' => $p['communityId']])->count();
+                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
+                $arr[$k]['total'] = self::voteRecordSearch(['buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
                 $arr[$k]['rate'] = $arr[$k]['total'] > 0 ? round($arr[$k]['favor'] / $arr[$k]['total'], 2) * 100 : 0;
             }
         }
