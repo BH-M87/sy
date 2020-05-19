@@ -78,10 +78,24 @@ class JavaOfCService extends BaseService{
         return self::returnCData($query);
     }
 
+    // 选择苑-幢(包含未审核数据)
+    public function blockListForPhp($query)
+    {
+        $query['route'] = '/member/room/blockListForPhp';
+        return self::returnCData($query);
+    }
+
     // 选择单元-室
     public function roomList($query)
     {
         $query['route'] = '/member/room/roomList';
+        return self::returnCData($query);
+    }
+
+    // 选择单元-室(包含未审核数据)
+    public function selectRoomList($query)
+    {
+        $query['route'] = '/member/room/selectRoomListForPhp';
         return self::returnCData($query);
     }
 

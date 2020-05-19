@@ -17,8 +17,8 @@ class PsRoomVoteRecord extends BaseModel
     public function rules()
     {
         return [
-            [['roomId', 'communityId', 'groupId', 'buildingId', 'unitId', 'memberId', 'memberName','type', 'room_vote_id'],'required','message'=>'{attribute}不能为空!','on' => ['add']],
-            [['communityName', 'groupName', 'buildingName', 'unitName', 'roomName', 'memberName', 'memberMobile'], 'string', 'max' => 30],
+            [['roomFullName', 'communityId', 'buildingFullName', 'unitFullName', 'memberId', 'memberName','type', 'room_vote_id'],'required','message'=>'{attribute}不能为空!','on' => ['add']],
+            [['communityName', 'groupName', 'buildingName', 'unitName', 'roomName', 'memberName', 'memberMobile', 'buildingId'], 'string', 'max' => 30],
             [['roomArea'], 'number'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
@@ -31,13 +31,13 @@ class PsRoomVoteRecord extends BaseModel
             'room_vote_id' => '投票id',
             'communityId' => '小区id',
             'communityName' => '小区名称',
-            'groupId' => '苑期区id',
             'groupName' => '苑期区名称',
-            'buildingId' => '幢id',
+            'buildingFullName' => '幢全称',
             'buildingName' => '幢名称',
-            'unitId' => '单元id',
+            'buildingId' => '幢id',
+            'unitFullName' => '单元全称',
             'unitName' => '单元名称',
-            'roomId' => '室id',
+            'roomFullName' => '房屋全称',
             'roomName' => '室名称',
             'roomArea' => '房屋面积',
             'memberId' => '住户id',

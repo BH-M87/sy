@@ -18,6 +18,15 @@ class RoomVoteService extends BaseService
 {
     public function index($p)
     {
+        /*$m = PsRoomVoteRecord::find()->asArray()->all();
+        foreach ($m as $k => $v) {
+            $buildingFullName = $v['groupName'].$v['buildingName'];
+            $unitFullName = $buildingFullName.$v['unitName'];
+            $roomFullName = $v['communityName'].$unitFullName.$v['roomName'];
+
+            PsRoomVoteRecord::updateAll(['buildingFullName' => $buildingFullName, 'unitFullName' => $unitFullName, 'roomFullName' => $roomFullName], ['id' => $v['id']]);
+        }*/
+
         $id = PsRoomVote::find()->select('id')->where(['communityId' => $p['communityId']])->scalar();
 
         if (empty($id)) {
@@ -27,14 +36,11 @@ class RoomVoteService extends BaseService
             $id = self::_voteAdd($arr)['id'];
         }
         
-        if (empty($p['roomId'])) {
-            $type = 3; // 未认证
-        } else {
-            $m = PsRoomVoteRecord::find()->where(['room_vote_id' => $id, 'roomId' => $p['roomId']])->asArray()->one();
-            $type = 2; // 未投票
-            if (!empty($m)) {
-                $type = 1; // 已投票
-            }
+        $m = PsRoomVoteRecord::find()->where(['room_vote_id' => $id, 'roomFullName' => $p['roomFullName']])
+            ->andWhere(['communityId' => $p['communityId']])->asArray()->one();
+        $type = 2; // 未投票
+        if (!empty($m)) {
+            $type = 1; // 已投票
         }
 
         $user = JavaOfCService::service()->residentDetail(['id' => $p['residentId'], 'token' => $p['token']]);
@@ -136,10 +142,10 @@ class RoomVoteService extends BaseService
         return $r;
     }
 
-    // 投票 详情
+    // 已投楼栋
     public function blockList($p)
     {
-        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'];
+        $r = JavaOfCService::service()->blockListForPhp(['token' => $p['token'], 'id' => $p['communityId']])['list'];
 
         $arr = [];
         $i = 0;
@@ -147,19 +153,27 @@ class RoomVoteService extends BaseService
             foreach ($r as $k => $v) {
                 if (!empty($v['dataList'])) {
                     foreach ($v['dataList'] as $key => $val) {
+                        $arr[$i]['buildingFullName'] = $val['groupName'].$val['buildingName'];
+                        $arr[$i]['groupName'] = $val['groupName'];
                         $arr[$i]['buildingId'] = $val['id'];
                         $arr[$i]['buildingName'] = $val['buildingName'];
-                        $arr[$i]['groupName'] = $val['groupName'];
+                        
+                        $building[] =  $arr[$i]['buildingFullName'];
                         $i++;
                     }
                 }
             }
         }
+        /*
+        $m = PsRoomVoteRecord::find()->select('distinct(buildingFullName), groupName, buildingId, buildingName')->where(['communityId' => $p['communityId']])
+            ->andFilterWhere(['not in', 'buildingFullName', $building])->asArray()->all();
 
+        $arr = array_merge($arr, $m);
+        */
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
-                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingId' => $v['buildingId']])->count();
-                $arr[$k]['total'] = self::voteRecordSearch(['buildingId' => $v['buildingId']])->count();
+                $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
+                $arr[$k]['total'] = self::voteRecordSearch(['buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
                 $arr[$k]['rate'] = $arr[$k]['total'] > 0 ? round($arr[$k]['favor'] / $arr[$k]['total'], 2) * 100 : 0;
             }
         }
@@ -192,7 +206,8 @@ class RoomVoteService extends BaseService
     public function add($p)
     {
         $record = PsRoomVoteRecord::find()
-            ->where(['room_vote_id' => $p['room_vote_id'], 'roomId' => $p['roomId']])->asArray()->one();
+            ->where(['room_vote_id' => $p['room_vote_id'], 'roomFullName' => $p['roomFullName']])
+            ->andWhere(['communityId' => $p['communityId']])->asArray()->one();
 
         if (!empty($record)) {
             return PsCommon::responseFailed('该户已投票！');
@@ -216,11 +231,12 @@ class RoomVoteService extends BaseService
     // 投票成功
     public function success($p)
     {
-        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomId' => $p['roomId']])->scalar();
+        $r['type'] = PsRoomVoteRecord::find()->select('type')->where(['roomFullName' => $p['roomFullName']])
+            ->andWhere(['communityId' => $p['communityId']])->scalar();
 
         $arr = JavaOfCService::service()->getTotalResidentAndAreaSize(['token' => $p['token'], 'id' => $p['communityId']]);
-        
-        $p['roomId'] = '';
+
+        $p['roomFullName'] = '';
         $p['type'] = 1;
         $total_1 = self::voteRecordSearch($p)->count();
         $ticket = ceil($arr['totalResident'] * 0.2 - $total_1);
@@ -250,29 +266,23 @@ class RoomVoteService extends BaseService
     public function voteList($p)
     {
         if ($p['type'] == 9) { // 9未表态
-            $room = JavaOfCService::service()->roomList(['token' => $p['token'], 'id' => $p['buildingId']])['list'];
-
+            
+            $room = JavaOfCService::service()->selectRoomList(['token' => $p['token'], 'communityId' => $p['communityId'], 'groupName' => $p['groupName'], 'buildingName' => $p['buildingName']])['list'];
             $arr = [];
-            $i = 0;
             if (!empty($room)) {
                 foreach ($room as $k => $v) {
-                    if (!empty($v['dataList'])) {
-                        foreach ($v['dataList'] as $key => $val) {
-                            $arr[$i]['roomId'] = $val['id'];
-                            $arr[$i]['roomName'] = $val['roomName'];
-                            $i++;
-                        }
-                    }
+                    $arr[$k]['roomFullName'] = $p['communityName'].$p['groupName'].$p['buildingName'].$v['unitName'].$v['roomName'];
+                    $arr[$k]['roomName'] = $v['roomName'];
                 }
             }
 
-            $m = self::voteRecordSearch(['buildingId' => $p['buildingId']], 'distinct(roomId), roomName')->orderBy('id desc')->asArray()->all();
+            $m = self::voteRecordSearch(['buildingFullName' => $p['buildingFullName']], 'distinct(roomFullName), roomName')->orderBy('id desc')->asArray()->all();
 
             if (!empty($arr)) {
                 foreach ($arr as $k => $v) {
                     if (!empty($m)) {
                         foreach ($m as $key => $val) {
-                            if ($val['roomId'] == $v['roomId']) {
+                            if ($val['roomFullName'] == $v['roomFullName']) {
                                 unset($arr[$k]);
                             }
                         }
@@ -281,7 +291,7 @@ class RoomVoteService extends BaseService
             }
             return array_values($arr);
         } else { // 1赞成 2反对 3弃选
-            $m = self::voteRecordSearch($p, 'distinct(roomId), roomName')->orderBy('id desc')->asArray()->all();
+            $m = self::voteRecordSearch($p, 'distinct(roomFullName), roomName')->orderBy('id desc')->asArray()->all();
 
             return $m;
         }
@@ -295,10 +305,15 @@ class RoomVoteService extends BaseService
             ->filterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])
             ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'community_id')])
             ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
-            ->andFilterWhere(['=', 'groupId', PsCommon::get($p, 'groupId')])
-            ->andFilterWhere(['=', 'buildingId', PsCommon::get($p, 'buildingId')])
-            ->andFilterWhere(['=', 'unitId', PsCommon::get($p, 'unitId')])
-            ->andFilterWhere(['=', 'roomId', PsCommon::get($p, 'roomId')])
+            ->andFilterWhere(['=', 'groupName', PsCommon::get($p, 'groupName')])
+            ->andFilterWhere(['=', 'buildingName', PsCommon::get($p, 'buildingName')])
+            ->andFilterWhere(['=', 'unitName', PsCommon::get($p, 'unitName')])
+            ->andFilterWhere(['=', 'roomName', PsCommon::get($p, 'roomName')])
+
+            ->andFilterWhere(['=', 'buildingFullName', PsCommon::get($p, 'buildingFullName')])
+            ->andFilterWhere(['=', 'unitFullName', PsCommon::get($p, 'unitFullName')])
+            ->andFilterWhere(['=', 'roomFullName', PsCommon::get($p, 'roomFullName')])
+            
             ->andFilterWhere(['=', 'type', PsCommon::get($p, 'type')]);
         return $m;
     }  
