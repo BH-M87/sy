@@ -1547,6 +1547,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 "operate_content" => "",
             ];
             OperateService::addComm($userinfo, $operate);
+            if ($success_count > 0) {
+                BillService::service()->pubBillByTask($taskId);
+            }
             //提交事务
             $trans->commit();
         } catch (Exception $e) {
@@ -1559,9 +1562,6 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'success' => $success_count,
             'error_url' => $error_url,
         ];
-        if ($success_count > 0) {
-            BillService::service()->pubBillByTask($taskId);
-        }
         return $this->success($result);
     }
 
