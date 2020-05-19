@@ -167,7 +167,6 @@ Class TemplateService extends BaseService
         }else {
             return $this->failed('暂无需打印的账单');
         }
-        print_r($resultList);die;
         if (!empty($resultList)) {
             $total_money = 0;
             foreach ($resultList as $v) {
@@ -196,21 +195,21 @@ Class TemplateService extends BaseService
                 $total_money += $v['paid_entry_amount'];
                 $arrList[] = $arr;
             }
-
             $room_comm['print_date'] = date("Y-m-d H:i", time());
-            $room_comm['community_id'] = $models[0]['community_id'];
-            $room_comm['house_info'] = $models[0]['room_address'];
-            $room_comm['house_area'] = $models[0]['charge_area'];
+            $room_comm['community_id'] = $results[0]['community_id'];
+            $room_comm['house_info'] = $results[0]['room_address'];
+            $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
             $room_comm['pay_date'] = !empty($income) ? date("Y-m-d", $income['income_time']) : ''; // 收款日期
             $room_comm['payee_name'] = !empty($income) ? $income['payee_name'] : ''; // 收款人
-            $room_comm['company_id'] = $models[0]['company_id'];
-            $room_comm['pay_company'] = PsPropertyCompany::findOne($models[0]['company_id'])->property_name; // 收款单位
+            $room_comm['trade_no'] = !empty($income) ? $income['trade_no'] : ''; // 编号
+            $room_comm['company_id'] = '';
+            $room_comm['pay_company'] = ''; // 收款单位
             $room_comm['pay_channel'] = !empty($income) ? BillIncomeService::$pay_channel[$income['pay_channel']] : ''; // 收款方式
             $room_comm['pay_note'] = !empty($income) ? $income['note'] : ''; // 收款备注
 
-            $data[$roomId]['bill_list'] = $arrList; // 账单信息
-            $data[$roomId]['room_data'] = $room_comm; // 模板信息+房屋信息
+            $data['bill_list'] = $arrList; // 账单信息
+            $data['room_data'] = $room_comm; // 模板信息+房屋信息
 
             return $this->success($data);
         } else {
