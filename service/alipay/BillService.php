@@ -735,7 +735,7 @@ class BillService extends BaseService
             return $this->failed('发布任务不存在');
         }
         $pageSize = 500;
-        $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPUB])->count();
+        $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPAY])->count();
         $totalPages = ceil($totals / $pageSize);
         for ($page = 1; $page < $totalPages + 1; $page++) {
             $bills = $this->getBillByTask($taskID, $page, $pageSize);

@@ -2061,17 +2061,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     continue;
                 }
             }
-            //提交事务
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
         //账单订单新增成功后判断是否有成功记录，有则将成功记录发布到支付宝
-        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
+        //提交事务
         if ($success_count > 0) {
             BillService::service()->pubBillByTask($task_id);
         }
+        $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
         return $this->success($resultData);
     }
 
