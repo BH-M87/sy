@@ -96,9 +96,17 @@ class PrintController extends BaseController
             return PsCommon::responseFailed("账单id必须数组格式！");
         }
 
-        $list = PrintService::service()->billListNew($data);
-        $result = TemplateService::service()->templateIncome($list['data'], $data['template_id']);
-        return PsCommon::responseSuccess($result);
+        $data['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
+        $result = TemplateService::service()->billListNew_($data, $this->user_info);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
+        }
+
+//        $list = PrintService::service()->billListNew($data);
+//        $result = TemplateService::service()->templateIncome($list['data'], $data['template_id']);
+//        return PsCommon::responseSuccess($result);
     }
 
     public function actionGetCommInfo()
