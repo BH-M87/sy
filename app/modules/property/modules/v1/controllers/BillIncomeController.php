@@ -262,11 +262,9 @@ Class BillIncomeController extends BaseController
             if ($model->validate()) {
                 $params['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
                 $result = TemplateService::service()->printBillInfo_($params, $this->user_info, $income);
-                print_R($result);die;
                 if ($result['code']) {
-                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
-
-                    return PsCommon::responseSuccess($data);
+//                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
+                    return PsCommon::responseSuccess($result['data']);
                 } else {
                     return PsCommon::responseFailed($result['msg']);
                 }
