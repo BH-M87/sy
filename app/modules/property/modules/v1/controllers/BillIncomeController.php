@@ -179,14 +179,6 @@ Class BillIncomeController extends BaseController
             return PsCommon::responseFailed("收款记录ID必填！");
         }
 
-        if (empty($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("请选择模板！");
-        }
-
-        if (!PsTemplateBill::findOne($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("模板不存在！");
-        }
-
         $income = PsBillIncome::findOne($this->request_params['id']);
 
         if (empty($income)) {

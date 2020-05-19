@@ -155,34 +155,22 @@ Class TemplateService extends BaseService
 //            A.prefer_entry_amount, A.acct_period_start, A.acct_period_end, A.community_name, A.group_id, A.building_id,
 //            A.unit_id, A.room_id, A.company_id, A.community_id, A.charge_area
 //            from ps_bill as A where {$where} order by A.id desc")->queryAll();
-        $fields = ['id as bill_id','room_address','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
+        $fields = ['id as bill_id','room_address','cost_id','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
             'prefer_entry_amount', 'acct_period_start','acct_period_end','community_name','company_id', 'community_id', 'charge_area'];
         $models = PsBill::find()->select($fields)->where(['=','is_del',1])->andWhere(['=','community_id',$communityId]);
         if(!empty($bill_list)){
             $models = $models->andWhere(['in','id',$bill_list]);
         }
-        $results = $models->orderBy(['cost_type'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
+        $results = $models->orderBy(['cost_id'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
         if(!empty($results)){
-            $list = [];
-            //获得所有类表
-            $costTypeArr = array_unique(array_column($results,'cost_type'));
-            print_r($costTypeArr);die;
-            foreach($costTypeArr as $value){
-                foreach($results as $k=>$v){
-                    if($value == $v['cost_type']){
-
-                    }
-                }
-            }
+            $resultList = $this->getForData($results);
         }else {
             return $this->failed('暂无需打印的账单');
         }
-        print_r($results);die;
-
-        if (!empty($models)) {
-
+        print_r($resultList);die;
+        if (!empty($resultList)) {
             $total_money = 0;
-            foreach ($models as $v) {
+            foreach ($resultList as $v) {
                 $arr = [];
                 $arr['id'] = $v['bill_id'];
                 $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
@@ -228,6 +216,42 @@ Class TemplateService extends BaseService
         } else {
             return $this->failed('暂无需打印的账单');
         }
+    }
+
+    //循环账单方法
+    public function getForData($results){
+        $resultList = [];
+        $valiTime = 0;
+        $valiKey = 0;
+        foreach ($results as $key=>$item) {
+            if(count($resultList)>=6){
+                $qiList = $item;
+                $qiList['cost_name'] =  '其他费用';
+                $qiList['bill_entry_amount'] = $item['bill_entry_amount'];
+                $qiList['paid_entry_amount'] = $item['paid_entry_amount'];
+                $qiList['prefer_entry_amount'] = $item['prefer_entry_amount'];
+                if(empty($resultList[99])){
+                    $resultList[99] = $qiList;
+                }else{
+                    $resultList[99]['bill_entry_amount'] += $item['bill_entry_amount'];
+                    $resultList[99]['paid_entry_amount'] += $item['paid_entry_amount'];
+                    $resultList[99]['prefer_entry_amount'] += $item['prefer_entry_amount'];
+                }
+                continue;
+            }
+            if($item['acct_period_start']==($valiTime+86400) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
+                $resultList[$valiKey]['acct_period_end'] = $item['acct_period_end'];
+                $resultList[$valiKey]['bill_entry_amount'] += $item['bill_entry_amount'];
+                $resultList[$valiKey]['paid_entry_amount'] += $item['paid_entry_amount'];
+                $resultList[$valiKey]['prefer_entry_amount'] += $item['prefer_entry_amount'];
+                $valiTime = $item['acct_period_end'];
+                continue;
+            }
+            $valiKey = $key;
+            $valiTime = $item['acct_period_end'];
+            $resultList[$valiKey] = $item;
+        }
+        return $resultList;
     }
 
     // 模板 配置 收据&催缴单打印用 $data的来源 TemplateService->printBillInfo && PrintService->billListNew
