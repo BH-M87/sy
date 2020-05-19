@@ -145,7 +145,7 @@ class RoomVoteService extends BaseService
     // 已投楼栋
     public function blockList($p)
     {
-        $r = JavaOfCService::service()->blockList(['token' => $p['token'], 'id' => $p['communityId']])['list'];
+        $r = JavaOfCService::service()->blockListForPhp(['token' => $p['token'], 'id' => $p['communityId']])['list'];
 
         $arr = [];
         $i = 0;
@@ -164,12 +164,12 @@ class RoomVoteService extends BaseService
                 }
             }
         }
-
+        /*
         $m = PsRoomVoteRecord::find()->select('distinct(buildingFullName), groupName, buildingId, buildingName')->where(['communityId' => $p['communityId']])
             ->andFilterWhere(['not in', 'buildingFullName', $building])->asArray()->all();
 
         $arr = array_merge($arr, $m);
-
+        */
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
                 $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
