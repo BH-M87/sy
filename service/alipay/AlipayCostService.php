@@ -1559,6 +1559,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             'success' => $success_count,
             'error_url' => $error_url,
         ];
+        if ($success_count > 0) {
+            BillService::service()->pubBillByTask($task_id);
+        }
         return $this->success($result);
     }
 
