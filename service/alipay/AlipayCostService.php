@@ -1123,6 +1123,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         throw new Exception($diff_result['msg']);
                     }
                 }
+                //增加拆分统计表流程
+                BillTractContractService::service()->payContractBill($split_bill);
                 //提交事务
                 $trans->commit();
             } catch (\Exception $e) {
