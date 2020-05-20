@@ -2,6 +2,8 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
+use app\models\PsBill;
+use app\models\PsSystemSet;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsPrintModel;
@@ -96,17 +98,30 @@ class PrintController extends BaseController
             return PsCommon::responseFailed("账单id必须数组格式！");
         }
 
-        $data['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
-        $result = TemplateService::service()->billListNew_($data, $this->user_info);
-        if ($result['code']) {
-            return PsCommon::responseSuccess($result['data']);
-        } else {
-            return PsCommon::responseFailed($result['msg']);
+        //获得所有房屋
+        $fields = ['room_id'];
+        $roomArrays = PsBill::find()->select($fields)->distinct()->where(['=','is_del',1])
+                            ->andWhere(['in','id',$data['ids']])
+                            ->andWhere(['in','community_id',$this->request_params['communityList']])
+                            ->asArray()->all();
+        $dataResult = [];
+        if(!empty($roomArrays)){
+            //获得配置信息
+            $systemSet = new PsSystemSet();
+            $sysSetResult = $systemSet->getDetail(['company_id'=>$data['corp_id']]);
+            $data['content'] = !empty($sysSetResult['notice_content'])?$sysSetResult['notice_content']:'';
+            foreach($roomArrays as $key=>$value){
+                $data['room_id'] = $value['room_id'];
+                $result = TemplateService::service()->billListNew_($data, $this->user_info);
+                if(!empty($result)){
+                    $dataResult[] = $result;
+                }
+            }
         }
-
-//        $list = PrintService::service()->billListNew($data);
-//        $result = TemplateService::service()->templateIncome($list['data'], $data['template_id']);
-//        return PsCommon::responseSuccess($result);
+        if(!empty($dataResult)){
+            return PsCommon::responseSuccess($dataResult);
+        }
+        return PsCommon::responseFailed("没有数据");
     }
 
     public function actionGetCommInfo()

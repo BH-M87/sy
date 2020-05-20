@@ -127,68 +127,26 @@ Class TemplateService extends BaseService
     public function billListNew_($params,$userinfo){
 
         $bill_list = PsCommon::get($params, "ids");
-        $communityId = PsCommon::get($params, "community_id"); // 小区id
-        $groupId = PsCommon::get($params, "group_id"); // 苑id
-        $buildingId = PsCommon::get($params, "building_id"); // 幢id
-        $unitId = PsCommon::get($params, "unit_id"); // 单元id
         $roomId = PsCommon::get($params, "room_id"); // 房屋id
-
-        if(!in_array($communityId,$params['communityList'])){
-            return $this->failed("请选择有效小区");
-        }
-
-        if (!$groupId) {
-            return $this->failed("苑期区id不能为空");
-        }
-
-        if (!$buildingId) {
-            return $this->failed("幢id不能为空");
-        }
-
-        if (!$unitId) {
-            return $this->failed("单元id不能为空");
-        }
-
-        if (!$roomId) {
-            return $this->failed("房屋id不能为空");
-        }
 
         $fields = ['id as bill_id','room_address','cost_id','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
             'prefer_entry_amount', 'acct_period_start','acct_period_end','community_name','company_id', 'community_id', 'charge_area'];
-        $models = PsBill::find()->select($fields)->where(['=','is_del',1])->andWhere(['=','community_id',$communityId]);
+        $models = PsBill::find()->select($fields)->where(['=','is_del',1])->andWhere(['=','room_id',$roomId]);
         if(!empty($bill_list)){
             $models = $models->andWhere(['in','id',$bill_list]);
         }
 
-        if(!empty($groupId)){
-            $models = $models->andWhere(['=','group_id',$groupId]);
-        }
-
-        if(!empty($buildingId)){
-            $models = $models->andWhere(['=','building_id',$buildingId]);
-        }
-
-        if(!empty($unitId)){
-            $models = $models->andWhere(['=','unit_id',$unitId]);
-        }
-
-        if(!empty($roomId)){
-            $models = $models->andWhere(['=','room_id',$roomId]);
-        }
         $results = $models->orderBy(['cost_id'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
         if(!empty($results)){
             $resultList = $this->getForData($results);
         }else {
-            return $this->failed('暂无需打印的账单');
+            return [];
         }
         $arrList = [];
         if(!empty($resultList)){
             $total_money = 0;
             foreach ($resultList as $v) {
                 $arr = [];
-                $arr['id'] = $v['bill_id'];
-//                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
-//                $arr['house_area'] = $v['charge_area'];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
                 $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
                 $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
@@ -217,16 +175,14 @@ Class TemplateService extends BaseService
             $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
             $room_comm['pay_company'] = ''; // 收款单位
-            //获得配置信息
-            $systemSet = new PsSystemSet();
-            $sysSetResult = $systemSet->getDetail(['company_id'=>$params['corp_id']]);
-            $room_comm['content'] = !empty($sysSetResult['notice_content'])?$sysSetResult['notice_content']:'';
+            $room_comm['content'] = $params['content'];
+
             $data['bill_list'] = $arrList; // 账单信息
             $data['room_data'] = $room_comm; // 模板信息+房屋信息
 
-            return $this->success($data);
+            return $data;
         }
-
+        return [];
     }
 
     // 打印票据数据
