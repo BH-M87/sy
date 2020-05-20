@@ -14,6 +14,7 @@ use app\models\PsBillCost;
 use app\models\PsCommunityModel;
 use app\models\BillReportYearly;
 use app\models\BillReportRoom;
+use app\models\PsBillYearly;
 use service\manage\CommunityService;
 
 class BillReportService extends BaseService
@@ -525,5 +526,101 @@ class BillReportService extends BaseService
     public function roomCount($params)
     {
         return $this->_roomSearch($params)->count();
+    }
+
+    // 统计分析
+    public function analysis($p)
+    {
+        $year = !empty($p['year']) ? $p['year'] : date('Y', time());
+
+        $m['list'] = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->groupBy('pay_month')->orderBy('pay_month asc')->asArray()->all();
+        
+        $m['total'] = array_sum(array_column($m['list'], 'count'));
+        // 优惠
+        $discount = PsBillYearly::find()->select('sum(discount_amount)')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->scalar();
+        // 已收
+        $pay = PsBillYearly::find()->select('sum(pay_amount)')
+            ->where(['=', 'pay_status', 1])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->scalar();
+
+        // 未收
+        $no = PsBillYearly::find()->select('sum(pay_amount)')
+            ->where(['=', 'pay_status', 0])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->scalar();
+        $total = $discount + $pay + $no;
+
+        $m['bill'][0]['count'] = $discount;
+        $m['bill'][0]['item'] = '优惠';
+        $m['bill'][0]['percent'] = $total > 0 ? round($discount / $total, 2) : 0;
+
+        $m['bill'][1]['count'] = $pay;
+        $m['bill'][1]['item'] = '已收';
+        $m['bill'][1]['percent'] = $total > 0 ? round($pay / $total, 2) : 0;
+
+        $m['bill'][2]['count'] = $no;
+        $m['bill'][2]['item'] = '未付';
+        $m['bill'][2]['percent'] = $total > 0 ? round($no / $total, 2) : 0;
+
+        $m['cost'] = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
+            ->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->groupBy('cost_id')->asArray()->all();
+
+        if (!empty($m['cost'])) {
+            $total = array_sum(array_column($m['cost'], 'count'));
+            foreach ($m['cost'] as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                switch ($v['item']) {
+                    case '1':
+                        $v['item'] = '物业费';
+                        break;
+                    case '2':
+                        $v['item'] = '水费';
+                        break;
+                    default:
+                        $v['item'] = '停车费';  
+                        break;
+                }
+            }
+        }
+
+        $m['channel'] = PsBillYearly::find()->alias('A')->select('sum(A.pay_amount) count, B.pay_channel item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->where(['=', 'A.pay_status', 1])
+            ->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'A.acct_year', $year])
+            ->groupBy('B.pay_channel')->asArray()->all();
+
+        if (!empty($m['channel'])) {
+            $total = array_sum(array_column($m['channel'], 'count'));
+            foreach ($m['channel'] as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                switch ($v['item']) {
+                    case '1':
+                        $v['item'] = '现金';
+                        break;
+                    case '2':
+                        $v['item'] = '支付宝';
+                        break;
+                    default:
+                        $v['item'] = '微信';  
+                        break;
+                }
+            }
+        }
+        
+        return $m; 
     }
 }
