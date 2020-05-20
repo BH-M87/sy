@@ -155,7 +155,7 @@ class RoomVoteService extends BaseService
                     foreach ($v['dataList'] as $key => $val) {
                         $arr[$i]['buildingFullName'] = $val['groupName'].$val['buildingName'];
                         $arr[$i]['groupName'] = $val['groupName'];
-                        $arr[$i]['buildingId'] = $val['id'];
+                        //$arr[$i]['buildingId'] = $val['id'];
                         $arr[$i]['buildingName'] = $val['buildingName'];
                         
                         $building[] =  $arr[$i]['buildingFullName'];
@@ -164,12 +164,9 @@ class RoomVoteService extends BaseService
                 }
             }
         }
-        /*
-        $m = PsRoomVoteRecord::find()->select('distinct(buildingFullName), groupName, buildingId, buildingName')->where(['communityId' => $p['communityId']])
-            ->andFilterWhere(['not in', 'buildingFullName', $building])->asArray()->all();
 
-        $arr = array_merge($arr, $m);
-        */
+        $arr = array_unique($arr, SORT_REGULAR);
+
         if (!empty($arr)) {
             foreach ($arr as $k => $v) {
                 $arr[$k]['favor'] = self::voteRecordSearch(['type' => 1, 'buildingFullName' => $v['buildingFullName'], 'communityId' => $p['communityId']])->count();
