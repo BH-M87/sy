@@ -299,6 +299,8 @@ class BillDetailService extends BaseService
                 $models[$key]["repair_type_str"] = !empty($repair_type) ? implode(',', $repair_type) : '';;
                 $models[$key]["pay_type_str"] = $model["pay_type"] ? PsCommon::getIncomePayType($model["pay_type"]) : '';
             }
+            $models[$key]["acct_period_start_msg"] = !empty($model['acct_period_start'])?date('Y-m-d', $model['acct_period_start']):'';
+            $models[$key]["acct_period_end_msg"] = !empty($model['acct_period_end'])?date('Y-m-d', $model['acct_period_end']):'';
             if (!empty($model['acct_period_start'])) {
                 $models[$key]["acct_period"] = date('Y-m-d', $model['acct_period_start']) . '到' . date("Y-m-d", $model['acct_period_end']);
             } else {
