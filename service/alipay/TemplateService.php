@@ -2,6 +2,7 @@
 namespace service\alipay;
 
 use app\models\PsBill;
+use app\models\PsSystemSet;
 use service\BaseService;
 use Yii;
 use common\core\PsCommon;
@@ -122,6 +123,112 @@ Class TemplateService extends BaseService
         }
     }
 
+    //打印催缴单
+    public function billListNew_($params,$userinfo){
+
+        $bill_list = PsCommon::get($params, "ids");
+        $communityId = PsCommon::get($params, "community_id"); // 小区id
+        $groupId = PsCommon::get($params, "group_id"); // 苑id
+        $buildingId = PsCommon::get($params, "building_id"); // 幢id
+        $unitId = PsCommon::get($params, "unit_id"); // 单元id
+        $roomId = PsCommon::get($params, "room_id"); // 房屋id
+
+        if(!in_array($communityId,$params['communityList'])){
+            return $this->failed("请选择有效小区");
+        }
+
+        if (!$groupId) {
+            return $this->failed("苑期区id不能为空");
+        }
+
+        if (!$buildingId) {
+            return $this->failed("幢id不能为空");
+        }
+
+        if (!$unitId) {
+            return $this->failed("单元id不能为空");
+        }
+
+        if (!$roomId) {
+            return $this->failed("房屋id不能为空");
+        }
+
+        $fields = ['id as bill_id','room_address','cost_id','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
+            'prefer_entry_amount', 'acct_period_start','acct_period_end','community_name','company_id', 'community_id', 'charge_area'];
+        $models = PsBill::find()->select($fields)->where(['=','is_del',1])->andWhere(['=','community_id',$communityId]);
+        if(!empty($bill_list)){
+            $models = $models->andWhere(['in','id',$bill_list]);
+        }
+
+        if(!empty($groupId)){
+            $models = $models->andWhere(['=','group_id',$groupId]);
+        }
+
+        if(!empty($buildingId)){
+            $models = $models->andWhere(['=','building_id',$buildingId]);
+        }
+
+        if(!empty($unitId)){
+            $models = $models->andWhere(['=','unit_id',$unitId]);
+        }
+
+        if(!empty($roomId)){
+            $models = $models->andWhere(['=','room_id',$roomId]);
+        }
+        $results = $models->orderBy(['cost_id'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
+        if(!empty($results)){
+            $resultList = $this->getForData($results);
+        }else {
+            return $this->failed('暂无需打印的账单');
+        }
+        $arrList = [];
+        if(!empty($resultList)){
+            $total_money = 0;
+            foreach ($resultList as $v) {
+                $arr = [];
+                $arr['id'] = $v['bill_id'];
+//                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
+//                $arr['house_area'] = $v['charge_area'];
+                $arr['pay_item'] = $v['cost_name']; // 收费项名称
+                $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
+                $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
+                $arr['bill_amount'] = $v['bill_entry_amount']; // 应收金额
+//                $arr['discount_amount'] = $v['prefer_entry_amount']; // 优惠金额
+//                $arr['pay_amount'] = $v['paid_entry_amount']; // 实收金额
+
+    //                // 如果是水费和电费则还需要查询使用量跟起始度数1
+    //                if ($v['cost_type'] == 2 || $v['cost_type'] == 3) {
+    //                    $water = Yii::$app->db->createCommand("SELECT use_ton, latest_ton, formula
+    //                        from ps_water_record where bill_id = {$v['bill_id']} ")->queryOne();
+    //                    if (!empty($water)) {
+    //                        $arr['start'] = $water['latest_ton']; // 起度
+    //                        $arr['end'] = $water['latest_ton'] + $water['use_ton']; // 止度
+    //                        $arr['use'] = $water['use_ton']; // 使用量
+    //                        $arr['formula'] = $water['formula']; // 收费标准
+    //                    }
+    //                }
+                $total_money += $v['bill_entry_amount'];
+                $arrList[] = $arr;
+
+            }
+
+            $room_comm['print_date'] = date("Y年m月d日", time());
+            $room_comm['house_info'] = $results[0]['room_address'];
+            $room_comm['house_area'] = $results[0]['charge_area'];
+            $room_comm['total'] = sprintf("%.2f", $total_money);
+            $room_comm['pay_company'] = ''; // 收款单位
+            //获得配置信息
+            $systemSet = new PsSystemSet();
+            $sysSetResult = $systemSet->getDetail(['company_id'=>$params['corp_id']]);
+            $room_comm['content'] = !empty($sysSetResult['notice_content'])?$sysSetResult['notice_content']:'';
+            $data['bill_list'] = $arrList; // 账单信息
+            $data['room_data'] = $room_comm; // 模板信息+房屋信息
+
+            return $this->success($data);
+        }
+
+    }
+
     // 打印票据数据
     public function printBillInfo_($params, $userinfo, $income = '')
     {
@@ -155,37 +262,24 @@ Class TemplateService extends BaseService
 //            A.prefer_entry_amount, A.acct_period_start, A.acct_period_end, A.community_name, A.group_id, A.building_id,
 //            A.unit_id, A.room_id, A.company_id, A.community_id, A.charge_area
 //            from ps_bill as A where {$where} order by A.id desc")->queryAll();
-        $fields = ['id as bill_id','room_address','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
+        $fields = ['id as bill_id','room_address','cost_id','cost_type','cost_name','bill_entry_amount','paid_entry_amount',
             'prefer_entry_amount', 'acct_period_start','acct_period_end','community_name','company_id', 'community_id', 'charge_area'];
         $models = PsBill::find()->select($fields)->where(['=','is_del',1])->andWhere(['=','community_id',$communityId]);
         if(!empty($bill_list)){
             $models = $models->andWhere(['in','id',$bill_list]);
         }
-        $results = $models->orderBy(['cost_type'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
+        $results = $models->orderBy(['cost_id'=>SORT_ASC,'acct_period_start'=>SORT_ASC])->asArray()->all();
         if(!empty($results)){
-            $list = [];
-            //获得所有类表
-            $costTypeArr = array_unique(array_column($results,'cost_type'));
-            print_r($costTypeArr);die;
-            foreach($costTypeArr as $value){
-                foreach($results as $k=>$v){
-                    if($value == $v['cost_type']){
-
-                    }
-                }
-            }
+            $resultList = $this->getForData($results);
         }else {
             return $this->failed('暂无需打印的账单');
         }
-        print_r($results);die;
-
-        if (!empty($models)) {
-
+        if (!empty($resultList)) {
             $total_money = 0;
-            foreach ($models as $v) {
+            foreach ($resultList as $v) {
                 $arr = [];
                 $arr['id'] = $v['bill_id'];
-                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
+//                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
                 $arr['house_area'] = $v['charge_area'];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
                 $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
@@ -208,26 +302,63 @@ Class TemplateService extends BaseService
                 $total_money += $v['paid_entry_amount'];
                 $arrList[] = $arr;
             }
-
             $room_comm['print_date'] = date("Y-m-d H:i", time());
-            $room_comm['community_id'] = $models[0]['community_id'];
-            $room_comm['house_info'] = $models[0]['room_address'];
-            $room_comm['house_area'] = $models[0]['charge_area'];
+            $room_comm['community_id'] = $results[0]['community_id'];
+            $room_comm['house_info'] = $results[0]['room_address'];
+            $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
             $room_comm['pay_date'] = !empty($income) ? date("Y-m-d", $income['income_time']) : ''; // 收款日期
             $room_comm['payee_name'] = !empty($income) ? $income['payee_name'] : ''; // 收款人
-            $room_comm['company_id'] = $models[0]['company_id'];
-            $room_comm['pay_company'] = PsPropertyCompany::findOne($models[0]['company_id'])->property_name; // 收款单位
+            $room_comm['trade_no'] = !empty($income) ? $income['trade_no'] : ''; // 编号
+            $room_comm['company_id'] = '';
+            $room_comm['pay_company'] = ''; // 收款单位
             $room_comm['pay_channel'] = !empty($income) ? BillIncomeService::$pay_channel[$income['pay_channel']] : ''; // 收款方式
             $room_comm['pay_note'] = !empty($income) ? $income['note'] : ''; // 收款备注
 
-            $data[$roomId]['bill_list'] = $arrList; // 账单信息
-            $data[$roomId]['room_data'] = $room_comm; // 模板信息+房屋信息
+            $data['bill_list'] = $arrList; // 账单信息
+            $data['room_data'] = $room_comm; // 模板信息+房屋信息
 
             return $this->success($data);
         } else {
             return $this->failed('暂无需打印的账单');
         }
+    }
+
+    //循环账单方法
+    public function getForData($results){
+        $resultList = [];
+        $valiTime = 0;
+        $valiKey = 0;
+        foreach ($results as $key=>$item) {
+            if(count($resultList)>=6){
+                $qiList = $item;
+                $qiList['cost_name'] =  '其他费用';
+                $qiList['bill_entry_amount'] = $item['bill_entry_amount'];
+                $qiList['paid_entry_amount'] = $item['paid_entry_amount'];
+                $qiList['prefer_entry_amount'] = $item['prefer_entry_amount'];
+                if(empty($resultList[99])){
+                    $resultList[99] = $qiList;
+                }else{
+                    $resultList[99]['bill_entry_amount'] += $item['bill_entry_amount'];
+                    $resultList[99]['paid_entry_amount'] += $item['paid_entry_amount'];
+                    $resultList[99]['prefer_entry_amount'] += $item['prefer_entry_amount'];
+                }
+                continue;
+            }
+//            if($item['acct_period_start']==($valiTime+86400) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
+            if((date('Y-m-d',$item['acct_period_start'])==date('Y-m-d',($valiTime+86400))) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
+                $resultList[$valiKey]['acct_period_end'] = $item['acct_period_end'];
+                $resultList[$valiKey]['bill_entry_amount'] += $item['bill_entry_amount'];
+                $resultList[$valiKey]['paid_entry_amount'] += $item['paid_entry_amount'];
+                $resultList[$valiKey]['prefer_entry_amount'] += $item['prefer_entry_amount'];
+                $valiTime = $item['acct_period_end'];
+                continue;
+            }
+            $valiKey = $key;
+            $valiTime = $item['acct_period_end'];
+            $resultList[$valiKey] = $item;
+        }
+        return $resultList;
     }
 
     // 模板 配置 收据&催缴单打印用 $data的来源 TemplateService->printBillInfo && PrintService->billListNew

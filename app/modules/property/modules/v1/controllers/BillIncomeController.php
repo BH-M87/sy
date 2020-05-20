@@ -179,14 +179,6 @@ Class BillIncomeController extends BaseController
             return PsCommon::responseFailed("收款记录ID必填！");
         }
 
-        if (empty($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("请选择模板！");
-        }
-
-        if (!PsTemplateBill::findOne($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("模板不存在！");
-        }
-
         $income = PsBillIncome::findOne($this->request_params['id']);
 
         if (empty($income)) {
@@ -270,11 +262,9 @@ Class BillIncomeController extends BaseController
             if ($model->validate()) {
                 $params['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
                 $result = TemplateService::service()->printBillInfo_($params, $this->user_info, $income);
-                print_R($result);die;
                 if ($result['code']) {
-                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
-
-                    return PsCommon::responseSuccess($data);
+//                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
+                    return PsCommon::responseSuccess($result['data']);
                 } else {
                     return PsCommon::responseFailed($result['msg']);
                 }
