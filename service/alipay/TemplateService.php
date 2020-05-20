@@ -236,7 +236,7 @@ Class TemplateService extends BaseService
                 $arr = [];
                 $arr['id'] = $v['bill_id'];
 //                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
-                $arr['house_area'] = $v['charge_area'];
+//                $arr['house_area'] = $v['charge_area'];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
                 $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
                 $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
@@ -259,15 +259,16 @@ Class TemplateService extends BaseService
                 $arrList[] = $arr;
             }
             $room_comm['print_date'] = date("Y-m-d H:i", time());
-            $room_comm['community_id'] = $results[0]['community_id'];
+//            $room_comm['community_id'] = $results[0]['community_id'];
             $room_comm['house_info'] = $results[0]['room_address'];
             $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
-            $room_comm['pay_date'] = !empty($income) ? date("Y-m-d", $income['income_time']) : ''; // 收款日期
+            $room_comm['pay_date'] = !empty($income) ? date("Y年m月d日", $income['income_time']) : ''; // 收款日期
             $room_comm['payee_name'] = !empty($income) ? $income['payee_name'] : ''; // 收款人
             $room_comm['trade_no'] = !empty($income) ? $income['trade_no'] : ''; // 编号
-            $room_comm['company_id'] = '';
+//            $room_comm['company_id'] = '';
             $room_comm['pay_company'] = ''; // 收款单位
+            $room_comm['qr_code'] = ''; // 收款单位
             $room_comm['pay_channel'] = !empty($income) ? BillIncomeService::$pay_channel[$income['pay_channel']] : ''; // 收款方式
             $room_comm['pay_note'] = !empty($income) ? $income['note'] : ''; // 收款备注
 

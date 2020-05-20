@@ -114,7 +114,7 @@ class PrintController extends BaseController
                 $data['room_id'] = $value['room_id'];
                 $result = TemplateService::service()->billListNew_($data, $this->user_info);
                 if(!empty($result)){
-                    $dataResult[] = $result;
+                    $dataResult['list'][] = $result;
                 }
             }
         }
