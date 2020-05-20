@@ -181,6 +181,7 @@ Class TemplateService extends BaseService
         }else {
             return $this->failed('暂无需打印的账单');
         }
+        $arrList = [];
         if(!empty($resultList)){
             $total_money = 0;
             foreach ($resultList as $v) {
@@ -211,16 +212,15 @@ Class TemplateService extends BaseService
 
             }
 
-            $room_comm['print_date'] = date("Y-m-d", time());
+            $room_comm['print_date'] = date("Y年m月d日", time());
             $room_comm['house_info'] = $results[0]['room_address'];
             $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
-            $room_comm['company_id'] = '';
             $room_comm['pay_company'] = ''; // 收款单位
             //获得配置信息
             $systemSet = new PsSystemSet();
-            $result = $systemSet->getDetail(['company_id'=>$params['corp_id']]);
-            $room_comm['content'] = !empty($results['notice_content'])?$results['notice_content']:'';
+            $sysSetResult = $systemSet->getDetail(['company_id'=>$params['corp_id']]);
+            $room_comm['content'] = !empty($sysSetResult['notice_content'])?$sysSetResult['notice_content']:'';
             $data['bill_list'] = $arrList; // 账单信息
             $data['room_data'] = $room_comm; // 模板信息+房屋信息
 
@@ -345,7 +345,8 @@ Class TemplateService extends BaseService
                 }
                 continue;
             }
-            if($item['acct_period_start']==($valiTime+86400) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
+//            if($item['acct_period_start']==($valiTime+86400) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
+            if((date('Y-m-d',$item['acct_period_start'])==date('Y-m-d',($valiTime+86400))) && $resultList[$valiKey]['cost_id'] == $item['cost_id']){
                 $resultList[$valiKey]['acct_period_end'] = $item['acct_period_end'];
                 $resultList[$valiKey]['bill_entry_amount'] += $item['bill_entry_amount'];
                 $resultList[$valiKey]['paid_entry_amount'] += $item['paid_entry_amount'];
