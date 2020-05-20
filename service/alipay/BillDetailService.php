@@ -143,7 +143,7 @@ class BillDetailService extends BaseService
             $params = array_merge($params, [':community_id' => $requestArr["community_id"]]);
         }
 //        if (empty($requestArr["community_id"]) && $requestArr['target'] != 1) {//说明是运营系统
-//            $where .= " AND der.community_id in({$communitys}) ";
+            $where .= " AND der.community_id in({$communitys}) ";
 //        }
         if (!empty($requestArr["acct_period_start"]) && $requestArr['source'] != 5) {
             $where .= " And  der.pay_time>= :acct_period_start ";
