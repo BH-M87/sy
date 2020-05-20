@@ -176,6 +176,7 @@ Class TemplateService extends BaseService
             $room_comm['total'] = sprintf("%.2f", $total_money);
             $room_comm['pay_company'] = ''; // 收款单位
             $room_comm['content'] = $params['content'];
+            $room_comm['qr_code'] = ''; // 二维码图片
 
             $data['bill_list'] = $arrList; // 账单信息
             $data['room_data'] = $room_comm; // 模板信息+房屋信息
@@ -234,7 +235,7 @@ Class TemplateService extends BaseService
             $total_money = 0;
             foreach ($resultList as $v) {
                 $arr = [];
-                $arr['id'] = $v['bill_id'];
+//                $arr['id'] = $v['bill_id'];
 //                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
 //                $arr['house_area'] = $v['charge_area'];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
@@ -268,7 +269,6 @@ Class TemplateService extends BaseService
             $room_comm['trade_no'] = !empty($income) ? $income['trade_no'] : ''; // 编号
 //            $room_comm['company_id'] = '';
             $room_comm['pay_company'] = ''; // 收款单位
-            $room_comm['qr_code'] = ''; // 收款单位
             $room_comm['pay_channel'] = !empty($income) ? BillIncomeService::$pay_channel[$income['pay_channel']] : ''; // 收款方式
             $room_comm['pay_note'] = !empty($income) ? $income['note'] : ''; // 收款备注
 
