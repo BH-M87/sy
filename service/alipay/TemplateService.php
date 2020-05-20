@@ -125,7 +125,6 @@ Class TemplateService extends BaseService
 
     //打印催缴单
     public function billListNew_($params,$userinfo){
-
         $bill_list = PsCommon::get($params, "ids");
         $roomId = PsCommon::get($params, "room_id"); // 房屋id
 
@@ -174,7 +173,7 @@ Class TemplateService extends BaseService
             $room_comm['house_info'] = $results[0]['room_address'];
             $room_comm['house_area'] = $results[0]['charge_area'];
             $room_comm['total'] = sprintf("%.2f", $total_money);
-            $room_comm['pay_company'] = ''; // 收款单位
+            $room_comm['pay_company'] = !empty($userinfo['corpName'])?$userinfo['corpName']:''; // 收款单位
             $room_comm['content'] = $params['content'];
             $room_comm['qr_code'] = ''; // 二维码图片
 
@@ -268,7 +267,7 @@ Class TemplateService extends BaseService
             $room_comm['payee_name'] = !empty($income) ? $income['payee_name'] : ''; // 收款人
             $room_comm['trade_no'] = !empty($income) ? $income['trade_no'] : ''; // 编号
 //            $room_comm['company_id'] = '';
-            $room_comm['pay_company'] = ''; // 收款单位
+            $room_comm['pay_company'] = !empty($userinfo['corpName'])?$userinfo['corpName']:''; // 收款单位; // 收款单位
             $room_comm['pay_channel'] = !empty($income) ? BillIncomeService::$pay_channel[$income['pay_channel']] : ''; // 收款方式
             $room_comm['pay_note'] = !empty($income) ? $income['note'] : ''; // 收款备注
 
