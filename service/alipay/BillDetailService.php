@@ -135,9 +135,9 @@ class BillDetailService extends BaseService
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
         $params = $arr = [];
         $where = "  ";
-        if (empty($requestArr["community_id"]) && $requestArr['target'] == 1) {//只有物业才验证小区为空
-            return $this->failed("请选择小区");
-        }
+//        if (empty($requestArr["community_id"]) && $requestArr['target'] == 1) {//只有物业才验证小区为空
+//            return $this->failed("请选择小区");
+//        }
         if (!empty($requestArr["community_id"])) {
             $where .= " AND der.community_id=:community_id";
             $params = array_merge($params, [':community_id' => $requestArr["community_id"]]);
