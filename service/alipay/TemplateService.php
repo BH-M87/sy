@@ -196,7 +196,8 @@ Class TemplateService extends BaseService
                 //设置一个月有效期
                 $redis->expire($qrCodeKey,86400*30);
             }
-            $room_comm['qr_code'] = !empty($qrCodeResult['qrCodeUrl'])?$qrCodeResult['qrCodeUrl']:''; // 二维码图片
+            $setQrCodeUrl = Yii::$app->modules['property']->params['qr_code_url'];
+            $room_comm['qr_code'] = !empty($qrCodeResult['qrCodeUrl'])?$qrCodeResult['qrCodeUrl']:$setQrCodeUrl; // 二维码图片
 
             $data['bill_list'] = $arrList; // 账单信息
             $data['room_data'] = $room_comm; // 模板信息+房屋信息
