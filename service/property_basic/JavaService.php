@@ -296,4 +296,10 @@ class JavaService extends BaseService
         $query['route'] = '/resident/listByRoomIdList';
         return self::returnCData($query);
     }
+
+    //获得小区一区一码模板生成的小程序二维码
+    public function selectCommunityQrCode($query){
+        $query['route'] = '/appletTemplate/template-gateway';
+        return self::returnCData($query);
+    }
 }

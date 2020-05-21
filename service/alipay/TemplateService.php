@@ -4,6 +4,7 @@ namespace service\alipay;
 use app\models\PsBill;
 use app\models\PsSystemSet;
 use service\BaseService;
+use service\property_basic\JavaService;
 use Yii;
 use common\core\PsCommon;
 use app\models\PsTemplateBill;
@@ -175,7 +176,27 @@ Class TemplateService extends BaseService
             $room_comm['total'] = sprintf("%.2f", $total_money);
             $room_comm['pay_company'] = !empty($userinfo['corpName'])?$userinfo['corpName']:''; // 收款单位
             $room_comm['content'] = $params['content'];
-            $room_comm['qr_code'] = ''; // 二维码图片
+            $redis = Yii::$app->redis;
+            $qrCodeKey = $results[0]['community_id'];
+            $qrCodeResult = json_decode($redis->get($qrCodeKey),true);
+            if(empty($qrCodeResult)){
+                //获得小区小程序二维码 放到redis中
+                $javaService = new JavaService();
+                $javaParams['data']['communityId'] = $results[0]['community_id'];
+                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
+//                $javaParams['data']['communityId'] = '1254991620133425154';
+//                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
+                $javaParams['data']['queryParam'] = "x=1";
+                $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
+                $javaParams['token'] = $params['token'];
+                $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
+                $javaResult = $javaService->selectCommunityQrCode($javaParams);
+                $qrCodeResult['qrCodeUrl'] = !empty($javaResult['qrCodeUrl'])?$javaResult['qrCodeUrl']."jpg":'';
+                $redis->set($qrCodeKey,json_encode($qrCodeResult));
+                //设置一个月有效期
+                $redis->expire($qrCodeKey,86400*30);
+            }
+            $room_comm['qr_code'] = !empty($qrCodeResult['qrCodeUrl'])?$qrCodeResult['qrCodeUrl']:''; // 二维码图片
 
             $data['bill_list'] = $arrList; // 账单信息
             $data['room_data'] = $room_comm; // 模板信息+房屋信息
