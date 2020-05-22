@@ -10,6 +10,10 @@ namespace app\models;
 
 class PsDeliveryRecords extends BaseModel {
 
+    const DELIVERY_TYPE = ['1'=>'快递','2'=>'自提'];
+    const STATUS = ['1'=>'未处理','2'=>'已发','3'=>'已提'];
+
+
     public static function tableName()
     {
         return 'ps_delivery_records';
@@ -124,7 +128,7 @@ class PsDeliveryRecords extends BaseModel {
      */
     public function getList($param){
 
-        $field = ['id','product_name','create_at','cust_name','cust_mobile','product_num','address','delivery_type','courier_company','order_num'];
+        $field = ['id','product_name','create_at','cust_name','cust_mobile','product_num','address','delivery_type','status','courier_company','order_num'];
         $model = self::find()->select($field)->where(1);
         if(!empty($param['communityList'])){
             $model->andWhere(['in','community_id',$param['communityList']]);

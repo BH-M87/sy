@@ -49,6 +49,8 @@ class DeliveryRecordsService extends BaseService{
                 $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i',$value['create_at']):'';
                 $result['data'][$key]['cust_name'] = !empty($value['cust_name'])?PsCommon::hideName($value['cust_name']):'';
                 $result['data'][$key]['cust_mobile'] = !empty($value['cust_mobile'])?PsCommon::hideMobile($value['cust_mobile']):'';
+                $result['data'][$key]['status_msg'] = !empty($value['status'])?$model::STATUS[$value['status']]:'';
+                $result['data'][$key]['delivery_type_msg'] = !empty($value['delivery_type'])?$model::DELIVERY_TYPE[$value['delivery_type']]:'';
             }
         }
         return $this->success($result);
