@@ -19,20 +19,19 @@ class PsDeliveryRecords extends BaseModel {
     {
         return [
             // 所有场景
+            [['product_id','community_id','cust_name', 'cust_mobile','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['delivery_type','courier_company','order_num','operator_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
+            [['delivery_type','records_code','operator_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
+            ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
             [["id",'product_id', 'product_num','create_at','update_at'], 'integer'],
             [['community_id','product_name','cust_name','cust_mobile'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
             [['records_code','operator_name'], 'string',"max"=>10],
             [['courier_company','order_num'], 'string',"max"=>50],
             [['community_id','product_name','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name'], 'trim'],
-            [['state','operator_id','create_at','update_at'], 'integer'],
             [['cust_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
-
-            [['product_id','community_id','cust_name', 'cust_mobile','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
-            [['delivery_type','courier_company','order_num','operator_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
-            [['delivery_type','records_code','operator_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
-            ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
             [['id'], 'infoData', 'on' => ['send_edit',"self_edit","detail"]],
+            [['product_id'], 'productExist', 'on' => ['add']],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["product_num"],"default",'value' => 1,'on'=>['add']],
         ];
@@ -86,8 +85,21 @@ class PsDeliveryRecords extends BaseModel {
         if(!empty($this->id)){
             $res = static::find()->select(['id'])->where('id=:id',[':id'=>$this->id])->asArray()->one();
             if (empty($res)) {
-                $this->addError($attribute, "该资源不存在！");
+                $this->addError($attribute, "该数据不存在！");
             }
+        }
+    }
+
+    /*
+     * 验证商品是否存在 并设置信息
+     */
+    function productExist($attribute){
+        if(!empty($this->product_id)){
+            $res = Goods::find()->select(['id','name'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该商品不存在或已删除！");
+            }
+            $this->product_name = $res['name'];
         }
     }
 
