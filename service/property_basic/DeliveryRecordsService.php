@@ -9,6 +9,7 @@
 namespace service\property_basic;
 
 use app\models\PsDeliveryRecords;
+use common\core\PsCommon;
 use service\BaseService;
 
 class DeliveryRecordsService extends BaseService{
@@ -37,5 +38,19 @@ class DeliveryRecordsService extends BaseService{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    //兑换列表
+    public function getList($params){
+        $model = new PsDeliveryRecords();
+        $result = $model->getList($params);
+        if(!empty($result['data'])){
+            foreach($result['data'] as $key=>$value){
+                $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i',$value['create_at']):'';
+                $result['data'][$key]['cust_name'] = !empty($value['cust_name'])?PsCommon::hideName($value['cust_name']):'';
+                $result['data'][$key]['cust_mobile'] = !empty($value['cust_mobile'])?PsCommon::hideMobile($value['cust_mobile']):'';
+            }
+        }
+        return $this->success($result);
     }
 }
