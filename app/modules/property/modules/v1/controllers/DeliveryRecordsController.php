@@ -60,7 +60,18 @@ class DeliveryRecordsController extends BaseController{
     }
 
     //兑换记录发货
-
+    public function actionEdit(){
+        try{
+            $result = DeliveryRecordsService::service()->edit($this->request_params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 
 
 }

@@ -24,8 +24,8 @@ class PsDeliveryRecords extends BaseModel {
         return [
             // 所有场景
             [['product_id','community_id','cust_name', 'cust_mobile','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
-            [['delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
-            [['delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
+            [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
+            [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
             [["id",'product_id', 'product_num','delivery_type','status','create_at','update_at'], 'integer'],
             [['community_id','product_name','cust_name','cust_mobile','operator_id'], 'string',"max"=>30],
@@ -44,7 +44,7 @@ class PsDeliveryRecords extends BaseModel {
     public function attributeLabels()
     {
         return [
-            'id'                => 'ID',
+            'id'                => '兑换id',
             'product_id'        => '商品id',
             'community_id'      => '小区id',
             'product_name'      => '兑换名称',
