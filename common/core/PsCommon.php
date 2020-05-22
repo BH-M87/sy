@@ -734,6 +734,21 @@ class PsCommon {
         return $mobile ? substr_replace($mobile, '****', 3, 4) : '';
     }
 
+    //隐藏姓名
+    public static function hideName($name){
+        $len = mb_strlen($name);
+        if($len <= 2){
+            $newName = mb_substr($name,0,1)."*";
+        }else{
+            $str = '';
+            for($i=0;$i<$len-2;$i++){
+                $str.="*";
+            }
+            $newName = mb_substr($name,0,1).$str.mb_substr($name,-1);
+        }
+        return $newName;
+    }
+
     /**
      * 给集合增加元素
      * @param $cacheKey
