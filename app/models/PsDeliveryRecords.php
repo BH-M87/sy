@@ -152,10 +152,10 @@ class PsDeliveryRecords extends BaseModel {
             $model->andWhere(['like','order_num',$param['order_num']]);
         }
         if(!empty($param['start_time'])){
-            $model->andWhere(['>=','create_at',$param['start_time']]);
+            $model->andWhere(['>=','create_at',strtotime($param['start_time'])]);
         }
         if(!empty($param['end_time'])){
-            $model->andWhere(['<=','create_at',$param['end_time']]);
+            $model->andWhere(['<=','create_at',strtotime($param['end_time']." 23:59:59")]);
         }
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
