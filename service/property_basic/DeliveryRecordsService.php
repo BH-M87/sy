@@ -56,6 +56,23 @@ class DeliveryRecordsService extends BaseService{
         return $this->success($result);
     }
 
+    //兑换列表小程序端
+    public function getListOfC($params){
+        $model = new PsDeliveryRecords(['scenario'=>'app_list']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getListOfC($params);
+            if(!empty($result['data'])){
+                foreach($result['data'] as $key=>$value){
+                    $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+                }
+            }
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
     //兑换记录发货
     public function edit($params){
         if(empty($params['delivery_type'])){

@@ -23,16 +23,18 @@ class PsDeliveryRecords extends BaseModel {
     {
         return [
             // 所有场景
-            [['product_id','community_id','cust_name', 'cust_mobile','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['product_id','community_id','cust_name', 'cust_mobile','member_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
             [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
+            [['community_id','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
             [["id",'product_id', 'product_num','delivery_type','status','create_at','update_at'], 'integer'],
-            [['community_id','product_name','cust_name','cust_mobile','operator_id'], 'string',"max"=>30],
+            [['community_id','product_name','cust_name','cust_mobile','member_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
+            [['product_img'], 'string',"max"=>255],
             [['records_code','operator_name'], 'string',"max"=>10],
             [['courier_company','order_num'], 'string',"max"=>50],
-            [['community_id','product_name','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
+            [['community_id','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
             [['cust_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
             [['id'], 'infoData', 'on' => ['send_edit',"self_edit","detail"]],
             [['product_id'], 'productExist', 'on' => ['add']],
@@ -47,9 +49,11 @@ class PsDeliveryRecords extends BaseModel {
             'id'                => '兑换id',
             'product_id'        => '商品id',
             'community_id'      => '小区id',
-            'product_name'      => '兑换名称',
+            'product_name'      => '兑换商品名称',
+            'product_img'       => '兑换商品图片',
             'cust_name'         => '兑换人',
             'cust_mobile'       => '兑换人手机',
+            'member_id'         => '兑换人id',
             'product_num'       => '兑换数量',
             'address'           => '兑换地址',
             'delivery_type'     => '配送方式',
@@ -101,16 +105,17 @@ class PsDeliveryRecords extends BaseModel {
      */
     function productExist($attribute){
         if(!empty($this->product_id)){
-            $res = Goods::find()->select(['id','name'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
+            $res = Goods::find()->select(['id','name','img'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该商品不存在或已删除！");
             }
             $this->product_name = $res['name'];
+            $this->product_img = $res['img'];
         }
     }
 
     /*
-     * 资源详情
+     * 详情
      */
     public function detail($param){
         $field = [
@@ -124,7 +129,28 @@ class PsDeliveryRecords extends BaseModel {
     }
 
     /*
-     * 资源列表
+     * 小程序列表
+     */
+    public function getListOfC($param){
+        $field = ['id','product_name','create_at','product_num','product_img'];
+        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','member_id',$param['member_id']]);
+        $count = $model->count();
+        if(!empty($param['page'])||!empty($param['pageSize'])){
+            $page = !empty($param['page'])?intval($param['page']):1;
+            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'data'=>$result,
+            'count'=>$count
+        ];
+    }
+
+    /*
+     * 列表
      */
     public function getList($param){
 
