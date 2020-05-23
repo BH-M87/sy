@@ -13,10 +13,10 @@ class Goods extends BaseModel
     public function rules()
     {
         return [
-            [['name', 'img', 'startAt', 'endAt', 'group', 'score', 'num', 'personLimit', 'operatorId', 'operatorName'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['name', 'img', 'startAt', 'endAt', 'groupName', 'score', 'num', 'personLimit', 'operatorId', 'operatorName'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['startAt', 'endAt', 'score', 'num', 'personLimit', 'operatorId'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['name'], 'string', 'max' => 20],
-            [['group'], 'string', 'max' => 10],
+            [['groupName'], 'string', 'max' => 10],
             [['img'], 'string', 'max' => 255],
             [['personLimit'], 'default', 'value' => 1, 'on' => 'add'],
             [['isExchange', 'isDelete'], 'default', 'value' => 2, 'on' => 'add'],
@@ -34,7 +34,7 @@ class Goods extends BaseModel
             'img' => '图片',
             'startAt' => '兑换开始时间',
             'endAt' => '兑换结束时间',
-            'group' => '兑换期数',
+            'groupName' => '兑换期数',
             'score' => '兑换分数',
             'num' => '可兑换数量',
             'personLimit' => '每人兑换限制',

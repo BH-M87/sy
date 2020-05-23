@@ -47,7 +47,7 @@ class GoodsService extends BaseService
         $param['img'] = $p['img'];
         $param['startAt'] = strtotime($p['startAt']);
         $param['endAt'] = strtotime($p['endAt'].'23:59:59');
-        $param['group'] = $p['group'];
+        $param['groupName'] = $p['groupName'];
         $param['score'] = $p['score'];
         $param['num'] = $p['num'];
         $param['personLimit'] = $p['personLimit'];
@@ -168,9 +168,73 @@ class GoodsService extends BaseService
 
         $m = Goods::find()
             ->filterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['like', 'group', $p['group']])
+            ->andFilterWhere(['like', 'groupName', $p['groupName']])
             ->andFilterWhere(['>=', 'startAt', $startAt])
             ->andFilterWhere(['<=', 'endAt', $endAt]);
         return $m;
+    }
+
+    // 列表参数过滤
+    private static function _search($p)
+    {
+        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
+        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
+
+        $m = Goods::find()->alias('A')
+            ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+            ->filterWhere(['=', 'B.communityId', $p['community_id']])
+            ->andFilterWhere(['!=', 'A.groupName', $p['notGroupName']])
+            ->andFilterWhere(['=', 'A.groupName', $p['groupName']]);
+        return $m;
+    }
+
+    // 列表
+    public function groupList($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $p['notGroupName'] = Goods::find()->alias('A')->select('groupName')
+            ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+            ->filterWhere(['=', 'B.communityId', $p['community_id']])
+            ->groupBy('A.endAt')->orderBy('A.endAt desc')->scalar();
+
+        $totals = self::_search($p)->groupBy('A.endAt')->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::_search($p)->select('groupName')
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->groupBy('A.endAt')->orderBy('A.endAt desc')->asArray()->all();
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 最新商品列表
+    public function goodsList($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        if (empty($p['groupName'])) {
+            $p['groupName'] = Goods::find()->alias('A')->select('groupName')
+                ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+                ->filterWhere(['=', 'B.communityId', $p['community_id']])
+                ->groupBy('A.endAt')->orderBy('A.endAt desc')->scalar();
+        }
+
+        $totals = self::_search($p)->groupBy('A.endAt')->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num')
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('A.id desc')->asArray()->all();
+
+        return ['list' => $list, 'totals' => (int)$totals];
     }
 }
