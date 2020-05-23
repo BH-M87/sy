@@ -23,13 +23,13 @@ class PsDeliveryRecords extends BaseModel {
     {
         return [
             // 所有场景
-            [['product_id','community_id','cust_name', 'cust_mobile','member_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['product_id','community_id','cust_name', 'cust_mobile','user_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
             [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
-            [['community_id','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
+            [['community_id','user_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
             [["id",'product_id', 'product_num','delivery_type','status','create_at','update_at'], 'integer'],
-            [['community_id','product_name','cust_name','cust_mobile','member_id','operator_id'], 'string',"max"=>30],
+            [['community_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
             [['product_img'], 'string',"max"=>255],
             [['records_code','operator_name'], 'string',"max"=>10],
@@ -53,7 +53,7 @@ class PsDeliveryRecords extends BaseModel {
             'product_img'       => '兑换商品图片',
             'cust_name'         => '兑换人',
             'cust_mobile'       => '兑换人手机',
-            'member_id'         => '兑换人id',
+            'user_id'         => '兑换人id',
             'product_num'       => '兑换数量',
             'address'           => '兑换地址',
             'delivery_type'     => '配送方式',
@@ -133,7 +133,7 @@ class PsDeliveryRecords extends BaseModel {
      */
     public function getListOfC($param){
         $field = ['id','product_name','create_at','product_num','product_img'];
-        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','member_id',$param['member_id']]);
+        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']]);
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
             $page = !empty($param['page'])?intval($param['page']):1;
