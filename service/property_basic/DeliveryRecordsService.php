@@ -9,23 +9,42 @@
 namespace service\property_basic;
 
 use app\models\PsDeliveryRecords;
+use common\core\Curl;
 use common\core\PsCommon;
 use service\BaseService;
 
 class DeliveryRecordsService extends BaseService{
 
-    //兑换记录新增
-    public function add($params){
+    //兑换记录新增（小程序端）
+    public function addOfC($params){
+
+        self::doReduce();die;
+        //验证用户信息
+        print_r($params);die;
+
         $model = new PsDeliveryRecords(['scenario'=>'add']);
         if($model->load($params,'')&&$model->validate()){
             if(!$model->save()){
                 return $this->failed('新增失败！');
             }
+            //调用街道志愿者接口 减积分
             return $this->success(['id'=>$model->attributes['id']]);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    //扣除积分
+    public function doReduce(){
+        $url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/use-score";
+        $data['sysUserId'] = 45;
+        $data['score'] = 50;
+        $data['content'] = "测试";
+
+        $curl = Curl::getInstance();
+        $result = $curl::post($url,$data);
+        print_r($result);die;
     }
 
     //兑换记录详情
