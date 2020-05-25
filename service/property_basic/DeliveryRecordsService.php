@@ -17,15 +17,10 @@ use yii\db\Exception;
 
 class DeliveryRecordsService extends BaseService{
 
+    const USE_SCORE = '/internal/volunteer/use-score';
+
     //兑换记录新增（小程序端）
     public function addOfC($params){
-
-        $streetParams['sysUserId'] = 465465;
-        $streetParams['score'] = 5;
-        $streetParams['content'] = "兑换";
-        $streetResult = self::doReduce($streetParams);
-        print_r($streetResult);die;
-
 
         if(empty($params['user_id'])){
             return $this->failed("用户id不能为空");
@@ -66,9 +61,11 @@ class DeliveryRecordsService extends BaseService{
                 if($model->attributes['integral']>0){
                     $streetParams['sysUserId'] = $model->attributes['user_id'];
                     $streetParams['score'] = $model->attributes['integral'];
+//                    $streetParams['sysUserId'] = 17;
+//                    $streetParams['score'] = 0.1;
                     $streetParams['content'] = $model->attributes['product_name']."兑换";
                     $streetResult = self::doReduce($streetParams);
-                    if($streetResult['code']!=0){
+                    if($streetResult['code']!=1){
                         throw new Exception($streetResult['message']);
                     }
                 }
@@ -103,10 +100,11 @@ class DeliveryRecordsService extends BaseService{
 
     //扣除积分
     public function doReduce($data){
-        $url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/use-score";
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $url = $host.self::USE_SCORE;
         $curl = Curl::getInstance();
         $result = $curl::post($url,$data);
-        print_r($result);die;
+        return json_decode($result,true);
     }
 
     //兑换记录详情
