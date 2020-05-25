@@ -39,7 +39,7 @@ class DeliveryRecordsService extends BaseService{
         }
 
         $javaParams['communityId'] = $params['community_id'];
-        $javaParams['residentId'] = $params['user_id'];
+        $javaParams['roomId'] = $params['room_id'];
         $javaParams['token'] = $params['token'];
         $javaService = new JavaOfCService();
         $result = $javaService->getResidentFullAddress($javaParams);
@@ -51,6 +51,7 @@ class DeliveryRecordsService extends BaseService{
             $recordsParams['product_id'] = !empty($params['product_id'])?$params['product_id']:'';
             $recordsParams['product_num'] = !empty($params['product_num'])?$params['product_num']:'';
             $recordsParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+            $recordsParams['room_id'] = !empty($params['room_id'])?$params['room_id']:'';
             $recordsParams['user_id'] = !empty($params['user_id'])?$params['user_id']:'';
             $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
             $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
