@@ -12,26 +12,75 @@ use app\models\PsDeliveryRecords;
 use common\core\Curl;
 use common\core\PsCommon;
 use service\BaseService;
+use Yii;
+use yii\db\Exception;
 
 class DeliveryRecordsService extends BaseService{
 
     //兑换记录新增（小程序端）
     public function addOfC($params){
 
-        self::doReduce();die;
-        //验证用户信息
-        print_r($params);die;
+        $streetParams['sysUserId'] = 465465;
+        $streetParams['score'] = 5;
+        $streetParams['content'] = "兑换";
+        $streetResult = self::doReduce($streetParams);
+        print_r($streetResult);die;
 
-        $model = new PsDeliveryRecords(['scenario'=>'add']);
-        if($model->load($params,'')&&$model->validate()){
-            if(!$model->save()){
-                return $this->failed('新增失败！');
+
+        if(empty($params['user_id'])){
+            return $this->failed("用户id不能为空");
+        }
+        if(empty($params['community_id'])){
+            return $this->failed("小区id不能为空");
+        }
+        if(empty($params['product_id'])){
+            return $this->failed("商品id不能为空");
+        }
+        if(empty($params['product_num'])){
+            return $this->failed("商品数量不能为空");
+        }
+
+        $javaParams['communityId'] = $params['community_id'];
+        $javaParams['residentId'] = $params['user_id'];
+        $javaParams['token'] = $params['token'];
+        $javaService = new JavaOfCService();
+        $result = $javaService->getResidentFullAddress($javaParams);
+        if(!isset($result['fullName'])||empty($result['fullName'])){
+            return $this->failed("住户信息不存在");
+        }
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $recordsParams['product_id'] = !empty($params['product_id'])?$params['product_id']:'';
+            $recordsParams['product_num'] = !empty($params['product_num'])?$params['product_num']:'';
+            $recordsParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+            $recordsParams['user_id'] = !empty($params['user_id'])?$params['user_id']:'';
+            $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
+            $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
+            $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
+            $model = new PsDeliveryRecords(['scenario'=>'add']);
+            if($model->load($recordsParams,'')&&$model->validate()){
+                if(!$model->save()){
+                    return $this->failed('新增失败！');
+                }
+                //调用街道志愿者接口 减积分
+                if($model->attributes['integral']>0){
+                    $streetParams['sysUserId'] = $model->attributes['user_id'];
+                    $streetParams['score'] = $model->attributes['integral'];
+                    $streetParams['content'] = $model->attributes['product_name']."兑换";
+                    $streetResult = self::doReduce($streetParams);
+                    if($streetResult['code']!=0){
+                        throw new Exception($streetResult['message']);
+                    }
+                }
+                $trans->commit();
+                return $this->success(['id'=>$model->attributes['id']]);
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
             }
-            //调用街道志愿者接口 减积分
-            return $this->success(['id'=>$model->attributes['id']]);
-        }else{
-            $msg = array_values($model->errors)[0][0];
-            return $this->failed($msg);
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
     }
 
@@ -53,12 +102,8 @@ class DeliveryRecordsService extends BaseService{
     }
 
     //扣除积分
-    public function doReduce(){
+    public function doReduce($data){
         $url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/use-score";
-        $data['sysUserId'] = 45;
-        $data['score'] = 50;
-        $data['content'] = "测试";
-
         $curl = Curl::getInstance();
         $result = $curl::post($url,$data);
         print_r($result);die;

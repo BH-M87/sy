@@ -176,8 +176,9 @@ class JavaCurl {
             'data' => (object)[],
             'message' => $response['message'],
         ];
+        return $result;
 //        throw new Exception(json_encode($result, JSON_UNESCAPED_UNICODE));
-        exit(json_encode($result, JSON_UNESCAPED_UNICODE));
+//        exit(json_encode($result, JSON_UNESCAPED_UNICODE));
     }
 
     /**
