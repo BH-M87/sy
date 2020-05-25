@@ -412,7 +412,7 @@ class GoodsService extends BaseService
         if ($r['code'] == 1) {
             return $r['data'];
         } else {
-            throw new MyException($r['message']);
+            return ['integralSurplus' => '0'];
         }
     }
 
@@ -426,7 +426,7 @@ class GoodsService extends BaseService
         if ($r['code'] == 1) {
             return $r['data'];
         } else {
-            throw new MyException($r['message']);
+            return ['civilizationSurplus' => '0', 'img' => ''];
         }
     }
 }
