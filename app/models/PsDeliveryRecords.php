@@ -107,13 +107,17 @@ class PsDeliveryRecords extends BaseModel {
      */
     function productExist($attribute){
         if(!empty($this->product_id)){
-            $res = Goods::find()->select(['id','name','img','score'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
+            $res = Goods::find()->select(['id','name','img','score','isExchange'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该商品不存在或已删除！");
             }
             $this->product_name = $res['name'];
             $this->product_img = $res['img'];
             $this->integral = $res['score']*$this->product_num;
+            if($res['isExchange']==2){
+                //修改表状态
+                Goods::updateAll(['isExchange'=>1,'updateAt'=>time()],['id'=>$this->product_id]);
+            }
         }
     }
 
