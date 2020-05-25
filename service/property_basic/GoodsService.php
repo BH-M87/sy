@@ -17,6 +17,14 @@ use service\property_basic\JavaService;
 
 class GoodsService extends BaseService
 {
+    // 列表
+    public function groupDropDown($p)
+    {
+       $m = GoodsGroup::find()->select('id, name')->orderBy('id desc')->asArray()->all();
+
+        return $m;
+    }
+
     // 新增
     public function groupAdd($p, $userInfo)
     {
@@ -336,9 +344,9 @@ class GoodsService extends BaseService
         $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
 
         $m = Goods::find()->alias('A')
-            ->where(['A.isDelete' => 2])
             ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
+            ->andFilterWhere(['=', 'A.isDelete', 2])
             ->andFilterWhere(['!=', 'A.groupId', $p['notGroupId']])
             ->andFilterWhere(['=', 'A.groupId', $p['groupId']]);
         return $m;
