@@ -405,7 +405,7 @@ class GoodsService extends BaseService
     // 可兑换积分
     public function integralSurplus($p)
     {
-        $get_url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/score-info";
+        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/score-info";
         $curl_data = ["sysUserId" => $p['user_id']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
@@ -419,7 +419,7 @@ class GoodsService extends BaseService
     // 文明志愿码
     public function codeInfo($p)
     {
-        $get_url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/code-info";
+        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/code-info";
         $curl_data = ["sysUserId" => $p['user_id']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
