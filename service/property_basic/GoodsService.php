@@ -6,15 +6,147 @@ use yii\db\Query;
 use yii\base\Exception;
 use common\MyException;
 use common\core\PsCommon;
+use common\core\Curl;
 
 use service\BaseService;
 
 use app\models\Goods;
+use app\models\GoodsGroup;
 use app\models\GoodsCommunity;
 use service\property_basic\JavaService;
 
 class GoodsService extends BaseService
 {
+    // 新增
+    public function groupAdd($p, $userInfo)
+    {
+        return self::_saveGroup($p, 'add', $userInfo);
+    }
+
+    // 编辑
+    public function groupEdit($p, $userInfo)
+    {
+        return self::_saveGroup($p, 'edit', $userInfo);
+    }
+
+    public function _saveGroup($p, $scenario, $userInfo)
+    {
+        if ($scenario == 'edit') {
+            $model = GoodsGroup::findOne($p['id']);
+            if (empty($model)) {
+                throw new MyException('数据不存在!');
+            }
+        }
+
+        $group = GoodsGroup::find()->where(['name' => $p['name']])->andFilterWhere(['!=', 'id', $p['id']])->one();
+
+        if (!empty($group)) {
+            throw new MyException('数据已存在!');
+        }
+
+        $param['id'] = $p['id'];
+        $param['name'] = $p['name'];
+        $param['startAt'] = strtotime($p['startAt']);
+        $param['endAt'] = strtotime($p['endAt']);
+        $param['operatorId'] = $userInfo['id'];
+        $param['operatorName'] = $userInfo['truename'];
+
+        $model = new GoodsGroup(['scenario' => $scenario]);
+
+        if (!$model->load($param, '') || !$model->validate()) {
+            throw new MyException($this->getError($model));
+        }
+
+        if (!$model->saveData($scenario, $param)) {
+            throw new MyException($this->getError($model));
+        }
+
+        $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+
+        return ['id' => $id];
+    }
+
+    // 详情
+    public function groupShow($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
+        if (!empty($r)) {
+            $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
+            $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
+
+            return $r;
+        }
+
+        throw new MyException('数据不存在!');
+    }
+
+    // 删除
+    public function groupDelete($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $m = GoodsGroup::findOne($p['id']);
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        $goods = Goods::find()->where(['groupId' => $p['id'], 'isDelete' => 2])->one();
+        if (!empty($goods)) {
+            throw new MyException('请先删除商品');
+        }
+
+        GoodsGroup::deleteAll(['id' => $p['id']]);
+
+        return true;
+    }
+
+    // 列表
+    public function groupList($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::groupSearch($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::groupSearch($p)
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
+                $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
+                $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
+
+                $comm = GoodsCommunity::find()->where(['goodsId' => $v['id']])->asArray()->all();
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 列表参数过滤
+    private static function groupSearch($p)
+    {
+        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
+        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
+
+        $m = GoodsGroup::find()
+            ->filterWhere(['like', 'name', $p['name']])
+            ->andFilterWhere(['>=', 'startAt', $startAt])
+            ->andFilterWhere(['<=', 'endAt', $endAt]);
+        return $m;
+    }
+
     // 新增
     public function add($p, $userInfo)
     {
@@ -42,12 +174,15 @@ class GoodsService extends BaseService
             throw new MyException('数据已存在!');
         }
 
+        $group = GoodsGroup::findOne($p['groupId']);
+        if (empty($group)) {
+            throw new MyException('期数不存在!');
+        }
+
         $param['id'] = $p['id'];
         $param['name'] = $p['name'];
         $param['img'] = $p['img'];
-        $param['startAt'] = strtotime($p['startAt']);
-        $param['endAt'] = strtotime($p['endAt'].'23:59:59');
-        $param['groupName'] = $p['groupName'];
+        $param['groupId'] = $p['groupId'];
         $param['score'] = $p['score'];
         $param['num'] = $p['num'];
         $param['personLimit'] = $p['personLimit'];
@@ -69,9 +204,9 @@ class GoodsService extends BaseService
 
             $goodsId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['community'])) {
+            if (!empty($p['communityIdList'])) {
                 GoodsCommunity::deleteAll(['goodsId' => $goodsId]);
-                foreach ($p['community'] as $k => $v) {
+                foreach ($p['communityIdList'] as $k => $v) {
                     $comm = new GoodsCommunity();
                     $comm->goodsId = $goodsId;
                     $comm->communityId = $v;
@@ -94,7 +229,10 @@ class GoodsService extends BaseService
             throw new MyException('id不能为空');
         }
 
-        $r = Goods::find()->where(['id' => $p['id']])->asArray()->one();
+        $r = Goods::find()->alias('A')
+            ->select('A.*, B.name as groupName, B.startAt, B.endAt')
+            ->leftJoin('ps_goods_group B', 'B.id = A.groupId')
+            ->where(['A.id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             $comm = GoodsCommunity::find()->where(['goodsId' => $p['id']])->asArray()->all();
 
@@ -105,9 +243,11 @@ class GoodsService extends BaseService
              
                     $r['community'][$k]['id'] = $v['communityId'];
                     $r['community'][$k]['name'] = $community['communityName'];
+                    $communityName .= $community['communityName'] . ' ';
                 }
             }
             
+            $r['communityName'] = $communityName;
             $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
             $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
 
@@ -154,6 +294,18 @@ class GoodsService extends BaseService
                 $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
                 $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
                 $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
+
+                $comm = GoodsCommunity::find()->where(['goodsId' => $v['id']])->asArray()->all();
+
+                $v['communityList'] = [];
+                if (!empty($comm)) {
+                    foreach ($comm as $key => $val) {
+                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
+                 
+                        $v['communityList'][$key]['id'] = $val['communityId'];
+                        $v['communityList'][$key]['communityName'] = $community['communityName'];
+                    }
+                }
             }
         }
 
@@ -166,11 +318,14 @@ class GoodsService extends BaseService
         $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
         $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
 
-        $m = Goods::find()
-            ->filterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['like', 'groupName', $p['groupName']])
-            ->andFilterWhere(['>=', 'startAt', $startAt])
-            ->andFilterWhere(['<=', 'endAt', $endAt]);
+        $m = Goods::find()->alias('A')
+            ->select('A.*, B.name groupName, B.startAt, B.endAt')
+            ->leftJoin('ps_goods_group B', 'B.id = A.groupId')
+            ->where(['A.isDelete' => 2])
+            ->filterWhere(['like', 'A.name', $p['name']])
+            ->andFilterWhere(['like', 'B.name', $p['groupName']])
+            ->andFilterWhere(['>=', 'B.startAt', $startAt])
+            ->andFilterWhere(['<=', 'B.endAt', $endAt]);
         return $m;
     }
 
@@ -181,33 +336,34 @@ class GoodsService extends BaseService
         $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
 
         $m = Goods::find()->alias('A')
+            ->where(['A.isDelete' => 2])
             ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
-            ->andFilterWhere(['!=', 'A.groupName', $p['notGroupName']])
-            ->andFilterWhere(['=', 'A.groupName', $p['groupName']]);
+            ->andFilterWhere(['!=', 'A.groupId', $p['notGroupId']])
+            ->andFilterWhere(['=', 'A.groupId', $p['groupId']]);
         return $m;
     }
 
-    // 列表
-    public function groupList($p)
+    // 往期兑换列表
+    public function groupListSmall($p)
     {
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        $p['notGroupName'] = Goods::find()->alias('A')->select('groupName')
+        $p['notGroupId'] = Goods::find()->alias('A')->select('groupId')
             ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
-            ->groupBy('A.endAt')->orderBy('A.endAt desc')->scalar();
+            ->orderBy('A.groupId desc')->scalar();
 
         $totals = self::_search($p)->groupBy('A.endAt')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
 
-        $list = self::_search($p)->select('groupName')
+        $list = self::_search($p)->select('A.groupName, A.groupId')
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->groupBy('A.endAt')->orderBy('A.endAt desc')->asArray()->all();
+            ->groupBy('A.groupId')->orderBy('A.groupId desc')->asArray()->all();
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
@@ -218,14 +374,14 @@ class GoodsService extends BaseService
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        if (empty($p['groupName'])) {
-            $p['groupName'] = Goods::find()->alias('A')->select('groupName')
+        if (empty($p['groupId'])) {
+            $p['groupId'] = Goods::find()->alias('A')->select('groupId')
                 ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
                 ->filterWhere(['=', 'B.communityId', $p['community_id']])
-                ->groupBy('A.endAt')->orderBy('A.endAt desc')->scalar();
+                ->orderBy('A.groupId desc')->scalar();
         }
 
-        $totals = self::_search($p)->groupBy('A.endAt')->count();
+        $totals = self::_search($p)->groupBy('A.groupId')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
@@ -236,5 +392,33 @@ class GoodsService extends BaseService
             ->orderBy('A.id desc')->asArray()->all();
 
         return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 可兑换积分
+    public function integralSurplus($p)
+    {
+        $get_url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/score-info";
+        $curl_data = ["sysUserId" => $p['user_id']];
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+
+        if ($r['code'] == 1) {
+            return $r['data'];
+        } else {
+            throw new MyException($r['message']);
+        }
+    }
+
+    // 文明志愿码
+    public function codeInfo($p)
+    {
+        $get_url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/code-info";
+        $curl_data = ["sysUserId" => $p['user_id']];
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+
+        if ($r['code'] == 1) {
+            return $r['data'];
+        } else {
+            throw new MyException($r['message']);
+        }
     }
 }
