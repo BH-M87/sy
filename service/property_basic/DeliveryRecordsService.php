@@ -28,6 +28,9 @@ class DeliveryRecordsService extends BaseService{
         if(empty($params['community_id'])){
             return $this->failed("小区id不能为空");
         }
+        if(empty($params['room_id'])){
+            return $this->failed("房屋id不能为空");
+        }
         if(empty($params['product_id'])){
             return $this->failed("商品id不能为空");
         }
@@ -176,5 +179,12 @@ class DeliveryRecordsService extends BaseService{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    //文明码统计
+    public function civilStatistics($params){
+        //报事保修统计
+
+        //巡更巡检统计
     }
 }

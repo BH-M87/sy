@@ -44,4 +44,18 @@ class DeliveryRecordsController extends BaseController {
             exit($e->getMessage());
         }
     }
+
+    //小区文明码统计
+    public function actionCivilStatistics(){
+        try{
+            $result = DeliveryRecordsService::service()->civilStatistics($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
