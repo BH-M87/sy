@@ -355,7 +355,7 @@ class GoodsService extends BaseService
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
             ->orderBy('A.groupId desc')->scalar();
 
-        $totals = self::_search($p)->groupBy('A.endAt')->count();
+        $totals = self::_search($p)->groupBy('A.groupId')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
