@@ -35,6 +35,23 @@ class DeliveryRecordsService extends BaseService{
         }
     }
 
+
+    //兑换记录新增（小程序端）
+    public function add($params){
+
+        $model = new PsDeliveryRecords(['scenario'=>'add']);
+        if($model->load($params,'')&&$model->validate()){
+            if(!$model->save()){
+                return $this->failed('新增失败！');
+            }
+            //调用街道志愿者接口 减积分
+            return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
     //扣除积分
     public function doReduce(){
         $url = "https://dev-api.elive99.com/volunteer-ckl/?r=/internal/volunteer/use-score";

@@ -18,7 +18,7 @@ class DeliveryRecordsController extends BaseController{
     //兑换记录新增
     public function actionAdd(){
         try{
-            $result = DeliveryRecordsService::service()->addOfC($this->request_params);
+            $result = DeliveryRecordsService::service()->add($this->request_params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             } else {
