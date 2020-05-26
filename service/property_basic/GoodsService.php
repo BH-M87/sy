@@ -94,6 +94,31 @@ class GoodsService extends BaseService
         }
     }
 
+    // 活动关联小区
+    public function groupCommunity($p)
+    {
+        $groupId = $p['groupId'];
+
+        $m = GoodsGroup::findOne($groupId);
+        if (empty($m)) {
+            throw new MyException('兑换活动不存在');
+        }
+
+        if (empty($p['communityIdList'])) {
+            throw new MyException('请选择小区');
+        }
+
+        GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
+        foreach ($p['communityIdList'] as $k => $v) {
+            $comm = new GoodsGroupCommunity();
+            $comm->groupId = $groupId;
+            $comm->communityId = $v;
+            $comm->save();
+        }
+
+        return [];
+    }
+
     // 详情
     public function groupShow($p)
     {
@@ -238,6 +263,8 @@ class GoodsService extends BaseService
         $param['groupId'] = $p['groupId'];
         $param['score'] = $p['score'];
         $param['num'] = $p['num'];
+        $param['receiveType'] = $p['receiveType'];
+        $param['type'] = $p['type'];
         $param['personLimit'] = $p['personLimit'];
         $param['operatorId'] = $userInfo['id'];
         $param['operatorName'] = $userInfo['truename'];
@@ -280,6 +307,8 @@ class GoodsService extends BaseService
             
             $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
             $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
+            $r['receiveTypeMsg'] = $r['receiveType'] == 1 ? '快递' : '自提';
+            $r['typeMsg'] = $r['type'] == 1 ? '实物' : '虚拟';
 
             return $r;
         }
@@ -324,6 +353,8 @@ class GoodsService extends BaseService
                 $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
                 $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
                 $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
+                $v['receiveTypeMsg'] = $v['receiveType'] == 1 ? '快递' : '自提';
+                $v['typeMsg'] = $v['type'] == 1 ? '实物' : '虚拟';
             }
         }
 

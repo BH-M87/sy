@@ -14,7 +14,7 @@ class Goods extends BaseModel
     {
         return [
             [['name', 'img', 'groupId', 'score', 'num', 'personLimit', 'operatorId', 'operatorName'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
-            [['score', 'num', 'personLimit', 'operatorId', 'groupId'], 'integer', 'message'=> '{attribute}格式错误!'],
+            [['score', 'num', 'personLimit', 'operatorId', 'groupId', 'receiveType', 'type'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['name'], 'string', 'max' => 20],
             [['img'], 'string', 'max' => 255],
             [['personLimit'], 'default', 'value' => 1, 'on' => 'add'],
@@ -34,6 +34,8 @@ class Goods extends BaseModel
             'groupId' => '期数ID',
             'score' => '兑换分数',
             'num' => '可兑换数量',
+            'receiveType' => '领取方式',
+            'type' => '商品属性',
             'personLimit' => '每人兑换限制',
             'isExchange' => '是否兑换过',
             'isDelete' => '是否删除',
