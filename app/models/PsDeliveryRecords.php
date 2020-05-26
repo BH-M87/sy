@@ -23,11 +23,11 @@ class PsDeliveryRecords extends BaseModel {
     {
         return [
             // 所有场景
-            [['product_id','community_id','room_id','cust_name', 'cust_mobile','user_id','volunteer_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['volunteer_add']],
+            [['product_id','community_id','cust_name', 'cust_mobile','user_id','volunteer_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['volunteer_add']],
             [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
             [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
-            [['community_id','user_id','room_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
+            [['community_id','user_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
             [["id",'product_id', 'volunteer_id','product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
             [['community_id','room_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
@@ -142,7 +142,8 @@ class PsDeliveryRecords extends BaseModel {
      */
     public function getListOfC($param){
         $field = ['id','product_name','create_at','product_num','product_img'];
-        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']])->andWhere(['=','room_id',$param['room_id']]);
+        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']]);
+//            ->andWhere(['=','room_id',$param['room_id']]);
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
             $page = !empty($param['page'])?intval($param['page']):1;

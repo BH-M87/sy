@@ -19,36 +19,36 @@ class DeliveryRecordsService extends BaseService{
 
     const USE_SCORE = '/internal/volunteer/use-score';
 
+//        if(empty($params['user_id'])){
+//            return $this->failed("用户id不能为空");
+//        }
+//        if(empty($params['community_id'])){
+//            return $this->failed("小区id不能为空");
+//        }
+//        if(empty($params['room_id'])){
+//            return $this->failed("房屋id不能为空");
+//        }
+//        if(empty($params['product_id'])){
+//            return $this->failed("商品id不能为空");
+//        }
+//        if(empty($params['product_num'])){
+//            return $this->failed("商品数量不能为空");
+//        }
+//        if(empty($params['volunteer_id'])){
+//            return $this->failed("志愿者id不能为空");
+//        }
+
+//        $javaParams['communityId'] = $params['community_id'];
+//        $javaParams['roomId'] = $params['room_id'];
+//        $javaParams['token'] = $params['token'];
+//        $javaService = new JavaOfCService();
+//        $result = $javaService->getResidentFullAddress($javaParams);
+//        if(!isset($result['fullName'])||empty($result['fullName'])){
+//            return $this->failed("住户信息不存在");
+//        }
     //兑换记录新增（小程序端）
     public function addOfC($params){
 
-        if(empty($params['user_id'])){
-            return $this->failed("用户id不能为空");
-        }
-        if(empty($params['community_id'])){
-            return $this->failed("小区id不能为空");
-        }
-        if(empty($params['room_id'])){
-            return $this->failed("房屋id不能为空");
-        }
-        if(empty($params['product_id'])){
-            return $this->failed("商品id不能为空");
-        }
-        if(empty($params['product_num'])){
-            return $this->failed("商品数量不能为空");
-        }
-        if(empty($params['volunteer_id'])){
-            return $this->failed("志愿者id不能为空");
-        }
-
-        $javaParams['communityId'] = $params['community_id'];
-        $javaParams['roomId'] = $params['room_id'];
-        $javaParams['token'] = $params['token'];
-        $javaService = new JavaOfCService();
-        $result = $javaService->getResidentFullAddress($javaParams);
-        if(!isset($result['fullName'])||empty($result['fullName'])){
-            return $this->failed("住户信息不存在");
-        }
         $trans = Yii::$app->db->beginTransaction();
         try{
             $recordsParams['product_id'] = !empty($params['product_id'])?$params['product_id']:'';
@@ -57,9 +57,12 @@ class DeliveryRecordsService extends BaseService{
             $recordsParams['room_id'] = !empty($params['room_id'])?$params['room_id']:'';
             $recordsParams['user_id'] = !empty($params['user_id'])?$params['user_id']:'';
             $recordsParams['volunteer_id'] = !empty($params['volunteer_id'])?$params['volunteer_id']:'';
-            $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
-            $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
-            $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
+//            $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
+//            $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
+//            $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
+            $recordsParams['cust_name'] = !empty($params['cust_name'])?$params['cust_name']:'';
+            $recordsParams['cust_mobile'] = !empty($params['cust_mobile'])?$params['cust_mobile']:'';
+            $recordsParams['address'] = !empty($params['address'])?$params['address']:'';
             $model = new PsDeliveryRecords(['scenario'=>'volunteer_add']);
             if($model->load($recordsParams,'')&&$model->validate()){
                 if(!$model->save()){
