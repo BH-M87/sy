@@ -62,7 +62,7 @@ class DeliveryRecordsService extends BaseService{
 //            $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
             $recordsParams['cust_name'] = !empty($params['cust_name'])?$params['cust_name']:'';
             $recordsParams['cust_mobile'] = !empty($params['cust_mobile'])?$params['cust_mobile']:'';
-            $recordsParams['address'] = !empty($params['fullName'])?$params['fullName']:'';
+            $recordsParams['address'] = !empty($params['address'])?$params['address']:'';
             $model = new PsDeliveryRecords(['scenario'=>'volunteer_add']);
             if($model->load($recordsParams,'')&&$model->validate()){
                 if(!$model->save()){
