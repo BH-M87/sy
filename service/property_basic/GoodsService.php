@@ -455,7 +455,8 @@ class GoodsService extends BaseService
     // 可兑换积分
     public function integralSurplus($p)
     {
-        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/score-info";
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $get_url = $host."/internal/volunteer/score-info";
         $curl_data = ["sysUserId" => $p['user_id']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
@@ -469,7 +470,8 @@ class GoodsService extends BaseService
     // 文明志愿码
     public function codeInfo($p)
     {
-        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/code-info";
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $get_url = $host."/internal/volunteer/code-info";
         $curl_data = ["sysUserId" => $p['user_id']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
@@ -483,7 +485,8 @@ class GoodsService extends BaseService
     // 判断志愿者是否注册过
     public function isRegister($p)
     {
-        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/is-register";
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $get_url = $host."/internal/volunteer/is-register";
         $curl_data = ["mobile" => $p['mobile']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
