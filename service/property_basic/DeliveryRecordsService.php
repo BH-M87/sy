@@ -9,6 +9,10 @@
 namespace service\property_basic;
 
 use app\models\PsDeliveryRecords;
+use app\models\PsInspectRecord;
+use app\models\PsRepair;
+use app\models\PsRepairAppraise;
+use app\models\PsRepairRecord;
 use common\core\Curl;
 use common\core\PsCommon;
 use service\BaseService;
@@ -191,8 +195,102 @@ class DeliveryRecordsService extends BaseService{
 
     //文明码统计
     public function civilStatistics($params){
-        //报事保修统计
+        if(empty($params['community_id'])){
+            return $this->failed("小区id必填");
+        }
 
+        //报事保修统计
+        $data['repair'] = self::doRepairStatistics($params);
         //巡更巡检统计
+        $data['inspect'] = self::doInspectStatistics($params);
+
+        //垃圾分类
+        $data['rubbish']['rubbish_sort'] = '-';     //有无垃圾分类时间和地点
+        $data['rubbish']['rubbish_score'] = '-';    //垃圾分类居民评分
+
+        //保洁绿化
+        $data['cleaning']['cleaning_plan'] = '无';   //有无工作计划
+        $data['cleaning']['cleaning_work'] = '无';   //有无上传工作记录
+
+        //居民问题反馈率
+        $data['residents']['industry_rate'] = '0';      //业委会处理率
+        $data['residents']['dwell_rate'] = '0';      //居委会处理率
+        $data['residents']['street_rate'] = '0';         //街道处理率
+
+        return $this->success($data);
+    }
+
+    public function doInspectStatistics($params){
+        $fields = ['count(id) as num','run_status'];
+        $inspectResult = PsInspectRecord::find()->select($fields)->where(['=','community_id',$params['community_id']])->groupBy(['run_status'])->asArray()->all();
+        $countAll = 0;
+        $overdue = 0;
+        $overdue_rate = 0;
+        if(!empty($inspectResult)){
+            foreach($inspectResult as $key=>$value){
+                switch($value['run_status']){
+                    case 1:     //逾期
+                        $overdue += $value['num'];
+                        break;
+                    case 2:
+                    case 3:
+                        break;
+
+                }
+                $countAll+=$value['num'];
+            }
+            if($overdue>0){
+                $overdue_rate = number_format($overdue/$countAll,2).'%';
+            }
+        }
+        return [
+            'countAll'=>$countAll,      // 计划数量
+            'inspectPlan'=>$countAll>0?'有':'无',
+            'overdue_rate'=>$overdue_rate,
+        ];
+    }
+
+    /*
+     *   物业报事报修响应平均时间：
+     *  （物业接单时间 - 业主上报时间）/ 上报件数
+     *   < 60分钟，按分钟显示；> 60 分钟按小时计算。如90分钟，显示为1.5小时。
+     */
+    public function doRepairStatistics($params){
+        //报事保修统计
+        $repairFields = ['sum((c.create_at-r.create_at)) as deal_at'];
+        $repairModel = PsRepair::find()->alias('r')
+            ->leftJoin(['c'=>PsRepairRecord::tableName()],'c.repair_id=r.id')
+            ->select($repairFields)
+            ->where(['=','r.community_id',$params['community_id']])->andWhere(['=','c.status',1]);
+        $totalsTime = $repairModel->asArray()->one();
+        $answerTime = '';
+        if($totalsTime['deal_at']>0){
+            //订单总数
+            $repairCount = PsRepair::find()->select(['id'])->where(['=','community_id',$params['community_id']])->count();
+            //报事保修相应时间
+            $averageTime = ceil($totalsTime['deal_at']/$repairCount);
+            if($answerTime>60*60){
+                //显示小时
+                $answerTime = number_format($averageTime/60*60,1)."小时";
+            }else{
+                //显示分钟
+//                $answerTime = number_format($averageTime/60,1)."分钟";
+                $answerTime = round($averageTime/60,1)."分钟";
+            }
+        }
+
+        $scoreFields = ['sum(s.start_num) as score','count(s.id) as totals'];
+        $scoreResult = PsRepairAppraise::find()->alias('s')
+                    ->leftJoin(['r'=>PsRepair::tableName()],'s.repair_id=r.id')
+                    ->select($scoreFields)->where(['=','r.community_id',$params['community_id']])
+                    ->asArray()->one();
+        $averageScore = '';
+        if(!empty($scoreResult['score'])){
+            $averageScore = number_format($scoreResult['score']/$scoreResult['totals'],1)."分";
+        }
+        return [
+            'answerTime' => $answerTime,  //报事报修平均相应时长
+            'averageScore' => $averageScore,    //报修平均分
+        ];
     }
 }
