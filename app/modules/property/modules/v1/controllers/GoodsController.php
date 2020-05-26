@@ -9,6 +9,13 @@ use service\property_basic\GoodsService;
 
 class GoodsController extends BaseController
 {
+    public function actionGroupCommunity()
+    {
+        $r = GoodsService::service()->groupCommunity($this->request_params, $this->user_info);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     public function actionGroupDropDown()
     {
         $r = GoodsService::service()->groupDropDown($this->request_params, $this->user_info);
