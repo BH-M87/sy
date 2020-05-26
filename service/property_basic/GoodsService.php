@@ -166,7 +166,7 @@ class GoodsService extends BaseService
 
         $goods = Goods::find()->where(['groupId' => $p['id'], 'isDelete' => 2])->one();
         if (!empty($goods)) {
-            throw new MyException('请先删除商品');
+            throw new MyException('请先删除兑换商品');
         }
 
         GoodsGroup::deleteAll(['id' => $p['id']]);
