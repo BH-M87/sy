@@ -212,6 +212,10 @@ class DeliveryRecordsService extends BaseService{
         $data['cleaning']['cleaning_plan'] = '无';   //有无工作计划
         $data['cleaning']['cleaning_work'] = '无';   //有无上传工作记录
 
+        //物业收支公开
+        $data['property']['regular'] = '无';   //财务定期公示
+        $data['property']['certificate'] = '无';   //财务凭证上传
+
         //居民问题反馈率
         $data['residents']['industry_rate'] = '0';      //业委会处理率
         $data['residents']['dwell_rate'] = '0';      //居委会处理率
