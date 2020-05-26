@@ -563,7 +563,7 @@ class BillReportService extends BaseService
         
         // 缴费记录项目分析
         $cost = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
-            ->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'pay_year', $year])
             ->groupBy('cost_id')->asArray()->all();
@@ -572,24 +572,14 @@ class BillReportService extends BaseService
             $total = array_sum(array_column($cost, 'count'));
             foreach ($cost as $k => &$v) {
                 $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
-                switch ($v['item']) {
-                    case '1':
-                        $v['item'] = '物业费';
-                        break;
-                    case '2':
-                        $v['item'] = '水费';
-                        break;
-                    default:
-                        $v['item'] = '停车费';  
-                        break;
-                }
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
             }
         }
 
         // 未缴账单渠道分析
         $costNo = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
             ->where(['=', 'pay_status', 0])
-            ->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'acct_year', $year])
             ->groupBy('cost_id')->asArray()->all();
@@ -598,17 +588,7 @@ class BillReportService extends BaseService
             $total = array_sum(array_column($costNo, 'count'));
             foreach ($costNo as $k => &$v) {
                 $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
-                switch ($v['item']) {
-                    case '1':
-                        $v['item'] = '物业费';
-                        break;
-                    case '2':
-                        $v['item'] = '水费';
-                        break;
-                    default:
-                        $v['item'] = '停车费';  
-                        break;
-                }
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
             }
         }
         
@@ -616,7 +596,7 @@ class BillReportService extends BaseService
         $channel = PsBillYearly::find()->alias('A')->select('sum(A.pay_amount) count, B.pay_channel item')
             ->leftJoin('ps_order B', 'A.order_id = B.id')
             ->where(['=', 'A.pay_status', 1])
-            ->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
+            //->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->andFilterWhere(['=', 'A.pay_year', $year])
             ->groupBy('B.pay_channel')->asArray()->all();
@@ -625,17 +605,7 @@ class BillReportService extends BaseService
             $total = array_sum(array_column($channel, 'count'));
             foreach ($channel as $k => &$v) {
                 $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
-                switch ($v['item']) {
-                    case '1':
-                        $v['item'] = '现金';
-                        break;
-                    case '2':
-                        $v['item'] = '支付宝';
-                        break;
-                    default:
-                        $v['item'] = '微信';  
-                        break;
-                }
+                $v['item'] = PsCommon::getPayChannel($v['item']);
             }
         }
 
