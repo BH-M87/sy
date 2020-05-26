@@ -37,6 +37,9 @@ class DeliveryRecordsService extends BaseService{
         if(empty($params['product_num'])){
             return $this->failed("商品数量不能为空");
         }
+        if(empty($params['volunteer_id'])){
+            return $this->failed("志愿者id不能为空");
+        }
 
         $javaParams['communityId'] = $params['community_id'];
         $javaParams['roomId'] = $params['room_id'];
@@ -53,17 +56,18 @@ class DeliveryRecordsService extends BaseService{
             $recordsParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
             $recordsParams['room_id'] = !empty($params['room_id'])?$params['room_id']:'';
             $recordsParams['user_id'] = !empty($params['user_id'])?$params['user_id']:'';
+            $recordsParams['volunteer_id'] = !empty($params['volunteer_id'])?$params['volunteer_id']:'';
             $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
             $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
             $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
-            $model = new PsDeliveryRecords(['scenario'=>'add']);
+            $model = new PsDeliveryRecords(['scenario'=>'volunteer_add']);
             if($model->load($recordsParams,'')&&$model->validate()){
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
                 //调用街道志愿者接口 减积分
                 if($model->attributes['integral']>0){
-                    $streetParams['sysUserId'] = $model->attributes['user_id'];
+                    $streetParams['sysUserId'] = $model->attributes['volunteer_id'];
                     $streetParams['score'] = $model->attributes['integral'];
 //                    $streetParams['sysUserId'] = 17;
 //                    $streetParams['score'] = 0.1;
@@ -89,7 +93,7 @@ class DeliveryRecordsService extends BaseService{
     //兑换记录新增（小程序端）
     public function add($params){
 
-        $model = new PsDeliveryRecords(['scenario'=>'add']);
+        $model = new PsDeliveryRecords(['scenario'=>'volunteer_add']);
         if($model->load($params,'')&&$model->validate()){
             if(!$model->save()){
                 return $this->failed('新增失败！');

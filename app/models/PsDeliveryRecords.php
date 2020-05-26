@@ -23,12 +23,12 @@ class PsDeliveryRecords extends BaseModel {
     {
         return [
             // 所有场景
-            [['product_id','community_id','room_id','cust_name', 'cust_mobile','user_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['product_id','community_id','room_id','cust_name', 'cust_mobile','user_id','volunteer_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['volunteer_add']],
             [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
             [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
             [['community_id','user_id','room_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
-            [["id",'product_id', 'product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
+            [["id",'product_id', 'volunteer_id','product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
             [['community_id','room_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
             [['product_img'], 'string',"max"=>255],
@@ -37,9 +37,9 @@ class PsDeliveryRecords extends BaseModel {
             [['community_id','room_id','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
             [['cust_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
             [['id'], 'infoData', 'on' => ['send_edit',"self_edit","detail"]],
-            [['product_id'], 'productExist', 'on' => ['add']],
-            [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
-            [["product_num","status"],"default",'value' => 1,'on'=>['add']],
+            [['product_id'], 'productExist', 'on' => ['volunteer_add']],
+            [["create_at",'update_at'],"default",'value' => time(),'on'=>['volunteer_add']],
+            [["product_num","status"],"default",'value' => 1,'on'=>['volunteer_add']],
         ];
     }
 
@@ -55,6 +55,7 @@ class PsDeliveryRecords extends BaseModel {
             'cust_name'         => '兑换人',
             'cust_mobile'       => '兑换人手机',
             'user_id'           => '兑换人id',
+            'volunteer_id'      => '志愿者id',
             'product_num'       => '兑换数量',
             'integral'          => '消耗积分',
             'address'           => '兑换地址',
