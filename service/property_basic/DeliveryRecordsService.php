@@ -217,6 +217,23 @@ class DeliveryRecordsService extends BaseService{
         $data['residents']['dwell_rate'] = '0';      //居委会处理率
         $data['residents']['street_rate'] = '0';         //街道处理率
 
+        //文明志愿者
+        $data['volunteer']['volunteer_count'] = '0';      //志愿者人数
+        $data['volunteer']['activity_count'] = '0';      //志愿者参加活动人数
+        $data['volunteer']['rate'] = '0';               //志愿者人数比
+        $data['volunteer']['all_time'] = '0';               //公益活动总时长
+        $data['volunteer']['average_time'] = '0';               //公益活动平均时长
+
+        //社会公益宣传
+        $data['publicize']['notice_count'] = '0';          //小区公告数量
+
+        //邻里活动
+        $data['neighborhood']['activity_count'] = '0';          //物业活动举办次数
+        $data['neighborhood']['activity_rate'] = '0';          //物业活动签到率
+
+        //曝光台
+        $data['exposure']['count'] = '0';          //曝光次数
+
         return $this->success($data);
     }
 
@@ -246,7 +263,7 @@ class DeliveryRecordsService extends BaseService{
         return [
             'countAll'=>$countAll,      // 计划数量
             'inspectPlan'=>$countAll>0?'有':'无',
-            'overdue_rate'=>$overdue_rate,
+            'overdue_rate'=>$overdue_rate, //逾期率
         ];
     }
 
