@@ -145,11 +145,15 @@ Class TemplateService extends BaseService
         $arrList = [];
         if(!empty($resultList)){
             $total_money = 0;
-            foreach ($resultList as $v) {
+            foreach ($resultList as $k=>$v) {
                 $arr = [];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
-                $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
-                $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
+                $arr['start_at'] = '';
+                $arr['end_at'] = '';
+                if($k!=99){
+                    $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
+                    $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
+                }
                 $arr['bill_amount'] = $v['bill_entry_amount']; // 应收金额
 //                $arr['discount_amount'] = $v['prefer_entry_amount']; // 优惠金额
 //                $arr['pay_amount'] = $v['paid_entry_amount']; // 实收金额
@@ -169,7 +173,6 @@ Class TemplateService extends BaseService
                 $arrList[] = $arr;
 
             }
-
             $room_comm['print_date'] = date("Y年m月d日", time());
             $room_comm['house_info'] = $results[0]['room_address'];
             $room_comm['house_area'] = $results[0]['charge_area'];
@@ -308,7 +311,7 @@ Class TemplateService extends BaseService
         $valiTime = 0;
         $valiKey = 0;
         foreach ($results as $key=>$item) {
-            if(count($resultList)>=6){
+            if(count($resultList)>=5){
                 $qiList = $item;
                 $qiList['cost_name'] =  '其他费用';
                 $qiList['bill_entry_amount'] = $item['bill_entry_amount'];
