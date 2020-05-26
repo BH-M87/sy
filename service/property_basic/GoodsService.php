@@ -394,7 +394,7 @@ class GoodsService extends BaseService
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
         if (empty($p['groupId'])) {
-            $p['groupId'] = Goods::find()->alias('A')->select('groupId')
+            $p['groupId'] = Goods::find()->alias('A')->select('A.groupId')
                 ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
                 ->filterWhere(['=', 'B.communityId', $p['community_id']])
                 ->orderBy('A.groupId desc')->scalar();
