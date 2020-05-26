@@ -12,7 +12,7 @@ use service\BaseService;
 
 use app\models\Goods;
 use app\models\GoodsGroup;
-use app\models\GoodsCommunity;
+use app\models\GoodsGroupCommunity;
 use app\models\PsDeliveryRecords;
 use service\property_basic\JavaService;
 
@@ -57,22 +57,41 @@ class GoodsService extends BaseService
         $param['name'] = $p['name'];
         $param['startAt'] = strtotime($p['startAt']);
         $param['endAt'] = strtotime($p['endAt']);
+        $param['content'] = $p['content'];
         $param['operatorId'] = $userInfo['id'];
         $param['operatorName'] = $userInfo['truename'];
 
-        $model = new GoodsGroup(['scenario' => $scenario]);
+        $trans = Yii::$app->getDb()->beginTransaction();
 
-        if (!$model->load($param, '') || !$model->validate()) {
-            throw new MyException($this->getError($model));
+        try {
+            $model = new GoodsGroup(['scenario' => $scenario]);
+
+            if (!$model->load($param, '') || !$model->validate()) {
+                throw new MyException($this->getError($model));
+            }
+
+            if (!$model->saveData($scenario, $param)) {
+                throw new MyException($this->getError($model));
+            }
+
+            $groupId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+
+            if (!empty($p['communityIdList'])) {
+                GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
+                foreach ($p['communityIdList'] as $k => $v) {
+                    $comm = new GoodsGroupCommunity();
+                    $comm->groupId = $groupId;
+                    $comm->communityId = $v;
+                    $comm->save();
+                }
+            }
+
+            $trans->commit();
+            return ['id' => $groupId];
+        } catch (Exception $e) {
+            $trans->rollBack();//array_values($model->errors)[0][0]
+            throw new MyException($e->getMessage());
         }
-
-        if (!$model->saveData($scenario, $param)) {
-            throw new MyException($this->getError($model));
-        }
-
-        $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
-
-        return ['id' => $id];
     }
 
     // 详情
@@ -84,6 +103,21 @@ class GoodsService extends BaseService
 
         $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
+            $comm = GoodsGroupCommunity::find()->where(['groupId' => $p['id']])->asArray()->all();
+
+            $r['community'] = [];
+            if (!empty($comm)) {
+                foreach ($comm as $k => $v) {
+                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
+             
+                    $r['community'][$k]['id'] = $v['communityId'];
+                    $r['community'][$k]['name'] = $community['communityName'];
+                    $communityName .= $community['communityName'] . ' ';
+                }
+            }
+            
+            $r['communityName'] = $communityName;
+
             $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
             $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
 
@@ -136,7 +170,17 @@ class GoodsService extends BaseService
                 $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
                 $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
 
-                $comm = GoodsCommunity::find()->where(['goodsId' => $v['id']])->asArray()->all();
+                $comm = GoodsGroupCommunity::find()->where(['groupId' => $v['id']])->asArray()->all();
+
+                $v['communityList'] = [];
+                if (!empty($comm)) {
+                    foreach ($comm as $key => $val) {
+                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
+                 
+                        $v['communityList'][$key]['id'] = $val['communityId'];
+                        $v['communityList'][$key]['communityName'] = $community['communityName'];
+                    }
+                }
             }
         }
 
@@ -213,16 +257,6 @@ class GoodsService extends BaseService
 
             $goodsId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['communityIdList'])) {
-                GoodsCommunity::deleteAll(['goodsId' => $goodsId]);
-                foreach ($p['communityIdList'] as $k => $v) {
-                    $comm = new GoodsCommunity();
-                    $comm->goodsId = $goodsId;
-                    $comm->communityId = $v;
-                    $comm->save();
-                }
-            }
-
             $trans->commit();
             return ['id' => $goodsId];
         } catch (Exception $e) {
@@ -243,20 +277,7 @@ class GoodsService extends BaseService
             ->leftJoin('ps_goods_group B', 'B.id = A.groupId')
             ->where(['A.id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $comm = GoodsCommunity::find()->where(['goodsId' => $p['id']])->asArray()->all();
-
-            $r['community'] = [];
-            if (!empty($comm)) {
-                foreach ($comm as $k => $v) {
-                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-             
-                    $r['community'][$k]['id'] = $v['communityId'];
-                    $r['community'][$k]['name'] = $community['communityName'];
-                    $communityName .= $community['communityName'] . ' ';
-                }
-            }
             
-            $r['communityName'] = $communityName;
             $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
             $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
 
@@ -303,18 +324,6 @@ class GoodsService extends BaseService
                 $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
                 $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
                 $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
-
-                $comm = GoodsCommunity::find()->where(['goodsId' => $v['id']])->asArray()->all();
-
-                $v['communityList'] = [];
-                if (!empty($comm)) {
-                    foreach ($comm as $key => $val) {
-                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
-                 
-                        $v['communityList'][$key]['id'] = $val['communityId'];
-                        $v['communityList'][$key]['communityName'] = $community['communityName'];
-                    }
-                }
             }
         }
 
@@ -345,7 +354,8 @@ class GoodsService extends BaseService
         $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
 
         $m = Goods::find()->alias('A')
-            ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+            ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
+            ->leftJoin('ps_goods_group C', 'A.groupId = C.id')
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
             ->andFilterWhere(['=', 'A.isDelete', 2])
             ->andFilterWhere(['!=', 'A.groupId', $p['notGroupId']])
@@ -359,8 +369,8 @@ class GoodsService extends BaseService
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        $p['notGroupId'] = Goods::find()->alias('A')->select('groupId')
-            ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+        $p['notGroupId'] = Goods::find()->alias('A')->select('A.groupId')
+            ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
             ->filterWhere(['=', 'B.communityId', $p['community_id']])
             ->orderBy('A.groupId desc')->scalar();
 
@@ -369,7 +379,7 @@ class GoodsService extends BaseService
             return ['list' => [], 'totals' => 0];
         }
 
-        $list = self::_search($p)->select('A.groupName, A.groupId')
+        $list = self::_search($p)->select('C.name groupName, A.groupId')
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->groupBy('A.groupId')->orderBy('A.groupId desc')->asArray()->all();
@@ -385,7 +395,7 @@ class GoodsService extends BaseService
 
         if (empty($p['groupId'])) {
             $p['groupId'] = Goods::find()->alias('A')->select('groupId')
-                ->leftJoin('ps_goods_community B', 'A.id = B.goodsId')
+                ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
                 ->filterWhere(['=', 'B.communityId', $p['community_id']])
                 ->orderBy('A.groupId desc')->scalar();
         }

@@ -3,11 +3,11 @@ namespace app\models;
 
 use Yii;
 
-class GoodsCommunity extends BaseModel
+class GoodsGroupCommunity extends BaseModel
 {
     public static function tableName()
     {
-        return 'ps_goods_community';
+        return 'ps_goods_group_community';
     }
 
     public function rules()
