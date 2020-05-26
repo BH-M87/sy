@@ -257,14 +257,18 @@ Class TemplateService extends BaseService
         }
         if (!empty($resultList)) {
             $total_money = 0;
-            foreach ($resultList as $v) {
+            foreach ($resultList as $k=>$v) {
                 $arr = [];
 //                $arr['id'] = $v['bill_id'];
 //                $arr['house_info'] = $v['group'].$v['building'].$v['unit'].$v['room']; // 房屋信息
 //                $arr['house_area'] = $v['charge_area'];
                 $arr['pay_item'] = $v['cost_name']; // 收费项名称
-                $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
-                $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
+                $arr['start_at'] = ''; // 开始时间
+                $arr['end_at'] = ''; // 结束时间
+                if($k!=99){
+                    $arr['start_at'] = date("Y-m-d", $v['acct_period_start']); // 开始时间
+                    $arr['end_at'] = date("Y-m-d", $v['acct_period_end']); // 结束时间
+                }
                 $arr['bill_amount'] = $v['bill_entry_amount']; // 应收金额
                 $arr['discount_amount'] = $v['prefer_entry_amount']; // 优惠金额
                 $arr['pay_amount'] = $v['paid_entry_amount']; // 实收金额
