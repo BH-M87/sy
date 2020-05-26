@@ -479,4 +479,18 @@ class GoodsService extends BaseService
             return ['civilizationSurplus' => '0', 'img' => ''];
         }
     }
+
+    // 判断志愿者是否注册过
+    public function isRegister($p)
+    {
+        $get_url = "https://dev-api.elive99.com/volunteer-zhd/?r=/internal/volunteer/is-register";
+        $curl_data = ["mobile" => $p['mobile']];
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+
+        if ($r['code'] == 1) {
+            return $r['data'];
+        } else {
+            return ['isRegister' => false];
+        }
+    }
 }
