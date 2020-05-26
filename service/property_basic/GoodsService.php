@@ -13,6 +13,7 @@ use service\BaseService;
 use app\models\Goods;
 use app\models\GoodsGroup;
 use app\models\GoodsCommunity;
+use app\models\PsDeliveryRecords;
 use service\property_basic\JavaService;
 
 class GoodsService extends BaseService
@@ -398,6 +399,14 @@ class GoodsService extends BaseService
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('A.id desc')->asArray()->all();
+
+
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $use = PsDeliveryRecords::find()->where(['product_id' => $v['id']])->count();
+                $v['surplus'] = $v['num'] - $use;
+            }
+        }
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
