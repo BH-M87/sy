@@ -153,8 +153,8 @@ class PsDeliveryRecords extends BaseModel {
         $model->orderBy(["id"=>SORT_DESC]);
         $result = $model->asArray()->all();
         return [
-            'data'=>$result,
-            'count'=>$count
+            'list'=>$result,
+            'totals'=>$count
         ];
     }
 
@@ -202,8 +202,8 @@ class PsDeliveryRecords extends BaseModel {
         $model->orderBy(["id"=>SORT_DESC]);
         $result = $model->asArray()->all();
         return [
-            'data'=>$result,
-            'count'=>$count
+            'list'=>$result,
+            'totals'=>$count
         ];
     }
 }

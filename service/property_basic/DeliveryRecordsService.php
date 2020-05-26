@@ -131,13 +131,13 @@ class DeliveryRecordsService extends BaseService{
     public function getList($params){
         $model = new PsDeliveryRecords();
         $result = $model->getList($params);
-        if(!empty($result['data'])){
-            foreach($result['data'] as $key=>$value){
-                $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i',$value['create_at']):'';
-                $result['data'][$key]['cust_name'] = !empty($value['cust_name'])?PsCommon::hideName($value['cust_name']):'';
-                $result['data'][$key]['cust_mobile'] = !empty($value['cust_mobile'])?PsCommon::hideMobile($value['cust_mobile']):'';
-                $result['data'][$key]['status_msg'] = !empty($value['status'])?$model::STATUS[$value['status']]:'';
-                $result['data'][$key]['delivery_type_msg'] = !empty($value['delivery_type'])?$model::DELIVERY_TYPE[$value['delivery_type']]:'';
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i',$value['create_at']):'';
+                $result['list'][$key]['cust_name'] = !empty($value['cust_name'])?PsCommon::hideName($value['cust_name']):'';
+                $result['list'][$key]['cust_mobile'] = !empty($value['cust_mobile'])?PsCommon::hideMobile($value['cust_mobile']):'';
+                $result['list'][$key]['status_msg'] = !empty($value['status'])?$model::STATUS[$value['status']]:'';
+                $result['list'][$key]['delivery_type_msg'] = !empty($value['delivery_type'])?$model::DELIVERY_TYPE[$value['delivery_type']]:'';
             }
         }
         return $this->success($result);
@@ -148,9 +148,9 @@ class DeliveryRecordsService extends BaseService{
         $model = new PsDeliveryRecords(['scenario'=>'app_list']);
         if($model->load($params,'')&&$model->validate()){
             $result = $model->getListOfC($params);
-            if(!empty($result['data'])){
-                foreach($result['data'] as $key=>$value){
-                    $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
                 }
             }
             return $this->success($result);
