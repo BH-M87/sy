@@ -431,7 +431,7 @@ class GoodsService extends BaseService
                 ->orderBy('A.groupId desc')->scalar();
         }
 
-        $totals = self::_search($p)->groupBy('A.groupId')->count();
+        $totals = self::_search($p)->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
