@@ -467,7 +467,7 @@ class GoodsService extends BaseService
         if ($r['code'] == 1) {
             return $r['data'];
         } else {
-            return ['integralSurplus' => '1000'];
+            return ['integralSurplus' => '0'];
         }
     }
 
