@@ -218,29 +218,53 @@ class DeliveryRecordsService extends BaseService{
         $data['property']['regular'] = '无';   //财务定期公示
         $data['property']['certificate'] = '无';   //财务凭证上传
 
-//        //居民问题反馈率
-//        $data['residents']['industry_rate'] = '0';      //业委会处理率
-//        $data['residents']['dwell_rate'] = '0';      //居委会处理率
-//        $data['residents']['street_rate'] = '0';         //街道处理率
-//
-//        //文明志愿者
-//        $data['volunteer']['volunteer_count'] = '0';      //志愿者人数
-//        $data['volunteer']['activity_count'] = '0';      //志愿者参加活动人数
-//        $data['volunteer']['rate'] = '0';               //志愿者人数比
-//        $data['volunteer']['all_time'] = '0';               //公益活动总时长
-//        $data['volunteer']['average_time'] = '0';               //公益活动平均时长
-//
-//        //社会公益宣传
-//        $data['publicize']['notice_count'] = '0';          //小区公告数量
-//
-//        //邻里活动
-//        $data['neighborhood']['activity_count'] = '0';          //物业活动举办次数
-//        $data['neighborhood']['activity_rate'] = '0';          //物业活动签到率
+        //居民问题反馈率
+        $data['residents']['industry_rate'] = '0';      //业委会处理率
+        $data['residents']['dwell_rate'] = '0';      //居委会处理率
+        $data['residents']['street_rate'] = '0';         //街道处理率
+
+        $data['volunteer']['volunteer_count'] = '0';      //志愿者人数
+        $data['volunteer']['activity_count'] = '0';      //志愿者参加活动人数
+        $data['volunteer']['rate'] = '0';               //志愿者人数比
+        $data['volunteer']['all_time'] = '0';               //公益活动总时长
+        $data['volunteer']['average_time'] = '0';               //公益活动平均时长
+
+        //社会公益宣传
+        $data['publicize']['notice_count'] = '0';          //小区公告数量
+
+        //邻里活动
+        $data['neighborhood']['activity_count'] = '0';          //物业活动举办次数
+        $data['neighborhood']['activity_rate'] = '0';          //物业活动签到率
 
         //曝光台
-//        $data['exposure']['count'] = '0';          //曝光次数
-        $fakeData = self::fakeData($params);
-        $data = array_merge($data,$fakeData);
+        $data['exposure']['count'] = '0';          //曝光次数
+        //调用java接口
+        $javaService = new JavaOfCService();
+        $javaParams['id'] = $params['community_id'];
+//        $javaParams['id'] = "1200020193290747905";
+        $javaParams['token'] = $params['token'];
+        $javaResult = $javaService->civilizationStatistics($javaParams);
+        if(!empty($javaResult)){
+            $data['volunteer']['volunteer_count'] = !empty($javaResult['volunteerNum'])?$javaResult['volunteerNum']:0;      //志愿者人数
+            $data['volunteer']['activity_count'] = !empty($javaResult['volunteerActNum'])?$javaResult['volunteerActNum']:0;      //志愿者参加活动人数
+            $data['volunteer']['rate'] = !empty($javaResult['volunteerPercent'])?$javaResult['volunteerPercent']."%":0;               //志愿者人数比
+            $data['volunteer']['all_time'] = !empty($javaResult['publicBenefitDuration'])?$javaResult['publicBenefitDuration']."小时":0;               //公益活动总时长
+            $data['volunteer']['average_time'] = !empty($javaResult['averagePublicBenefitDuration'])?$javaResult['averagePublicBenefitDuration']."小时":0;               //公益活动平均时长
+
+            //社会公益宣传
+            $data['publicize']['notice_count'] = !empty($javaResult['noticeNum'])?$javaResult['noticeNum']:0;          //小区公告数量
+
+            //邻里活动
+            $data['neighborhood']['activity_count'] = !empty($javaResult['actNum'])?$javaResult['actNum']:0;          //物业活动举办次数
+            $data['neighborhood']['activity_rate'] = !empty($javaResult['actSignPercent'])?$javaResult['actSignPercent']."%":0;          //物业活动签到率
+
+            //曝光台
+//            $data['exposure']['count'] = '0';          //曝光次数
+        }
+        //文明志愿者
+//        $fakeData = self::fakeData($params);
+//        $data = array_merge($data,$fakeData);
+
 
         return $this->success($data);
     }

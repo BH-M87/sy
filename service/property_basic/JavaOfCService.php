@@ -152,4 +152,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/room/getResidentFullAddress';
         return self::returnCData($query);
     }
+
+    //小区文明码java统计
+    public function civilizationStatistics($query){
+        $query['route'] = '/php/statistics';
+        return self::returnCData($query);
+    }
 }
