@@ -665,13 +665,13 @@ class DeliveryRecordsService extends BaseService{
             $repairCount = PsRepair::find()->select(['id'])->where(['=','community_id',$params['community_id']])->count();
             //报事保修相应时间
             $averageTime = ceil($totalsTime['deal_at']/$repairCount);
-            if($answerTime>60*60){
+            if($averageTime>60*60){
                 //显示小时
-                $answerTime = number_format($averageTime/60*60,1)."小时";
+                $answerTime = number_format($averageTime/3600,2)."小时";
             }else{
                 //显示分钟
 //                $answerTime = number_format($averageTime/60,1)."分钟";
-                $answerTime = round($averageTime/60,1)."分钟";
+                $answerTime = round($averageTime/60,2)."分钟";
             }
         }
 
