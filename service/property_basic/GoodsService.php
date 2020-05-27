@@ -425,10 +425,10 @@ class GoodsService extends BaseService
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
         if (empty($p['groupId'])) {
-            $p['groupId'] = Goods::find()->alias('A')->select('A.groupId')
-                ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
+            $p['groupId'] = GoodsGroup::find()->alias('A')->select('B.groupId')
+                ->leftJoin('ps_goods_group_community B', 'A.id = B.groupId')
                 ->filterWhere(['=', 'B.communityId', $p['community_id']])
-                ->orderBy('A.groupId desc')->scalar();
+                ->orderBy('B.groupId desc')->scalar();
         }
 
         $totals = self::_search($p)->count();
