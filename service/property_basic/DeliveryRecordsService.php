@@ -207,8 +207,8 @@ class DeliveryRecordsService extends BaseService{
 
 
         //垃圾分类
-        $data['rubbish']['rubbish_sort'] = '-';     //有无垃圾分类时间和地点
-        $data['rubbish']['rubbish_score'] = '-';    //垃圾分类居民评分
+        $data['rubbish']['rubbish_sort'] = '/';     //有无垃圾分类时间和地点
+        $data['rubbish']['rubbish_score'] = '/';    //垃圾分类居民评分
 
         //保洁绿化
         $data['cleaning']['cleaning_plan'] = '无';   //有无工作计划
@@ -219,26 +219,26 @@ class DeliveryRecordsService extends BaseService{
         $data['property']['certificate'] = '无';   //财务凭证上传
 
         //居民问题反馈率
-        $data['residents']['industry_rate'] = '0';      //业委会处理率
-        $data['residents']['dwell_rate'] = '0';      //居委会处理率
-        $data['residents']['street_rate'] = '0';         //街道处理率
+        $data['residents']['industry_rate'] = '/';      //业委会处理率
+        $data['residents']['dwell_rate'] = '/';      //居委会处理率
+        $data['residents']['street_rate'] = '/';         //街道处理率
 
         //文明志愿者
-        $data['volunteer']['volunteer_count'] = '-';      //志愿者人数
-        $data['volunteer']['activity_count'] = '-';      //志愿者参加活动人数
-        $data['volunteer']['rate'] = '-';               //志愿者人数比
-        $data['volunteer']['all_time'] = '-';               //公益活动总时长
-        $data['volunteer']['average_time'] = '-';               //公益活动平均时长
+        $data['volunteer']['volunteer_count'] = '/';      //志愿者人数
+        $data['volunteer']['activity_count'] = '/';      //志愿者参加活动人数
+        $data['volunteer']['rate'] = '/';               //志愿者人数比
+        $data['volunteer']['all_time'] = '/';               //公益活动总时长
+        $data['volunteer']['average_time'] = '/';               //公益活动平均时长
 
         //社会公益宣传
-        $data['publicize']['notice_count'] = '-';          //小区公告数量
+        $data['publicize']['notice_count'] = '/';          //小区公告数量
 
         //邻里活动
-        $data['neighborhood']['activity_count'] = '-';          //物业活动举办次数
-        $data['neighborhood']['activity_rate'] = '-';          //物业活动签到率
+        $data['neighborhood']['activity_count'] = '/';          //物业活动举办次数
+        $data['neighborhood']['activity_rate'] = '/';          //物业活动签到率
 
         //曝光台
-        $data['exposure']['count'] = '0';          //曝光次数
+        $data['exposure']['count'] = '/';          //曝光次数
         //调用java接口
         $javaService = new JavaOfCService();
         $javaParams['id'] = $params['community_id'];
@@ -246,18 +246,18 @@ class DeliveryRecordsService extends BaseService{
         $javaParams['token'] = $params['token'];
         $javaResult = $javaService->civilizationStatistics($javaParams);
         if(!empty($javaResult)){
-            $data['volunteer']['volunteer_count'] = !empty($javaResult['volunteerNum'])?$javaResult['volunteerNum']:'-';      //志愿者人数
-            $data['volunteer']['activity_count'] = !empty($javaResult['volunteerActNum'])?$javaResult['volunteerActNum']:'-';      //志愿者参加活动人数
+            $data['volunteer']['volunteer_count'] = !empty($javaResult['volunteerNum'])?$javaResult['volunteerNum']:'/';      //志愿者人数
+            $data['volunteer']['activity_count'] = !empty($javaResult['volunteerActNum'])?$javaResult['volunteerActNum']:'/';      //志愿者参加活动人数
             $data['volunteer']['rate'] = !empty($javaResult['volunteerPercent'])?$javaResult['volunteerPercent']."%":'-';               //志愿者人数比
-            $data['volunteer']['all_time'] = !empty($javaResult['publicBenefitDuration'])?$javaResult['publicBenefitDuration']."小时":'-';               //公益活动总时长
-            $data['volunteer']['average_time'] = !empty($javaResult['averagePublicBenefitDuration'])?$javaResult['averagePublicBenefitDuration']."小时":'-';               //公益活动平均时长
+            $data['volunteer']['all_time'] = !empty($javaResult['publicBenefitDuration'])?$javaResult['publicBenefitDuration']."小时":'/';               //公益活动总时长
+            $data['volunteer']['average_time'] = !empty($javaResult['averagePublicBenefitDuration'])?$javaResult['averagePublicBenefitDuration']."小时":'/';               //公益活动平均时长
 
             //社会公益宣传
-            $data['publicize']['notice_count'] = !empty($javaResult['noticeNum'])?$javaResult['noticeNum']:'-';          //小区公告数量
+            $data['publicize']['notice_count'] = !empty($javaResult['noticeNum'])?$javaResult['noticeNum']:'/';          //小区公告数量
 
             //邻里活动
-            $data['neighborhood']['activity_count'] = !empty($javaResult['actNum'])?$javaResult['actNum']:'-';          //物业活动举办次数
-            $data['neighborhood']['activity_rate'] = !empty($javaResult['actSignPercent'])?$javaResult['actSignPercent']."%":'-';          //物业活动签到率
+            $data['neighborhood']['activity_count'] = !empty($javaResult['actNum'])?$javaResult['actNum']:'/';          //物业活动举办次数
+            $data['neighborhood']['activity_rate'] = !empty($javaResult['actSignPercent'])?$javaResult['actSignPercent']."%":'/';          //物业活动签到率
 
             //曝光台
 //            $data['exposure']['count'] = '0';          //曝光次数
@@ -622,8 +622,8 @@ class DeliveryRecordsService extends BaseService{
         $fields = ['count(id) as num','run_status'];
         $inspectResult = PsInspectRecord::find()->select($fields)->where(['=','community_id',$params['community_id']])->groupBy(['run_status'])->asArray()->all();
         $countAll = 0;
-        $overdue = 0;
-        $overdue_rate = 0;
+        $overdue = '/';
+        $overdue_rate = '/';
         if(!empty($inspectResult)){
             foreach($inspectResult as $key=>$value){
                 switch($value['run_status']){
@@ -661,7 +661,7 @@ class DeliveryRecordsService extends BaseService{
             ->select($repairFields)
             ->where(['=','r.community_id',$params['community_id']])->andWhere(['=','c.status',1]);
         $totalsTime = $repairModel->asArray()->one();
-        $answerTime = '';
+        $answerTime = '/';
         if($totalsTime['deal_at']>0){
             //订单总数
             $repairCount = PsRepair::find()->select(['id'])->where(['=','community_id',$params['community_id']])->count();
@@ -682,7 +682,7 @@ class DeliveryRecordsService extends BaseService{
                     ->leftJoin(['r'=>PsRepair::tableName()],'s.repair_id=r.id')
                     ->select($scoreFields)->where(['=','r.community_id',$params['community_id']])
                     ->asArray()->one();
-        $averageScore = '';
+        $averageScore = '/';
         if(!empty($scoreResult['score'])){
             $averageScore = number_format($scoreResult['score']/$scoreResult['totals'],1)."分";
         }
