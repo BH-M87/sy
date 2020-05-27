@@ -204,6 +204,8 @@ class DeliveryRecordsService extends BaseService{
         //巡更巡检统计
         $data['inspect'] = self::doInspectStatistics($params);
 
+
+
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '-';     //有无垃圾分类时间和地点
         $data['rubbish']['rubbish_score'] = '-';    //垃圾分类居民评分
@@ -216,29 +218,379 @@ class DeliveryRecordsService extends BaseService{
         $data['property']['regular'] = '无';   //财务定期公示
         $data['property']['certificate'] = '无';   //财务凭证上传
 
-        //居民问题反馈率
-        $data['residents']['industry_rate'] = '0';      //业委会处理率
-        $data['residents']['dwell_rate'] = '0';      //居委会处理率
-        $data['residents']['street_rate'] = '0';         //街道处理率
-
-        //文明志愿者
-        $data['volunteer']['volunteer_count'] = '0';      //志愿者人数
-        $data['volunteer']['activity_count'] = '0';      //志愿者参加活动人数
-        $data['volunteer']['rate'] = '0';               //志愿者人数比
-        $data['volunteer']['all_time'] = '0';               //公益活动总时长
-        $data['volunteer']['average_time'] = '0';               //公益活动平均时长
-
-        //社会公益宣传
-        $data['publicize']['notice_count'] = '0';          //小区公告数量
-
-        //邻里活动
-        $data['neighborhood']['activity_count'] = '0';          //物业活动举办次数
-        $data['neighborhood']['activity_rate'] = '0';          //物业活动签到率
+//        //居民问题反馈率
+//        $data['residents']['industry_rate'] = '0';      //业委会处理率
+//        $data['residents']['dwell_rate'] = '0';      //居委会处理率
+//        $data['residents']['street_rate'] = '0';         //街道处理率
+//
+//        //文明志愿者
+//        $data['volunteer']['volunteer_count'] = '0';      //志愿者人数
+//        $data['volunteer']['activity_count'] = '0';      //志愿者参加活动人数
+//        $data['volunteer']['rate'] = '0';               //志愿者人数比
+//        $data['volunteer']['all_time'] = '0';               //公益活动总时长
+//        $data['volunteer']['average_time'] = '0';               //公益活动平均时长
+//
+//        //社会公益宣传
+//        $data['publicize']['notice_count'] = '0';          //小区公告数量
+//
+//        //邻里活动
+//        $data['neighborhood']['activity_count'] = '0';          //物业活动举办次数
+//        $data['neighborhood']['activity_rate'] = '0';          //物业活动签到率
 
         //曝光台
-        $data['exposure']['count'] = '0';          //曝光次数
+//        $data['exposure']['count'] = '0';          //曝光次数
+        $fakeData = self::fakeData($params);
+        $data = array_merge($data,$fakeData);
 
         return $this->success($data);
+    }
+
+    public function fakeData($params){
+        $key = mb_substr($params['community_id'],-1);
+        $data= [
+            '0'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                      'volunteer_count' => '71',         //志愿者人数
+                       'activity_count' => '26',         //志愿者参加活动人数
+                       'rate' => '2%',                   //志愿者人数比
+                       'all_time' => '146小时',               //公益活动总时长
+                       'average_time' => '2小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '1'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '42',         //志愿者人数
+                    'activity_count' => '16',         //志愿者参加活动人数
+                    'rate' => '5%',                   //志愿者人数比
+                    'all_time' => '64小时',               //公益活动总时长
+                    'average_time' => '1.5小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '2'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '96',         //志愿者人数
+                    'activity_count' => '37',         //志愿者参加活动人数
+                    'rate' => '10%',                   //志愿者人数比
+                    'all_time' => '100小时',               //公益活动总时长
+                    'average_time' => '1.1小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '3'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '74',         //志愿者人数
+                    'activity_count' => '29',         //志愿者参加活动人数
+                    'rate' => '7%',                   //志愿者人数比
+                    'all_time' => '80小时',               //公益活动总时长
+                    'average_time' => '1小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '4'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '154',         //志愿者人数
+                    'activity_count' => '57',         //志愿者参加活动人数
+                    'rate' => '11%',                   //志愿者人数比
+                    'all_time' => '200小时',               //公益活动总时长
+                    'average_time' => '1小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '5'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '209',         //志愿者人数
+                    'activity_count' => '60',         //志愿者参加活动人数
+                    'rate' => '16%',                   //志愿者人数比
+                    'all_time' => '210小时',               //公益活动总时长
+                    'average_time' => '1小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '6'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '86',         //志愿者人数
+                    'activity_count' => '23',         //志愿者参加活动人数
+                    'rate' => '5%',                   //志愿者人数比
+                    'all_time' => '200小时',               //公益活动总时长
+                    'average_time' => '2小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '7'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '124',         //志愿者人数
+                    'activity_count' => '36',         //志愿者参加活动人数
+                    'rate' => '5%',                   //志愿者人数比
+                    'all_time' => '326小时',               //公益活动总时长
+                    'average_time' => '3小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '8'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '124',         //志愿者人数
+                    'activity_count' => '36',         //志愿者参加活动人数
+                    'rate' => '5%',                   //志愿者人数比
+                    'all_time' => '326小时',               //公益活动总时长
+                    'average_time' => '3小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+            '9'=>[
+                //居民问题反馈率
+                'residents'=>[
+                    'industry_rate' =>'0',  //业委会处理率
+                    'dwell_rate'=>0,        //居委会处理率
+                    'street_rate'=>0,       //街道处理率
+                ],
+
+
+                //文明志愿者
+                'volunteer'=>[
+                    'volunteer_count' => '83',         //志愿者人数
+                    'activity_count' => '36',         //志愿者参加活动人数
+                    'rate' => '9%',                   //志愿者人数比
+                    'all_time' => '116小时',               //公益活动总时长
+                    'average_time' => '1.4小时',           //公益活动平均时长
+                ],
+
+                //社会公益宣传
+                'publicize'=>[
+                    'notice_count' => '0',      //小区公告数量
+                ],
+
+                //邻里活动
+                'neighborhood'=>[
+                    'activity_count' => '0',         //物业活动举办次数
+                    'activity_rate' => '0',          //物业活动签到率
+                ],
+
+                //曝光台
+                'exposure'=>[
+                    'count' => '0',          //曝光次数
+                ],
+            ],
+        ];
+
+        return $data[$key];
     }
 
     public function doInspectStatistics($params){
