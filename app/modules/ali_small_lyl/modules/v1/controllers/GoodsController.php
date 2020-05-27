@@ -56,4 +56,16 @@ class GoodsController extends BaseController
 
         return PsCommon::responseSuccess($r);
     }
+
+    // 判断志愿者是否注册过
+    public function actionIsRegister()
+    {
+        if (!$this->params['mobile']) {
+            return F::apiFailed('请输入手机号！');
+        }
+
+        $r = GoodsService::service()->isRegister($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
 }
