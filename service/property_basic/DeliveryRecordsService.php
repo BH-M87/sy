@@ -73,16 +73,14 @@ class DeliveryRecordsService extends BaseService{
                     return $this->failed('新增失败！');
                 }
                 //调用街道志愿者接口 减积分
-                if($model->attributes['integral']>0){
-                    $streetParams['sysUserId'] = $model->attributes['volunteer_id'];
-                    $streetParams['score'] = $model->attributes['integral'];
+                $streetParams['sysUserId'] = $model->attributes['volunteer_id'];
+                $streetParams['score'] = $model->attributes['integral'];
 //                    $streetParams['sysUserId'] = 17;
 //                    $streetParams['score'] = 0.1;
-                    $streetParams['content'] = $model->attributes['product_name']."兑换";
-                    $streetResult = self::doReduce($streetParams);
-                    if($streetResult['code']!=1){
-                        throw new Exception($streetResult['message']);
-                    }
+                $streetParams['content'] = $model->attributes['product_name']."兑换";
+                $streetResult = self::doReduce($streetParams);
+                if($streetResult['code']!=1){
+                    throw new Exception($streetResult['message']);
                 }
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
