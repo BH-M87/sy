@@ -177,8 +177,8 @@ class GoodsService extends BaseService
     // 列表
     public function groupList($p)
     {
-        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
-        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+        $p['page'] = !empty($p['pageNum']) ? $p['pageNum'] : '1';
+        $p['rows'] = !empty($p['pageSize']) ? $p['pageSize'] : '10';
 
         $totals = self::groupSearch($p)->count();
         if ($totals == 0) {
