@@ -145,7 +145,7 @@ class GoodsService extends BaseService
 
             $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
             $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
-            $r['content'] = strip_tags($r['content']);
+            $r['content'] = htmlspecialchars($r['content']);
 
             return $r;
         }
