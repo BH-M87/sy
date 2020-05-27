@@ -105,13 +105,21 @@ class PsDeliveryRecords extends BaseModel {
     }
 
     /*
-     * 验证商品是否存在 并设置信息
+     * 验证商品是否存在 并设置信息 判断兑换次数
      */
     function productExist($attribute){
         if(!empty($this->product_id)){
-            $res = Goods::find()->select(['id','name','img','score','isExchange'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
+            $res = Goods::find()->select(['id','name','img','score','isExchange','personLimit'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该商品不存在或已删除！");
+            }
+            //判断是否兑换过商品
+            $exchangeCount = self::find()->select(['id'])
+                                    ->where(['=','product_id',$this->product_id])
+                                    ->andWhere(['=','user_id',$this->user_id])
+                                    ->count();
+            if($exchangeCount>=$res['personLimit']){
+                $this->addError($attribute, "兑换已达上限，不能兑换！");
             }
             $this->product_name = $res['name'];
             $this->product_img = $res['img'];
