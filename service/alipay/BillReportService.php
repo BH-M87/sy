@@ -533,12 +533,57 @@ class BillReportService extends BaseService
     {
         $year = !empty($p['year']) ? $p['year'] : date('Y', time());
 
-        $m['list'] = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
+        $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'pay_year', $year])
             ->groupBy('pay_month')->orderBy('pay_month asc')->asArray()->all();
+        $arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        if (!empty($list)) {
+            foreach ($list as $k => $v) {
+                $count = (int)$v['count'];
+                switch ($v['item']) {
+                    case '01':
+                        $arr[0] = $count;
+                        break;
+                    case '02':
+                        $arr[1] = $count;
+                        break;
+                    case '03':
+                        $arr[2] = $count;
+                        break;
+                    case '04':
+                        $arr[3] = $count;
+                        break;
+                    case '05':
+                        $arr[4] = $count;
+                        break;
+                    case '06':
+                        $arr[5] = $count;
+                        break;
+                    case '07':
+                        $arr[6] = $count;
+                        break;
+                    case '08':
+                        $arr[7] = $count;
+                        break;
+                    case '09':
+                        $arr[8] = $count;
+                        break;
+                    case '10':
+                        $arr[9] = $count;
+                        break;
+                    case '11':
+                        $arr[10] = $count;
+                        break;
+                    case '12':
+                        $arr[11] = $count;
+                        break;
+                }
+            }
+        }
         
-        $m['total'] = array_sum(array_column($m['list'], 'count'));
+        $m['list'] = $arr;
+        $m['total'] = array_sum(array_column($list, 'count'));
 
         // 缴费记录分析
         $bill = PsBillYearly::find()->select('sum(discount_amount) discount, sum(pay_amount) pay')
