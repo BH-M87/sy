@@ -449,7 +449,9 @@ class GoodsService extends BaseService
             }
         }
 
-        return ['list' => $list, 'totals' => (int)$totals];
+        $content = GoodsGroup::findOne($p['groupId'])->content;
+
+        return ['list' => $list, 'totals' => (int)$totals, 'content' => $content];
     }
 
     // 可兑换积分
