@@ -207,8 +207,8 @@ class DeliveryRecordsService extends BaseService{
 
 
         //垃圾分类
-        $data['rubbish']['rubbish_sort'] = '/';     //有无垃圾分类时间和地点
-        $data['rubbish']['rubbish_score'] = '/';    //垃圾分类居民评分
+        $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
+        $data['rubbish']['rubbish_score'] = '无';    //垃圾分类居民评分
 
         //保洁绿化
         $data['cleaning']['cleaning_plan'] = '无';   //有无工作计划
@@ -219,16 +219,16 @@ class DeliveryRecordsService extends BaseService{
         $data['property']['certificate'] = '无';   //财务凭证上传
 
         //居民问题反馈率
-        $data['residents']['industry_rate'] = '/';      //业委会处理率
-        $data['residents']['dwell_rate'] = '/';      //居委会处理率
-        $data['residents']['street_rate'] = '/';         //街道处理率
+        $data['residents']['industry_rate'] = '无';      //业委会处理率
+        $data['residents']['dwell_rate'] = '无';      //居委会处理率
+        $data['residents']['street_rate'] = '无';         //街道处理率
 
         //文明志愿者
-        $data['volunteer']['volunteer_count'] = '/';      //志愿者人数
-        $data['volunteer']['activity_count'] = '/';      //志愿者参加活动人数
-        $data['volunteer']['rate'] = '/';               //志愿者人数比
-        $data['volunteer']['all_time'] = '/';               //公益活动总时长
-        $data['volunteer']['average_time'] = '/';               //公益活动平均时长
+        $data['volunteer']['volunteer_count'] = '无';      //志愿者人数
+        $data['volunteer']['activity_count'] = '无';      //志愿者参加活动人数
+        $data['volunteer']['rate'] = '无';               //志愿者人数比
+        $data['volunteer']['all_time'] = '无';               //公益活动总时长
+        $data['volunteer']['average_time'] = '无';               //公益活动平均时长
 
         //社会公益宣传
         $data['publicize']['notice_count'] = '/';          //小区公告数量
