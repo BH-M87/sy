@@ -15,7 +15,7 @@ class JavaOfCService extends BaseService{
 
 
     /*
-     * B 端调用
+     * C 端调用
      */
     public function returnCData($query){
         $result =  JavaCurl::getInstance()->clientHandler($query);
@@ -144,6 +144,18 @@ class JavaOfCService extends BaseService{
     public function myRoomList($query)
     {
         $query['route'] = '/member/room/myRoomList';
+        return self::returnCData($query);
+    }
+
+    //获得住户房屋地址
+    public function getResidentFullAddress($query){
+        $query['route'] = '/member/room/getResidentFullAddress';
+        return self::returnCData($query);
+    }
+
+    //小区文明码java统计
+    public function civilizationStatistics($query){
+        $query['route'] = '/php/statistics';
         return self::returnCData($query);
     }
 }
