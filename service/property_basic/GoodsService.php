@@ -475,13 +475,12 @@ class GoodsService extends BaseService
         $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
         $get_url = $host."/internal/volunteer/code-info";
         $curl_data = ["sysUserId" => $p['user_id']];
-        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data'];
 
-        if ($r['code'] == 1) {
-            return $r['data'];
-        } else {
-            return ['civilizationSurplus' => '0', 'img' => ''];
-        }
+        $civilizationSurplus = !empty($r['civilizationSurplus']) ? $r['civilizationSurplus'] : '0';
+        $img = !empty($r['img']) ? $r['img'] : '';
+
+        return ['civilizationSurplus' => $civilizationSurplus, 'img' => $img];
     }
 
     // 判断志愿者是否注册过
