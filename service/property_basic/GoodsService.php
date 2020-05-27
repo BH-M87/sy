@@ -194,7 +194,8 @@ class GoodsService extends BaseService
                 $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
                 $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
                 $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
-                $v['content'] = htmlspecialchars($v['content']);
+                $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
+                $v['content'] = str_replace("&nbsp;","",$v['content']);
 
                 $comm = GoodsGroupCommunity::find()->where(['groupId' => $v['id']])->asArray()->all();
 
