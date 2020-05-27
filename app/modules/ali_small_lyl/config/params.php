@@ -9,15 +9,15 @@ switch (YII_ENV) {
         break;
     case  "test":
         //志愿者域名
-        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-zhd/?r=';
+        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
         break;
     case  "release":
         //志愿者域名
-        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-zhd/?r=';
+        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
         break;
     default :
         //志愿者域名
-        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-zhd/?r=';
+        $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
         break;
 }
 return $params;
