@@ -464,6 +464,8 @@ class GoodsService extends BaseService
         $curl_data = ["sysUserId" => $p['user_id']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
 
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$get_url . "请求参数：".json_encode($curl_data) . PHP_EOL . '返回结果：' . json_encode($r).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/street.log');
+        
         if ($r['code'] == 1) {
             return $r['data'];
         } else {
@@ -482,6 +484,8 @@ class GoodsService extends BaseService
         $civilizationSurplus = !empty($r['civilizationSurplus']) ? $r['civilizationSurplus'] : '0';
         $img = !empty($r['img']) ? $r['img'] : '';
 
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$get_url . "请求参数：".json_encode($curl_data) . PHP_EOL . '返回结果：' . json_encode($r).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/street.log');
+
         return ['civilizationSurplus' => $civilizationSurplus, 'img' => $img];
     }
 
@@ -492,6 +496,8 @@ class GoodsService extends BaseService
         $get_url = $host."/internal/volunteer/is-register";
         $curl_data = ["mobile" => $p['mobile']];
         $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+        
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$get_url . "请求参数：".json_encode($curl_data) . PHP_EOL . '返回结果：' . json_encode($r).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/street.log');
 
         if ($r['code'] == 1) {
             return $r['data'];
