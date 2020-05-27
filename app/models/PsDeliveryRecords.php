@@ -113,13 +113,15 @@ class PsDeliveryRecords extends BaseModel {
             if (empty($res)) {
                 $this->addError($attribute, "该商品不存在或已删除！");
             }
-            //判断是否兑换过商品
-            $exchangeCount = self::find()->select(['id'])
-                                    ->where(['=','product_id',$this->product_id])
-                                    ->andWhere(['=','user_id',$this->user_id])
-                                    ->count();
-            if($exchangeCount>=$res['personLimit']){
-                $this->addError($attribute, "兑换已达上限，不能兑换！");
+            if($res['personLimit']>0){
+                //判断是否兑换过商品
+                $exchangeCount = self::find()->select(['id'])
+                                        ->where(['=','product_id',$this->product_id])
+                                        ->andWhere(['=','user_id',$this->user_id])
+                                        ->count();
+                if($exchangeCount>=$res['personLimit']){
+                    $this->addError($attribute, "兑换已达上限，不能兑换！");
+                }
             }
             $this->product_name = $res['name'];
             $this->product_img = $res['img'];
