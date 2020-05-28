@@ -202,8 +202,27 @@ class DeliveryRecordsService extends BaseService{
         //巡更巡检统计
         $data['inspect'] = self::doInspectStatistics($params);
 
-        $url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
-        $data['qr_code_url']=$url;
+        $redis = Yii::$app->redis;
+        $qrCodeKey = $params['community_id'];
+        $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
+        if(!empty($qrCodeUrl)){
+            $javaService = new JavaOfCService();
+            $javaParams['data']['communityId'] = $params['community_id'];
+            $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
+    //        $javaParams['data']['communityId'] = '1254991620133425154';
+    //                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
+            $javaParams['data']['queryParam'] = "x=1";
+            $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
+            $javaParams['token'] = $params['token'];
+            $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
+            $javaResult = $javaService->selectCommunityQrCode($javaParams);
+            $qrCodeUrl['qrCodeUrl'] = !empty($javaResult['qrCodeUrl'])?$javaResult['qrCodeUrl']."jpg":'';
+            $redis->set($qrCodeKey,json_encode($qrCodeUrl));
+            //设置一个月有效期
+            $redis->expire($qrCodeKey,86400*30);
+        }
+        $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
+        $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
