@@ -208,7 +208,7 @@ class DeliveryRecordsService extends BaseService{
         $javaService = new JavaOfCService();
         $javaParams['data']['communityId'] = $params['community_id'];
         $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
-//                $javaParams['data']['communityId'] = '1254991620133425154';
+        $javaParams['data']['communityId'] = '1254991620133425154';
 //                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
         $javaParams['data']['queryParam'] = "x=1";
         $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
