@@ -311,7 +311,7 @@ Class BillIncomeService extends BaseService
     {
         $refund = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 2])->scalar();
 
-        $params['pay_status'] = 1; // 交易成功
+        $params['pay_status'] = [1,2]; // 交易成功
         $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->scalar();
         
         $money['amount'] = $amount ?? 0;
