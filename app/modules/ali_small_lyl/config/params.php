@@ -1,6 +1,6 @@
 <?php
 $params = [
-
+    'qr_code_url' => 'https://static.elive99.com/2020052110241860224.jpg',    //一区一码小程序二维码
 ];
 switch (YII_ENV) {
     case  "master":
