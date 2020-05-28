@@ -252,7 +252,8 @@ Class BillIncomeService extends BaseService
             ->andFilterWhere(['>=', 'A.income_time', $income_start])
             ->andFilterWhere(['<=', 'A.income_time', $income_end])
             ->andFilterWhere(['=', 'A.entry_at', $entry_at])
-            ->andFilterWhere(['=', 'A.pay_status', PsCommon::get($params, 'pay_status')]);
+            ->andFilterWhere(['=', 'A.pay_status', PsCommon::get($params, 'pay_status')])
+            ->andFilterWhere(['in', 'A.pay_status', PsCommon::get($params, 'pay_status_in')]);
 
         return $model;
     }
@@ -311,7 +312,7 @@ Class BillIncomeService extends BaseService
     {
         $refund = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 2])->scalar();
 
-        $params['pay_status'] = [1,2]; // 交易成功
+        $params['pay_status_in'] = [1,2]; // 交易成功
         $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->scalar();
         
         $money['amount'] = $amount ?? 0;
