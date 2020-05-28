@@ -35,4 +35,15 @@ class SystemSetController extends BaseController  {
             return PsCommon::responseFailed($result["msg"]);
         }
     }
+
+    //预览
+    public function actionPreview(){
+        $params = $this->request_params;
+        $result = SystemSetService::service()->preview($params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result["msg"]);
+        }
+    }
 }

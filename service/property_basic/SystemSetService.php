@@ -80,4 +80,9 @@ class SystemSetService extends BaseService {
             throw new Exception($msg);
         }
     }
+
+    //兑换预览
+    public function preview($params){
+
+    }
 }
