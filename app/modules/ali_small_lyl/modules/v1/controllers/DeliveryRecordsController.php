@@ -58,18 +58,4 @@ class DeliveryRecordsController extends BaseController {
             exit($e->getMessage());
         }
     }
-
-    //返回小程序二维码
-    public function actionGetQrUrl(){
-        try{
-            $result = DeliveryRecordsService::service()->getQrUrl($this->params);
-            if ($result['code']) {
-                return PsCommon::responseSuccess($result['data']);
-            } else {
-                return PsCommon::responseFailed($result['msg']);
-            }
-        }catch (Exception $e){
-            exit($e->getMessage());
-        }
-    }
 }

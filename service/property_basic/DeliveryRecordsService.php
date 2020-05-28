@@ -202,7 +202,8 @@ class DeliveryRecordsService extends BaseService{
         //巡更巡检统计
         $data['inspect'] = self::doInspectStatistics($params);
 
-
+        $url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
+        $data['qr_code_url']=$url;
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
@@ -339,10 +340,5 @@ class DeliveryRecordsService extends BaseService{
             'answerTime' => $answerTime,  //报事报修平均相应时长
             'averageScore' => $averageScore,    //报修平均分
         ];
-    }
-
-    public function getQrUrl($params){
-        $url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
-        return $this->success(['qr_code_url'=>$url]);
     }
 }
