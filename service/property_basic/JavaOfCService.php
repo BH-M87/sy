@@ -158,4 +158,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/php/statistics';
         return self::returnCData($query);
     }
+
+    //获得小程序二维码
+    public function selectCommunityQrCode($query){
+        $query['route'] = '/php/statistics';
+        return self::returnCData($query);
+    }
 }
