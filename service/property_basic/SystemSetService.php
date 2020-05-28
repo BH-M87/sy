@@ -11,6 +11,7 @@ namespace service\property_basic;
 use app\models\PsSystemSet;
 use service\BaseService;
 use yii\base\Exception;
+use Yii;
 
 class SystemSetService extends BaseService {
 
@@ -82,7 +83,14 @@ class SystemSetService extends BaseService {
     }
 
     //兑换预览
-    public function preview($params){
-
+    public function preview($params,$userInfo){
+        //获得设置信息
+        $setModel = new PsSystemSet();
+        $setDetail = $setModel->getDetail(['company_id'=>$params['corp_id']]);
+        $data['notice_content'] = !empty($setDetail['notice_content'])?$setDetail['notice_content']:'';
+        $data['pay_company'] = !empty($userInfo['corpName'])?$userInfo['corpName']:''; // 收款单位; // 收款单位
+        $setQrCodeUrl = Yii::$app->modules['property']->params['qr_code_url'];
+        $data['qr_code'] = $setQrCodeUrl; // 二维码图片
+        return $this->success($data);
     }
 }

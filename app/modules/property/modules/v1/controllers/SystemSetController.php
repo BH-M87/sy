@@ -39,7 +39,7 @@ class SystemSetController extends BaseController  {
     //预览
     public function actionPreview(){
         $params = $this->request_params;
-        $result = SystemSetService::service()->preview($params);
+        $result = SystemSetService::service()->preview($params,$this->user_info);
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {
