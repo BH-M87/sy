@@ -129,7 +129,7 @@ class BillDetailService extends BaseService
         $requestArr['room_id'] = !empty($data['room_id']) ? $data['room_id'] : '';          //室
         $requestArr['unit_id'] = !empty($data['unit_id']) ? $data['unit_id'] : '';          //单元
         $requestArr['trade_type'] = !empty($data['trade_type']) ? $data['trade_type'] : '';          //收款类型：1收款，2退款
-        $requestArr['source'] = !empty($data['source']) ? $data['source'] : '1';          //1：线上缴费，2：线下扫码，3：临时停车，4：线下收款，5报事报修
+        $requestArr['source'] = !empty($data['source']) ? $data['source'] : '';          //1：线上缴费，2：线下扫码，3：临时停车，4：线下收款，5报事报修
         $requestArr['pay_type'] = !empty($data['pay_type']) ? $data['pay_type'] : '';          //1:线下支付，2:线上支付
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
