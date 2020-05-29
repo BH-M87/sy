@@ -222,21 +222,21 @@ class BillSmallService extends BaseService
         }
 
         // 验证账单是否有当前选中未缴账期
-        $chooseResult = PsBill::find()->select(['id','cost_type','acct_period_start'])
-            ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])->asArray()->all();
-        if(!empty($chooseResult)){
-            foreach ($chooseResult as $key=>$value){
-                //验证是否存在当前类型未缴账期
-                $exist = PsBill::find()->select('id')
-                    ->where(['community_id' => $communityId, 'cost_type'=>$value['cost_type'],'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
-                    ->andWhere(['<','acct_period_start',$value['acct_period_start']])
-                    ->andWhere(['not in','id',$bill_list])
-                    ->count();
-                if($exist>0){
-                    return $this->failed('请从上次缴费后的最早账单开始，选择连续账单进行缴费');
-                }
-            }
-        }
+//        $chooseResult = PsBill::find()->select(['id','cost_type','acct_period_start'])
+//            ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])->asArray()->all();
+//        if(!empty($chooseResult)){
+//            foreach ($chooseResult as $key=>$value){
+//                //验证是否存在当前类型未缴账期
+//                $exist = PsBill::find()->select('id')
+//                    ->where(['community_id' => $communityId, 'cost_type'=>$value['cost_type'],'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
+//                    ->andWhere(['<','acct_period_start',$value['acct_period_start']])
+//                    ->andWhere(['not in','id',$bill_list])
+//                    ->count();
+//                if($exist>0){
+//                    return $this->failed('请从上次缴费后的最早账单开始，选择连续账单进行缴费');
+//                }
+//            }
+//        }
 
         $trans = Yii::$app->getDb()->beginTransaction();
         $income_id = $out_trade_no = $trade_no = '';
