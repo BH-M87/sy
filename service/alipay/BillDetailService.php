@@ -252,7 +252,7 @@ class BillDetailService extends BaseService
                 $count = Yii::$app->db->createCommand("select  count(distinct der.id) as total_num,sum(der.amount) as total_money from ps_repair_bill as der,ps_repair  as `repair`,ps_community_roominfo as rm_info where der.repair_id=`repair`.id and `repair`.room_id=rm_info.id and der.pay_status=1  " . $where, $params)->queryOne();
                 break;
             default://线上缴费
-                $count = Yii::$app->db->createCommand("select  count(distinct bill.id) as total_num,sum(der.pay_amount) as total_money from ps_bill as bill, ps_order  as der where bill.order_id=der.id and der.bill_id=bill.id and der.status=2 and der.pay_status=1 and der.is_del=1   " . $where, $params)->queryOne();
+                $count = Yii::$app->db->createCommand("select  count(distinct bill.id) as total_num,sum(der.pay_amount) as total_money from ps_bill as bill, ps_order  as der where bill.order_id=der.id and der.bill_id=bill.id and (der.status=2 or der.status=7) and der.pay_status=1 and der.is_del=1   " . $where, $params)->queryOne();
                 break;
         }
         //报表查询，查询总计，本年，本月，本周的实际收费
