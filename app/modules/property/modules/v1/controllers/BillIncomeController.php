@@ -81,9 +81,28 @@ Class BillIncomeController extends BaseController
 
         $this->request_params['communityIds'] = $this->request_params['communityList'];
         $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
-        $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
-        $data['money'] = BillIncomeService::service()->billIncomeMoney($this->request_params);
 
+        //待核销统计
+        $params = $this->request_params;
+        $params['check_status'] = 1;
+        $data['totals'] = BillIncomeService::service()->billIncomeCount($params);       //待核销总数
+        $data['money'] = BillIncomeService::service()->billIncomeMoney($params);        //待核销金额
+        if($params['trade_type'] == 1){
+            //收款
+            $data['refund_money'] = 0;//待核销退款
+            $data['actual_money'] = $data['money'];//实际待核销
+        }elseif($params['trade_type'] == 2){
+            //退款
+            $data['refund_money'] = $data['money'];//待核销退款
+            $data['actual_money'] = 0;//实际待核销
+        }else{
+            $params['trade_type'] = 2;
+            $data['refund_money'] = BillIncomeService::service()->billIncomeMoney($params);//待核销退款
+            $data['actual_money'] = $data['money']-$data['refund_money'];
+        }
+        $data['refund_money'] = sprintf('%.2f',$data['refund_money']);
+        $data['actual_money'] = sprintf('%.2f',$data['actual_money']);
+        $data['money'] = sprintf('%.2f',$data['money']);
         return PsCommon::responseSuccess($data);
     }
 //    public function actionReviewList()
