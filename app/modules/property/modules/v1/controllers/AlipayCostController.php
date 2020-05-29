@@ -816,7 +816,7 @@ Class AlipayCostController extends BaseController
         if (!$result['code']) {
             return PsCommon::responseFailed($result['msg']);
         }
-        $source = !empty($this->request_params['source']) ? $this->request_params['source'] : 1;
+        $source = !empty($this->request_params['source']) ? $this->request_params['source'] : '';
         switch ($source){
             case 1://线上缴费
                 $config = [
@@ -826,8 +826,8 @@ Class AlipayCostController extends BaseController
                     ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'width' => 32, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
-                    ['title' => '收款类型', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
-                    ['title' => '支付方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
+                    ['title' => '记账方式', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
+                    ['title' => '缴费方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
                     ['title' => '支付账号', 'width' => 24, 'data_type' => 'str', 'field' => 'buyer_account'],
                     ['title' => '缴费时间', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_time'],
                 ];
@@ -839,7 +839,7 @@ Class AlipayCostController extends BaseController
                     ['title' => '关联房屋', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'field' => 'total_amount', 'default' => '-'],
-                    ['title' => '支付方式', 'field' => 'pay_channel_name'],
+                    ['title' => '缴费方式', 'field' => 'pay_channel_name'],
                     ['title' => '支付账号', 'field' => 'buyer_account'],
                     ['title' => '缴费时间', 'field' => 'pay_time'],
                     ['title' => '备注', 'field' => 'bill_note'],
@@ -850,7 +850,7 @@ Class AlipayCostController extends BaseController
                     ['title' => '交易流水号', 'width' => 32, 'data_type' => 'str', 'field' => 'trade_no'],
                     ['title' => '小区名称', 'width' => 18, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
                     ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
-                    ['title' => '支付方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
+                    ['title' => '缴费方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
                     ['title' => '支付账号', 'width' => 24, 'data_type' => 'str', 'field' => 'buyer_account'],
                     ['title' => '缴费时间', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_time'],
                     ['title' => '车牌号', 'width' => 32, 'data_type' => 'str', 'field' => 'car_num'],
@@ -864,8 +864,8 @@ Class AlipayCostController extends BaseController
                     ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
                     ['title' => '收费项目', 'width' => 32, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
                     ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
-                    ['title' => '收款类型', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
-                    ['title' => '支付方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
+                    ['title' => '记账方式', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
+                    ['title' => '缴费方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
                     ['title' => '缴费时间', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_time'],
                     ['title' => '备注', 'width' => 24, 'data_type' => 'str', 'field' => 'remark'],
                 ];
@@ -881,7 +881,21 @@ Class AlipayCostController extends BaseController
                     ['title' => '报修内容', 'width' => 15, 'data_type' => 'str', 'field' => 'repair_content'],
                     ['title' => '支付金额', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_money'],
                     ['title' => '缴费时间', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_time'],
-                    ['title' => '支付方式', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_type_str'],
+                    ['title' => '缴费方式', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_type_str'],
+                ];
+                break;
+            default:
+                $config = [
+                    ['title' => '交易流水号', 'width' => 32, 'data_type' => 'str', 'field' => 'trade_no'],
+                    ['title' => '账期', 'width' => 32, 'data_type' => 'str', 'field' => 'acct_period'],
+                    ['title' => '小区名称', 'width' => 18, 'data_type' => 'str', 'field' => 'community_name', 'default' => '-'],
+                    ['title' => '关联房屋', 'width' => 32, 'data_type' => 'str', 'field' => 'room_address', 'default' => '-'],
+                    ['title' => '收费项目', 'width' => 32, 'data_type' => 'str', 'field' => 'cost_name', 'default' => '-'],
+                    ['title' => '缴费金额', 'width' => 14, 'data_type' => 'str', 'field' => 'total_amount', 'default' => '-'],
+                    ['title' => '记账方式', 'width' => 14, 'data_type' => 'str', 'field' => 'trade_type_str', 'default' => '-'],
+                    ['title' => '缴费方式', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_channel_name'],
+                    ['title' => '支付账号', 'width' => 24, 'data_type' => 'str', 'field' => 'buyer_account'],
+                    ['title' => '缴费时间', 'width' => 14, 'data_type' => 'str', 'field' => 'pay_time'],
                 ];
                 break;
         }

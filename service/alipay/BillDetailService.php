@@ -310,9 +310,9 @@ class BillDetailService extends BaseService
 //            if ($model['room_status']) {
 //                $models[$key]["room_status"] = $model["room_status"] ? PsCommon::houseStatus($model["room_status"]) : '';
 //            }
-            if ($requestArr['source'] == 1 || $requestArr['source'] == 4) {//线上缴费跟下线收款又交易类型字段
+//            if ($requestArr['source'] == 1 || $requestArr['source'] == 4) {//线上缴费跟下线收款又交易类型字段
                 $models[$key]["trade_type_str"] = $model["trade_type"] ? PsCommon::getTradeType($model["trade_type"]) : '其他';
-            }
+//            }
             $models[$key]["pay_channel_name"] = $model["pay_channel"] ? PsCommon::getPayChannel($model["pay_channel"], 'key') : '其他';
         }
 //        return $this->success(["list" => $models, "totals" => $count['total_num'], 'total_money' => $count['total_money'], "reportData" => $reportData]);
