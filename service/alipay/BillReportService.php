@@ -590,7 +590,7 @@ class BillReportService extends BaseService
             ->where(['=', 'pay_status', 1])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'pay_year', $year])
-            ->asArray()->all();
+            ->asArray()->one();
 
         $discount = !empty($bill['discount']) ? $bill['discount'] : 0;
         $pay = !empty($bill['pay']) ? $bill['pay'] : 0;
