@@ -265,7 +265,7 @@ Class BillIncomeService extends BaseService
         $rows = PsCommon::get($p, 'rows');
 
         $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
-            A.pay_channel, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
+            A.pay_channel, A.pay_type, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
             ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
 
         //获得所有小区
