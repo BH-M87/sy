@@ -14,6 +14,7 @@ use app\models\PsBillCost;
 use app\models\PsCommunityModel;
 use app\models\BillReportYearly;
 use app\models\BillReportRoom;
+use app\models\PsBillYearly;
 use service\manage\CommunityService;
 
 class BillReportService extends BaseService
@@ -525,5 +526,161 @@ class BillReportService extends BaseService
     public function roomCount($params)
     {
         return $this->_roomSearch($params)->count();
+    }
+
+    // 统计分析
+    public function analysis($p)
+    {
+        $year = !empty($p['year']) ? $p['year'] : date('Y', time());
+
+        $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->groupBy('pay_month')->orderBy('pay_month asc')->asArray()->all();
+        $arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        if (!empty($list)) {
+            foreach ($list as $k => $v) {
+                $count = (int)$v['count'];
+                switch ($v['item']) {
+                    case '01':
+                        $arr[0] = $count;
+                        break;
+                    case '02':
+                        $arr[1] = $count;
+                        break;
+                    case '03':
+                        $arr[2] = $count;
+                        break;
+                    case '04':
+                        $arr[3] = $count;
+                        break;
+                    case '05':
+                        $arr[4] = $count;
+                        break;
+                    case '06':
+                        $arr[5] = $count;
+                        break;
+                    case '07':
+                        $arr[6] = $count;
+                        break;
+                    case '08':
+                        $arr[7] = $count;
+                        break;
+                    case '09':
+                        $arr[8] = $count;
+                        break;
+                    case '10':
+                        $arr[9] = $count;
+                        break;
+                    case '11':
+                        $arr[10] = $count;
+                        break;
+                    case '12':
+                        $arr[11] = $count;
+                        break;
+                }
+            }
+        }
+        
+        $m['list'] = $arr;
+        $m['total'] = array_sum(array_column($list, 'count'));
+
+        // 缴费记录分析
+        $bill = PsBillYearly::find()->select('sum(discount_amount) discount, sum(pay_amount) pay')
+            ->where(['=', 'pay_status', 1])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->asArray()->all();
+
+        $discount = !empty($bill['discount']) ? $bill['discount'] : 0;
+        $pay = !empty($bill['pay']) ? $bill['pay'] : 0;
+
+        $total = $discount + $pay;
+        $m['bill'] = [];
+        if ($total > 0) {
+            $m['bill'] = [
+                ['count' => $discount, 'item' => '优惠', 'percent' => round($discount / $total, 2)],
+                ['count' => $pay, 'item' => '已缴', 'percent' => round($pay / $total, 2)]
+            ];
+        }
+
+        
+        
+        // 缴费记录项目分析
+        $cost = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->groupBy('cost_id')->asArray()->all();
+
+        if (!empty($cost)) {
+            $total = array_sum(array_column($cost, 'count'));
+            foreach ($cost as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
+            }
+        }
+
+        // 未缴账单渠道分析
+        $costNo = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
+            ->where(['=', 'pay_status', 0])
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->groupBy('cost_id')->asArray()->all();
+
+        if (!empty($costNo)) {
+            $total = array_sum(array_column($costNo, 'count'));
+            foreach ($costNo as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
+            }
+        }
+        
+        // 缴费记录渠道分析
+        $channel = PsBillYearly::find()->alias('A')->select('sum(A.pay_amount) count, B.pay_channel item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->where(['=', 'A.pay_status', 1])
+            //->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'A.pay_year', $year])
+            ->groupBy('B.pay_channel')->asArray()->all();
+
+        if (!empty($channel)) {
+            $total = array_sum(array_column($channel, 'count'));
+            foreach ($channel as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsCommon::getPayChannel($v['item']);
+            }
+        }
+
+        // 未缴账单分析
+        $billNo = PsBillYearly::find()->select('sum(pay_amount) count, pay_status item')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'acct_year', $year])
+            ->groupBy('pay_status')->orderBy('pay_status asc')
+            ->asArray()->all();
+
+        if (!empty($billNo)) {
+            $total = array_sum(array_column($billNo, 'count'));
+            foreach ($billNo as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                switch ($v['item']) {
+                    case '0':
+                        $v['item'] = '未缴';
+                        break;
+                    case '1':
+                        $v['item'] = '已缴';
+                        break;
+                }
+            }
+        }
+
+        $m['cost'] = $cost;
+        $m['costNo'] = $costNo;
+        $m['channel'] = $channel;
+        $m['billNo'] = $billNo;
+        
+        return $m; 
     }
 }
