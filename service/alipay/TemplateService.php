@@ -327,6 +327,10 @@ Class TemplateService extends BaseService
                     $resultList[99]['bill_entry_amount'] += $item['bill_entry_amount'];
                     $resultList[99]['paid_entry_amount'] += $item['paid_entry_amount'];
                     $resultList[99]['prefer_entry_amount'] += $item['prefer_entry_amount'];
+
+                    $resultList[99]['bill_entry_amount'] = sprintf("%.2f",$resultList[99]['bill_entry_amount']);
+                    $resultList[99]['paid_entry_amount'] = sprintf("%.2f",$resultList[99]['paid_entry_amount']);
+                    $resultList[99]['prefer_entry_amount'] = sprintf("%.2f",$resultList[99]['prefer_entry_amount']);
                 }
                 continue;
             }
@@ -337,9 +341,9 @@ Class TemplateService extends BaseService
                 $resultList[$valiKey]['paid_entry_amount'] += $item['paid_entry_amount'];
                 $resultList[$valiKey]['prefer_entry_amount'] += $item['prefer_entry_amount'];
 
-                $resultList[$valiKey]['bill_entry_amount'] = sprintf("%.2f",$item['bill_entry_amount']);
-                $resultList[$valiKey]['paid_entry_amount'] = sprintf("%.2f",$item['paid_entry_amount']);
-                $resultList[$valiKey]['prefer_entry_amount'] = sprintf("%.2f",$item['prefer_entry_amount']);
+                $resultList[$valiKey]['bill_entry_amount'] = sprintf("%.2f",$resultList[$valiKey]['bill_entry_amount']);
+                $resultList[$valiKey]['paid_entry_amount'] = sprintf("%.2f",$resultList[$valiKey]['paid_entry_amount']);
+                $resultList[$valiKey]['prefer_entry_amount'] = sprintf("%.2f",$resultList[$valiKey]['prefer_entry_amount']);
                 $valiTime = $item['acct_period_end'];
                 continue;
             }
