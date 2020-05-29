@@ -74,6 +74,7 @@ class BillController extends UserBaseController
     // 提交账单，返回支付宝交易号
     public function actionAddBill()
     {
+        print_r($this->params);die;
         $p['community_id'] = F::value($this->params, 'community_id', '');
         $p['room_id'] = F::value($this->params, 'room_id', '');
         $p['bill_list'] = F::value($this->params, 'bill_list', []);
