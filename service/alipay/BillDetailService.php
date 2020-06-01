@@ -183,7 +183,11 @@ class BillDetailService extends BaseService
             $where .= " AND der.pay_type=:pay_type";
             $params = array_merge($params, [':pay_type' => $requestArr["pay_type"]]);
         }
-        if (!empty($requestArr["trade_type"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 4)) {//只有线上或线下收款才有这个收款类型
+//        if (!empty($requestArr["trade_type"]) && ($requestArr['source'] == 1 || $requestArr['source'] == 4)) {//只有线上或线下收款才有这个收款类型
+//            $where .= " AND bill.trade_type=:trade_type";
+//            $params = array_merge($params, [':trade_type' => $requestArr["trade_type"]]);
+//        }
+        if (!empty($requestArr["trade_type"])) {//只有线上或线下收款才有这个收款类型
             $where .= " AND bill.trade_type=:trade_type";
             $params = array_merge($params, [':trade_type' => $requestArr["trade_type"]]);
         }
