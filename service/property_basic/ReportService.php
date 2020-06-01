@@ -354,11 +354,11 @@ class ReportService extends BaseService {
             $where1 .= "and pay_time >= {$start_time['start']} and pay_time <= {$start_time['end']}";
         }
         $db=Yii::$app->db;
-        $bill_sql ="select  sum(bill.paid_entry_amount) as amount,count(der.id) as total,FROM_UNIXTIME(der.pay_time,'%Y%m%d') as riqi,bill.cost_id, der.community_id,der.pay_channel as type from ps_bill as bill,ps_order as der where bill.order_id=der.id and bill.id=der.bill_id and bill.trade_defend=0 and der.status=7 and der.is_del=1 and der.pay_status=1 $where1 group by  der.community_id,bill.cost_id,der.pay_channel,riqi";
+        $bill_sql ="select  sum(bill.paid_entry_amount) as amount,count(der.id) as total,FROM_UNIXTIME(der.pay_time,'%Y%m%d') as riqi,bill.cost_id, der.community_id,bill.community_name,der.pay_channel as type from ps_bill as bill,ps_order as der where bill.order_id=der.id and bill.id=der.bill_id and bill.trade_defend=0 and der.status=7 and der.is_del=1 and der.pay_status=1 $where1 group by  der.community_id,bill.cost_id,der.pay_channel,riqi";
         $bills = $db->createCommand($bill_sql)->queryAll();
         if(!empty($bills) ) {
             foreach ($bills as $key => $val) {
-                $val["community_name"]=CommunityService::service()->getShowCommunityInfo($val["community_id"])['name'];
+//                $val["community_name"]=CommunityService::service()->getShowCommunityInfo($val["community_id"])['name'];
                 $val["type_name"]=$val['type']?PsCommon::getPayChannel($val['type']):'未知';
                 $day = $month = $year = $val;
                 $this->addChannelReport($day, "ps_channel_day_report");
@@ -380,11 +380,11 @@ class ReportService extends BaseService {
             $where1 .= "and pay_time >= {$start_time['start']} and pay_time <= {$start_time['end']}";
         }
         $db=Yii::$app->db;
-        $bill_sql ="select  sum(bill.paid_entry_amount) as amount,count(der.id) as total,FROM_UNIXTIME(der.pay_time,'%Y%m%d') as riqi,bill.cost_id, der.community_id,der.pay_channel as type from ps_bill as bill,ps_order as der where bill.order_id=der.id and bill.id=der.bill_id and bill.trade_defend=0 and der.status=2 and der.is_del=1 and der.pay_status=1  $where1 group by  der.community_id,bill.cost_id,riqi";
+        $bill_sql ="select  sum(bill.paid_entry_amount) as amount,count(der.id) as total,FROM_UNIXTIME(der.pay_time,'%Y%m%d') as riqi,bill.cost_id, der.community_id,bill.community_name,der.pay_channel as type from ps_bill as bill,ps_order as der where bill.order_id=der.id and bill.id=der.bill_id and bill.trade_defend=0 and der.status=2 and der.is_del=1 and der.pay_status=1  $where1 group by  der.community_id,bill.cost_id,riqi";
         $bills = $db->createCommand($bill_sql)->queryAll();
         if( empty(!$bills) ) {
             foreach ($bills as $key => $val) {
-                $val["community_name"]=CommunityService::service()->getShowCommunityInfo($val["community_id"])['name'];
+//                $val["community_name"]=CommunityService::service()->getShowCommunityInfo($val["community_id"])['name'];
                 $val['type'] = '9';
                 $val["type_name"]= '线上收款';
                 $day = $month = $year = $val;
