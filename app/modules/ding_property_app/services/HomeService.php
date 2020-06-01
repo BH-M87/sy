@@ -121,26 +121,26 @@ class HomeService extends BaseService
             [
                 'icon'=>"http://static.zje.com/2020040710054928444.png",
                 'name'=>"报事报修",
-                'port' => 'digit-property-repair',
+                'port' => '/digit-property-repair',
                 'url'=>"/pages/index/typeRepair/index"
             ],
             [
                 'icon'=>"http://static.zje.com/2020040710071219575.png",
                 'name'=>"巡检执行",
-                'port' => 'digit-property-ckexecute',
+                'port' => '/digit-property-ckexecute',
                 'url'=>"/pages/Inspection/index/index"
             ],
             [
                 'icon'=>"http://static.zje.com/2020040710080931069.png",
                 'name'=>"巡检管理",
-                'port' => 'digit-property-ckmgt',
+                'port' => '/digit-property-ckmgt',
                 'url'=>"/pages/patrolManagement/index/index"
             ],
             [
 
                  'icon' => "http://static.zje.com/2020041509563541640.png",
                  'name' => "访客通行",
-                 'port' => 'digit-property-visitorpass',
+                 'port' => '/digit-property-visitorpass',
                  'url' => "/pages/visitor/index/index"
             ]
         ];
@@ -152,32 +152,32 @@ class HomeService extends BaseService
                   [
                         'icon'=>"http://static.zje.com/2020040710054928444.png",
                         'name'=>"报事报修",
-                        'port' => 'digit-property-repair',
+                        'port' => '/digit-property-repair',
                         'url'=>"/pages/index/typeRepair/index"
                   ],
                   [
                         'icon'=>"http://static.zje.com/2020040710071219575.png",
                         'name'=>"巡检执行",
-                        'port' => 'digit-property-ckexecute',
+                        'port' => '/digit-property-ckexecute',
                         'url'=>"/pages/Inspection/index/index"
                   ],
                   [
                         'icon'=>"http://static.zje.com/2020040710074024088.png",
                         'name'=>"物业收费",
-                        'port' => 'digit-property-pay',
+                        'port' => '/digit-property-pay',
                         'url'=>"/pages/property-payment/index/index"
                   ],
                   [
                         'icon'=>"http://static.zje.com/2020040710080931069.png",
                         'name'=>"巡检管理",
-                        'port' => 'digit-property-ckmgt',
+                        'port' => '/digit-property-ckmgt',
                         'url'=>"/pages/patrolManagement/index/index"
                   ],
                     [
 
                         'icon' => "http://static.zje.com/2020041509563541640.png",
                         'name' => "访客通行",
-                        'port' => 'digit-property-visitorpass',
+                        'port' => '/digit-property-visitorpass',
                         'url' => "/pages/visitor/index/index"
                     ]
                 ];
