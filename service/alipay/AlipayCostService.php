@@ -600,10 +600,14 @@ class AlipayCostService extends BaseService
         }
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
-            PsBill::deleteAll(['id' => $bill_list]);        //删除账单
-            PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
+//            PsBill::deleteAll(['id' => $bill_list]);        //删除账单
+//            PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
+            PsBill::updateAll(['is_del' => 2], ['id' => $bill_list]);
+            PsOrder::updateAll(['is_del' => 2], ['bill_id' => $bill_list]);
 //            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
             //提交事务
+            //统计明细表同步更新，并且新增到账单变动的脚本表，将锁定的账单剔除
+            BillTractContractService::service()->delContractBill($bill_list);
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
