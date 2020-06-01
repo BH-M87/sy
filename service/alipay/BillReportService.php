@@ -633,7 +633,7 @@ class BillReportService extends BaseService
         }
 
         // 未缴账单渠道分析
-        $costNo = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
+        $costNo = PsBillYearly::find()->select('sum(bill_amount) count, cost_id item')
             ->where(['=', 'pay_status', 0])
             //->andFilterWhere(['in', 'cost_id', [1,2,11]])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
@@ -668,7 +668,7 @@ class BillReportService extends BaseService
         }
 
         // 未缴账单分析
-        $billNo = PsBillYearly::find()->select('sum(pay_amount) count, pay_status item')
+        $billNo = PsBillYearly::find()->select('sum(bill_amount) count, pay_status item')
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'acct_year', $year])
             ->andFilterWhere(['=', 'is_del', 1])
