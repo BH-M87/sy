@@ -167,14 +167,18 @@ class BillDetailService extends BaseService
             $where .= " AND der.trade_no like :trade_no ";
             $params = array_merge($params, [':trade_no' => '%' . $requestArr["trade_no"] . '%']);
         }
-        if (!empty($requestArr["pay_channel"]) && $requestArr['source'] != 2) {//TODO 2090716之前只支持线下收款,现在除了扫码支付,报事报修,其他全部支持支付方式搜索
-            if ($requestArr['source'] == 4 || $requestArr['source'] == 1 || $requestArr['source'] == 3){
-                $where .= " AND der.pay_channel=:pay_channel";
-            }else{
-                throw new MyException('无此明细');
-            }
+        if(!empty($requestArr["pay_channel"])){
+            $where .= " AND der.pay_channel=:pay_channel";
             $params = array_merge($params, [':pay_channel' => $requestArr["pay_channel"]]);
         }
+//        if (!empty($requestArr["pay_channel"]) && $requestArr['source'] != 2) {//TODO 2090716之前只支持线下收款,现在除了扫码支付,报事报修,其他全部支持支付方式搜索
+//            if ($requestArr['source'] == 4 || $requestArr['source'] == 1 || $requestArr['source'] == 3){
+//                $where .= " AND der.pay_channel=:pay_channel";
+//            }else{
+//                throw new MyException('无此明细');
+//            }
+//            $params = array_merge($params, [':pay_channel' => $requestArr["pay_channel"]]);
+//        }
         if (!empty($requestArr['pay_type']) && $requestArr['source'] == 5){//20170716 报事报修支持支付方式搜索
             $where .= " AND der.pay_type=:pay_type";
             $params = array_merge($params, [':pay_type' => $requestArr["pay_type"]]);
