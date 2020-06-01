@@ -780,7 +780,7 @@ class BillTractContractService extends BaseService
 
         self::_year($model, 'bill_report_yearly', $type); // 统计当年收费
         
-        echo  '开始：'.date("Y-m-d H:i:s", $starttime).'<br/>结束：'.date("Y-m-d H:i:s",time()).'<br/>用时：'.(time()-$starttime).'秒<br/>结果：年表同步成功<br/><br/>';
+//        echo  '开始：'.date("Y-m-d H:i:s", $starttime).'<br/>结束：'.date("Y-m-d H:i:s",time()).'<br/>用时：'.(time()-$starttime).'秒<br/>结果：年表同步成功<br/><br/>';
 
         return $this->success();
     }
@@ -822,7 +822,7 @@ class BillTractContractService extends BaseService
             self::_year($model, 'bill_report_room', $type); // 统计各类费用
         }
         
-        echo  '开始：'.date("Y-m-d H:i:s", $starttime).'<br/>结束：'.date("Y-m-d H:i:s",time()).'<br/>用时：'.(time()-$starttime).'秒<br/>结果：明细表同步成功<br/><br/>';
+//        echo  '开始：'.date("Y-m-d H:i:s", $starttime).'<br/>结束：'.date("Y-m-d H:i:s",time()).'<br/>用时：'.(time()-$starttime).'秒<br/>结果：明细表同步成功<br/><br/>';
 
         return $this->success();
     }
