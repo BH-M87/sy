@@ -9,6 +9,7 @@
 namespace service\alipay;
 
 use service\BaseService;
+use service\property_basic\ReportService;
 use Yii;
 use app\models\PsBillYearly;
 use app\models\BillReportYearly;
@@ -770,14 +771,13 @@ class BillTractContractService extends BaseService
             $model = $this->getCountYearly('yearly', $param);
         } else { // 统计变动表对应数据
             $where['group'] = 'cost_id, community_id';
-            $where['where'] = 'is_contract = 1';
+//            $where['where'] = 'is_contract = 1';
             if ($params !== null) {
                 $where['andwhere'] = ['and' , ['>=' , 'create_at' , $where['start']] , ['<=','create_at' , $where['end']]];
-                $where['where']['is_contract'] = 2;
+//                $where['where']['is_contract'] = 2;
             }
             $model = $this->getList('trade', $where);
         }
-
         self::_year($model, 'bill_report_yearly', $type); // 统计当年收费
         
 //        echo  '开始：'.date("Y-m-d H:i:s", $starttime).'<br/>结束：'.date("Y-m-d H:i:s",time()).'<br/>用时：'.(time()-$starttime).'秒<br/>结果：年表同步成功<br/><br/>';
@@ -812,10 +812,10 @@ class BillTractContractService extends BaseService
             }
         } else { // 统计变动表对应数据
             $where['group'] = 'cost_id, room_id, community_id';
-            $where['where'] = 'is_contract = 1';
+//            $where['where'] = 'is_contract = 1';
             if ($params !== null) {
                 $where['andwhere'] = ['and' , ['>=' , 'create_at' , $params['start']] , ['<=','create_at' , $params['end']]];
-                $where['where']['is_contract'] = 2;
+//                $where['where']['is_contract'] = 2;
             }
             $model = $this->getList('trade', $where);
 
