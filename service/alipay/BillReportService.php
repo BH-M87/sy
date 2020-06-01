@@ -15,6 +15,7 @@ use app\models\PsCommunityModel;
 use app\models\BillReportYearly;
 use app\models\BillReportRoom;
 use app\models\PsBillYearly;
+use app\models\PsBillIncome;
 use service\manage\CommunityService;
 
 class BillReportService extends BaseService
@@ -532,6 +533,11 @@ class BillReportService extends BaseService
     public function analysis($p)
     {
         $year = !empty($p['year']) ? $p['year'] : date('Y', time());
+        $yearStart = strtotime($year.'-1-1');
+        $yearEnd = strtotime($year.'-12-31 23:59:59');
+
+        $refund = PsBillIncome::find()->select('sum(pay_money)')->where(['>=', 'income_time', $yearStart])
+            ->andWhere(['<=', 'income_time', $yearEnd])->andWhere(['trade_type' => 2])->scalar();
 
         $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
@@ -583,7 +589,7 @@ class BillReportService extends BaseService
         }
         
         $m['list'] = $arr;
-        $m['total'] = array_sum(array_column($list, 'count'));
+        $m['total'] = round(array_sum(array_column($list, 'count')) - $refund, 2);
 
         // 缴费记录分析
         $bill = PsBillYearly::find()->select('sum(discount_amount) discount, sum(pay_amount) pay')
