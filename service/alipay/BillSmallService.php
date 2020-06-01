@@ -12,6 +12,7 @@ use app\models\ParkingPayCode;
 use app\models\PsBillCost;
 use app\models\PsLifeServiceBill;
 use app\models\PsPropertyCompany;
+use app\models\PsSystemSet;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsOrder;
@@ -219,6 +220,31 @@ class BillSmallService extends BaseService
         $total_money = $model['money'];
         if (empty($total_money)) {
             return $this->failed('账单已收款');
+        }
+
+        // 验证账单是否有当前选中未缴账期
+        $flag = false;
+        $cropIdResult = JavaOfCService::service()->selectCommunityById(['token' => $p['token'], 'id' => $communityId]);
+        $flagResult = PsSystemSet::find()->select(['payment_set'])->where(['=','company_id',$cropIdResult['propertyCorpId']])->asArray()->one();
+        if(!empty($flagResult['payment_set'])&&$flagResult['payment_set']==2){
+            $flag = true;
+        }
+        if($flag){
+            $chooseResult = PsBill::find()->select(['id','cost_type','acct_period_start'])
+                ->where(['id' => $bill_list, 'community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1])->asArray()->all();
+            if(!empty($chooseResult)){
+                foreach ($chooseResult as $key=>$value){
+                    //验证是否存在当前类型未缴账期
+                    $exist = PsBill::find()->select('id')
+                        ->where(['community_id' => $communityId, 'cost_type'=>$value['cost_type'],'room_id' => $room_id, 'is_del' => 1, 'status' => 1])
+                        ->andWhere(['<','acct_period_start',$value['acct_period_start']])
+                        ->andWhere(['not in','id',$bill_list])
+                        ->count();
+                    if($exist>0){
+                        return $this->failed('请从上次缴费后的最早账单开始，选择连续账单进行缴费');
+                    }
+                }
+            }
         }
 
         $trans = Yii::$app->getDb()->beginTransaction();

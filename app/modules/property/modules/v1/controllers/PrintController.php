@@ -2,6 +2,8 @@
 
 namespace app\modules\property\modules\v1\controllers;
 
+use app\models\PsBill;
+use app\models\PsSystemSet;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsPrintModel;
@@ -82,6 +84,45 @@ class PrintController extends BaseController
 
         $result = TemplateService::service()->templateIncome($list['data'], $data['template_id']);
         return PsCommon::responseSuccess($result);
+    }
+
+    public function actionCommInfo_()
+    {
+        $data = $this->request_params;
+
+        if (empty($data['ids'])) {
+            return PsCommon::responseFailed("请选择需要打印的数据！");
+        }
+
+        if (!is_array($data['ids'])) {
+            return PsCommon::responseFailed("账单id必须数组格式！");
+        }
+
+        //获得所有房屋
+        $fields = ['room_id'];
+        $roomArrays = PsBill::find()->select($fields)->distinct()->where(['=','is_del',1])
+                            ->andWhere(['in','id',$data['ids']])
+                            ->andWhere(['in','community_id',$this->request_params['communityList']])
+                            ->orderBy(['room_id'=>SORT_ASC])
+                            ->asArray()->all();
+        $dataResult = [];
+        if(!empty($roomArrays)){
+            //获得配置信息
+            $systemSet = new PsSystemSet();
+            $sysSetResult = $systemSet->getDetail(['company_id'=>$data['corp_id']]);
+            $data['content'] = !empty($sysSetResult['notice_content'])?$sysSetResult['notice_content']:'';
+            foreach($roomArrays as $key=>$value){
+                $data['room_id'] = $value['room_id'];
+                $result = TemplateService::service()->billListNew_($data, $this->user_info);
+                if(!empty($result)){
+                    $dataResult['list'][] = $result;
+                }
+            }
+        }
+        if(!empty($dataResult)){
+            return PsCommon::responseSuccess($dataResult);
+        }
+        return PsCommon::responseFailed("没有数据");
     }
 
     public function actionGetCommInfo()

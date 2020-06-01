@@ -81,9 +81,28 @@ Class BillIncomeController extends BaseController
 
         $this->request_params['communityIds'] = $this->request_params['communityList'];
         $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
-        $data['totals'] = BillIncomeService::service()->billIncomeCount($this->request_params);
-        $data['money'] = BillIncomeService::service()->billIncomeMoney($this->request_params);
 
+        //待核销统计
+        $params = $this->request_params;
+        $params['check_status'] = 1;
+        $data['totals'] = BillIncomeService::service()->billIncomeCount($params);       //待核销总数
+        $data['money'] = BillIncomeService::service()->billIncomeMoney($params);        //待核销金额
+        if($params['trade_type'] == 1){
+            //收款
+            $data['refund_money'] = 0;//待核销退款
+            $data['actual_money'] = $data['money'];//实际待核销
+        }elseif($params['trade_type'] == 2){
+            //退款
+            $data['refund_money'] = $data['money'];//待核销退款
+            $data['actual_money'] = 0;//实际待核销
+        }else{
+            $params['trade_type'] = 2;
+            $data['refund_money'] = BillIncomeService::service()->billIncomeMoney($params);//待核销退款
+            $data['actual_money'] = $data['money']-$data['refund_money'];
+        }
+        $data['refund_money'] = sprintf('%.2f',$data['refund_money']);
+        $data['actual_money'] = sprintf('%.2f',$data['actual_money']);
+        $data['money'] = sprintf('%.2f',$data['money']);
         return PsCommon::responseSuccess($data);
     }
 //    public function actionReviewList()
@@ -179,14 +198,6 @@ Class BillIncomeController extends BaseController
             return PsCommon::responseFailed("收款记录ID必填！");
         }
 
-        if (empty($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("请选择模板！");
-        }
-
-        if (!PsTemplateBill::findOne($this->request_params['template_id'])) {
-            return PsCommon::responseFailed("模板不存在！");
-        }
-
         $income = PsBillIncome::findOne($this->request_params['id']);
 
         if (empty($income)) {
@@ -222,6 +233,57 @@ Class BillIncomeController extends BaseController
                     $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
 
                     return PsCommon::responseSuccess($data);
+                } else {
+                    return PsCommon::responseFailed($result['msg']);
+                }
+            } else {
+                $errorMsg = array_values($model->errors);
+                return PsCommon::responseFailed($errorMsg[0][0]);
+            }
+        } else {
+            return PsCommon::responseFailed('未接受到有效数据');
+        }
+    }
+
+    // 打印收据
+    public function actionPrintList_()
+    {
+        if (empty($this->request_params['id'])) {
+            return PsCommon::responseFailed("收款记录ID必填！");
+        }
+
+        $income = PsBillIncome::findOne($this->request_params['id']);
+        if (empty($income)) {
+            return PsCommon::responseFailed("数据不存在！");
+        }
+
+        $rela = PsBillIncomeRelation::find()->select('bill_id')->where(['income_id' => $this->request_params['id']])->asArray()->all();
+        if (!empty($rela)) {
+            foreach ($rela as $key => $val) {
+                foreach ($val as $k => $v) {
+                    $arr_rela[] = $v;
+                }
+            }
+        }
+
+        $params['community_id'] = $income['community_id'];
+        $params['room_id'] = $income['room_id'];
+        $params['bill_list'] = $arr_rela;
+
+        if (!empty($params)) {
+            $model = new PsPrintModel();
+            $model->setScenario('print-bill');
+            foreach ($params as $key => $val) {
+                $form['PsPrintModel'][$key] = $val;
+            }
+            $model->load($form);
+
+            if ($model->validate()) {
+                $params['communityList'] = !empty($this->request_params['communityList'])?$this->request_params['communityList']:[];
+                $result = TemplateService::service()->printBillInfo_($params, $this->user_info, $income);
+                if ($result['code']) {
+//                    $data = TemplateService::service()->templateIncome($result['data'], $this->request_params['template_id']);
+                    return PsCommon::responseSuccess($result['data']);
                 } else {
                     return PsCommon::responseFailed($result['msg']);
                 }

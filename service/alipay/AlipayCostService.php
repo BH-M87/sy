@@ -600,10 +600,14 @@ class AlipayCostService extends BaseService
         }
         $trans = Yii::$app->getDb()->beginTransaction();
         try {
-            PsBill::deleteAll(['id' => $bill_list]);        //删除账单
-            PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
+//            PsBill::deleteAll(['id' => $bill_list]);        //删除账单
+//            PsOrder::deleteAll(['bill_id' => $bill_list]);  //删除订单
+            PsBill::updateAll(['is_del' => 2], ['id' => $bill_list]);
+            PsOrder::updateAll(['is_del' => 2], ['bill_id' => $bill_list]);
 //            PsWaterRecord::updateAll(['has_reading' => 1], ['bill_id' => $bill_list]);//如果是抄表记录将抄表记录的状态修改
             //提交事务
+            //统计明细表同步更新，并且新增到账单变动的脚本表，将锁定的账单剔除
+            BillTractContractService::service()->delContractBill($bill_list);
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
@@ -1123,6 +1127,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         throw new Exception($diff_result['msg']);
                     }
                 }
+                //增加拆分统计表流程
+                BillTractContractService::service()->payContractBill($split_bill);
                 //提交事务
                 $trans->commit();
             } catch (\Exception $e) {
@@ -1509,7 +1515,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "product_subject" => $cost["name"],
                         "bill_amount" => $bill_entry_amount,
                         "pay_amount" => $bill_entry_amount,
-                        "status" => "3",
+//                        "status" => "3",
+                        "status" => "1",
                         "pay_status" => "0",
                         "create_at" => time(),
                     ];
@@ -1544,6 +1551,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 "operate_content" => "",
             ];
             OperateService::addComm($userinfo, $operate);
+            if ($success_count > 0) {
+                BillService::service()->pubBillByTask($taskId);
+            }
             //提交事务
             $trans->commit();
         } catch (Exception $e) {
@@ -2018,7 +2028,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "product_subject" => $cost["name"],
                         "bill_amount" => $v["bill_entry_amount"],
                         "pay_amount" => $v["bill_entry_amount"],
-                        "status" => "3",
+//                        "status" => "3",
+                        "status" => "1",
                         "pay_status" => "0",
                         "create_at" => time(),
 
@@ -2054,17 +2065,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     continue;
                 }
             }
-            //提交事务
             $trans->commit();
         } catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
         //账单订单新增成功后判断是否有成功记录，有则将成功记录发布到支付宝
+        //提交事务
+        if ($success_count > 0) {
+            BillService::service()->pubBillByTask($task_id);
+        }
         $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'order_no' => $orderData['order_no'], 'cost_name' => $billData['cost_name']];
-//        if ($success_count > 0) {
-//            BillService::service()->pubBillByTask($task_id);
-//        }
         return $this->success($resultData);
     }
 
@@ -2482,7 +2493,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                         "product_subject" => $cost["name"],
                         "bill_amount" => $bill_entry_amount,
                         "pay_amount" => $bill_entry_amount,
-                        "status" => "3",
+//                        "status" => "3",
+                        "status" => "1",
                         "pay_status" => "0",
                         "create_at" => time(),
                     ];
@@ -2518,6 +2530,9 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
         //账单订单新增成功后判断是否有成功记录，有则将成功记录发布到支付宝
         $resultData = ["success_totals" => $success_count, "defeat_totals" => $defeat_count, "error_msg" => $error_info, 'task_id' => $taskId];
+        if ($success_count > 0) {
+            BillService::service()->pubBillByTask($task_id);
+        }
         return $resultData;
     }
 

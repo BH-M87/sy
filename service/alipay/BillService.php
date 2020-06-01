@@ -734,11 +734,13 @@ class BillService extends BaseService
         if (!$task) {
             return $this->failed('发布任务不存在');
         }
-        $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPUB])->count();
+        $pageSize = 500;
+        $totals = PsBill::find()->where(['task_id' => $taskID, 'status' => self::STATUS_UNPAY])->count();
         $totalPages = ceil($totals / $pageSize);
         for ($page = 1; $page < $totalPages + 1; $page++) {
             $bills = $this->getBillByTask($taskID, $page, $pageSize);
-            $this->pubBill($task['community_no'], $bills);
+            BillTractContractService::service()->addContractBill($bills);
+//            $this->pubBill($task['community_no'], $bills);
         }
         return $this->success();
     }

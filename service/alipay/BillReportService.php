@@ -14,6 +14,8 @@ use app\models\PsBillCost;
 use app\models\PsCommunityModel;
 use app\models\BillReportYearly;
 use app\models\BillReportRoom;
+use app\models\PsBillYearly;
+use app\models\PsBillIncome;
 use service\manage\CommunityService;
 
 class BillReportService extends BaseService
@@ -525,5 +527,186 @@ class BillReportService extends BaseService
     public function roomCount($params)
     {
         return $this->_roomSearch($params)->count();
+    }
+
+    // 统计分析
+    public function analysis($p)
+    {
+        $year = !empty($p['year']) ? $p['year'] : date('Y', time());
+        $yearStart = strtotime($year.'-1-1');
+        $yearEnd = strtotime($year.'-12-31 23:59:59');
+
+        $income = PsBillIncome::find()->select('sum(pay_money)')
+            ->where(['>=', 'income_time', $yearStart])
+            ->andWhere(['<=', 'income_time', $yearEnd])->andWhere(['trade_type' => 1])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])->scalar();
+
+        $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->andFilterWhere(['=', 'is_del', 1])
+            ->groupBy('pay_month')->orderBy('pay_month asc')->asArray()->all();
+        $arr = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        if (!empty($list)) {
+            foreach ($list as $k => $v) {
+                $count = $v['count'];
+                switch ($v['item']) {
+                    case '01':
+                        $arr[0] = $count;
+                        break;
+                    case '02':
+                        $arr[1] = $count;
+                        break;
+                    case '03':
+                        $arr[2] = $count;
+                        break;
+                    case '04':
+                        $arr[3] = $count;
+                        break;
+                    case '05':
+                        $arr[4] = $count;
+                        break;
+                    case '06':
+                        $arr[5] = $count;
+                        break;
+                    case '07':
+                        $arr[6] = $count;
+                        break;
+                    case '08':
+                        $arr[7] = $count;
+                        break;
+                    case '09':
+                        $arr[8] = $count;
+                        break;
+                    case '10':
+                        $arr[9] = $count;
+                        break;
+                    case '11':
+                        $arr[10] = $count;
+                        break;
+                    case '12':
+                        $arr[11] = $count;
+                        break;
+                }
+            }
+        }
+        
+        $m['list'] = $arr;
+        $m['total'] = round($income, 2);
+
+        // 缴费记录分析
+        $bill = PsBillYearly::find()->select('sum(discount_amount) discount, sum(pay_amount) pay')
+            ->where(['=', 'pay_status', 1])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->andFilterWhere(['=', 'is_del', 1])
+            ->asArray()->one();
+
+        $discount = !empty($bill['discount']) ? $bill['discount'] : 0;
+        $pay = !empty($bill['pay']) ? $bill['pay'] : 0;
+
+        $total = $discount + $pay;
+        $m['bill'] = [];
+        if ($total > 0) {
+            $m['bill'] = [
+                ['count' => $discount, 'item' => '优惠', 'percent' => round($discount / $total, 2)],
+                ['count' => $pay, 'item' => '已缴', 'percent' => round($pay / $total, 2)]
+            ];
+        }
+
+        
+        
+        // 缴费记录项目分析
+        $cost = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'pay_year', $year])
+            ->andFilterWhere(['=', 'is_del', 1])
+            ->groupBy('cost_id')->asArray()->all();
+
+        if (!empty($cost)) {
+            $total = array_sum(array_column($cost, 'count'));
+            foreach ($cost as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
+            }
+        }
+
+        // 未缴账单渠道分析
+        $costNo = PsBillYearly::find()->alias('A')->select('sum(A.bill_amount) count, A.cost_id item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->where(['=', 'A.pay_status', 0])
+            //->andFilterWhere(['in', 'cost_id', [1,2,11]])
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'A.acct_year', $year])
+            ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
+            ->groupBy('A.cost_id')->asArray()->all();
+
+        if (!empty($costNo)) {
+            $total = array_sum(array_column($costNo, 'count'));
+            foreach ($costNo as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsBillCost::findOne($v['item'])->name;
+            }
+        }
+        
+        // 缴费记录渠道分析
+        $channel = PsBillYearly::find()->alias('A')->select('sum(A.pay_amount) count, B.pay_channel item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->where(['=', 'A.pay_status', 1])
+            //->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'A.pay_year', $year])
+            ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
+            ->groupBy('B.pay_channel')->asArray()->all();
+
+        if (!empty($channel)) {
+            $total = array_sum(array_column($channel, 'count'));
+            foreach ($channel as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                $v['item'] = PsCommon::getPayChannel($v['item']);
+            }
+        }
+
+        // 未缴账单分析
+        $billNo = PsBillYearly::find()->alias('A')->select('sum(A.bill_amount) count, A.pay_status item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
+            ->andFilterWhere(['=', 'A.acct_year', $year])
+            ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
+            ->groupBy('A.pay_status')->orderBy('A.pay_status asc')
+            ->asArray()->all();
+
+        if (!empty($billNo)) {
+            $total = array_sum(array_column($billNo, 'count'));
+            foreach ($billNo as $k => &$v) {
+                $v['percent'] = $total > 0 ? round($v['count'] / $total, 2) : 0;
+                switch ($v['item']) {
+                    case '0':
+                        $v['item'] = '未缴';
+                        break;
+                    case '1':
+                        $v['item'] = '已缴';
+                        break;
+                }
+            }
+        }
+
+        $m['cost'] = $cost;
+        $m['costNo'] = $costNo;
+        $m['channel'] = $channel;
+        $m['billNo'] = $billNo;
+        
+        return $m; 
     }
 }

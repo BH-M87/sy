@@ -9,7 +9,8 @@ $params = [
     //分页，每页展示条数
     'rows' => 20,
     //巡更点距离范围,单位为m
-    'distance' => 2000
+    'distance' => 2000,
+    'qr_code_url' => 'https://static.elive99.com/2020052110241860224.jpg',    //一区一码小程序二维码
 ];
 switch (YII_ENV) {
     case  "master":
