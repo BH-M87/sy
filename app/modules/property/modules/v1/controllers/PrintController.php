@@ -103,6 +103,7 @@ class PrintController extends BaseController
         $roomArrays = PsBill::find()->select($fields)->distinct()->where(['=','is_del',1])
                             ->andWhere(['in','id',$data['ids']])
                             ->andWhere(['in','community_id',$this->request_params['communityList']])
+                            ->orderBy(['room_id'=>SORT_ASC])
                             ->asArray()->all();
         $dataResult = [];
         if(!empty($roomArrays)){
