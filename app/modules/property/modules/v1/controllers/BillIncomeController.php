@@ -81,7 +81,7 @@ Class BillIncomeController extends BaseController
 
         $this->request_params['communityIds'] = $this->request_params['communityList'];
         $data['list'] = BillIncomeService::service()->billIncomeList($this->request_params);
-
+        $data['count'] = BillIncomeService::service()->billIncomeCount($this->request_params);
         //待核销统计
         $params = $this->request_params;
         $params['check_status'] = 1;
