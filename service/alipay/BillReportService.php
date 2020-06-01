@@ -536,8 +536,10 @@ class BillReportService extends BaseService
         $yearStart = strtotime($year.'-1-1');
         $yearEnd = strtotime($year.'-12-31 23:59:59');
 
-        $refund = PsBillIncome::find()->select('sum(pay_money)')->where(['>=', 'income_time', $yearStart])
-            ->andWhere(['<=', 'income_time', $yearEnd])->andWhere(['trade_type' => 2])->scalar();
+        $refund = PsBillIncome::find()->select('sum(pay_money)')
+            ->where(['>=', 'income_time', $yearStart])
+            ->andWhere(['<=', 'income_time', $yearEnd])->andWhere(['trade_type' => 2])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])->scalar();
 
         $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
