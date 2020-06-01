@@ -101,8 +101,8 @@ class PrintController extends BaseController
         //获得所有房屋
         $fields = ['room_id'];
         $roomArrays = PsBill::find()->select($fields)->distinct()->where(['=','is_del',1])
-                            ->andWhere(['in','id',$data['ids']])
-                            ->andWhere(['in','community_id',$this->request_params['communityList']])
+                            ->andFilterWhere(['in','id',$data['ids']])
+                            ->andFilterWhere(['in','community_id',$this->request_params['communityList']])
                             ->orderBy(['room_id'=>SORT_ASC])
                             ->asArray()->all();
         $dataResult = [];
