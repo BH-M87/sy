@@ -539,10 +539,12 @@ class BillReportService extends BaseService
         $income = PsBillIncome::find()->select('sum(pay_money)')
             ->where(['>=', 'income_time', $yearStart])
             ->andWhere(['<=', 'income_time', $yearEnd])->andWhere(['trade_type' => 1])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])->scalar();
 
         $list = PsBillYearly::find()->select('sum(pay_amount) count, pay_month item')
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'pay_year', $year])
             ->andFilterWhere(['=', 'is_del', 1])
             ->groupBy('pay_month')->orderBy('pay_month asc')->asArray()->all();
@@ -598,6 +600,7 @@ class BillReportService extends BaseService
         $bill = PsBillYearly::find()->select('sum(discount_amount) discount, sum(pay_amount) pay')
             ->where(['=', 'pay_status', 1])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'pay_year', $year])
             ->andFilterWhere(['=', 'is_del', 1])
             ->asArray()->one();
@@ -620,6 +623,7 @@ class BillReportService extends BaseService
         $cost = PsBillYearly::find()->select('sum(pay_amount) count, cost_id item')
             //->andFilterWhere(['in', 'cost_id', [1,2,11]])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'pay_year', $year])
             ->andFilterWhere(['=', 'is_del', 1])
             ->groupBy('cost_id')->asArray()->all();
@@ -638,6 +642,7 @@ class BillReportService extends BaseService
             ->where(['=', 'A.pay_status', 0])
             //->andFilterWhere(['in', 'cost_id', [1,2,11]])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
             ->andFilterWhere(['=', 'A.acct_year', $year])
             ->andFilterWhere(['=', 'A.is_del', 1])
             ->andWhere('B.id is not null')
@@ -657,6 +662,7 @@ class BillReportService extends BaseService
             ->where(['=', 'A.pay_status', 1])
             //->andFilterWhere(['in', 'B.pay_channel', [1,2,3]])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
             ->andFilterWhere(['=', 'A.pay_year', $year])
             ->andFilterWhere(['=', 'A.is_del', 1])
             ->andWhere('B.id is not null')
@@ -674,6 +680,7 @@ class BillReportService extends BaseService
         $billNo = PsBillYearly::find()->alias('A')->select('sum(A.bill_amount) count, A.pay_status item')
             ->leftJoin('ps_order B', 'A.order_id = B.id')
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['in', 'A.community_id', $p['communityList']])
             ->andFilterWhere(['=', 'A.acct_year', $year])
             ->andFilterWhere(['=', 'A.is_del', 1])
             ->andWhere('B.id is not null')
