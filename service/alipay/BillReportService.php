@@ -633,13 +633,15 @@ class BillReportService extends BaseService
         }
 
         // 未缴账单渠道分析
-        $costNo = PsBillYearly::find()->select('sum(bill_amount) count, cost_id item')
-            ->where(['=', 'pay_status', 0])
+        $costNo = PsBillYearly::find()->alias('A')->select('sum(A.bill_amount) count, A.cost_id item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->where(['=', 'A.pay_status', 0])
             //->andFilterWhere(['in', 'cost_id', [1,2,11]])
-            ->andFilterWhere(['=', 'community_id', $p['community_id']])
-            ->andFilterWhere(['=', 'acct_year', $year])
-            ->andFilterWhere(['=', 'is_del', 1])
-            ->groupBy('cost_id')->asArray()->all();
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'A.acct_year', $year])
+            ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
+            ->groupBy('A.cost_id')->asArray()->all();
 
         if (!empty($costNo)) {
             $total = array_sum(array_column($costNo, 'count'));
@@ -657,6 +659,7 @@ class BillReportService extends BaseService
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->andFilterWhere(['=', 'A.pay_year', $year])
             ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
             ->groupBy('B.pay_channel')->asArray()->all();
 
         if (!empty($channel)) {
@@ -668,11 +671,13 @@ class BillReportService extends BaseService
         }
 
         // 未缴账单分析
-        $billNo = PsBillYearly::find()->select('sum(bill_amount) count, pay_status item')
-            ->andFilterWhere(['=', 'community_id', $p['community_id']])
-            ->andFilterWhere(['=', 'acct_year', $year])
-            ->andFilterWhere(['=', 'is_del', 1])
-            ->groupBy('pay_status')->orderBy('pay_status asc')
+        $billNo = PsBillYearly::find()->alias('A')->select('sum(A.bill_amount) count, A.pay_status item')
+            ->leftJoin('ps_order B', 'A.order_id = B.id')
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'A.acct_year', $year])
+            ->andFilterWhere(['=', 'A.is_del', 1])
+            ->andWhere('B.id is not null')
+            ->groupBy('A.pay_status')->orderBy('A.pay_status asc')
             ->asArray()->all();
 
         if (!empty($billNo)) {
