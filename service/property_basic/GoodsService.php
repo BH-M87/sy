@@ -161,17 +161,11 @@ class GoodsService extends BaseService
 
         $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $comm = GoodsGroupSelect::find()->where(['groupId' => $p['id']])->asArray()->all();
+            $r['community'] = GoodsGroupSelect::find()->select('code id, name communityName, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
 
-            $r['community'] = [];
-            if (!empty($comm)) {
-                foreach ($comm as $k => $v) {
-                    //$community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-             
-                    $r['community'][$k]['id'] = $v['code'];
-                    $r['community'][$k]['name'] = $v['name'];
-                    $r['community'][$k]['isCommunity'] = $v['isCommunity'];
-                    $communityName .= $v['name'] . ' ';
+            if (!empty($r['community'])) {
+                foreach ($r['community'] as $k => $v) {
+                    $communityName .= $v['communityName'] . ' ';
                 }
             }
             
