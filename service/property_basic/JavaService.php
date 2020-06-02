@@ -23,6 +23,13 @@ class JavaService extends BaseService
         return $result;
     }
 
+    // 小区下拉列表
+    public function communityOperationList($query)
+    {
+        $query['route'] = '/community/operation/list';
+        return self::returnCData($query);
+    }
+
     /**
      * Notes: 小区下拉列表
      */
