@@ -117,6 +117,8 @@ class GoodsService extends BaseService
                     }
                 }
                 Yii::$app->db->createCommand()->batchInsert('ps_goods_group_community', ['groupId', 'communityId'], $commParam)->execute();
+            } else {
+                throw new MyException('兑换小区范围');
             }
 
             $trans->commit();
