@@ -231,17 +231,7 @@ class GoodsService extends BaseService
                 $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
                 $v['content'] = str_replace("&nbsp;","",$v['content']);
 
-                $comm = GoodsGroupCommunity::find()->where(['groupId' => $v['id']])->asArray()->all();
-
-                $v['communityList'] = [];
-                if (!empty($comm)) {
-                    foreach ($comm as $key => $val) {
-                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
-                 
-                        $v['communityList'][$key]['id'] = $val['communityId'];
-                        $v['communityList'][$key]['communityName'] = $community['communityName'];
-                    }
-                }
+                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
             }
         }
 
