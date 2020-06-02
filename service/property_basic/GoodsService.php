@@ -170,6 +170,7 @@ class GoodsService extends BaseService
              
                     $r['community'][$k]['id'] = $v['code'];
                     $r['community'][$k]['name'] = $v['name'];
+                    $r['community'][$k]['isCommunity'] = $v['isCommunity'];
                     $communityName .= $v['name'] . ' ';
                 }
             }
