@@ -161,11 +161,11 @@ class GoodsService extends BaseService
 
         $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['community'] = GoodsGroupSelect::find()->select('code id, name communityName, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
+            $r['community'] = GoodsGroupSelect::find()->select('code id, name, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
 
             if (!empty($r['community'])) {
                 foreach ($r['community'] as $k => $v) {
-                    $communityName .= $v['communityName'] . ' ';
+                    $communityName .= $v['name'] . ' ';
                 }
             }
             
