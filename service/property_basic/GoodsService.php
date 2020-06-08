@@ -12,6 +12,7 @@ use service\BaseService;
 
 use app\models\Goods;
 use app\models\GoodsGroup;
+use app\models\GoodsGroupSelect;
 use app\models\GoodsGroupCommunity;
 use app\models\PsDeliveryRecords;
 use service\property_basic\JavaService;
@@ -78,12 +79,46 @@ class GoodsService extends BaseService
 
             if (!empty($p['communityIdList'])) {
                 GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
+                GoodsGroupSelect::deleteAll(['groupId' => $groupId]);
                 foreach ($p['communityIdList'] as $k => $v) {
-                    $comm = new GoodsGroupCommunity();
-                    $comm->groupId = $groupId;
-                    $comm->communityId = $v;
-                    $comm->save();
+                    $selectOne = GoodsGroupSelect::find()->where(['code' => $v['id'], 'groupId' => $groupId])->one();
+
+                    if (!empty($selectOne)) {
+                        continue;
+                    }
+
+                    $select = new GoodsGroupSelect();
+                    $select->groupId = $groupId;
+                    $select->code = $v['id'];
+                    $select->name = $v['name'];
+                    $select->isCommunity = $v['isCommunity'];
+                    $select->save();
+
+                    if ($v['isCommunity'] == 2) { // 指定小区
+                        $commParam[] = ['groupId' => $groupId, 'communityId' => $v['id']];
+                    } else {
+                        $idArr = explode(',', $v['id']);
+                        // 获得所有小区
+                        $javaParam['token'] = $p['token'];
+                        $javaParam['pageNum'] = 1;
+                        $javaParam['pageSize'] = 10000;
+                        $javaParam['provinceCode'] = $idArr[0];
+                        $javaParam['cityCode'] = $idArr[1];
+                        $javaParam['districtCode'] = $idArr[2];
+                        $javaParam['streetCode'] = $idArr[3];
+                        $javaParam['villageCode'] = $idArr[4];
+                        $javaResult = JavaService::service()->communityOperationList($javaParam)['list'];
+
+                        if (!empty($javaResult)) {
+                            foreach ($javaResult as $key => $val) {
+                                $commParam[] = ['groupId' => $groupId, 'communityId' => $val['communityId']];
+                            }
+                        }
+                    }
                 }
+                Yii::$app->db->createCommand()->batchInsert('ps_goods_group_community', ['groupId', 'communityId'], $commParam)->execute();
+            } else {
+                throw new MyException('兑换小区范围');
             }
 
             $trans->commit();
@@ -128,16 +163,11 @@ class GoodsService extends BaseService
 
         $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $comm = GoodsGroupCommunity::find()->where(['groupId' => $p['id']])->asArray()->all();
+            $r['community'] = GoodsGroupSelect::find()->select('code id, name, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
 
-            $r['community'] = [];
-            if (!empty($comm)) {
-                foreach ($comm as $k => $v) {
-                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-             
-                    $r['community'][$k]['id'] = $v['communityId'];
-                    $r['community'][$k]['name'] = $community['communityName'];
-                    $communityName .= $community['communityName'] . ' ';
+            if (!empty($r['community'])) {
+                foreach ($r['community'] as $k => $v) {
+                    $communityName .= $v['name'] . ' ';
                 }
             }
             
@@ -197,17 +227,7 @@ class GoodsService extends BaseService
                 $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
                 $v['content'] = str_replace("&nbsp;","",$v['content']);
 
-                $comm = GoodsGroupCommunity::find()->where(['groupId' => $v['id']])->asArray()->all();
-
-                $v['communityList'] = [];
-                if (!empty($comm)) {
-                    foreach ($comm as $key => $val) {
-                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
-                 
-                        $v['communityList'][$key]['id'] = $val['communityId'];
-                        $v['communityList'][$key]['communityName'] = $community['communityName'];
-                    }
-                }
+                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
             }
         }
 

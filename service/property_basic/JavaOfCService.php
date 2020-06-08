@@ -164,4 +164,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/appletTemplate/template-gateway';
         return self::returnCData($query);
     }
+
+    //获得物业租户id
+    public function selectCommunityById($query){
+        $query['route'] = '/member/home/selectCommunityById';
+        return self::returnCData($query);
+    }
 }

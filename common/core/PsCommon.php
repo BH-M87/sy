@@ -386,6 +386,17 @@ class PsCommon {
         }
     }
 
+    // 系统公用订单费用类型
+    public static function getPayTypes($index = '')
+    {
+        $m = [1 => '物业管理费', 2 => '水费', 3 => '电费', 4 => '公摊水电费', 5 => '其他费用', 6 => '房租费', 7 => '燃气费', 8 => '能耗费', 9 => '车位费', 10 => '报事报修', 11 => '临时停车', 12 => '公维金'];
+        if ($index) {
+            return $m[$index];
+        } else {
+            return $m;
+        }
+    }
+
     //新版本的账单状态，2018-1-29 陈科浪新增
     public static function getPayBillStatus($index = '')
     {

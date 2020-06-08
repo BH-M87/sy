@@ -24,7 +24,7 @@ use service\property_basic\JavaService;
 Class BillIncomeService extends BaseService
 {
     public static $trade_type = ['1' => '收款', '2' => '退款'];
-    public static $pay_type = ['1' => '线上', '2' => '线下'];
+    public static $pay_type = ['1' => '线上收款', '2' => '线下收款'];
     public static $pay_status = ['1' => '支付成功', '2' => '交易关闭'];
     public static $pay_channel = ['1' => '现金', '2' => '支付宝', '3' => '微信', '4' => '刷卡', '5' => '对公', '6' => '支票'];
     public static $check_status = ['1' => '待复核', '2' => '已复核', '3' => '待核销', '4' => '已核销'];
@@ -252,7 +252,8 @@ Class BillIncomeService extends BaseService
             ->andFilterWhere(['>=', 'A.income_time', $income_start])
             ->andFilterWhere(['<=', 'A.income_time', $income_end])
             ->andFilterWhere(['=', 'A.entry_at', $entry_at])
-            ->andFilterWhere(['=', 'A.pay_status', PsCommon::get($params, 'pay_status')]);
+            ->andFilterWhere(['=', 'A.pay_status', PsCommon::get($params, 'pay_status')])
+            ->andFilterWhere(['in', 'A.pay_status', PsCommon::get($params, 'pay_status_in')]);
 
         return $model;
     }
@@ -264,7 +265,7 @@ Class BillIncomeService extends BaseService
         $rows = PsCommon::get($p, 'rows');
 
         $model = $this->_billIncomeSearch($p)->select('A.id, A.community_id, A.room_address, A.pay_money, A.trade_type, 
-            A.pay_channel, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
+            A.pay_channel, A.pay_type, A.income_time, A.trade_no,A.entry_at,A.check_status,A.review_name,A.review_at')
             ->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();
 
         //获得所有小区
@@ -282,6 +283,7 @@ Class BillIncomeService extends BaseService
                 $v['community_name'] = $communityName[$v['community_id']];
                 $v['trade_type_msg'] = self::$trade_type[$v['trade_type']];
                 $v['pay_channel_msg'] = self::$pay_channel[$v['pay_channel']];
+                $v['pay_type_msg'] = self::$pay_type[$v['pay_type']];
                 $v['income_time'] = !empty($v['income_time']) ? date('Y-m-d H:i:s', $v['income_time']) : '';
                 $v['review_name'] = !empty($v['review_name'])?$v['review_name']:'';
                 $v['entry_at_msg'] = !empty($v['entry_at'])?date('Y-m',$v['entry_at']):'';
@@ -311,8 +313,8 @@ Class BillIncomeService extends BaseService
     {
         $refund = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 2])->scalar();
 
-        $params['pay_status'] = 1; // 交易成功
-        $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->andWhere(['trade_type' => 1])->scalar();
+        $params['pay_status_in'] = [1,2]; // 交易成功
+        $amount = $this->_billIncomeSearch($params)->select('sum(A.pay_money)')->scalar();
         
         $money['amount'] = $amount ?? 0;
         $money['refund'] = $refund ?? 0;
