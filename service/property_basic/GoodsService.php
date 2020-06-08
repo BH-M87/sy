@@ -290,6 +290,7 @@ class GoodsService extends BaseService
         $param['personLimit'] = $p['personLimit'];
         $param['operatorId'] = $userInfo['id'];
         $param['operatorName'] = $userInfo['truename'];
+        $param['content'] = $p['content'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
@@ -474,6 +475,65 @@ class GoodsService extends BaseService
         $content = GoodsGroup::findOne($p['groupId'])->content;
 
         return ['list' => $list, 'totals' => (int)$totals, 'content' => $content];
+    }
+
+    // 商品详情
+    public function goodsContent($p)
+    {
+        if (empty($p['goods_id'])) {
+            throw new MyException('商品ID不能为空');
+        }
+
+        $r = Goods::find()->select('content')->where(['id' => $p['goods_id']])->asArray()->one();
+        if (empty($r)) {
+            throw new MyException('数据不存在');
+        }
+
+        return ['content' => $r['content'] ?? ''];
+    }
+
+    // 核销接口
+    public function recordConfirm($p)
+    {
+        if (empty($p['record_id'])) {
+            throw new MyException('兑换记录ID不能为空');
+        }
+
+        $m = PsDeliveryRecords::findOne($p['record_id']);
+        if (empty($m)) {
+            throw new MyException('兑换记录不存在');
+        }
+
+        if ($m->confirm_type == 3) {
+            throw new MyException('兑换记录不需要核销');
+        }
+
+        if ($m->confirm_type == 2) {
+            throw new MyException('请不要重复核销');
+        }
+
+        PsDeliveryRecords::updateAll(['confirm_type' => 2, 'confirm_at' => time(), 'confirm_name' => 2], ['id' => $p['record_id']]);
+
+        return true;
+    }
+
+    // 核销详情接口
+    public function recordConfirmShow($p)
+    {
+        if (empty($p['record_id'])) {
+            throw new MyException('兑换记录ID不能为空');
+        }
+
+        $m = PsDeliveryRecords::find()->select('product_id, product_name, product_img, integral, create_at, confirm_type, confirm_at, confirm_name')->where(['id' => $p['record_id']])->asArray()->one();
+        if (empty($m)) {
+            throw new MyException('兑换记录不存在');
+        }
+        
+        $m['create_at'] = !empty($m['create_at']) ? date('Y/m/d H:i', $m['create_at']) : '';
+        $m['confirm_at'] = !empty($m['confirm_at']) ? date('Y/m/d H:i', $m['confirm_at']) : '';
+        $m['group_name'] = Goods::find()->alias('A')->select('B.name')->leftJoin('ps_goods_group B', 'B.id = A.groupId')->where(['A.id' => $m['product_id']])->scalar();
+
+        return $m;
     }
 
     // 可兑换积分

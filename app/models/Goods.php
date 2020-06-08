@@ -17,6 +17,7 @@ class Goods extends BaseModel
             [['score', 'num', 'personLimit', 'operatorId', 'groupId', 'receiveType', 'type'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['name'], 'string', 'max' => 20],
             [['img'], 'string', 'max' => 255],
+            [['content'], 'string', 'max' => 2000],
             [['personLimit'], 'default', 'value' => 1, 'on' => 'add'],
             [['isExchange', 'isDelete'], 'default', 'value' => 2, 'on' => 'add'],
             ['updateAt', 'default', 'value' => 0, 'on' => 'add'],
@@ -41,6 +42,7 @@ class Goods extends BaseModel
             'isDelete' => '是否删除',
             'operatorId' => '操作人id',
             'operatorName' => '操作人名称',
+            'content' => '商品描述',
             'updateAt' => '更新时间',
             'createAt' => '新增时间',
         ];

@@ -9,6 +9,30 @@ use service\property_basic\GoodsService;
 
 class GoodsController extends BaseController
 {
+    // 核销接口
+    public function actionRecordConfirm()
+    {
+        $r = GoodsService::service()->recordConfirm($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 核销详情接口
+    public function actionRecordConfirmShow()
+    {
+        $r = GoodsService::service()->recordConfirmShow($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品详情
+    public function actionGoodsContent()
+    {
+        $r = GoodsService::service()->goodsContent($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
     // 最新商品列表
     public function actionGoodsList()
     {
