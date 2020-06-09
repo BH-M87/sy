@@ -57,7 +57,7 @@ class DeliveryRecordsService extends BaseService{
                 $qrParams['token'] = $params['token'];
                 $qrParams['community_id'] = $params['community_id'];
                 $qrParams['queryParam'] = 'id='.$model->attributes['id'];
-                $qrUrl = self::verificationQrCode($qrParams);
+                $qrUrl = self::generateQrCode($qrParams);
                 if(!empty($qrUrl)){
                     //保护二维码
                     $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
@@ -99,7 +99,7 @@ class DeliveryRecordsService extends BaseService{
      *  url             前端url
      *  queryParams     参数
      */
-    public function verificationQrCode($params){
+    public function generateQrCode($params){
         $javaService = new JavaOfCService();
         $javaParams['data']['communityId'] = $params['community_id'];
         $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
@@ -194,7 +194,19 @@ class DeliveryRecordsService extends BaseService{
         }
     }
 
-    //文明码统计
+    /*
+     * 文明码统计
+     * $javaService = new JavaOfCService();
+        $javaParams['data']['communityId'] = $params['community_id'];
+        $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
+//        $javaParams['data']['communityId'] = '1254991620133425154';
+//        $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
+        $javaParams['data']['queryParam'] = "x=1";
+        $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
+        $javaParams['token'] = $params['token'];
+        $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
+        $javaResult = $javaService->selectCommunityQrCode($javaParams);
+     */
     public function civilStatistics($params){
         if(empty($params['community_id'])){
             return $this->failed("小区id必填");
@@ -206,26 +218,36 @@ class DeliveryRecordsService extends BaseService{
         $data['inspect'] = self::doInspectStatistics($params);
 
         $redis = Yii::$app->redis;
-        $qrCodeKey = $params['community_id'];
+        $qrCodeKey = $params['community_id']."yiquyima";
         $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
         if(!empty($qrCodeUrl)){
-            $javaService = new JavaOfCService();
-            $javaParams['data']['communityId'] = $params['community_id'];
-            $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
-    //        $javaParams['data']['communityId'] = '1254991620133425154';
-    //                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
-            $javaParams['data']['queryParam'] = "x=1";
-            $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
-            $javaParams['token'] = $params['token'];
-            $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
-            $javaResult = $javaService->selectCommunityQrCode($javaParams);
-            $qrCodeUrl['qrCodeUrl'] = !empty($javaResult['qrCodeUrl'])?$javaResult['qrCodeUrl'].".jpg":'';
+            $qrParams['url'] = "pages/homePage/homePage/homePage";
+            $qrParams['token'] = $params['token'];
+            $qrParams['community_id'] = $params['community_id'];
+            $qrParams['queryParam'] = 'x=1';
+            $qrCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
             $redis->set($qrCodeKey,json_encode($qrCodeUrl));
             //设置一个月有效期
             $redis->expire($qrCodeKey,86400*30);
         }
         $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
         $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
+
+
+        $bangCodeKey = $params['community_id']."bangbangma";
+        $bangCodeUrl = json_decode($redis->get($bangCodeKey),true);
+        if(!empty($bangCodeUrl)){
+            $qrParams['url'] = "pages/homePage/homePage/homePage";
+            $qrParams['token'] = $params['token'];
+            $qrParams['community_id'] = $params['community_id'];
+            $qrParams['queryParam'] = 'back=1';
+            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
+            $redis->set($bangCodeKey,json_encode($bangCodeUrl));
+            //设置一个月有效期
+            $redis->expire($bangCodeKey,86400*30);
+        }
+
+        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:'';
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
