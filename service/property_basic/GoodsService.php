@@ -585,4 +585,21 @@ class GoodsService extends BaseService
             return ['isRegister' => false];
         }
     }
+
+    // 判断是否加入过小区队伍
+    public function isInTeam($p)
+    {
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $get_url = $host."/internal/volunteer/is-in-team";
+        $curl_data = ["sysUserId" => $p['user_id'], 'teamId' => $p['teamId']];
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$get_url . "请求参数：".json_encode($curl_data) . PHP_EOL . '返回结果：' . json_encode($r).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/street.log');
+
+        if ($r['code'] == 1) {
+            return $r['data'];
+        } else {
+            return ['isInTeam' => false];
+        }
+    }
 }

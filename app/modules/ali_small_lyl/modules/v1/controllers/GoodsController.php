@@ -92,4 +92,20 @@ class GoodsController extends BaseController
 
         return PsCommon::responseSuccess($r);
     }
+
+    // 判断是否加入过小区队伍
+    public function actionIsInTeam()
+    {
+        if (!$this->params['user_id']) {
+            return F::apiFailed('请输入用户ID！');
+        }
+
+        if (!$this->params['teamId']) {
+            return F::apiFailed('请输入队伍ID！');
+        }
+
+        $r = GoodsService::service()->isInTeam($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
 }
