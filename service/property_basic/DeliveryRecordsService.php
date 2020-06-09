@@ -240,7 +240,7 @@ class DeliveryRecordsService extends BaseService{
             $qrParams['url'] = "pages/homePage/homePage/homePage";
             $qrParams['token'] = $params['token'];
             $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'back=1';
+            $qrParams['queryParam'] = 'backCode=true';
             $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
             $redis->set($bangCodeKey,json_encode($bangCodeUrl));
             //设置一个月有效期
