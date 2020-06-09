@@ -290,7 +290,7 @@ class GoodsService extends BaseService
         $param['personLimit'] = $p['personLimit'];
         $param['operatorId'] = $userInfo['id'];
         $param['operatorName'] = $userInfo['truename'];
-        $param['content'] = $p['content'];
+        $param['describe'] = $p['describe'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
@@ -484,12 +484,12 @@ class GoodsService extends BaseService
             throw new MyException('商品ID不能为空');
         }
 
-        $r = Goods::find()->select('content')->where(['id' => $p['goods_id']])->asArray()->one();
+        $r = Goods::find()->select('describe')->where(['id' => $p['goods_id']])->asArray()->one();
         if (empty($r)) {
             throw new MyException('数据不存在');
         }
 
-        return ['content' => $r['content'] ?? ''];
+        return ['describe' => $r['describe'] ?? ''];
     }
 
     // 核销接口
