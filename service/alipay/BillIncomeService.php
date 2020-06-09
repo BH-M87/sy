@@ -823,7 +823,11 @@ Class BillIncomeService extends BaseService
             return $this->failed("入账时间格式有误");
         }
 
-        $incomeResult = PsBillIncome::find()->select(['id'])->andWhere(['=','check_status',1])->asArray()->all();
+        if(empty($data['communityList'])){
+            return $this->failed("该账号没有关联小区");
+        }
+
+        $incomeResult = PsBillIncome::find()->select(['id'])->andWhere(['=','check_status',1])->andWhere(['in','community_id',$data['communityList']])->asArray()->all();
         if(!empty($incomeResult)){
 
             $income_id = array_column($incomeResult,'id');
