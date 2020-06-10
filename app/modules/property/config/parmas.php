@@ -19,7 +19,7 @@ switch (YII_ENV) {
         //钉钉前端域名
         $params['ding_web_host'] = 'https://ddweb.elive99.com/';
         //支付宝前端域名
-        $params['alipay_web_host'] = '';
+        $params['alipay_web_host'] = 'http://sy-wy.zje.com/';
         break;
     case  "test":
         //生活号页面域名
@@ -27,7 +27,7 @@ switch (YII_ENV) {
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
         //支付宝前端域名
-        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
+        $params['alipay_web_host'] = 'http://sy-wy.zje.com/';
         break;
     case  "release":
         //生活号页面域名
@@ -35,7 +35,7 @@ switch (YII_ENV) {
         //钉钉前端域名
         $params['ding_web_host'] = 'https://dev-web.elive99.com/test/dingtalk-lyl/';
         //支付宝前端域名
-        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
+        $params['alipay_web_host'] = 'http://sy-wy.zje.com/';
         break;
     default :
         //生活号页面域名
@@ -43,7 +43,7 @@ switch (YII_ENV) {
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
         //支付宝前端域名
-        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
+        $params['alipay_web_host'] = 'http://sy-wy.zje.com/';
         break;
 }
 return $params;
