@@ -504,7 +504,7 @@ class GoodsService extends BaseService
             throw new MyException('兑换记录不存在');
         }
 
-        if ($m->confirm_type == 3) {
+        if ($m->delivery_type == 1) {
             throw new MyException('兑换记录不需要核销');
         }
 
