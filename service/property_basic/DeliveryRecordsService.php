@@ -267,7 +267,8 @@ class DeliveryRecordsService extends BaseService{
             $redis->expire($bangCodeKey,86400*30);
         }
 
-        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:"https://static.elive99.com/2020061017075299619.jpg";
+        $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
+        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:$dui_url;
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
