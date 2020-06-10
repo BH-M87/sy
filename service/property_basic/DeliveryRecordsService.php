@@ -260,14 +260,14 @@ class DeliveryRecordsService extends BaseService{
             $qrParams['url'] = "pages/homePage/homePage/homePage";
             $qrParams['token'] = $params['token'];
             $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'backCode=true';
+            $qrParams['queryParam'] = 'backCode=1';
             $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
             $redis->set($bangCodeKey,json_encode($bangCodeUrl));
             //设置一个月有效期
             $redis->expire($bangCodeKey,86400*30);
         }
 
-        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:'';
+        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:"https://static.elive99.com/2020061017075299619.jpg";
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
