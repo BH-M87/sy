@@ -11,17 +11,17 @@ switch (YII_ENV) {
     case  "test":
         //志愿者域名
         $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
-        $params['dui_code_url'] = "https://static.elive99.com/2020061017405714538.jpg";
+        $params['dui_code_url'] = "https://static.elive99.com/2020061017502745740.jpg";
         break;
     case  "release":
         //志愿者域名
         $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
-        $params['dui_code_url'] = "https://static.elive99.com/2020061017405714538.jpg";
+        $params['dui_code_url'] = "https://static.elive99.com/2020061017502745740.jpg";
         break;
     default :
         //志愿者域名
         $params['volunteer_host'] = 'https://dev-api.elive99.com/volunteer-ckl/?r=';
-        $params['dui_code_url'] = "https://static.elive99.com/2020061017405714538.jpg";
+        $params['dui_code_url'] = "https://static.elive99.com/2020061017502745740.jpg";
         break;
 }
 return $params;
