@@ -18,24 +18,32 @@ switch (YII_ENV) {
         $params['web_host'] = 'https://fuwu.zje.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'https://ddweb.elive99.com/';
+        //支付宝前端域名
+        $params['alipay_web_host'] = '';
         break;
     case  "test":
         //生活号页面域名
         $params['web_host'] = 'https://test-fuwu.zje.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
+        //支付宝前端域名
+        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
         break;
     case  "release":
         //生活号页面域名
         $params['web_host'] = 'https://test-fuwu.zje.com/';
         //钉钉前端域名
         $params['ding_web_host'] = 'https://dev-web.elive99.com/test/dingtalk-lyl/';
+        //支付宝前端域名
+        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
         break;
     default :
         //生活号页面域名
         $params['web_host'] = 'http://wdt888.viphk.ngrok.org/';
         //钉钉前端域名
         $params['ding_web_host'] = 'http://dingdinglyl.vaiwan.com/';
+        //支付宝前端域名
+        $params['alipay_web_host'] = 'http://alipaylyl.vaiwan.com/';
         break;
 }
 return $params;

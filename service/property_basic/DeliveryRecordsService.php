@@ -14,8 +14,10 @@ use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
 use common\core\Curl;
+use common\core\F;
 use common\core\PsCommon;
 use service\BaseService;
+use service\common\QrcodeService;
 use Yii;
 use yii\db\Exception;
 
@@ -53,11 +55,16 @@ class DeliveryRecordsService extends BaseService{
                     throw new Exception($streetResult['message']);
                 }
                 //生成核销二维码
-                $qrParams['url'] = "pages/mine/volunteerWriteOff/volunteerWriteOff";
-                $qrParams['token'] = $params['token'];
-                $qrParams['community_id'] = $params['community_id'];
-                $qrParams['queryParam'] = 'id='.$model->attributes['id'];
-                $qrUrl = self::generateQrCode($qrParams);
+//                $qrParams['url'] = "pages/mine/volunteerWriteOff/volunteerWriteOff";
+//                $qrParams['token'] = $params['token'];
+//                $qrParams['community_id'] = $params['community_id'];
+//                $qrParams['queryParam'] = 'id='.$model->attributes['id'];
+//                $qrUrl = self::generateQrCode($qrParams);
+//                if(!empty($qrUrl)){
+//                    //保护二维码
+//                    $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
+//                }
+                $qrUrl = self::createQrcode(['community_id'=>$params['community_id'],'id'=>$model->attributes['id']]);
                 if(!empty($qrUrl)){
                     //保护二维码
                     $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
@@ -90,6 +97,19 @@ class DeliveryRecordsService extends BaseService{
             return $this->failed($msg);
         }
     }
+
+    // 生成核销二维码图片
+    private static function createQrcode($params)
+    {
+        $savePath = F::imagePath('visit');
+//        $logo = Yii::$app->basePath . '/web/img/lyllogo.png'; // 二维码中间的logo
+        $url = Yii::$app->getModule('property')->params['alipay_web_host'] . '#/pages/mine/volunteerWriteOff/volunteerWriteOff?community_id='.$params['community_id'].'&id=' . $params['id'];
+
+//        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $params['id'], $logo); // 生成二维码图片
+        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $params['id'], ''); // 生成二维码图片
+        return $imgUrl;
+    }
+
 
     /*
      *生成二维码
