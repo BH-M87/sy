@@ -524,7 +524,7 @@ class GoodsService extends BaseService
             throw new MyException('兑换记录ID不能为空');
         }
 
-        $m = PsDeliveryRecords::find()->select('product_id, product_name, product_img, integral, create_at, confirm_type, confirm_at, confirm_name')->where(['id' => $p['record_id']])->asArray()->one();
+        $m = PsDeliveryRecords::find()->select('product_id, product_name, product_img, integral, create_at, confirm_type, confirm_at, confirm_name, verification_qr_code')->where(['id' => $p['record_id']])->asArray()->one();
         if (empty($m)) {
             throw new MyException('兑换记录不存在');
         }
