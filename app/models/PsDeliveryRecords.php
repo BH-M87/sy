@@ -31,7 +31,7 @@ class PsDeliveryRecords extends BaseModel {
             [["id",'product_id', 'volunteer_id','product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
             [['community_id','room_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
-            [['product_img'], 'string',"max"=>255],
+            [['product_img','verification_qr_code'], 'string',"max"=>255],
             [['records_code','operator_name'], 'string',"max"=>10],
             [['courier_company','order_num'], 'string',"max"=>50],
             [['community_id','room_id','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
@@ -68,6 +68,7 @@ class PsDeliveryRecords extends BaseModel {
             'operator_id'       => '操作人id',
             'create_at'         => '创建时间',
             'update_at'         => '修改时间',
+            'verification_qr_code'=> '核销二维码',
         ];
     }
 
@@ -87,7 +88,9 @@ class PsDeliveryRecords extends BaseModel {
     public function edit($param)
     {
         $param['update_at'] = time();
-        $param['status'] = $param['delivery_type']==1?2:3;
+        if(!empty($param['delivery_type'])){
+            $param['status'] = $param['delivery_type']==1?2:3;
+        }
         return self::updateAll($param, ['id' => $param['id']]);
     }
 

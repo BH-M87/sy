@@ -23,3 +23,6 @@ CREATE TABLE `ps_delivery_records` (
   `update_at` int(10) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='兑换记录';
+
+
+ALTER TABLE `ps_delivery_records` ADD COLUMN `verification_qr_code` varchar(255) DEFAULT NULL COMMENT '核销二维码' after `operator_name`;
