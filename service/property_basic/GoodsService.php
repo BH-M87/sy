@@ -459,7 +459,7 @@ class GoodsService extends BaseService
             return ['list' => [], 'totals' => 0];
         }
 
-        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num')
+        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num, A.describe')
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('A.id desc')->asArray()->all();
