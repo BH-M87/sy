@@ -70,7 +70,7 @@ class DeliveryRecordsService extends BaseService{
                     $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
                 }
                 $trans->commit();
-                return $this->success(['id'=>$model->attributes['id']]);
+                return $this->success(['id'=>$model->attributes['id'],'verification_qr_code'=>!empty($qrUrl)?$qrUrl:'']);
             }else{
                 $msg = array_values($model->errors)[0][0];
                 return $this->failed($msg);
