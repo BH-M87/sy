@@ -467,6 +467,7 @@ class GoodsService extends BaseService
 
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                $v['describe'] = $v['describe'] == '<p><br></p>' ? null : $v['describe'];
                 $use = PsDeliveryRecords::find()->where(['product_id' => $v['id']])->count();
                 $v['surplus'] = $v['num'] - $use;
             }
