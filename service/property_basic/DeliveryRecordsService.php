@@ -8,14 +8,17 @@
  */
 namespace service\property_basic;
 
+use app\models\Goods;
 use app\models\PsDeliveryRecords;
 use app\models\PsInspectRecord;
 use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
 use common\core\Curl;
+use common\core\F;
 use common\core\PsCommon;
 use service\BaseService;
+use service\common\QrcodeService;
 use Yii;
 use yii\db\Exception;
 
@@ -23,33 +26,6 @@ class DeliveryRecordsService extends BaseService{
 
     const USE_SCORE = '/internal/volunteer/use-score';
 
-//        if(empty($params['user_id'])){
-//            return $this->failed("用户id不能为空");
-//        }
-//        if(empty($params['community_id'])){
-//            return $this->failed("小区id不能为空");
-//        }
-//        if(empty($params['room_id'])){
-//            return $this->failed("房屋id不能为空");
-//        }
-//        if(empty($params['product_id'])){
-//            return $this->failed("商品id不能为空");
-//        }
-//        if(empty($params['product_num'])){
-//            return $this->failed("商品数量不能为空");
-//        }
-//        if(empty($params['volunteer_id'])){
-//            return $this->failed("志愿者id不能为空");
-//        }
-
-//        $javaParams['communityId'] = $params['community_id'];
-//        $javaParams['roomId'] = $params['room_id'];
-//        $javaParams['token'] = $params['token'];
-//        $javaService = new JavaOfCService();
-//        $result = $javaService->getResidentFullAddress($javaParams);
-//        if(!isset($result['fullName'])||empty($result['fullName'])){
-//            return $this->failed("住户信息不存在");
-//        }
     //兑换记录新增（小程序端）
     public function addOfC($params){
 
@@ -61,9 +37,6 @@ class DeliveryRecordsService extends BaseService{
             $recordsParams['room_id'] = !empty($params['room_id'])?$params['room_id']:'';
             $recordsParams['user_id'] = !empty($params['user_id'])?$params['user_id']:'';
             $recordsParams['volunteer_id'] = !empty($params['volunteer_id'])?$params['volunteer_id']:'';
-//            $recordsParams['cust_name'] = !empty($result['memberName'])?$result['memberName']:'';
-//            $recordsParams['cust_mobile'] = !empty($result['memberMobile'])?$result['memberMobile']:'';
-//            $recordsParams['address'] = !empty($result['fullName'])?$result['fullName']:'';
             $recordsParams['cust_name'] = !empty($params['cust_name'])?$params['cust_name']:'';
             $recordsParams['cust_mobile'] = !empty($params['cust_mobile'])?$params['cust_mobile']:'';
             $recordsParams['address'] = !empty($params['address'])?$params['address']:'';
@@ -82,8 +55,25 @@ class DeliveryRecordsService extends BaseService{
                 if($streetResult['code']!=1){
                     throw new Exception($streetResult['message']);
                 }
+                //生成核销二维码
+//                $qrParams['url'] = "pages/mine/volunteerWriteOff/volunteerWriteOff";
+//                $qrParams['token'] = $params['token'];
+//                $qrParams['community_id'] = $params['community_id'];
+//                $qrParams['queryParam'] = 'id='.$model->attributes['id'];
+//                $qrUrl = self::generateQrCode($qrParams);
+//                if(!empty($qrUrl)){
+//                    //保护二维码
+//                    $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
+//                }
+                if($model->receiveType==2){
+                    $qrUrl = self::createQrcode(['community_id'=>$params['community_id'],'id'=>$model->attributes['id']]);
+                    if(!empty($qrUrl)){
+                        //保护二维码
+                        $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
+                    }
+                }
                 $trans->commit();
-                return $this->success(['id'=>$model->attributes['id']]);
+                return $this->success(['id'=>$model->attributes['id'],'verification_qr_code'=>!empty($qrUrl)?$qrUrl:'']);
             }else{
                 $msg = array_values($model->errors)[0][0];
                 return $this->failed($msg);
@@ -109,6 +99,42 @@ class DeliveryRecordsService extends BaseService{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    // 生成核销二维码图片
+    private static function createQrcode($params)
+    {
+        $savePath = F::imagePath('visit');
+//        $logo = Yii::$app->basePath . '/web/img/lyllogo.png'; // 二维码中间的logo
+        $url = Yii::$app->getModule('property')->params['alipay_web_host'] . '#/pages/mine/volunteerWriteOff/volunteerWriteOff?community_id='.$params['community_id'].'&id=' . $params['id'];
+
+//        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $params['id'], $logo); // 生成二维码图片
+        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $params['id'], ''); // 生成二维码图片
+        return $imgUrl;
+    }
+
+
+    /*
+     *生成二维码
+     * input
+     *  community_id    小区id
+     *  token           token
+     *  url             前端url
+     *  queryParams     参数
+     */
+    public function generateQrCode($params){
+        $javaService = new JavaOfCService();
+        $javaParams['data']['communityId'] = $params['community_id'];
+        $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
+//        $javaParams['data']['communityId'] = '1254991620133425154';
+//        $javaParams['data']['describe'] = "小程序二维码";
+        $javaParams['data']['queryParam'] = $params['queryParam'];
+        $javaParams['data']['urlParam'] = $params['url'];
+        $javaParams['token'] = $params['token'];
+        $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
+        $javaResult = $javaService->selectCommunityQrCode($javaParams);
+        $qrCodeUrl = !empty($javaResult['qrCodeUrl'])?$javaResult['qrCodeUrl'].".jpg":'';
+        return $qrCodeUrl;
     }
 
     //扣除积分
@@ -154,8 +180,10 @@ class DeliveryRecordsService extends BaseService{
         if($model->load($params,'')&&$model->validate()){
             $result = $model->getListOfC($params);
             if(!empty($result['list'])){
-                foreach($result['list'] as $key=>$value){
-                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+                foreach($result['list'] as $key=>&$value){
+                    $value['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+                    $receiveType = Goods::findOne($value['product_id'])->receiveType;
+                    $value['verification_qr_code'] = $receiveType == 2 ? $value['verification_qr_code'] : '';
                 }
             }
             return $this->success($result);
@@ -191,7 +219,19 @@ class DeliveryRecordsService extends BaseService{
         }
     }
 
-    //文明码统计
+    /*
+     * 文明码统计
+     * $javaService = new JavaOfCService();
+        $javaParams['data']['communityId'] = $params['community_id'];
+        $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
+//        $javaParams['data']['communityId'] = '1254991620133425154';
+//        $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
+        $javaParams['data']['queryParam'] = "x=1";
+        $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
+        $javaParams['token'] = $params['token'];
+        $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
+        $javaResult = $javaService->selectCommunityQrCode($javaParams);
+     */
     public function civilStatistics($params){
         if(empty($params['community_id'])){
             return $this->failed("小区id必填");
@@ -203,26 +243,37 @@ class DeliveryRecordsService extends BaseService{
         $data['inspect'] = self::doInspectStatistics($params);
 
         $redis = Yii::$app->redis;
-        $qrCodeKey = $params['community_id'];
+        $qrCodeKey = $params['community_id']."yiquyima";
         $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
         if(!empty($qrCodeUrl)){
-            $javaService = new JavaOfCService();
-            $javaParams['data']['communityId'] = $params['community_id'];
-            $javaParams['data']['describe'] = $params['community_id']."小程序二维码";
-    //        $javaParams['data']['communityId'] = '1254991620133425154';
-    //                $javaParams['data']['describe'] = $results[0]['community_name']."小程序二维码";
-            $javaParams['data']['queryParam'] = "x=1";
-            $javaParams['data']['urlParam'] = "pages/homePage/homePage/homePage";
-            $javaParams['token'] = $params['token'];
-            $javaParams['url'] = '/corpApplet/selectCommunityQrCode';
-            $javaResult = $javaService->selectCommunityQrCode($javaParams);
-            $qrCodeUrl['qrCodeUrl'] = !empty($javaResult['qrCodeUrl'])?$javaResult['qrCodeUrl']."jpg":'';
+            $qrParams['url'] = "pages/homePage/homePage/homePage";
+            $qrParams['token'] = $params['token'];
+            $qrParams['community_id'] = $params['community_id'];
+            $qrParams['queryParam'] = 'x=1';
+            $qrCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
             $redis->set($qrCodeKey,json_encode($qrCodeUrl));
             //设置一个月有效期
             $redis->expire($qrCodeKey,86400*30);
         }
         $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
         $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
+
+
+        $bangCodeKey = $params['community_id']."bangbangma";
+        $bangCodeUrl = json_decode($redis->get($bangCodeKey),true);
+        if(!empty($bangCodeUrl)){
+            $qrParams['url'] = "pages/homePage/homePage/homePage";
+            $qrParams['token'] = $params['token'];
+            $qrParams['community_id'] = $params['community_id'];
+            $qrParams['queryParam'] = 'backCode=1';
+            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
+            $redis->set($bangCodeKey,json_encode($bangCodeUrl));
+            //设置一个月有效期
+            $redis->expire($bangCodeKey,86400*30);
+        }
+
+        $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
+        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:$dui_url;
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点

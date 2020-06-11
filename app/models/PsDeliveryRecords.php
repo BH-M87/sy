@@ -13,6 +13,8 @@ class PsDeliveryRecords extends BaseModel {
     const DELIVERY_TYPE = ['1'=>'快递','2'=>'自提'];
     const STATUS = ['1'=>'未处理','2'=>'已发','3'=>'已提'];
 
+    public $receiveType;
+
 
     public static function tableName()
     {
@@ -31,7 +33,7 @@ class PsDeliveryRecords extends BaseModel {
             [["id",'product_id', 'volunteer_id','product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
             [['community_id','room_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
-            [['product_img'], 'string',"max"=>255],
+            [['product_img','verification_qr_code'], 'string',"max"=>255],
             [['records_code','operator_name'], 'string',"max"=>10],
             [['courier_company','order_num'], 'string',"max"=>50],
             [['community_id','room_id','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
@@ -68,6 +70,7 @@ class PsDeliveryRecords extends BaseModel {
             'operator_id'       => '操作人id',
             'create_at'         => '创建时间',
             'update_at'         => '修改时间',
+            'verification_qr_code'=> '核销二维码',
         ];
     }
 
@@ -87,7 +90,9 @@ class PsDeliveryRecords extends BaseModel {
     public function edit($param)
     {
         $param['update_at'] = time();
-        $param['status'] = $param['delivery_type']==1?2:3;
+        if(!empty($param['delivery_type'])){
+            $param['status'] = $param['delivery_type']==1?2:3;
+        }
         return self::updateAll($param, ['id' => $param['id']]);
     }
 
@@ -109,7 +114,7 @@ class PsDeliveryRecords extends BaseModel {
      */
     function productExist($attribute){
         if(!empty($this->product_id)){
-            $res = Goods::find()->select(['id','name','img','score','isExchange','personLimit'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
+            $res = Goods::find()->select(['id','name','img','score','isExchange','personLimit','receiveType'])->where('id=:id and isDelete=:isDelete',[':id'=>$this->product_id,":isDelete"=>2])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该商品不存在或已删除！");
             }
@@ -126,6 +131,7 @@ class PsDeliveryRecords extends BaseModel {
             $this->product_name = $res['name'];
             $this->product_img = $res['img'];
             $this->integral = $res['score']*$this->product_num;
+            $this->receiveType = $res['receiveType'];
             if($res['isExchange']==2){
                 //修改表状态
                 Goods::updateAll(['isExchange'=>1,'updateAt'=>time()],['id'=>$this->product_id]);
@@ -151,7 +157,7 @@ class PsDeliveryRecords extends BaseModel {
      * 小程序列表
      */
     public function getListOfC($param){
-        $field = ['id','product_name','create_at','product_num','product_img'];
+        $field = ['id','product_name','create_at','product_num','product_img','verification_qr_code','confirm_type','product_id'];
         $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']]);
 //            ->andWhere(['=','room_id',$param['room_id']]);
         $count = $model->count();
