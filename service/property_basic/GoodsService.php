@@ -513,7 +513,9 @@ class GoodsService extends BaseService
             throw new MyException('请不要重复核销');
         }
 
-        PsDeliveryRecords::updateAll(['confirm_type' => 2, 'confirm_at' => time(), 'confirm_name' => 2], ['id' => $p['record_id']]);
+        $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
+
+        PsDeliveryRecords::updateAll(['confirm_type' => 2, 'confirm_at' => time(), 'confirm_name' => $member['trueName']], ['id' => $p['record_id']]);
 
         return true;
     }
