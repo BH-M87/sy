@@ -8,6 +8,7 @@
  */
 namespace service\property_basic;
 
+use app\models\Goods;
 use app\models\PsDeliveryRecords;
 use app\models\PsInspectRecord;
 use app\models\PsRepair;
@@ -177,8 +178,10 @@ class DeliveryRecordsService extends BaseService{
         if($model->load($params,'')&&$model->validate()){
             $result = $model->getListOfC($params);
             if(!empty($result['list'])){
-                foreach($result['list'] as $key=>$value){
-                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+                foreach($result['list'] as $key=>&$value){
+                    $value['create_at_msg'] = !empty($value['create_at'])?date('Y/m/d',$value['create_at']):'';
+                    $receiveType = Goods::findOne($value['product_id'])->receiveType;
+                    $value['verification_qr_code'] = $receiveType == 2 ? $value['verification_qr_code'] : '';
                 }
             }
             return $this->success($result);

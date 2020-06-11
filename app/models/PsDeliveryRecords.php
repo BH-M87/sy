@@ -154,7 +154,7 @@ class PsDeliveryRecords extends BaseModel {
      * 小程序列表
      */
     public function getListOfC($param){
-        $field = ['id','product_name','create_at','product_num','product_img','verification_qr_code','confirm_type'];
+        $field = ['id','product_name','create_at','product_num','product_img','verification_qr_code','confirm_type','product_id'];
         $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']]);
 //            ->andWhere(['=','room_id',$param['room_id']]);
         $count = $model->count();
