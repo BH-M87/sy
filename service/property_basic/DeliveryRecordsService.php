@@ -65,10 +65,12 @@ class DeliveryRecordsService extends BaseService{
 //                    //保护二维码
 //                    $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
 //                }
-                $qrUrl = self::createQrcode(['community_id'=>$params['community_id'],'id'=>$model->attributes['id']]);
-                if(!empty($qrUrl)){
-                    //保护二维码
-                    $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
+                if($model->receiveType==2){
+                    $qrUrl = self::createQrcode(['community_id'=>$params['community_id'],'id'=>$model->attributes['id']]);
+                    if(!empty($qrUrl)){
+                        //保护二维码
+                        $model::updateAll(['verification_qr_code'=>$qrUrl],['id'=>$model->attributes['id']]);
+                    }
                 }
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id'],'verification_qr_code'=>!empty($qrUrl)?$qrUrl:'']);
