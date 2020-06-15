@@ -14,6 +14,7 @@ use app\models\PsInspectRecord;
 use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
+use app\models\PsCommunitySet;
 use common\core\Curl;
 use common\core\F;
 use common\core\PsCommon;
@@ -242,38 +243,9 @@ class DeliveryRecordsService extends BaseService{
         //巡更巡检统计
         $data['inspect'] = self::doInspectStatistics($params);
 
-        $redis = Yii::$app->redis;
-//        $qrCodeKey = $params['community_id']."yiquyima";
-//        $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
-//        if(!empty($qrCodeUrl)){
-            $qrParams['url'] = "pages/homePage/homePage/homePage";
-            $qrParams['token'] = $params['token'];
-            $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
-            $qrCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
-//            $redis->set($qrCodeKey,json_encode($qrCodeUrl));
-//            //设置一个月有效期
-//            $redis->expire($qrCodeKey,86400*30);
-//        }
-        $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
-        $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
-
-
-        $bangCodeKey = $params['community_id']."bangbangma";
-//        $bangCodeUrl = json_decode($redis->get($bangCodeKey),true);
-//        if(!empty($bangCodeUrl)){
-            $bangParams['url'] = "pages/homePage/homePage/homePage";
-            $bangParams['token'] = $params['token'];
-            $bangParams['community_id'] = $params['community_id'];
-            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
-            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($bangParams);
-//            $redis->set($bangCodeKey,json_encode($bangCodeUrl));
-//            //设置一个月有效期
-//            $redis->expire($bangCodeKey,86400*30);
-//        }
-
-        $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
-        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:$dui_url;
+        $qrCode = self::getQrCode($params);
+        $data['qr_code_url'] = $qrCode['qr_code_url'];
+        $data['bang_code_url'] = $qrCode['bang_code_url'];
 
         //垃圾分类
         $data['rubbish']['rubbish_sort'] = '无';     //有无垃圾分类时间和地点
@@ -335,6 +307,76 @@ class DeliveryRecordsService extends BaseService{
 
 
         return $this->success($data);
+    }
+
+    //获得一区一码二维码 和帮帮吗
+    public function getQrCode($params){
+        $setResult = PsCommunitySet::find()->select(['id','qr_code','bang_code'])->where(['=','community_id',$params['community_id']])->asArray()->one();
+        $return_qr_code = '';
+        $return_bang_code = '';
+        if(!empty($setResult)){
+            $return_qr_code = $setResult['qr_code'];
+            if(empty($setResult['qr_code'])){
+                $qrParams['url'] = "pages/homePage/homePage/homePage";
+                $qrParams['token'] = $params['token'];
+                $qrParams['community_id'] = $params['community_id'];
+                $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
+                $qrCodeUrl = self::generateQrCode($qrParams);
+                $setParams['community_id'] = $params['community_id'];
+                if(!empty($qrCodeUrl)){
+                    $editParams['qr_code'] = $qrCodeUrl;
+                    $return_qr_code = $qrCodeUrl;
+                }
+            }
+            $return_bang_code = $setResult['bang_code'];
+            if(empty($setResult['bang_code'])){
+                $bangParams['url'] = "pages/homePage/homePage/homePage";
+                $bangParams['token'] = $params['token'];
+                $bangParams['community_id'] = $params['community_id'];
+                $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
+                $bangCodeUrl = self::generateQrCode($bangParams);
+                if(!empty($bangCodeUrl)){
+                    $editParams['bang_code'] = $bangCodeUrl;
+                    $return_bang_code = $bangCodeUrl;
+                }
+            }
+            if(!empty($editParams)){
+                PsCommunitySet::updateAll($editParams,['id'=>$setResult['id']]);
+            }
+
+        }else{
+            $qrParams['url'] = "pages/homePage/homePage/homePage";
+            $qrParams['token'] = $params['token'];
+            $qrParams['community_id'] = $params['community_id'];
+            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
+            $qrCodeUrl = self::generateQrCode($qrParams);
+            $setParams['community_id'] = $params['community_id'];
+            if(!empty($qrCodeUrl)){
+                $setParams['qr_code'] = $qrCodeUrl;
+                $return_qr_code = $qrCodeUrl;
+            }
+
+            $bangParams['url'] = "pages/homePage/homePage/homePage";
+            $bangParams['token'] = $params['token'];
+            $bangParams['community_id'] = $params['community_id'];
+            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
+            $bangCodeUrl = self::generateQrCode($bangParams);
+            if(!empty($bangCodeUrl)){
+                $setParams['bang_code'] = $bangCodeUrl;
+                $return_bang_code = $bangCodeUrl;
+            }
+            $setModel = new PsCommunitySet(['scenario'=>'add']);
+            if($setModel->load($setParams,'')&&$setModel->validate()){
+                $setModel->saveData();
+            }
+        }
+        $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
+        $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
+        return [
+            'qr_code_url'=>!empty($return_qr_code)?$return_qr_code:$qr_url,
+            'bang_code_url'=>!empty($return_bang_code)?$return_bang_code:$dui_url,
+        ];
+
     }
 
 
