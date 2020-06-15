@@ -9,12 +9,12 @@
 namespace service\property_basic;
 
 use app\models\Goods;
-use app\models\PsCommunitySet;
 use app\models\PsDeliveryRecords;
 use app\models\PsInspectRecord;
 use app\models\PsRepair;
 use app\models\PsRepairAppraise;
 use app\models\PsRepairRecord;
+use app\models\PsCommunitySet;
 use common\core\Curl;
 use common\core\F;
 use common\core\PsCommon;
@@ -243,30 +243,6 @@ class DeliveryRecordsService extends BaseService{
         //巡更巡检统计
         $data['inspect'] = self::doInspectStatistics($params);
 
-
-
-
-//            $qrParams['url'] = "pages/homePage/homePage/homePage";
-//            $qrParams['token'] = $params['token'];
-//            $qrParams['community_id'] = $params['community_id'];
-//            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
-//            $qrCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
-//
-//        $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
-//        $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
-
-
-
-//            $bangParams['url'] = "pages/homePage/homePage/homePage";
-//            $bangParams['token'] = $params['token'];
-//            $bangParams['community_id'] = $params['community_id'];
-//            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
-//            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($bangParams);
-//
-//
-//        $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
-//        $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:$dui_url;
-
         $qrCode = self::getQrCode($params);
         $data['qr_code_url'] = $qrCode['qr_code_url'];
         $data['bang_code_url'] = $qrCode['bang_code_url'];
@@ -335,7 +311,6 @@ class DeliveryRecordsService extends BaseService{
 
     //获得一区一码二维码 和帮帮吗
     public function getQrCode($params){
-
         $setResult = PsCommunitySet::find()->select(['id','qr_code','bang_code'])->where(['=','community_id',$params['community_id']])->asArray()->one();
         $return_qr_code = '';
         $return_bang_code = '';
@@ -390,7 +365,7 @@ class DeliveryRecordsService extends BaseService{
                 $setParams['bang_code'] = $bangCodeUrl;
                 $return_bang_code = $bangCodeUrl;
             }
-            $setModel = new PsCommunitySet([''=>'add']);
+            $setModel = new PsCommunitySet(['scenario'=>'add']);
             if($setModel->load($setParams,'')&&$setModel->validate()){
                 $setModel->saveData();
             }
