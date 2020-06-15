@@ -351,7 +351,7 @@ class DeliveryRecordsService extends BaseService{
             $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
             $qrCodeUrl = self::generateQrCode($qrParams);
             $setParams['community_id'] = $params['community_id'];
-            $setParams['community_name'] = $params['community_name'];
+            $setParams['community_name'] = !empty($params['community_name'])?$params['community_name']:'';
             if(!empty($qrCodeUrl)){
                 $setParams['qr_code'] = $qrCodeUrl;
                 $return_qr_code = $qrCodeUrl;
