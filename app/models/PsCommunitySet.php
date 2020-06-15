@@ -18,7 +18,7 @@ class PsCommunitySet extends BaseModel
     {
         return [
             [['id', 'create_at', 'update_at'], 'integer'],
-            [['community_id'], 'string', 'max' => 30],
+            [['community_id','community_name'], 'string', 'max' => 30],
             [['qr_code', 'bang_code'], 'string', 'max' => 255],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
         ];
@@ -30,12 +30,13 @@ class PsCommunitySet extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id' => 'ID',
-            'community_id' => '小区id',
-            'qr_code' => '一区一码二维码',
-            'bang_code' => '帮帮码二维码',
-            'create_at' => '新增时间',
-            'update_at' => '修改时间',
+            'id'                => 'ID',
+            'community_id'      => '小区id',
+            'community_name'    => '小区名称',
+            'qr_code'           => '一区一码二维码',
+            'bang_code'         => '帮帮码二维码',
+            'create_at'         => '新增时间',
+            'update_at'         => '修改时间',
         ];
     }
 

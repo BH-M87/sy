@@ -30,10 +30,11 @@ ALTER TABLE `ps_delivery_records` ADD COLUMN `verification_qr_code` varchar(255)
 
 CREATE TABLE `ps_community_set` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `community_id` varchar(30) NOT NULL DEFAULT '0' COMMENT '小区id',
   `qr_code` varchar(255) NOT NULL DEFAULT '' COMMENT '一区一码二维码',
   `bang_code` varchar(255) NOT NULL DEFAULT '' COMMENT '帮帮码二维码',
   `create_at` int(11) NOT NULL COMMENT '创建时间',
   `update_at` int(10) NOT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20084 DEFAULT CHARSET=utf8 COMMENT='小区配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='小区配置表';
