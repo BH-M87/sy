@@ -243,34 +243,34 @@ class DeliveryRecordsService extends BaseService{
         $data['inspect'] = self::doInspectStatistics($params);
 
         $redis = Yii::$app->redis;
-        $qrCodeKey = $params['community_id']."yiquyima";
-        $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
-        if(!empty($qrCodeUrl)){
+//        $qrCodeKey = $params['community_id']."yiquyima";
+//        $qrCodeUrl = json_decode($redis->get($qrCodeKey),true);
+//        if(!empty($qrCodeUrl)){
             $qrParams['url'] = "pages/homePage/homePage/homePage";
             $qrParams['token'] = $params['token'];
             $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'x=1';
+            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
             $qrCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
-            $redis->set($qrCodeKey,json_encode($qrCodeUrl));
-            //设置一个月有效期
-            $redis->expire($qrCodeKey,86400*30);
-        }
+//            $redis->set($qrCodeKey,json_encode($qrCodeUrl));
+//            //设置一个月有效期
+//            $redis->expire($qrCodeKey,86400*30);
+//        }
         $qr_url = Yii::$app->modules['ali_small_lyl']->params['qr_code_url'];
         $data['qr_code_url']=!empty($qrCodeUrl['qrCodeUrl'])?$qrCodeUrl['qrCodeUrl']:$qr_url;
 
 
         $bangCodeKey = $params['community_id']."bangbangma";
-        $bangCodeUrl = json_decode($redis->get($bangCodeKey),true);
-        if(!empty($bangCodeUrl)){
-            $qrParams['url'] = "pages/homePage/homePage/homePage";
-            $qrParams['token'] = $params['token'];
-            $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'backCode=1';
-            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($qrParams);
-            $redis->set($bangCodeKey,json_encode($bangCodeUrl));
-            //设置一个月有效期
-            $redis->expire($bangCodeKey,86400*30);
-        }
+//        $bangCodeUrl = json_decode($redis->get($bangCodeKey),true);
+//        if(!empty($bangCodeUrl)){
+            $bangParams['url'] = "pages/homePage/homePage/homePage";
+            $bangParams['token'] = $params['token'];
+            $bangParams['community_id'] = $params['community_id'];
+            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
+            $bangCodeUrl['qrCodeUrl'] = self::generateQrCode($bangParams);
+//            $redis->set($bangCodeKey,json_encode($bangCodeUrl));
+//            //设置一个月有效期
+//            $redis->expire($bangCodeKey,86400*30);
+//        }
 
         $dui_url = Yii::$app->modules['ali_small_lyl']->params['dui_code_url'];
         $data['bang_code_url']=!empty($bangCodeUrl['qrCodeUrl'])?$bangCodeUrl['qrCodeUrl']:$dui_url;
