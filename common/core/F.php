@@ -621,6 +621,7 @@ class F
         }
         //上传到七牛
         $re['filepath'] = F::getOssImagePath($object, 'zjy');
+        print_r($re);die;
         return $re;
     }
 

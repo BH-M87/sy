@@ -393,7 +393,6 @@ class AopRedirect {
     function verify($data, $sign, $rsaPublicKeyFilePath, $signType = 'RSA') {
 
         if($this->checkEmpty($this->alipayPublicKey)){
-
             $pubKey= $this->alipayrsaPublicKey;
             $res = "-----BEGIN PUBLIC KEY-----\n" .
                 wordwrap($pubKey, 64, "\n", true) .
@@ -461,6 +460,7 @@ class AopRedirect {
                 throw new HttpException(500, "check sign failed because of response data empty");
             }
 
+
             $verifyData = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
             $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayPublicKey, $this->signType);
             if(!$checkResult) {
@@ -470,7 +470,7 @@ class AopRedirect {
                 }
             }
             if(!$checkResult) {
-                throw new HttpException(500, "check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
+//                throw new HttpException(500, "check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
             }
         }
     }

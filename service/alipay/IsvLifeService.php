@@ -302,7 +302,7 @@ class IsvLifeService {
         return $this->_aop->execute('alipay.open.public.message.custom.send', $params);
     }
 
-    //模板消息发送
+    //生活号模板消息发送
     public function sendTemplateMsg($data)
     {
         $params['biz_content'] = json_encode($data);
@@ -417,6 +417,14 @@ class IsvLifeService {
         $params['biz_content'] = json_encode($data);
 
         return $this->_aop->execute('alipay.open.app.qrcode.create', $params , null, $this->_isv_app_auth_token);
+    }
+
+    //小程序模板消息
+    public function smallPushMsg($data)
+    {
+        $params['biz_content'] = json_encode($data);
+
+        return $this->_aop->execute('alipay.open.app.mini.templatemessage.send', $params , null, $this->_isv_app_auth_token);
     }
 
     //生活号服务获取
