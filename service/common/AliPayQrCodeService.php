@@ -30,15 +30,16 @@ class AliPayQrCodeService extends BaseService
      * @return string
      * @throws \yii\base\Exception
      */
-    public static function createQrCode($url_param, $query_param, $desc, $is_down = 2)
+    public static function createQrCode($url_param, $query_param, $desc, $type = 'park')
     {
         //组装参数
-        $params['type'] = 'small';//指向哪个小程序
+        $params['type'] = $type;//指向哪个小程序
         $params['url_param'] = $url_param;//url 地址
         $params['query_param'] = $query_param; //参数
         $params['describe'] = $desc;//二维码描述
         //二维码方法
         $result = MemberCardService::service()->getQrcode($params);
+        print_r($result);die;
         if ($result['code'] = '10000') {
             $url = $result['qr_code_url'];
             \Yii::info("export-url:".$url,'api');
@@ -54,12 +55,6 @@ class AliPayQrCodeService extends BaseService
         \Yii::info("img-url:".$imgUrl,'api');
         $fileRe = F::uploadFileToOss($imgUrl);
         $downUrl = $fileRe['filepath'];
-//        //TODO 由于前端需要,图片暂时保存到本地,不进行图片处理了
-//        if ($is_down == 1) {
-//            $key_name = md5(uniqid(microtime(true), true)) . '.png';
-//            $imgUrl = UploadService::service()->saveQiniu($key_name, $imgUrl);
-//            return $imgUrl;
-//        }
         return $downUrl;
     }
 
@@ -70,10 +65,10 @@ class AliPayQrCodeService extends BaseService
      * @param $desc
      * @return string
      */
-    public static function getAliQrCode($url_param, $query_param, $desc)
+    public static function getAliQrCode($url_param, $query_param, $desc,$type='park')
     {
         //组装参数
-        $params['type'] = 'small';//指向哪个小程序
+        $params['type'] = $type;//指向哪个小程序
         $params['url_param'] = $url_param;//url 地址
         $params['query_param'] = $query_param; //参数
         $params['describe'] = $desc;//二维码描述

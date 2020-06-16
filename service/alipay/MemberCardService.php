@@ -15,11 +15,7 @@ use yii\web\Response;
 use yii\helpers\FileHelper;
 
 use common\core\F;
-use common\core\PsCommon;
-
 use service\BaseService;
-use service\alipay\AlipayBillService;
-
 use app\models\PsAppUser;
 use app\models\PsAlipayCardRecord;
 
@@ -27,40 +23,19 @@ class MemberCardService extends BaseService
 {
     //申请单前缀
     const BIZ_NO_PREFIX = 'lyl';
-
-    public $logo_id = 'drORonD9SzuYD4pal4WdHAAAACMAAQED'; // 上传到支付宝的logo图片地址
-    public $background_id = 'grWetZzlS2moPBbn6whyYQAAACMAAQED'; // 上传到支付宝的背景图片地址
-    public $template_id = "20190423000000001526846000300139"; // 邻易联小程序 支付宝的会员卡模板ID
-    public $door_template_id = "20190513000000001581246000300134"; // 门禁
-    public $edoor_template_id = "20190606000000001671267000300130"; // 南京门禁
-    public $zlz_template_id = "20190705000000001740775000300132"; // 浙里住小程序
-    public $zjy_template_id = "20190705000000001748935000300133"; // 筑家易小程序
-    public $fczl_template_id = "20190718000000001757875000300137"; // 富春智联小程序
+    public $park_template_id = "20190718000000001757875000300137"; // 富春智联小程序
     public $small_url;
 
     //获取阿里实例
-    public function getAliService($type = 'fczl')
+    public function getAliService($type = 'park')
     {
-        $this->small_url = 'alipays://platformapi/startapp?appId='.Yii::$app->params['fczl_app_id'].'&pages/homePage/homePage/homePage';
-
+        $this->small_url = 'alipays://platformapi/startapp?appId='.Yii::$app->params['park_app_id'].'&pages/homePage/homePage/homePage';
         switch ($type){
-            case 'edoor'://筑家易智能门禁
-                $this->template_id = $this->edoor_template_id;
-                $alipayPublicKey = file_get_contents(Yii::$app->params['edoor_alipay_public_key_file']);
-                $rsaPrivateKey = file_get_contents(Yii::$app->params['edoor_rsa_private_key_file']);
-                $alipayLifeService = new IsvLifeService(Yii::$app->params['edoor_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
-                break;
-            case 'fczl':
+            default://共享停车
                 $this->template_id = $this->fczl_template_id;
-                $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
-                $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);
-                $alipayLifeService = new IsvLifeService(Yii::$app->params['fczl_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
-                break;
-            default://富春智联
-                $this->template_id = $this->fczl_template_id;
-                $alipayPublicKey = file_get_contents(Yii::$app->params['fczl_alipay_public_key_file']);
-                $rsaPrivateKey = file_get_contents(Yii::$app->params['fczl_rsa_private_key_file']);
-                $alipayLifeService = new IsvLifeService(Yii::$app->params['fczl_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
+                $alipayPublicKey = file_get_contents(Yii::$app->params['park_alipay_public_key_file']);
+                $rsaPrivateKey = file_get_contents(Yii::$app->params['park_rsa_private_key_file']);
+                $alipayLifeService = new IsvLifeService(Yii::$app->params['park_app_id'], null, null, $alipayPublicKey, $rsaPrivateKey);
         }
 
         return $alipayLifeService;
