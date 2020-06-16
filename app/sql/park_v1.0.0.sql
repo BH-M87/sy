@@ -87,7 +87,7 @@ CREATE TABLE `ps_park_space` (
   `shared_at` int(11) NOT NULL DEFAULT 0 COMMENT '共享日期',
   `start_at` int(11) NOT NULL DEFAULT 0 COMMENT '开始时间',
   `end_at` int(11) NOT NULL DEFAULT 0 COMMENT '结束时间',
-  `status` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享状态，1待预约 2已预约 3使用中 4已超时 5已关闭',
+  `status` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享状态，1待预约 2已预约 3使用中 4已关闭',
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '是否删除 1未删除 2 已删除',
   `notice_15` tinyint(3) NOT NULL DEFAULT '1' COMMENT '15分钟前判断 1没有发送通知 2发送过通知',
   `notice_5` tinyint(3) NOT NULL DEFAULT '1' COMMENT '5分钟前判断 1没有发送通知 2发送过通知',
