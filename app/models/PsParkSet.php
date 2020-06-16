@@ -15,7 +15,10 @@ class PsParkSet extends BaseModel
         return [
             [['community_id', 'community_name'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['if_one', 'if_visit', 'cancle_num', 'late_at', 'due_notice', 'end_at', 'black_num', 'appointment', 'appointment_unit', 'lock', 'lock_unit'], 'integer', 'message'=> '{attribute}格式错误!'],
-            [['integer', 'min_time'], 'default', 'value' => 0, 'on' => 'add'],
+            [['integral', 'min_time', 'lock', 'appointment'], 'default', 'value' => 0, 'on' => 'add'],
+            [['if_visit', 'if_one', 'lock_unit', 'appointment_unit'], 'default', 'value' => 1, 'on' => 'add'],
+            [['cancle_num', 'black_num'], 'default', 'value' => 3, 'on' => 'add'],
+            [['late_at', 'due_notice', 'end_at'], 'default', 'value' => 15, 'on' => 'add'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
     }
@@ -38,7 +41,7 @@ class PsParkSet extends BaseModel
             'lock' => '锁定时间',
             'lock_unit' => '锁定时间单位',
             'min_time' => '共享最小计时单位',
-            'integer' => '预约成功获得积分',
+            'integral' => '预约成功获得积分',
             'create_at' => '新增时间',
         ];
     }
