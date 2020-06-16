@@ -78,7 +78,7 @@ class SetService extends BaseService
         if (!empty($r)) {
             return $r;
         }
-print_r($r);die;
+
         throw new MyException('数据不存在!');
     }
 }
