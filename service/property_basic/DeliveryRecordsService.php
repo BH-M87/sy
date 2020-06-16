@@ -321,7 +321,7 @@ class DeliveryRecordsService extends BaseService{
                 $qrParams['token'] = $params['token'];
                 $qrParams['community_id'] = $params['community_id'];
                 $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
-                $qrParams['queryParam'] = urlencode($qrParams['queryParam']);
+//                $qrParams['queryParam'] = urlencode($qrParams['queryParam']);
                 $qrCodeUrl = self::generateQrCode($qrParams);
                 $setParams['community_id'] = $params['community_id'];
                 if(!empty($qrCodeUrl)){
@@ -335,7 +335,7 @@ class DeliveryRecordsService extends BaseService{
                 $bangParams['token'] = $params['token'];
                 $bangParams['community_id'] = $params['community_id'];
                 $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
-                $bangParams['queryParam'] = urlencode($bangParams['queryParam']);
+//                $bangParams['queryParam'] = urlencode($bangParams['queryParam']);
                 $bangCodeUrl = self::generateQrCode($bangParams);
                 if(!empty($bangCodeUrl)){
                     $editParams['bang_code'] = $bangCodeUrl;
@@ -351,7 +351,7 @@ class DeliveryRecordsService extends BaseService{
             $qrParams['token'] = $params['token'];
             $qrParams['community_id'] = $params['community_id'];
             $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
-            $qrParams['queryParam'] = urlencode($qrParams['queryParam']);
+//            $qrParams['queryParam'] = urlencode($qrParams['queryParam']);
             $qrCodeUrl = self::generateQrCode($qrParams);
             $setParams['community_id'] = $params['community_id'];
             $setParams['community_name'] = !empty($params['community_name'])?$params['community_name']:'';
@@ -364,7 +364,7 @@ class DeliveryRecordsService extends BaseService{
             $bangParams['token'] = $params['token'];
             $bangParams['community_id'] = $params['community_id'];
             $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
-            $bangParams['queryParam'] = urlencode($bangParams['queryParam']);
+//            $bangParams['queryParam'] = urlencode($bangParams['queryParam']);
             $bangCodeUrl = self::generateQrCode($bangParams);
             if(!empty($bangCodeUrl)){
                 $setParams['bang_code'] = $bangCodeUrl;
