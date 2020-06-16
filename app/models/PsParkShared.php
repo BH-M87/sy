@@ -19,18 +19,18 @@ class PsParkShared extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','park_space','start_date', 'end_date','start_at','end_at','exec_type_msg','form_id'], 'required','on'=>'add'],
+            [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','park_space','start_at','end_at','start_date', 'end_date','exec_type_msg','ali_form_id','ali_user_id'], 'required','on'=>'add'],
             [['id', 'start_date','end_date','create_at', 'update_at'], 'integer'],
-            [['exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
-            [['start_date','end_date'],'planTimeVerification','on'=>['add']],
-            [['community_id','publish_id','park_space','start_date','end_date'],'dateVerification','on'=>['add']],   //新增日期验证
-            [['start_at','end_at'],'timeVerification','on'=>['add']],     //新增时间
-            [['start_at','end_at'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
+            [['start_at','end_at'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
+            [['community_id','publish_id','park_space','start_date','end_date'],'dateVerification','on'=>['add']],   //日期重复验证
+            [['start_at','end_at'],'timeVerification','on'=>['add']],           //时间验证
+            [['start_date','end_date'],'planTimeVerification','on'=>['add']],   //日期验证
+            [['exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
             [['community_id','community_name','room_id','publish_id','publish_name','publish_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
             [['exec_type_msg'], 'string', 'max' => 200],
-            [['form_id'], 'string', 'max' => 100],
+            [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['park_space'],'string','max'=>5],
             [['start_at','end_at'],'string','max'=>10],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
@@ -46,9 +46,9 @@ class PsParkShared extends BaseModel
               'id'              => 'ID',
               'community_id'    => '小区',
               'community_name'  => '小区名称',
-              'room_id'         => '房屋id',
+              'room_id'         => '房屋',
               'room_name'       => '房号',
-              'publish_id'      => '发布人id',
+              'publish_id'      => '发布人',
               'publish_name'    => '发布人名称',
               'publish_mobile'  => '发布人手机',
               'park_space'      => '车位号',
@@ -56,8 +56,9 @@ class PsParkShared extends BaseModel
               'end_date'        => '结束日期',
               'start_at'        => '开始时间',
               'end_at'          => '结束时间',
-              'form_id'         => '支付宝表单id',
-              'exec_type_msg'   => '一周执行规律日期',
+              'ali_form_id'     => '支付宝表单',
+              'ali_user_id'     => '支付宝用户',
+              'exec_type_msg'   => '一周天数',
               'create_at'       => '创建时间',
               'update_at'       => '修改时间',
         ];
