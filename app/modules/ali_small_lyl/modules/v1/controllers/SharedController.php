@@ -9,6 +9,7 @@ use yii\base\Exception;
 
 class SharedController extends BaseController {
 
+//    public $repeatAction = ['add'];
 
     //新增兑换记录
     public function actionAdd(){
