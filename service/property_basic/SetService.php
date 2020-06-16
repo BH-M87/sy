@@ -10,6 +10,8 @@ use common\core\Curl;
 
 use service\BaseService;
 
+use service\property_basic\JavaService;
+
 use app\models\PsParkSet;
 
 class SetService extends BaseService
@@ -35,15 +37,11 @@ class SetService extends BaseService
             }
         }
 
-        $group = PsParkSet::find()->where(['name' => $p['name']])->andFilterWhere(['!=', 'id', $p['id']])->one();
-
-        if (!empty($group)) {
-            throw new MyException('数据已存在!');
-        }
+        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $p['community_id']]);
 
         $param['id'] = $p['id'];
         $param['community_id'] = $p['community_id'];
-        $param['community_name'] = $p['community_name'];
+        $param['community_name'] = $community['communityName'];
         $param['if_one'] = $p['if_one'];
         $param['if_visit'] = $p['if_visit'];
         $param['cancle_num'] = $p['cancle_num'];
@@ -58,41 +56,29 @@ class SetService extends BaseService
         $param['min_time'] = $p['min_time'];
         $param['integral'] = $p['integral'];
 
-        $trans = Yii::$app->getDb()->beginTransaction();
+        $model = new PsParkSet(['scenario' => $scenario]);
 
-        try {
-            $model = new PsParkSet(['scenario' => $scenario]);
-
-            if (!$model->load($param, '') || !$model->validate()) {
-                throw new MyException($this->getError($model));
-            }
-
-            if (!$model->saveData($scenario, $param)) {
-                throw new MyException($this->getError($model));
-            }
-
-            $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
-
-            $trans->commit();
-            return ['id' => $id];
-        } catch (Exception $e) {
-            $trans->rollBack();//array_values($model->errors)[0][0]
-            throw new MyException($e->getMessage());
+        if (!$model->load($param, '') || !$model->validate()) {
+            throw new MyException($this->getError($model));
         }
+
+        if (!$model->saveData($scenario, $param)) {
+            throw new MyException($this->getError($model));
+        }
+
+        $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+
+        return ['id' => $id];
     }
 
     // 详情
     public function showSet($p)
     {
-        if (empty($p['id'])) {
-            throw new MyException('id不能为空');
-        }
-
-        $r = PsParkSet::find()->where(['id' => $p['id']])->asArray()->one();
+        $r = PsParkSet::find()->asArray()->one();
         if (!empty($r)) {
             return $r;
         }
-
+print_r($r);die;
         throw new MyException('数据不存在!');
     }
 }

@@ -19,13 +19,13 @@ class PsParkSpace extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','shared_id','park_space', 'shared_at','start_at','end_at','form_id'], 'required','on'=>'add'],
+            [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','shared_id','park_space', 'shared_at','start_at','end_at','ali_form_id','ali_user_id'], 'required','on'=>'add'],
             [['id', 'shared_id','shared_at','start_at','end_at','status','is_del','notice_15','notice_5','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['id','community_id'],'infoData','on'=>'info'], //验证数据是否存在
             [['community_id','community_name','room_id','publish_id','publish_name','publish_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
-            [['form_id'], 'string', 'max' => 100],
+            [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['park_space'],'string','max'=>5],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
             [['status','is_del','notice_15','notice_5'], 'default', 'value' => 1,'on'=>['add']],
@@ -51,11 +51,12 @@ class PsParkSpace extends BaseModel
               'shared_at'       => '共享日期',
               'start_at'        => '开始时间',
               'end_at'          => '结束时间',
-              'status'          => '共享状态，1待预约 2已预约 3使用中 4已超时 5已关闭',
-              'is_del'          => '是否删除 1未删除 2 已删除',
-              'notice_15'       => '15分钟前判断 1没有发送通知 2发送过通知',
-              'notice_5'        => '5分钟前判断 1没有发送通知 2发送过通知',
-              'form_id'         => '支付宝表单id',
+              'status'          => '共享状态',
+              'is_del'          => '是否删除',
+              'notice_15'       => '15分钟前判断',
+              'notice_5'        => '5分钟前判断',
+              'ali_form_id'     => '支付宝表单',
+              'ali_user_id'     => '支付宝用户',
               'create_at'       => '创建时间',
               'update_at'       => '修改时间',
         ];
