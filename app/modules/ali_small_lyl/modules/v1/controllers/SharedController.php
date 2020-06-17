@@ -24,4 +24,18 @@ class SharedController extends BaseController {
             exit($e->getMessage());
         }
     }
+
+    //取消共享车位记录
+    public function actionDelSpace(){
+        try{
+            $result = SharedService::service()->DelSpace($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }

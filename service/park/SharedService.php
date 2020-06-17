@@ -30,9 +30,6 @@ class SharedService extends BaseService{
             $params['start_date'] = !empty($params['start_date'])?strtotime($params['start_date']):0;
             $params['end_date'] = !empty($params['end_date'])?strtotime($params['end_date']." 23:59:59"):0;
             if($model->load($params,'')&&$model->validate()){
-                //判断是否车位业主 调用java接口
-
-
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
@@ -47,6 +44,24 @@ class SharedService extends BaseService{
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
+        }
+    }
+
+    /*
+     * 发布者删除共享车位
+     */
+    public function DelSpace($params){
+        $model = new PsParkSpace(['scenario'=>'del']);
+        $params['is_del'] = 2; //删除共享车位
+        if($model->load($params,'')&&$model->validate()){
+            if(!$model->edit($params)){
+                return $this->failed('删除失败！');
+            }
+            //判断是否关闭发布共享
+            return $this->success();
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
         }
     }
 
