@@ -111,14 +111,30 @@ class SharedService extends BaseService{
         }
     }
 
-    //车位预约
+    /*
+     * 车位预约
+     * 1.判断预约人是否在黑名单中
+     * 2.判断预约车位是否存在，待预约状态
+     * 3.判断预约人超时时间是否被锁定
+     * 4.车牌下放
+     * 5.支付宝消息通知发布者
+     */
     public function spaceReservation($params){
-        $model = new PsParkShared(['scenario'=>'del']);
-        if($model->load($params,'')&&$model->validate()){
-
-        }else{
-            $msg = array_values($model->errors)[0][0];
-            return $this->failed($msg);
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $model = new PsParkReservation(['scenario'=>'add']);
+            if($model->load($params,'')&&$model->validate()){
+                print("asdf");die;
+                if(!$model->save()){
+                    return $this->failed('新增失败！');
+                }
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
     }
 

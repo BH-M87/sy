@@ -21,7 +21,7 @@ class PsParkReservation extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','space_id','start_at','end_at','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id'], 'required','on'=>'add'],
+            [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id'], 'required','on'=>'add'],
             [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
@@ -29,6 +29,7 @@ class PsParkReservation extends BaseModel
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['car_number'],'string','max'=>10],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
+            [['is_del','status'], 'default', 'value' => 1,'on'=>['add']],
         ];
     }
 
