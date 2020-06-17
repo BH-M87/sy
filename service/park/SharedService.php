@@ -68,7 +68,7 @@ class SharedService extends BaseService{
             if($model->load($params,'')&&$model->validate()){
                 $spaceModel = new PsParkSpace();
                 //预约中车位 给预约者发送消息提醒（支付宝消息）&& 添加消息数据
-                $appointmentInfo = $spaceModel->getAppointmentInfo($params);
+                $appointmentInfo = $spaceModel->getAppointmentInfo(['shared_id'=>$params['id']]);
                 $recordIds = [];    //预约记录id
                 if(!empty($appointmentInfo)){
                     $nowTime = time();
@@ -108,6 +108,17 @@ class SharedService extends BaseService{
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
+        }
+    }
+
+    //车位预约
+    public function spaceReservation($params){
+        $model = new PsParkShared(['scenario'=>'del']);
+        if($model->load($params,'')&&$model->validate()){
+
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
         }
     }
 

@@ -41,4 +41,18 @@ class SharedController extends BaseController {
             exit($e->getMessage());
         }
     }
+
+    //车位预约
+    public function actionSpaceReservation(){
+        try{
+            $result = SharedService::service()->spaceReservation($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
