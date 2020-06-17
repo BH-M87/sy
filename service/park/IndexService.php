@@ -17,6 +17,56 @@ use app\models\PsParkSpace;
 
 class IndexService extends BaseService
 {
+    // 首页 列表
+    public function index($p)
+    {
+        if ($p['status'] == 2) { // 已预约+使用中
+            $p['status'] = [2,3];
+        } else { // 待预约
+            $p['status'] = [1];
+        }
+
+        switch ($p['type']) {
+            case '2': // 明天
+                $m = self::list($p, 2);
+                break;
+            case '3':
+                $m = self::list($p, 3);
+                break;
+            case '4':
+                $m = self::list($p, 4);
+                break;
+            case '5':
+                $m = self::list($p, 5);
+                break;
+            case '6':
+                $m = self::list($p, 6);
+                break;
+            case '7': // 将来
+                $m = self::list($p, 7);
+                break;
+            default: // 今天
+                $m = self::list($p, 1);
+                break;
+        }
+
+        // 头部时间筛选
+        $p['status'] = '';
+        $dt = self::dayTime($p);
+
+        $m['timeList'] = [
+            ['name' => $dt['time']['time_1'], 'num' => $dt['day']['day_1']['totals'], 'type' => '1'],
+            ['name' => $dt['time']['time_2'], 'num' => $dt['day']['day_2']['totals'], 'type' => '2'],
+            ['name' => $dt['time']['time_3'], 'num' => $dt['day']['day_3']['totals'], 'type' => '3'],
+            ['name' => $dt['time']['time_4'], 'num' => $dt['day']['day_4']['totals'], 'type' => '4'],
+            ['name' => $dt['time']['time_5'], 'num' => $dt['day']['day_5']['totals'], 'type' => '5'],
+            ['name' => $dt['time']['time_6'], 'num' => $dt['day']['day_6']['totals'], 'type' => '6'],
+            ['name' => $dt['time']['time_7'], 'num' => $dt['day']['day_7']['totals'], 'type' => '7']
+        ];
+
+        return $m;
+    }
+
     public function list($p, $type)
     {
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
@@ -53,21 +103,24 @@ class IndexService extends BaseService
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('status asc, id desc')->asArray()->all();
-        foreach ($list as $k => &$v) {
-            if ($v['status'] == 1) {
-                $v['statusMsg'] = '待预约';
-            } else if ($v['status'] == 2) {
-                $v['statusMsg'] = '已预约';
-            } else if ($v['status'] == 3) {
-                $v['statusMsg'] = '使用中';
-            } else {
-                $v['statusMsg'] = '已关闭';
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                if ($v['status'] == 1) {
+                    $v['statusMsg'] = '待预约';
+                } else if ($v['status'] == 2) {
+                    $v['statusMsg'] = '已预约';
+                } else if ($v['status'] == 3) {
+                    $v['statusMsg'] = '使用中';
+                } else {
+                    $v['statusMsg'] = '已关闭';
+                }
+                $v['shared_at'] = date('Y-m-d', $v['shared_at']);
+                $v['start_at'] = date('H:i', $v['start_at']);
+                $v['end_at'] = date('H:i', $v['end_at']);
             }
-            $v['shared_at'] = date('Y-m-d', $v['shared_at']);
-            $v['start_at'] = date('H:i', $v['start_at']);
-            $v['end_at'] = date('H:i', $v['end_at']);
         }
 
+        // 查已预约和待预约的总数
         $p['status'] = [1,2,3];
         $listStatus = self::searchSpace($p)
             ->select('status, count(id) total')
@@ -77,9 +130,9 @@ class IndexService extends BaseService
         if (!empty($listStatus)) {
             foreach ($listStatus as $key => $val) {
                 if ($val['status'] == 1) {
-                    $reserved += $val['total'];
-                } else {
                     $free += $val['total'];
+                } else {
+                    $reserved += $val['total'];
                 }
             }
         }
@@ -95,56 +148,6 @@ class IndexService extends BaseService
             ->andfilterWhere(['in', 'status', $p['status']])
             ->andfilterWhere(['=', 'shared_at', $p['shared_at']])
             ->andfilterWhere(['>=', 'shared_at', $p['start_at']]);
-        return $m;
-    }
-
-    // 首页 列表
-    public function index($p)
-    {
-        if ($p['status'] == 2) {
-            $p['status'] = [2,3];
-        } else {
-            $p['status'] = [1];
-        }
-
-        switch ($p['type']) {
-            case '2':
-                $m = self::list($p, 2);
-                break;
-            case '3':
-                $m = self::list($p, 3);
-                break;
-            case '4':
-                $m = self::list($p, 4);
-                break;
-            case '5':
-                $m = self::list($p, 5);
-                break;
-            case '6':
-                $m = self::list($p, 6);
-                break;
-            case '7':
-                $m = self::list($p, 7);
-                break;
-            default:
-                $m = self::list($p, 1);
-                break;
-        }
-
-        // 头部时间筛选
-        $p['status'] = '';
-        $dt = self::dayTime($p);
-
-        $m['timeList'] = [
-            ['name' => $dt['time']['time_1'], 'num' => $dt['day']['day_1']['totals'], 'type' => '1'],
-            ['name' => $dt['time']['time_2'], 'num' => $dt['day']['day_2']['totals'], 'type' => '2'],
-            ['name' => $dt['time']['time_3'], 'num' => $dt['day']['day_3']['totals'], 'type' => '3'],
-            ['name' => $dt['time']['time_4'], 'num' => $dt['day']['day_4']['totals'], 'type' => '4'],
-            ['name' => $dt['time']['time_5'], 'num' => $dt['day']['day_5']['totals'], 'type' => '5'],
-            ['name' => $dt['time']['time_6'], 'num' => $dt['day']['day_6']['totals'], 'type' => '6'],
-            ['name' => $dt['time']['time_7'], 'num' => $dt['day']['day_7']['totals'], 'type' => '7']
-        ];
-
         return $m;
     }
 
