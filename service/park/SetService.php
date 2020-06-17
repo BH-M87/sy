@@ -1,5 +1,5 @@
 <?php
-namespace service\property_basic;
+namespace service\park;
 
 use Yii;
 use yii\db\Query;

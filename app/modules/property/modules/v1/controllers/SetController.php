@@ -5,7 +5,7 @@ use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
 
-use service\property_basic\SetService;
+use service\park\SetService;
 
 class SetController extends BaseController
 {
