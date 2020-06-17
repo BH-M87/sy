@@ -20,6 +20,7 @@ class PsParkShared extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','park_space','start_at','end_at','start_date', 'end_date','exec_type_msg','ali_form_id','ali_user_id'], 'required','on'=>'add'],
+            [['id','community_id','publish_id'], 'required','on'=>'del'],
             [['id', 'start_date','end_date','is_del','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['start_at','end_at'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
@@ -27,6 +28,7 @@ class PsParkShared extends BaseModel
             [['start_at','end_at'],'timeVerification','on'=>['add']],           //时间验证
             [['start_date','end_date'],'planTimeVerification','on'=>['add']],   //日期验证
             [['exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
+            [['id','community_id','publish_id'],'delVerification','on'=>'del'], //删除数据验证
             [['community_id','community_name','room_id','publish_id','publish_name','publish_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
             [['exec_type_msg'], 'string', 'max' => 200],
@@ -44,7 +46,7 @@ class PsParkShared extends BaseModel
     public function attributeLabels()
     {
         return [
-              'id'              => 'ID',
+              'id'              => '发布共享',
               'community_id'    => '小区',
               'community_name'  => '小区名称',
               'room_id'         => '房屋',
@@ -137,6 +139,34 @@ class PsParkShared extends BaseModel
             if($hours<1){
                 return $this->addError($attribute, "共享时间大于一小时");
             }
+        }
+    }
+
+    /*
+     * 删除数据验证
+     */
+    public function delVerification($attribute){
+        if(!empty($this->id)&&!empty($this->community_id)&&!empty($this->publish_id)){
+            $res = self::find()->select(['id','publish_id'])
+                            ->where(['=','id',$this->id])
+                            ->andWhere(['=','community_id',$this->community_id])
+                            ->asArray()->one();
+            if(empty($res)){
+                return $this->addError($attribute, "发布共享数据不存在");
+            }
+            if($res['publish_id']!=$this->publish_id){
+                return $this->addError($attribute, "发布人才能进行此操作");
+            }
+            //验证共享车位是否有进行中数据
+            $spaceJudge = PsParkSpace::find()
+                                ->select(['id'])
+                                ->where(['=','shared_id',$this->id])
+                                ->andWhere(['=','status',3])
+                                ->asArray()->all();
+            if(!empty($spaceJudge)){
+                return $this->addError($attribute, "共享车位已有人试用，不能取消");
+            }
+
         }
     }
 
