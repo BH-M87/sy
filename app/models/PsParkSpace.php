@@ -20,9 +20,9 @@ class PsParkSpace extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','shared_id','park_space', 'shared_at','start_at','end_at','ali_form_id','ali_user_id'], 'required','on'=>'add'],
-            [['id', 'shared_id','shared_at','start_at','end_at','status','is_del','notice_15','notice_5','create_at', 'update_at'], 'integer'],
+            [['id', 'shared_id','shared_at','start_at','end_at','status','is_del','notice_15','notice_5','score','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
-            [['id','community_id'],'infoData','on'=>'info'], //验证数据是否存在
+            [['id','community_id'],'infoData','on'=>['info']], //验证数据是否存在
             [['community_id','community_name','room_id','publish_id','publish_name','publish_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
@@ -55,6 +55,7 @@ class PsParkSpace extends BaseModel
               'is_del'          => '是否删除',
               'notice_15'       => '15分钟前判断',
               'notice_5'        => '5分钟前判断',
+              'score'           => '积分',
               'ali_form_id'     => '支付宝表单',
               'ali_user_id'     => '支付宝用户',
               'create_at'       => '创建时间',
@@ -123,6 +124,17 @@ class PsParkSpace extends BaseModel
         $result = self::find()->where(['id'=>$param['id']])->asArray()->one();
         $result['shared_at'] = date("Y-m-d",$result['shared_at']);
         return $result;
+    }
+
+    //根据发布共享id查询预约中共享车位预约人信息
+    public function getAppointmentInfo($params){
+        $fields = ['record.id','record.ali_form_id','record.ali_user_id','record.appointment_id','record.appointment_name','record.appointment_mobile','record.community_id','record.community_name'];
+        $model = self::find()->alias('space')
+                    ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
+                    ->select($fields)
+                    ->where(['=','space.shared_id',$params['shared_id']])
+                    ->andWhere(['=','space.status',2]);
+        return $model->asArray()->all();
     }
 
 }
