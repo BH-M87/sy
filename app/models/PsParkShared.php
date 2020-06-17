@@ -77,10 +77,9 @@ class PsParkShared extends BaseModel
                 return $this->addError($attribute, "结束时间需大于开始时间");
             }
             //时间范围2年内
-            $tempStart = strtotime(date('Y-m-d',$this->start_date)." 23:59:59");
-            $tempTime = strtotime("+1 year", $tempStart);
-            if($this->end_at>$tempTime){
-                return $this->addError($attribute, "时间间隔至多一年年");
+            $day = ceil(($this->end_date-$this->start_date)/86400);
+            if($day>30){
+                return $this->addError($attribute, "时间间隔至多30天");
             }
         }
     }
@@ -130,6 +129,10 @@ class PsParkShared extends BaseModel
         if(!empty($this->start_at)&&!empty($this->end_at)){
             if($this->start_at>=$this->end_at){
                 return $this->addError($attribute, "结束时间大于开始时间");
+            }
+            $hours = floor((strtotime($this->end_at)-strtotime($this->start_at))%86400/3600);
+            if($hours<1){
+                return $this->addError($attribute, "共享时间大于一小时");
             }
         }
     }
