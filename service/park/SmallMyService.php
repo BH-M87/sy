@@ -18,6 +18,7 @@ class SmallMyService extends BaseService
             return $this->failed("用户id不能为空");
         }
     }
+
     //我的页面详情统一验证规则
     public function valiParamsInfo($params)
     {
@@ -34,14 +35,14 @@ class SmallMyService extends BaseService
     {
         $this->valiParams($params);
         //共享次数
-        $space_count = PsParkSpace::find()->where(['publish_id'=>$params['user_id'],'status'=>4,'is_del'=>1])->count();
-        $data['space_count'] = !empty($space_count)?$space_count:0;
+        $space_count = PsParkSpace::find()->where(['publish_id' => $params['user_id'], 'status' => 4, 'is_del' => 1])->count();
+        $data['space_count'] = !empty($space_count) ? $space_count : 0;
         //预约次数
-        $reserva_count = PsParkReservation::find()->where(['appointment_id'=>$params['user_id'],'status'=>4])->count();
-        $data['reserva_count'] = !empty($reserva_count)?$reserva_count:0;
+        $reserva_count = PsParkReservation::find()->where(['appointment_id' => $params['user_id'], 'status' => 4])->count();
+        $data['reserva_count'] = !empty($reserva_count) ? $reserva_count : 0;
         //积分
-        $space_integral = PsParkSpace::find()->select(['sum(score) as total_score'])->where(['publish_id'=>$params['user_id'],'status'=>4,'is_del'=>1])->count();
-        $data['space_integral'] = !empty($space_integral)?$space_integral:0;
+        $space_integral = PsParkSpace::find()->select(['sum(score) as total_score'])->where(['publish_id' => $params['user_id'], 'status' => 4, 'is_del' => 1])->count();
+        $data['space_integral'] = !empty($space_integral) ? $space_integral : 0;
 
         return $this->success($data);
     }
@@ -66,7 +67,22 @@ class SmallMyService extends BaseService
     public function getParkReservation($params)
     {
         $this->valiParams($params);
-        $result = PsParkReservation::getList($params);
+        $result = PsParkReservation::getList($params, ['id', 'space_id', 'start_at', 'end_at']);
+        return $this->success($result);
+    }
+
+    //我的预约取消操作
+    public function cancelParkReservation($params)
+    {
+        $this->valiParamsInfo($params);
+
+        $result = PsParkReservation::find()->where(['id' => $params['id']])->asArray()->one();
+        if (!empty($result)) {
+            //将预约记录取消
+            PsParkReservation::updateAll(['status' => 5], ['id' => $params['id']]);
+            //将车位状态重置
+            PsParkSpace::updateAll(['status' => 1], ['id' => $params['space_id']]);
+        }
         return $this->success($result);
     }
 
@@ -83,16 +99,17 @@ class SmallMyService extends BaseService
     public function getParkMessage($params)
     {
         $this->valiParams($params);
-        $result = PsParkMessage::getList($params);
+        $result = PsParkMessage::getList($params, ['id', 'type', 'content', 'create_at']);
         return $this->success($result);
     }
 
     //muke车位数据
-    public function lotData($user_id){
+    public function lotData($user_id)
+    {
         $id = substr($user_id, -1);
         $list[1] = [
-            'lotList' => [['00'.$id],['10'.$id],['20'.$id]],
-            'carNum' => ["浙A12300".$id,"浙A45600".$id,"浙A78900".$id]
+            'lotList' => [['00' . $id], ['10' . $id], ['20' . $id]],
+            'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]
         ];
     }
 }
