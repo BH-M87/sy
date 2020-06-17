@@ -96,7 +96,7 @@ class PsParkSpace extends BaseModel
 
     //根据发布共享id查询预约中共享车位预约人信息
     public function getAppointmentInfo($params){
-        $fields = [''];
+        $fields = ['record.id','record.ali_form_id','record.ali_user_id','record.appointment_id','record.appointment_name','record.appointment_mobile','record.community_id','record.community_name'];
         $model = self::find()->alias('space')
                     ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
                     ->select($fields)

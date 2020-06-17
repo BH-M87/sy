@@ -49,10 +49,10 @@ class AliPayQrCodeService extends BaseService
      * @param $desc
      * @return string
      */
-    public static function sendMessage($to_user_id, $form_id, $page,$data)
+    public static function sendMessage($to_user_id, $form_id, $page,$content)
     {
         //data数据示例
-        //$data['keyword1'] = ['value'=>'您已成功预约520车位'];
+        $data['keyword1'] = ['value'=>$content];
         //组装参数
         $params['to_user_id'] = $to_user_id;//支付宝用户id
         $params['form_id'] = $form_id; //表单id

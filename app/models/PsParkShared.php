@@ -46,7 +46,7 @@ class PsParkShared extends BaseModel
     public function attributeLabels()
     {
         return [
-              'id'              => 'ID',
+              'id'              => '发布共享',
               'community_id'    => '小区',
               'community_name'  => '小区名称',
               'room_id'         => '房屋',

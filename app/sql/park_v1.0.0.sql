@@ -132,7 +132,7 @@ CREATE TABLE `ps_park_message` (
   `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区Id',
   `community_name`  varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `user_id` varchar(30) NOT NULL DEFAULT '' COMMENT '接收人id',
-  `status` tinyint(3) NOT NULL DEFAULT 0 COMMENT '类型 1已预约 2积分',
+  `type` tinyint(3) NOT NULL DEFAULT 0 COMMENT '类型 1已预约 2积分',
   `content`  varchar(100) NOT NULL DEFAULT '' COMMENT '消息内容',
   `create_at` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_at` int(11) NOT NULL DEFAULT 0 COMMENT '修改时间',
