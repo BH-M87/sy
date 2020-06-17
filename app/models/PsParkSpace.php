@@ -133,6 +133,7 @@ class PsParkSpace extends BaseModel
                     ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
                     ->select($fields)
                     ->where(['=','space.shared_id',$params['shared_id']])
+                    ->andWhere(['=','space.is_del',1])
                     ->andWhere(['=','space.status',2]);
         return $model->asArray()->all();
     }
