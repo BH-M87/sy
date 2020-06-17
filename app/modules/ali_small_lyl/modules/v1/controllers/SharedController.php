@@ -11,7 +11,7 @@ class SharedController extends BaseController {
 
 //    public $repeatAction = ['add'];
 
-    //新增兑换记录
+    //发布共享
     public function actionAdd(){
         try{
             $result = SharedService::service()->addOfC($this->params);

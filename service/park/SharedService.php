@@ -19,7 +19,10 @@ class SharedService extends BaseService{
         7 => ['en' => 'Sunday', 'cn' => '周日'],
     ];
 
-    //兑换记录新增（小程序端）
+    /*
+     * 发布共享
+     * 1.判断是否车位业主
+     */
     public function addOfC($params){
         $trans = Yii::$app->db->beginTransaction();
         try{
@@ -27,6 +30,9 @@ class SharedService extends BaseService{
             $params['start_date'] = !empty($params['start_date'])?strtotime($params['start_date']):0;
             $params['end_date'] = !empty($params['end_date'])?strtotime($params['end_date']." 23:59:59"):0;
             if($model->load($params,'')&&$model->validate()){
+                //判断是否车位业主 调用java接口
+
+
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
