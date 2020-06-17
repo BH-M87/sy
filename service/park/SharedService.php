@@ -111,6 +111,17 @@ class SharedService extends BaseService{
         }
     }
 
+    //车位预约
+    public function spaceReservation($params){
+        $model = new PsParkShared(['scenario'=>'del']);
+        if($model->load($params,'')&&$model->validate()){
+
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
 
     private function batchAddSpace($params){
         $dateParams['start_at'] = date('Y-m-d',$params['start_date']);

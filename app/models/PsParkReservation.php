@@ -21,13 +21,13 @@ class PsParkReservation extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','space_id','start_at','end_at','appointment_id','appointment_name','appointment_mobile','car_number','form_id'], 'required','on'=>'add'],
-            [['id', 'start_at','end_at','enter_at','out_at','create_at', 'update_at'], 'integer'],
+            [['community_id','community_name','room_id','room_name','space_id','start_at','end_at','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id'], 'required','on'=>'add'],
+            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
-            [['community_id','community_name','room_id','space_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
+            [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
-            [['form_id'], 'string', 'max' => 100],
-            [['start_at','end_at'],'string','max'=>10],
+            [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
+            [['car_number'],'string','max'=>10],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
         ];
     }
@@ -38,21 +38,26 @@ class PsParkReservation extends BaseModel
     public function attributeLabels()
     {
         return [
-            'id'              => 'ID',
-            'community_id'    => '小区',
-            'community_name'  => '小区名称',
-            'room_id'         => '房屋id',
-            'room_name'       => '房号',
-            'space_id'         => '预约车位',
-            'start_at'        => '开始时间',
-            'end_at'          => '结束时间',
-            'appointment_id'      => '预约人id',
-            'appointment_name'    => '预约人名称',
-            'appointment_mobile'  => '预约人手机',
-            'car_number'      => '预约车牌',
-            'form_id'         => '支付宝表单id',
-            'create_at'       => '创建时间',
-            'update_at'       => '修改时间',
+            'id'                    => '预约记录',
+            'community_id'          => '小区',
+            'community_name'        => '小区名称',
+            'room_id'               => '房屋',
+            'room_name'             => '房号',
+            'space_id'              => '预约车位',
+            'start_at'              => '开始时间',
+            'end_at'                => '结束时间',
+            'appointment_id'        => '预约人',
+            'appointment_name'      => '预约人名称',
+            'appointment_mobile'    => '预约人手机',
+            'car_number'            => '预约车牌',
+            'enter_at'              => '入场时间',
+            'out_at'                => '离场时间',
+            'status'                => '状态',
+            'ali_form_id'           => '支付宝表单',
+            'ali_user_id'           => '支付宝用户',
+            'is_del'                => '是否删除',
+            'create_at'             => '创建时间',
+            'update_at'             => '修改时间',
         ];
     }
 
