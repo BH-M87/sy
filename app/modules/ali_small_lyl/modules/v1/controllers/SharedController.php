@@ -25,10 +25,10 @@ class SharedController extends BaseController {
         }
     }
 
-    //取消共享车位记录
-    public function actionDelSpace(){
+    //删除发布共享
+    public function actionDel(){
         try{
-            $result = SharedService::service()->DelSpace($this->params);
+            $result = SharedService::service()->del($this->params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             } else {

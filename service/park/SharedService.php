@@ -49,9 +49,42 @@ class SharedService extends BaseService{
 
     /*
      * 发布者删除发布共享
+     * 1.验证是否存在
+     * 2.验证是否发布者操作
+     * 3.验证共享车位是否有使用中
+     * 4.给预约中的人发支付宝提醒（删除预约车位）
+     * 5.添加预约人模板消息
+     * 6.删除发布预约
+     * 7.删除共享车位（待预约，已预约）
+     * 8.删除预约人预约记录
      */
-    public function DelSpace($params){
+    public function del($params){
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $model = new PsParkShared(['scenario'=>'del']);
+            $params['is_del'] = 2;  //删除
+            if($model->load($params,'')&&$model->validate()){
+                $spaceModel = new PsParkSpace();
+                //预约中车位 发送消息提醒（支付宝消息）
+                $appointmentInfo = $spaceModel->getAppointmentInfo($params);
+                if(!empty($appointmentInfo)){
 
+                }
+                //删除发布预约
+                if(!$model->edit($params)){
+                    return $this->failed('删除发布预约失败！');
+                }
+                //删除共享车位
+                PsParkSpace::updateAll(['is_del'=>2],'shared_id=:shared_id and status in (:status)',[':shared_id'=>$params['id'],':status'=>[1,2]]);
+                return $this->success();
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 
 

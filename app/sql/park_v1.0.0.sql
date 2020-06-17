@@ -107,22 +107,23 @@ CREATE TABLE `ps_park_reservation` (
   `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `room_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋id',
   `room_name` varchar(50) NOT NULL DEFAULT '' COMMENT '房号',
-  `park_id` int(11) NOT NULL DEFAULT 0 COMMENT '预约车位id',
-  `start_at` int(11) NOT NULL DEFAULT 0 COMMENT '共享开始时间',
-  `end_at` int(11) NOT NULL DEFAULT 0 COMMENT '共享结束时间',
+  `space_id` int(11) NOT NULL DEFAULT '0' COMMENT '预约车位id',
+  `start_at` int(11) NOT NULL DEFAULT '0' COMMENT '共享开始时间',
+  `end_at` int(11) NOT NULL DEFAULT '0' COMMENT '共享结束时间',
   `appointment_id` varchar(30) NOT NULL DEFAULT '' COMMENT '预约人id',
   `appointment_name` varchar(30) NOT NULL DEFAULT '' COMMENT '预约人名称',
   `appointment_mobile` varchar(30) NOT NULL DEFAULT '' COMMENT '预约人电话',
   `car_number` varchar(10) NOT NULL DEFAULT '' COMMENT '预约车牌',
-  `enter_at` int(11) NOT NULL DEFAULT 0 COMMENT '入场时间',
-  `out_at` int(11) NOT NULL DEFAULT 0 COMMENT '离场时间',
-  `status`	tinyint(3) NOT NULL DEFAULT 0 COMMENT '状态 1已预约 2使用中 3已超时 4已关闭 5已取消',
+  `enter_at` int(11) NOT NULL DEFAULT '0' COMMENT '入场时间',
+  `out_at` int(11) NOT NULL DEFAULT '0' COMMENT '离场时间',
+  `status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '状态 1已预约 2使用中 3已超时 4已关闭 5已取消',
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
-  `create_at` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` int(11) NOT NULL DEFAULT 0 COMMENT '修改时间',
+  `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1未删除 2已删除（发布人，系统）',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  CHARSET=utf8 COMMENT='预约记录';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='预约记录';
 
 
 

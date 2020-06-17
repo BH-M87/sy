@@ -93,4 +93,15 @@ class PsParkSpace extends BaseModel
         $param['update_at'] = time();
         return self::updateAll($param, ['id' => $param['id']]);
     }
+
+    //根据发布共享id查询预约中共享车位预约人信息
+    public function getAppointmentInfo($params){
+        $fields = [''];
+        $model = self::find()->alias('space')
+                    ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
+                    ->select($fields)
+                    ->where(['=','space.shared_id',$params['shared_id']])
+                    ->andWhere(['=','space.status',2]);
+        return $model->asArray()->all();
+    }
 }
