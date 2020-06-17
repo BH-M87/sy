@@ -60,17 +60,18 @@ CREATE TABLE `ps_park_shared` (
   `publish_name` varchar(30) NOT NULL DEFAULT '' COMMENT '发布人名称',
   `publish_mobile` varchar(30) NOT NULL DEFAULT '' COMMENT '发布人手机',
   `park_space` varchar(5) NOT NULL DEFAULT '' COMMENT '车位号',
-  `start_date` int(11) NOT NULL DEFAULT 0 COMMENT '开始日期',
-  `end_date` int(11) NOT NULL DEFAULT 0 COMMENT '结束日期',
+  `start_date` int(11) NOT NULL DEFAULT '0' COMMENT '开始日期',
+  `end_date` int(11) NOT NULL DEFAULT '0' COMMENT '结束日期',
   `start_at` varchar(10) NOT NULL DEFAULT '' COMMENT '开始时间',
   `end_at` varchar(10) NOT NULL DEFAULT '' COMMENT '结束时间',
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
   `exec_type_msg` varchar(200) NOT NULL DEFAULT '' COMMENT '一周执行规律日期',
-  `create_at` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` int(11) NOT NULL DEFAULT 0 COMMENT '修改时间',
+  `is_del` tinyint(2) NOT NULL DEFAULT '1' COMMENT '是否删除 1没有删除 2已删除',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB CHARSET=utf8 COMMENT='发布共享';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='发布共享';
 
 
 
@@ -83,21 +84,22 @@ CREATE TABLE `ps_park_space` (
   `publish_id` varchar(30) NOT NULL DEFAULT '' COMMENT '发布人id',
   `publish_name` varchar(30) NOT NULL DEFAULT '' COMMENT '发布人名称',
   `publish_mobile` varchar(30) NOT NULL DEFAULT '' COMMENT '发布人手机',
-  `shared_id` int(11) NOT NULL DEFAULT 0 COMMENT '共享ID',
+  `shared_id` int(11) NOT NULL DEFAULT '0' COMMENT '共享ID',
   `park_space` varchar(5) NOT NULL DEFAULT '' COMMENT '车位号',
-  `shared_at` int(11) NOT NULL DEFAULT 0 COMMENT '共享日期',
-  `start_at` int(11) NOT NULL DEFAULT 0 COMMENT '开始时间',
-  `end_at` int(11) NOT NULL DEFAULT 0 COMMENT '结束时间',
+  `shared_at` int(11) NOT NULL DEFAULT '0' COMMENT '共享日期',
+  `start_at` int(11) NOT NULL DEFAULT '0' COMMENT '开始时间',
+  `end_at` int(11) NOT NULL DEFAULT '0' COMMENT '结束时间',
   `status` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享状态，1待预约 2已预约 3使用中 4已关闭',
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '是否删除 1未删除 2 已删除',
   `notice_15` tinyint(3) NOT NULL DEFAULT '1' COMMENT '15分钟前判断 1没有发送通知 2发送过通知',
   `notice_5` tinyint(3) NOT NULL DEFAULT '1' COMMENT '5分钟前判断 1没有发送通知 2发送过通知',
+  `score` int(4) NOT NULL DEFAULT '0' COMMENT '积分',
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
-  `create_at` int(11) NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` int(11) NOT NULL DEFAULT 0 COMMENT '修改时间',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB CHARSET=utf8 COMMENT='共享车位';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='共享车位';
 
 CREATE TABLE `ps_park_reservation` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

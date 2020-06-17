@@ -20,9 +20,11 @@ class PsParkSpace extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','shared_id','park_space', 'shared_at','start_at','end_at','ali_form_id','ali_user_id'], 'required','on'=>'add'],
-            [['id', 'shared_id','shared_at','start_at','end_at','status','is_del','notice_15','notice_5','create_at', 'update_at'], 'integer'],
+            [['id','community_id','publish_id'], 'required','on'=>'del'],
+            [['id', 'shared_id','shared_at','start_at','end_at','status','is_del','notice_15','notice_5','score','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
-            [['id','community_id'],'infoData','on'=>'info'], //验证数据是否存在
+            [['id','community_id','publish_id'],'delVerification','on'=>['del']], //验证数据是否可以删除
+            [['id','community_id'],'infoData','on'=>['info']], //验证数据是否存在
             [['community_id','community_name','room_id','publish_id','publish_name','publish_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
@@ -55,6 +57,7 @@ class PsParkSpace extends BaseModel
               'is_del'          => '是否删除',
               'notice_15'       => '15分钟前判断',
               'notice_5'        => '5分钟前判断',
+              'score'           => '积分',
               'ali_form_id'     => '支付宝表单',
               'ali_user_id'     => '支付宝用户',
               'create_at'       => '创建时间',
@@ -71,6 +74,22 @@ class PsParkSpace extends BaseModel
         $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
         if (empty($res)) {
             $this->addError($attribute, "该共享车位不存在!");
+        }
+    }
+
+    /*
+     * 验证数据是否可以删除
+     */
+    public function delVerification($attribute){
+        $res = static::find()->select(['id','publish_id','status'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        if (empty($res)) {
+            $this->addError($attribute, "该共享车位不存在!");
+        }
+        if($res['publish_id']!=$this->publish_id){
+            $this->addError($attribute, "只有发布共享人可以取消!");
+        }
+        if($res['status']==3){
+            $this->addError($attribute, "该车位被使用中，不能取消!");
         }
     }
 
