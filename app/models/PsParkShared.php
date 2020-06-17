@@ -20,7 +20,7 @@ class PsParkShared extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','publish_id','publish_name', 'publish_mobile','park_space','start_at','end_at','start_date', 'end_date','exec_type_msg','ali_form_id','ali_user_id'], 'required','on'=>'add'],
-            [['id', 'start_date','end_date','create_at', 'update_at'], 'integer'],
+            [['id', 'start_date','end_date','is_del','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['start_at','end_at'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['community_id','publish_id','park_space','start_date','end_date'],'dateVerification','on'=>['add']],   //日期重复验证
@@ -34,6 +34,7 @@ class PsParkShared extends BaseModel
             [['park_space'],'string','max'=>5],
             [['start_at','end_at'],'string','max'=>10],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
+            [['is_del'], 'default', 'value' => 1,'on'=>['add']],
         ];
     }
 
@@ -59,6 +60,7 @@ class PsParkShared extends BaseModel
               'ali_form_id'     => '支付宝表单',
               'ali_user_id'     => '支付宝用户',
               'exec_type_msg'   => '一周天数',
+              'is_del'          => '是否删除',
               'create_at'       => '创建时间',
               'update_at'       => '修改时间',
         ];
@@ -114,6 +116,7 @@ class PsParkShared extends BaseModel
                         ->where(['=','community_id',$this->community_id])
                         ->andWhere(['=','publish_id',$this->publish_id])
                         ->andWhere(['=','park_space',$this->park_space])
+                        ->andWhere(['=','is_del',1])
                         ->andWhere(['or',['<=','start_date',$this->start_date],['>=','end_date',$this->start_date]])
                         ->andWhere(['or',['<=','start_date',$this->end_date],['>=','end_date',$this->end_date]])
                         ->asArray()->all();

@@ -48,21 +48,10 @@ class SharedService extends BaseService{
     }
 
     /*
-     * 发布者删除共享车位
+     * 发布者删除发布共享
      */
     public function DelSpace($params){
-        $model = new PsParkSpace(['scenario'=>'del']);
-        $params['is_del'] = 2; //删除共享车位
-        if($model->load($params,'')&&$model->validate()){
-            if(!$model->edit($params)){
-                return $this->failed('删除失败！');
-            }
-            //判断是否关闭发布共享
-            return $this->success();
-        }else{
-            $msg = array_values($model->errors)[0][0];
-            return $this->failed($msg);
-        }
+
     }
 
 
