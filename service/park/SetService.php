@@ -13,6 +13,8 @@ use service\BaseService;
 use service\property_basic\JavaService;
 
 use app\models\PsParkSet;
+use app\models\PsParkBlack;
+use app\models\PsParkBreakPromise;
 
 class SetService extends BaseService
 {
@@ -96,13 +98,7 @@ class SetService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
-                $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
-                $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
-                $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
-                $v['content'] = str_replace("&nbsp;","",$v['content']);
-
-                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
+                $v['room_name'] = $v['community_name'].$v['room_name'];
             }
         }
 
@@ -112,13 +108,77 @@ class SetService extends BaseService
     // 黑名单 列表参数过滤
     private static function searchBlack($p)
     {
-        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
-        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
-
         $m = PsParkBlack::find()
             ->filterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['>=', 'startAt', $startAt])
-            ->andFilterWhere(['<=', 'endAt', $endAt]);
+            ->andFilterWhere(['like', 'room_name', $p['room_name']]);
         return $m;
+    }
+
+    // 黑名单 删除
+    public function deleteBlack($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $m = PsParkBlack::findOne($p['id']);
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        PsParkBlack::deleteAll(['id' => $p['id']]);
+
+        return true;
+    }
+
+    // 违约名单 列表
+    public function listPromise($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::searchPromise($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::searcPromise($p)
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['room_name'] = $v['community_name'].$v['room_name'];
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 违约名单 列表参数过滤
+    private static function searchPromise($p)
+    {
+        $m = PsParkBreakPromise::find()
+            ->filterWhere(['like', 'name', $p['name']])
+            ->andFilterWhere(['like', 'mobile', $p['mobile']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']]);
+        return $m;
+    }
+
+    // 违约名单 解锁
+    public function deletePromise($p)
+    {
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
+        }
+
+        $m = PsParkBreakPromise::findOne($p['id']);
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        PsParkBlack::updateAll(['lock_at' => 0], ['id' => $p['id']]);
+
+        return true;
     }
 }
