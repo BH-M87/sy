@@ -42,12 +42,9 @@ class SetService extends BaseService
         $param['id'] = $p['id'];
         $param['community_id'] = $p['community_id'];
         $param['community_name'] = $community['communityName'];
-        $param['if_one'] = $p['if_one'];
-        $param['if_visit'] = $p['if_visit'];
         $param['cancle_num'] = $p['cancle_num'];
         $param['late_at'] = $p['late_at'];
         $param['due_notice'] = $p['due_notice'];
-        $param['end_at'] = $p['end_at'];
         $param['black_num'] = $p['black_num'];
         $param['appointment'] = $p['appointment'];
         $param['appointment_unit'] = $p['appointment_unit'];
@@ -80,5 +77,48 @@ class SetService extends BaseService
         }
 
         throw new MyException('数据不存在!');
+    }
+
+    // 黑名单 列表
+    public function listBlack($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::searchBlack($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::searchBlack($p)
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
+                $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
+                $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
+                $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
+                $v['content'] = str_replace("&nbsp;","",$v['content']);
+
+                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 黑名单 列表参数过滤
+    private static function searchBlack($p)
+    {
+        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
+        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
+
+        $m = PsParkBlack::find()
+            ->filterWhere(['like', 'name', $p['name']])
+            ->andFilterWhere(['>=', 'startAt', $startAt])
+            ->andFilterWhere(['<=', 'endAt', $endAt]);
+        return $m;
     }
 }
