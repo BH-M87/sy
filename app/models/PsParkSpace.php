@@ -94,6 +94,38 @@ class PsParkSpace extends BaseModel
         return self::updateAll($param, ['id' => $param['id']]);
     }
 
+    /**
+     * 获取列表
+     * @author yjh
+     * @param $params
+     * @param $field
+     * @param $page true 分页显示
+     * @return array
+     */
+    public static function getList($params,$field,$page = true)
+    {
+        $activity = self::find()->select($field)
+            ->where(['is_del' => 1])
+            ->andFilterWhere(['community_id' => $params['community_id']])
+            ->andFilterWhere(['status' => $params['status']]);
+        $count = $activity->count();
+        if ($count > 0) {
+            $activity->orderBy('id desc');
+            if ($page) {
+                $activity->offset((($params['page'] ?? 1) - 1) * ($params['rows'] ?? 10))->limit($params['rows'] ?? 10);
+            }
+            $data = $activity->asArray()->all();
+        }
+        return ['totals'=>$count,'list'=>$data ?? []];
+    }
+
+    public static function getOne($param)
+    {
+        $result = self::find()->where(['id'=>$param['id']])->asArray()->one();
+        $result['shared_at'] = date("Y-m-d",$result['shared_at']);
+        return $result;
+    }
+
     //根据发布共享id查询预约中共享车位预约人信息
     public function getAppointmentInfo($params){
         $fields = ['record.id','record.ali_form_id','record.ali_user_id','record.appointment_id','record.appointment_name','record.appointment_mobile','record.community_id','record.community_name'];
@@ -104,4 +136,5 @@ class PsParkSpace extends BaseModel
                     ->andWhere(['=','space.status',2]);
         return $model->asArray()->all();
     }
+
 }
