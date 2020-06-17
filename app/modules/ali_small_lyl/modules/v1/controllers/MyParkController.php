@@ -13,4 +13,39 @@ class MyParkController extends UserBaseController
         return self::dealReturnResult($result);
     }
 
+    //我的车位
+    public function actionParkLot()
+    {
+        $result = SmallMyService::service()->getParkLot($this->params);
+        return self::dealReturnResult($result);
+    }
+
+    //我的预约
+    public function actionReservaList()
+    {
+        $result = SmallMyService::service()->getParkReservation($this->params);
+        return self::dealReturnResult($result);
+    }
+
+    //我的预约取消操作
+    public function actionCancelReserva()
+    {
+        $result = SmallMyService::service()->cancelParkReservation($this->params);
+        return self::dealReturnResult($result);
+    }
+
+    //我的预约详情
+    public function actionReservaInfo()
+    {
+        $result = SmallMyService::service()->getParkReservationInfo($this->params);
+        return self::dealReturnResult($result);
+    }
+
+    //我的消息
+    public function actionParkMessage()
+    {
+        $result = SmallMyService::service()->getParkMessage($this->params);
+        return self::dealReturnResult($result);
+    }
+
 }

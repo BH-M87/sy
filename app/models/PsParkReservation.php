@@ -83,7 +83,7 @@ class PsParkReservation extends BaseModel
      * @param $page true 分页显示
      * @return array
      */
-    public static function getList($params,$field,$page = true)
+    public static function getList($params,$field = '*',$page = true)
     {
         $activity = self::find()->select($field)
             ->where(['is_del' => 1])
@@ -109,8 +109,9 @@ class PsParkReservation extends BaseModel
     public static function afterList(&$data)
     {
         foreach ($data as &$v) {
-            $v['create_at'] = date('Y-m-d H:i:s',$v['create_at']);
-            $v['type_desc'] = PsParkMessage::$status_desc[$v['type']];
+            $v['share_at'] = date('Y-m-d',$v['start_at']);
+            $v['start_at'] = date('H:i',$v['start_at']);
+            $v['end_at'] = date('H:i',$v['end_at']);
             //查询车位信息
             $spaceInfo = PsParkSpace::getOne(['id'=>$v['space_id']]);
             //车位号
@@ -122,6 +123,23 @@ class PsParkReservation extends BaseModel
     public static function getOne($param)
     {
         $result = self::find()->where(['id'=>$param['id']])->asArray()->one();
+        $result['share_at'] = date('Y-m-d',$result['start_at']);
+        $result['start_at'] = date('H:i',$result['start_at']);
+        $result['end_at'] = date('H:i',$result['end_at']);
+        //车辆入场出场时间
+        $result['enter_at'] = !empty($result['enter_at'])?date('Y-m-d H:i',$result['enter_at']):'';
+        $result['out_at'] = !empty($result['out_at'])?date('Y-m-d H:i',$result['out_at']):'';
+        if(!empty($result['enter_at']) && !empty($result['out_at'])){
+            //使用时长
+            $usage_time = ceil(($result['out_at'] - $result['enter_at'])/60);//计算总共使用多少分钟
+            //超时时长
+            if( $result['out_at'] > $result['end_at']){
+                $over_time = ceil(($result['out_at'] - $result['end_at'])/60);//计算多少分钟
+            }
+            $result['usage_time'] = $usage_time;
+            $result['over_time'] = !empty($over_time)?$over_time:0;
+        }
+
         //查询车位信息
         $spaceInfo = PsParkSpace::getOne(['id'=>$result['space_id']]);
         //车位号
