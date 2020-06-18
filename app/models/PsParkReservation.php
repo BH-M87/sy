@@ -7,6 +7,8 @@ use service\door\SelfService;
 class PsParkReservation extends BaseModel
 {
 
+    public $statusArray = ['1'=>'待预约','2'=>'已预约','3'=>'使用中','4'=>'已关闭'];
+
     /**
      * @inheritdoc
      */
@@ -21,14 +23,19 @@ class PsParkReservation extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','space_id','start_at','end_at','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id'], 'required','on'=>'add'],
-            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','create_at', 'update_at'], 'integer'],
+            [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id'], 'required','on'=>'add'],
+            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','cancel_at','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
             [['room_name'], 'string', 'max' => 50],
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['car_number'],'string','max'=>10],
+            [['appointment_id','community_id'],'isBlackList','on'=>'add'],//预约人是否在黑名单
+            [['space_id','community_id'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约
+            [['appointment_id','community_id'],'isTimeOut','on'=>'add'],//预约人是否超时被锁定
+            [['appointment_id','community_id'],'isCancel','on'=>'add'], //一天取消次数
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
+            [['is_del','status'], 'default', 'value' => 1,'on'=>['add']],
         ];
     }
 
@@ -53,12 +60,81 @@ class PsParkReservation extends BaseModel
             'enter_at'              => '入场时间',
             'out_at'                => '离场时间',
             'status'                => '状态',
+            'cancel_at'             => '取消订单时间',
             'ali_form_id'           => '支付宝表单',
             'ali_user_id'           => '支付宝用户',
             'is_del'                => '是否删除',
             'create_at'             => '创建时间',
             'update_at'             => '修改时间',
         ];
+    }
+
+    /*
+     * 判断预约人是否在黑名单中
+     */
+    public function isBlackList($attribute){
+        $res = PsParkBlack::find()->select(['id'])->where(['=','user_id',$this->appointment_id])->andWhere(['=','community_id',$this->community_id])->asArray()->one();
+        if(!empty($res)){
+            return $this->addError($attribute, "该用户在黑名单中，不能预约");
+        }
+    }
+
+    /*
+     * 判断预约车位是否存在 且可以预约
+     */
+    public function canBeReserved($attribute){
+        $res = PsParkSpace::find()->select(['id','status','start_at','end_at'])
+                            ->where(['=','id',$this->space_id])
+                            ->andWhere(['=','community_id',$this->community_id])
+                            ->andWhere(['=','is_del',1])
+                            ->asArray()->one();
+        if(empty($res)){
+            return $this->addError($attribute, "该共享车位信息不存在");
+        }
+        if($res['status']!=1){
+            return $this->addError($attribute, "该共享车位".$this->statusArray[$res['status']].",不能预约");
+        }
+        //车位剩余时间15分钟内不能预约
+        $nowTime = time();
+        if($nowTime>=$res['end_at']-900){
+            return $this->addError($attribute, "该共享车位剩余时间小于15分钟不能预约");
+        }
+
+        $this->start_at = $res['start_at'];
+        $this->end_at = $res['end_at'];
+    }
+
+    /*
+     * 判断预约人是否被锁定
+     */
+    public function isTimeOut($attribute){
+        $res = PsParkBreakPromise::find()->select(['id','lock_at'])
+                        ->where(['=','user_id',$this->appointment_id])
+                        ->andWhere(['=','community_id',$this->community_id])
+                        ->andWhere(['<','lock_at',time()])
+                        ->asArray()->one();
+        if(!empty($res)){
+            return $this->addError($attribute, "您的违约锁定时间到".date('Y-m-d H:i',$res['lock_at']).",不能预约");
+        }
+    }
+
+    /*
+     * 判断预约人 今天取消预约次数
+     * 1.获得系统设置取消次数
+     */
+    public function isCancel($attribute){
+        $setRes = PsParkSet::find()->select(['cancle_num'])->where(['=','community_id',$this->community_id])->asArray()->one();
+        if(!empty($setRes['cancle_num'])){
+            $count = self::find()
+                            ->where(['=','appointment_id',$this->appointment_id])
+                            ->andWhere(['=','community_id',$this->community_id])
+                            ->andWhere(['=',"FROM_UNIXTIME(update_at,'%Y-%m-%d')",date('Y-m-d',time())])
+                            ->count('id');
+            if($count>=$setRes['cancle_num']){
+                return $this->addError($attribute, "您已超过".$setRes['cancle_num']."次取消次数,不能预约");
+            }
+
+        }
     }
 
     /***

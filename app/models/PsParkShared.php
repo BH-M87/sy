@@ -150,6 +150,7 @@ class PsParkShared extends BaseModel
             $res = self::find()->select(['id','publish_id'])
                             ->where(['=','id',$this->id])
                             ->andWhere(['=','community_id',$this->community_id])
+                            ->andWhere(['=','is_del',1])
                             ->asArray()->one();
             if(empty($res)){
                 return $this->addError($attribute, "发布共享数据不存在");
@@ -162,9 +163,10 @@ class PsParkShared extends BaseModel
                                 ->select(['id'])
                                 ->where(['=','shared_id',$this->id])
                                 ->andWhere(['=','status',3])
+                                ->andWhere(['=','is_del',1])
                                 ->asArray()->all();
             if(!empty($spaceJudge)){
-                return $this->addError($attribute, "共享车位已有人试用，不能取消");
+                return $this->addError($attribute, "共享车位已有人使用，不能取消");
             }
 
         }

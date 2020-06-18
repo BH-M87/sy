@@ -23,7 +23,7 @@ class SharedService extends BaseService{
 
     /*
      * 发布共享
-     * 1.判断是否车位业主
+     * 1.判断是否车位业主（默认是）
      */
     public function addOfC($params){
         $trans = Yii::$app->db->beginTransaction();
@@ -111,14 +111,36 @@ class SharedService extends BaseService{
         }
     }
 
-    //车位预约
+    /*
+     * 车位预约 （默认是业主）
+     * 1.判断预约人是否在黑名单中
+     * 2.判断预约车位是否存在，待预约状态
+     * 3.判断预约人超时时间是否被锁定
+     * 4.判断预约人今天取消次数
+     * 5.车牌下放
+     * 6.支付宝消息通知发布者
+     */
     public function spaceReservation($params){
-        $model = new PsParkShared(['scenario'=>'del']);
-        if($model->load($params,'')&&$model->validate()){
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $model = new PsParkReservation(['scenario'=>'add']);
+            if($model->load($params,'')&&$model->validate()){
+                if(!$model->save()){
+                    return $this->failed('新增失败！');
+                }
+                //车牌下放 待定
 
-        }else{
-            $msg = array_values($model->errors)[0][0];
-            return $this->failed($msg);
+                //发送支付宝消息
+                AliPayQrCodeService::service()->sendMessage($model->attributes['ali_user_id'],$model->attributes['ali_form_id'],'pages/index/index','预约成功');
+                $trans->commit();
+                return $this->success(['id'=>$model->attributes['id']]);
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
     }
 
