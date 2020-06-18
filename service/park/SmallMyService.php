@@ -68,8 +68,28 @@ class SmallMyService extends BaseService
     {
         $valiResult = $this->valiParams($params);
         if($valiResult['code']==1){
+            $result = psParkSpace::getList($params,['id','park_space','shared_at','start_at','end_at','status']);
+            return $this->success($result);
+        }
+        return $valiResult;
+    }
 
-            return $this->success([]);
+    //我的共享取消操作
+    public function cancelParkShare($params)
+    {
+        $valiResult = $this->valiParamsInfo($params);
+        if($valiResult['code']==1){
+            $result = PsParkSpace::find()->where(['id' => $params['id']])->asArray()->one();
+            if (!empty($result)) {
+                if ($result['status']==2) {
+                    //将车位状态重置
+                    PsParkSpace::updateAll(['status' => 1], ['id' => $params['id']]);
+                    return $this->success(['id'=>$result['id']]);
+                }
+                return $this->failed("共享记录取消失败");
+            }else{
+                return $this->failed("共享记录不存在");
+            }
         }
         return $valiResult;
     }
