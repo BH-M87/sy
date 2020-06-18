@@ -35,9 +35,11 @@ class SetService extends BaseService
     public function _saveSet($p, $scenario, $userInfo)
     {
         if ($scenario == 'edit') {
-            $model = PsParkSet::findOne($p['id']);
+            $model = PsParkSet::find()->one();
             if (empty($model)) {
-                throw new MyException('数据不存在!');
+                $scenario == 'add';
+            } else {
+                $p['id'] = $model->id;
             }
         }
 

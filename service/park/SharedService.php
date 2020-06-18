@@ -114,11 +114,12 @@ class SharedService extends BaseService{
     /*
      * 车位预约 （默认是业主）
      * 1.判断预约人是否在黑名单中
-     * 2.判断预约车位是否存在，待预约状态
-     * 3.判断预约人超时时间是否被锁定
-     * 4.判断预约人今天取消次数
+     * 2.判断预约人超时时间是否被锁定
+     * 3.判断预约人今天取消次数
+     * 4.判断预约车位是否存在，待预约状态, 车辆是否有相同天数预约的车位（不能恶意占用资源：同一个车牌）
      * 5.车牌下放
      * 6.支付宝消息通知发布者
+     * 7.修改共享车位信息
      */
     public function spaceReservation($params){
         $trans = Yii::$app->db->beginTransaction();
@@ -130,8 +131,24 @@ class SharedService extends BaseService{
                 }
                 //车牌下放 待定
 
-                //发送支付宝消息
-                AliPayQrCodeService::service()->sendMessage($model->attributes['ali_user_id'],$model->attributes['ali_form_id'],'pages/index/index','预约成功');
+                //修改共享车位信息
+                $spaceModel = new PsParkSpace(['scenario'=>'info']);
+                $info['id'] = $params['space_id'];
+                $info['community_id'] = $params['community_id'];
+                if($spaceModel->load($info,'')&&$spaceModel->validate()){
+                    $spaceParams['status'] = 2;
+                    $spaceParams['update_at'] = time();
+                    $spaceParams['id'] = $params['space_id'];
+                    if(!$spaceModel->edit($spaceParams)){
+                        return $this->failed('共享车位信息修改失败！');
+                    }
+                    $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
+                    //发送支付宝消息 通知发布者
+                    AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index','您的共享车位已被预约');
+                }else{
+                    $msg = array_values($spaceModel->errors)[0][0];
+                    return $this->failed($msg);
+                }
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
             }else{
