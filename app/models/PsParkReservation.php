@@ -227,4 +227,9 @@ class PsParkReservation extends BaseModel
         $result['park_space'] = $spaceInfo['park_space'];
         return $result;
     }
+
+    public static function getOneBySpaceId($param)
+    {
+        return self::find()->select(['id','car_number','enter_at','out_at','status'])->where(['space_id'=>$param['id']])->andWhere(['!=','status','5'])->asArray()->one();
+    }
 }

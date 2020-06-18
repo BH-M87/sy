@@ -122,8 +122,27 @@ class PsParkSpace extends BaseModel
     public static function getOne($param)
     {
         $result = self::find()->where(['id'=>$param['id']])->asArray()->one();
-        $result['shared_at'] = date("Y-m-d",$result['shared_at']);
-        return $result;
+        $data['id'] = $result['id'];
+        $data['share_at'] = date('Y-m-d',$result['shared_at']);
+        $data['start_at'] = date('H:i',$result['start_at']);
+        $data['end_at'] = date('H:i',$result['end_at']);
+        //查询预约记录
+        $reserva = PsParkReservation::getOneBySpaceId(['id'=>$result['id']]);
+        if(!empty($reserva['enter_at']) && !empty($reserva['out_at'])){
+            //使用时长
+            $usage_time = ceil(($reserva['out_at'] - $reserva['enter_at'])/60);//计算总共使用多少分钟
+            //超时时长
+            if( $reserva['out_at'] > $reserva['end_at']){
+                $over_time = ceil(($reserva['out_at'] - $reserva['end_at'])/60);//计算多少分钟
+            }
+            $data['car_number'] = $reserva['car_number'];
+            $data['usage_time'] = $usage_time;
+            $data['over_time'] = !empty($over_time)?$over_time:0;
+        }
+        //车位号
+        $data['park_space'] = $result['park_space'];
+
+        return $data;
     }
 
     //根据发布共享id查询预约中共享车位预约人信息
