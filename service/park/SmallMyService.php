@@ -79,7 +79,7 @@ class SmallMyService extends BaseService
     {
         $valiResult = $this->valiParams($params);
         if($valiResult['code']==1){
-            $result = PsParkReservation::getList($params, ['id', 'space_id', 'start_at', 'end_at']);
+            $result = PsParkReservation::getList($params, ['id', 'space_id', 'start_at', 'end_at','status']);
             return $this->success($result);
         }
         return $valiResult;
