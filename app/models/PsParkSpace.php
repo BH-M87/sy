@@ -69,7 +69,7 @@ class PsParkSpace extends BaseModel
      */
     public function infoData($attribute)
     {
-        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
+        $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id and is_del=1', [':id' => $this->id,":community_id" => $this->community_id])->asArray()->one();
         if (empty($res)) {
             $this->addError($attribute, "该共享车位不存在!");
         }
@@ -136,6 +136,13 @@ class PsParkSpace extends BaseModel
                     ->andWhere(['=','space.is_del',1])
                     ->andWhere(['=','space.status',2]);
         return $model->asArray()->all();
+    }
+
+    //根据id 获得共享车位信息
+    public function getDetail($params){
+        $fields = ['ali_form_id','ali_user_id'];
+        $model = self::find()->select($fields)->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
     }
 
 }

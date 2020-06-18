@@ -132,16 +132,23 @@ class SharedService extends BaseService{
                 //车牌下放 待定
 
                 //修改共享车位信息
-                $spaceModel = new PsParkSpace();
-                $spaceParams['status'] = 2;
-                $spaceParams['update_at'] = time();
-                $spaceParams['id'] = $params['space_id'];
-                if(!$spaceModel->edit($spaceParams)){
-                    return $this->failed('共享车位信息修改失败！');
+                $spaceModel = new PsParkSpace(['scenario'=>'info']);
+                $info['id'] = $params['space_id'];
+                $info['community_id'] = $params['community_id'];
+                if($spaceModel->load($info,'')&&$spaceModel->validate()){
+                    $spaceParams['status'] = 2;
+                    $spaceParams['update_at'] = time();
+                    $spaceParams['id'] = $params['space_id'];
+                    if(!$spaceModel->edit($spaceParams)){
+                        return $this->failed('共享车位信息修改失败！');
+                    }
+                    $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
+                    //发送支付宝消息 通知发布者
+                    AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index','您的共享车位已被预约');
+                }else{
+                    $msg = array_values($spaceModel->errors)[0][0];
+                    return $this->failed($msg);
                 }
-                $spaceDetail = $spaceModel;
-                //发送支付宝消息 通知发布者
-                AliPayQrCodeService::service()->sendMessage($model->attributes['ali_user_id'],$model->attributes['ali_form_id'],'pages/index/index','您的共享车位已被预约');
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
             }else{
