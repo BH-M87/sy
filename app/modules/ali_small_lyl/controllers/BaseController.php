@@ -7,6 +7,7 @@
  */
 namespace app\modules\ali_small_lyl\controllers;
 
+use common\core\F;
 use common\core\JavaCurl;
 use Yii;
 use yii\base\Exception;
@@ -29,6 +30,8 @@ class BaseController extends \yii\web\Controller
     public $page;
     //分页条数，后台默认10条数据
     public $rows = 10;
+
+    public $repeatAction = [];//验证重复请求的方法数组
 
     public function init(){
         //跨域
@@ -53,6 +56,11 @@ class BaseController extends \yii\web\Controller
             $this->_validateToken($action);
             $this->page = !empty($this->params['page']) ? intval($this->params['page']) : 1;
             $this->rows = !empty($this->params['rows']) ? intval($this->params['rows']) : $this->rows;
+
+            //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
+            if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
+                exit($this->ajaxReturn('请勿重复请求，30s后重试'));
+            }
             //所有验证通过
             return true;
         }
@@ -141,5 +149,17 @@ class BaseController extends \yii\web\Controller
         return $data;
     }
 
+    public function dealReturnResult($result)
+    {
+        if($result['code'] == 1){
+            return F::apiSuccess($result['data']);
+        } else {
+            if (!empty($result['code'])) {
+                return F::apiFailed($result['msg'], $result['code']);
+
+            }
+            return F::apiFailed($result['msg']);
+        }
+    }
 }
 

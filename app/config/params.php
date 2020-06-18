@@ -45,11 +45,17 @@ $data['javaUrl'] = $paramsConfig[YII_ENV]['javaUrl'];
 $data['javaAppKey'] = $paramsConfig[YII_ENV]['javaAppKey'];
 $data['javaAppSecret'] = $paramsConfig[YII_ENV]['javaAppSecret'];
 
-//小程序配置
+//报事报修小程序配置
 $data['repair_app_id'] = '2019121169782733';
 $data['repair_aes_secret'] = '1nj7Axd1H3tfXCoirAvm/w==';
 $data['repair_alipay_public_key_file'] = $basePath."/common/rsa_files/repair/alipay_public.txt";
 $data['repair_rsa_private_key_file'] = $basePath."/common/rsa_files/repair/rsa_private.txt";
+
+//共享停车小程序配置
+$data['park_app_id'] = '2021001168603710';
+$data['park_aes_secret'] = '1eFxQLfz/EUhcFiS3Ws0/A==';
+$data['park_alipay_public_key_file'] = $basePath."/common/rsa_files/park/alipay_public.txt";
+$data['park_rsa_private_key_file'] = $basePath."/common/rsa_files/park/rsa_private.txt";
 
 //oss文件上传配置
 $data['oss_access_key_id'] = 'LTAIG9QWK20XYpp1';
