@@ -10,7 +10,7 @@ class PsParkMessage extends BaseModel
      */
     public static function tableName()
     {
-        return 'ps_park_reservation';
+        return 'ps_park_message';
     }
 
     /**
@@ -61,7 +61,6 @@ class PsParkMessage extends BaseModel
     public static function getList($params,$field = "*",$page = true)
     {
         $activity = self::find()->select($field)
-            ->where(['is_del' => 1])
             ->andFilterWhere(['user_id' => $params['user_id']]);
         $count = $activity->count();
         if ($count > 0) {

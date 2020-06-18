@@ -1,6 +1,8 @@
 <?php
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
+use app\modules\ali_small_lyl\controllers\UserBaseController;
+
 use service\park\SmallMyService;
 
 
