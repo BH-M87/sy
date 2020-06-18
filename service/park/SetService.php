@@ -35,10 +35,11 @@ class SetService extends BaseService
     public function _saveSet($p, $scenario, $userInfo)
     {
         if ($scenario == 'edit') {
-            $model = PsParkSet::findOne($p['id']);
+            $model = PsParkSet::find()->one();
             if (empty($model)) {
                 throw new MyException('数据不存在!');
             }
+            $p['id'] = $model->id;
         }
 
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $p['community_id']]);
