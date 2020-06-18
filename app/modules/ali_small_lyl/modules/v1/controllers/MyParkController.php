@@ -30,6 +30,16 @@ class MyParkController extends BaseController
         return self::dealReturnResult($result);
     }
 
+    //我的共享取消操作
+    public function actionCancelParkShare()
+    {
+        $this->params['user_id'] = 404;
+        $this->params['id'] = 404;
+        $result = SmallMyService::service()->cancelParkShare($this->params);
+        return self::dealReturnResult($result);
+    }
+
+
     //我的共享详情
     public function actionParkShareInfo()
     {
