@@ -86,7 +86,7 @@ class CallBackService extends BaseService  {
             //获得预约记录
             $fields = [
                         'id','space_id','start_at','end_at','community_id','community_name','room_id','room_name',
-                        'appointment_id','appointment_name','appointment_mobile'
+                        'appointment_id','appointment_name','appointment_mobile','crop_id'
             ];
             $info = PsParkReservation::find()->select($fields)
                 ->where(['=','car_number',$params['car_number']])
@@ -107,13 +107,13 @@ class CallBackService extends BaseService  {
             //删除车辆信息
 
             //修改预约记录信息
-            $reservationUpdate['status'] = $timeOut?3:4;
+            $reservationUpdate['status'] = $timeOut?3:4;    //
             $reservationUpdate['out_at'] = $params['out_at'];
             $reservationUpdate['update_at'] = $nowTime;
             PsParkReservation::updateAll($reservationUpdate,['id'=>$info['id']]);
             //修改预约车位信息
 
-            $spaceParams['status'] = 4;
+            $spaceParams['status'] = 4; //
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
             $trans->commit();
@@ -125,14 +125,15 @@ class CallBackService extends BaseService  {
 
     /*
      * 超时判断
-     * 1.获得系统设置
+     * 1.获得系统设置 根据小区id调用java接口 会的cropId
      * 2.设置违约记录 （新增or修改）
      * 3.加入黑名单
      * 4.添加共享积分
      * 5.支付宝通知车位共享者
      */
     private function timeOut($params){
-        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','community_id',$params['community_id']])->asArray()->one();
+
+        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','crop_id',$params['crop_id']])->asArray()->one();
         if(empty($setInfo)){
             return $this->failed('系统设置不存在');
         }

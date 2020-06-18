@@ -120,10 +120,11 @@ CREATE TABLE `ps_park_reservation` (
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1未删除 2已删除（发布人，系统）',
+  `crop_id` varchar(30) NOT NULL DEFAULT '' COMMENT '后台登陆租户id',
   `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='预约记录';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='预约记录';
 
 
 

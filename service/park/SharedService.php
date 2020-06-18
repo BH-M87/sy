@@ -6,6 +6,7 @@ use app\models\PsParkShared;
 use app\models\PsParkSpace;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
+use service\property_basic\JavaOfCService;
 use Yii;
 use yii\db\Exception;
 
@@ -113,17 +114,28 @@ class SharedService extends BaseService{
 
     /*
      * 车位预约 （默认是业主）
+     * 0.调用java接口 获得cropid
      * 1.判断预约人是否在黑名单中
      * 2.判断预约人超时时间是否被锁定
      * 3.判断预约人今天取消次数
      * 4.判断预约车位是否存在，待预约状态, 车辆是否有相同天数预约的车位（不能恶意占用资源：同一个车牌）
-     * 5.车牌下放
+     * 5.车牌下放 (调用java接口)
      * 6.支付宝消息通知发布者
      * 7.修改共享车位信息
      */
     public function spaceReservation($params){
         $trans = Yii::$app->db->beginTransaction();
         try{
+            if(empty($params['community_id'])){
+                return $this->failed('小区id不能为空！');
+            }
+
+            $javaService = new JavaOfCService();
+            $javaParam['token'] = $params['token'];
+            $javaParam['id'] = $params['community_id'];
+            $javaRes = $javaService->selectCommunityById($javaParam);
+            $params['crop_id'] = !empty($javaRes['corpId'])?$javaRes['corpId']:'';
+
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
                 if(!$model->save()){
