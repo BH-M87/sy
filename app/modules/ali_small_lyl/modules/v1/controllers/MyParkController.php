@@ -25,7 +25,6 @@ class MyParkController extends BaseController
     //我的共享
     public function actionParkShare()
     {
-        $this->params['user_id'] = 404;
         $result = SmallMyService::service()->getParkShare($this->params);
         return self::dealReturnResult($result);
     }
@@ -33,8 +32,6 @@ class MyParkController extends BaseController
     //我的共享取消操作
     public function actionCancelParkShare()
     {
-        $this->params['user_id'] = 404;
-        $this->params['id'] = 404;
         $result = SmallMyService::service()->cancelParkShare($this->params);
         return self::dealReturnResult($result);
     }
@@ -43,8 +40,6 @@ class MyParkController extends BaseController
     //我的共享详情
     public function actionParkShareInfo()
     {
-        $this->params['user_id'] = 404;
-        $this->params['id'] = 9;
         $result = SmallMyService::service()->getParkShareInfo($this->params);
         return self::dealReturnResult($result);
     }
