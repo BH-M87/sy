@@ -37,9 +37,10 @@ class SetService extends BaseService
         if ($scenario == 'edit') {
             $model = PsParkSet::find()->one();
             if (empty($model)) {
-                throw new MyException('数据不存在!');
+                $scenario == 'add';
+            } else {
+                $p['id'] = $model->id;
             }
-            $p['id'] = $model->id;
         }
 
         $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $p['community_id']]);
