@@ -35,7 +35,7 @@ class SetService extends BaseService
     public function _saveSet($p, $scenario, $userInfo)
     {
         if ($scenario == 'edit') {
-            $model = PsParkSet::find()->one();
+            $model = PsParkSet::find()->where(['corp_id' => $p['corp_id']])->one();
             if (empty($model)) {
                 $scenario == 'add';
             } else {
@@ -78,7 +78,7 @@ class SetService extends BaseService
     // 详情
     public function showSet($p)
     {
-        $r = PsParkSet::find()->asArray()->one();
+        $r = PsParkSet::find()->where(['corp_id' => $p['corp_id']])->asArray()->one();
         if (!empty($r)) {
             return $r;
         }
