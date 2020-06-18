@@ -149,5 +149,17 @@ class BaseController extends \yii\web\Controller
         return $data;
     }
 
+    public function dealReturnResult($result)
+    {
+        if($result['code'] == 1){
+            return F::apiSuccess($result['data']);
+        } else {
+            if (!empty($result['code'])) {
+                return F::apiFailed($result['msg'], $result['code']);
+
+            }
+            return F::apiFailed($result['msg']);
+        }
+    }
 }
 

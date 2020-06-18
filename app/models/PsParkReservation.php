@@ -218,7 +218,7 @@ class PsParkReservation extends BaseModel
 
     public static function getOne($param)
     {
-        $result = self::find()->where(['id'=>$param['id']])->asArray()->one();
+        $result = self::find()->select(['id','space_id','start_at','end_at','car_number','enter_at','out_at','status'])->where(['id'=>$param['id']])->asArray()->one();
         $result['share_at'] = date('Y-m-d',$result['start_at']);
         $result['start_at'] = date('H:i',$result['start_at']);
         $result['end_at'] = date('H:i',$result['end_at']);
