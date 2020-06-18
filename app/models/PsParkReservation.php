@@ -128,7 +128,7 @@ class PsParkReservation extends BaseModel
             $count = self::find()
                             ->where(['=','appointment_id',$this->appointment_id])
                             ->andWhere(['=','community_id',$this->community_id])
-                            ->andWhere(['=',"FROM_UNIXTIME(cancel_at,'%Y-%m-%d')",date('Y-m-d',time())])
+                            ->andWhere(['=',"FROM_UNIXTIME(update_at,'%Y-%m-%d')",date('Y-m-d',time())])
                             ->count('id');
             if($count>=$setRes['cancle_num']){
                 return $this->addError($attribute, "您已超过".$setRes['cancle_num']."次取消次数,不能预约");

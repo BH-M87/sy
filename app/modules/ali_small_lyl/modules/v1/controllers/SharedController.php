@@ -45,7 +45,7 @@ class SharedController extends BaseController {
         }
     }
 
-    //车位预约
+    //使用者车位预约
     public function actionSpaceReservation(){
         try{
             $this->params['appointment_id'] = !empty($this->params['user_id'])?$this->params['user_id']:'';
