@@ -117,6 +117,7 @@ CREATE TABLE `ps_park_reservation` (
   `enter_at` int(11) NOT NULL DEFAULT '0' COMMENT '入场时间',
   `out_at` int(11) NOT NULL DEFAULT '0' COMMENT '离场时间',
   `status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '状态 1已预约 2使用中 3已超时 4已关闭 5已取消',
+  `cancel_at` int(11) NOT NULL DEFAULT '0' COMMENT '取消预约时间',
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1未删除 2已删除（发布人，系统）',
