@@ -31,9 +31,9 @@ class PsParkReservation extends BaseModel
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['car_number'],'string','max'=>10],
             [['appointment_id','community_id'],'isBlackList','on'=>'add'],//预约人是否在黑名单
-            [['space_id','community_id'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约
             [['appointment_id','community_id'],'isTimeOut','on'=>'add'],//预约人是否超时被锁定
             [['appointment_id','community_id'],'isCancel','on'=>'add'], //一天取消次数
+            [['space_id','community_id','car_number'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约 预约时间不能有相同的天数
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
             [['is_del','status'], 'default', 'value' => 1,'on'=>['add']],
         ];
@@ -94,6 +94,19 @@ class PsParkReservation extends BaseModel
         if($res['status']!=1){
             return $this->addError($attribute, "该共享车位".$this->statusArray[$res['status']].",不能预约");
         }
+
+        //当前车牌预约的时间是否有相同的时间（防止恶意占用资源）
+        $count = self::find()
+                        ->where(['=','car_number',$this->car_number])
+                        ->andWhere(['=','community_id',$this->community_id])
+                        ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$res['start_at'])])
+                        ->andWhere(['=','is_del',1])
+                        ->andWhere(['!=','status',5])
+                        ->count('id');
+        if($count>0){
+            return $this->addError($attribute, "您已预约过当天车位，不能预约");
+        }
+
         //车位剩余时间15分钟内不能预约
         $nowTime = time();
         if($nowTime>=$res['end_at']-900){
@@ -129,6 +142,8 @@ class PsParkReservation extends BaseModel
                             ->where(['=','appointment_id',$this->appointment_id])
                             ->andWhere(['=','community_id',$this->community_id])
                             ->andWhere(['=',"FROM_UNIXTIME(update_at,'%Y-%m-%d')",date('Y-m-d',time())])
+                            ->andWhere(['=','is_del',1])
+                            ->andWhere(['=','status',5])
                             ->count('id');
             if($count>=$setRes['cancle_num']){
                 return $this->addError($attribute, "您已超过".$setRes['cancle_num']."次取消次数,不能预约");
