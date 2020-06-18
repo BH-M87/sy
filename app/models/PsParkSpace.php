@@ -106,6 +106,8 @@ class PsParkSpace extends BaseModel
     {
         $activity = self::find()->select($field)
             ->where(['is_del' => 1])
+            ->andFilterWhere(['publish_id' => $params['user_id']])
+            ->andFilterWhere(['shared_id' => $params['shared_id']])
             ->andFilterWhere(['community_id' => $params['community_id']])
             ->andFilterWhere(['status' => $params['status']]);
         $count = $activity->count();
@@ -115,6 +117,7 @@ class PsParkSpace extends BaseModel
                 $activity->offset((($params['page'] ?? 1) - 1) * ($params['rows'] ?? 10))->limit($params['rows'] ?? 10);
             }
             $data = $activity->asArray()->all();
+            self::afterList($data);
         }
         return ['totals'=>$count,'list'=>$data ?? []];
     }
@@ -162,6 +165,25 @@ class PsParkSpace extends BaseModel
         $fields = ['ali_form_id','ali_user_id'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         return $model->asArray()->one();
+    }
+
+    /**
+     * 列表结果格式化
+     * @author yjh
+     * @param $data
+     */
+    public static function afterList(&$data)
+    {
+        foreach ($data as &$v) {
+            $v['shared_at'] = date('Y-m-d',$v['shared_at']);
+            $v['start_at'] = date('H:i',$v['start_at']);
+            $v['end_at'] = date('H:i',$v['end_at']);
+            //查询预约记录
+            $reserva = PsParkReservation::getOneBySpaceId(['id'=>$v['id']]);
+            if(!empty($reserva)){
+                $v['car_number'] = $reserva['car_number'];
+            }
+        }
     }
 
 }

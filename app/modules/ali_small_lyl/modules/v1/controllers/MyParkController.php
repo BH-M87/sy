@@ -25,6 +25,7 @@ class MyParkController extends BaseController
     //我的共享
     public function actionParkShare()
     {
+        $this->params['user_id'] = 404;
         $result = SmallMyService::service()->getParkShare($this->params);
         return self::dealReturnResult($result);
     }
