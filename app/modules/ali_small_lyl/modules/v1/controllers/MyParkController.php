@@ -1,10 +1,12 @@
 <?php
 namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
+use app\modules\ali_small_lyl\controllers\BaseController;
+
 use service\park\SmallMyService;
 
 
-class MyParkController extends UserBaseController
+class MyParkController extends BaseController
 {
     //我的顶部统计数据
     public function actionStatis()
