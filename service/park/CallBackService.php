@@ -40,16 +40,17 @@ class CallBackService extends BaseService  {
      * 1.根据车牌 入场时间获得对应预约记录
      * 2.修改预约记录信息
      * 3.修改预约车位信息
+     * 4.给共享车位人发送消息
      */
     private function carEntry($params){
         $trans = Yii::$app->db->beginTransaction();
         try{
             //获得预约记录
-            $info = PsParkReservation::find()->select(['id','space_id'])
+            $info = PsParkReservation::find()->select(['id','space_id','car_number'])
                         ->where(['=','car_number',$params['car_number']])
                         ->andWhere(['=','status',1])
                         ->andWhere(['=','is_del',1])
-                        ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['start_at'])])
+                        ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['enter_at'])])
                         ->asArray()->one();
             if(empty($info)){
                 return $this->failed('预约信息不存在');
@@ -57,12 +58,19 @@ class CallBackService extends BaseService  {
             $nowTime = time();
             $updateParams['status'] = 2;    //使用中
             $updateParams['update_at'] = $nowTime;
-            $updateParams['enter_at'] = $params['start_at'];    //入场时间
+            $updateParams['enter_at'] = $params['enter_at'];    //入场时间
             PsParkReservation::updateAll($updateParams,['id'=>$info['id']]);
 
             $spaceParams['status'] = 3;
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
+
+            $spaceModel = new PsParkSpace();
+            $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
+            //发送支付宝消息 通知发布者
+            $msg = $info['car_number']."于".date('H:i',$params['enter_at'])."入场您共享的车位";
+            //添加消息记录
+
             $trans->commit();
         }catch (Exception $e) {
             $trans->rollBack();
@@ -86,13 +94,13 @@ class CallBackService extends BaseService  {
             //获得预约记录
             $fields = [
                         'id','space_id','start_at','end_at','community_id','community_name','room_id','room_name',
-                        'appointment_id','appointment_name','appointment_mobile','crop_id'
+                        'appointment_id','appointment_name','appointment_mobile','crop_id','car_number'
             ];
             $info = PsParkReservation::find()->select($fields)
                 ->where(['=','car_number',$params['car_number']])
                 ->andWhere(['=','status',2])
                 ->andWhere(['=','is_del',1])
-                ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['start_at'])])
+                ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['enter_at'])])
                 ->asArray()->one();
             if(empty($info)){
                 return $this->failed('预约信息不存在');
@@ -129,7 +137,7 @@ class CallBackService extends BaseService  {
      * 2.设置违约记录 （新增or修改）
      * 3.加入黑名单
      * 4.添加共享积分
-     * 5.支付宝通知车位共享者
+     * 5.添加消息记录
      */
     private function timeOut($params){
 
@@ -199,7 +207,7 @@ class CallBackService extends BaseService  {
                 $addParams['num'] = 1;
                 $addParams['lock_at'] = $lock_at;
                 $addParams['create_at'] = $nowTime;
-                Yii::$app->db->createCommand()->insert(PsParkBreakPromise::tableName(),$addParams);
+                Yii::$app->db->createCommand()->insert(PsParkBreakPromise::tableName(),$addParams)->execute();
                 $promiseCount = 1;
             }
 
@@ -222,7 +230,7 @@ class CallBackService extends BaseService  {
                     $blackAdd['mobile'] = $params['appointment_mobile'];
                     $blackAdd['num'] = $promiseCount;
                     $blackAdd['create_at'] = $nowTime;
-                    Yii::$app->db->createCommand()->insert(PsParkBlack::tableName(),$blackAdd);
+                    Yii::$app->db->createCommand()->insert(PsParkBlack::tableName(),$blackAdd)->execute();
                 }
             }
         }
@@ -233,7 +241,8 @@ class CallBackService extends BaseService  {
             $integral = ceil(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
             PsParkSpace::updateAll(['score'=>$integral],['id'=>$params['space_id']]);
             //发送支付宝消息 通知发布者
-            AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index','您的共享车位预约完成');
+            $msg = $params['car_number'].'于'.date('H:i',$params['out_at']).'离场您共享的车位';
+            //添加消息记录
         }
 
         return $timeOut;

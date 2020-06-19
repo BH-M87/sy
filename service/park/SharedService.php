@@ -1,6 +1,7 @@
 <?php
 namespace service\park;
 
+use app\models\PsParkMessage;
 use app\models\PsParkReservation;
 use app\models\PsParkShared;
 use app\models\PsParkSpace;
@@ -123,6 +124,7 @@ class SharedService extends BaseService{
      * 6.车牌下放 (调用java接口)
      * 7.支付宝消息通知发布者
      * 8.修改共享车位信息
+     * 9.添加消息记录
      */
     public function spaceReservation($params){
         $trans = Yii::$app->db->beginTransaction();
@@ -139,7 +141,7 @@ class SharedService extends BaseService{
 
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
-                if(!$model->save()){
+                if(!$model->saveData()){
                     return $this->failed('新增失败！');
                 }
                 //车牌下放 待定
@@ -157,7 +159,23 @@ class SharedService extends BaseService{
                     }
                     $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
                     //发送支付宝消息 通知发布者
-                    AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index','您的共享车位已被预约');
+                    $msg = "您于".date('m月d日',$spaceDetail['shared_at'])."共享的车位已被小区业主预约";
+                    AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index',$msg);
+                    //添加消息记录
+                    $msgParams['community_id'] = $params['community_id'];
+                    $msgParams['community_name'] = $params['community_name'];
+                    $msgParams['user_id'] = $spaceDetail['publish_id'];
+                    $msgParams['type'] = 1;
+                    $msgParams['content'] = $msg;
+                    $msgModel = new PsParkMessage(['scenario'=>'add']);
+                    if($msgModel->load($msgParams,'')&&$msgModel->validate()){
+                        if(!$msgModel->saveData()){
+                            return $this->failed('消息新增失败！');
+                        }
+                    }else{
+                        $msg = array_values($msgModel->errors)[0][0];
+                        return $this->failed($msg);
+                    }
                 }else{
                     $msg = array_values($spaceModel->errors)[0][0];
                     return $this->failed($msg);
