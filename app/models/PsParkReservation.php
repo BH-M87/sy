@@ -2,12 +2,11 @@
 
 namespace app\models;
 
-use service\door\SelfService;
 
 class PsParkReservation extends BaseModel
 {
 
-    public $statusArray = ['1'=>'待预约','2'=>'已预约','3'=>'使用中','4'=>'已关闭'];
+    public $statusArray = ['1'=>'待预约','2'=>'已预约','3'=>'使用中','4'=>'已关闭','5'=>'已完成'];
 
     /**
      * @inheritdoc
@@ -33,7 +32,7 @@ class PsParkReservation extends BaseModel
             [['appointment_id','community_id'],'isBlackList','on'=>'add'],//预约人是否在黑名单
             [['appointment_id','community_id'],'isTimeOut','on'=>'add'],//预约人是否超时被锁定
             [['appointment_id','community_id','crop_id'],'isCancel','on'=>'add'], //一天取消次数
-            [['space_id','community_id','car_number'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约 预约时间不能有相同的天数
+            [['space_id','community_id','car_number','appointment_id'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约 预约时间不能有相同的天数 预约人是否发布人
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
             [['is_del','status'], 'default', 'value' => 1,'on'=>['add']],
         ];
@@ -84,7 +83,7 @@ class PsParkReservation extends BaseModel
      * 判断预约车位是否存在 且可以预约
      */
     public function canBeReserved($attribute){
-        $res = PsParkSpace::find()->select(['id','status','start_at','end_at'])
+        $res = PsParkSpace::find()->select(['id','status','start_at','end_at','publish_id'])
                             ->where(['=','id',$this->space_id])
                             ->andWhere(['=','community_id',$this->community_id])
                             ->andWhere(['=','is_del',1])
@@ -94,6 +93,9 @@ class PsParkReservation extends BaseModel
         }
         if($res['status']!=1){
             return $this->addError($attribute, "该共享车位".$this->statusArray[$res['status']].",不能预约");
+        }
+        if($res['publish_id'] == $this->appointment_id){
+            return $this->addError($attribute, "您发布的共享车位,不能预约");
         }
 
         //当前车牌预约的时间是否有相同的时间（防止恶意占用资源）
