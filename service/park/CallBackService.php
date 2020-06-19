@@ -19,19 +19,19 @@ class CallBackService extends BaseService  {
      * 车辆出入场
      */
     public function carEntryExit($params){
-        $params['enter_at'] = !empty($params['enter_at'])?strtotime($params['enter_at']):'';
-        $params['out_at'] = !empty($params['out_at'])?strtotime($params['out_at']):'';
+        $params['enter_at'] = !empty($params['arriveTime'])?strtotime($params['arriveTime']):'';
+        $params['out_at'] = !empty($params['leaveTime'])?strtotime($params['leaveTime']):'';
         if(!empty($params['enter_at'])&&empty($params['out_at'])){
             //车辆进场
             $entryParams['enter_at'] = $params['enter_at'];
-            $entryParams['car_number'] = $params['car_number'];
+            $entryParams['car_number'] = $params['carNum'];
             self::carEntry($entryParams);
         }
         if(!empty($params['enter_at'])&&!empty($params['out_at'])){
             //车辆出场
             $exitParams['enter_at'] = $params['enter_at'];
             $exitParams['out_at'] = $params['out_at'];
-            $exitParams['car_number'] = $params['car_number'];
+            $exitParams['car_number'] = $params['carNum'];
             self::carExit($exitParams);
         }
     }
