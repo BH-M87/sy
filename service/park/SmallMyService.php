@@ -52,6 +52,18 @@ class SmallMyService extends BaseService
         return $valiResult;
     }
 
+    //我的车辆
+    public function getParkCar($params)
+    {
+        $valiResult = $this->valiParams($params);
+        if($valiResult['code']==1){
+            $result = $this->carData($params['user_id']);
+            return $this->success($result);
+        }
+        return $valiResult;
+    }
+
+
     //我的车位
     public function getParkLot($params)
     {
@@ -231,6 +243,23 @@ class SmallMyService extends BaseService
                 ['park_id'=>'29' . $id,'park_space'=>'29' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
             ]
         ];
+        return $list[$id];
+    }
+
+    //muke车辆数据
+    public function carData($user_id)
+    {
+        $id = substr($user_id, -1);
+        $list[0] = ['carNum' => [['id'=>'1001','value'=>"浙A1001" . $id], ['id'=>'1011','value'=>"浙B1011" . $id], ['id'=>'1021','value'=>"浙C1021" . $id]]];
+        $list[1] = ['carNum' => [['id'=>'1002','value'=>"浙A1002" . $id], ['id'=>'1012','value'=>"浙B1012" . $id], ['id'=>'1022','value'=>"浙C1022" . $id]]];
+        $list[2] = ['carNum' => [['id'=>'1003','value'=>"浙A1003" . $id], ['id'=>'1013','value'=>"浙A1013" . $id], ['id'=>'1023','value'=>"浙C1023" . $id]]];
+        $list[3] = ['carNum' => [['id'=>'1004','value'=>"浙A1004" . $id], ['id'=>'1014','value'=>"浙B1014" . $id], ['id'=>'1024','value'=>"浙C1024" . $id]]];
+        $list[4] = ['carNum' => [['id'=>'1005','value'=>"浙A1005" . $id], ['id'=>'1015','value'=>"浙B1015" . $id], ['id'=>'1025','value'=>"浙C1025" . $id]]];
+        $list[5] = ['carNum' => [['id'=>'1006','value'=>"浙A1006" . $id], ['id'=>'1016','value'=>"浙B1016" . $id], ['id'=>'1026','value'=>"浙C1026" . $id]]];
+        $list[6] = ['carNum' => [['id'=>'1007','value'=>"浙A1007" . $id], ['id'=>'1017','value'=>"浙B1017" . $id], ['id'=>'1027','value'=>"浙C1027" . $id]]];
+        $list[7] = ['carNum' => [['id'=>'1008','value'=>"浙A1008" . $id], ['id'=>'1018','value'=>"浙B1018" . $id], ['id'=>'1028','value'=>"浙C1028" . $id]]];
+        $list[8] = ['carNum' => [['id'=>'1009','value'=>"浙A1009" . $id], ['id'=>'1019','value'=>"浙B1019" . $id], ['id'=>'1029','value'=>"浙C1029" . $id]]];
+        $list[9] = ['carNum' => [['id'=>'1099','value'=>"浙A1099" . $id], ['id'=>'1119','value'=>"浙B1119" . $id], ['id'=>'1929','value'=>"浙C1229" . $id]]];
         return $list[$id];
     }
 }
