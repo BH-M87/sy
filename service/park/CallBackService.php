@@ -4,6 +4,7 @@ namespace service\park;
 
 use app\models\PsParkBlack;
 use app\models\PsParkBreakPromise;
+use app\models\PsParkMessage;
 use app\models\PsParkReservation;
 use app\models\PsParkSet;
 use app\models\PsParkSpace;
@@ -67,9 +68,23 @@ class CallBackService extends BaseService  {
 
             $spaceModel = new PsParkSpace();
             $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
-            //发送支付宝消息 通知发布者
+            //通知发布者
             $msg = $info['car_number']."于".date('H:i',$params['enter_at'])."入场您共享的车位";
             //添加消息记录
+            $msgParams['community_id'] = $params['community_id'];
+            $msgParams['community_name'] = $params['community_name'];
+            $msgParams['user_id'] = $spaceDetail['publish_id'];
+            $msgParams['type'] = 1;
+            $msgParams['content'] = $msg;
+            $msgModel = new PsParkMessage(['scenario'=>'add']);
+            if($msgModel->load($msgParams,'')&&$msgModel->validate()){
+                if(!$msgModel->saveData()){
+                    return $this->failed('消息新增失败！');
+                }
+            }else{
+                $msg = array_values($msgModel->errors)[0][0];
+                return $this->failed($msg);
+            }
 
             $trans->commit();
         }catch (Exception $e) {
@@ -240,9 +255,23 @@ class CallBackService extends BaseService  {
             //添加共享积分
             $integral = ceil(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
             PsParkSpace::updateAll(['score'=>$integral],['id'=>$params['space_id']]);
-            //发送支付宝消息 通知发布者
+            //通知发布者
             $msg = $params['car_number'].'于'.date('H:i',$params['out_at']).'离场您共享的车位';
             //添加消息记录
+            $msgParams['community_id'] = $params['community_id'];
+            $msgParams['community_name'] = $params['community_name'];
+            $msgParams['user_id'] = $spaceDetail['publish_id'];
+            $msgParams['type'] = 1;
+            $msgParams['content'] = $msg;
+            $msgModel = new PsParkMessage(['scenario'=>'add']);
+            if($msgModel->load($msgParams,'')&&$msgModel->validate()){
+                if(!$msgModel->saveData()){
+                    return $this->failed('消息新增失败！');
+                }
+            }else{
+                $msg = array_values($msgModel->errors)[0][0];
+                return $this->failed($msg);
+            }
         }
 
         return $timeOut;
