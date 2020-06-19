@@ -58,6 +58,7 @@ class ParkScriptService extends BaseService {
                     PsParkSpace::updateAll(['notice_15'=>'2'],['in','id',$spaceIds]);
                 }
             }
+            $trans->commit();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -134,6 +135,7 @@ class ParkScriptService extends BaseService {
                     PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
                 }
             }
+            $trans->commit();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -148,6 +150,29 @@ class ParkScriptService extends BaseService {
      * 4.超时自动关闭预约记录
      */
     public function lateCancel(){
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $fields = [
+                'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
+                'record.ali_user_id','record.appointment_id','record.id as record_id',
+            ];
+            $nowTime = time();
+            $diffTime = $nowTime - 5*60;
+            //获得数据
+            $result = PsParkSpace::find()->alias('space')
+                ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
+                ->select($fields)
+                ->where(['=','space.is_del',1])
+                ->andWhere(['=','space.status',2])
+                ->andWhere(['=',"FROM_UNIXTIME(space.,'%Y-%m-%d')",date('Y-m-d',time())])
+                ->asArray()->all();
+            if(!empty($result)){
 
+            }
+            $trans->commit();
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
     }
 }

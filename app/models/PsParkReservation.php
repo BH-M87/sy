@@ -110,8 +110,13 @@ class PsParkReservation extends BaseModel
             return $this->addError($attribute, "您已预约过当天车位，不能预约");
         }
 
-        //车位剩余时间15分钟内不能预约
         $nowTime = time();
+        //预约已经结束共享预约时间的车位不能预约
+        if($nowTime>$res['end_at']){
+            return $this->addError($attribute, "当前时间大于共享车位结束时间，不能预约");
+        }
+
+        //车位剩余时间15分钟内不能预约
         if($nowTime>=$res['end_at']-900){
             return $this->addError($attribute, "该共享车位剩余时间小于15分钟不能预约");
         }
