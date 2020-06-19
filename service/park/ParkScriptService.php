@@ -178,7 +178,7 @@ class ParkScriptService extends BaseService {
                     $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
                     if(!empty($setInfo)){
                         $diff = ceil(($nowTime - $value['start_at'])/60);//计算总共使用多少分钟
-                        if($diff>=$setInfo['late_at']){
+                        if($diff<=$setInfo['late_at']){
                             //自动关闭车位，预约记录
                             array_push($spaceIds,$value['id']);
                             array_push($recordIds,$value['record_id']);
@@ -191,6 +191,66 @@ class ParkScriptService extends BaseService {
                 }
                 if(!empty($recordIds)){
                     PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
+                }
+            }
+            $trans->commit();
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
+    }
+
+    /*
+     * 提醒离场
+     * 1.查询数据（使用中 未发送过通知）
+     * 2.查询配置表
+     * 3.发消息通知
+     * 4.添加消息
+     * 5.修改预约记录表 notice_out
+     */
+    public function noticeOut(){
+        $trans = Yii::$app->db->beginTransaction();
+        try {
+            $nowTime = time();
+            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','crop_id','park_space'])
+                ->where(['=', 'is_del', 1])
+                ->andWhere(['=', 'notice_out', 1])
+                ->andWhere(['=', 'status', 2])
+                ->andWhere(['<', "start_at", $nowTime])
+                ->andWhere(['>', "end_at", $nowTime])
+                ->asArray()->all();
+            if(!empty($result)){
+                $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
+                $data = [];
+                $spaceIds = [];
+                foreach($result as $key=>$value){
+                    $setInfo = PsParkSet::find()->select(['due_notice'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    if(!empty($setInfo)){
+                        $diff = ceil(($value['end_at'] - $nowTime)/60);//计算总共使用多少分钟
+                        if($diff<=$setInfo['due_notice']){
+                            //发消息通知
+                            $msg = "您使用的".$value['park_space']."共享车位将于".date('H:i',$value['end_at'])."到时，为不影响下次预约，请在出场截止时间前离场~！";
+                            AliPayQrCodeService::service()->sendMessage($value['ali_user_id'],$value['ali_form_id'],'pages/index/index',$msg);
+
+                            array_push($spaceIds,$value['id']);
+
+                            //添加消息记录
+                            $msgParams['community_id'] = $value['community_id'];
+                            $msgParams['community_name'] = $value['community_name'];
+                            $msgParams['user_id'] = $value['appointment_id'];
+                            $msgParams['type'] = 1;
+                            $msgParams['content'] = $msg;
+                            $msgParams['create_at'] = $nowTime;
+                            $msgParams['update_at'] = $nowTime;
+                            $data[] = $msgParams;
+                        }
+                    }
+                }
+                if(!empty($spaceIds)){
+                    PsParkReservation::updateAll(['notice_out'=>2],['in','id',$spaceIds]);
+                }
+                if(!empty($data)){
+                    Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
                 }
             }
             $trans->commit();

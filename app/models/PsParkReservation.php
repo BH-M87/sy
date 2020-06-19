@@ -23,7 +23,7 @@ class PsParkReservation extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id','crop_id'], 'required','on'=>'add'],
-            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','cancel_at','create_at', 'update_at'], 'integer'],
+            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','cancel_at','notice_out','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
             [['room_name','crop_id'], 'string', 'max' => 50],
@@ -35,7 +35,7 @@ class PsParkReservation extends BaseModel
             [['appointment_id','community_id','crop_id'],'isCancel','on'=>'add'], //一天取消次数
             [['space_id','community_id','car_number','appointment_id'],'canBeReserved','on'=>'add'],//预约车位是否存在 且可预约 预约时间不能有相同的天数 预约人是否发布人
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
-            [['is_del','status'], 'default', 'value' => 1,'on'=>['add']],
+            [['is_del','status','notice_out'], 'default', 'value' => 1,'on'=>['add']],
         ];
     }
 
@@ -65,6 +65,7 @@ class PsParkReservation extends BaseModel
             'ali_form_id'           => '支付宝表单',
             'ali_user_id'           => '支付宝用户',
             'is_del'                => '是否删除',
+            'notice_out'            => '离场通知',
             'crop_id'               => '后台租户',
             'create_at'             => '创建时间',
             'update_at'             => '修改时间',

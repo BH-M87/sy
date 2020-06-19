@@ -121,6 +121,7 @@ CREATE TABLE `ps_park_reservation` (
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1未删除 2已删除（发布人，系统）',
+  `notice_out` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享时间结束前提醒 1未提醒 2已提醒',
   `crop_id` varchar(30) NOT NULL DEFAULT '' COMMENT '后台登陆租户id',
   `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
