@@ -77,7 +77,7 @@ class ParkScriptService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try{
             $fields = [
-                        'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
+                        'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at',"space.park_space",'record.ali_form_id',
                         'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number'
             ];
             $nowTime = time();
@@ -110,7 +110,7 @@ class ParkScriptService extends BaseService {
                         $data[] = $element;
                         if($value['appointment_id']){
                             //给预约人发消息通知
-                            $msg = "您".date('Y-m-d',$value['shared_at'])."预约的车位。发布者车辆尚在车库，系统将作关闭预约信息。";
+                            $msg = "您于".date('m月d日',$value['shared_at'])."预约的".$value['park_space']."车位由于车主车辆未离场，预约自动取消，给您带来的不便敬请谅解~！请重新查找可预约的共享车位。";
                             AliPayQrCodeService::service()->sendMessage($value['ali_user_id'],$value['ali_form_id'],'pages/index/index',$msg);
                             //给预约人发消息通知
                             $ele['community_id'] = $value['community_id'];

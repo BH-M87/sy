@@ -29,6 +29,7 @@ class PsParkReservation extends BaseModel
             [['room_name','crop_id'], 'string', 'max' => 50],
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['car_number'],'string','max'=>10],
+            [['park_space'],'string','max'=>5],
             [['appointment_id','community_id'],'isBlackList','on'=>'add'],//预约人是否在黑名单
             [['appointment_id','community_id'],'isTimeOut','on'=>'add'],//预约人是否超时被锁定
             [['appointment_id','community_id','crop_id'],'isCancel','on'=>'add'], //一天取消次数
@@ -50,6 +51,7 @@ class PsParkReservation extends BaseModel
             'room_id'               => '房屋',
             'room_name'             => '房号',
             'space_id'              => '预约车位',
+            'park_space'            => '车位号',
             'start_at'              => '开始时间',
             'end_at'                => '结束时间',
             'appointment_id'        => '预约人',
@@ -83,7 +85,7 @@ class PsParkReservation extends BaseModel
      * 判断预约车位是否存在 且可以预约
      */
     public function canBeReserved($attribute){
-        $res = PsParkSpace::find()->select(['id','status','start_at','end_at','publish_id'])
+        $res = PsParkSpace::find()->select(['id','status','start_at','end_at','publish_id','park_space'])
                             ->where(['=','id',$this->space_id])
                             ->andWhere(['=','community_id',$this->community_id])
                             ->andWhere(['=','is_del',1])
@@ -126,6 +128,7 @@ class PsParkReservation extends BaseModel
             $this->start_at = $nowTime;     //车位共享一开始 共享开始时间=当前时间
         }
         $this->end_at = $res['end_at'];
+        $this->park_space = $res['park_space'];
     }
 
     /*
