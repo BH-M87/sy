@@ -16,6 +16,14 @@ class MyParkController extends BaseController
     }
 
     //我的车位
+    public function actionParkCar()
+    {
+        $this->params['user_id']=404;
+        $result = SmallMyService::service()->getParkCar($this->params);
+        return self::dealReturnResult($result);
+    }
+
+    //我的车位
     public function actionParkLot()
     {
         $result = SmallMyService::service()->getParkLot($this->params);
