@@ -37,7 +37,7 @@ class ParkScriptController extends Controller  {
         }
     }
 
-    //预约时间前15分钟提醒
+    //预约时间结束前15分钟提醒
     public function actionNoticeOut(){
         try{
             ParkScriptService::service()->noticeOut();
