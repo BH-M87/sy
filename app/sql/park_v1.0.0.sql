@@ -108,6 +108,7 @@ CREATE TABLE `ps_park_reservation` (
   `room_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋id',
   `room_name` varchar(50) NOT NULL DEFAULT '' COMMENT '房号',
   `space_id` int(11) NOT NULL DEFAULT '0' COMMENT '预约车位id',
+  `park_space` varchar(5) NOT NULL DEFAULT '' COMMENT '车位号',
   `start_at` int(11) NOT NULL DEFAULT '0' COMMENT '共享开始时间',
   `end_at` int(11) NOT NULL DEFAULT '0' COMMENT '共享结束时间',
   `appointment_id` varchar(30) NOT NULL DEFAULT '' COMMENT '预约人id',
