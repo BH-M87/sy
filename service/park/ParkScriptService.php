@@ -3,6 +3,7 @@ namespace service\park;
 
 use app\models\PsParkMessage;
 use app\models\PsParkReservation;
+use app\models\PsParkSet;
 use app\models\PsParkSpace;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
@@ -21,7 +22,6 @@ class ParkScriptService extends BaseService {
     public function notice15(){
         $trans = Yii::$app->db->beginTransaction();
         try{
-
             $nowTime = time();
             $diffTime = $nowTime - 15*60;
             $result = PsParkSpace::find()->select(['id','publish_id','community_id','community_name','shared_at'])
@@ -31,6 +31,7 @@ class ParkScriptService extends BaseService {
                             ->andWhere(['>=','start_at',$diffTime])
                             ->andWhere(['<=','start_at',$nowTime])
                             ->asArray()->all();
+
             if(!empty($result)){
                 $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
                 $data = [];
@@ -55,7 +56,7 @@ class ParkScriptService extends BaseService {
                     Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
                 }
                 if(!empty($spaceIds)){
-                    PsParkSpace::updateAll(['notice_15'=>'2'],['in','id',$spaceIds]);
+                    PsParkSpace::updateAll(['notice_15'=>2],['in','id',$spaceIds]);
                 }
             }
             $trans->commit();
@@ -70,13 +71,14 @@ class ParkScriptService extends BaseService {
      * 1.查询符合条件的数据 （共享车位 待预约 已预约 当天时间）
      * 2.查询业主车辆是否在车场
      * 3.在车库： 删除共享车位 通知业主 通知预约者 删除预约记录
+     * 4.删除车牌信息 （java接口）
      */
     public function notice5(){
         $trans = Yii::$app->db->beginTransaction();
         try{
             $fields = [
                         'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
-                        'record.ali_user_id','record.appointment_id','record.id as record_id'
+                        'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number'
             ];
             $nowTime = time();
             $diffTime = $nowTime - 5*60;
@@ -85,7 +87,7 @@ class ParkScriptService extends BaseService {
                 ->select($fields)
                 ->where(['=','space.is_del',1])
                 ->andWhere(['in','space.status',[1,2]])
-                ->andWhere(['=','space.notice_15',1])
+                ->andWhere(['=','space.notice_5',1])
                 ->andWhere(['>=','space.start_at',$diffTime])
                 ->andWhere(['<=','space.start_at',$nowTime])
                 ->asArray()->all();
@@ -120,6 +122,8 @@ class ParkScriptService extends BaseService {
                             $ele['update_at'] = $nowTime;
                             $data[] = $ele;
                             array_push($recordIds,$value['record_id']);
+                            //调用java接口 删除车牌信息 （java接口）
+
                         }
                         array_push($spaceIds,$value['id']);
                     }
@@ -129,7 +133,7 @@ class ParkScriptService extends BaseService {
                     Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
                 }
                 if(!empty($spaceIds)){
-                    PsParkSpace::updateAll(['notice_5'=>'2','is_del'=>2],['in','id',$spaceIds]);
+                    PsParkSpace::updateAll(['notice_5'=>2,'is_del'=>2],['in','id',$spaceIds]);
                 }
                 if(!empty($recordIds)){
                     PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
@@ -146,28 +150,48 @@ class ParkScriptService extends BaseService {
      * 预约人迟到 取消预约
      * 1.查询符合条件数据 （车位预约中，当前时间）
      * 2.获得系统设置时间
-     * 3.超时自动关闭车位
-     * 4.超时自动关闭预约记录
+     * 3.给预约人发布支付宝消息 生成消息 （略）
+     * 4.超时自动关闭车位
+     * 5.超时自动关闭预约记录
+     * 6.删除车牌信息（java接口）
      */
     public function lateCancel(){
         $trans = Yii::$app->db->beginTransaction();
         try{
             $fields = [
                 'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
-                'record.ali_user_id','record.appointment_id','record.id as record_id',
+                'record.ali_user_id','record.appointment_id','record.id as record_id','record.crop_id','record.start_at','record.car_number'
             ];
             $nowTime = time();
-            $diffTime = $nowTime - 5*60;
             //获得数据
             $result = PsParkSpace::find()->alias('space')
                 ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
                 ->select($fields)
                 ->where(['=','space.is_del',1])
                 ->andWhere(['=','space.status',2])
-                ->andWhere(['=',"FROM_UNIXTIME(space.,'%Y-%m-%d')",date('Y-m-d',time())])
+                ->andWhere(['<','record.start_date',$nowTime])
                 ->asArray()->all();
             if(!empty($result)){
-
+                $spaceIds = [];
+                $recordIds = [];
+                foreach($result as $key=>$value){
+                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    if(!empty($setInfo)){
+                        $diff = ceil(($nowTime - $value['start_at'])/60);//计算总共使用多少分钟
+                        if($diff>=$setInfo['late_at']){
+                            //自动关闭车位，预约记录
+                            array_push($spaceIds,$value['id']);
+                            array_push($recordIds,$value['record_id']);
+                            //删除车牌信息java接口
+                        }
+                    }
+                }
+                if(!empty($spaceIds)){
+                    PsParkSpace::updateAll(['status'=>4],['in','id',$spaceIds]);
+                }
+                if(!empty($recordIds)){
+                    PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
+                }
             }
             $trans->commit();
         }catch (Exception $e) {
