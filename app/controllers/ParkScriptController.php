@@ -12,7 +12,7 @@ class ParkScriptController extends Controller  {
     //业主车辆在场 预约时间开始前15分钟内 脚本
     public function actionNotice15(){
         try{
-            ParkScriptService::service()->notice15($this->params);
+            ParkScriptService::service()->notice15();
         }catch (Exception $e){
             exit($e->getMessage());
         }
@@ -21,11 +21,20 @@ class ParkScriptController extends Controller  {
     //业主车辆在场 预约时间开始前15分钟内 脚本
     public function actionNotice5(){
         try{
-            ParkScriptService::service()->notice5($this->params);
+            ParkScriptService::service()->notice5();
         }catch (Exception $e){
             exit($e->getMessage());
         }
 
     }
 
+    //预约人迟到 取消预约
+    public function actionLateCancel(){
+        try{
+            ParkScriptService::service()->lateCancel();
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+
+    }
 }

@@ -13,7 +13,7 @@ class ParkScriptService extends BaseService {
 
     /*
      * 业主车辆在场 预约时间开始前15分钟内 脚本
-     * 1.查询符合条件的数据
+     * 1.查询符合条件的数据 （共享车位 待预约 已预约 当天时间）
      * 2.查询业主车辆是否在车场
      * 3.在车库： 生成系统消息（通知业主）
      * 4.在车库：修改共享车位 notice_15字段
@@ -66,19 +66,22 @@ class ParkScriptService extends BaseService {
 
     /*
      *业主车辆在场 预约时间开始前5分钟内 脚本
-     * 1.查询符合条件的数据
+     * 1.查询符合条件的数据 （共享车位 待预约 已预约 当天时间）
      * 2.查询业主车辆是否在车场
-     * 3.在车库： 删除共享车位 通知业主 通知预约者
+     * 3.在车库： 删除共享车位 通知业主 通知预约者 删除预约记录
      */
     public function notice5(){
         $trans = Yii::$app->db->beginTransaction();
         try{
-
+            $fields = [
+                        'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
+                        'record.ali_user_id','record.appointment_id','record.id as record_id'
+            ];
             $nowTime = time();
             $diffTime = $nowTime - 5*60;
             $result = PsParkSpace::find()->alias('space')
                 ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
-                ->select(['space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id','record.ali_user_id','record.appointment_id'])
+                ->select($fields)
                 ->where(['=','space.is_del',1])
                 ->andWhere(['in','space.status',[1,2]])
                 ->andWhere(['=','space.notice_15',1])
@@ -89,6 +92,7 @@ class ParkScriptService extends BaseService {
                 $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
                 $data = [];
                 $spaceIds = [];
+                $recordIds = [];
                 foreach($result as $key=>$value){
                     //判断业主车辆是否在车库
                     $judge = false;
@@ -103,7 +107,7 @@ class ParkScriptService extends BaseService {
                         $data[] = $element;
                         if($value['appointment_id']){
                             //给预约人发消息通知
-                            $msg = "您".date('Y-m-d',$value['shared_at'])."预约的车位。发布者车辆尚在车库，系统将作删除预约信息。";
+                            $msg = "您".date('Y-m-d',$value['shared_at'])."预约的车位。发布者车辆尚在车库，系统将作关闭预约信息。";
                             AliPayQrCodeService::service()->sendMessage($value['ali_user_id'],$value['ali_form_id'],'pages/index/index',$msg);
                             //给预约人发消息通知
                             $ele['community_id'] = $value['community_id'];
@@ -114,6 +118,7 @@ class ParkScriptService extends BaseService {
                             $ele['create_at'] = $nowTime;
                             $ele['update_at'] = $nowTime;
                             $data[] = $ele;
+                            array_push($recordIds,$value['record_id']);
                         }
                         array_push($spaceIds,$value['id']);
                     }
@@ -125,10 +130,24 @@ class ParkScriptService extends BaseService {
                 if(!empty($spaceIds)){
                     PsParkSpace::updateAll(['notice_5'=>'2','is_del'=>2],['in','id',$spaceIds]);
                 }
+                if(!empty($recordIds)){
+                    PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
+                }
             }
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+    }
+
+    /*
+     * 预约人迟到 取消预约
+     * 1.查询符合条件数据 （车位预约中，当前时间）
+     * 2.获得系统设置时间
+     * 3.超时自动关闭车位
+     * 4.超时自动关闭预约记录
+     */
+    public function lateCancel(){
+
     }
 }

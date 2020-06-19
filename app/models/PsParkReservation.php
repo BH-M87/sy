@@ -117,6 +117,9 @@ class PsParkReservation extends BaseModel
         }
 
         $this->start_at = $res['start_at'];
+        if($nowTime>$res['start_at']){
+            $this->start_at = $nowTime;     //车位共享一开始 共享开始时间=当前时间
+        }
         $this->end_at = $res['end_at'];
     }
 
