@@ -13,7 +13,7 @@ class PsParkSet extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'community_name'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['corp_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['cancle_num', 'late_at', 'due_notice', 'black_num', 'appointment', 'appointment_unit', 'lock', 'lock_unit'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['integral', 'min_time', 'lock', 'appointment'], 'default', 'value' => 0, 'on' => 'add'],
             [['lock_unit', 'appointment_unit'], 'default', 'value' => 1, 'on' => 'add'],
@@ -27,8 +27,9 @@ class PsParkSet extends BaseModel
     {
         return [
             'id' => 'ID',
-            'community_id' => '小区ID',
-            'community_name' => '小区名称',
+            'corp_id' => '公司ID',
+            //'community_id' => '小区ID',
+            //'community_name' => '小区名称',
             'cancle_num' => '当天最多取消预约次数',
             'late_at' => '迟到取消预约时间',
             'due_notice' => '车位预约到期提前通知时间',

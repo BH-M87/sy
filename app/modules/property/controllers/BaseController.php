@@ -70,7 +70,7 @@ class BaseController extends \yii\web\Controller
 
                 //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
                 if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
-                    exit($this->ajaxReturn('请勿重复请求，30s后重试'));
+                    exit($this->ajaxReturn('请勿重复请求，10s后重试'));
                 }
             }
             //所有验证通过

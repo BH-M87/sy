@@ -35,7 +35,7 @@ class SetService extends BaseService
     public function _saveSet($p, $scenario, $userInfo)
     {
         if ($scenario == 'edit') {
-            $model = PsParkSet::find()->one();
+            $model = PsParkSet::find()->where(['corp_id' => $p['corp_id']])->one();
             if (empty($model)) {
                 $scenario == 'add';
             } else {
@@ -43,11 +43,12 @@ class SetService extends BaseService
             }
         }
 
-        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $p['community_id']]);
+        //$community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $p['community_id']]);
 
         $param['id'] = $p['id'];
-        $param['community_id'] = $p['community_id'];
-        $param['community_name'] = $community['communityName'];
+        $param['corp_id'] = $p['corp_id'];
+        //$param['community_id'] = $p['community_id'];
+        //$param['community_name'] = $community['communityName'];
         $param['cancle_num'] = $p['cancle_num'];
         $param['late_at'] = $p['late_at'];
         $param['due_notice'] = $p['due_notice'];
@@ -77,7 +78,7 @@ class SetService extends BaseService
     // 详情
     public function showSet($p)
     {
-        $r = PsParkSet::find()->asArray()->one();
+        $r = PsParkSet::find()->where(['corp_id' => $p['corp_id']])->asArray()->one();
         if (!empty($r)) {
             return $r;
         }

@@ -167,7 +167,7 @@ class F
     public static function repeatRequest()
     {
         $cacheKey = self::_repeatCacheField();
-        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 30, 'NX')) {
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 10, 'NX')) {
             return false;
         }
         return true;

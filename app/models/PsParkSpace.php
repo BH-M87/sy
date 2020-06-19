@@ -162,7 +162,7 @@ class PsParkSpace extends BaseModel
 
     //根据id 获得共享车位信息
     public function getDetail($params){
-        $fields = ['ali_form_id','ali_user_id'];
+        $fields = ['ali_form_id','ali_user_id','shared_at','publish_id'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         return $model->asArray()->one();
     }

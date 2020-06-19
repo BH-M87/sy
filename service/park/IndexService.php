@@ -14,6 +14,8 @@ use service\property_basic\JavaService;
 
 use app\models\PsParkReservation;
 use app\models\PsParkSpace;
+use app\models\PsParkBlack;
+use app\models\PsParkBreakPromise;
 
 class IndexService extends BaseService
 {
@@ -137,7 +139,14 @@ class IndexService extends BaseService
             }
         }
 
-        return ['list' => $list, 'totals' => $totals, 'reserved' => $reserved, 'free' => $free];
+        $lock_at = PsParkBreakPromise::find()->select('lock_at')->where(['user_id' => $p['user_id']])->scalar();
+        $black = PsParkBlack::find()->where(['user_id' => $p['user_id']])->one();
+
+        return [
+            'list' => $list, 'totals' => $totals, 'reserved' => $reserved, 'free' => $free, 
+            'lock_at' => $lock_at > time() ? date('Y-m-d H:i', $lock_at) : '',
+            'is_black' => !empty($black) ? 1 : 2,
+        ];
     }
 
     // 共享车位 列表参数过滤

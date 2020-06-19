@@ -20,7 +20,8 @@ class PsParkMessage extends BaseModel
     {
         return [
             [['community_id','community_name','user_id','type','content'], 'required','on'=>'add'],
-            [['content'], 'string', 'max' => 500],
+            [['content'], 'string', 'max' => 100],
+            [['community_id','community_name','user_id'], 'string', 'max' => 30],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
         ];
     }
