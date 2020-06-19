@@ -107,13 +107,13 @@ class CallBackService extends BaseService  {
             //删除车辆信息
 
             //修改预约记录信息
-            $reservationUpdate['status'] = $timeOut?3:4;    //
+            $reservationUpdate['status'] = $timeOut?3:6;    //已超时or 已完成
             $reservationUpdate['out_at'] = $params['out_at'];
             $reservationUpdate['update_at'] = $nowTime;
             PsParkReservation::updateAll($reservationUpdate,['id'=>$info['id']]);
             //修改预约车位信息
 
-            $spaceParams['status'] = 4; //
+            $spaceParams['status'] = 5; //已完成
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
             $trans->commit();
