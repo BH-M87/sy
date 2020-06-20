@@ -77,8 +77,8 @@ class PsParkShared extends BaseModel
         $nowTime = time();
         $startTime = strtotime(date('Y-m-d',$this->start_date)." 00:00:00");
         if (!empty($this->start_date) && !empty($this->end_date)) {
-            if($nowTime<$startTime){
-                return $this->addError($attribute, "共享日期从今天开始");
+            if($nowTime>$startTime){
+                return $this->addError($attribute, "共享日期不小于当前日期");
             }
 
             if ($this->start_date > $this->end_date) {
