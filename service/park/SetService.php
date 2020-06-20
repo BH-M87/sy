@@ -247,6 +247,8 @@ class SetService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['room_name'] = $v['community_name'].$v['room_name'];
                 $v['shared_at'] = date('Y/m/d', $v['shared_at']);
+                $v['start_at'] = date('H:i', $v['start_at']);
+                $v['end_at'] = date('H:i', $v['end_at']);
                 $v['statusMsg'] = $v['status'];
             }
         }
