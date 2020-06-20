@@ -72,8 +72,11 @@ class PsParkShared extends BaseModel
      * 计划时间验证
      */
     public function planTimeVerification($attribute){
-        if(date('Y-m-d',$this->start_date)!=date('Y-m-d',$this->end_date)) {
-            $nowTime = time();
+        $startDate = date('Y-m-d',$this->start_date);
+        $endDate = date('Y-m-d',$this->end_date);
+        $nowTime = time();
+        if(($startDate!=$endDate)) {
+            //不是同一天
             if (!empty($this->start_date) && !empty($this->end_date)) {
                 if ($this->start_date < $nowTime) {
                     return $this->addError($attribute, "开始时间需大于当前时间");
@@ -87,6 +90,8 @@ class PsParkShared extends BaseModel
                     return $this->addError($attribute, "时间间隔至多30天");
                 }
             }
+        }else if($startDate!=date('Y-m-d',$nowTime)){
+            return $this->addError($attribute, "开始时间不能是过去时间");
         }
     }
 
@@ -117,8 +122,10 @@ class PsParkShared extends BaseModel
      * 同一天 不做此验证
      */
     public function dateVerification($attribute){
-
-        if(date('Y-m-d',$this->start_date)!=date('Y-m-d',$this->end_date)){
+        $startDate = date('Y-m-d',$this->start_date);
+        $endDate = date('Y-m-d',$this->end_date);
+        $nowTime = time();
+        if($startDate!=$endDate){
             $res = self::find()->select(['id'])
                             ->where(['=','community_id',$this->community_id])
                             ->andWhere(['=','publish_id',$this->publish_id])
@@ -130,6 +137,8 @@ class PsParkShared extends BaseModel
             if(!empty($res)){
                 return $this->addError($attribute, "该时间已有预约，请重新选择时间");
             }
+        }else if($startDate!=date('Y-m-d',$nowTime)){
+            return $this->addError($attribute, "开始时间不能是过去时间");
         }
     }
 
