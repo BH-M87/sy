@@ -45,4 +45,13 @@ class ParkScriptController extends Controller  {
             exit($e->getMessage());
         }
     }
+
+    //共享开始前15分钟提醒
+    public function actionNoticeEntry(){
+        try{
+            ParkScriptService::service()->noticeEntry();
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
