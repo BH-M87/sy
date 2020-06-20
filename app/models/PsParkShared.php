@@ -82,12 +82,12 @@ class PsParkShared extends BaseModel
             }
 
             if ($this->start_date > $this->end_date) {
-                return $this->addError($attribute, "结束时间需大于开始时间");
+                return $this->addError($attribute, "截止日期需大于共享日期");
             }
             //时间范围30天内
             $day = ceil(($this->end_date - $this->start_date) / 86400);
             if ($day > 30) {
-                return $this->addError($attribute, "时间间隔至多30天");
+                return $this->addError($attribute, "共享日期间隔至多30天");
             }
         }
 
@@ -149,7 +149,7 @@ class PsParkShared extends BaseModel
         if(!empty($this->start_at)&&!empty($this->end_at)){
 
             $startDate = date('Y-m-d',$this->start_date);
-            
+
             if($nowTime>strtotime($startDate." ".$this->start_at)){
                 return $this->addError($attribute, "开始时间应大于当前时间");
             }
