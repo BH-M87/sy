@@ -272,13 +272,45 @@ class ParkScriptService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try {
             $nowTime = time();
+            $diff = $nowTime + 15*60;
             $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','crop_id','park_space'])
                 ->where(['=', 'is_del', 1])
-                ->andWhere(['=', 'notice_out', 1])
-                ->andWhere(['=', 'status', 2])
-                ->andWhere(['<', "start_at", $nowTime])
-                ->andWhere(['>', "end_at", $nowTime])
+                ->andWhere(['=', 'notice_entry', 1])
+                ->andWhere(['=', 'status', 1])
+                ->andWhere(['>', "start_at", $nowTime])
+                ->andWhere(['<', "start_at", $diff])
                 ->asArray()->all();
+            if(!empty($result)){
+                $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
+                $data = [];
+                $spaceIds = [];
+                foreach($result as $key=>$value){
+                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    if(!empty($setInfo)) {
+                        //发消息通知
+                        $msg = "您预约的" . $value['park_space'] . "车位请尽快入场，逾期" .$setInfo['late_at']."分钟后，预约将自动取消。";
+                        AliPayQrCodeService::service()->sendMessage($value['ali_user_id'], $value['ali_form_id'], 'pages/index/index', $msg);
+
+                        array_push($spaceIds, $value['id']);
+
+                        //添加消息记录
+                        $msgParams['community_id'] = $value['community_id'];
+                        $msgParams['community_name'] = $value['community_name'];
+                        $msgParams['user_id'] = $value['appointment_id'];
+                        $msgParams['type'] = 1;
+                        $msgParams['content'] = $msg;
+                        $msgParams['create_at'] = $nowTime;
+                        $msgParams['update_at'] = $nowTime;
+                        $data[] = $msgParams;
+                    }
+                }
+                if(!empty($spaceIds)){
+                    PsParkReservation::updateAll(['notice_entry'=>2],['in','id',$spaceIds]);
+                }
+                if(!empty($data)){
+                    Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
+                }
+            }
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
