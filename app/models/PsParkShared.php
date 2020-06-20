@@ -77,17 +77,17 @@ class PsParkShared extends BaseModel
         $nowTime = time();
         $startTime = strtotime(date('Y-m-d',$this->start_date)." 00:00:00");
         if (!empty($this->start_date) && !empty($this->end_date)) {
-            if($nowTime<$startTime){
-                return $this->addError($attribute, "共享日期从今天开始");
+            if($nowTime>$startTime){
+                return $this->addError($attribute, "共享日期不小于当前日期");
             }
 
             if ($this->start_date > $this->end_date) {
-                return $this->addError($attribute, "结束时间需大于开始时间");
+                return $this->addError($attribute, "截止日期需大于共享日期");
             }
             //时间范围30天内
             $day = ceil(($this->end_date - $this->start_date) / 86400);
             if ($day > 30) {
-                return $this->addError($attribute, "时间间隔至多30天");
+                return $this->addError($attribute, "共享日期间隔至多30天");
             }
         }
 
@@ -120,10 +120,10 @@ class PsParkShared extends BaseModel
      * 同一天 不做此验证
      */
     public function dateVerification($attribute){
-        $startDate = date('Y-m-d',$this->start_date);
-        $endDate = date('Y-m-d',$this->end_date);
-        $nowTime = time();
-        if($startDate!=$endDate){
+//        $startDate = date('Y-m-d',$this->start_date);
+//        $endDate = date('Y-m-d',$this->end_date);
+//        $nowTime = time();
+//        if($startDate!=$endDate){
             $res = self::find()->select(['id'])
                             ->where(['=','community_id',$this->community_id])
                             ->andWhere(['=','publish_id',$this->publish_id])
@@ -135,9 +135,9 @@ class PsParkShared extends BaseModel
             if(!empty($res)){
                 return $this->addError($attribute, "该时间已有预约，请重新选择时间");
             }
-        }else if($startDate!=date('Y-m-d',$nowTime)){
-            return $this->addError($attribute, "开始时间不能是过去时间");
-        }
+//        }else if($startDate!=date('Y-m-d',$nowTime)){
+//            return $this->addError($attribute, "开始时间不能是过去时间");
+//        }
     }
 
     /*
@@ -150,7 +150,7 @@ class PsParkShared extends BaseModel
 
             $startDate = date('Y-m-d',$this->start_date);
 
-            if($nowTime<=strtotime($startDate." ".$this->start_at)){
+            if($nowTime>strtotime($startDate." ".$this->start_at)){
                 return $this->addError($attribute, "开始时间应大于当前时间");
             }
 

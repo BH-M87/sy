@@ -142,6 +142,7 @@ class SharedService extends BaseService{
 
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
+                print("asdf");die;
                 if(!$model->saveData()){
                     return $this->failed('新增失败！');
                 }
