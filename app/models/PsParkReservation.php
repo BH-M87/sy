@@ -23,7 +23,7 @@ class PsParkReservation extends BaseModel
     {
         return [
             [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id','crop_id'], 'required','on'=>'add'],
-            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','cancel_at','notice_out','notice_entry','create_at', 'update_at'], 'integer'],
+            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','notice_out','notice_entry','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
             [['room_name','crop_id'], 'string', 'max' => 50],
@@ -62,7 +62,6 @@ class PsParkReservation extends BaseModel
             'enter_at'              => '入场时间',
             'out_at'                => '离场时间',
             'status'                => '状态',
-            'cancel_at'             => '取消订单时间',
             'ali_form_id'           => '支付宝表单',
             'ali_user_id'           => '支付宝用户',
             'is_del'                => '是否删除',
