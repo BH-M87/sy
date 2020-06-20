@@ -26,6 +26,7 @@ class SharedService extends BaseService{
     /*
      * 发布共享
      * 1.判断是否车位业主（默认是）
+     * 2.开始时间结束时间是同一天 开始时间大于当前时间
      */
     public function addOfC($params){
         $trans = Yii::$app->db->beginTransaction();
