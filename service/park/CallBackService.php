@@ -19,6 +19,12 @@ class CallBackService extends BaseService  {
      * 车辆出入场
      */
     public function carEntryExit($params){
+        if(empty($params['carNum'])){
+            return $this->failed('车牌不能为空');
+        }
+        if(empty($params['arriveTime'])){
+            return $this->failed('车辆入场时间不能为空');
+        }
         $params['enter_at'] = !empty($params['arriveTime'])?strtotime($params['arriveTime']):'';
         $params['out_at'] = !empty($params['leaveTime'])?strtotime($params['leaveTime']):'';
         if(!empty($params['enter_at'])&&empty($params['out_at'])){
