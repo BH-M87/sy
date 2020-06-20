@@ -163,6 +163,8 @@ class SetService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['room_name'] = $v['community_name'].$v['room_name'];
                 $v['lock_at'] = !empty($v['lock_at']) ? date('Y/m/d H:i', $v['lock_at']) : '';
+                $v['break_time'] = $v['break_time'] . '分钟';
+                $v['num'] = $v['num'] . '次';
             }
         }
 
