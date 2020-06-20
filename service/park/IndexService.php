@@ -182,4 +182,22 @@ class IndexService extends BaseService
 
         return $arr;
     }
+
+    // 预约历史记录 列表
+    public function listHistory($p)
+    {
+        $list = self::searchHistory($p)->select('distinct(car_number)')
+            ->orderBy('id desc')->asArray()->all();
+
+        return ['list' => $list];
+    }
+
+    // 预约历史记录 列表参数过滤
+    private static function searchHistory($p)
+    {
+        $m = PsParkReservation::find()
+            ->filterWhere(['=', 'appointment_id', $p['user_id']])
+            ->andFilterWhere(['like', 'room_name', $p['room_name']]);
+        return $m;
+    }
 }

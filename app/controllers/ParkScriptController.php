@@ -35,6 +35,23 @@ class ParkScriptController extends Controller  {
         }catch (Exception $e){
             exit($e->getMessage());
         }
+    }
 
+    //预约时间结束前15分钟提醒
+    public function actionNoticeOut(){
+        try{
+            ParkScriptService::service()->noticeOut();
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
+
+    //共享开始前15分钟提醒
+    public function actionNoticeEntry(){
+        try{
+            ParkScriptService::service()->noticeEntry();
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
     }
 }

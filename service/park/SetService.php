@@ -20,6 +20,14 @@ use app\models\PsParkSpace;
 
 class SetService extends BaseService
 {
+    public static $status = [
+        1 => ['id' => 1, 'name' => '待预约'],
+        2 => ['id' => 2, 'name' => '已预约'],
+        3 => ['id' => 3, 'name' => '使用中'],
+        4 => ['id' => 4, 'name' => '已关闭'],
+        5 => ['id' => 5, 'name' => '已完成'],
+    ];
+
     // 新增
     public function addSet($p, $userInfo)
     {
@@ -155,6 +163,8 @@ class SetService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['room_name'] = $v['community_name'].$v['room_name'];
                 $v['lock_at'] = !empty($v['lock_at']) ? date('Y/m/d H:i', $v['lock_at']) : '';
+                $v['break_time'] = $v['break_time'] . '分钟';
+                $v['num'] = $v['num'] . '次';
             }
         }
 
@@ -247,7 +257,9 @@ class SetService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['room_name'] = $v['community_name'].$v['room_name'];
                 $v['shared_at'] = date('Y/m/d', $v['shared_at']);
-                $v['statusMsg'] = $v['status'];
+                $v['start_at'] = date('H:i', $v['start_at']);
+                $v['end_at'] = date('H:i', $v['end_at']);
+                $v['statusMsg'] = self::$status[$v['status']]['name'];
             }
         }
 

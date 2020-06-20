@@ -172,6 +172,10 @@ class BaseController extends \yii\web\Controller
             }
         }
 
+        if (empty($userInfo['corpId'])) {
+            exit($this->ajaxReturn('authorization已过期'));
+        }
+
         $this->user_info = $userInfo;
         $this->user_info['propertyMark'] = 1; // 后台标记需要添加操作日志
         $this->user_info['truename'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];

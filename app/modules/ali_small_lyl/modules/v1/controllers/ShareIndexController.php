@@ -16,4 +16,16 @@ class ShareIndexController extends BaseController
         
         return PsCommon::responseSuccess($r);
     }
+
+    // 预约历史记录
+    public function actionListHistory()
+    {
+    	if (!$this->params['user_id']) {
+            return F::apiFailed('请输入用户ID！');
+        }
+
+        $r = IndexService::service()->listHistory($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
 }

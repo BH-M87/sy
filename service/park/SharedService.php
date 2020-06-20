@@ -26,6 +26,7 @@ class SharedService extends BaseService{
     /*
      * 发布共享
      * 1.判断是否车位业主（默认是）
+     * 2.开始时间结束时间是同一天 开始时间大于当前时间
      */
     public function addOfC($params){
         $trans = Yii::$app->db->beginTransaction();
@@ -119,7 +120,7 @@ class SharedService extends BaseService{
      * 1.判断预约人是否在黑名单中
      * 2.判断预约人超时时间是否被锁定
      * 3.判断预约人是否发布人
-     * 4.判断预约人今天取消次数
+     * 4.判断预约人预约次数（只能预约次数）后台设置
      * 5.判断预约车位是否存在，待预约状态, 车辆是否有相同天数预约的车位（不能恶意占用资源：同一个车牌）预约时间大于共享结束时间 共享结束时间前15分钟不能预约
      * 6.车牌下放 (调用java接口)
      * 7.支付宝消息通知发布者
