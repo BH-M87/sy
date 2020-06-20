@@ -31,14 +31,14 @@ class CallBackService extends BaseService  {
             //车辆进场
             $entryParams['enter_at'] = $params['enter_at'];
             $entryParams['car_number'] = $params['carNum'];
-            self::carEntry($entryParams);
+            return self::carEntry($entryParams);
         }
         if(!empty($params['enter_at'])&&!empty($params['out_at'])){
             //车辆出场
             $exitParams['enter_at'] = $params['enter_at'];
             $exitParams['out_at'] = $params['out_at'];
             $exitParams['car_number'] = $params['carNum'];
-            self::carExit($exitParams);
+            return self::carExit($exitParams);
         }
     }
 
@@ -93,6 +93,7 @@ class CallBackService extends BaseService  {
             }
 
             $trans->commit();
+            return $this->success();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -146,6 +147,7 @@ class CallBackService extends BaseService  {
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
             $trans->commit();
+            return $this->success();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
