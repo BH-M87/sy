@@ -149,8 +149,8 @@ class PsParkShared extends BaseModel
         if(!empty($this->start_at)&&!empty($this->end_at)){
 
             $startDate = date('Y-m-d',$this->start_date);
-
-            if($nowTime<=strtotime($startDate." ".$this->start_at)){
+            
+            if($nowTime>strtotime($startDate." ".$this->start_at)){
                 return $this->addError($attribute, "开始时间应大于当前时间");
             }
 
