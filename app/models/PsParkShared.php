@@ -120,10 +120,10 @@ class PsParkShared extends BaseModel
      * 同一天 不做此验证
      */
     public function dateVerification($attribute){
-        $startDate = date('Y-m-d',$this->start_date);
-        $endDate = date('Y-m-d',$this->end_date);
-        $nowTime = time();
-        if($startDate!=$endDate){
+//        $startDate = date('Y-m-d',$this->start_date);
+//        $endDate = date('Y-m-d',$this->end_date);
+//        $nowTime = time();
+//        if($startDate!=$endDate){
             $res = self::find()->select(['id'])
                             ->where(['=','community_id',$this->community_id])
                             ->andWhere(['=','publish_id',$this->publish_id])
@@ -135,9 +135,9 @@ class PsParkShared extends BaseModel
             if(!empty($res)){
                 return $this->addError($attribute, "该时间已有预约，请重新选择时间");
             }
-        }else if($startDate!=date('Y-m-d',$nowTime)){
-            return $this->addError($attribute, "开始时间不能是过去时间");
-        }
+//        }else if($startDate!=date('Y-m-d',$nowTime)){
+//            return $this->addError($attribute, "开始时间不能是过去时间");
+//        }
     }
 
     /*
