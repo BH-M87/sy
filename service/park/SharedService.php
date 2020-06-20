@@ -138,11 +138,10 @@ class SharedService extends BaseService{
             $javaParam['token'] = $params['token'];
             $javaParam['id'] = $params['community_id'];
             $javaRes = $javaService->selectCommunityById($javaParam);
-            $params['crop_id'] = !empty($javaRes['corpId'])?$javaRes['corpId']:'';
+            $params['corp_id'] = !empty($javaRes['corpId'])?$javaRes['corpId']:'';
 
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
-                print("asdf");die;
                 if(!$model->saveData()){
                     return $this->failed('新增失败！');
                 }

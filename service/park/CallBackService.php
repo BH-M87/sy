@@ -116,7 +116,7 @@ class CallBackService extends BaseService  {
             //获得预约记录
             $fields = [
                         'id','space_id','start_at','end_at','community_id','community_name','room_id','room_name',
-                        'appointment_id','appointment_name','appointment_mobile','crop_id','car_number'
+                        'appointment_id','appointment_name','appointment_mobile','corp_id','car_number'
             ];
             $info = PsParkReservation::find()->select($fields)
                 ->where(['=','car_number',$params['car_number']])
@@ -164,7 +164,7 @@ class CallBackService extends BaseService  {
      */
     private function timeOut($params){
 
-        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','crop_id',$params['crop_id']])->asArray()->one();
+        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','corp_id',$params['corp_id']])->asArray()->one();
         if(empty($setInfo)){
             return $this->failed('系统设置不存在');
         }

@@ -123,7 +123,7 @@ CREATE TABLE `ps_park_reservation` (
   `is_del` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1未删除 2已删除（发布人，系统）',
   `notice_entry` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享开始前15分钟位入场通知',
   `notice_out` tinyint(3) NOT NULL DEFAULT '1' COMMENT '共享时间结束前提醒 1未提醒 2已提醒',
-  `crop_id` varchar(30) NOT NULL DEFAULT '' COMMENT '后台登陆租户id',
+  `corp_id` varchar(30) NOT NULL DEFAULT '' COMMENT '后台登陆租户id',
   `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
   `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '修改时间',
   PRIMARY KEY (`id`)
