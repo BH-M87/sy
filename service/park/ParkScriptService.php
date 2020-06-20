@@ -259,4 +259,29 @@ class ParkScriptService extends BaseService {
             return $this->failed($e->getMessage());
         }
     }
+
+    /*
+     * 共享开始前15分钟提醒
+     * 1.查询数据（已预约 未发送过通知）
+     * 2.查询配置表
+     * 3.发消息通知
+     * 4.添加消息
+     * 5.修改预约记录表 notice_out
+     */
+    public function noticeEntry(){
+        $trans = Yii::$app->db->beginTransaction();
+        try {
+            $nowTime = time();
+            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','crop_id','park_space'])
+                ->where(['=', 'is_del', 1])
+                ->andWhere(['=', 'notice_out', 1])
+                ->andWhere(['=', 'status', 2])
+                ->andWhere(['<', "start_at", $nowTime])
+                ->andWhere(['>', "end_at", $nowTime])
+                ->asArray()->all();
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
+    }
 }
