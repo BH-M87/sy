@@ -144,7 +144,7 @@ class PsParkShared extends BaseModel
                             ])
                             ->asArray()->all();
             if(!empty($res)){
-                return $this->addError($attribute, "该时间已有预约，请重新选择时间");
+                return $this->addError($attribute, "每车位每天只可发布一次共享");
             }
 //        }else if($startDate!=date('Y-m-d',$nowTime)){
 //            return $this->addError($attribute, "开始时间不能是过去时间");
