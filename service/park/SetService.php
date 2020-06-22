@@ -111,7 +111,8 @@ class SetService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['room_name'] = $v['community_name'].$v['room_name'];
+                $r = JavaService::service()->roomDetail(['id' => $v['room_id'], 'token' => $p['token']]);
+                $v['room_name'] = $r['communityName'].$r['groupName'].$r['buildingName'].$r['unitName'].$r['roomName'];
             }
         }
 
@@ -161,7 +162,8 @@ class SetService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['room_name'] = $v['community_name'].$v['room_name'];
+                $r = JavaService::service()->roomDetail(['id' => $v['room_id'], 'token' => $p['token']]);
+                $v['room_name'] = $r['communityName'].$r['groupName'].$r['buildingName'].$r['unitName'].$r['roomName'];
                 $v['lock_at'] = !empty($v['lock_at']) ? date('Y/m/d H:i', $v['lock_at']) : '';
                 $v['break_time'] = $v['break_time'] . '分钟';
                 $v['num'] = $v['num'] . '次';
