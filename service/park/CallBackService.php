@@ -53,7 +53,7 @@ class CallBackService extends BaseService  {
         $trans = Yii::$app->db->beginTransaction();
         try{
             //获得预约记录
-            $info = PsParkReservation::find()->select(['id','space_id','car_number'])
+            $info = PsParkReservation::find()->select(['id','space_id','car_number','community_id','community_name'])
                         ->where(['=','car_number',$params['car_number']])
                         ->andWhere(['=','status',1])
                         ->andWhere(['=','is_del',1])
@@ -67,18 +67,17 @@ class CallBackService extends BaseService  {
             $updateParams['update_at'] = $nowTime;
             $updateParams['enter_at'] = $params['enter_at'];    //入场时间
             PsParkReservation::updateAll($updateParams,['id'=>$info['id']]);
-
             $spaceParams['status'] = 3;
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
 
             $spaceModel = new PsParkSpace();
-            $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
+            $spaceDetail = $spaceModel->getDetail(['id'=>$info['space_id']]);
             //通知发布者
             $msg = $info['car_number']."于".date('H:i',$params['enter_at'])."入场您共享的车位";
             //添加消息记录
-            $msgParams['community_id'] = $params['community_id'];
-            $msgParams['community_name'] = $params['community_name'];
+            $msgParams['community_id'] = $info['community_id'];
+            $msgParams['community_name'] = $info['community_name'];
             $msgParams['user_id'] = $spaceDetail['publish_id'];
             $msgParams['type'] = 1;
             $msgParams['content'] = $msg;
@@ -167,7 +166,6 @@ class CallBackService extends BaseService  {
                 }
             }
             //删除车辆信息
-
             //修改预约记录信息
             $reservationUpdate['status'] = $timeOut?3:6;    //已超时or 已完成
             $reservationUpdate['out_at'] = $params['out_at'];
