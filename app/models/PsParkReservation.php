@@ -204,7 +204,7 @@ class PsParkReservation extends BaseModel
         $activity = self::find()->select($field)
             ->where(['is_del' => 1])
             ->andFilterWhere(['appointment_id' => $params['user_id']])
-            ->andFilterWhere(['status' => 4]);
+            ->andFilterWhere(['status' => [3,6]]);
         $count = $activity->count();
         if ($count > 0) {
             $activity->orderBy('id desc');
