@@ -104,10 +104,11 @@ class CallBackService extends BaseService  {
      * 车辆出场
      * 1.记录出场时间
      * 2.判断是否超时
-     * 3.如果超时 设置违约记录 （根据设置记录违约锁定时间）预约超过设定次数 加入黑名单 积分设置 支付宝通知车位共享者
-     * 4.系统删除车辆信息 （调用java接口）
-     * 5.修改预约记录信息
-     * 6.修改预约车位信息
+     * 3.如果超时 设置违约记录 （根据设置记录违约锁定时间）预约超过设定次数 加入黑名单
+     * 4.积分设置 支付宝通知车位共享者
+     * 5.系统删除车辆信息 （调用java接口）
+     * 6.修改预约记录信息
+     * 7.修改预约车位信息
      */
     private function carExit($params){
         $trans = Yii::$app->db->beginTransaction();
@@ -134,6 +135,37 @@ class CallBackService extends BaseService  {
                 $info['enter_at'] = $params['enter_at'];
                 $timeOut = self::timeOut($info);
             }
+
+            //添加共享积分
+            //添加消息记录
+            $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','corp_id',$info['corp_id']])->asArray()->one();
+            if(empty($setInfo)){
+                return $this->failed('系统设置不存在');
+            }
+            $spaceModel = new PsParkSpace();
+            $spaceDetail = $spaceModel->getDetail(['id'=>$info['space_id']]);
+            if(!empty($spaceDetail)){
+                //添加共享积分
+                $integral = ceil(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
+                PsParkSpace::updateAll(['score'=>$integral],['id'=>$info['space_id']]);
+                //通知发布者
+                $msg = $info['car_number'].'于'.date('H:i',$params['out_at']).'离场您共享的车位';
+                //添加消息记录
+                $msgParams['community_id'] = $info['community_id'];
+                $msgParams['community_name'] = $info['community_name'];
+                $msgParams['user_id'] = $spaceDetail['publish_id'];
+                $msgParams['type'] = 1;
+                $msgParams['content'] = $msg;
+                $msgModel = new PsParkMessage(['scenario'=>'add']);
+                if($msgModel->load($msgParams,'')&&$msgModel->validate()){
+                    if(!$msgModel->saveData()){
+                        return $this->failed('消息新增失败！');
+                    }
+                }else{
+                    $msg = array_values($msgModel->errors)[0][0];
+                    return $this->failed($msg);
+                }
+            }
             //删除车辆信息
 
             //修改预约记录信息
@@ -159,8 +191,6 @@ class CallBackService extends BaseService  {
      * 1.获得系统设置 根据小区id调用java接口 会的cropId
      * 2.设置违约记录 （新增or修改）
      * 3.加入黑名单
-     * 4.添加共享积分
-     * 5.添加消息记录
      */
     private function timeOut($params){
 
@@ -255,30 +285,6 @@ class CallBackService extends BaseService  {
                     $blackAdd['create_at'] = $nowTime;
                     Yii::$app->db->createCommand()->insert(PsParkBlack::tableName(),$blackAdd)->execute();
                 }
-            }
-        }
-        $spaceModel = new PsParkSpace();
-        $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
-        if(!empty($spaceDetail)){
-            //添加共享积分
-            $integral = ceil(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
-            PsParkSpace::updateAll(['score'=>$integral],['id'=>$params['space_id']]);
-            //通知发布者
-            $msg = $params['car_number'].'于'.date('H:i',$params['out_at']).'离场您共享的车位';
-            //添加消息记录
-            $msgParams['community_id'] = $params['community_id'];
-            $msgParams['community_name'] = $params['community_name'];
-            $msgParams['user_id'] = $spaceDetail['publish_id'];
-            $msgParams['type'] = 1;
-            $msgParams['content'] = $msg;
-            $msgModel = new PsParkMessage(['scenario'=>'add']);
-            if($msgModel->load($msgParams,'')&&$msgModel->validate()){
-                if(!$msgModel->saveData()){
-                    return $this->failed('消息新增失败！');
-                }
-            }else{
-                $msg = array_values($msgModel->errors)[0][0];
-                return $this->failed($msg);
             }
         }
 
