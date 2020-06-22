@@ -62,6 +62,7 @@ class PsParkMessage extends BaseModel
     public static function getList($params,$field = "*",$page = true)
     {
         $activity = self::find()->select($field)
+            ->andFilterWhere(['community_id' => $params['community_id']])
             ->andFilterWhere(['user_id' => $params['user_id']]);
         $count = $activity->count();
         if ($count > 0) {
