@@ -256,7 +256,8 @@ class SetService extends BaseService
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $room = explode($v['community_name'], $v['room_name']);
-                $v['room_name'] = $v['community_name'].$room[1];
+                $roomInfo = !empty($room[1]) ? $room[1] : $room[0];
+                $v['room_name'] = $v['community_name'].$roomInfo;
                 $v['shared_at'] = date('Y/m/d', $v['shared_at']);
                 $v['start_at'] = date('H:i', $v['start_at']);
                 $v['end_at'] = date('H:i', $v['end_at']);
