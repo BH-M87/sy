@@ -38,13 +38,13 @@ class SmallMyService extends BaseService
         $valiResult = $this->valiParams($params);
         if($valiResult['code']==1){
             //共享次数
-            $space_count = PsParkSpace::find()->where(['publish_id' => $params['user_id'], 'status' => 4, 'is_del' => 1])->andFilterWhere(['community_id'=>$params['community_id']])->count();
+            $space_count = PsParkSpace::find()->where(['publish_id' => $params['user_id'], 'status' => 5, 'is_del' => 1])->andFilterWhere(['community_id'=>$params['community_id']])->count();
             $data['space_count'] = !empty($space_count) ? $space_count : 0;
             //预约次数
-            $reserva_count = PsParkReservation::find()->where(['appointment_id' => $params['user_id'], 'status' => 4])->andFilterWhere(['community_id'=>$params['community_id']])->count();
+            $reserva_count = PsParkReservation::find()->where(['appointment_id' => $params['user_id'], 'status' => 6])->andFilterWhere(['community_id'=>$params['community_id']])->count();
             $data['reserva_count'] = !empty($reserva_count) ? $reserva_count : 0;
             //积分
-            $space_integral = PsParkSpace::find()->select(['sum(score) as total_score'])->where(['publish_id' => $params['user_id'], 'status' => 4, 'is_del' => 1])->andFilterWhere(['community_id'=>$params['community_id']])->count();
+            $space_integral = PsParkSpace::find()->select(['sum(score) as total_score'])->where(['publish_id' => $params['user_id'], 'status' => 6, 'is_del' => 1])->andFilterWhere(['community_id'=>$params['community_id']])->count();
             $data['space_integral'] = !empty($space_integral) ? $space_integral : 0;
 
             return $this->success($data);
