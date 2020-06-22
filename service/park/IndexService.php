@@ -197,7 +197,8 @@ class IndexService extends BaseService
     {
         $m = PsParkReservation::find()
             ->filterWhere(['=', 'appointment_id', $p['user_id']])
-            ->andFilterWhere(['like', 'room_name', $p['room_name']]);
+            ->andFilterWhere(['like', 'room_name', $p['room_name']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']]);
         return $m;
     }
 }
