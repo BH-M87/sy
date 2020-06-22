@@ -255,7 +255,8 @@ class SetService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['room_name'] = $v['community_name'].$v['room_name'];
+                $room = explode($v['community_name'], $v['room_name']);
+                $v['room_name'] = $v['community_name'].$room[1];
                 $v['shared_at'] = date('Y/m/d', $v['shared_at']);
                 $v['start_at'] = date('H:i', $v['start_at']);
                 $v['end_at'] = date('H:i', $v['end_at']);
