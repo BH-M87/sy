@@ -53,7 +53,7 @@ class CallBackService extends BaseService  {
         $trans = Yii::$app->db->beginTransaction();
         try{
             //获得预约记录
-            $info = PsParkReservation::find()->select(['id','space_id','car_number'])
+            $info = PsParkReservation::find()->select(['id','space_id','car_number','community_id','community_name'])
                         ->where(['=','car_number',$params['car_number']])
                         ->andWhere(['=','status',1])
                         ->andWhere(['=','is_del',1])
@@ -67,7 +67,6 @@ class CallBackService extends BaseService  {
             $updateParams['update_at'] = $nowTime;
             $updateParams['enter_at'] = $params['enter_at'];    //入场时间
             PsParkReservation::updateAll($updateParams,['id'=>$info['id']]);
-
             $spaceParams['status'] = 3;
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
@@ -135,7 +134,6 @@ class CallBackService extends BaseService  {
                 $timeOut = self::timeOut($info);
             }
             //删除车辆信息
-
             //修改预约记录信息
             $reservationUpdate['status'] = $timeOut?3:6;    //已超时or 已完成
             $reservationUpdate['out_at'] = $params['out_at'];
