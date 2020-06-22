@@ -53,7 +53,7 @@ class IndexService extends BaseService
         }
 
         // 头部时间筛选
-        $p['status'] = '';
+        $p['status'] = [1,2,3];
         $dt = self::dayTime($p);
 
         $m['timeList'] = [
@@ -197,7 +197,8 @@ class IndexService extends BaseService
     {
         $m = PsParkReservation::find()
             ->filterWhere(['=', 'appointment_id', $p['user_id']])
-            ->andFilterWhere(['like', 'room_name', $p['room_name']]);
+            ->andFilterWhere(['like', 'room_name', $p['room_name']])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']]);
         return $m;
     }
 }
