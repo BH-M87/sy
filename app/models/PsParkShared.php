@@ -77,7 +77,7 @@ class PsParkShared extends BaseModel
         $nowTime = time();
         $startTime = strtotime(date('Y-m-d',$this->start_date)." 00:00:00");
         if (!empty($this->start_date) && !empty($this->end_date)) {
-            if($nowTime>$startTime){
+            if($nowTime<$startTime){
                 return $this->addError($attribute, "共享日期不小于当前日期");
             }
 
@@ -129,8 +129,19 @@ class PsParkShared extends BaseModel
                             ->andWhere(['=','publish_id',$this->publish_id])
                             ->andWhere(['=','park_space',$this->park_space])
                             ->andWhere(['=','is_del',1])
-                            ->andWhere(['or',['<=','start_date',$this->start_date],['>=','end_date',$this->start_date]])
-                            ->andWhere(['or',['<=','start_date',$this->end_date],['>=','end_date',$this->end_date]])
+                            ->andWhere([
+                                        'or',
+                                        [
+                                            'and',
+                                            ['<=','start_date',$this->start_date],
+                                            ['>=','end_date',$this->start_date]
+                                        ],
+                                        [
+                                            'and',
+                                            ['<=','start_date',$this->end_date],
+                                            ['>=','end_date',$this->end_date]
+                                        ]
+                            ])
                             ->asArray()->all();
             if(!empty($res)){
                 return $this->addError($attribute, "该时间已有预约，请重新选择时间");
