@@ -145,7 +145,7 @@ class CallBackService extends BaseService  {
             $spaceDetail = $spaceModel->getDetail(['id'=>$info['space_id']]);
             if(!empty($spaceDetail)){
                 //添加共享积分
-                $integral = ceil(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
+                $integral = floor(($params['out_at']-$params['enter_at'])/(3600*$setInfo['min_time']))*$setInfo['integral'];
                 if($integral>0){
                     PsParkSpace::updateAll(['score'=>$integral],['id'=>$info['space_id']]);
                 }
