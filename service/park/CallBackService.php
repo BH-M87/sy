@@ -73,12 +73,12 @@ class CallBackService extends BaseService  {
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
 
             $spaceModel = new PsParkSpace();
-            $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
+            $spaceDetail = $spaceModel->getDetail(['id'=>$info['space_id']]);
             //通知发布者
             $msg = $info['car_number']."于".date('H:i',$params['enter_at'])."入场您共享的车位";
             //添加消息记录
-            $msgParams['community_id'] = $params['community_id'];
-            $msgParams['community_name'] = $params['community_name'];
+            $msgParams['community_id'] = $info['community_id'];
+            $msgParams['community_name'] = $info['community_name'];
             $msgParams['user_id'] = $spaceDetail['publish_id'];
             $msgParams['type'] = 1;
             $msgParams['content'] = $msg;
