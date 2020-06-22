@@ -203,6 +203,7 @@ class PsParkReservation extends BaseModel
     {
         $activity = self::find()->select($field)
             ->where(['is_del' => 1])
+            ->andFilterWhere(['community_id' => $params['community_id']])
             ->andFilterWhere(['appointment_id' => $params['user_id']])
             ->andFilterWhere(['status' => [1,2,3,6]]);
         $count = $activity->count();
