@@ -53,7 +53,7 @@ class IndexService extends BaseService
         }
 
         // 头部时间筛选
-        $p['status'] = '';
+        $p['status'] = [1,2,3];
         $dt = self::dayTime($p);
 
         $m['timeList'] = [
