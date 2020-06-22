@@ -215,7 +215,8 @@ class SetService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['room_name'] = $v['community_name'].$v['room_name'];
+                $r = JavaService::service()->roomDetail(['id' => $v['room_id'], 'token' => $p['token']]);
+                $v['room_name'] = $r['roomName'];
                 $v['use_time'] = !empty($v['out_at']) ? ceil(($v['out_at'] - $v['enter_at']) / 60) : '0';
                 $v['over_time'] = $v['out_at'] > $v['end_at'] ? ceil(($v['out_at'] - $v['end_at']) / 60) : '0';
                 $v['enter_at'] = !empty($v['enter_at']) ? date('Y/m/d H:i', $v['enter_at']) : '';
