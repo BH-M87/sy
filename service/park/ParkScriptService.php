@@ -160,7 +160,7 @@ class ParkScriptService extends BaseService {
         try{
             $fields = [
                 'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
-                'record.ali_user_id','record.appointment_id','record.id as record_id','record.crop_id','record.start_at','record.car_number'
+                'record.ali_user_id','record.appointment_id','record.id as record_id','record.corp_id','record.start_at','record.car_number'
             ];
             $nowTime = time();
             //获得数据
@@ -175,7 +175,7 @@ class ParkScriptService extends BaseService {
                 $spaceIds = [];
                 $recordIds = [];
                 foreach($result as $key=>$value){
-                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','corp_id',$value['corp_id']])->asArray()->one();
                     if(!empty($setInfo)){
                         $diff = ceil(($nowTime - $value['start_at'])/60);//计算总共使用多少分钟
                         if($diff<=$setInfo['late_at']){
@@ -212,7 +212,7 @@ class ParkScriptService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try {
             $nowTime = time();
-            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','crop_id','park_space'])
+            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','corp_id','park_space'])
                 ->where(['=', 'is_del', 1])
                 ->andWhere(['=', 'notice_out', 1])
                 ->andWhere(['=', 'status', 2])
@@ -224,7 +224,7 @@ class ParkScriptService extends BaseService {
                 $data = [];
                 $spaceIds = [];
                 foreach($result as $key=>$value){
-                    $setInfo = PsParkSet::find()->select(['due_notice'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    $setInfo = PsParkSet::find()->select(['due_notice'])->where(['=','corp_id',$value['corp_id']])->asArray()->one();
                     if(!empty($setInfo)){
                         $diff = ceil(($value['end_at'] - $nowTime)/60);//计算总共使用多少分钟
                         if($diff<=$setInfo['due_notice']){
@@ -273,7 +273,7 @@ class ParkScriptService extends BaseService {
         try {
             $nowTime = time();
             $diff = $nowTime + 15*60;
-            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','crop_id','park_space'])
+            $result = PsParkReservation::find()->select(['id', 'end_at', 'ali_form_id', 'ali_user_id', 'appointment_id', 'community_name', 'community_id','corp_id','park_space'])
                 ->where(['=', 'is_del', 1])
                 ->andWhere(['=', 'notice_entry', 1])
                 ->andWhere(['=', 'status', 1])
@@ -285,7 +285,7 @@ class ParkScriptService extends BaseService {
                 $data = [];
                 $spaceIds = [];
                 foreach($result as $key=>$value){
-                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','crop_id',$value['crop_id']])->asArray()->one();
+                    $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','corp_id',$value['corp_id']])->asArray()->one();
                     if(!empty($setInfo)) {
                         //发消息通知
                         $msg = "您预约的" . $value['park_space'] . "车位请尽快入场，逾期" .$setInfo['late_at']."分钟后，预约将自动取消。";

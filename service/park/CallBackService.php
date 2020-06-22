@@ -19,20 +19,26 @@ class CallBackService extends BaseService  {
      * 车辆出入场
      */
     public function carEntryExit($params){
+        if(empty($params['carNum'])){
+            return $this->failed('车牌不能为空');
+        }
+        if(empty($params['arriveTime'])){
+            return $this->failed('车辆入场时间不能为空');
+        }
         $params['enter_at'] = !empty($params['arriveTime'])?strtotime($params['arriveTime']):'';
         $params['out_at'] = !empty($params['leaveTime'])?strtotime($params['leaveTime']):'';
         if(!empty($params['enter_at'])&&empty($params['out_at'])){
             //车辆进场
             $entryParams['enter_at'] = $params['enter_at'];
             $entryParams['car_number'] = $params['carNum'];
-            self::carEntry($entryParams);
+            return self::carEntry($entryParams);
         }
         if(!empty($params['enter_at'])&&!empty($params['out_at'])){
             //车辆出场
             $exitParams['enter_at'] = $params['enter_at'];
             $exitParams['out_at'] = $params['out_at'];
             $exitParams['car_number'] = $params['carNum'];
-            self::carExit($exitParams);
+            return self::carExit($exitParams);
         }
     }
 
@@ -87,6 +93,7 @@ class CallBackService extends BaseService  {
             }
 
             $trans->commit();
+            return $this->success();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -109,7 +116,7 @@ class CallBackService extends BaseService  {
             //获得预约记录
             $fields = [
                         'id','space_id','start_at','end_at','community_id','community_name','room_id','room_name',
-                        'appointment_id','appointment_name','appointment_mobile','crop_id','car_number'
+                        'appointment_id','appointment_name','appointment_mobile','corp_id','car_number'
             ];
             $info = PsParkReservation::find()->select($fields)
                 ->where(['=','car_number',$params['car_number']])
@@ -140,6 +147,7 @@ class CallBackService extends BaseService  {
             $spaceParams['update_at'] = $nowTime;
             PsParkSpace::updateAll($spaceParams,['id'=>$info['space_id']]);
             $trans->commit();
+            return $this->success();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
@@ -156,7 +164,7 @@ class CallBackService extends BaseService  {
      */
     private function timeOut($params){
 
-        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','crop_id',$params['crop_id']])->asArray()->one();
+        $setInfo = PsParkSet::find()->select(['black_num','appointment','appointment_unit','lock','lock_unit','min_time','integral'])->where(['=','corp_id',$params['corp_id']])->asArray()->one();
         if(empty($setInfo)){
             return $this->failed('系统设置不存在');
         }

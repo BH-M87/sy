@@ -22,17 +22,17 @@ class PsParkReservation extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id','crop_id'], 'required','on'=>'add'],
-            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','cancel_at','notice_out','notice_entry','create_at', 'update_at'], 'integer'],
+            [['community_id','community_name','room_id','room_name','space_id','appointment_id','appointment_name','appointment_mobile','car_number','ali_form_id','ali_user_id','corp_id'], 'required','on'=>'add'],
+            [['id','space_id', 'start_at','end_at','enter_at','out_at','status','is_del','notice_out','notice_entry','create_at', 'update_at'], 'integer'],
             [['appointment_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['community_id','community_name','room_id','appointment_id','appointment_name','appointment_mobile'], 'string', 'max' => 30],
-            [['room_name','crop_id'], 'string', 'max' => 50],
+            [['room_name','corp_id'], 'string', 'max' => 50],
             [['ali_form_id','ali_user_id'], 'string', 'max' => 100],
             [['car_number'],'string','max'=>10],
             [['park_space'],'string','max'=>5],
             [['appointment_id','community_id'],'isBlackList','on'=>'add'],//预约人是否在黑名单
             [['appointment_id','community_id'],'isTimeOut','on'=>'add'],//预约人是否超时被锁定
-            [['appointment_id','community_id','crop_id'],'isCancel','on'=>'add'], //只能预约次数判断
+            [['appointment_id','community_id','corp_id'],'isCancel','on'=>'add'], //只能预约次数判断
             //判断预约车位是否存在，待预约状态, 车辆是否有相同天数预约的车位（不能恶意占用资源：同一个车牌）预约时间大于共享结束时间 共享结束时间前15分钟不能预约
             [['space_id','community_id','car_number','appointment_id'],'canBeReserved','on'=>'add'],
             [['create_at','update_at'], 'default', 'value' => time(),'on'=>['add']],
@@ -62,13 +62,12 @@ class PsParkReservation extends BaseModel
             'enter_at'              => '入场时间',
             'out_at'                => '离场时间',
             'status'                => '状态',
-            'cancel_at'             => '取消订单时间',
             'ali_form_id'           => '支付宝表单',
             'ali_user_id'           => '支付宝用户',
             'is_del'                => '是否删除',
             'notice_entry'          => '入场通知',
             'notice_out'            => '离场通知',
-            'crop_id'               => '后台租户',
+            'corp_id'               => '后台租户',
             'create_at'             => '创建时间',
             'update_at'             => '修改时间',
         ];
@@ -156,18 +155,20 @@ class PsParkReservation extends BaseModel
      * 1.获得系统设置预约次数
      */
     public function isCancel($attribute){
-        $setRes = PsParkSet::find()->select(['cancle_num'])->where(['=','crop_id',$this->crop_id])->asArray()->one();
-        if(!empty($setRes['cancle_num'])){
-            $count = self::find()
-                            ->where(['=','appointment_id',$this->appointment_id])
-                            ->andWhere(['=','community_id',$this->community_id])
-                            ->andWhere(['=','is_del',1])
-                            ->andWhere(['=','status',1])
-                            ->count('id');
-            if($count>=$setRes['cancle_num']){
-                return $this->addError($attribute, "您已预约过".$setRes['cancle_num']."次,不能预约");
-            }
+        if(!empty($this->corp_id)){
+            $setRes = PsParkSet::find()->select(['cancle_num'])->where(['=','corp_id',$this->corp_id])->asArray()->one();
+            if(!empty($setRes['cancle_num'])){
+                $count = self::find()
+                                ->where(['=','appointment_id',$this->appointment_id])
+                                ->andWhere(['=','community_id',$this->community_id])
+                                ->andWhere(['=','is_del',1])
+                                ->andWhere(['=','status',1])
+                                ->count('id');
+                if($count>=$setRes['cancle_num']){
+                    return $this->addError($attribute, "您已预约过".$setRes['cancle_num']."次,不能预约");
+                }
 
+            }
         }
     }
 

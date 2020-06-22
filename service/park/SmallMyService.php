@@ -93,9 +93,9 @@ class SmallMyService extends BaseService
         if($valiResult['code']==1){
             $result = PsParkSpace::find()->where(['id' => $params['id']])->asArray()->one();
             if (!empty($result)) {
-                if ($result['status']==2) {
+                if ($result['status']==1 || $result['status']==2) {
                     //将车位状态重置
-                    PsParkSpace::updateAll(['status' => 1], ['id' => $params['id']]);
+                    PsParkSpace::updateAll(['status' => 4,'is_del'=> 2], ['id' => $params['id']]);
                     return $this->success(['id'=>$result['id']]);
                 }
                 return $this->failed("共享记录取消失败");
