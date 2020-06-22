@@ -164,8 +164,28 @@ class CallBackService extends BaseService  {
                     $msg = array_values($msgModel->errors)[0][0];
                     return $this->failed($msg);
                 }
+                //添加积分消息记录
+                $integralMsg = '共享成功，获得'.$integral."积分";
+                //添加消息记录
+                $integralParams['community_id'] = $info['community_id'];
+                $integralParams['community_name'] = $info['community_name'];
+                $integralParams['user_id'] = $spaceDetail['publish_id'];
+                $integralParams['type'] = 2;
+                $integralParams['content'] = $integralMsg;
+                $integralModel = new PsParkMessage(['scenario'=>'add']);
+                if($integralModel->load($msgParams,'')&&$integralModel->validate()){
+                    if(!$msgModel->saveData()){
+                        return $this->failed('消息新增失败！');
+                    }
+                }else{
+                    $msg = array_values($integralModel->errors)[0][0];
+                    return $this->failed($msg);
+                }
+
             }
             //删除车辆信息
+
+            
             //修改预约记录信息
             $reservationUpdate['status'] = $timeOut?3:6;    //已超时or 已完成
             $reservationUpdate['out_at'] = $params['out_at'];
