@@ -48,7 +48,6 @@ class BaseController extends \yii\web\Controller
      */
     public function beforeAction($action)
     {
-        return true;
         if (parent::beforeAction($action)) {
             //请求方式，post检测
             $this->_validateMethod();
