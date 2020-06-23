@@ -41,10 +41,10 @@ class SharedService extends BaseService{
                 $dateParams['exec_type_msg'] = $params['exec_type_msg'];
                 $dateAll = self::getExecDate($dateParams);
                 if(empty($dateAll)){
-                    return $this->failed('您选择的日期内，没有对应日期的共享车位生成！');
+                    return $this->failed('您选择的日期内，没有对应日期！');
                 }
                 if(self::verificationSpace($dateAll,$params)){
-                    return $this->failed('您选择的日期内，已有有对应日期的共享车位生成！');
+                    return $this->failed('您选择的日期内，已有对应日期的共享车位存在！');
                 }
                 if(!$model->save()){
                     return $this->failed('新增失败！');
