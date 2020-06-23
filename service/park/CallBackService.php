@@ -25,12 +25,16 @@ class CallBackService extends BaseService  {
         if(empty($params['arriveTime'])){
             return $this->failed('车辆入场时间不能为空');
         }
+        if(empty($params['community_id'])){
+            return $this->failed('小区不能为空');
+        }
         $params['enter_at'] = !empty($params['arriveTime'])?strtotime($params['arriveTime']):'';
         $params['out_at'] = !empty($params['leaveTime'])?strtotime($params['leaveTime']):'';
         if(!empty($params['enter_at'])&&empty($params['out_at'])){
             //车辆进场
             $entryParams['enter_at'] = $params['enter_at'];
             $entryParams['car_number'] = $params['carNum'];
+            $entryParams['community_id'] = $params['community_id'];
             return self::carEntry($entryParams);
         }
         if(!empty($params['enter_at'])&&!empty($params['out_at'])){
@@ -38,6 +42,7 @@ class CallBackService extends BaseService  {
             $exitParams['enter_at'] = $params['enter_at'];
             $exitParams['out_at'] = $params['out_at'];
             $exitParams['car_number'] = $params['carNum'];
+            $exitParams['community_id'] = $params['community_id'];
             return self::carExit($exitParams);
         }
     }
@@ -57,6 +62,7 @@ class CallBackService extends BaseService  {
                         ->where(['=','car_number',$params['car_number']])
                         ->andWhere(['=','status',1])
                         ->andWhere(['=','is_del',1])
+                        ->andWhere(['=','community_id',$params['community_id']])
                         ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['enter_at'])])
                         ->asArray()->one();
             if(empty($info)){
@@ -122,6 +128,7 @@ class CallBackService extends BaseService  {
                 ->where(['=','car_number',$params['car_number']])
                 ->andWhere(['=','status',2])
                 ->andWhere(['=','is_del',1])
+                ->andWhere(['=','community_id',$params['community_id']])
                 ->andWhere(['=',"FROM_UNIXTIME(start_at,'%Y-%m-%d')",date('Y-m-d',$params['enter_at'])])
                 ->asArray()->one();
             if(empty($info)){
