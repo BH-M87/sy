@@ -98,7 +98,7 @@ class ParkScriptService extends BaseService {
                 $recordIds = [];
                 foreach($result as $key=>$value){
                     //判断业主车辆是否在车库
-                    $judge = false;
+                    $judge = true;
                     if($judge){
                         $element['community_id'] = $value['community_id'];
                         $element['community_name'] = $value['community_name'];
@@ -150,7 +150,7 @@ class ParkScriptService extends BaseService {
      * 预约人迟到 取消预约
      * 1.查询符合条件数据 （车位预约中，当前时间）
      * 2.获得系统设置时间
-     * 3.给预约人发布生成消息 
+     * 3.给预约人发布生成消息
      * 4.超时自动关闭车位
      * 5.超时自动关闭预约记录
      * 6.删除车牌信息（java接口）
