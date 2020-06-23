@@ -91,7 +91,7 @@ class SetService extends BaseService
             return $r;
         }
 
-        throw new MyException('数据不存在!');
+        //throw new MyException('数据不存在!');
     }
 
     // 黑名单 列表
