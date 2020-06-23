@@ -140,10 +140,10 @@ class PsParkReservation extends BaseModel
      * 判断预约人是否被锁定
      */
     public function isTimeOut($attribute){
-        $res = PsParkBreakPromise::find()->select(['id','lock_at'])
+        $res = PsParkBreakPromise::find()->select(['ids','lock_at'])
                         ->where(['=','user_id',$this->appointment_id])
                         ->andWhere(['=','community_id',$this->community_id])
-                        ->andWhere(['<','lock_at',time()])
+                        ->andWhere(['>','lock_at',time()])
                         ->andWhere(['>','lock_at',0])
                         ->asArray()->one();
         if(!empty($res)){
