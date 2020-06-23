@@ -150,7 +150,7 @@ class ParkScriptService extends BaseService {
      * 预约人迟到 取消预约
      * 1.查询符合条件数据 （车位预约中，当前时间）
      * 2.获得系统设置时间
-     * 3.给预约人发布支付宝消息 生成消息 （略）
+     * 3.给预约人发布生成消息 
      * 4.超时自动关闭车位
      * 5.超时自动关闭预约记录
      * 6.删除车牌信息（java接口）
@@ -174,6 +174,8 @@ class ParkScriptService extends BaseService {
             if(!empty($result)){
                 $spaceIds = [];
                 $recordIds = [];
+                $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
+                $data = [];
                 foreach($result as $key=>$value){
                     $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','corp_id',$value['corp_id']])->asArray()->one();
                     if(!empty($setInfo)){
@@ -182,6 +184,17 @@ class ParkScriptService extends BaseService {
                             //自动关闭车位，预约记录
                             array_push($spaceIds,$value['id']);
                             array_push($recordIds,$value['record_id']);
+                            //添加消息
+                            $msg = "您于".date('m月d日',$value['start_at'])."预约的".$value['car_number']."车位由于超时未入场，预约自动取消，给您带来的不便敬请谅解~！请重新查找可预约的共享车位。";
+                            //添加消息记录
+                            $msgParams['community_id'] = $value['community_id'];
+                            $msgParams['community_name'] = $value['community_name'];
+                            $msgParams['user_id'] = $value['appointment_id'];
+                            $msgParams['type'] = 1;
+                            $msgParams['content'] = $msg;
+                            $msgParams['create_at'] = $nowTime;
+                            $msgParams['update_at'] = $nowTime;
+                            $data[] = $msgParams;
                             //删除车牌信息java接口
                         }
                     }
@@ -191,6 +204,9 @@ class ParkScriptService extends BaseService {
                 }
                 if(!empty($recordIds)){
                     PsParkReservation::updateAll(['status'=>4],['in','id',$recordIds]);
+                }
+                if(!empty($data)){
+                    Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
                 }
             }
             $trans->commit();
