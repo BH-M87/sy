@@ -75,9 +75,10 @@ class PsParkShared extends BaseModel
      */
     public function planTimeVerification($attribute){
         $nowTime = time();
-        $startTime = strtotime(date('Y-m-d',$this->start_date)." 00:00:00");
+        $startTime = strtotime(date('Y-m-d',$this->start_date)." 23:59:59");
         if (!empty($this->start_date) && !empty($this->end_date)) {
-            if($nowTime<$startTime){
+
+            if($nowTime>$startTime){
                 return $this->addError($attribute, "共享日期不小于当前日期");
             }
 
