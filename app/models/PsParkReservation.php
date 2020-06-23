@@ -144,6 +144,7 @@ class PsParkReservation extends BaseModel
                         ->where(['=','user_id',$this->appointment_id])
                         ->andWhere(['=','community_id',$this->community_id])
                         ->andWhere(['<','lock_at',time()])
+                        ->andWhere(['>','lock_at',0])
                         ->asArray()->one();
         if(!empty($res)){
             return $this->addError($attribute, "您的违约锁定时间到".date('Y-m-d H:i',$res['lock_at']).",不能预约");
