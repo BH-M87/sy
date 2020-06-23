@@ -140,12 +140,16 @@ class PsParkSpace extends BaseModel
                 $housTo = $over_time>60?intval($over_time/60):'';//大与60分钟显示小时+分钟
                 if(!empty($housTo)){
                     $over_time = $housTo."小时".($over_time - $housTo*60).'分钟';
+                }else{
+                    $over_time = $over_time.'分钟';
                 }
             }
             $data['car_number'] = $reserva['car_number'];
             $hous = $usage_time>60?intval($usage_time/60):'';//大与60分钟显示小时+分钟
             if(!empty($hous)){
                 $usage_time = $hous."小时".($usage_time - $hous*60).'分钟';
+            }else{
+                $usage_time = $usage_time.'分钟';
             }
             $data['usage_time'] = $usage_time;
             $data['over_time'] = !empty($over_time)?$over_time:0;
