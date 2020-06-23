@@ -169,7 +169,7 @@ class ParkScriptService extends BaseService {
                 ->select($fields)
                 ->where(['=','space.is_del',1])
                 ->andWhere(['=','space.status',2])
-                ->andWhere(['<','record.start_date',$nowTime])
+                ->andWhere(['<','record.start_at',$nowTime])
                 ->asArray()->all();
             if(!empty($result)){
                 $spaceIds = [];
