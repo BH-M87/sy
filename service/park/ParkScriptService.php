@@ -81,15 +81,16 @@ class ParkScriptService extends BaseService {
                         'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number'
             ];
             $nowTime = time();
-            $diffTime = $nowTime - 5*60;
+//            $nowTime = "1592898480";
+            $diff = $nowTime + 5*60;
             $result = PsParkSpace::find()->alias('space')
                 ->leftJoin(['record'=>PsParkReservation::tableName()],'record.space_id=space.id')
                 ->select($fields)
                 ->where(['=','space.is_del',1])
                 ->andWhere(['in','space.status',[1,2]])
                 ->andWhere(['=','space.notice_5',1])
-                ->andWhere(['>=','space.start_at',$diffTime])
-                ->andWhere(['<=','space.start_at',$nowTime])
+                ->andWhere(['<=','space.start_at',$diff])
+                ->andWhere(['>=','space.start_at',$nowTime])
                 ->asArray()->all();
             if(!empty($result)){
                 $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
