@@ -35,11 +35,19 @@ class SharedService extends BaseService{
             $params['start_date'] = !empty($params['start_date'])?strtotime($params['start_date']):0;
             $params['end_date'] = !empty($params['end_date'])?strtotime($params['end_date']." 23:59:59"):0;
             if($model->load($params,'')&&$model->validate()){
+
+                $dateParams['start_at'] = date('Y-m-d',$params['start_date']);
+                $dateParams['end_at'] = date('Y-m-d',$params['end_date']);
+                $dateParams['exec_type_msg'] = $params['exec_type_msg'];
+                $dateAll = self::getExecDate($dateParams);
+                if(empty($dateAll)){
+                    return $this->failed('您选择的日期内，没有对应日期的共享车位生成！');
+                }
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
                 //生成共享车位
-                self::batchAddSpace($model->attributes);
+                self::batchAddSpace($model->attributes,$dateAll);
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
             }else{
@@ -194,11 +202,8 @@ class SharedService extends BaseService{
     }
 
 
-    private function batchAddSpace($params){
-        $dateParams['start_at'] = date('Y-m-d',$params['start_date']);
-        $dateParams['end_at'] = date('Y-m-d',$params['end_date']);
-        $dateParams['exec_type_msg'] = $params['exec_type_msg'];
-        $dateAll = self::getExecDate($dateParams);
+    private function batchAddSpace($params,$dateAll){
+
         $fields = [
                     'community_id','community_name','room_id','room_name','publish_id','publish_name','publish_mobile','shared_id',
                     'park_space','ali_form_id','ali_user_id','create_at','update_at','shared_at','start_at','end_at'
