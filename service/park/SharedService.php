@@ -168,7 +168,7 @@ class SharedService extends BaseService{
                     }
                     $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
                     //发送支付宝消息 通知发布者
-                    $msg = "您于".date('m月d日',$spaceDetail['shared_at'])."共享的车位已被小区业主预约";
+                    $msg = "您于".date('m月d日',$spaceDetail['shared_at'])."共享的车位已被小区业主预约，共享完成后，将获得共享积分~！";
                     AliPayQrCodeService::service()->sendMessage($spaceDetail['ali_user_id'],$spaceDetail['ali_form_id'],'pages/index/index',$msg);
                     //添加消息记录
                     $msgParams['community_id'] = $params['community_id'];
