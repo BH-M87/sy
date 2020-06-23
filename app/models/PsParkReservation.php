@@ -241,9 +241,6 @@ class PsParkReservation extends BaseModel
     public static function getOne($param)
     {
         $result = self::find()->select(['id','space_id','start_at','end_at','car_number','enter_at','out_at','status','park_space'])->where(['id'=>$param['id']])->asArray()->one();
-        $result['share_at'] = date('Y-m-d',$result['start_at']);
-        $result['start_at'] = date('H:i',$result['start_at']);
-        $result['end_at'] = date('H:i',$result['end_at']);
         if(!empty($result['enter_at']) && !empty($result['out_at'])){
             //使用时长
             $usage_time = ceil(($result['out_at'] - $result['enter_at'])/60);//计算总共使用多少分钟
@@ -263,10 +260,13 @@ class PsParkReservation extends BaseModel
             }else{
                 $usage_time = $usage_time.'分钟';
             }
-            $data['usage_time'] = $usage_time;
-            $data['over_time'] = !empty($over_time)?$over_time:0;
+            $result['usage_time'] = $usage_time;
+            $result['over_time'] = !empty($over_time)?$over_time:0;
         }
         //车辆入场出场时间
+        $result['share_at'] = date('Y-m-d',$result['start_at']);
+        $result['start_at'] = date('H:i',$result['start_at']);
+        $result['end_at'] = date('H:i',$result['end_at']);
         $result['enter_at'] = !empty($result['enter_at'])?date('Y-m-d H:i',$result['enter_at']):'';
         $result['out_at'] = !empty($result['out_at'])?date('Y-m-d H:i',$result['out_at']):'';
         $result['park_space'] = $result['park_space'];
