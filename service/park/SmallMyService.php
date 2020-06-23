@@ -2,6 +2,7 @@
 
 namespace service\park;
 
+use app\models\PsParkShared;
 use app\models\PsParkSpace;
 use app\models\PsParkReservation;
 use app\models\PsParkMessage;
@@ -96,6 +97,38 @@ class SmallMyService extends BaseService
                 if ($result['status']==1 || $result['status']==2) {
                     //将车位状态重置
                     PsParkSpace::updateAll(['status' => 4,'is_del'=> 2], ['id' => $params['id']]);
+                    //查询车位对应的发布共享是否还有没有取消的记录，没有则把发布记录删除
+                    $shared = PsParkSpace::find()->where(['shared_id' => $result['shared_id'],'is_del'=>'1'])->asArray()->one();
+                    if(empty($shared)){
+                        PsParkShared::updateAll(['update_at' => time(),'is_del'=> 2], ['id' => $result['shared_id']]);
+                    }
+                    //查询车位有没有被预约
+                    $reservation = PsParkReservation::getOneBySpaceId(['id'=>$params['id']]);
+                    if(!empty($reservation)){
+                        if($reservation['status']==1){
+                            //修改预约记录
+                            PsParkReservation::updateAll(['status' => 4], ['id' => $reservation['id']]);
+                            //给预约人发送消息
+                            $msg = "您于".date('m月d日',$reservation['start_at'])."预约的".$reservation['park_space']."车位已被发布者取消，给您带来的不便敬请谅解!请重新查找可预约的共享车位。";
+                            //添加消息记录
+                            $msgParams['community_id'] = $reservation['community_id'];
+                            $msgParams['community_name'] = $reservation['community_name'];
+                            $msgParams['user_id'] = $reservation['appointment_id'];
+                            $msgParams['type'] = 1;
+                            $msgParams['content'] = $msg;
+                            $msgModel = new PsParkMessage(['scenario'=>'add']);
+                            if($msgModel->load($msgParams,'')&&$msgModel->validate()){
+                                if(!$msgModel->saveData()){
+                                    return $this->failed('消息新增失败！');
+                                }
+                            }else{
+                                $msg = array_values($msgModel->errors)[0][0];
+                                return $this->failed($msg);
+                            }
+                        }else{
+                            return $this->failed("您的共享车位已有车辆正在使用");
+                        }
+                    }
                     return $this->success(['id'=>$result['id']]);
                 }
                 return $this->failed("共享记录取消失败");

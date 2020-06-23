@@ -240,13 +240,10 @@ class PsParkReservation extends BaseModel
 
     public static function getOne($param)
     {
-        $result = self::find()->select(['id','space_id','start_at','end_at','car_number','enter_at','out_at','status'])->where(['id'=>$param['id']])->asArray()->one();
+        $result = self::find()->select(['id','space_id','start_at','end_at','car_number','enter_at','out_at','status','park_space'])->where(['id'=>$param['id']])->asArray()->one();
         $result['share_at'] = date('Y-m-d',$result['start_at']);
         $result['start_at'] = date('H:i',$result['start_at']);
         $result['end_at'] = date('H:i',$result['end_at']);
-        //车辆入场出场时间
-        $result['enter_at'] = !empty($result['enter_at'])?date('Y-m-d H:i',$result['enter_at']):'';
-        $result['out_at'] = !empty($result['out_at'])?date('Y-m-d H:i',$result['out_at']):'';
         if(!empty($result['enter_at']) && !empty($result['out_at'])){
             //使用时长
             $usage_time = ceil(($result['out_at'] - $result['enter_at'])/60);//计算总共使用多少分钟
@@ -265,16 +262,15 @@ class PsParkReservation extends BaseModel
             $data['usage_time'] = $usage_time;
             $data['over_time'] = !empty($over_time)?$over_time:0;
         }
-
-        //查询车位信息
-        $spaceInfo = PsParkSpace::getOne(['id'=>$result['space_id']]);
-        //车位号
-        $result['park_space'] = $spaceInfo['park_space'];
+        //车辆入场出场时间
+        $result['enter_at'] = !empty($result['enter_at'])?date('Y-m-d H:i',$result['enter_at']):'';
+        $result['out_at'] = !empty($result['out_at'])?date('Y-m-d H:i',$result['out_at']):'';
+        $result['park_space'] = $result['park_space'];
         return $result;
     }
 
     public static function getOneBySpaceId($param)
     {
-        return self::find()->select(['id','car_number','enter_at','out_at','status'])->where(['space_id'=>$param['id']])->andWhere(['!=','status','5'])->asArray()->one();
+        return self::find()->select(['id','car_number','enter_at','out_at','status','community_id','community_name','appointment_id','start_at','end_at'])->where(['space_id'=>$param['id']])->andWhere(['!=','status','5'])->asArray()->one();
     }
 }
