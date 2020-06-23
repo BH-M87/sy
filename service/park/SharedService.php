@@ -74,6 +74,7 @@ class SharedService extends BaseService{
                             ->where(['=','is_del',1])
                             ->andWhere(['=','park_space',$params['park_space']])
                             ->andWhere(['=','community_id',$params['community_id']])
+                            ->andWhere(['in','status',[1,2,3]])
                             ->andWhere(['=',"FROM_UNIXTIME(shared_at,'%Y-%m-%d')",$value])
                             ->count('id');
             if(!empty($result)){
