@@ -121,35 +121,28 @@ class PsParkShared extends BaseModel
      * 同一天 不做此验证
      */
     public function dateVerification($attribute){
-//        $startDate = date('Y-m-d',$this->start_date);
-//        $endDate = date('Y-m-d',$this->end_date);
-//        $nowTime = time();
-//        if($startDate!=$endDate){
-            $res = self::find()->select(['id'])
-                            ->where(['=','community_id',$this->community_id])
-                            ->andWhere(['=','publish_id',$this->publish_id])
-                            ->andWhere(['=','park_space',$this->park_space])
-                            ->andWhere(['=','is_del',1])
-                            ->andWhere([
-                                        'or',
-                                        [
-                                            'and',
-                                            ['<=','start_date',$this->start_date],
-                                            ['>=','end_date',$this->start_date]
-                                        ],
-                                        [
-                                            'and',
-                                            ['<=','start_date',$this->end_date],
-                                            ['>=','end_date',$this->end_date]
-                                        ]
-                            ])
-                            ->asArray()->all();
-            if(!empty($res)){
-                return $this->addError($attribute, "每车位每天只可发布一次共享");
-            }
-//        }else if($startDate!=date('Y-m-d',$nowTime)){
-//            return $this->addError($attribute, "开始时间不能是过去时间");
-//        }
+        $res = self::find()->select(['id'])
+                        ->where(['=','community_id',$this->community_id])
+                        ->andWhere(['=','publish_id',$this->publish_id])
+                        ->andWhere(['=','park_space',$this->park_space])
+                        ->andWhere(['=','is_del',1])
+                        ->andWhere([
+                                    'or',
+                                    [
+                                        'and',
+                                        ['<=','start_date',$this->start_date],
+                                        ['>=','end_date',$this->start_date]
+                                    ],
+                                    [
+                                        'and',
+                                        ['<=','start_date',$this->end_date],
+                                        ['>=','end_date',$this->end_date]
+                                    ]
+                        ])
+                        ->asArray()->all();
+        if(!empty($res)){
+            return $this->addError($attribute, "该时间段已发布过共享，不能再次发布");
+        }
     }
 
     /*
