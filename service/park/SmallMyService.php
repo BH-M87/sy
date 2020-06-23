@@ -2,6 +2,7 @@
 
 namespace service\park;
 
+use app\models\PsParkShared;
 use app\models\PsParkSpace;
 use app\models\PsParkReservation;
 use app\models\PsParkMessage;
@@ -96,6 +97,11 @@ class SmallMyService extends BaseService
                 if ($result['status']==1 || $result['status']==2) {
                     //将车位状态重置
                     PsParkSpace::updateAll(['status' => 4,'is_del'=> 2], ['id' => $params['id']]);
+                    //查询车位对应的发布共享是否还有没有取消的记录，没有则把发布记录删除
+                    $shared = PsParkSpace::find()->where(['shared_id' => $result['shared_id'],'is_del'=>'1'])->asArray()->one();
+                    if(empty($shared)){
+                        PsParkShared::updateAll(['update_at' => time(),'is_del'=> 2], ['id' => $result['shared_id']]);
+                    }
                     //查询车位有没有被预约
                     $reservation = PsParkReservation::getOneBySpaceId(['id'=>$params['id']]);
                     if(!empty($reservation)){
