@@ -43,6 +43,9 @@ class SharedService extends BaseService{
                 if(empty($dateAll)){
                     return $this->failed('您选择的日期内，没有对应日期的共享车位生成！');
                 }
+                if(self::verificationSpace($dateAll,$params)){
+                    return $this->failed('您选择的日期内，已有有对应日期的共享车位生成！');
+                }
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
@@ -58,6 +61,28 @@ class SharedService extends BaseService{
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+    }
+
+    /*
+     * 验证当天是否有发布共享车位数据
+     * return true 不能发布共享 false 可以发布共享
+     */
+    private function verificationSpace($dateAll,$params){
+        $flag = false;
+        foreach($dateAll as $key=>$value){
+            $result = PsParkSpace::find()
+                            ->where(['=','is_del',1])
+                            ->andWhere(['=','park_space',$params['park_space']])
+                            ->andWhere(['=','community_id',$params['community_id']])
+                            ->andWhere(['=',"FROM_UNIXTIME(shared_at,'%Y-%m-%d')",$value])
+                            ->count('id');
+            if(!empty($result)){
+                $flag = true;
+                break;
+            }
+
+        }
+        return $flag;
     }
 
     /*

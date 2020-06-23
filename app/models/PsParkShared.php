@@ -24,7 +24,7 @@ class PsParkShared extends BaseModel
             [['id', 'start_date','end_date','is_del','create_at', 'update_at'], 'integer'],
             [['publish_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'{attribute}格式错误'],
             [['start_at','end_at'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
-            [['community_id','publish_id','park_space','start_date','end_date'],'dateVerification','on'=>['add']],   //日期重复验证
+//            [['community_id','publish_id','park_space','start_date','end_date'],'dateVerification','on'=>['add']],   //日期重复验证
             [['start_date','start_at','end_at'],'timeVerification','on'=>['add']],           //时间验证
             [['start_date','end_date'],'planTimeVerification','on'=>['add']],   //日期验证
             [['exec_type_msg'],'execVerification','on'=>'add'], //执行间隔验证
