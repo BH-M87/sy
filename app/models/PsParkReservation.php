@@ -260,7 +260,7 @@ class PsParkReservation extends BaseModel
             $hous = $usage_time>60?intval($usage_time/60):'';//大与60分钟显示小时+分钟
             if(!empty($hous)){
                 $usage_time = $hous."小时".($usage_time - $hous*60).'分钟';
-            }elese{
+            }else{
                 $usage_time = $usage_time.'分钟';
             }
             $data['usage_time'] = $usage_time;
