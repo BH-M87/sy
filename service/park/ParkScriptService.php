@@ -311,6 +311,7 @@ class ParkScriptService extends BaseService {
                     Yii::$app->db->createCommand()->batchInsert(PsParkMessage::tableName(),$fields,$data)->execute();
                 }
             }
+            $trans->commit();
         }catch (Exception $e) {
             $trans->rollBack();
             return $this->failed($e->getMessage());
