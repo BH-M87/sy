@@ -144,7 +144,6 @@ class PsParkSpace extends BaseModel
                     $over_time = $over_time.'分钟';
                 }
             }
-            $data['car_number'] = $reserva['car_number'];
             $hous = $usage_time>60?intval($usage_time/60):'';//大与60分钟显示小时+分钟
             if(!empty($hous)){
                 $usage_time = $hous."小时".($usage_time - $hous*60).'分钟';
@@ -154,6 +153,7 @@ class PsParkSpace extends BaseModel
             $data['usage_time'] = $usage_time;
             $data['over_time'] = !empty($over_time)?$over_time:0;
         }
+        $data['car_number'] = !empty($reserva['car_number'])?$reserva['car_number']:'';
         //车位号
         $data['park_space'] = $result['park_space'];
 
