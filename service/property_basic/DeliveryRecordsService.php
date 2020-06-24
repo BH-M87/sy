@@ -350,7 +350,7 @@ class DeliveryRecordsService extends BaseService{
             $qrParams['url'] = "pages/homePage/homePage/homePage";
             $qrParams['token'] = $params['token'];
             $qrParams['community_id'] = $params['community_id'];
-            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id'];
+            $qrParams['queryParam'] = 'x=1&community_id='.$params['community_id']."&community_name=".$params['community_name'];
 //            $qrParams['queryParam'] = urlencode($qrParams['queryParam']);
             $qrCodeUrl = self::generateQrCode($qrParams);
             $setParams['community_id'] = $params['community_id'];
@@ -363,7 +363,7 @@ class DeliveryRecordsService extends BaseService{
             $bangParams['url'] = "pages/homePage/homePage/homePage";
             $bangParams['token'] = $params['token'];
             $bangParams['community_id'] = $params['community_id'];
-            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id'];
+            $bangParams['queryParam'] = 'backCode=1&community_id='.$params['community_id']."&community_name=".$params['community_name'];
 //            $bangParams['queryParam'] = urlencode($bangParams['queryParam']);
             $bangCodeUrl = self::generateQrCode($bangParams);
             if(!empty($bangCodeUrl)){
