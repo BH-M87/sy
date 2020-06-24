@@ -146,7 +146,7 @@ class IndexService extends BaseService
             'list' => $list, 'totals' => $totals, 'reserved' => $reserved, 'free' => $free, 
             'lock_at' => $lock_at > time() ? date('Y-m-d H:i', $lock_at) : '',
             'is_black' => !empty($black) ? 1 : 2,
-            'parking_img' => 'https://community-static.zje.com/community-1590373233787-yix40kkzxps0.png',
+            'parking_img' => 'https://community-static.zje.com/community-1592962694356-fdwak3iy6yosg.jpeg',
         ];
     }
 
