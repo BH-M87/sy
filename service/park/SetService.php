@@ -45,7 +45,7 @@ class SetService extends BaseService
         if ($scenario == 'edit') {
             $model = PsParkSet::find()->where(['corp_id' => $p['corp_id']])->one();
             if (empty($model)) {
-                $scenario == 'add';
+                $scenario = 'add';
             } else {
                 $p['id'] = $model->id;
             }
