@@ -295,7 +295,7 @@ class CallBackService extends BaseService  {
             }
 
             //判断是否加入黑名单
-            if($promiseCount>$setInfo['black_num']){
+            if($promiseCount>=$setInfo['black_num']){
                 $black = PsParkBlack::find()->select(['id'])
                             ->where(['=','community_id',$params['community_id']])
                             ->andWhere(['=','user_id',$params['appointment_id']])
