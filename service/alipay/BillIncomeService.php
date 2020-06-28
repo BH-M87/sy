@@ -246,6 +246,7 @@ Class BillIncomeService extends BaseService
             ->andFilterWhere(['=', 'A.check_status', PsCommon::get($params, 'check_status')])
             ->andFilterWhere(['=', 'A.pay_channel', PsCommon::get($params, 'pay_channel')])
             ->andFilterWhere(['=', 'A.trade_type', PsCommon::get($params, 'trade_type')])
+            ->andFilterWhere(['=', 'A.pay_money', PsCommon::get($params, 'pay_money')])
             ->andFilterWhere(['>=', 'A.check_status', PsCommon::get($params, 'c_status')])
             ->andFilterWhere(['like', 'B.invoice_no', PsCommon::get($params, 'invoice_no')])
             ->andFilterWhere(['like', 'A.trade_no', PsCommon::get($params, 'trade_no')])
