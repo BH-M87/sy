@@ -40,6 +40,10 @@ class InspectionEquipmentService extends BaseService {
     //默认新增公司b1实例
     public function addCompanyInstance($params){
 
+        if(empty($params['corp_id'])){
+            return PsCommon::responseFailed("corp_id不能为空");
+        }
+
         //验证数据库中是否存在
         $query = new Query();
         $result = $query->select(['id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->all();
@@ -130,6 +134,9 @@ class InspectionEquipmentService extends BaseService {
 
     //同步b1设备
     public function synchronizeB1($params){
+        if(empty($params['corp_id'])){
+            return PsCommon::responseFailed("corp_id不能为空");
+        }
         //获得实例
         $query = new Query();
         $result = $query->select(['biz_inst_id'])->from('ps_b1_instance')->where(['=','corp_id',$params['corp_id']])->one();
@@ -187,6 +194,9 @@ class InspectionEquipmentService extends BaseService {
 
     //设备实例化、管理钉钉人员默认同步
     public function synchronizeB1InstanceUser($params){
+        if(empty($params['corp_id'])){
+            return PsCommon::responseFailed("corp_id不能为空");
+        }
         //获得所有已同步b1设备
         $fields = ['id','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url'];
         $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->andWhere(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
