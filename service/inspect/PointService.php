@@ -304,10 +304,12 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
-        $deviceNo = PsInspectPoint::find()->select('deviceNo')
-            ->where(['>', 'deviceNo', '0'])
-            ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
-        $arr = array_column($deviceNo, 'deviceNo');
+        if (!empty($p['deviceNo'])) {
+            $deviceNo = PsInspectPoint::find()->select('deviceNo')
+                ->where(['>', 'deviceNo', '0'])
+                ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
+            $arr = array_column($deviceNo, 'deviceNo');
+        }
 
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
@@ -316,6 +318,12 @@ class PointService extends BaseService
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $v['pointNum'] = PsInspectPoint::find()->where(['deviceNo' => $v['deviceNo']])->count();
+            }
+        }
 
         return $m;
     }
@@ -790,6 +798,12 @@ class PointService extends BaseService
         $m = PsInspectPoint::find()->select('id, name')
             ->where(['=', 'deviceNo', $p['deviceNo']])
             ->asArray()->all();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $v['right'] = ["text" => "删除", "type" => "delete", "fColor" => "white"];
+            }
+        }
 
         return $m;
     }
