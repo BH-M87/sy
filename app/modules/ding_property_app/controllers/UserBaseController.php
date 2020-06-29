@@ -45,6 +45,7 @@ class UserBaseController extends BaseController
         $this->userId = $userInfo['id'];
         $this->userMobile = $this->userInfo['mobile'];
         $this->downgrade = Yii::$app->modules['ding_property_app']->params['downgrade'];
+        $this->params['corp_id'] = $userInfo['corpId'];
         return true;
     }
 }
