@@ -67,6 +67,22 @@ class InspectController extends UserBaseController
 
     // ----------------------------------     巡检设备     ------------------------------
 
+    // 巡检设备 关联巡检点列表
+    public function actionDevicePointList()
+    {
+        $r = PointService::service()->devicePointList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 删除设备巡检点绑定关系
+    public function actionDevicePointDelete()
+    {
+        $r = PointService::service()->devicePointDelete($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 巡检设备列表
     public function actionListDevice()
     {

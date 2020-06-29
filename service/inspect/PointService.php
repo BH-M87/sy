@@ -83,11 +83,6 @@ class PointService extends BaseService
                 if (empty($device)) {
                     throw new MyException('设备不存在!');
                 }
-
-                $inspectPoint = PsInspectPoint::find()->where(['deviceNo' => $p['deviceNo']])->one();
-                if (!empty($inspectPoint)) {
-                    throw new MyException('设备已经被绑定!');
-                }
             }
         } else {
             $p['deviceNo'] = '';
@@ -309,10 +304,12 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
-        $deviceNo = PsInspectPoint::find()->select('deviceNo')
-            ->where(['>', 'deviceNo', '0'])
-            ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
-        $arr = array_column($deviceNo, 'deviceNo');
+        if (!empty($p['deviceNo'])) {
+            $deviceNo = PsInspectPoint::find()->select('deviceNo')
+                ->where(['>', 'deviceNo', '0'])
+                ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
+            $arr = array_column($deviceNo, 'deviceNo');
+        }
 
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
@@ -321,6 +318,12 @@ class PointService extends BaseService
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
         $m = $query->orderBy('id desc')->createCommand()->queryAll();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $v['pointNum'] = PsInspectPoint::find()->where(['deviceNo' => $v['deviceNo']])->count();
+            }
+        }
 
         return $m;
     }
@@ -787,6 +790,53 @@ class PointService extends BaseService
         }
 
         throw new MyException('任务不存在');
+    }
+
+    // 巡检设备 关联巡检点列表
+    public function devicePointList($p)
+    {
+        $m = PsInspectPoint::find()->select('id, name')
+            ->where(['=', 'deviceNo', $p['deviceNo']])
+            ->asArray()->all();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $v['right'] = [["text" => "删除", "type" => "delete", "fColor" => "white"]];
+            }
+        }
+
+        return $m;
+    }
+
+    // 删除设备巡检点绑定关系
+    public function devicePointDelete($p)
+    {
+        if (empty($p['point_id'])) {
+            throw new MyException('巡检点id不能为空！');
+        }
+
+        $m = PsInspectPoint::findOne($p['point_id']);
+
+        if (empty($p['point_id'])) {
+            throw new MyException('巡检点不存在！');
+        }
+
+        if ($m->deviceNo != $p['deviceNo']) {
+            throw new MyException('该设备没有这个巡检点！');
+        }
+
+        $typeArr = explode(',', $m->type);
+        if ($typeArr) {
+            $type = '';
+            foreach ($typeArr as $k => $v) {
+                if ($v != 3) {
+                    $type .= $v . ',';
+                }
+            }
+            substr($type, 0, -1);
+        }
+
+        return PsInspectPoint::updateAll(['deviceNo' => '', 'type' => $type], ['id' => $p['point_id']]);
     }
 
     // ----------------------------------     公共接口     ------------------------------
