@@ -74,6 +74,8 @@ class InspectionEquipmentService extends BaseService {
                 if($groupResult->errcode == 0){
 
                     $data['corp_id'] = $params['corp_id'];
+                    $data['ddCorpId'] = $tokenResult['ddCorpId'];
+                    $data['agentId'] = $tokenResult['agentId'];
                     $data['biz_inst_id'] = $resp->biz_inst_id;
                     $data['punch_group_id'] = $groupResult->punch_group_id;
                     $data['start_time'] = $params['start_time'];
