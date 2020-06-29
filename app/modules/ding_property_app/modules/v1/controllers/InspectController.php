@@ -104,6 +104,14 @@ class InspectController extends UserBaseController
         return PsCommon::responseSuccess($r, false);
     }
 
+    // 设备关联巡检点
+    public function actionDeviceAddPoint()
+    {
+        $result = PointService::service()->deviceAddPoint($this->params);
+
+        return PsCommon::responseSuccess($result, false);
+    }
+
     // 同步设备
     public function actionDeviceData()
     {
