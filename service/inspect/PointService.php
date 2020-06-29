@@ -314,6 +314,7 @@ class PointService extends BaseService
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
             ->where(['is_del' => 1])
+            ->andfilterWhere(['like', 'name', $p['name']])
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
@@ -795,12 +796,15 @@ class PointService extends BaseService
     // 巡检设备 关联巡检点列表
     public function devicePointList($p)
     {
-        $m = PsInspectPoint::find()->select('id, name')
-            ->where(['=', 'deviceNo', $p['deviceNo']])
+        $m = PsInspectPoint::find()->select('id, name, deviceNo')
+            ->andfilterWhere(['=', 'deviceNo', $p['deviceNo']])
+            ->andfilterWhere(['like', 'name', $p['name']])
+            ->andfilterWhere(['=', 'communityId', $p['communityId']])
             ->asArray()->all();
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
+                $v['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $v['deviceNo']])->one()->name;
                 $v['right'] = [["text" => "删除", "type" => "delete", "fColor" => "white"]];
             }
         }
@@ -817,7 +821,7 @@ class PointService extends BaseService
 
         $m = PsInspectPoint::findOne($p['point_id']);
 
-        if (empty($p['point_id'])) {
+        if (empty($m)) {
             throw new MyException('巡检点不存在！');
         }
 
@@ -837,6 +841,36 @@ class PointService extends BaseService
         }
 
         return PsInspectPoint::updateAll(['deviceNo' => '', 'type' => $type], ['id' => $p['point_id']]);
+    }
+
+    // 巡检点关联巡检设备
+    public function pointAddDevice($p)
+    {
+        if (empty($p['point_id'])) {
+            throw new MyException('巡检点id不能为空！');
+        }
+
+        if (empty($p['deviceNo'])) {
+            throw new MyException('设备编号不能为空！');
+        }
+
+        $point = PsInspectPoint::findOne($p['point_id']);
+
+        if (empty($point)) {
+            throw new MyException('巡检点不存在！');
+        }
+
+        $device = PsInspectDevice::find()->where(['deviceNo' => $p['deviceNo'], 'is_del' => 1])->one();
+
+        if (empty($device)) {
+            throw new MyException('巡检设备不存在！');
+        }
+
+        if (empty($point->deviceNo)) { // 之前没有关联设备的 增加设备类型
+            $type = $point->type . ',3';
+        }
+
+        return PsInspectPoint::updateAll(['deviceNo' => $p['deviceNo'], 'type' => $type], ['id' => $p['point_id']]);
     }
 
     // ----------------------------------     公共接口     ------------------------------

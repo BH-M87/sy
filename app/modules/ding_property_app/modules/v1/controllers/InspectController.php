@@ -176,6 +176,14 @@ class InspectController extends UserBaseController
         return PsCommon::responseSuccess($result, false);
     }
 
+    // 巡检点关联设备
+    public function actionPointAddDevice()
+    {
+        $result = PointService::service()->pointAddDevice($this->params);
+
+        return PsCommon::responseSuccess($result, false);
+    }
+
     // ----------------------------------     巡检线路     ------------------------------
 
     // 巡检线路新增
