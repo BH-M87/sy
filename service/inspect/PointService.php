@@ -801,7 +801,7 @@ class PointService extends BaseService
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
-                $v['right'] = ["text" => "删除", "type" => "delete", "fColor" => "white"];
+                $v['right'] = [["text" => "删除", "type" => "delete", "fColor" => "white"]];
             }
         }
 
