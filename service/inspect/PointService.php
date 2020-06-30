@@ -277,9 +277,9 @@ class PointService extends BaseService
             ->andfilterWhere(['like', 'A.name', $p['name']])
             ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
 
-        $r['totals'] = $query->count();
-
-        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->groupBy('A.deviceNo')->createCommand()->queryAll();
+        $r['totals'] = $query->groupBy('A.deviceNo')->count();
+ 
+        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->createCommand()->queryAll();
 
         if (!empty($m)) {
             //获得钉钉绑定人员
@@ -317,13 +317,14 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
+        // 已经关联巡检点的设备
         if (!empty($p['deviceNo'])) {
             $deviceNo = PsInspectPoint::find()->select('deviceNo')
                 ->where(['>', 'deviceNo', '0'])
                 ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
             $arr = array_column($deviceNo, 'deviceNo');
         }
-
+        // 查找该公司下未关联巡检点的设备
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
             ->where(['is_del' => 1])
@@ -331,7 +332,16 @@ class PointService extends BaseService
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
-        $m = $query->orderBy('id desc')->createCommand()->queryAll();
+        $unselectDevice = $query->orderBy('id desc')->createCommand()->queryAll();
+        
+        // 查找该小区下已经关联巡检点的设备
+        $selectedDevice = [];/*PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
+            ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
+            ->where(['=', 'B.is_del', 1])
+            ->andfilterWhere(['=', 'A.communityId', $p['communityId']])
+            ->asArray()->all();*/
+
+        $m = array_merge($unselectDevice, $selectedDevice);
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
@@ -843,7 +853,7 @@ class PointService extends BaseService
         }
 
         if ($m->type == 3) {
-            throw new MyException('该巡检点只有一种打卡方式不能删除！');
+            throw new MyException('巡检点仅设置智点打卡方式时不可取消关联智点设备！');
         }
 
         $typeArr = explode(',', $m->type);
