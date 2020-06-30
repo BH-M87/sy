@@ -279,7 +279,7 @@ class PointService extends BaseService
 
         $r['totals'] = $query->count();
 
-        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->createCommand()->queryAll();
+        $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->groupBy('A.deviceNo')->createCommand()->queryAll();
 
         if (!empty($m)) {
             //获得钉钉绑定人员
@@ -292,7 +292,9 @@ class PointService extends BaseService
                     $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                     $v['communityName'] = $community['communityName'];
                 }
-                $v['point'] = $v['point'] ?? '';
+                // 一个设备多个巡检点
+                $point = PsInspectPoint::find()->select('name')->where(['deviceNo' => $v['deviceNo']])->asArray()->all();
+                $v['point'] = implode(',', array_column($point, 'name')) ?? '';
                 $v['communityId'] = $v['communityId'] ?? '';
                 $m[$k]['dd_user_list_msg'] = '';
                 if(!empty($v['dd_user_list'])){
