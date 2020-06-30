@@ -192,6 +192,15 @@ class PointService extends BaseService
                 $v['is_select'] = $p['deviceNoSelect'] == $v['deviceNo'] ? true : false;
                 $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];
                 $v['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $v['deviceNo']])->one()->name;
+
+                if (!empty($v['typeArr'])) {
+                    foreach ($v['typeArr'] as $key => $val) {
+                        if (empty($val)) {
+                            unset($v['typeArr'][$key]);
+                        }
+                    }
+                    array_values($v['typeArr']);
+                }
             }
         }
 
