@@ -842,6 +842,10 @@ class PointService extends BaseService
             throw new MyException('该设备没有这个巡检点！');
         }
 
+        if ($m->type == 3) {
+            throw new MyException('该巡检点只有一种打卡方式不能删除！');
+        }
+
         $typeArr = explode(',', $m->type);
         if ($typeArr) {
             $type = '';
