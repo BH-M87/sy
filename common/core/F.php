@@ -167,7 +167,7 @@ class F
     public static function repeatRequest()
     {
         $cacheKey = self::_repeatCacheField();
-        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 30, 'NX')) {
+        if (Yii::$app->redis->set($cacheKey, 1, 'EX', 10, 'NX')) {
             return false;
         }
         return true;
@@ -621,6 +621,7 @@ class F
         }
         //上传到七牛
         $re['filepath'] = F::getOssImagePath($object, 'zjy');
+        print_r($re);die;
         return $re;
     }
 

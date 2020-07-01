@@ -70,7 +70,7 @@ class BaseController extends \yii\web\Controller
 
                 //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
                 if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
-                    exit($this->ajaxReturn('请勿重复请求，30s后重试'));
+                    exit($this->ajaxReturn('请勿重复请求，10s后重试'));
                 }
             }
             //所有验证通过
@@ -139,25 +139,51 @@ class BaseController extends \yii\web\Controller
             'route' => '/user/validate-token',
             'token' => $header['authorization'],
         ];
+        $redis_user = md5($header['authorization'].'user_info');
+        //设置缓存锁
+        $redis = Yii::$app->redis;
+        $userInfo = json_decode($redis->get($redis_user),true);
+        if(empty($userInfo)){
+            //todo::调用java接口
+            $userInfo = JavaCurl::getInstance()->pullHandler($params);
+            //设置缓存
+            $redis->set($redis_user,json_encode($userInfo));
+            //设置半小时有效期
+            $redis->expire($redis_user,1800);
+        }
         //todo::调用java接口
-        $result = JavaCurl::getInstance()->pullHandler($params);
+//        $result = JavaCurl::getInstance()->pullHandler($params);
         // 用户的小区权限
-        $community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['authorization']]);
-        if (!empty($community['list'])) {
-            foreach ($community['list'] as $k => $v) {
-                $this->community_list[] = $v['key'];
-            }
-        } 
+        $redis_community = md5($header['authorization'].'community');
+        $communityArr = json_decode($redis->get($redis_community),true);
+        if(empty($communityArr)){
+            $community = JavaCurl::getInstance()->pullHandler(['route' => '/community/nameList', 'token' => $header['authorization']]);
+            if (!empty($community['list'])) {
+                $community_list = [];
+                foreach ($community['list'] as $k => $v) {
+                    $community_list[] = $v['key'];
+                }
+                $communityArr = $community_list;
+                //设置缓存
+                $redis->set($redis_community,json_encode($community_list));
+                //设置半小时有效期
+                $redis->expire($redis_community,1800);
 
-        $this->user_info = $result;
+            }
+        }
+
+        if (empty($userInfo['corpId'])) {
+            exit($this->ajaxReturn('authorization已过期'));
+        }
+
+        $this->user_info = $userInfo;
         $this->user_info['propertyMark'] = 1; // 后台标记需要添加操作日志
-        $this->user_info['truename'] = !empty($result['trueName'])?$result['trueName']:$result['accountName'];
+        $this->user_info['truename'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];
         $this->request_params['token'] = $header['authorization'];
-        $this->request_params['create_id'] = $result['id'];
-        $this->request_params['create_name'] = !empty($result['trueName'])?$result['trueName']:$result['accountName'];
-        $this->request_params['corp_id'] = $result['corpId'];
-        $this->request_params['corp_id'] = $result['corpId'];
-        $this->request_params['communityList'] = $this->community_list;
+        $this->request_params['create_id'] = $userInfo['id'];
+        $this->request_params['create_name'] = !empty($userInfo['trueName'])?$userInfo['trueName']:$userInfo['accountName'];
+        $this->request_params['corp_id'] = $userInfo['corpId'];
+        $this->request_params['communityList'] = $communityArr;
     }
 
     /**

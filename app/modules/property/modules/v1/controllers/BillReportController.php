@@ -376,4 +376,12 @@ class BillReportController extends BaseController
         $downUrl = F::downloadUrl($this->systemType, date('Y-m-d') . '/' . $fileName, 'temp', 'shoufeimingxi.xlsx');
         return PsCommon::responseSuccess(["down_url" => $downUrl]);
     }
+
+    // 统计分析
+    public function actionAnalysis()
+    {
+        $r = BillReportService::service()->analysis($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
 }

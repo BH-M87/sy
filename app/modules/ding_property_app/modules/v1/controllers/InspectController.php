@@ -67,6 +67,22 @@ class InspectController extends UserBaseController
 
     // ----------------------------------     巡检设备     ------------------------------
 
+    // 巡检设备 关联巡检点列表
+    public function actionDevicePointList()
+    {
+        $r = PointService::service()->devicePointList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 删除设备巡检点绑定关系
+    public function actionDevicePointDelete()
+    {
+        $r = PointService::service()->devicePointDelete($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 巡检设备列表
     public function actionListDevice()
     {
@@ -86,6 +102,14 @@ class InspectController extends UserBaseController
         $r = PointService::service()->deviceDropDown($this->params);
 
         return PsCommon::responseSuccess($r, false);
+    }
+
+    // 设备关联巡检点
+    public function actionDeviceAddPoint()
+    {
+        $result = PointService::service()->deviceAddPoint($this->params);
+
+        return PsCommon::responseSuccess($result, false);
     }
 
     // 同步设备
@@ -156,6 +180,14 @@ class InspectController extends UserBaseController
     public function actionPointDropDown()
     {
         $result = PointService::service()->getPoint($this->params);
+
+        return PsCommon::responseSuccess($result, false);
+    }
+
+    // 巡检点关联设备
+    public function actionPointAddDevice()
+    {
+        $result = PointService::service()->pointAddDevice($this->params);
 
         return PsCommon::responseSuccess($result, false);
     }

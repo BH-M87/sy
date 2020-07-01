@@ -23,6 +23,13 @@ class JavaService extends BaseService
         return $result;
     }
 
+    // 小区下拉列表
+    public function communityOperationList($query)
+    {
+        $query['route'] = '/community/operation/list';
+        return self::returnCData($query);
+    }
+
     /**
      * Notes: 小区下拉列表
      */
@@ -294,6 +301,12 @@ class JavaService extends BaseService
     //根据批量房号查询住户信息
     public function residentListByRoomIdList($query){
         $query['route'] = '/resident/listByRoomIdList';
+        return self::returnCData($query);
+    }
+
+    //获得小区一区一码模板生成的小程序二维码
+    public function selectCommunityQrCode($query){
+        $query['route'] = '/appletTemplate/template-gateway';
         return self::returnCData($query);
     }
 }

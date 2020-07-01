@@ -12,6 +12,7 @@ use service\BaseService;
 
 use app\models\Goods;
 use app\models\GoodsGroup;
+use app\models\GoodsGroupSelect;
 use app\models\GoodsGroupCommunity;
 use app\models\PsDeliveryRecords;
 use service\property_basic\JavaService;
@@ -78,12 +79,46 @@ class GoodsService extends BaseService
 
             if (!empty($p['communityIdList'])) {
                 GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
+                GoodsGroupSelect::deleteAll(['groupId' => $groupId]);
                 foreach ($p['communityIdList'] as $k => $v) {
-                    $comm = new GoodsGroupCommunity();
-                    $comm->groupId = $groupId;
-                    $comm->communityId = $v;
-                    $comm->save();
+                    $selectOne = GoodsGroupSelect::find()->where(['code' => $v['id'], 'groupId' => $groupId])->one();
+
+                    if (!empty($selectOne)) {
+                        continue;
+                    }
+
+                    $select = new GoodsGroupSelect();
+                    $select->groupId = $groupId;
+                    $select->code = $v['id'];
+                    $select->name = $v['name'];
+                    $select->isCommunity = $v['isCommunity'];
+                    $select->save();
+
+                    if ($v['isCommunity'] == 2) { // 指定小区
+                        $commParam[] = ['groupId' => $groupId, 'communityId' => $v['id']];
+                    } else {
+                        $idArr = explode(',', $v['id']);
+                        // 获得所有小区
+                        $javaParam['token'] = $p['token'];
+                        $javaParam['pageNum'] = 1;
+                        $javaParam['pageSize'] = 10000;
+                        $javaParam['provinceCode'] = $idArr[0];
+                        $javaParam['cityCode'] = $idArr[1];
+                        $javaParam['districtCode'] = $idArr[2];
+                        $javaParam['streetCode'] = $idArr[3];
+                        $javaParam['villageCode'] = $idArr[4];
+                        $javaResult = JavaService::service()->communityOperationList($javaParam)['list'];
+
+                        if (!empty($javaResult)) {
+                            foreach ($javaResult as $key => $val) {
+                                $commParam[] = ['groupId' => $groupId, 'communityId' => $val['communityId']];
+                            }
+                        }
+                    }
                 }
+                Yii::$app->db->createCommand()->batchInsert('ps_goods_group_community', ['groupId', 'communityId'], $commParam)->execute();
+            } else {
+                throw new MyException('兑换小区范围');
             }
 
             $trans->commit();
@@ -128,16 +163,11 @@ class GoodsService extends BaseService
 
         $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $comm = GoodsGroupCommunity::find()->where(['groupId' => $p['id']])->asArray()->all();
+            $r['community'] = GoodsGroupSelect::find()->select('code id, name, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
 
-            $r['community'] = [];
-            if (!empty($comm)) {
-                foreach ($comm as $k => $v) {
-                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-             
-                    $r['community'][$k]['id'] = $v['communityId'];
-                    $r['community'][$k]['name'] = $community['communityName'];
-                    $communityName .= $community['communityName'] . ' ';
+            if (!empty($r['community'])) {
+                foreach ($r['community'] as $k => $v) {
+                    $communityName .= $v['name'] . ' ';
                 }
             }
             
@@ -197,17 +227,7 @@ class GoodsService extends BaseService
                 $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
                 $v['content'] = str_replace("&nbsp;","",$v['content']);
 
-                $comm = GoodsGroupCommunity::find()->where(['groupId' => $v['id']])->asArray()->all();
-
-                $v['communityList'] = [];
-                if (!empty($comm)) {
-                    foreach ($comm as $key => $val) {
-                        $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $val['communityId']]);
-                 
-                        $v['communityList'][$key]['id'] = $val['communityId'];
-                        $v['communityList'][$key]['communityName'] = $community['communityName'];
-                    }
-                }
+                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
             }
         }
 
@@ -270,6 +290,7 @@ class GoodsService extends BaseService
         $param['personLimit'] = $p['personLimit'];
         $param['operatorId'] = $userInfo['id'];
         $param['operatorName'] = $userInfo['truename'];
+        $param['describe'] = $p['describe'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
@@ -438,7 +459,7 @@ class GoodsService extends BaseService
             return ['list' => [], 'totals' => 0];
         }
 
-        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num')
+        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num, A.describe')
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('A.id desc')->asArray()->all();
@@ -446,6 +467,7 @@ class GoodsService extends BaseService
 
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                $v['describe'] = $v['describe'] == '<p><br></p>' ? null : $v['describe'];
                 $use = PsDeliveryRecords::find()->where(['product_id' => $v['id']])->count();
                 $v['surplus'] = $v['num'] - $use;
             }
@@ -454,6 +476,67 @@ class GoodsService extends BaseService
         $content = GoodsGroup::findOne($p['groupId'])->content;
 
         return ['list' => $list, 'totals' => (int)$totals, 'content' => $content];
+    }
+
+    // 商品详情
+    public function goodsContent($p)
+    {
+        if (empty($p['goods_id'])) {
+            throw new MyException('商品ID不能为空');
+        }
+
+        $r = Goods::find()->select('describe')->where(['id' => $p['goods_id']])->asArray()->one();
+        if (empty($r)) {
+            throw new MyException('数据不存在');
+        }
+
+        return ['describe' => $r['describe'] ?? ''];
+    }
+
+    // 核销接口
+    public function recordConfirm($p)
+    {
+        if (empty($p['record_id'])) {
+            throw new MyException('兑换记录ID不能为空');
+        }
+
+        $m = PsDeliveryRecords::findOne($p['record_id']);
+        if (empty($m)) {
+            throw new MyException('兑换记录不存在');
+        }
+
+        if ($m->delivery_type == 1) {
+            throw new MyException('兑换记录不需要核销');
+        }
+
+        if ($m->confirm_type == 2) {
+            throw new MyException('请不要重复核销');
+        }
+
+        $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
+
+        PsDeliveryRecords::updateAll(['confirm_type' => 2, 'confirm_at' => time(), 'confirm_name' => $member['trueName']], ['id' => $p['record_id']]);
+
+        return true;
+    }
+
+    // 核销详情接口
+    public function recordConfirmShow($p)
+    {
+        if (empty($p['record_id'])) {
+            throw new MyException('兑换记录ID不能为空');
+        }
+
+        $m = PsDeliveryRecords::find()->select('product_id, product_name, product_img, integral, create_at, confirm_type, confirm_at, confirm_name, verification_qr_code')->where(['id' => $p['record_id']])->asArray()->one();
+        if (empty($m)) {
+            throw new MyException('兑换记录不存在');
+        }
+        
+        $m['create_at'] = !empty($m['create_at']) ? date('Y/m/d H:i', $m['create_at']) : '';
+        $m['confirm_at'] = !empty($m['confirm_at']) ? date('Y/m/d H:i', $m['confirm_at']) : '';
+        $m['group_name'] = Goods::find()->alias('A')->select('B.name')->leftJoin('ps_goods_group B', 'B.id = A.groupId')->where(['A.id' => $m['product_id']])->scalar();
+
+        return $m;
     }
 
     // 可兑换积分
@@ -503,6 +586,23 @@ class GoodsService extends BaseService
             return $r['data'];
         } else {
             return ['isRegister' => false];
+        }
+    }
+
+    // 判断是否加入过小区队伍
+    public function isInTeam($p)
+    {
+        $host = Yii::$app->modules['ali_small_lyl']->params['volunteer_host'];
+        $get_url = $host."/internal/volunteer/is-in-team";
+        $curl_data = ["sysUserId" => $p['user_id'], 'teamId' => $p['teamId']];
+        $r = json_decode(Curl::getInstance()->post($get_url, $curl_data), true);
+
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$get_url . "请求参数：".json_encode($curl_data) . PHP_EOL . '返回结果：' . json_encode($r).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/street.log');
+
+        if ($r['code'] == 1) {
+            return $r['data'];
+        } else {
+            return ['isInTeam' => false];
         }
     }
 }

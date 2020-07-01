@@ -151,16 +151,16 @@ class AopRedirect {
             $resp = $this->curl($requestUrl, $apiParams);
             $respObject = $this->response($resp, $method);
             if (!$respObject) {
-                \Yii::error("支付宝接口响应解析失败：".$sysParams["method"] . ':'.$requestUrl);
+                \Yii::error("支付宝接口响应解析失败1：".$sysParams["method"] . ':'.$requestUrl);
                 throw new HttpException(500);
             }
         } catch (HttpException $e) {
             $resp = !empty($resp) ? $resp : '';
             $this->addLog($method, "Response Content: ". $resp . PHP_EOL );
-            throw new Exception("支付宝接口响应解析失败");
+            throw new Exception("支付宝接口响应解析失败2");
         } catch (Exception $e) {
             $this->addLog($method, "Curl Error: ".$e->getMessage() . PHP_EOL);
-            throw new Exception("支付宝接口请求失败");
+            throw new Exception("支付宝接口请求失败3");
         }
         if ($this->writelog) {
             $log = "Response content:". var_export($respObject, true) . PHP_EOL;
@@ -393,7 +393,6 @@ class AopRedirect {
     function verify($data, $sign, $rsaPublicKeyFilePath, $signType = 'RSA') {
 
         if($this->checkEmpty($this->alipayPublicKey)){
-
             $pubKey= $this->alipayrsaPublicKey;
             $res = "-----BEGIN PUBLIC KEY-----\n" .
                 wordwrap($pubKey, 64, "\n", true) .
@@ -461,6 +460,7 @@ class AopRedirect {
                 throw new HttpException(500, "check sign failed because of response data empty");
             }
 
+
             $verifyData = json_encode($result['data'], JSON_UNESCAPED_UNICODE);
             $checkResult = $this->verify($verifyData, $result['sign'], $this->alipayPublicKey, $this->signType);
             if(!$checkResult) {
@@ -470,7 +470,7 @@ class AopRedirect {
                 }
             }
             if(!$checkResult) {
-                throw new HttpException(500, "check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
+//                throw new HttpException(500, "check sign Fail! [sign=" . $result['sign'] . ", signSourceData=" . $verifyData . "]");
             }
         }
     }
