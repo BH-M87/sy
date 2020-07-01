@@ -340,6 +340,7 @@ class PointService extends BaseService
             ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
             ->where(['=', 'B.is_del', 1])
             ->andfilterWhere(['=', 'A.communityId', $p['communityId']])
+            ->andfilterWhere(['=', 'B.companyId', $p['corp_id']])
             ->asArray()->all();
 
         $m = array_merge($unselectDevice, $selectedDevice);
