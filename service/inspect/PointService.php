@@ -318,12 +318,12 @@ class PointService extends BaseService
     public function deviceDropDown($p)
     {
         // 已经关联巡检点的设备
-        if (!empty($p['deviceNo'])) {
+        //if (!empty($p['deviceNo'])) {
             $deviceNo = PsInspectPoint::find()->select('deviceNo')
                 ->where(['>', 'deviceNo', '0'])
                 ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
             $arr = array_column($deviceNo, 'deviceNo');
-        }
+        //}
         // 查找该公司下未关联巡检点的设备
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
@@ -335,11 +335,11 @@ class PointService extends BaseService
         $unselectDevice = $query->orderBy('id desc')->createCommand()->queryAll();
         
         // 查找该小区下已经关联巡检点的设备
-        $selectedDevice = [];/*PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
+        $selectedDevice = PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
             ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
             ->where(['=', 'B.is_del', 1])
             ->andfilterWhere(['=', 'A.communityId', $p['communityId']])
-            ->asArray()->all();*/
+            ->asArray()->all();
 
         $m = array_merge($unselectDevice, $selectedDevice);
 
