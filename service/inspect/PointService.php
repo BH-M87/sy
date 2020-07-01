@@ -275,6 +275,7 @@ class PointService extends BaseService
             ->andfilterWhere(['B.communityId' => $p['communityId']])
             ->andWhere(['or', ['is', 'B.communityId', null], ['in', 'B.communityId', $p['communityList']]])
             ->andfilterWhere(['like', 'A.name', $p['name']])
+            ->andfilterWhere(['=', 'A.companyId', $p['corp_id']])
             ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
 
         $r['totals'] = $query->groupBy('A.deviceNo')->count();
