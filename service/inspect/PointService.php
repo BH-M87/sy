@@ -191,6 +191,16 @@ class PointService extends BaseService
                 $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
                 $v['is_select'] = $p['deviceNoSelect'] == $v['deviceNo'] ? true : false;
                 $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];
+                $v['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $v['deviceNo']])->one()->name;
+
+                if (!empty($v['typeArr'])) {
+                    foreach ($v['typeArr'] as $key => $val) {
+                        if (empty($val)) {
+                            unset($v['typeArr'][$key]);
+                        }
+                    }
+                    array_values($v['typeArr']);
+                }
             }
         }
 
@@ -265,10 +275,11 @@ class PointService extends BaseService
             ->andfilterWhere(['B.communityId' => $p['communityId']])
             ->andWhere(['or', ['is', 'B.communityId', null], ['in', 'B.communityId', $p['communityList']]])
             ->andfilterWhere(['like', 'A.name', $p['name']])
+            ->andfilterWhere(['=', 'A.companyId', $p['corp_id']])
             ->andfilterWhere(['like', 'A.deviceNo', $p['deviceNo']]);
 
-        $r['totals'] = $query->count();
-
+        $r['totals'] = $query->groupBy('A.deviceNo')->count();
+ 
         $m = $query->offset(($p['page'] - 1) * $p['rows'])->limit($p['rows'])->orderBy('A.id desc')->createCommand()->queryAll();
 
         if (!empty($m)) {
@@ -282,7 +293,9 @@ class PointService extends BaseService
                     $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
                     $v['communityName'] = $community['communityName'];
                 }
-                $v['point'] = $v['point'] ?? '';
+                // 一个设备多个巡检点
+                $point = PsInspectPoint::find()->select('name')->where(['deviceNo' => $v['deviceNo']])->asArray()->all();
+                $v['point'] = implode(',', array_column($point, 'name')) ?? '';
                 $v['communityId'] = $v['communityId'] ?? '';
                 $m[$k]['dd_user_list_msg'] = '';
                 if(!empty($v['dd_user_list'])){
@@ -305,13 +318,14 @@ class PointService extends BaseService
     // 设备名称下拉列表
     public function deviceDropDown($p)
     {
-        if (!empty($p['deviceNo'])) {
+        // 已经关联巡检点的设备
+        //if (!empty($p['deviceNo'])) {
             $deviceNo = PsInspectPoint::find()->select('deviceNo')
                 ->where(['>', 'deviceNo', '0'])
                 ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
             $arr = array_column($deviceNo, 'deviceNo');
-        }
-
+        //}
+        // 查找该公司下未关联巡检点的设备
         $query = new Query();
         $query->from('ps_inspect_device')->select('deviceNo as id, name')
             ->where(['is_del' => 1])
@@ -319,7 +333,16 @@ class PointService extends BaseService
             ->andfilterWhere(['=', 'companyId', $p['corp_id']])
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
-        $m = $query->orderBy('id desc')->createCommand()->queryAll();
+        $unselectDevice = $query->orderBy('id desc')->createCommand()->queryAll();
+        
+        // 查找该小区下已经关联巡检点的设备
+        $selectedDevice = PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
+            ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
+            ->where(['=', 'B.is_del', 1])
+            ->andfilterWhere(['=', 'A.communityId', $p['communityId']])
+            ->asArray()->all();
+
+        $m = array_merge($unselectDevice, $selectedDevice);
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
@@ -828,6 +851,10 @@ class PointService extends BaseService
 
         if ($m->deviceNo != $p['deviceNo']) {
             throw new MyException('该设备没有这个巡检点！');
+        }
+
+        if ($m->type == 3) {
+            throw new MyException('巡检点仅设置智点打卡方式时不可取消关联智点设备！');
         }
 
         $typeArr = explode(',', $m->type);
