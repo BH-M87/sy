@@ -969,6 +969,24 @@ class PointService extends BaseService
         }
     }
 
+    // 查找设备有没有关联巡检点 有关联就找到对应小区
+    public function deviceIfPoint($p)
+    {
+        if (empty($p['deviceNo'])) {
+            throw new MyException('设备编号不能为空！');
+        }
+
+        $communityId = PsInspectPoint::find()->select('communityId')->where(['deviceNo' => $p['deviceNo']])->scalar();
+
+        $communityName = '';
+        if (!empty($communityId)) {
+            $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $communityId]);
+            $communityName = $community['communityName'];
+        }
+
+        return ['communityId' => $communityId ?? '', 'communityName' => $communityName ?? ''];
+    }
+
     // ----------------------------------     公共接口     ------------------------------
 
     // 列表参数过滤

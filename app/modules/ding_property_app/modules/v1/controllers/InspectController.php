@@ -112,6 +112,14 @@ class InspectController extends UserBaseController
         return PsCommon::responseSuccess($result, false);
     }
 
+    // 查找设备有没有关联巡检点 有关联就找到对应小区
+    public function actionDeviceIfPoint()
+    {
+        $result = PointService::service()->deviceIfPoint($this->params);
+
+        return PsCommon::responseSuccess($result, false);
+    }
+
     // 同步设备
     public function actionDeviceData()
     {
@@ -153,7 +161,7 @@ class InspectController extends UserBaseController
         }
 
         $this->params['dingding'] = 1;
-        
+
         $r = PointService::service()->pointList($this->params);
 
         return PsCommon::responseSuccess($r);
