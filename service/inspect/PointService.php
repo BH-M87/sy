@@ -877,6 +877,10 @@ class PointService extends BaseService
             $type = substr($type, 0, -1);
         }
 
+        if (empty($type)) {
+            throw new MyException('巡检点仅设置智点打卡方式时不可取消关联智点设备！');
+        }
+
         return PsInspectPoint::updateAll(['deviceNo' => '', 'type' => $type], ['id' => $p['point_id']]);
     }
 
