@@ -342,6 +342,7 @@ class PointService extends BaseService
         $selectedDevice = PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
             ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
             ->where(['=', 'B.is_del', 1])
+            ->andfilterWhere(['like', 'B.name', $p['name']])
             ->andfilterWhere(['=', 'A.communityId', $p['communityId']])
             ->andfilterWhere(['=', 'B.companyId', $p['corp_id']])
             ->asArray()->all();
