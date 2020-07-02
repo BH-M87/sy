@@ -151,6 +151,9 @@ class InspectController extends UserBaseController
         if(!$this->downgrade['inspect_point']){
             return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
+
+        $this->params['dingding'] = 1;
+        
         $r = PointService::service()->pointList($this->params);
 
         return PsCommon::responseSuccess($r);

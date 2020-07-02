@@ -186,8 +186,11 @@ class PointService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
-                $v['communityName'] = $community['communityName'];
+                if (empty($p['dingding'])) {
+                    $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['communityId']]);
+                    $v['communityName'] = $community['communityName'];
+                }
+                
                 $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
                 $v['is_select'] = $p['deviceNoSelect'] == $v['deviceNo'] ? true : false;
                 $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];
