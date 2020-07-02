@@ -1011,14 +1011,10 @@ class PointService extends BaseService
         $filter = $filter ?? "*";
         $m = PsInspectPoint::find()
             ->select($filter)
-            ->filterWhere(['like', 'name', PsCommon::get($p, 'name')])
-            ->andFilterWhere(['=', 'communityId', PsCommon::get($p, 'communityId')])
-            ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
-            ->andFilterWhere(['=', 'deviceNo', PsCommon::get($p, 'deviceNo')]);
-
-        if ($p['name'] === '0' || $p['name'] === 0) {
-            $m->andWhere(['like', 'name', 0]);
-        }
+            ->filterWhere(['like', 'name', $p['name']])
+            ->andFilterWhere(['=', 'communityId', $p['communityId']])
+            ->andFilterWhere(['in', 'communityId', $p['communityList']])
+            ->andFilterWhere(['=', 'deviceNo', $p['deviceNo']]);
 
         return $m;
     }
