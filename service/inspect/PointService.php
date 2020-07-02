@@ -904,7 +904,12 @@ class PointService extends BaseService
         }
 
         if (empty($point->deviceNo)) { // 之前没有关联设备的 增加设备类型
-            $type = $point->type . ',3';
+            if (!empty($point->type)) {
+                $type = $point->type . ',3';
+            } else {
+                $type = '3';
+            }
+            
         }
 
         return PsInspectPoint::updateAll(['deviceNo' => $p['deviceNo'], 'type' => $type], ['id' => $p['point_id']]);
