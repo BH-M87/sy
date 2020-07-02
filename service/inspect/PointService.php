@@ -908,8 +908,9 @@ class PointService extends BaseService
                 $type = $point->type . ',3';
             } else {
                 $type = '3';
-            }
-            
+            } 
+        } else {
+            $type = $point->type;
         }
 
         return PsInspectPoint::updateAll(['deviceNo' => $p['deviceNo'], 'type' => $type], ['id' => $p['point_id']]);
