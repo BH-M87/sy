@@ -131,9 +131,9 @@ class PointService extends BaseService
             $r['type'] = !empty($r['type']) ? explode(',', $r['type']) : ['4'];
             if (!empty($r['type'])) {
                 $type = '';
-                foreach ($v['typeArr'] as $key => $val) {
+                foreach ($r['type'] as $key => $val) {
                     if (empty($val)) {
-                        unset($v['typeArr'][$key]);
+                        unset($r['type'][$key]);
                     } else {
                         $type .= $val . ',';
                     }
