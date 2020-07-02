@@ -191,7 +191,7 @@ class PointService extends BaseService
                     $v['communityName'] = $community['communityName'];
                 }
                 
-                $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : [];
+                $v['typeArr'] = !empty($v['type']) ? explode(',', $v['type']) : ['4'];
                 $v['is_select'] = $p['deviceNoSelect'] == $v['deviceNo'] ? true : false;
                 $v['right'] =  [["type" => 'delete', "text" => '删除', "fColor" => 'white' ]];
                 $v['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $v['deviceNo']])->one()->name;
