@@ -128,7 +128,19 @@ class PointService extends BaseService
 
         $r = PsInspectPoint::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['type'] = explode(',', $r['type']);
+            $r['type'] = !empty($r['type']) ? explode(',', $r['type']) : ['4'];
+            if (!empty($r['type'])) {
+                $type = '';
+                foreach ($v['typeArr'] as $key => $val) {
+                    if (empty($val)) {
+                        unset($v['typeArr'][$key]);
+                    } else {
+                        $type .= $val . ',';
+                    }
+                }
+                $r['type'] = array_values($r['type']);
+            }
+
             $r['deviceId'] = $r['deviceNo'] ?? '';
             $r['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $r['deviceNo']])->one()->name;
             $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $r['communityId']]);
