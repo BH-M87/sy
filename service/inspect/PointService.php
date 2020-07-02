@@ -609,7 +609,7 @@ class PointService extends BaseService
         $m['device_status_msg'] = self::$deviceStatus[$v['device_status']];
         $m['imgs'] = !empty($m['imgs']) ? explode(',', $m['imgs']) : [];
 
-        $typeArr = explode(',', $m['type']);
+        $typeArr = !empty($m['type']) ? explode(',', $m['type']) : ['4'];
         $newArr = [];
         if ($typeArr) {
             foreach ($typeArr as $key => $val) {
