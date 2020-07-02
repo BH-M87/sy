@@ -204,7 +204,7 @@ class LineService extends BaseService
             ->andFilterWhere(['like', 'A.name', PsCommon::get($p, 'name')])
             ->andFilterWhere(['=', 'A.id', PsCommon::get($p, 'lineId')]);
 
-        if ($p['name'] == 0) {
+        if ($p['name'] === '0' || $p['name'] === 0) {
             $m->andWhere(['like', 'A.name', 0]);
         }
 

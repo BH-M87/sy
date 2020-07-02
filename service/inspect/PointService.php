@@ -1016,7 +1016,7 @@ class PointService extends BaseService
             ->andFilterWhere(['in', 'communityId', PsCommon::get($p, 'communityList')])
             ->andFilterWhere(['=', 'deviceNo', PsCommon::get($p, 'deviceNo')]);
 
-        if ($p['name'] == 0) {
+        if ($p['name'] === '0' || $p['name'] === 0) {
             $m->andWhere(['like', 'name', 0]);
         }
 
