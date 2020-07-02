@@ -202,7 +202,7 @@ class PointService extends BaseService
                             unset($v['typeArr'][$key]);
                         }
                     }
-                    array_values($v['typeArr']);
+                    $v['typeArr'] = array_values($v['typeArr']);
                 }
             }
         }
