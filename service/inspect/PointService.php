@@ -197,11 +197,15 @@ class PointService extends BaseService
                 $v['deviceName'] = PsInspectDevice::find()->where(['deviceNo' => $v['deviceNo']])->one()->name;
 
                 if (!empty($v['typeArr'])) {
+                    $type = '';
                     foreach ($v['typeArr'] as $key => $val) {
                         if (empty($val)) {
                             unset($v['typeArr'][$key]);
+                        } else {
+                            $type .= $val . ',';
                         }
                     }
+                    $v['type'] = substr($type, 0, -1);
                     $v['typeArr'] = array_values($v['typeArr']);
                 }
             }
