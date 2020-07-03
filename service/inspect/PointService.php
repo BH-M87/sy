@@ -84,6 +84,12 @@ class PointService extends BaseService
                     throw new MyException('设备不存在!');
                 }
             }
+
+            $communityId = PsInspectPoint::find()->select('communityId')->where(['deviceNo' => $p['deviceNo']])->scalar();
+
+            if ($communityId != $p['communityId']) {
+                throw new MyException('设备已经关联其它小区的巡检点!');
+            }
         } else {
             $p['deviceNo'] = '';
         }
