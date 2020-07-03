@@ -347,7 +347,8 @@ class PointService extends BaseService
         //if (!empty($p['deviceNo'])) {
             $deviceNo = PsInspectPoint::find()->select('deviceNo')
                 ->where(['>', 'deviceNo', '0'])
-                ->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])->asArray()->all();
+                //->andFilterWhere(['!=', 'deviceNo', $p['deviceNo']])
+                ->asArray()->all();
             $arr = array_column($deviceNo, 'deviceNo');
         //}
         // 查找该公司下未关联巡检点的设备
@@ -359,7 +360,7 @@ class PointService extends BaseService
             ->andfilterWhere(['not in', 'deviceNo', $arr]);
 
         $unselectDevice = $query->orderBy('id desc')->createCommand()->queryAll();
-        
+
         // 查找该小区下已经关联巡检点的设备
         $selectedDevice = PsInspectPoint::find()->alias('A')->select('A.deviceNo id, B.name')
             ->leftJoin('ps_inspect_device B', 'A.deviceNo = B.deviceNo')
