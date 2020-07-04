@@ -34,6 +34,9 @@ class InspectionEquipmentService extends BaseService {
         $service = new JavaService();
         $params['appId'] = $this->appId;
         $result = $service->getDdToken($params);
+        if(!empty($result['message'])){
+            return PsCommon::responseFailed($result['message']);
+        }
         return $result;
     }
 
