@@ -133,6 +133,7 @@ class BillDetailService extends BaseService
         $requestArr['pay_type'] = !empty($data['pay_type']) ? $data['pay_type'] : '';          //1:线下支付，2:线上支付
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
+        $requestArr['pay_amount'] = !empty($data['pay_amount']) ? $data['pay_amount'] : '';   //金额
         $params = $arr = [];
         $where = "  ";
 //        if (empty($requestArr["community_id"]) && $requestArr['target'] == 1) {//只有物业才验证小区为空
@@ -260,6 +261,11 @@ class BillDetailService extends BaseService
         if ($requestArr['source'] == 3){//20190720 过滤缴费记录为0的订单
             $where .= " AND der.`pay_amount` > :pay_amount";
             $params = array_merge($params, [':pay_amount' => 0]);
+        }
+
+        if ($requestArr['pay_amount']){
+            $where .= " AND der.`pay_amount` = :pay_amount";
+            $params = array_merge($params, [':pay_amount' => $requestArr['pay_amount']]);
         }
 
         //查询数量语句sql
