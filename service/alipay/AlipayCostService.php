@@ -246,7 +246,7 @@ class AlipayCostService extends BaseService
         $costList = PsCommon::get($data, "costList");  //缴费项目
         $page = (empty($data['page']) || $data['page'] < 1) ? 1 : $data['page'];
         $rows = !empty($data['rows']) ? $data['rows'] : 20;
-        $bill_entry_amount = PsCommon::get($data, "bill_entry_amount"); //金额
+        $bill_entry_amount = $data['bill_entry_amount']; //金额
         //================================================数据验证操作==================================================
         if (!$communityId && $target == 1) {
             return $this->failed("请选择小区");
@@ -296,7 +296,7 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':room' => $room]);
         }
 
-        if(!empty($bill_entry_amount)){
+        if(is_int($bill_entry_amount)||$bill_entry_amount>0){
             $where .= " AND bill.bill_entry_amount = :bill_entry_amount ";
             $params = array_merge($params, [':bill_entry_amount' => $bill_entry_amount]);
         }
