@@ -296,7 +296,7 @@ class AlipayCostService extends BaseService
             $params = array_merge($params, [':room' => $room]);
         }
 
-        if(is_int($bill_entry_amount)){
+        if(is_int($bill_entry_amount)||$bill_entry_amount>0){
             $where .= " AND bill.bill_entry_amount = :bill_entry_amount ";
             $params = array_merge($params, [':bill_entry_amount' => $bill_entry_amount]);
         }

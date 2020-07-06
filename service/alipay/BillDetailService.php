@@ -264,7 +264,7 @@ class BillDetailService extends BaseService
             $params = array_merge($params, [':pay_amount' => 0]);
         }
 
-        if (is_int($requestArr['pay_amount'])){
+        if (is_int($requestArr['pay_amount'])||$requestArr['pay_amount']>0){
             $where .= " AND der.`pay_amount` = :pay_amount";
             $params = array_merge($params, [':pay_amount' => $requestArr['pay_amount']]);
         }
