@@ -108,7 +108,7 @@ Class BillIncomeController extends BaseController
                 $this->request_params['rows'] = 1000;
                 $result = BillIncomeService::service()->billIncomeList($this->request_params);
                 $file_name = ExcelService::service()->recordDown($result, $config);
-                $downUrl = F::downloadUrl('moban/' . $community_id . '/'. $file_name, 'zip');
+                $downUrl = F::downloadUrl('jiaofeijilu/' . $community_id . '/'. $file_name, 'zip');
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             } else {//下载zip压缩包
                 for ($i = 1; $i <= $cycle; $i++) {
@@ -121,7 +121,7 @@ Class BillIncomeController extends BaseController
                 }
                 $path = $savePath . 'jiaofei.zip';
                 ExcelService::service()->addZip($savePath, $path);
-                $downUrl = F::downloadUrl('moban/'.$community_id.'/jiaofei.zip', 'zip');
+                $downUrl = F::downloadUrl('jiaofeijilu/'.$community_id.'/jiaofei.zip', 'zip');
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             }
         } else {
