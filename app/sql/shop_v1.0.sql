@@ -82,3 +82,47 @@ INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES (
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1902', '婚庆摄影','19',2 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1903', '充值缴费','19',2 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1904', '图书影像','19',2 );
+
+CREATE TABLE `ps_shop` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `merchant_code` int(11) NOT NULL COMMENT '商家编号',
+  `shop_code` varchar(20) NOT NULL COMMENT '店铺编号',
+  `shop_name` varchar(20) NOT NULL COMMENT '店铺名称',
+  `address` varchar(100) NOT NULL COMMENT '详细地址',
+  `lon` varchar(100) NOT NULL COMMENT '经度',
+  `lat` varchar(100) NOT NULL COMMENT '纬度',
+  `link_name` varchar(20) NOT NULL COMMENT '联系人姓名',
+  `link_mobile` varchar(20) NOT NULL COMMENT '手机号',
+  `start` varchar(10) NOT NULL DEFAULT '' COMMENT  '营业开始时间',
+  `end` varchar(10) NOT NULL DEFAULT '' COMMENT  '营业结束时间',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '店铺状态 1营业中 2打烊',
+  `img` varchar(255) NOT NULL DEFAULT '' COMMENT '营业执照',
+  `app_id` varchar(50) NULL DEFAULT '' COMMENT '小程序appID',
+  `app_name` varchar(50) NULL DEFAULT '' COMMENT '小程序app名称',
+  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
+  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺表';
+
+CREATE TABLE `ps_shop_goods_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `shop_id` int(11) NOT NULL COMMENT '店铺ID',
+  `type_name` varchar(20) NOT NULL COMMENT '商品分类名称',
+  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
+  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类表';
+
+CREATE TABLE `ps_shop_goods` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `shop_id` int(11) NOT NULL COMMENT '店铺ID',
+  `type_id` int(11) NOT NULL COMMENT '商品分类ID',
+  `merchant_code` int(11) NOT NULL COMMENT '商家编号',
+  `goods_code` varchar(20) NOT NULL COMMENT '商品编号',
+  `goods_name` varchar(20) NOT NULL COMMENT '商品名称',
+  `status` tinyint(1) NOT NULL COMMENT '商品状态 1上架 2下架',
+  `img` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图片 多图逗号隔开',
+  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
+  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品表';
