@@ -13,7 +13,7 @@ CREATE TABLE `ps_shop_merchant` (
   `start` varchar(10) NOT NULL DEFAULT '' COMMENT '营业开始时间',
   `end` varchar(10) NOT NULL DEFAULT '' COMMENT '营业结束时间',
   `link_name` varchar(10) NOT NULL DEFAULT '' COMMENT '联系人',
-  `link_mobile` varchar(10) NOT NULL DEFAULT '' COMMENT '联系人手机号',
+  `link_mobile` varchar(20) NOT NULL DEFAULT '' COMMENT '联系人手机号',
   `scale` varchar(100) NOT NULL DEFAULT '' COMMENT '规模',
   `area` varchar(100) NOT NULL DEFAULT '' COMMENT '面积',
   `check_status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '审核状态 1待审核,2审核通过,3审核未通过',
