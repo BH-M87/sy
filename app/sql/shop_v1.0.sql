@@ -97,6 +97,8 @@ CREATE TABLE `ps_shop` (
   `end` varchar(10) NOT NULL DEFAULT '' COMMENT  '营业结束时间',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '店铺状态 1营业中 2打烊',
   `img` varchar(255) NOT NULL DEFAULT '' COMMENT '营业执照',
+  `app_id` varchar(50) NULL DEFAULT '' COMMENT '小程序appID',
+  `app_name` varchar(50) NULL DEFAULT '' COMMENT '小程序app名称',
   `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
   `createAt` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
