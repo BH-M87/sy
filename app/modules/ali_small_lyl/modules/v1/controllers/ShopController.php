@@ -1,0 +1,95 @@
+<?php
+namespace app\modules\ali_small_lyl\modules\v1\controllers;
+
+use app\modules\ali_small_lyl\controllers\BaseController;
+use common\core\F;
+use common\core\PsCommon;
+
+use service\shop\ShopService;
+
+class ShopController extends BaseController
+{
+    // 店铺 新增
+    public function actionShopAdd()
+    {
+        $r = ShopService::service()->shopAdd($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 店铺关联小区
+    public function actionShopCommunity()
+    {
+        $r = ShopService::service()->shopCommunity($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 店铺详情
+    public function actionShopShow()
+    {
+        $r = ShopService::service()->shopShow($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品分类 新增
+    public function actionGoodsTypeAdd()
+    {
+        $r = ShopService::service()->goodsTypeAdd($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品分类 编辑
+    public function actionGoodsTypeEdit()
+    {
+        $r = ShopService::service()->goodsTypeEdit($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品分类 下拉列表
+    public function actionGoodsTypeDropDown()
+    {
+        $r = ShopService::service()->goodsTypeDropDown($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品 列表
+    public function actionGoodsList()
+    {
+        if (!$this->params['community_id']) {
+            return F::apiFailed('请输入小区ID！');
+        }
+
+        $r = ShopService::service()->goodsList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品 新增
+    public function actionGoodsAdd()
+    {
+        $r = ShopService::service()->goodsAdd($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品 编辑
+    public function actionGoodsEdit()
+    {
+        $r = ShopService::service()->goodsEdit($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品 详情
+    public function actionGoodsShow()
+    {
+        $r = ShopService::service()->goodsShow($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+}
