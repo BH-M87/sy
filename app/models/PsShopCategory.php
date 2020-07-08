@@ -33,4 +33,12 @@ class PsShopCategory extends BaseModel {
               'type'        => '类型',
         ];
     }
+
+    /*
+     * 根据code 获得名称
+     */
+    public function getNameByCode($code){
+        $res = self::find()->select(['name'])->where(['=','code',$code])->asArray()->one();
+        return $res['name'];
+    }
 }

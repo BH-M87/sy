@@ -15,6 +15,8 @@ use yii\base\Exception;
 
 class ShopMerchantController extends BaseController{
 
+    public $repeatAction = ['add'];
+
     //商户入驻
     public function actionAdd(){
         try{

@@ -23,7 +23,8 @@ Class MerchantService extends BaseService {
         try{
             $addParams['name'] = !empty($params['name'])?$params['name']:'';
             $addParams['type'] = !empty($params['type'])?$params['type']:'';
-            $addParams['category_code'] = !empty($params['category_code'])?$params['category_code']:'';
+            $addParams['category_first'] = !empty($params['category_first'])?$params['category_first']:'';
+            $addParams['category_second'] = !empty($params['category_second'])?$params['category_second']:'';
             $addParams['business_img'] = !empty($params['business_img'])?$params['business_img']:'';
             $addParams['merchant_img'] = !empty($params['merchant_img'])?$params['merchant_img']:'';
             $addParams['lon'] = !empty($params['lon'])?$params['lon']:'';
@@ -94,5 +95,57 @@ Class MerchantService extends BaseService {
         }
 
         return $this->success($categoryResult);
+    }
+
+    /*
+     * 审核列表
+     */
+    public function checkList($params){
+        $model = new PsShopMerchant();
+        $result = $model->getCheckList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
+                $result['list'][$key]['check_status_msg'] = !empty($value['check_status'])?$model->checkMsg[$value['check_status']]:'';
+            }
+        }
+        return $this->success($result);
+    }
+
+    /*
+     * 审核类表
+     */
+    public function checkDetail($params){
+        $model = new PsShopMerchant(['scenario'=>'checkDetail']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = self::getDetail($model,['id'=>$model->attributes['id']]);
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    public function getDetail($model,$params){
+        $cateModel = new PsShopCategory();
+        $result = $model->getDetail(['id'=>$params['id']]);
+        $community = $result['community'];
+        $communityArray = [];
+        if(!empty($community)){
+            foreach ($community as $key=>$value){
+                $element['community_id'] = $value['community_name'];
+                $element['community_name'] = $value['community_name'];
+                $communityArray[] = $element;
+            }
+        }
+        unset($result['community']);
+        $result['category_first_msg'] = !empty($result['category_first'])?$cateModel->getNameByCode($result['category_first']):'';
+        $result['category_second_msg'] = !empty($result['category_second'])?$cateModel->getNameByCode($result['category_second']):'';
+        $result['type_msg'] = !empty($result['type'])?$model->typeMsg[$result['type']]:'';
+        $result['merchant_img_array'] = !empty($result['merchant_img'])?explode(',',$result['merchant_img']):'';
+        $result['business_img_array'] = !empty($result['business_img'])?explode(',',$result['business_img']):'';
+        $result['community_array'] = $communityArray;
+        return $result;
     }
 }
