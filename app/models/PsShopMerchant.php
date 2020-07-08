@@ -10,6 +10,9 @@ namespace app\models;
 
 class PsShopMerchant extends BaseModel {
 
+
+    public $communityInfo = '';
+
     public static function tableName()
     {
         return 'ps_shop_merchant';
@@ -19,8 +22,8 @@ class PsShopMerchant extends BaseModel {
     {
         return [
 
-            [['name','type','category_code', 'merchant_img','lon','lat','location','start','end','link_name','link_mobile','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
-            [['name','type','category_code', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
+            [['name','type','category_code', 'merchant_img','lon','lat','location','start','end','link_name','link_mobile','communityInfo','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
+            [['name','type','category_code', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','communityInfo','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
             [["id",'type', 'check_status','status','create_at','update_at'], 'integer'],
             [["lon",'lat'], 'number'],
             [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','scale','area','category_code','merchant_img','business_img','location','check_content'], 'trim'],
@@ -33,6 +36,7 @@ class PsShopMerchant extends BaseModel {
             [['location','check_content'], 'string',"max"=>255],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
+            [['name'],'customizeValue','on'=>['micro_add','individual_add']],   //设置商店的默认值
             [['link_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机格式有误'],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['micro_add','individual_add']],
             [["check_status","status"],"default",'value' => 1,'on'=>['micro_add','individual_add']],
@@ -86,6 +90,7 @@ class PsShopMerchant extends BaseModel {
               'check_name'      => '审核人名称',
               'create_at'       => '创建时间',
               'update_at'       => '修改时间',
+              'communityInfo'   => '小区信息',
         ];
     }
 
@@ -115,6 +120,13 @@ class PsShopMerchant extends BaseModel {
                 return $this->addError($attribute, "营业结束时间需大于营业开始时间");
             }
         }
+    }
+
+    //自定义 商家code 审核code
+    public function customizeValue(){
+        $nowTime = time();
+        $this->merchant_code = 'SJ'.date('YmdHis',$nowTime);
+        $this->check_code = 'SH'.date('YmdHis',$nowTime);
     }
 
 }

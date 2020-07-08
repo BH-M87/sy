@@ -28,4 +28,18 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    //商品类目
+    public function actionGetCategory(){
+        try{
+            $result = MerchantService::service()->getCategory();
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
