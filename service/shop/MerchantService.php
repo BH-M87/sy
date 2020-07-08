@@ -8,7 +8,9 @@
  */
 namespace service\shop;
 
+use app\models\PsShopCategory;
 use app\models\PsShopMerchant;
+use app\models\PsShopMerchantCommunity;
 use service\BaseService;
 use Yii;
 use yii\db\Exception;
@@ -34,12 +36,24 @@ Class MerchantService extends BaseService {
             $addParams['scale'] = !empty($params['scale'])?$params['scale']:'';
             $addParams['area'] = !empty($params['area'])?$params['area']:'';
             $addParams['member_id'] = !empty($params['member_id'])?$params['member_id']:'';
+            $addParams['communityInfo'] = !empty($params['communityInfo'])?$params['communityInfo']:[];
             $scenario = $addParams['type']==1?'micro_add':'individual_add';
             $model = new PsShopMerchant(['scenario'=>$scenario]);
             if($model->load($addParams,'')&&$model->validate()){
-                die;
                 if(!$model->save()){
-                    return $this->failed('新增失败！');
+                    return $this->failed('入驻失败！');
+                }
+                $relModel = new PsShopMerchantCommunity(['scenario'=>'add']);
+                foreach($addParams['communityInfo'] as $key=>$value){
+                    $value['merchant_code'] = $model->attributes['merchant_code'];
+                    if($relModel->load($value,'')&&$relModel->validate()){
+                        if(!$relModel->save()){
+                            return $this->failed('关联小区失败！');
+                        }
+                    }else{
+                        $msg = array_values($relModel->errors)[0][0];
+                        return $this->failed($msg);
+                    }
                 }
                 $trans->commit();
                 return $this->success(['check_code'=>$model->attributes['check_code']]);
@@ -51,5 +65,34 @@ Class MerchantService extends BaseService {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+    }
+
+    /*
+     * 商品类目
+     */
+    public function getCategory(){
+        //获得一级类目
+        $result = PsShopCategory::find()->select(['code','name'])->where("type=1")->asArray()->all();
+        $categoryResult = [];
+        if(!empty($result)){
+            foreach($result as $key=>$value){
+                $list = PsShopCategory::find()->select(['code','name'])->where("type=2 and parentCode=".$value['code'])->asArray()->all();
+                $result[$key]['list'] = !empty($list)?$list:[];
+            }
+
+            $redis = Yii::$app->redis;
+            $category = 'ps_shop_category';
+            $categoryResult = json_decode($redis->get($category),true);
+            if(empty($categoryResult)){
+                //设置缓存
+                $redis->set($category,json_encode($result));
+                //设置180天效期
+                $redis->expire($category,180*86400);
+
+                $categoryResult = $result;
+            }
+        }
+
+        return $this->success($categoryResult);
     }
 }
