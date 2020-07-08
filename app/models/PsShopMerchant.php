@@ -13,6 +13,10 @@ class PsShopMerchant extends BaseModel {
 
     public $communityInfo = '';
 
+    public $checkMsg = ['1'=>'待审核','2'=>'已通过','3'=>'已驳回'];
+
+    public $typeMsg = ['1'=>'小微商家','2'=>'个体工商户'];
+
     public static function tableName()
     {
         return 'ps_shop_merchant';
@@ -40,25 +44,6 @@ class PsShopMerchant extends BaseModel {
             [['link_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机格式有误'],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['micro_add','individual_add']],
             [["check_status","status"],"default",'value' => 1,'on'=>['micro_add','individual_add']],
-
-            // 所有场景
-//            [['product_id','community_id','cust_name', 'cust_mobile','user_id','volunteer_id','product_num','address'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['volunteer_add']],
-//            [['id','delivery_type','courier_company','order_num','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit']],
-//            [['id','delivery_type','records_code','operator_name','operator_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['self_edit']],
-//            ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ['send_edit',"self_edit","detail"]],
-//            [['community_id','user_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["app_list"]],
-//            [["id",'product_id', 'volunteer_id','product_num','integral','delivery_type','status','create_at','update_at'], 'integer'],
-//            [['community_id','room_id','product_name','cust_name','cust_mobile','user_id','operator_id'], 'string',"max"=>30],
-//            [['address'], 'string',"max"=>200],
-//            [['product_img','verification_qr_code'], 'string',"max"=>255],
-//            [['records_code','operator_name'], 'string',"max"=>10],
-//            [['courier_company','order_num'], 'string',"max"=>50],
-//            [['community_id','room_id','cust_name','cust_mobile','address','courier_company','order_num','records_code','operator_name','operator_id'], 'trim'],
-//            [['cust_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
-//            [['id'], 'infoData', 'on' => ['send_edit',"self_edit","detail"]],
-//            [['product_id'], 'productExist', 'on' => ['volunteer_add']],
-//            [["create_at",'update_at'],"default",'value' => time(),'on'=>['volunteer_add']],
-//            [["product_num","status"],"default",'value' => 1,'on'=>['volunteer_add']],
         ];
     }
 
@@ -127,6 +112,42 @@ class PsShopMerchant extends BaseModel {
         $nowTime = time();
         $this->merchant_code = 'SJ'.date('YmdHis',$nowTime);
         $this->check_code = 'SH'.date('YmdHis',$nowTime);
+    }
+
+    //列表
+    public function getCheckList($params){
+        $fields = ['check_code','name','type','check_status','check_name','create_at'];
+        $model = self::find()->select($fields)->where(['in','check_status',[1,3]]);
+        if(!empty($params['check_status'])){
+            $model->andWhere(['=','check_status',$params['check_status']]);
+        }
+        if(!empty($params['type'])){
+            $model->andWhere(['=','type',$params['type']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like','name',$params['name']]);
+        }
+        if(!empty($params['start_time'])){
+            $model->andWhere(['>=','create_at',strtotime($params['start_time'])]);
+        }
+        if(!empty($params['end_time'])){
+            $model->andWhere(['<=','create_at',strtotime($params['end_time']." 23:59:59")]);
+        }
+
+
+        $count = $model->count();
+        if(!empty($param['page'])||!empty($param['pageSize'])){
+            $page = !empty($param['page'])?intval($param['page']):1;
+            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
     }
 
 }
