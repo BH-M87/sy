@@ -106,7 +106,7 @@ CREATE TABLE `ps_shop` (
 
 CREATE TABLE `ps_shop_community` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `shop_id` int(11) NOT NULL DEFAULT '' COMMENT '店铺ID',
+  `shop_id` int(11) NOT NULL COMMENT '店铺ID',
   `distance` varchar(30) NOT NULL DEFAULT '' COMMENT '店铺小区距离',
   `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
   `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
@@ -126,10 +126,16 @@ CREATE TABLE `ps_shop_goods_type` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类表';
 
+CREATE TABLE `ps_shop_goods_type_rela` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `goods_id` int(11) NOT NULL COMMENT '商品ID',
+  `type_id` varchar(20) NOT NULL COMMENT '商品分类ID',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类关系表';
+
 CREATE TABLE `ps_shop_goods` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `shop_id` int(11) NOT NULL COMMENT '店铺ID',
-  `type_id` int(11) NOT NULL COMMENT '商品分类ID',
   `merchant_code` int(11) NOT NULL COMMENT '商家编号',
   `goods_code` varchar(20) NOT NULL COMMENT '商品编号',
   `goods_name` varchar(20) NOT NULL COMMENT '商品名称',
