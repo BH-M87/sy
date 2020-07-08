@@ -99,17 +99,30 @@ CREATE TABLE `ps_shop` (
   `img` varchar(255) NOT NULL DEFAULT '' COMMENT '营业执照',
   `app_id` varchar(50) NULL DEFAULT '' COMMENT '小程序appID',
   `app_name` varchar(50) NULL DEFAULT '' COMMENT '小程序app名称',
-  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
-  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  `update_at` int(11) DEFAULT '0' COMMENT '更新时间',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺表';
+
+CREATE TABLE `ps_shop_community` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `shop_id` int(11) NOT NULL DEFAULT '' COMMENT '店铺ID',
+  `distance` varchar(30) NOT NULL DEFAULT '' COMMENT '店铺小区距离',
+  `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
+  `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
+  `society_id` varchar(30) NOT NULL DEFAULT '' COMMENT '社区id',
+  `society_name` varchar(30) NOT NULL DEFAULT '' COMMENT '社区名称',
+  `create_at` int(10) NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `update_at` int(10) NOT NULL DEFAULT 0 COMMENT '修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺关联社区小区表';
 
 CREATE TABLE `ps_shop_goods_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
   `shop_id` int(11) NOT NULL COMMENT '店铺ID',
   `type_name` varchar(20) NOT NULL COMMENT '商品分类名称',
-  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
-  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  `update_at` int(11) DEFAULT '0' COMMENT '更新时间',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品分类表';
 
@@ -122,7 +135,7 @@ CREATE TABLE `ps_shop_goods` (
   `goods_name` varchar(20) NOT NULL COMMENT '商品名称',
   `status` tinyint(1) NOT NULL COMMENT '商品状态 1上架 2下架',
   `img` varchar(255) NOT NULL DEFAULT '' COMMENT '商品图片 多图逗号隔开',
-  `updateAt` int(11) DEFAULT '0' COMMENT '更新时间',
-  `createAt` int(11) NOT NULL COMMENT '创建时间',
+  `update_at` int(11) DEFAULT '0' COMMENT '更新时间',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品表';
