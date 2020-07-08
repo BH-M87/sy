@@ -23,7 +23,28 @@ class ShopMerchantController extends BaseController {
             $params['pageSize'] = $this->pageSize;
             $service = new MerchantService();
             $result = $service->checkList($params);
-            return PsCommon::responseSuccess($result);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //审核详情
+    public function actionCheckDetail(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->checkDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
         }

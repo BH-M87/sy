@@ -22,7 +22,8 @@ class PsShopMerchantCommunity extends BaseModel
     {
         return [
 
-            [['merchant_code', 'community_id', 'community_name', 'society_id', 'society_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+//            [['merchant_code', 'community_id', 'community_name', 'society_id', 'society_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['merchant_code', 'community_id', 'community_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [["id", 'create_at', 'update_at'], 'integer'],
             [['merchant_code', 'community_id', 'community_name', 'society_id', 'society_name'], 'trim'],
             [['merchant_code', 'community_id', 'community_name', 'society_id', 'society_name'], 'string', "max" => 30],

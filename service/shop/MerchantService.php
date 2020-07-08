@@ -23,7 +23,8 @@ Class MerchantService extends BaseService {
         try{
             $addParams['name'] = !empty($params['name'])?$params['name']:'';
             $addParams['type'] = !empty($params['type'])?$params['type']:'';
-            $addParams['category_code'] = !empty($params['category_code'])?$params['category_code']:'';
+            $addParams['category_first'] = !empty($params['category_first'])?$params['category_first']:'';
+            $addParams['category_second'] = !empty($params['category_second'])?$params['category_second']:'';
             $addParams['business_img'] = !empty($params['business_img'])?$params['business_img']:'';
             $addParams['merchant_img'] = !empty($params['merchant_img'])?$params['merchant_img']:'';
             $addParams['lon'] = !empty($params['lon'])?$params['lon']:'';
@@ -110,5 +111,21 @@ Class MerchantService extends BaseService {
             }
         }
         return $this->success($result);
+    }
+
+    /*
+     * 审核类表
+     */
+    public function checkDetail($params){
+        $model = new PsShopMerchant(['scenario'=>'checkDetail']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getDetail(['id'=>$model->attributes['id']]);
+            print_r($result);die;
+            $result['category_first_msg'] = '';
+            print_r($result);die;
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
     }
 }
