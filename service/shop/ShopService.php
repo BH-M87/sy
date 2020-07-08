@@ -14,58 +14,71 @@ use app\models\PsShopGoods;
 use app\models\PsShop;
 use app\models\PsShopGoodsType;
 use app\models\PsShopCommunity;
+use app\models\PsShopMerchant;
+use app\models\PsShopMerchantCommunity;
 
 use service\property_basic\JavaService;
 
 class ShopService extends BaseService
 {
-    // 列表
-    public function groupDropDown($p)
+    // 店铺 新增
+    public function shopAdd($p, $userInfo)
     {
-       $m = GoodsGroup::find()->select('id, name')->orderBy('id desc')->asArray()->all();
-
-        return $m;
+        return self::_saveShop($p, 'add', $userInfo);
     }
 
-    // 新增
-    public function groupAdd($p, $userInfo)
+    // 店铺 编辑
+    public function shopEdit($p, $userInfo)
     {
-        return self::_saveGroup($p, 'add', $userInfo);
+        return self::_saveShop($p, 'edit', $userInfo);
     }
 
-    // 编辑
-    public function groupEdit($p, $userInfo)
-    {
-        return self::_saveGroup($p, 'edit', $userInfo);
-    }
-
-    public function _saveGroup($p, $scenario, $userInfo)
+    public function _saveShop($p, $scenario, $userInfo)
     {
         if ($scenario == 'edit') {
-            $model = GoodsGroup::findOne($p['id']);
+            $model = PsShop::findOne($p['id']);
             if (empty($model)) {
                 throw new MyException('数据不存在!');
             }
         }
 
-        $group = GoodsGroup::find()->where(['name' => $p['name']])->andFilterWhere(['!=', 'id', $p['id']])->one();
+        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id'], 'check_status' => 2])->one();
+        if (empty($merchant)) {
+            throw new MyException('商户不存在');
+        }
 
-        if (!empty($group)) {
-            throw new MyException('数据已存在!');
+        $shop = PsShop::find()->where(['shop_name' => $p['shop_name']])
+            ->andFilterWhere(['=', 'merchant_code', $merchant->merchant_code])
+            ->andFilterWhere(['!=', 'id', $p['id']])->one();
+
+        if (!empty($shop)) {
+            throw new MyException('店铺名称已存在!');
+        }
+
+        if ($scenario == 'add') {
+            $param['shop_code'] = 'DP'.time();
+
+            $community = PsShopMerchantCommunity::find()->where(['merchant_code' = $merchant->merchant_code])->asArray()->all();
         }
 
         $param['id'] = $p['id'];
-        $param['name'] = $p['name'];
-        $param['startAt'] = strtotime($p['startAt']);
-        $param['endAt'] = strtotime($p['endAt']);
-        $param['content'] = $p['content'];
-        $param['operatorId'] = $userInfo['id'];
-        $param['operatorName'] = $userInfo['truename'];
+        $param['merchant_code'] = $merchant->merchant_code;
+        $param['shop_name'] = $p['shop_name'];
+        $param['address'] = $p['address'];
+        $param['lon'] = $p['lon'];
+        $param['lat'] = $p['lat'];
+        $param['link_name'] = $p['link_name'];
+        $param['link_mobile'] = $p['link_mobile'];
+        $param['start'] = $p['start'];
+        $param['end'] = $p['end'];
+        $param['status'] = $p['status'];
+        $param['app_id'] = $p['app_id'];
+        $param['app_name'] = $p['app_name'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
         try {
-            $model = new GoodsGroup(['scenario' => $scenario]);
+            $model = new PsShop(['scenario' => $scenario]);
 
             if (!$model->load($param, '') || !$model->validate()) {
                 throw new MyException($this->getError($model));
@@ -75,106 +88,101 @@ class ShopService extends BaseService
                 throw new MyException($this->getError($model));
             }
 
-            $groupId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+            $shopId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['communityIdList'])) {
-                GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
-                GoodsGroupSelect::deleteAll(['groupId' => $groupId]);
-                foreach ($p['communityIdList'] as $k => $v) {
-                    $selectOne = GoodsGroupSelect::find()->where(['code' => $v['id'], 'groupId' => $groupId])->one();
+            
 
-                    if (!empty($selectOne)) {
-                        continue;
-                    }
+            if (!empty($community)) {
+                PsShopCommunity::deleteAll(['shop_id' => $shopId]);
+                foreach ($community as $k => $v) {
+                    $javaParam['token'] = $p['token'];
+                    $javaParam['id'] = $v['community_id'];
+                    $javaResult = JavaService::service()->selectCommunityById($javaParam);
 
-                    $select = new GoodsGroupSelect();
-                    $select->groupId = $groupId;
-                    $select->code = $v['id'];
-                    $select->name = $v['name'];
-                    $select->isCommunity = $v['isCommunity'];
-                    $select->save();
-
-                    if ($v['isCommunity'] == 2) { // 指定小区
-                        $commParam[] = ['groupId' => $groupId, 'communityId' => $v['id']];
-                    } else {
-                        $idArr = explode(',', $v['id']);
-                        // 获得所有小区
-                        $javaParam['token'] = $p['token'];
-                        $javaParam['pageNum'] = 1;
-                        $javaParam['pageSize'] = 10000;
-                        $javaParam['provinceCode'] = $idArr[0];
-                        $javaParam['cityCode'] = $idArr[1];
-                        $javaParam['districtCode'] = $idArr[2];
-                        $javaParam['streetCode'] = $idArr[3];
-                        $javaParam['villageCode'] = $idArr[4];
-                        $javaResult = JavaService::service()->communityOperationList($javaParam)['list'];
-
-                        if (!empty($javaResult)) {
-                            foreach ($javaResult as $key => $val) {
-                                $commParam[] = ['groupId' => $groupId, 'communityId' => $val['communityId']];
-                            }
-                        }
+                    if (!empty($javaResult)) {
+                        $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
+                        $commParam[] = [
+                            'shop_id' => $shopId, 
+                            'distance' => $distance, 
+                            'community_id' => $v['community_id'],
+                            'community_name' => $v['community_name'],
+                            'society_id' => $v['society_id'],
+                            'society_name' => $v['society_name'],
+                        ];
                     }
                 }
-                Yii::$app->db->createCommand()->batchInsert('ps_goods_group_community', ['groupId', 'communityId'], $commParam)->execute();
-            } else {
-                throw new MyException('兑换小区范围');
+                Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();       
             }
 
             $trans->commit();
-            return ['id' => $groupId];
+            return ['id' => $shop_id];
         } catch (Exception $e) {
-            $trans->rollBack();//array_values($model->errors)[0][0]
+            $trans->rollBack();
             throw new MyException($e->getMessage());
         }
     }
 
-    // 活动关联小区
-    public function groupCommunity($p)
+    // 店铺 关联小区
+    public function shopCommunity($p)
     {
-        $groupId = $p['groupId'];
+        $shop_id = $p['shop_id'];
 
-        $m = GoodsGroup::findOne($groupId);
+        $m = PsShop::findOne($shop_id);
         if (empty($m)) {
-            throw new MyException('兑换活动不存在');
+            throw new MyException('店铺不存在');
         }
 
-        if (empty($p['communityIdList'])) {
+        if (empty($p['community'])) {
             throw new MyException('请选择小区');
         }
 
-        GoodsGroupCommunity::deleteAll(['groupId' => $groupId]);
-        foreach ($p['communityIdList'] as $k => $v) {
-            $comm = new GoodsGroupCommunity();
-            $comm->groupId = $groupId;
-            $comm->communityId = $v;
-            $comm->save();
-        }
+        $trans = Yii::$app->getDb()->beginTransaction();
 
-        return [];
+        try {
+
+            PsShopCommunity::deleteAll(['shop_id' => $shop_id]);
+
+            foreach ($p['community'] as $k => $v) {
+                $javaParam['token'] = $p['token'];
+                $javaParam['id'] = $v['community_id'];
+                $javaResult = JavaService::service()->selectCommunityById($javaParam);
+
+                if (!empty($javaResult)) {
+                    $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
+                    $commParam[] = [
+                        'shop_id' => $shop_id, 
+                        'distance' => $distance, 
+                        'community_id' => $v['community_id'],
+                        'community_name' => $v['community_name'],
+                        'society_id' => $v['society_id'],
+                        'society_name' => $v['society_name'],
+                    ];
+                }       
+            }
+
+            Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();
+
+            $trans->commit();
+            return ['id' => $shop_id];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
     }
 
-    // 详情
-    public function groupShow($p)
+    // 店铺 详情
+    public function shopShow($p)
     {
         if (empty($p['id'])) {
             throw new MyException('id不能为空');
         }
 
-        $r = GoodsGroup::find()->where(['id' => $p['id']])->asArray()->one();
+        $r = PsShop::find()->select('shop_name, status, address, merchant_code')->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['community'] = GoodsGroupSelect::find()->select('code id, name, isCommunity')->where(['groupId' => $p['id']])->asArray()->all();
-
-            if (!empty($r['community'])) {
-                foreach ($r['community'] as $k => $v) {
-                    $communityName .= $v['name'] . ' ';
-                }
-            }
-            
-            $r['communityName'] = $communityName;
-
-            $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
-            $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
+            $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
+            $r['img'] = $merchant->merchant_img;
+            $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_code])->one()->name;
+            $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
 
             return $r;
         }

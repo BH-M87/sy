@@ -112,8 +112,6 @@ CREATE TABLE `ps_shop_community` (
   `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `society_id` varchar(30) NOT NULL DEFAULT '' COMMENT '社区id',
   `society_name` varchar(30) NOT NULL DEFAULT '' COMMENT '社区名称',
-  `create_at` int(10) NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` int(10) NOT NULL DEFAULT 0 COMMENT '修改时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺关联社区小区表';
 
