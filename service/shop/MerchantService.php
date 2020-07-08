@@ -119,13 +119,33 @@ Class MerchantService extends BaseService {
     public function checkDetail($params){
         $model = new PsShopMerchant(['scenario'=>'checkDetail']);
         if($model->load($params,'')&&$model->validate()){
-            $result = $model->getDetail(['id'=>$model->attributes['id']]);
-            print_r($result);die;
-            $result['category_first_msg'] = '';
-            print_r($result);die;
+            $result = self::getDetail($model,['id'=>$model->attributes['id']]);
+            return $this->success($result);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    public function getDetail($model,$params){
+        $cateModel = new PsShopCategory();
+        $result = $model->getDetail(['id'=>$params['id']]);
+        $community = $result['community'];
+        $communityArray = [];
+        if(!empty($community)){
+            foreach ($community as $key=>$value){
+                $element['community_id'] = $value['community_name'];
+                $element['community_name'] = $value['community_name'];
+                $communityArray[] = $element;
+            }
+        }
+        unset($result['community']);
+        $result['category_first_msg'] = !empty($result['category_first'])?$cateModel->getNameByCode($result['category_first']):'';
+        $result['category_second_msg'] = !empty($result['category_second'])?$cateModel->getNameByCode($result['category_second']):'';
+        $result['type_msg'] = !empty($result['type'])?$model->typeMsg[$result['type']]:'';
+        $result['merchant_img_array'] = !empty($result['merchant_img'])?explode(',',$result['merchant_img']):'';
+        $result['business_img_array'] = !empty($result['business_img'])?explode(',',$result['business_img']):'';
+        $result['community_array'] = $communityArray;
+        return $result;
     }
 }
