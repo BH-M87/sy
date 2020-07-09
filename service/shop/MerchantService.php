@@ -12,6 +12,7 @@ use app\models\PsShopCategory;
 use app\models\PsShopMerchant;
 use app\models\PsShopMerchantCommunity;
 use service\BaseService;
+use service\property_basic\JavaOfCService;
 use Yii;
 use yii\db\Exception;
 
@@ -37,7 +38,15 @@ Class MerchantService extends BaseService {
             $addParams['scale'] = !empty($params['scale'])?$params['scale']:'';
             $addParams['area'] = !empty($params['area'])?$params['area']:'';
             $addParams['member_id'] = !empty($params['member_id'])?$params['member_id']:'';
+            $addParams['ali_form_id'] = !empty($params['ali_form_id'])?$params['ali_form_id']:'';
             $addParams['communityInfo'] = !empty($params['communityInfo'])?$params['communityInfo']:[];
+
+            //根据token 调用java获得支付宝id
+            $javaService = new JavaOfCService();
+            $javaParams['token'] = $params['token'];
+            $javaResult = $javaService->selectMemberInfo($javaParams);
+            $addParams['ali_user_id'] = !empty($javaResult['onlyNumber'])?$javaResult['onlyNumber']:'';
+
             $scenario = $addParams['type']==1?'micro_add':'individual_add';
             $model = new PsShopMerchant(['scenario'=>$scenario]);
             if($model->load($addParams,'')&&$model->validate()){

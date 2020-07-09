@@ -28,19 +28,19 @@ class PsShopMerchant extends BaseModel {
     {
         return [
 
-            [['name','type','category_first', 'merchant_img','lon','lat','location','start','end','link_name','link_mobile','communityInfo','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
-            [['name','type','category_first', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','communityInfo','member_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
+            [['name','type','category_first', 'merchant_img','lon','lat','location','start','end','link_name','link_mobile','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
+            [['name','type','category_first', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
             [['check_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['checkDetail']],
             [['merchant_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['merchantDetail']],
             [['check_code','check_status','check_id','check_name'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
             [['merchant_code','status'],'required','message'=>'{attribute}不能为空！','on'=>['merchantEdit']],
             [["id",'type', 'check_status','status','create_at','update_at'], 'integer'],
             [["lon",'lat'], 'number'],
-            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','scale','area','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
+            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','scale','area','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
             [['name','merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
             [['start','end','link_name','check_name'], 'string',"max"=>10],
             [['link_mobile'], 'string',"max"=>20],
-            [['scale','area'], 'string',"max"=>100],
+            [['scale','area','ali_form_id','ali_user_id'], 'string',"max"=>100],
             [['category_first','category_second'], 'string',"max"=>64],
             [['merchant_img','business_img'], 'string',"max"=>500],
             [['location','check_content'], 'string',"max"=>255],
@@ -63,8 +63,8 @@ class PsShopMerchant extends BaseModel {
               'merchant_code'           => '商家code',
               'check_code'              => '审核code',
               'type'                    => '商户类型',
-              'category_first'     => '一级经营类目',
-              'category_second'    => '二级经营类目',
+              'category_first'          => '一级经营类目',
+              'category_second'         => '二级经营类目',
               'merchant_img'            => '商家照片',
               'business_img'            => '营业执照',
               'lon'                     => '经度',
@@ -85,6 +85,8 @@ class PsShopMerchant extends BaseModel {
               'create_at'               => '创建时间',
               'update_at'               => '修改时间',
               'communityInfo'           => '小区信息',
+              'ali_user_id'             => '支付宝用户',
+              'ali_form_id'             => '支付宝表单',
         ];
     }
 
@@ -241,7 +243,7 @@ class PsShopMerchant extends BaseModel {
     public function getDetail($params){
         $fields = [
                     'name','type','category_first','category_second','merchant_img','business_img','lon','lat','location','start',
-                    'end','link_name','link_mobile','scale','area','merchant_code','check_code'
+                    'end','link_name','link_mobile','scale','area','merchant_code','check_code','ali_user_id'
         ];
         $result = self::find()->select($fields)->with('community')->where(['=','id',$params['id']])->asArray()->one();
         return $result;
