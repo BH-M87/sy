@@ -207,13 +207,13 @@ class ShopService extends BaseService
     // ----------------------------------     商品分类管理     ----------------------------
 
     // 商品分类 新增
-    public function goodsTypeAdd($p, $userInfo)
+    public function goodsTypeAdd($p)
     {
         return self::_saveGoodsType($p, 'add');
     }
 
     // 商品分类 编辑
-    public function goodsTypeEdit($p, $userInfo)
+    public function goodsTypeEdit($p)
     {
         return self::_saveGoodsType($p, 'edit');
     }
@@ -310,13 +310,13 @@ class ShopService extends BaseService
     // ----------------------------------     商品管理     ----------------------------
 
     // 商品 新增
-    public function goodsAdd($p, $userInfo)
+    public function goodsAdd($p)
     {
         return self::_saveGoods($p, 'add');
     }
 
     // 商品 编辑
-    public function goodsEdit($p, $userInfo)
+    public function goodsEdit($p)
     {
         return self::_saveGoods($p, 'edit');
     }
@@ -369,6 +369,7 @@ class ShopService extends BaseService
             $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
             if (!empty($p['type_id']) && is_array($p['type_id'])) {
+                PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
                 foreach ($p['type_id'] as $type_id) {
                     $rela = new PsShopGoodsTypeRela();
                     $rela->goods_id = $id;
@@ -391,7 +392,7 @@ class ShopService extends BaseService
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        $totals = self::goodsSearch($p)->count();
+        $totals = self::goodsSearch($p)->groupBy('A.id')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
@@ -399,12 +400,12 @@ class ShopService extends BaseService
         $list = self::goodsSearch($p)
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->orderBy('id desc')->asArray()->all();
+            ->orderBy('A.id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['img'] =  explode(',', $v['img']);
                 $v['statusMsg'] = $v['status'] == 1 ? '上架' : '下架';
-                $v['type_name'] = '';
+                $v['type_name'] = self::_goodsTypeName($v['id']);
             }
         }
 
@@ -428,15 +429,29 @@ class ShopService extends BaseService
             throw new MyException('id不能为空');
         }
 
-        $r = PsShopGoods::find()->where(['A.id' => $p['id']])->asArray()->one();
+        $r = PsShopGoods::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['type_id'] = PsShopGoodsTypeRela::find()->where(['goods_id' => $r['id']])->asArray()->all();
-            $r['type_name'] = '';
+            $rela = PsShopGoodsTypeRela::find()->where(['goods_id' => $r['id']])->asArray()->all();
+            $r['type_id'] = array_column($rela, 'type_id');
+            $r['type_name'] = self::_goodsTypeName($r['id']);
             $r['statusMsg'] = $r['status'] == 1 ? '上架' : '下架';
 
             return $r;
         }
 
         throw new MyException('数据不存在!');
+    }
+    
+    // 获取商品分类名称 逗号隔开
+    public function _goodsTypeName($goods_id)
+    {
+        $m = PsShopGoodsType::find()->alias('A')->select('A.type_name')
+            ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.type_id')
+            ->where(['B.goods_id' => $goods_id])
+            ->asArray()->all();
+
+        $type = array_column($m, 'type_name');
+
+        return implode(',', $type);
     }
 }

@@ -82,10 +82,6 @@ class ShopController extends BaseController
     // 商品 列表
     public function actionGoodsList()
     {
-        if (!$this->params['community_id']) {
-            return F::apiFailed('请输入小区ID！');
-        }
-
         $r = ShopService::service()->goodsList($this->params);
 
         return PsCommon::responseSuccess($r);
