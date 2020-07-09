@@ -264,6 +264,26 @@ class ShopService extends BaseService
         return PsShop::updateAll(['status' => $status], ['id' => $p['id']]);
     }
 
+    // 店铺关联小程序
+    public function shopApp($p)
+    {
+        $m = PsShop::find()->where(['shop_code' => $p['shop_code']])->one();
+
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        if (empty($p['app_id'])) {
+            throw new MyException('小程序ID必填');
+        }
+
+        if (empty($p['app_name'])) {
+            throw new MyException('小程序名称必填');
+        }
+
+        return PsShop::updateAll(['app_id' => $p['app_id'], 'app_name' => $p['app_name']], ['shop_code' => $p['shop_code']]);
+    }
+
     // ----------------------------------     商品分类管理     ----------------------------
 
     // 商品分类 新增
@@ -463,9 +483,13 @@ class ShopService extends BaseService
             ->orderBy('A.id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                $shop = PsShop::findOne($v['shop_id']);
                 $v['img'] =  explode(',', $v['img']);
                 $v['statusMsg'] = $v['status'] == 1 ? '上架' : '下架';
                 $v['type_name'] = self::_goodsTypeName($v['id']);
+                $v['shop_name'] = $shop->shop_name;
+                $v['shop_code'] = $shop->shop_code;
+                $v['update_at'] = !empty($v['update_at']) ? date('Y-m-d H:i:s', $v['update_at']) : date('Y-m-d H:i:s', $v['create_at']);
             }
         }
 
@@ -478,6 +502,9 @@ class ShopService extends BaseService
         $m = PsShopGoods::find()->alias('A')
             ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.goods_id')
             ->filterWhere(['=', 'B.type_id', $p['type_id']])
+            ->andFilterWhere(['like', 'A.merchant_code', $p['merchant_code']])
+            ->andFilterWhere(['like', 'A.shop_code', $p['shop_code']])
+            ->andFilterWhere(['like', 'A.goods_name', $p['goods_name']])
             ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
     }
@@ -495,6 +522,7 @@ class ShopService extends BaseService
             $r['type_id'] = array_column($rela, 'type_id');
             $r['type_name'] = self::_goodsTypeName($r['id']);
             $r['statusMsg'] = $r['status'] == 1 ? '上架' : '下架';
+            $r['img'] = explode(',', $r['img']);
 
             return $r;
         }
