@@ -48,7 +48,7 @@ class PsShopMerchant extends BaseModel {
             [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
             [['name'],'customizeValue','on'=>['micro_add','individual_add']],   //设置商店的默认值
             [['check_code'],'checkInfo','on'=>["checkDetail","checked"]], //验证审核数据是否存在
-            [['merchant_code'],'merchantInfo','on'=>"merchantDetail","merchantEdit"], //验证商家数据是否存在
+            [['merchant_code'],'merchantInfo','on'=>["merchantDetail","merchantEdit"]], //验证商家数据是否存在
             [['link_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机格式有误'],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['micro_add','individual_add']],
             [["check_status","status"],"default",'value' => 1,'on'=>['micro_add','individual_add']],
