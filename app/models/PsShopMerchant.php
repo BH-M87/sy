@@ -15,6 +15,8 @@ class PsShopMerchant extends BaseModel {
 
     public $checkMsg = ['1'=>'待审核','2'=>'已通过','3'=>'已驳回'];
 
+    public $statusMsg = ['1'=>'正常','2'=>'锁定'];
+
     public $typeMsg = ['1'=>'小微商家','2'=>'个体工商户'];
 
     public static function tableName()
@@ -128,7 +130,7 @@ class PsShopMerchant extends BaseModel {
         }
     }
 
-    //列表
+    //审核列表
     public function getCheckList($params){
         $fields = ['check_code','name','type','check_status','check_name','create_at'];
         $model = self::find()->select($fields)->where(['in','check_status',[1,3]]);
@@ -156,6 +158,49 @@ class PsShopMerchant extends BaseModel {
             $offset = ($page-1)*$pageSize;
             $model->offset($offset)->limit($pageSize);
         }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
+    }
+
+    //关联商铺
+    public function getShop(){
+        return $this->hasMany(PsShop::className(),['merchant_code'=>'merchant_code']);
+    }
+
+
+    //商户列表
+    public function getMerchantList($params){
+        $fields = ['merchant_code','name','type','status','create_at'];
+        $model = self::find()->select($fields)->where(['=','check_status',2]);
+        if(!empty($params['status'])){
+            $model->andWhere(['=','status',$params['status']]);
+        }
+        if(!empty($params['type'])){
+            $model->andWhere(['=','type',$params['type']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like','name',$params['name']]);
+        }
+        if(!empty($params['start_time'])){
+            $model->andWhere(['>=','create_at',strtotime($params['start_time'])]);
+        }
+        if(!empty($params['end_time'])){
+            $model->andWhere(['<=','create_at',strtotime($params['end_time']." 23:59:59")]);
+        }
+
+
+        $count = $model->count();
+        if(!empty($param['page'])||!empty($param['pageSize'])){
+            $page = !empty($param['page'])?intval($param['page']):1;
+            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->with('shop');
         $model->orderBy(["id"=>SORT_DESC]);
         $result = $model->asArray()->all();
         return [
