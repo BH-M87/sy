@@ -4,8 +4,8 @@ CREATE TABLE `ps_shop_merchant` (
   `merchant_code` varchar(30) NOT NULL DEFAULT '' COMMENT '商家code',
   `check_code` varchar(30) NOT NULL DEFAULT '' COMMENT '审核code',
   `type` tinyint(4) NOT NULL DEFAULT 1 COMMENT '商户类型 1小微商家 2个体工商户',
-  `category_second` varchar(64) NOT NULL DEFAULT '' COMMENT '经营类目二级',
   `category_first` varchar(64) NOT NULL DEFAULT '' COMMENT '经营类目一级',
+  `category_second` varchar(64) NOT NULL DEFAULT '' COMMENT '经营类目二级',
   `merchant_img` varchar(500) NOT NULL DEFAULT '' COMMENT '商家照片',
   `business_img` varchar(500) NOT NULL DEFAULT '' COMMENT '营业执照',
   `lon` decimal(10,6) DEFAULT '0.000000' COMMENT '经度',
@@ -23,6 +23,8 @@ CREATE TABLE `ps_shop_merchant` (
   `member_id` varchar(30) NOT NULL DEFAULT '' COMMENT '会员id (java平台)',
   `check_id`  varchar(30) NOT NULL DEFAULT '' COMMENT '审核人id',
   `check_name`  varchar(10) NOT NULL DEFAULT '' COMMENT '审核人名称',
+  `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
+  `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
   `create_at` int(10) NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_at` int(10) NOT NULL DEFAULT 0 COMMENT '修改时间',
   PRIMARY KEY (`id`)
