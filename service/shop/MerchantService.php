@@ -78,6 +78,20 @@ Class MerchantService extends BaseService {
     }
 
     /*
+     * 商户详情小程序端
+     */
+    public function merchantDetailOfc($params){
+        $model = new PsShopMerchant(['scenario'=>'merchantDetailOfc']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = self::getDetail($model,['id'=>$model->attributes['id']]);
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
      * 商品类目
      */
     public function getCategory(){
