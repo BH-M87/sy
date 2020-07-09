@@ -483,10 +483,12 @@ class ShopService extends BaseService
             ->orderBy('A.id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
+                $shop = PsShop::findOne($v['shop_id']);
                 $v['img'] =  explode(',', $v['img']);
                 $v['statusMsg'] = $v['status'] == 1 ? '上架' : '下架';
                 $v['type_name'] = self::_goodsTypeName($v['id']);
-                $v['shop_name'] = PsShop::findOne($v['shop_id'])->shop_name;
+                $v['shop_name'] = $shop->shop_name;
+                $v['shop_code'] = $shop->shop_code;
                 $v['update_at'] = !empty($v['update_at']) ? date('Y-m-d H:i:s', $v['update_at']) : date('Y-m-d H:i:s', $v['create_at']);
             }
         }
