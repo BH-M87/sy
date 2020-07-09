@@ -33,6 +33,7 @@ class PsShopMerchant extends BaseModel {
             [['check_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['checkDetail']],
             [['merchant_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['merchantDetail']],
             [['check_code','check_status','check_id','check_name'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
+            [['merchant_code','status'],'required','message'=>'{attribute}不能为空！','on'=>['merchantEdit']],
             [["id",'type', 'check_status','status','create_at','update_at'], 'integer'],
             [["lon",'lat'], 'number'],
             [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','scale','area','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
@@ -47,7 +48,7 @@ class PsShopMerchant extends BaseModel {
             [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
             [['name'],'customizeValue','on'=>['micro_add','individual_add']],   //设置商店的默认值
             [['check_code'],'checkInfo','on'=>["checkDetail","checked"]], //验证审核数据是否存在
-            [['merchant_code'],'merchantInfo','on'=>"merchantDetail"], //验证商家数据是否存在
+            [['merchant_code'],'merchantInfo','on'=>"merchantDetail","merchantEdit"], //验证商家数据是否存在
             [['link_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机格式有误'],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['micro_add','individual_add']],
             [["check_status","status"],"default",'value' => 1,'on'=>['micro_add','individual_add']],

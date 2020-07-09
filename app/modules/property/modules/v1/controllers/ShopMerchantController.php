@@ -104,4 +104,22 @@ class ShopMerchantController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    /*
+     * 商家编辑
+     */
+    public function actionMerchantEdit(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->merchantEdit($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

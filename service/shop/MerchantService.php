@@ -202,4 +202,23 @@ Class MerchantService extends BaseService {
             return $this->failed($msg);
         }
     }
+
+    /*
+     * 商家编辑
+     */
+    public function merchantEdit($params){
+        $updateParams['merchant_code'] = !empty($params['merchant_code'])?$params['merchant_code']:'';
+        $updateParams['status'] = !empty($params['status'])?$params['status']:'';
+        $model = new PsShopMerchant(['scenario'=>'merchantEdit']);
+        if($model->load($updateParams,'')&&$model->validate()){
+            $updateParams['id'] = $model->attributes['id'];
+            if(!$model->edit($updateParams)){
+                return $this->failed('编辑失败！');
+            }
+            return $this->success(['merchant_code'=>$model->attributes['merchant_code']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }
