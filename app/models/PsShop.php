@@ -17,7 +17,7 @@ class PsShop extends BaseModel
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['shop_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
-            [['img'], 'string', 'max' => 255],
+            ['status', 'default', 'value' => 1, 'on' => 'add'],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
@@ -38,7 +38,6 @@ class PsShop extends BaseModel
             'start' => '营业开始时间',
             'end' => '营业结束时间',
             'status' => '店铺状态',
-            'img' => '店铺图片',
             'app_id' => '小程序appID',
             'app_name' => '小程序app名称',
             'update_at' => '更新时间',
