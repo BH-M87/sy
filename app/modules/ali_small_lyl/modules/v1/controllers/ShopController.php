@@ -43,6 +43,14 @@ class ShopController extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
+    // 店铺 状态变更
+    public function actionShopStatus()
+    {
+        $r = ShopService::service()->shopStatus($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
     // ----------------------------------     商品分类管理     ----------------------------
 
     // 商品分类 新增
@@ -107,6 +115,14 @@ class ShopController extends BaseController
     public function actionGoodsShow()
     {
         $r = ShopService::service()->goodsShow($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品 状态变更
+    public function actionGoodsStatus()
+    {
+        $r = ShopService::service()->goodsStatus($this->params);
 
         return PsCommon::responseSuccess($r);
     }
