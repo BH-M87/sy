@@ -522,6 +522,7 @@ class ShopService extends BaseService
             $r['type_id'] = array_column($rela, 'type_id');
             $r['type_name'] = self::_goodsTypeName($r['id']);
             $r['statusMsg'] = $r['status'] == 1 ? '上架' : '下架';
+            $r['img'] = explode(',', $r['img']);
 
             return $r;
         }
