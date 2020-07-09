@@ -384,7 +384,29 @@ class ShopService extends BaseService
     {
        $m = PsShopGoodsType::find()->select('id, type_name')->where(['shop_id' => $p['shop_id']])->orderBy('id desc')->asArray()->all();
 
-        return $m;
+        return $m ?? [];
+    }
+    
+    // 商品分类 删除
+    public function goodsTypeDelete($p)
+    {
+        $m = PsShopGoodsType::findOne($p['id']);
+        if (empty($m)) {
+            throw new MyException('数据不存在!');
+        }
+        
+        $trans = Yii::$app->getDb()->beginTransaction();
+
+        try {
+            PsShopGoodsType::deleteAll(['id' => $p['id']]);
+            PsShopGoodsTypeRela::deleteAll(['type_id' => $p['id']]);
+            $trans->commit();
+            return ['id' => $p['id']];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+
     }
 
     // ----------------------------------     商品管理     ----------------------------
