@@ -80,7 +80,7 @@ class ShopController extends BaseController
             ['title' => '最近修改', 'width' => 16, 'data_type' => 'str', 'field' => 'update_at'],
         ];
 
-        $filename = CsvService::service()->saveTempFile(1, $config, $result, 'shopGoods');
+        $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'shopGoods');
         $filePath = F::originalFile().'temp/'.$filename;
         $fileRe = F::uploadFileToOss($filePath);
         $downUrl = $fileRe['filepath'];
