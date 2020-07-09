@@ -133,10 +133,24 @@ Class MerchantService extends BaseService {
     }
 
     /*
-     * 审核类表
+     * 审核详情
      */
     public function checkDetail($params){
         $model = new PsShopMerchant(['scenario'=>'checkDetail']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = self::getDetail($model,['id'=>$model->attributes['id']]);
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 商家详情
+     */
+    public function merchantDetail($params){
+        $model = new PsShopMerchant(['scenario'=>'merchantDetail']);
         if($model->load($params,'')&&$model->validate()){
             $result = self::getDetail($model,['id'=>$model->attributes['id']]);
             return $this->success($result);
@@ -166,5 +180,26 @@ Class MerchantService extends BaseService {
         $result['business_img_array'] = !empty($result['business_img'])?explode(',',$result['business_img']):'';
         $result['community_array'] = $communityArray;
         return $result;
+    }
+
+    /*
+     * 商家审核
+     */
+    public function merchantChecked($params){
+        $updateParams['check_code'] = !empty($params['check_code'])?$params['check_code']:'';
+        $updateParams['check_status'] = !empty($params['check_status'])?$params['check_status']:'';
+        $updateParams['check_id'] = !empty($params['create_id'])?$params['create_id']:'';
+        $updateParams['check_name'] = !empty($params['create_name'])?$params['create_name']:'';
+        $model = new PsShopMerchant(['scenario'=>'checked']);
+        if($model->load($updateParams,'')&&$model->validate()){
+            $updateParams['id'] = $model->attributes['id'];
+            if(!$model->edit($updateParams)){
+                return $this->failed('审核失败！');
+            }
+            return $this->success(['check_code'=>$model->attributes['check_code']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
     }
 }

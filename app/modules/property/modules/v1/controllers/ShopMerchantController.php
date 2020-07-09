@@ -68,4 +68,40 @@ class ShopMerchantController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    /*
+     * 商家详情
+     */
+    public function actionMerchantDetail(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->merchantDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    /*
+     * 商家审核
+     */
+    public function actionMerchantChecked(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->merchantChecked($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
