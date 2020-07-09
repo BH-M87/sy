@@ -13,8 +13,9 @@ class PsShopGoods extends BaseModel
     public function rules()
     {
         return [
-            [['shop_id', 'status', 'img', 'goods_name', 'merchant_code', 'goods_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
-            [['type_id', 'status'], 'integer', 'message'=> '{attribute}格式错误!'],
+            [['shop_id', 'status', 'img', 'goods_name', 'merchant_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['goods_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add']],
+            [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['goods_name'], 'string', 'max' => 20],
             [['img'], 'string', 'max' => 255],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
@@ -27,7 +28,6 @@ class PsShopGoods extends BaseModel
         return [
             'id' => 'ID',
             'shop_id' => '店铺ID',
-            'type_id' => '商品分类ID',
             'merchant_code' => '商家编号',
             'goods_code' => '商品编号',
             'goods_name' => '商品名称',

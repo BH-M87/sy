@@ -31,6 +31,7 @@ class ShopService extends BaseService
 
         $r['type'] = !empty($merchant) ? 1 : 2;
         $r['shop_type'] = !empty($shop) ? 1 : 2;
+        $r['shop_id'] = !empty($shop) ? $shop->id : '';
 
         return $r;
     }
@@ -194,14 +195,73 @@ class ShopService extends BaseService
         $r = PsShop::find()->select('shop_name, status, address, merchant_code')->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
-            $r['img'] = $merchant->merchant_img;
+            $r['img'] = $merchant->business_img;
             $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
             $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
+            $r['shopImg'] = 'https://community-static.zje.com/community-1591859855119-j4brg0tf76o0.jpeg';
 
             return $r;
         }
 
         throw new MyException('数据不存在!');
+    }
+
+    // 店铺 列表
+    public function shopList($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::shopSearch($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
+        }
+
+        $list = self::shopSearch($p)
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('A.id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
+                $community = PsShopCommunity::find()->where(['shop_id' => $v['id']])->asArray()->all();
+                $v['community'] = implode(',', array_column($community, 'society_name'));
+                $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
+            }
+        }
+
+        return ['list' => $list, 'totals' => (int)$totals];
+    }
+
+    // 列表参数过滤
+    private static function shopSearch($p)
+    {
+        $m = PsShop::find()->alias('A')
+            ->leftJoin('ps_shop_community B', 'A.id = B.shop_id')
+            ->filterWhere(['like', 'A.merchant_code', $p['merchant_code']])
+            ->andFilterWhere(['like', 'A.shop_code', $p['shop_code']])
+            ->andFilterWhere(['>=', 'A.start', $p['start_at']])
+            ->andFilterWhere(['<=', 'A.end', $p['end_at']])
+            ->andFilterWhere(['=', 'B.society_id', $p['society_id']]);
+        return $m;
+    }
+    
+    // 店铺状态变更
+    public function shopStatus($p)
+    {
+        $m = PsShop::findOne($p['id']);
+
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        if ($m->status == 1) {
+            $status = 2;
+        } else {
+            $status = 1;
+        }
+
+        return PsShop::updateAll(['status' => $status], ['id' => $p['id']]);
     }
 
     // ----------------------------------     商品分类管理     ----------------------------
@@ -453,5 +513,23 @@ class ShopService extends BaseService
         $type = array_column($m, 'type_name');
 
         return implode(',', $type);
+    }
+
+    // 商品状态变更
+    public function goodsStatus($p)
+    {
+        $m = PsShopGoods::findOne($p['id']);
+
+        if (empty($m)) {
+            throw new MyException('数据不存在');
+        }
+
+        if ($m->status == 1) {
+            $status = 2;
+        } else {
+            $status = 1;
+        }
+
+        return PsShopGoods::updateAll(['status' => $status], ['id' => $p['id']]);
     }
 }
