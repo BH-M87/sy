@@ -9,11 +9,21 @@ use service\shop\ShopService;
 
 class ShopController extends BaseController
 {
+    // 社区掌柜首页
+    public function actionSmallIndex()
+    {
+        $r = ShopService::service()->smallIndex($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // ----------------------------------     店铺管理     ----------------------------
+
     // 店铺 新增
     public function actionShopAdd()
     {
         $r = ShopService::service()->shopAdd($this->params);
-        
+
         return PsCommon::responseSuccess($r);
     }
 
@@ -32,6 +42,8 @@ class ShopController extends BaseController
         
         return PsCommon::responseSuccess($r);
     }
+
+    // ----------------------------------     商品分类管理     ----------------------------
 
     // 商品分类 新增
     public function actionGoodsTypeAdd()
@@ -56,6 +68,16 @@ class ShopController extends BaseController
         
         return PsCommon::responseSuccess($r);
     }
+
+    // 商品分类 列表
+    public function actionGoodsTypeList()
+    {
+        $r = ShopService::service()->goodsTypeList($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // ----------------------------------     商品管理     ----------------------------
 
     // 商品 列表
     public function actionGoodsList()

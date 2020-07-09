@@ -7,33 +7,49 @@ use yii\base\Exception;
 use common\MyException;
 use common\core\PsCommon;
 use common\core\Curl;
+use common\core\F;
 
 use service\BaseService;
 
 use app\models\PsShopGoods;
 use app\models\PsShop;
 use app\models\PsShopGoodsType;
+use app\models\PsShopGoodsTypeRela;
 use app\models\PsShopCommunity;
 use app\models\PsShopMerchant;
+use app\models\PsShopCategory;
 use app\models\PsShopMerchantCommunity;
 
-use service\property_basic\JavaService;
+use service\property_basic\JavaOfCService;
 
 class ShopService extends BaseService
 {
-    // 店铺 新增
-    public function shopAdd($p, $userInfo)
+    public function smallIndex($p)
     {
-        return self::_saveShop($p, 'add', $userInfo);
+        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id'], 'check_status' => 2])->one();
+        $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+
+        $r['type'] = !empty($merchant) ? 1 : 2;
+        $r['shop_type'] = !empty($shop) ? 1 : 2;
+
+        return $r;
+    }
+
+    // ----------------------------------     店铺管理     ----------------------------
+
+    // 店铺 新增
+    public function shopAdd($p)
+    {
+        return self::_saveShop($p, 'add');
     }
 
     // 店铺 编辑
-    public function shopEdit($p, $userInfo)
+    public function shopEdit($p)
     {
-        return self::_saveShop($p, 'edit', $userInfo);
+        return self::_saveShop($p, 'edit');
     }
 
-    public function _saveShop($p, $scenario, $userInfo)
+    public function _saveShop($p, $scenario)
     {
         if ($scenario == 'edit') {
             $model = PsShop::findOne($p['id']);
@@ -58,7 +74,7 @@ class ShopService extends BaseService
         if ($scenario == 'add') {
             $param['shop_code'] = 'DP'.time();
 
-            $community = PsShopMerchantCommunity::find()->where(['merchant_code' = $merchant->merchant_code])->asArray()->all();
+            $community = PsShopMerchantCommunity::find()->where(['merchant_code' => $merchant->merchant_code])->asArray()->all();
         }
 
         $param['id'] = $p['id'];
@@ -90,22 +106,20 @@ class ShopService extends BaseService
 
             $shopId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            
-
             if (!empty($community)) {
                 PsShopCommunity::deleteAll(['shop_id' => $shopId]);
                 foreach ($community as $k => $v) {
                     $javaParam['token'] = $p['token'];
                     $javaParam['id'] = $v['community_id'];
-                    $javaResult = JavaService::service()->selectCommunityById($javaParam);
+                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
 
                     if (!empty($javaResult)) {
                         $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
                         $commParam[] = [
                             'shop_id' => $shopId, 
                             'distance' => $distance, 
-                            'community_id' => $v['community_id'],
-                            'community_name' => $v['community_name'],
+                            'community_id' => $javaResult['id'],
+                            'community_name' => $javaResult['communityName'],
                             'society_id' => $v['society_id'],
                             'society_name' => $v['society_name'],
                         ];
@@ -115,7 +129,7 @@ class ShopService extends BaseService
             }
 
             $trans->commit();
-            return ['id' => $shop_id];
+            return ['id' => $shopId];
         } catch (Exception $e) {
             $trans->rollBack();
             throw new MyException($e->getMessage());
@@ -145,7 +159,7 @@ class ShopService extends BaseService
             foreach ($p['community'] as $k => $v) {
                 $javaParam['token'] = $p['token'];
                 $javaParam['id'] = $v['community_id'];
-                $javaResult = JavaService::service()->selectCommunityById($javaParam);
+                $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
 
                 if (!empty($javaResult)) {
                     $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
@@ -181,7 +195,7 @@ class ShopService extends BaseService
         if (!empty($r)) {
             $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
             $r['img'] = $merchant->merchant_img;
-            $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_code])->one()->name;
+            $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
             $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
 
             return $r;
@@ -190,120 +204,49 @@ class ShopService extends BaseService
         throw new MyException('数据不存在!');
     }
 
-    // 删除
-    public function groupDelete($p)
+    // ----------------------------------     商品分类管理     ----------------------------
+
+    // 商品分类 新增
+    public function goodsTypeAdd($p, $userInfo)
     {
-        if (empty($p['id'])) {
-            throw new MyException('id不能为空');
-        }
-
-        $m = GoodsGroup::findOne($p['id']);
-        if (empty($m)) {
-            throw new MyException('数据不存在');
-        }
-
-        $goods = Goods::find()->where(['groupId' => $p['id'], 'isDelete' => 2])->one();
-        if (!empty($goods)) {
-            throw new MyException('请先删除兑换商品');
-        }
-
-        GoodsGroup::deleteAll(['id' => $p['id']]);
-
-        return true;
+        return self::_saveGoodsType($p, 'add');
     }
 
-    // 列表
-    public function groupList($p)
+    // 商品分类 编辑
+    public function goodsTypeEdit($p, $userInfo)
     {
-        $p['page'] = !empty($p['pageNum']) ? $p['pageNum'] : '1';
-        $p['rows'] = !empty($p['pageSize']) ? $p['pageSize'] : '10';
-
-        $totals = self::groupSearch($p)->count();
-        if ($totals == 0) {
-            return ['list' => [], 'totals' => 0];
-        }
-
-        $list = self::groupSearch($p)
-            ->offset(($p['page'] - 1) * $p['rows'])
-            ->limit($p['rows'])
-            ->orderBy('id desc')->asArray()->all();
-        if (!empty($list)) {
-            foreach ($list as $k => &$v) {
-                $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
-                $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
-                $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
-                $v['content'] =  strip_tags(str_replace("&lt;br&gt;&nbsp;","",$v['content']));
-                $v['content'] = str_replace("&nbsp;","",$v['content']);
-
-                $v['communityList'] =  GoodsGroupSelect::find()->select('code id, name communityName')->where(['groupId' => $v['id']])->asArray()->all();
-            }
-        }
-
-        return ['list' => $list, 'totals' => (int)$totals];
+        return self::_saveGoodsType($p, 'edit');
     }
 
-    // 列表参数过滤
-    private static function groupSearch($p)
-    {
-        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
-        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
-
-        $m = GoodsGroup::find()
-            ->filterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['>=', 'startAt', $startAt])
-            ->andFilterWhere(['<=', 'endAt', $endAt]);
-        return $m;
-    }
-
-    // 新增
-    public function add($p, $userInfo)
-    {
-        return self::_saveGoods($p, 'add', $userInfo);
-    }
-
-    // 编辑
-    public function edit($p, $userInfo)
-    {
-        return self::_saveGoods($p, 'edit', $userInfo);
-    }
-
-    public function _saveGoods($p, $scenario, $userInfo)
+    public function _saveGoodsType($p, $scenario)
     {
         if ($scenario == 'edit') {
-            $model = Goods::findOne($p['id']);
+            $model = PsShopGoodsType::findOne($p['id']);
             if (empty($model)) {
                 throw new MyException('数据不存在!');
             }
         }
 
-        $goods = Goods::find()->where(['name' => $p['name']])->andFilterWhere(['!=', 'id', $p['id']])->one();
+        $type = PsShopGoodsType::find()->where(['type_name' => $p['type_name'], 'shop_id' => $p['shop_id']])
+            ->andFilterWhere(['!=', 'id', $p['id']])->one();
 
-        if (!empty($goods)) {
-            throw new MyException('数据已存在!');
+        if (!empty($type)) {
+            throw new MyException('分类已存在!');
         }
 
-        $group = GoodsGroup::findOne($p['groupId']);
-        if (empty($group)) {
-            throw new MyException('期数不存在!');
+        $shop = PsShop::findOne($p['shop_id']);
+        if (empty($shop)) {
+            throw new MyException('店铺不存在!');
         }
 
         $param['id'] = $p['id'];
-        $param['name'] = $p['name'];
-        $param['img'] = $p['img'];
-        $param['groupId'] = $p['groupId'];
-        $param['score'] = $p['score'];
-        $param['num'] = $p['num'];
-        $param['receiveType'] = $p['receiveType'];
-        $param['type'] = $p['type'];
-        $param['personLimit'] = $p['personLimit'];
-        $param['operatorId'] = $userInfo['id'];
-        $param['operatorName'] = $userInfo['truename'];
-        $param['describe'] = $p['describe'];
+        $param['type_name'] = $p['type_name'];
+        $param['shop_id'] = $p['shop_id'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
         try {
-            $model = new Goods(['scenario' => $scenario]);
+            $model = new PsShopGoodsType(['scenario' => $scenario]);
 
             if (!$model->load($param, '') || !$model->validate()) {
                 throw new MyException($this->getError($model));
@@ -313,62 +256,140 @@ class ShopService extends BaseService
                 throw new MyException($this->getError($model));
             }
 
-            $goodsId = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+            $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
             $trans->commit();
-            return ['id' => $goodsId];
+            return ['id' => $id];
         } catch (Exception $e) {
-            $trans->rollBack();//array_values($model->errors)[0][0]
+            $trans->rollBack();
             throw new MyException($e->getMessage());
         }
     }
 
-    // 详情
-    public function show($p)
+    // 商品分类 列表
+    public function goodsTypeList($p)
     {
-        if (empty($p['id'])) {
-            throw new MyException('id不能为空');
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+
+        $totals = self::goodsTypeSearch($p)->count();
+        if ($totals == 0) {
+            return ['list' => [], 'totals' => 0];
         }
 
-        $r = Goods::find()->alias('A')
-            ->select('A.*, B.name as groupName, B.startAt, B.endAt')
-            ->leftJoin('ps_goods_group B', 'B.id = A.groupId')
-            ->where(['A.id' => $p['id']])->asArray()->one();
-        if (!empty($r)) {
-            
-            $r['startAt'] = date('Y-m-d H:i:s', $r['startAt']);
-            $r['endAt'] = date('Y-m-d H:i:s', $r['endAt']);
-            $r['receiveTypeMsg'] = $r['receiveType'] == 1 ? '快递' : '自提';
-            $r['typeMsg'] = $r['type'] == 1 ? '实物' : '虚拟';
-
-            return $r;
+        $list = self::goodsTypeSearch($p)
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('id desc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $v['goodsNum'] =  PsShopGoodsTypeRela::find()->where(['type_id' => $v['id']])->count();
+            }
         }
 
-        throw new MyException('数据不存在!');
+        return ['list' => $list, 'totals' => (int)$totals];
     }
 
-    // 删除
-    public function delete($p)
+    // 列表参数过滤
+    private static function goodsTypeSearch($p)
     {
-        if (empty($p['id'])) {
-            throw new MyException('id不能为空');
-        }
-
-        $m = Goods::findOne($p['id']);
-        if (empty($m)) {
-            throw new MyException('数据不存在');
-        }
-
-        Goods::updateAll(['isDelete' => 1], ['id' => $p['id']]);
-
-        return true;
+        $m = PsShopGoodsType::find()
+            ->filterWhere(['like', 'type_name', $p['type_name']])
+            ->andFilterWhere(['=', 'shop_id', $p['shop_id']]);
+        return $m;
     }
 
-    // 列表
-    public function list($p)
+    // 商品分类 下拉列表
+    public function goodsTypeDropDown($p)
     {
-        $p['page'] = !empty($p['pageNum']) ? $p['pageNum'] : '1';
-        $p['rows'] = !empty($p['pageSize']) ? $p['pageSize'] : '10';
+       $m = PsShopGoodsType::find()->select('id, type_name')->where(['shop_id' => $p['shop_id']])->orderBy('id desc')->asArray()->all();
+
+        return $m;
+    }
+
+    // ----------------------------------     商品管理     ----------------------------
+
+    // 商品 新增
+    public function goodsAdd($p, $userInfo)
+    {
+        return self::_saveGoods($p, 'add');
+    }
+
+    // 商品 编辑
+    public function goodsEdit($p, $userInfo)
+    {
+        return self::_saveGoods($p, 'edit');
+    }
+
+    public function _saveGoods($p, $scenario)
+    {
+        if ($scenario == 'edit') {
+            $model = PsShopGoods::findOne($p['id']);
+            if (empty($model)) {
+                throw new MyException('数据不存在!');
+            }
+        }
+
+        $goods = PsShopGoods::find()->where(['goods_name' => $p['goods_name'], 'shop_id' => $p['shop_id']])
+            ->andFilterWhere(['!=', 'id', $p['id']])->one();
+
+        if (!empty($goods)) {
+            throw new MyException('商品已存在!');
+        }
+
+        $shop = PsShop::findOne($p['shop_id']);
+        if (empty($shop)) {
+            throw new MyException('店铺不存在!');
+        }
+
+        if ($scenario == 'add') {
+            $param['goods_code'] = 'SP'.time();
+        }
+
+        $param['id'] = $p['id'];
+        $param['merchant_code'] = $shop->merchant_code;
+        $param['shop_id'] = $p['shop_id'];
+        $param['goods_name'] = $p['goods_name'];
+        $param['status'] = $p['status'];
+        $param['img'] = is_array($p['img']) ? implode(',', $p['img']) : '';
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+
+        try {
+            $model = new PsShopGoods(['scenario' => $scenario]);
+
+            if (!$model->load($param, '') || !$model->validate()) {
+                throw new MyException($this->getError($model));
+            }
+
+            if (!$model->saveData($scenario, $param)) {
+                throw new MyException($this->getError($model));
+            }
+
+            $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
+
+            if (!empty($p['type_id']) && is_array($p['type_id'])) {
+                foreach ($p['type_id'] as $type_id) {
+                    $rela = new PsShopGoodsTypeRela();
+                    $rela->goods_id = $id;
+                    $rela->type_id = $type_id;
+                    $rela->save();
+                }
+            }
+
+            $trans->commit();
+            return ['id' => $id];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
+
+    // 商品 列表
+    public function goodsList($p)
+    {
+        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
         $totals = self::goodsSearch($p)->count();
         if ($totals == 0) {
@@ -381,11 +402,9 @@ class ShopService extends BaseService
             ->orderBy('id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['startAt'] = date('Y-m-d H:i:s', $v['startAt']);
-                $v['endAt'] = date('Y-m-d H:i:s', $v['endAt']);
-                $v['updateAt'] = !empty($v['updateAt']) ? date('Y-m-d H:i:s', $v['updateAt']) : '';
-                $v['receiveTypeMsg'] = $v['receiveType'] == 1 ? '快递' : '自提';
-                $v['typeMsg'] = $v['type'] == 1 ? '实物' : '虚拟';
+                $v['img'] =  explode(',', $v['img']);
+                $v['statusMsg'] = $v['status'] == 1 ? '上架' : '下架';
+                $v['type_name'] = '';
             }
         }
 
@@ -395,94 +414,29 @@ class ShopService extends BaseService
     // 列表参数过滤
     private static function goodsSearch($p)
     {
-        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
-        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
-
-        $m = Goods::find()->alias('A')
-            ->select('A.*, B.name groupName, B.startAt, B.endAt')
-            ->leftJoin('ps_goods_group B', 'B.id = A.groupId')
-            ->where(['A.isDelete' => 2])
-            ->filterWhere(['like', 'A.name', $p['name']])
-            ->andFilterWhere(['like', 'B.name', $p['groupName']])
-            ->andFilterWhere(['>=', 'B.startAt', $startAt])
-            ->andFilterWhere(['<=', 'B.endAt', $endAt]);
+        $m = PsShopGoods::find()->alias('A')
+            ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.goods_id')
+            ->filterWhere(['=', 'B.type_id', $p['type_id']])
+            ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
     }
 
-    // 列表参数过滤
-    private static function _search($p)
+    // 商品 详情
+    public function goodsShow($p)
     {
-        $startAt = !empty($p['startAt']) ? strtotime($p['startAt']) : '';
-        $endAt = !empty($p['endAt']) ? strtotime($p['endAt'] . '23:59:59') : '';
-
-        $m = Goods::find()->alias('A')
-            ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
-            ->leftJoin('ps_goods_group C', 'A.groupId = C.id')
-            ->filterWhere(['=', 'B.communityId', $p['community_id']])
-            ->andFilterWhere(['=', 'A.isDelete', 2])
-            ->andFilterWhere(['!=', 'A.groupId', $p['notGroupId']])
-            ->andFilterWhere(['=', 'A.groupId', $p['groupId']]);
-        return $m;
-    }
-
-    // 往期兑换列表
-    public function groupListSmall($p)
-    {
-        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
-        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
-
-        $p['notGroupId'] = Goods::find()->alias('A')->select('A.groupId')
-            ->leftJoin('ps_goods_group_community B', 'A.groupId = B.groupId')
-            ->filterWhere(['=', 'B.communityId', $p['community_id']])
-            ->orderBy('A.groupId desc')->scalar();
-
-        $totals = self::_search($p)->groupBy('A.groupId')->count();
-        if ($totals == 0) {
-            return ['list' => [], 'totals' => 0];
+        if (empty($p['id'])) {
+            throw new MyException('id不能为空');
         }
 
-        $list = self::_search($p)->select('C.name groupName, A.groupId')
-            ->offset(($p['page'] - 1) * $p['rows'])
-            ->limit($p['rows'])
-            ->groupBy('A.groupId')->orderBy('A.groupId desc')->asArray()->all();
+        $r = PsShopGoods::find()->where(['A.id' => $p['id']])->asArray()->one();
+        if (!empty($r)) {
+            $r['type_id'] = PsShopGoodsTypeRela::find()->where(['goods_id' => $r['id']])->asArray()->all();
+            $r['type_name'] = '';
+            $r['statusMsg'] = $r['status'] == 1 ? '上架' : '下架';
 
-        return ['list' => $list, 'totals' => (int)$totals];
-    }
-
-    // 最新商品列表
-    public function goodsList($p)
-    {
-        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
-        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
-
-        if (empty($p['groupId'])) {
-            $p['groupId'] = GoodsGroup::find()->alias('A')->select('B.groupId')
-                ->leftJoin('ps_goods_group_community B', 'A.id = B.groupId')
-                ->filterWhere(['=', 'B.communityId', $p['community_id']])
-                ->orderBy('B.groupId desc')->scalar();
+            return $r;
         }
 
-        $totals = self::_search($p)->count();
-        if ($totals == 0) {
-            return ['list' => [], 'totals' => 0];
-        }
-
-        $list = self::_search($p)->select('A.id, A.name, A.img, A.score, A.num, A.describe')
-            ->offset(($p['page'] - 1) * $p['rows'])
-            ->limit($p['rows'])
-            ->orderBy('A.id desc')->asArray()->all();
-
-
-        if (!empty($list)) {
-            foreach ($list as $k => &$v) {
-                $v['describe'] = $v['describe'] == '<p><br></p>' ? null : $v['describe'];
-                $use = PsDeliveryRecords::find()->where(['product_id' => $v['id']])->count();
-                $v['surplus'] = $v['num'] - $use;
-            }
-        }
-
-        $content = GoodsGroup::findOne($p['groupId'])->content;
-
-        return ['list' => $list, 'totals' => (int)$totals, 'content' => $content];
+        throw new MyException('数据不存在!');
     }
 }
