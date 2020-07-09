@@ -44,4 +44,18 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    //商户详情
+    public function actionMerchantDetail(){
+        try{
+            $result = MerchantService::service()->merchantDetailOfc($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
