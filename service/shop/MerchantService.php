@@ -114,6 +114,25 @@ Class MerchantService extends BaseService {
     }
 
     /*
+     * 商家列表
+     */
+    public function merchantList($params){
+        $model = new PsShopMerchant();
+        $result = $model->getMerchantList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $count = count($value['shop']);
+                unset($result['list'][$key]['shop']);
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
+                $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
+                $result['list'][$key]['count'] = $count;
+            }
+        }
+        return $this->success($result);
+    }
+
+    /*
      * 审核类表
      */
     public function checkDetail($params){
