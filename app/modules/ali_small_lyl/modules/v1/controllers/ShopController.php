@@ -74,13 +74,21 @@ class ShopController extends BaseController
     {
         $r = ShopService::service()->goodsTypeDropDown($this->params);
         
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r, false);
     }
 
     // 商品分类 列表
     public function actionGoodsTypeList()
     {
         $r = ShopService::service()->goodsTypeList($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 商品分类 删除
+    public function actionGoodsTypeDelete()
+    {
+        $r = ShopService::service()->goodsTypeDelete($this->params);
         
         return PsCommon::responseSuccess($r);
     }
