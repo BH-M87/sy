@@ -202,6 +202,8 @@ Class MerchantService extends BaseService {
         $result['merchant_img_array'] = !empty($result['merchant_img'])?explode(',',$result['merchant_img']):'';
         $result['business_img_array'] = !empty($result['business_img'])?explode(',',$result['business_img']):'';
         $result['community_array'] = $communityArray;
+        $result['create_at_msg'] = !empty($result['create_at'])?date('Y-m-d H:i:s',$result['create_at']):'';
+        $result['check_status_msg'] = !empty($result['check_status'])?$model->checkMsg[$result['check_status']]:"";
         return $result;
     }
 

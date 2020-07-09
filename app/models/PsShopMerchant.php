@@ -258,7 +258,7 @@ class PsShopMerchant extends BaseModel {
     public function getDetail($params){
         $fields = [
                     'name','type','category_first','category_second','merchant_img','business_img','lon','lat','location','start',
-                    'end','link_name','link_mobile','scale','area','merchant_code','check_code','ali_user_id'
+                    'end','link_name','link_mobile','scale','area','merchant_code','check_code','ali_user_id','create_at','check_status'
         ];
         $result = self::find()->select($fields)->with('community')->where(['=','id',$params['id']])->asArray()->one();
         return $result;
