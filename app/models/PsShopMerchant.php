@@ -19,6 +19,10 @@ class PsShopMerchant extends BaseModel {
 
     public $typeMsg = ['1'=>'小微商家','2'=>'个体工商户'];
 
+    public $scaleMsg = ['1'=>'0~5人','2'=>'5~10人','3'=>'10~20人','4'=>'20~50人','5'=>'50人以上'];
+
+    public $areaMsg = ['1'=>'10㎡以内','2'=>'10~50㎡','3'=>'50~100㎡','4'=>'100㎡以上'];
+
     public static function tableName()
     {
         return 'ps_shop_merchant';
@@ -35,16 +39,20 @@ class PsShopMerchant extends BaseModel {
             [['check_code','check_status','check_id','check_name'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
             [['merchant_code','status'],'required','message'=>'{attribute}不能为空！','on'=>['merchantEdit']],
             [['member_id'],'required','message'=>'{attribute}不能为空！','on'=>['merchantDetailOfc']],
-            [["id",'type', 'check_status','status','create_at','update_at'], 'integer'],
+            [["id",'type', 'check_status','scale','area','status','create_at','update_at'], 'integer'],
             [["lon",'lat'], 'number'],
-            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','scale','area','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
+            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
             [['name','merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
             [['start','end','link_name','check_name'], 'string',"max"=>10],
             [['link_mobile'], 'string',"max"=>20],
-            [['scale','area','ali_form_id','ali_user_id'], 'string',"max"=>100],
+            [['ali_form_id','ali_user_id'], 'string',"max"=>100],
             [['category_first','category_second'], 'string',"max"=>64],
             [['merchant_img','business_img'], 'string',"max"=>500],
             [['location','check_content'], 'string',"max"=>255],
+            ['area', 'in', 'range' => [1, 2, 3,4]],
+            ['scale', 'in', 'range' => [1, 2, 3,4,5]],
+            [['type','status'], 'in', 'range' => [1,2]],
+            ['check_status', 'in', 'range' => [1, 2, 3]],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
             [['type','link_mobile'],'mobileVerification','on'=>['micro_add','individual_add']],      //手机号唯一性验证
@@ -268,9 +276,9 @@ class PsShopMerchant extends BaseModel {
 
 
         $count = $model->count();
-        if(!empty($param['page'])||!empty($param['pageSize'])){
-            $page = !empty($param['page'])?intval($param['page']):1;
-            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
+        if(!empty($params['page'])||!empty($params['pageSize'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
             $offset = ($page-1)*$pageSize;
             $model->offset($offset)->limit($pageSize);
         }

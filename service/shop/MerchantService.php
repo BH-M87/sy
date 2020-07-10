@@ -101,7 +101,7 @@ Class MerchantService extends BaseService {
         if(!empty($result)){
             foreach($result as $key=>$value){
                 $list = PsShopCategory::find()->select(['code','name'])->where("type=2 and parentCode=".$value['code'])->asArray()->all();
-                $result[$key]['list'] = !empty($list)?$list:[];
+                $result[$key]['subList'] = !empty($list)?$list:[];
             }
 
             $redis = Yii::$app->redis;
@@ -204,6 +204,8 @@ Class MerchantService extends BaseService {
         $result['community_array'] = $communityArray;
         $result['create_at_msg'] = !empty($result['create_at'])?date('Y-m-d H:i:s',$result['create_at']):'';
         $result['check_status_msg'] = !empty($result['check_status'])?$model->checkMsg[$result['check_status']]:"";
+        $result['scale_msg'] = !empty($result['scale'])?$model->scaleMsg[$result['scale']]:"";
+        $result['area_msg'] = !empty($result['area'])?$model->areaMsg[$result['area']]:"";
         return $result;
     }
 
@@ -245,5 +247,27 @@ Class MerchantService extends BaseService {
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    /*
+     * 规模面积下拉
+     */
+    public function dropOfCommon(){
+        $area = [
+            ['key'=>1,'value'=>'10㎡以内'],
+            ['key'=>2,'value'=>'10~50㎡'],
+            ['key'=>3,'value'=>'50~100㎡'],
+            ['key'=>4,'value'=>'100㎡以上'],
+        ];
+
+        $scale = [
+            ['key'=>1,'value'=>'0~5人'],
+            ['key'=>2,'value'=>'5~10人'],
+            ['key'=>3,'value'=>'10~20人'],
+            ['key'=>4,'value'=>'20~50人'],
+            ['key'=>5,'value'=>'50以上人'],
+        ];
+
+        return $this->success(['area'=>$area,'scale'=>$scale]);
     }
 }

@@ -58,4 +58,18 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    //面积规模下拉
+    public function actionDropOfCommon(){
+        try{
+            $result = MerchantService::service()->dropOfCommon();
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
