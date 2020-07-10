@@ -47,6 +47,8 @@ class PsShopMerchant extends BaseModel {
             [['location','check_content'], 'string',"max"=>255],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
             [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
+            [['type','link_mobile'],'mobileVerification','on'=>['micro_add','individual_add']],      //手机号唯一性验证
+            [['type','name'],'nameVerification','on'=>['micro_add','individual_add']],      //名称唯一性验证
             [['name'],'customizeValue','on'=>['micro_add','individual_add']],   //设置商店的默认值
             [['check_code'],'checkInfo','on'=>["checkDetail","checked"]], //验证审核数据是否存在
             [['merchant_code'],'merchantInfo','on'=>["merchantDetail","merchantEdit"]], //验证商家数据是否存在
@@ -138,6 +140,38 @@ class PsShopMerchant extends BaseModel {
                 return $this->addError($attribute, "该商户数据已审核通过");
             }
             $this->id = $res['id'];
+        }
+    }
+
+    /*
+     * 手机号唯一性验证
+     */
+    public function mobileVerification($attribute){
+        if(!empty($this->type)&&!empty($this->link_mobile)){
+            $res = self::find()->select(['id'])
+                                ->where(['=','type',$this->type])
+                                ->andWhere(['in','check_status',[1,2]])
+                                ->andWhere(['=','link_mobile',$this->link_mobile])
+                                ->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "您的手机号已经添加过商户，请修改手机号");
+            }
+        }
+    }
+
+    /*
+     * 名字唯一性验证
+     */
+    public function nameVerification($attribute){
+        if(!empty($this->type)&&!empty($this->name)){
+            $res = self::find()->select(['id'])
+                ->where(['=','type',$this->type])
+                ->andWhere(['in','check_status',[1,2]])
+                ->andWhere(['=','name',$this->name])
+                ->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "您的商户名称已存在，请修改商户名称");
+            }
         }
     }
 
