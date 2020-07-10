@@ -122,4 +122,11 @@ class ShopMerchantController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    /*
+     * 商家导出
+     */
+    public function action(){
+
+    }
 }
