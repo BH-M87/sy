@@ -35,6 +35,14 @@ class ShopController extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
+    // 店铺关联小区列表
+    public function actionShopCommunityList()
+    {
+        $r = ShopService::service()->shopCommunityList($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
     // 店铺详情
     public function actionShopShow()
     {

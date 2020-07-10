@@ -186,6 +186,18 @@ class ShopService extends BaseService
         }
     }
 
+    // 店铺 关联小区列表
+    public function shopCommunityList($p)
+    {
+        if (empty($p['shop_id'])) {
+            throw new MyException('店铺ID不能为空');
+        }
+
+        $m = PsShopCommunity::find()->where(['shop_id' => $p['shop_id']])->asArray()->all();
+
+        return $m;
+    }
+
     // 店铺 详情
     public function shopShow($p)
     {
