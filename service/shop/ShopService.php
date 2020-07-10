@@ -377,6 +377,10 @@ class ShopService extends BaseService
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoodsTypeRela::find()->where(['type_id' => $v['id']])->count();
+                $v['right'] = [
+                    ["type" => "edit", "text" => "编辑"], 
+                    ["type" => "delete", "text" => "删除", "fColor" => "yellow"]
+                ];
             }
         }
 
