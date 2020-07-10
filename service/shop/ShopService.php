@@ -401,6 +401,15 @@ class ShopService extends BaseService
     {
        $m = PsShopGoodsType::find()->select('id, type_name')->where(['shop_id' => $p['shop_id']])->orderBy('id desc')->asArray()->all();
 
+       if (!empty($m)) {
+           foreach ($m as $k => &$v) {
+                $v['right'] = [
+                    ["type" => "edit", "text" => "编辑"], 
+                    ["type" => "delete", "text" => "删除", "fColor" => "yellow"]
+                ];
+            }
+       }
+
         return $m ?? [];
     }
     
@@ -527,7 +536,7 @@ class ShopService extends BaseService
         $list = self::goodsSearch($p)
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->orderBy('A.id desc')->asArray()->all();
+            ->orderBy('A.id desc')->groupBy('A.id')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $shop = PsShop::findOne($v['shop_id']);
