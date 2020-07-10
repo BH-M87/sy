@@ -187,6 +187,7 @@ Class MerchantService extends BaseService {
         $cateModel = new PsShopCategory();
         $result = $model->getDetail(['id'=>$params['id']]);
         $community = $result['community'];
+        $shop = $result['shop'];
         $communityArray = [];
         if(!empty($community)){
             foreach ($community as $key=>$value){
@@ -195,7 +196,7 @@ Class MerchantService extends BaseService {
                 $communityArray[] = $element;
             }
         }
-        unset($result['community']);
+        unset($result['community'],$result['shop']);
         $result['category_first_msg'] = !empty($result['category_first'])?$cateModel->getNameByCode($result['category_first']):'';
         $result['category_second_msg'] = !empty($result['category_second'])?$cateModel->getNameByCode($result['category_second']):'';
         $result['type_msg'] = !empty($result['type'])?$model->typeMsg[$result['type']]:'';
@@ -206,6 +207,8 @@ Class MerchantService extends BaseService {
         $result['check_status_msg'] = !empty($result['check_status'])?$model->checkMsg[$result['check_status']]:"";
         $result['scale_msg'] = !empty($result['scale'])?$model->scaleMsg[$result['scale']]:"";
         $result['area_msg'] = !empty($result['area'])?$model->areaMsg[$result['area']]:"";
+        $result['count'] = !empty($shop)?count($shop):0;
+        $result['status_msg'] = !empty($result['status'])?$model->statusMsg[$result['status']]:0;
         return $result;
     }
 
