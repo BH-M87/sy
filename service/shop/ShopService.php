@@ -73,7 +73,7 @@ class ShopService extends BaseService
         }
 
         if ($scenario == 'add') {
-            $param['shop_code'] = 'DP'.time();
+            $param['shop_code'] = 'DP'.date('YmdHis',time());
 
             $community = PsShopMerchantCommunity::find()->where(['merchant_code' => $merchant->merchant_code])->asArray()->all();
         }
@@ -457,8 +457,16 @@ class ShopService extends BaseService
             throw new MyException('店铺不存在!');
         }
 
+        if (empty($p['type_id']) || !is_array($p['type_id'])) {
+            throw new MyException('商品分类ID必填!');
+        }
+
+        if (count($p['type_id']) > 5) {
+            throw new MyException('同一商品最多关联5个分类!');
+        }
+
         if ($scenario == 'add') {
-            $param['goods_code'] = 'SP'.time();
+            $param['goods_code'] = 'S'.date('YmdHis',time());
         }
 
         $param['id'] = $p['id'];
