@@ -246,4 +246,26 @@ Class MerchantService extends BaseService {
             return $this->failed($msg);
         }
     }
+
+    /*
+     * 规模面积下拉
+     */
+    public function dropOfCommon(){
+        $area = [
+            ['key'=>1,'value'=>'10㎡以内'],
+            ['key'=>2,'value'=>'10~50㎡'],
+            ['key'=>3,'value'=>'50~100㎡'],
+            ['key'=>4,'value'=>'100㎡以上'],
+        ];
+
+        $scale = [
+            ['key'=>1,'value'=>'0~5人'],
+            ['key'=>2,'value'=>'5~10人'],
+            ['key'=>3,'value'=>'10~20人'],
+            ['key'=>4,'value'=>'20~50人'],
+            ['key'=>5,'value'=>'50以上人'],
+        ];
+
+        return $this->success(['area'=>$area,'scale'=>$scale]);
+    }
 }
