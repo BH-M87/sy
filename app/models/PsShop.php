@@ -13,7 +13,7 @@ class PsShop extends BaseModel
     public function rules()
     {
         return [
-            [['merchant_code', 'shop_code', 'shop_name', 'address', 'lon', 'lat', 'link_name', 'link_mobile', 'start', 'end'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['merchant_code', 'shop_code', 'shop_name', 'address', 'lon', 'lat', 'link_name', 'link_mobile', 'start', 'end', 'shopImg'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['shop_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
