@@ -89,6 +89,7 @@ class ShopService extends BaseService
         $param['start'] = $p['start'];
         $param['end'] = $p['end'];
         $param['status'] = $p['status'];
+        $param['shopImg'] = $p['shopImg'];
         $param['app_id'] = $p['app_id'];
         $param['app_name'] = $p['app_name'];
 
@@ -238,8 +239,8 @@ class ShopService extends BaseService
     {
         $m = PsShop::find()->alias('A')
             ->leftJoin('ps_shop_community B', 'A.id = B.shop_id')
-            ->filterWhere(['like', 'A.merchant_code', $p['merchant_code']])
-            ->andFilterWhere(['like', 'A.shop_code', $p['shop_code']])
+            ->filterWhere(['=', 'A.merchant_code', $p['merchant_code']])
+            ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
             ->andFilterWhere(['>=', 'A.start', $p['start_at']])
             ->andFilterWhere(['<=', 'A.end', $p['end_at']])
             ->andFilterWhere(['=', 'B.society_id', $p['society_id']]);
@@ -524,8 +525,8 @@ class ShopService extends BaseService
         $m = PsShopGoods::find()->alias('A')
             ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.goods_id')
             ->filterWhere(['=', 'B.type_id', $p['type_id']])
-            ->andFilterWhere(['like', 'A.merchant_code', $p['merchant_code']])
-            ->andFilterWhere(['like', 'A.shop_code', $p['shop_code']])
+            ->andFilterWhere(['=', 'A.merchant_code', $p['merchant_code']])
+            ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
             ->andFilterWhere(['like', 'A.goods_name', $p['goods_name']])
             ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
