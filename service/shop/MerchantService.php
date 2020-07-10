@@ -101,7 +101,7 @@ Class MerchantService extends BaseService {
         if(!empty($result)){
             foreach($result as $key=>$value){
                 $list = PsShopCategory::find()->select(['code','name'])->where("type=2 and parentCode=".$value['code'])->asArray()->all();
-                $result[$key]['list'] = !empty($list)?$list:[];
+                $result[$key]['subList'] = !empty($list)?$list:[];
             }
 
             $redis = Yii::$app->redis;
