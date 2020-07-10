@@ -15,7 +15,7 @@ class PsShopGoodsType extends BaseModel
         return [
             [['shop_id', 'type_name'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['shop_id'], 'integer', 'message'=> '{attribute}格式错误!'],
-            [['type_name'], 'string', 'max' => 20],
+            [['type_name'], 'string', 'max' => 8],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
