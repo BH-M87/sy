@@ -204,6 +204,8 @@ Class MerchantService extends BaseService {
         $result['community_array'] = $communityArray;
         $result['create_at_msg'] = !empty($result['create_at'])?date('Y-m-d H:i:s',$result['create_at']):'';
         $result['check_status_msg'] = !empty($result['check_status'])?$model->checkMsg[$result['check_status']]:"";
+        $result['scale_msg'] = !empty($result['scale'])?$model->scaleMsg[$result['scale']]:"";
+        $result['area_msg'] = !empty($result['area'])?$model->areaMsg[$result['area']]:"";
         return $result;
     }
 
