@@ -79,12 +79,12 @@ INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES (
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '26', '医疗健康','',1 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '27', '酒店旅游','',1 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '28', '票务卡券','',1 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '19', '其他','',1 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1900', '汽车养护','19',2 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1901', '丽人健身','19',2 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1902', '婚庆摄影','19',2 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1903', '充值缴费','19',2 );
-INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '1904', '图书影像','19',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '29', '其他','',1 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2900', '汽车养护','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2901', '丽人健身','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2902', '婚庆摄影','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2903', '充值缴费','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2904', '图书影像','29',2 );
 
 CREATE TABLE `ps_shop` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
