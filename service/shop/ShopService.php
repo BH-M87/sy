@@ -26,12 +26,17 @@ class ShopService extends BaseService
 {
     public function smallIndex($p)
     {
-        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id'], 'check_status' => 2])->one();
-        $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id']])->one();
+        
+        if ($merchant->check_status == 2) {
+            $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+        }
 
         $r['type'] = !empty($merchant) ? 1 : 2;
         $r['shop_type'] = !empty($shop) ? 1 : 2;
         $r['shop_id'] = !empty($shop) ? $shop->id : '';
+        $r['check_status'] = !empty($merchant) ? $merchant->check_status : '';
+        $r['merchant_id'] = !empty($merchant) ? $merchant->id : '';
 
         return $r;
     }
@@ -237,9 +242,9 @@ class ShopService extends BaseService
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
-                $community = PsShopCommunity::find()->where(['shop_id' => $v['id']])->asArray()->all();
-                $v['community'] = implode(',', array_column($community, 'society_name'));
+                $v['community'] = PsShopCommunity::find()->select('community_name')->where(['shop_id' => $v['id']])->asArray()->all();
                 $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
+                $v['app_id'] = !empty($v['app_id']) ? $v['app_id'] : '';
             }
         }
 
@@ -249,13 +254,18 @@ class ShopService extends BaseService
     // 列表参数过滤
     private static function shopSearch($p)
     {
+        $start_at = !empty($p['start_at']) ? strtotime($p['start_at']) : '';
+        $end_at = !empty($p['end_at']) ? strtotime($p['end_at'].'23:59:59') : '';
+
         $m = PsShop::find()->alias('A')
             ->leftJoin('ps_shop_community B', 'A.id = B.shop_id')
             ->filterWhere(['=', 'A.merchant_code', $p['merchant_code']])
             ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
-            ->andFilterWhere(['>=', 'A.start', $p['start_at']])
-            ->andFilterWhere(['<=', 'A.end', $p['end_at']])
-            ->andFilterWhere(['=', 'B.society_id', $p['society_id']]);
+            ->andFilterWhere(['>=', 'A.create_at', $start_at])
+            ->andFilterWhere(['<=', 'A.create_at', $end_at])
+            ->andFilterWhere(['=', 'B.society_id', $p['society_id']])
+            ->andFilterWhere(['=', 'B.community_id', $p['community_id']])
+            ->andFilterWhere(['like', 'B.community_name', $p['community_name']]);
         return $m;
     }
     
@@ -290,11 +300,7 @@ class ShopService extends BaseService
             throw new MyException('小程序ID必填');
         }
 
-        if (empty($p['app_name'])) {
-            throw new MyException('小程序名称必填');
-        }
-
-        return PsShop::updateAll(['app_id' => $p['app_id'], 'app_name' => $p['app_name']], ['shop_code' => $p['shop_code']]);
+        return PsShop::updateAll(['app_id' => $p['app_id']], ['shop_code' => $p['shop_code']]);
     }
 
     // ----------------------------------     商品分类管理     ----------------------------
@@ -470,11 +476,11 @@ class ShopService extends BaseService
             throw new MyException('店铺不存在!');
         }
 
-        if (empty($p['type_id']) || !is_array($p['type_id'])) {
-            throw new MyException('商品分类ID必填!');
+        if (!empty($p['type_id']) && !is_array($p['type_id'])) {
+            throw new MyException('商品分类格式错误!');
         }
 
-        if (count($p['type_id']) > 5) {
+        if (!empty($p['type_id']) && count($p['type_id']) > 5) {
             throw new MyException('同一商品最多关联5个分类!');
         }
 
@@ -557,9 +563,10 @@ class ShopService extends BaseService
     {
         $m = PsShopGoods::find()->alias('A')
             ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.goods_id')
+            ->leftJoin('ps_shop C', 'C.id = A.shop_id')
             ->filterWhere(['=', 'B.type_id', $p['type_id']])
             ->andFilterWhere(['=', 'A.merchant_code', $p['merchant_code']])
-            ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
+            ->andFilterWhere(['=', 'C.shop_code', $p['shop_code']])
             ->andFilterWhere(['like', 'A.goods_name', $p['goods_name']])
             ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
