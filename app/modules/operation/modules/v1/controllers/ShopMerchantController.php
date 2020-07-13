@@ -185,4 +185,71 @@ class ShopMerchantController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //社区推广新增
+    public function actionAddPromote(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->addPromote($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //社区推广修改
+    public function actionEditPromote(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->editPromote($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //社区推广详情
+    public function actionPromoteDetail(){
+        try{
+            $params = $this->request_params;
+            $service = new MerchantService();
+            $result = $service->promoteDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //社区推广列表
+    public function actionPromoteList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new MerchantService();
+            $result = $service->promoteList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

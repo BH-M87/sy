@@ -11,6 +11,7 @@ namespace service\shop;
 use app\models\PsShopCategory;
 use app\models\PsShopMerchant;
 use app\models\PsShopMerchantCommunity;
+use app\models\PsShopMerchantPromote;
 use service\BaseService;
 use service\property_basic\JavaOfCService;
 use Yii;
@@ -272,5 +273,79 @@ Class MerchantService extends BaseService {
         ];
 
         return $this->success(['area'=>$area,'scale'=>$scale]);
+    }
+
+    //社区推广新增
+    public function addPromote($params){
+
+        $addParams['merchant_code'] = !empty($params['merchant_code'])?$params['merchant_code']:'';
+        $addParams['merchant_name'] = !empty($params['merchant_name'])?$params['merchant_name']:'';
+        $addParams['shop_code'] = !empty($params['shop_code'])?$params['shop_code']:'';
+        $addParams['shop_name'] = !empty($params['shop_name'])?$params['shop_name']:'';
+        $addParams['name'] = !empty($params['name'])?$params['name']:'';
+        $addParams['img'] = !empty($params['img'])?$params['img']:'';
+
+        $model = new PsShopMerchantPromote(['scenario'=>'add']);
+        if($model->load($addParams,'')&&$model->validate()){
+            if(!$model->save()){
+                return $this->failed('社区商铺推广新增失败！');
+            }
+            return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    //社区推广修改
+    public function editPromote($params){
+        $updateParams['merchant_code'] = !empty($params['merchant_code'])?$params['merchant_code']:'';
+        $updateParams['merchant_name'] = !empty($params['merchant_name'])?$params['merchant_name']:'';
+        $updateParams['shop_code'] = !empty($params['shop_code'])?$params['shop_code']:'';
+        $updateParams['shop_name'] = !empty($params['shop_name'])?$params['shop_name']:'';
+        $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+        $updateParams['img'] = !empty($params['img'])?$params['img']:'';
+        $updateParams['id'] = !empty($params['id'])?$params['id']:'';
+        $updateParams['sort'] = !empty($params['sort'])?$params['sort']:'';
+        $updateParams['status'] = !empty($params['status'])?$params['status']:'';
+
+        $model = new PsShopMerchantPromote(['scenario'=>'edit']);
+        if($model->load($updateParams,'')&&$model->validate()){
+            if(!$model->edit($updateParams)){
+                return $this->failed('社区商铺推广修改失败！');
+            }
+            return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    //社区推广详情
+    public function promoteDetail($params){
+        $model = new PsShopMerchantPromote(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getDetail($params);
+            $result['status_msg'] = !empty($result['status'])?$model->statusMsg[$result['status']]:'';
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 推广列表
+     */
+    public function promoteList($params){
+        $model = new PsShopMerchantPromote();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
+            }
+        }
+        return $this->success($result);
     }
 }

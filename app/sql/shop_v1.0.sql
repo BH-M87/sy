@@ -151,3 +151,17 @@ CREATE TABLE `ps_shop_goods` (
   `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='商品表';
+
+
+CREATE TABLE `ps_shop_merchant_promote` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `merchant_code` varchar(30) NOT NULL DEFAULT '' COMMENT '商家code',
+  `merchant_name` varchar(30) NOT NULL DEFAULT '' COMMENT '商家名称',
+  `shop_code` varchar(30) NOT NULL DEFAULT '' COMMENT '店铺code',
+  `shop_name` varchar(30) NOT NULL DEFAULT '' COMMENT '店铺名称',
+  `name` varchar(30) NOT NULL DEFAULT '' COMMENT '素材名称',
+  `img` varchar(255) NOT NULL DEFAULT '' COMMENT '图片',
+  `create_at` int(10) NOT NULL DEFAULT 0 COMMENT '创建时间',
+  `update_at` int(10) NOT NULL DEFAULT 0 COMMENT '修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='社区店铺推广';
