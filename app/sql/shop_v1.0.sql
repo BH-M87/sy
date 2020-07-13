@@ -85,6 +85,11 @@ INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES (
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2902', '婚庆摄影','29',2 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2903', '充值缴费','29',2 );
 INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2904', '图书影像','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2905', '家政服务','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2906', '民俗文化','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2907', '鞋靴','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2908', '宠物','29',2 );
+INSERT INTO `ps_shop_category` ( `code`, `name`, `parentCode`, `type` ) VALUES ( '2909', '其他','29',2 );
 
 CREATE TABLE `ps_shop` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
