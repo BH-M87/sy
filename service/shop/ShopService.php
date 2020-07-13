@@ -303,6 +303,16 @@ class ShopService extends BaseService
         return PsShop::updateAll(['app_id' => $p['app_id']], ['shop_code' => $p['shop_code']]);
     }
 
+    // 商品下拉列表
+    public function shopDropDown($p)
+    {
+       $m = PsShop::find()->select('id, shop_name, shop_code')
+           ->filterWhere(['merchant_code' => $p['merchant_code']])
+           ->orderBy('id desc')->asArray()->all();
+
+        return $m ?? [];
+    }
+
     // ----------------------------------     商品分类管理     ----------------------------
 
     // 商品分类 新增
@@ -513,6 +523,11 @@ class ShopService extends BaseService
             if (!empty($p['type_id']) && is_array($p['type_id'])) {
                 PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
                 foreach ($p['type_id'] as $type_id) {
+                    $goodsType = PsShopGoodsType::findOne($type_id);
+                    if (empty($goodsType)) {
+                        throw new MyException('商品分类不存在');
+                    }
+
                     $rela = new PsShopGoodsTypeRela();
                     $rela->goods_id = $id;
                     $rela->type_id = $type_id;
@@ -622,5 +637,16 @@ class ShopService extends BaseService
         }
 
         return PsShopGoods::updateAll(['status' => $status], ['id' => $p['id']]);
+    }
+
+    // 商品下拉列表
+    public function goodsDropDown($p)
+    {
+       $m = PsShopGoods::find()->select('id, goods_name')
+           ->filterWhere(['shop_id' => $p['shop_id']])
+           ->andFilterWhere(['merchant_code' => $p['merchant_code']])
+           ->orderBy('id desc')->asArray()->all();
+
+        return $m ?? [];
     }
 }
