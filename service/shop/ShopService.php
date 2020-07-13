@@ -520,7 +520,7 @@ class ShopService extends BaseService
 
             $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['type_id']) && is_array($p['type_id'])) {
+            if (!empty($p['type_id']) && is_array($p['type_id']) && count($p['type_id']) > 0) {
                 PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
                 foreach ($p['type_id'] as $type_id) {
                     $goodsType = PsShopGoodsType::findOne($type_id);
