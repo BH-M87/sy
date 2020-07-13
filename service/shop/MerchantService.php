@@ -36,8 +36,8 @@ Class MerchantService extends BaseService {
             $addParams['end'] = !empty($params['end'])?$params['end']:'';
             $addParams['link_name'] = !empty($params['link_name'])?$params['link_name']:'';
             $addParams['link_mobile'] = !empty($params['link_mobile'])?$params['link_mobile']:'';
-            $addParams['scale'] = !empty($params['scale'])?$params['scale']:'';
-            $addParams['area'] = !empty($params['area'])?$params['area']:'';
+            $addParams['scale'] = !empty($params['scale'])?$params['scale']:'1';
+            $addParams['area'] = !empty($params['area'])?$params['area']:'1';
             $addParams['member_id'] = !empty($params['member_id'])?$params['member_id']:'';
             $addParams['ali_form_id'] = !empty($params['ali_form_id'])?$params['ali_form_id']:'';
             $addParams['communityInfo'] = !empty($params['communityInfo'])?$params['communityInfo']:[];
