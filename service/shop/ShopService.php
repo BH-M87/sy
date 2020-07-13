@@ -243,7 +243,7 @@ class ShopService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
                 $community = PsShopCommunity::find()->where(['shop_id' => $v['id']])->asArray()->all();
-                $v['community'] = implode(',', array_column($community, 'society_name'));
+                $v['community'] = implode(',', array_column($community, 'community_name'));
                 $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
             }
         }
