@@ -244,6 +244,7 @@ class ShopService extends BaseService
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
                 $v['community'] = PsShopCommunity::find()->select('community_name')->where(['shop_id' => $v['id']])->asArray()->all();
                 $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
+                $v['app_id'] = !empty($v['app_id']) ? $v['app_id'] : '';
             }
         }
 
@@ -253,12 +254,15 @@ class ShopService extends BaseService
     // 列表参数过滤
     private static function shopSearch($p)
     {
+        $start_at = !empty($p['start_at']) ? strtotime($p['start_at']) : '';
+        $end_at = !empty($p['end_at']) ? strtotime($p['end_at'].'23:59:59') : '';
+
         $m = PsShop::find()->alias('A')
             ->leftJoin('ps_shop_community B', 'A.id = B.shop_id')
             ->filterWhere(['=', 'A.merchant_code', $p['merchant_code']])
             ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
-            ->andFilterWhere(['>=', 'A.start', $p['start_at']])
-            ->andFilterWhere(['<=', 'A.end', $p['end_at']])
+            ->andFilterWhere(['>=', 'A.create_at', $start_at])
+            ->andFilterWhere(['<=', 'A.create_at', $end_at])
             ->andFilterWhere(['=', 'B.society_id', $p['society_id']])
             ->andFilterWhere(['=', 'B.community_id', $p['community_id']])
             ->andFilterWhere(['like', 'B.community_name', $p['community_name']]);
