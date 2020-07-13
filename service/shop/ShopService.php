@@ -255,7 +255,8 @@ class ShopService extends BaseService
             ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
             ->andFilterWhere(['>=', 'A.start', $p['start_at']])
             ->andFilterWhere(['<=', 'A.end', $p['end_at']])
-            ->andFilterWhere(['=', 'B.society_id', $p['society_id']]);
+            ->andFilterWhere(['=', 'B.society_id', $p['society_id']])
+            ->andFilterWhere(['=', 'B.community_id', $p['community_id']]);
         return $m;
     }
     
