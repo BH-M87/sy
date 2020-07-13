@@ -480,11 +480,11 @@ class ShopService extends BaseService
             throw new MyException('店铺不存在!');
         }
 
-        if (empty($p['type_id']) || !is_array($p['type_id'])) {
-            throw new MyException('商品分类ID必填!');
+        if (!empty($p['type_id']) && !is_array($p['type_id'])) {
+            throw new MyException('商品分类格式错误!');
         }
 
-        if (count($p['type_id']) > 5) {
+        if (!empty($p['type_id']) && count($p['type_id']) > 5) {
             throw new MyException('同一商品最多关联5个分类!');
         }
 
