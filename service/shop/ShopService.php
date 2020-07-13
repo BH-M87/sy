@@ -300,11 +300,7 @@ class ShopService extends BaseService
             throw new MyException('小程序ID必填');
         }
 
-        if (empty($p['app_name'])) {
-            throw new MyException('小程序名称必填');
-        }
-
-        return PsShop::updateAll(['app_id' => $p['app_id'], 'app_name' => $p['app_name']], ['shop_code' => $p['shop_code']]);
+        return PsShop::updateAll(['app_id' => $p['app_id']], ['shop_code' => $p['shop_code']]);
     }
 
     // ----------------------------------     商品分类管理     ----------------------------
