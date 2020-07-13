@@ -242,8 +242,7 @@ class ShopService extends BaseService
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
-                $community = PsShopCommunity::find()->where(['shop_id' => $v['id']])->asArray()->all();
-                $v['community'] = implode(',', array_column($community, 'community_name'));
+                $v['community'] = PsShopCommunity::find()->select('community_name')->where(['shop_id' => $v['id']])->asArray()->all();
                 $v['create_at'] = date('Y-m-d H:i:s', $v['create_at']);
             }
         }
@@ -261,7 +260,8 @@ class ShopService extends BaseService
             ->andFilterWhere(['>=', 'A.start', $p['start_at']])
             ->andFilterWhere(['<=', 'A.end', $p['end_at']])
             ->andFilterWhere(['=', 'B.society_id', $p['society_id']])
-            ->andFilterWhere(['=', 'B.community_id', $p['community_id']]);
+            ->andFilterWhere(['=', 'B.community_id', $p['community_id']])
+            ->andFilterWhere(['like', 'B.community_name', $p['community_name']]);
         return $m;
     }
     
