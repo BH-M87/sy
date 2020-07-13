@@ -28,9 +28,23 @@ class ShopController extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
+    public function actionShopDropDown()
+    {
+        $r = ShopService::service()->shopDropDown($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     public function actionGoodsList()
     {
         $r = ShopService::service()->goodsList($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    public function actionGoodsDropDown()
+    {
+        $r = ShopService::service()->goodsDropDown($this->request_params);
 
         return PsCommon::responseSuccess($r);
     }
