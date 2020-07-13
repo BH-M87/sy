@@ -585,6 +585,7 @@ class ShopService extends BaseService
             ->andFilterWhere(['=', 'A.merchant_code', $p['merchant_code']])
             ->andFilterWhere(['=', 'C.shop_code', $p['shop_code']])
             ->andFilterWhere(['like', 'A.goods_name', $p['goods_name']])
+            ->andFilterWhere(['like', 'C.shop_name', $p['shop_name']])
             ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
     }
