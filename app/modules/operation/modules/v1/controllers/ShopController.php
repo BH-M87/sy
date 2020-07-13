@@ -70,13 +70,12 @@ class ShopController extends BaseController
             $config["sheet_config"] = [
                 'A' => ['title' => '商品ID', 'width' => 20, 'data_type' => 'str', 'field' => 'goods_code'],
                 'B' => ['title' => '商品名称', 'width' => 25, 'data_type' => 'str', 'field' => 'goods_name'],
-                'C' => ['title' => '商家ID', 'width' => 15, 'data_type' => 'str', 'field' => 'merchant_code'],
-                'D' => ['title' => '店铺ID', 'width' => 10, 'data_type' => 'str', 'field' => 'shop_code'],
-                'E' => ['title' => '店铺名称', 'width' => 10, 'data_type' => 'str', 'field' => 'shop_name'],
-                'F' => ['title' => '商品状态', 'width' => 25, 'data_type' => 'str', 'field' => 'statusMsg'],
-                'F' => ['title' => '最近修改', 'width' => 25, 'data_type' => 'str', 'field' => 'update_at'],
+                'C' => ['title' => '商家ID', 'width' => 25, 'data_type' => 'str', 'field' => 'merchant_code'],
+                'D' => ['title' => '店铺ID', 'width' => 25, 'data_type' => 'str', 'field' => 'shop_code'],
+                'E' => ['title' => '店铺名称', 'width' => 25, 'data_type' => 'str', 'field' => 'shop_name'],
+                'F' => ['title' => '商品状态', 'width' => 10, 'data_type' => 'str', 'field' => 'statusMsg'],
+                'G' => ['title' => '最近修改', 'width' => 25, 'data_type' => 'str', 'field' => 'update_at'],
             ];
-
             $config["save"] = true;
             $date = date('Y-m-d',time());
             $savePath = Yii::$app->basePath . '/web/store/zip/shop/' . $date . '/';
