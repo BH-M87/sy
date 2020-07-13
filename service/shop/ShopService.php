@@ -26,12 +26,17 @@ class ShopService extends BaseService
 {
     public function smallIndex($p)
     {
-        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id'], 'check_status' => 2])->one();
-        $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id']])->one();
+        
+        if ($merchant->check_status == 2) {
+            $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+        }
 
         $r['type'] = !empty($merchant) ? 1 : 2;
         $r['shop_type'] = !empty($shop) ? 1 : 2;
         $r['shop_id'] = !empty($shop) ? $shop->id : '';
+        $r['check_status'] = !empty($merchant) ? $merchant->check_status : '';
+        $r['merchant_id'] = !empty($merchant) ? $merchant->id : '';
 
         return $r;
     }
