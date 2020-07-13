@@ -563,9 +563,10 @@ class ShopService extends BaseService
     {
         $m = PsShopGoods::find()->alias('A')
             ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.goods_id')
+            ->leftJoin('ps_shop C', 'C.id = A.shop_id')
             ->filterWhere(['=', 'B.type_id', $p['type_id']])
             ->andFilterWhere(['=', 'A.merchant_code', $p['merchant_code']])
-            ->andFilterWhere(['=', 'A.shop_code', $p['shop_code']])
+            ->andFilterWhere(['=', 'C.shop_code', $p['shop_code']])
             ->andFilterWhere(['like', 'A.goods_name', $p['goods_name']])
             ->andFilterWhere(['=', 'A.shop_id', $p['shop_id']]);
         return $m;
