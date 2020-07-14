@@ -49,8 +49,8 @@ class PsShopMerchant extends BaseModel {
             [['category_first','category_second'], 'string',"max"=>64],
             [['merchant_img','business_img'], 'string',"max"=>500],
             [['location','check_content'], 'string',"max"=>255],
-            ['area', 'in', 'range' => [1, 2, 3,4]],
-            ['scale', 'in', 'range' => [1, 2, 3,4,5]],
+            ['area', 'in', 'range' => [1, 2, 3,4],'on'=>['individual_add']],
+            ['scale', 'in', 'range' => [1, 2, 3,4,5],'on'=>['individual_add']],
             [['type','status'], 'in', 'range' => [1,2]],
             ['check_status', 'in', 'range' => [1, 2, 3]],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
@@ -64,6 +64,7 @@ class PsShopMerchant extends BaseModel {
             [['link_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机格式有误'],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['micro_add','individual_add']],
             [["check_status","status"],"default",'value' => 1,'on'=>['micro_add','individual_add']],
+            [["area","scale"],"default",'value' => 0,'on'=>['micro_add']],
         ];
     }
 
