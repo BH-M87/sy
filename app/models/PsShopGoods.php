@@ -17,7 +17,7 @@ class PsShopGoods extends BaseModel
             [['goods_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add']],
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['goods_name'], 'string', 'max' => 20],
-            [['img'], 'string', 'max' => 255],
+            [['img'], 'string', 'max' => 2000],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
