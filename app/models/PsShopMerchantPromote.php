@@ -25,6 +25,8 @@ class PsShopMerchantPromote extends BaseModel {
             [['name','img','merchant_code','merchant_name','shop_code', 'shop_name'], 'trim'],
             [['name','img','merchant_code','merchant_name','shop_code', 'shop_name'], 'string',"max"=>30],
             [['img'], 'string',"max"=>255],
+            ['sort', 'compare', 'compareValue' => 255, 'operator' => '<=','message' => '{attribute}小于等于255！'],
+            ['sort', 'compare', 'compareValue' => 1, 'operator' => '>=','message' => '{attribute}大于等于1！'],
             [['merchant_code','merchant_name'],'merchantVerification','on'=>['add','edit']],      //商户验证
             [['merchant_code','shop_code','shop_name'],'shopVerification','on'=>['add','edit']],      //商铺验证
             [['id'],'infoData','on'=>['edit','detail']],
@@ -81,6 +83,7 @@ class PsShopMerchantPromote extends BaseModel {
             }
         }
     }
+
 
     /*
      * 商户验证
