@@ -23,7 +23,7 @@ class PsShopMerchantPromote extends BaseModel {
             [['id','name','img','merchant_code','merchant_name','shop_code', 'shop_name','sort','status'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [['id','sort','status','create_at','update_at'], 'integer'],
             [['name','img','merchant_code','merchant_name','shop_code', 'shop_name'], 'trim'],
-            [['name','img','merchant_code','merchant_name','shop_code', 'shop_name'], 'string',"max"=>30],
+            [['name','merchant_code','merchant_name','shop_code', 'shop_name'], 'string',"max"=>30],
             [['img'], 'string',"max"=>255],
             ['sort', 'compare', 'compareValue' => 255, 'operator' => '<=','message' => '{attribute}小于等于255！'],
             ['sort', 'compare', 'compareValue' => 1, 'operator' => '>=','message' => '{attribute}大于等于1！'],
