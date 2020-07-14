@@ -494,6 +494,10 @@ class ShopService extends BaseService
             throw new MyException('同一商品最多关联5个分类!');
         }
 
+        if (count($p['img']) > 4) {
+            throw new MyException('商品图片最多4张!');
+        }
+
         if ($scenario == 'add') {
             $param['goods_code'] = 'S'.date('YmdHis',time());
         }
