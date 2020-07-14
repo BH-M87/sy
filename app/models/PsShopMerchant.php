@@ -125,8 +125,13 @@ class PsShopMerchant extends BaseModel {
     //营业时间验证
     public function planTimeVerification($attribute){
         if(!empty($this->start)&&!empty($this->end)){
-            if(strtotime($this->start) >= strtotime($this->end)){
+            $start = strtotime($this->start);
+            $end = strtotime($this->end);
+            if($start >= $end){
                 return $this->addError($attribute, "营业结束时间需大于营业开始时间");
+            }
+            if($end - $start < 60*60){
+                return $this->addError($attribute, "营业结束时间需大于开始时间1小时");
             }
         }
     }
