@@ -252,4 +252,20 @@ class ShopMerchantController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //商户下拉
+    public function actionDropMerchant(){
+        try{
+            $service = new MerchantService();
+            $result = $service->dropMerchant();
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

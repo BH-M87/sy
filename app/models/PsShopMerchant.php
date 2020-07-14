@@ -42,9 +42,9 @@ class PsShopMerchant extends BaseModel {
             [["id",'type', 'check_status','scale','area','status','create_at','update_at'], 'integer'],
             [["lon",'lat'], 'number'],
             [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
-            [['name','merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
+            [['merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
             [['start','end','link_name','check_name'], 'string',"max"=>10],
-            [['link_mobile'], 'string',"max"=>20],
+            [['name','link_mobile'], 'string',"max"=>20],
             [['ali_form_id','ali_user_id'], 'string',"max"=>100],
             [['category_first','category_second'], 'string',"max"=>64],
             [['merchant_img','business_img'], 'string',"max"=>500],
@@ -313,4 +313,18 @@ class PsShopMerchant extends BaseModel {
         return $result;
     }
 
+    /*
+     * 商户下拉
+     */
+    public function getDropList(){
+        $fields = [
+            'name','merchant_code'
+        ];
+        $result = self::find()->select($fields)
+                    ->where(['=','check_status',2])
+                    ->andWhere(['=','status',1])
+                    ->orderBy(['id'=>SORT_DESC])
+                    ->asArray()->all();
+        return $result;
+    }
 }

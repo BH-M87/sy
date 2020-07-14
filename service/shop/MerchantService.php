@@ -348,4 +348,13 @@ Class MerchantService extends BaseService {
         }
         return $this->success($result);
     }
+
+    /*
+     * 商家下拉
+     */
+    public function dropMerchant(){
+        $model = new PsShopMerchant();
+        $result = $model->getDropList();
+        return $this->success($result);
+    }
 }
