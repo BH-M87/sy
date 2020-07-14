@@ -15,7 +15,7 @@ class PsShop extends BaseModel
         return [
             [['merchant_code', 'shop_code', 'shop_name', 'address', 'lon', 'lat', 'link_name', 'link_mobile', 'start', 'end', 'shopImg'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
-            [['shop_name'], 'string', 'max' => 20],
+            [['shop_name', 'link_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
             [['shopImg'], 'string', 'max' => 255],
             ['status', 'default', 'value' => 1, 'on' => 'add'],
