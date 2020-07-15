@@ -129,7 +129,7 @@ Class MerchantService extends BaseService {
         $result = $model->getCheckList($params);
         if(!empty($result['list'])){
             foreach($result['list'] as $key=>$value){
-                $result['list'][$key]['create_at_msg'] = !empty($value['check_at'])?date('Y-m-d H:i:s',$value['check_at']):'';
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
                 $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
                 $result['list'][$key]['check_status_msg'] = !empty($value['check_status'])?$model->checkMsg[$value['check_status']]:'';
             }
@@ -147,7 +147,7 @@ Class MerchantService extends BaseService {
             foreach($result['list'] as $key=>$value){
                 $count = count($value['shop']);
                 unset($result['list'][$key]['shop']);
-                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['create_at_msg'] = !empty($value['check_at'])?date('Y-m-d H:i:s',$value['check_at']):'';
                 $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
                 $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
                 $result['list'][$key]['count'] = $count;

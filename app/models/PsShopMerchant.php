@@ -221,7 +221,7 @@ class PsShopMerchant extends BaseModel {
 
     //审核列表
     public function getCheckList($params){
-        $fields = ['check_code','name','type','check_status','check_name','check_at'];
+        $fields = ['check_code','name','type','check_status','check_name','create_at'];
         $model = self::find()->select($fields)->where(['in','check_status',[1,3]]);
         if(!empty($params['check_status'])){
             $model->andWhere(['=','check_status',$params['check_status']]);
@@ -233,10 +233,10 @@ class PsShopMerchant extends BaseModel {
             $model->andWhere(['like','name',$params['name']]);
         }
         if(!empty($params['start_time'])){
-            $model->andWhere(['>=','check_at',strtotime($params['start_time'])]);
+            $model->andWhere(['>=','create_at',strtotime($params['start_time'])]);
         }
         if(!empty($params['end_time'])){
-            $model->andWhere(['<=','check_at',strtotime($params['end_time']." 23:59:59")]);
+            $model->andWhere(['<=','create_at',strtotime($params['end_time']." 23:59:59")]);
         }
 
 
@@ -263,7 +263,7 @@ class PsShopMerchant extends BaseModel {
 
     //商户列表
     public function getMerchantList($params){
-        $fields = ['merchant_code','name','type','status','create_at'];
+        $fields = ['merchant_code','name','type','status','check_at'];
         $model = self::find()->select($fields)->where(['=','check_status',2]);
         if(!empty($params['status'])){
             $model->andWhere(['=','status',$params['status']]);
@@ -275,10 +275,10 @@ class PsShopMerchant extends BaseModel {
             $model->andWhere(['like','name',$params['name']]);
         }
         if(!empty($params['start_time'])){
-            $model->andWhere(['>=','create_at',strtotime($params['start_time'])]);
+            $model->andWhere(['>=','check_at',strtotime($params['start_time'])]);
         }
         if(!empty($params['end_time'])){
-            $model->andWhere(['<=','create_at',strtotime($params['end_time']." 23:59:59")]);
+            $model->andWhere(['<=','check_at',strtotime($params['end_time']." 23:59:59")]);
         }
 
 
