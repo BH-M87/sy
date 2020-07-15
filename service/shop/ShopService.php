@@ -216,7 +216,6 @@ class ShopService extends BaseService
             $r['img'] = $merchant->business_img;
             $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
             $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
-            $r['shopImg'] = 'https://community-static.zje.com/community-1591859855119-j4brg0tf76o0.jpeg';
 
             return $r;
         }
