@@ -210,7 +210,7 @@ class ShopService extends BaseService
             throw new MyException('id不能为空');
         }
 
-        $r = PsShop::find()->select('shop_name, status, address, merchant_code')->where(['id' => $p['id']])->asArray()->one();
+        $r = PsShop::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
             $r['img'] = $merchant->business_img;
