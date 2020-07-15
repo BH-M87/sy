@@ -304,7 +304,7 @@ class ShopService extends BaseService
         return PsShop::updateAll(['app_id' => $p['app_id']], ['shop_code' => $p['shop_code']]);
     }
 
-    // 商品下拉列表
+    // 店铺下拉列表
     public function shopDropDown($p)
     {
        $m = PsShop::find()->select('id, shop_name, shop_code')
@@ -449,7 +449,19 @@ class ShopService extends BaseService
             $trans->rollBack();
             throw new MyException($e->getMessage());
         }
+    }
 
+    // 获取商品分类名称 逗号隔开
+    public function _goodsTypeName($goods_id)
+    {
+        $m = PsShopGoodsType::find()->alias('A')->select('A.type_name')
+            ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.type_id')
+            ->where(['B.goods_id' => $goods_id])
+            ->asArray()->all();
+
+        $type = array_column($m, 'type_name');
+
+        return implode(',', $type);
     }
 
     // ----------------------------------     商品管理     ----------------------------
@@ -614,19 +626,6 @@ class ShopService extends BaseService
         }
 
         throw new MyException('数据不存在!');
-    }
-    
-    // 获取商品分类名称 逗号隔开
-    public function _goodsTypeName($goods_id)
-    {
-        $m = PsShopGoodsType::find()->alias('A')->select('A.type_name')
-            ->leftJoin('ps_shop_goods_type_rela B', 'A.id = B.type_id')
-            ->where(['B.goods_id' => $goods_id])
-            ->asArray()->all();
-
-        $type = array_column($m, 'type_name');
-
-        return implode(',', $type);
     }
 
     // 商品状态变更
