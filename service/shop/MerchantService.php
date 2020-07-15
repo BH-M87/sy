@@ -52,25 +52,25 @@ Class MerchantService extends BaseService {
             $model = new PsShopMerchant(['scenario'=>$scenario]);
             if($model->load($addParams,'')&&$model->validate()){
                 if(!$model->saveData()){
-                    return $this->failed('入驻失败！');
+                    throw new Exception('入驻失败！');
                 }
                 $relModel = new PsShopMerchantCommunity(['scenario'=>'add']);
                 foreach($addParams['communityInfo'] as $key=>$value){
                     $value['merchant_code'] = $model->attributes['merchant_code'];
                     if($relModel->load($value,'')&&$relModel->validate()){
                         if(!$relModel->save()){
-                            return $this->failed('关联小区失败！');
+                            throw new Exception('关联小区失败！');
                         }
                     }else{
                         $msg = array_values($relModel->errors)[0][0];
-                        return $this->failed($msg);
+                        throw new Exception($msg);
                     }
                 }
                 $trans->commit();
                 return $this->success(['check_code'=>$model->attributes['check_code']]);
             }else{
                 $msg = array_values($model->errors)[0][0];
-                return $this->failed($msg);
+                throw new Exception($msg);
             }
         }catch (Exception $e) {
             $trans->rollBack();
