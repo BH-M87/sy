@@ -28,11 +28,13 @@ class ShopService extends BaseService
     {
         $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id']])->one();
         
+        $type = 2;
         if ($merchant->check_status == 2) {
             $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
+            $type = 1;
         }
 
-        $r['type'] = !empty($merchant) ? 1 : 2;
+        $r['type'] = $type;
         $r['shop_type'] = !empty($shop) ? 1 : 2;
         $r['shop_id'] = !empty($shop) ? $shop->id : '';
         $r['check_status'] = !empty($merchant) ? $merchant->check_status : '';
