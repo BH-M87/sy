@@ -192,7 +192,7 @@ Class MerchantService extends BaseService {
         $communityArray = [];
         if(!empty($community)){
             foreach ($community as $key=>$value){
-                $element['community_id'] = $value['community_name'];
+                $element['community_id'] = $value['community_id'];
                 $element['community_name'] = $value['community_name'];
                 $communityArray[] = $element;
             }
