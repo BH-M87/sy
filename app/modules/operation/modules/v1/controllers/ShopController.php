@@ -80,6 +80,7 @@ class ShopController extends BaseController
 
         $getTotals = $result['totals'];
         if ($getTotals > 0) {
+            $params = $this->request_params;
             $cycle = ceil($getTotals / 1000);
             $config["sheet_config"] = [
                 'A' => ['title' => '商品ID', 'width' => 20, 'data_type' => 'str', 'field' => 'goods_code'],
