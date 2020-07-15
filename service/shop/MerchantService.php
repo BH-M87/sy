@@ -54,8 +54,8 @@ Class MerchantService extends BaseService {
                 if(!$model->saveData()){
                     throw new Exception('入驻失败！');
                 }
-                $relModel = new PsShopMerchantCommunity(['scenario'=>'add']);
                 foreach($addParams['communityInfo'] as $key=>$value){
+                    $relModel = new PsShopMerchantCommunity(['scenario'=>'add']);
                     $value['merchant_code'] = $model->attributes['merchant_code'];
                     if($relModel->load($value,'')&&$relModel->validate()){
                         if(!$relModel->save()){
