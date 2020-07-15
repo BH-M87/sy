@@ -65,8 +65,8 @@ class BaseController extends \yii\web\Controller
                     $this->_validateToken($action);
                 }
                 
-                $this->page = !empty($this->request_params['page']) ? intval($this->request_params['page']) : 1;
-                $this->pageSize = !empty($this->request_params['rows']) ? intval($this->request_params['rows']) : $this->pageSize;
+                $this->page = !empty($this->request_params['pageNum']) ? intval($this->request_params['pageNum']) : 1;
+                $this->pageSize = !empty($this->request_params['pageSize']) ? intval($this->request_params['pageSize']) : $this->pageSize;
 
                 //重复请求过滤 TODO 1. 接口时间响应过长导致锁提前失效 2. 未执行完即取消请求，锁未主动释放，需等待30s
                 if (in_array($action->id, $this->repeatAction) && F::repeatRequest()) {
