@@ -72,4 +72,20 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+     * 判断是否入驻
+     */
+    public function actionJudgmentExist(){
+        try{
+            $result = MerchantService::service()->judgmentExist($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }

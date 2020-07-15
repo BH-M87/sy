@@ -38,7 +38,7 @@ class PsShopMerchant extends BaseModel {
             [['merchant_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['merchantDetail']],
             [['check_code','check_status','check_id','check_name','check_at'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
             [['merchant_code','status'],'required','message'=>'{attribute}不能为空！','on'=>['merchantEdit']],
-            [['member_id'],'required','message'=>'{attribute}不能为空！','on'=>['merchantDetailOfc']],
+            [['member_id'],'required','message'=>'{attribute}不能为空！','on'=>['merchantDetailOfc','judgmentExist']],
             [["id",'type', 'check_status','scale','area','status','create_at','update_at','check_at'], 'integer'],
             [["lon",'lat'], 'number'],
             [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
@@ -326,6 +326,14 @@ class PsShopMerchant extends BaseModel {
                     ->andWhere(['=','status',1])
                     ->orderBy(['id'=>SORT_DESC])
                     ->asArray()->all();
+        return $result;
+    }
+
+    /*
+     * 根据member_id 查询
+     */
+    public function getListByMember($params){
+        $result = self::find()->select(['id'])->where(['=','member_id',$params['member_id']])->asArray()->one();
         return $result;
     }
 }

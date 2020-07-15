@@ -359,4 +359,22 @@ Class MerchantService extends BaseService {
         $result = $model->getDropList();
         return $this->success($result);
     }
+
+    /*
+     * 判断是否入驻
+     */
+    public function judgmentExist($params){
+        $model = new PsShopMerchant(['scenario'=>'judgmentExist']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getListByMember($params);
+            $flag = 1;
+            if(empty($result)){
+                $flag = 2;
+            }
+            return $this->success(['flag'=>$flag]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }
