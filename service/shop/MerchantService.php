@@ -129,7 +129,7 @@ Class MerchantService extends BaseService {
         $result = $model->getCheckList($params);
         if(!empty($result['list'])){
             foreach($result['list'] as $key=>$value){
-                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['create_at_msg'] = !empty($value['check_at'])?date('Y-m-d H:i:s',$value['check_at']):'';
                 $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
                 $result['list'][$key]['check_status_msg'] = !empty($value['check_status'])?$model->checkMsg[$value['check_status']]:'';
             }
@@ -221,6 +221,7 @@ Class MerchantService extends BaseService {
         $updateParams['check_status'] = !empty($params['check_status'])?$params['check_status']:'';
         $updateParams['check_id'] = !empty($params['create_id'])?$params['create_id']:'';
         $updateParams['check_name'] = !empty($params['create_name'])?$params['create_name']:'';
+        $updateParams['check_at'] = time();
         $model = new PsShopMerchant(['scenario'=>'checked']);
         if($model->load($updateParams,'')&&$model->validate()){
             $updateParams['id'] = $model->attributes['id'];

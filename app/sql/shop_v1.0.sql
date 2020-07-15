@@ -25,6 +25,7 @@ CREATE TABLE `ps_shop_merchant` (
   `check_name`  varchar(10) NOT NULL DEFAULT '' COMMENT '审核人名称',
   `ali_form_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝表单id',
   `ali_user_id` varchar(100) NOT NULL DEFAULT '' COMMENT '支付宝用户id',
+  `check_at` int(10) NOT NULL DEFAULT '0' COMMENT '审核时间',
   `create_at` int(10) NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_at` int(10) NOT NULL DEFAULT 0 COMMENT '修改时间',
   PRIMARY KEY (`id`)

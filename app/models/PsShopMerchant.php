@@ -36,10 +36,10 @@ class PsShopMerchant extends BaseModel {
             [['name','type','category_first', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
             [['check_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['checkDetail']],
             [['merchant_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['merchantDetail']],
-            [['check_code','check_status','check_id','check_name'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
+            [['check_code','check_status','check_id','check_name','check_at'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
             [['merchant_code','status'],'required','message'=>'{attribute}不能为空！','on'=>['merchantEdit']],
             [['member_id'],'required','message'=>'{attribute}不能为空！','on'=>['merchantDetailOfc']],
-            [["id",'type', 'check_status','scale','area','status','create_at','update_at'], 'integer'],
+            [["id",'type', 'check_status','scale','area','status','create_at','update_at','check_at'], 'integer'],
             [["lon",'lat'], 'number'],
             [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
             [['merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
@@ -100,6 +100,7 @@ class PsShopMerchant extends BaseModel {
               'communityInfo'           => '小区信息',
               'ali_user_id'             => '支付宝用户',
               'ali_form_id'             => '支付宝表单',
+              'check_at'                => '审核时间',
         ];
     }
 
@@ -220,7 +221,7 @@ class PsShopMerchant extends BaseModel {
 
     //审核列表
     public function getCheckList($params){
-        $fields = ['check_code','name','type','check_status','check_name','create_at'];
+        $fields = ['check_code','name','type','check_status','check_name','check_at'];
         $model = self::find()->select($fields)->where(['in','check_status',[1,3]]);
         if(!empty($params['check_status'])){
             $model->andWhere(['=','check_status',$params['check_status']]);
@@ -232,10 +233,10 @@ class PsShopMerchant extends BaseModel {
             $model->andWhere(['like','name',$params['name']]);
         }
         if(!empty($params['start_time'])){
-            $model->andWhere(['>=','create_at',strtotime($params['start_time'])]);
+            $model->andWhere(['>=','check_at',strtotime($params['start_time'])]);
         }
         if(!empty($params['end_time'])){
-            $model->andWhere(['<=','create_at',strtotime($params['end_time']." 23:59:59")]);
+            $model->andWhere(['<=','check_at',strtotime($params['end_time']." 23:59:59")]);
         }
 
 
