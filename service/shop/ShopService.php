@@ -19,6 +19,7 @@ use app\models\PsShopCommunity;
 use app\models\PsShopMerchant;
 use app\models\PsShopCategory;
 use app\models\PsShopMerchantCommunity;
+use app\models\PsShopStatistic;
 
 use service\property_basic\JavaOfCService;
 
@@ -82,6 +83,51 @@ class ShopService extends BaseService
     }
 
     // ----------------------------------     店铺管理     ----------------------------
+
+    public function shopStatisticAdd($p)
+    {
+        $shop = PsShop::findOne($p['shop_id']);
+        if (empty($shop)) {
+            throw new MyException('店铺不存在');
+        }
+
+        $param['year'] = date('Y', time());
+        $param['month'] = date('m', time());
+        $param['day'] = date('Y-m-d', time());
+
+        $stat = PsShopStatistic::find()->where(['shop_id' => $p['shop_id'], 'day' => $param['day']])->one();
+        if (!empty($stat)) {
+            $scenario = 'edit';
+            $param['id'] = $stat->id;
+            $param['click_num'] = $stat->click_num + 1;
+        } else {
+            $scenario = 'add';
+        }
+
+        $param['shop_id'] = $p['shop_id'];
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+
+        try {
+            $model = new PsShopStatistic(['scenario' => $scenario]);
+
+            if (!$model->load($param, '') || !$model->validate()) {
+                throw new MyException($this->getError($model));
+            }
+
+            if (!$model->saveData($scenario, $param)) {
+                throw new MyException($this->getError($model));
+            }
+
+            $id = $scenario == 'add' ? $model->attributes['id'] : $param['id'];
+
+            $trans->commit();
+            return ['id' => $id];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
 
     // 店铺 新增
     public function shopAdd($p)

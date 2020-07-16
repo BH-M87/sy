@@ -27,6 +27,14 @@ class ShopController extends BaseController
 
     // ----------------------------------     店铺管理     ----------------------------
 
+    // 店铺点击量 新增
+    public function actionShopStatisticAdd()
+    {
+        $r = ShopService::service()->shopStatisticAdd($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 店铺 新增
     public function actionShopAdd()
     {

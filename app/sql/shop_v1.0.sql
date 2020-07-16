@@ -171,8 +171,8 @@ CREATE TABLE `ps_shop_statistic` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `shop_id` int(10) NOT NULL COMMENT '店铺id',
   `year` int(11) NOT NULL COMMENT '统计时所在年份',
-  `month` tinyint(2) NOT NULL COMMENT '任务所在月份',
-  `day` date NOT NULL COMMENT '任务在具体的哪天',
+  `month` tinyint(2) NOT NULL COMMENT '所在月份',
+  `day` date NOT NULL COMMENT '具体的哪天',
   `click_num` int(10) NOT NULL DEFAULT '0' COMMENT '今天的点击数',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺点击统计表';
