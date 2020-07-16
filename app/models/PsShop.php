@@ -14,10 +14,12 @@ class PsShop extends BaseModel
     {
         return [
             [['merchant_code', 'shop_code', 'shop_name', 'address', 'lon', 'lat', 'link_name', 'link_mobile', 'start', 'end', 'shopImg'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['app_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['getDetail']],
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['shop_name', 'link_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
             [['shopImg'], 'string', 'max' => 255],
+            [['app_id'], 'appDataInfo','on' => ['getDetail']], //信息是否存在
             ['status', 'default', 'value' => 1, 'on' => 'add'],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
@@ -45,6 +47,15 @@ class PsShop extends BaseModel
             'update_at' => '更新时间',
             'create_at' => '新增时间',
         ];
+    }
+
+    public function appDataInfo($attribute){
+        if(!empty($this->app_id)){
+            $res = self::find()->select(['id'])->where(['=','app_id',$this->app_id])->asArray()->one();
+            if(empty($res)){
+                return $this->addError($attribute, "店铺不存在");
+            }
+        }
     }
 
      // 新增 编辑

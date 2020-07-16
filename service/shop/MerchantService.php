@@ -8,7 +8,9 @@
  */
 namespace service\shop;
 
+use app\models\PsShop;
 use app\models\PsShopCategory;
+use app\models\PsShopGoodsType;
 use app\models\PsShopMerchant;
 use app\models\PsShopMerchantCommunity;
 use app\models\PsShopMerchantPromote;
@@ -372,6 +374,23 @@ Class MerchantService extends BaseService {
                 $flag = 2;
             }
             return $this->success(['flag'=>$flag]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 商铺+分类
+     */
+    public function getShop($params){
+        $model = new PsShop(['scenario'=>'getDetail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model::find()->select(['id','shop_code','shop_name','shopImg'])->where(['=','app_id',$params['app_id']])->asArray()->one();
+            //分类
+            $cate = PsShopGoodsType::find()->select(['id','type_name'])->where(['=','shop_id',$detail['id']])->orderBy(['id'=>SORT_ASC])->asArray()->all();
+            unset($detail['id']);
+            return $this->success(['shop'=>$detail,'cate'=>$cate]);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);

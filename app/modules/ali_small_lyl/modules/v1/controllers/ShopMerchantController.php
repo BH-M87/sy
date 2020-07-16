@@ -88,4 +88,20 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+     * 商铺详情
+     */
+    public function actionGetShop(){
+        try{
+            $result = MerchantService::service()->getShop($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
