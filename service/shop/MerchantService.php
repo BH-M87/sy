@@ -209,6 +209,7 @@ Class MerchantService extends BaseService {
         $result['business_img_array'] = !empty($result['business_img'])?explode(',',$result['business_img']):'';
         $result['community_array'] = $communityArray;
         $result['create_at_msg'] = !empty($result['create_at'])?date('Y-m-d H:i:s',$result['create_at']):'';
+        $result['check_at_msg'] = !empty($result['check_at'])?date('Y-m-d H:i:s',$result['check_at']):'';
         $result['check_status_msg'] = !empty($result['check_status'])?$model->checkMsg[$result['check_status']]:"";
         $result['scale_msg'] = !empty($result['scale'])?$model->scaleMsg[$result['scale']]:"";
         $result['area_msg'] = !empty($result['area'])?$model->areaMsg[$result['area']]:"";
@@ -392,6 +393,24 @@ Class MerchantService extends BaseService {
             //分类
             $cate = PsShopGoodsType::find()->select(['id','type_name'])->where(['=','shop_id',$detail['id']])->orderBy(['id'=>SORT_ASC])->asArray()->all();
             return $this->success(['shop'=>$detail,'cate'=>$cate]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 店铺详情
+     */
+    public function getShopDetail($params){
+        $model = new PsShop(['scenario'=>'getDetail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model::find()->alias('s')
+                            ->leftJoin(['m'=>PsShopMerchant::tableName()],'m.merchant_code=s.merchant_code')
+                            ->select(['s.shop_code','s.shop_name','shopImg'])
+                            ->where(['=','s.app_id',$params['app_id']])
+                            ->asArray()->one();
+            //分类
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
