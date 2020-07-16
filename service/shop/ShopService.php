@@ -626,19 +626,22 @@ class ShopService extends BaseService
 
             $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['type_id']) && is_array($p['type_id']) && count($p['type_id']) > 0) {
+            if (!empty($p['type_id']) && is_array($p['type_id'])) {
                 PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
-                foreach ($p['type_id'] as $type_id) {
-                    if (!empty($type_id)) {
-                        $goodsType = PsShopGoodsType::findOne($type_id);
-                        if (empty($goodsType)) {
-                            throw new MyException('商品分类不存在');
-                        }
 
-                        $rela = new PsShopGoodsTypeRela();
-                        $rela->goods_id = $id;
-                        $rela->type_id = $type_id;
-                        $rela->save();
+                if (count($p['type_id']) > 0) {
+                    foreach ($p['type_id'] as $type_id) {
+                        if (!empty($type_id)) {
+                            $goodsType = PsShopGoodsType::findOne($type_id);
+                            if (empty($goodsType)) {
+                                throw new MyException('商品分类不存在');
+                            }
+
+                            $rela = new PsShopGoodsTypeRela();
+                            $rela->goods_id = $id;
+                            $rela->type_id = $type_id;
+                            $rela->save();
+                        }   
                     }
                 }
             }
