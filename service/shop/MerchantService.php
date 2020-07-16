@@ -405,12 +405,22 @@ Class MerchantService extends BaseService {
     public function getShopDetail($params){
         $model = new PsShop(['scenario'=>'getDetail']);
         if($model->load($params,'')&&$model->validate()){
+            $cateModel = new PsShopCategory();
+            $fields = [
+                        's.shop_name','shopImg','s.merchant_code','m.check_at','s.address','s.lon','s.lat','s.start','s.end','s.link_name',
+                        's.link_mobile','m.category_first','m.category_second','m.business_img','m.merchant_img'
+            ];
             $detail = $model::find()->alias('s')
                             ->leftJoin(['m'=>PsShopMerchant::tableName()],'m.merchant_code=s.merchant_code')
-                            ->select(['s.shop_code','s.shop_name','shopImg'])
+                            ->select($fields)
                             ->where(['=','s.app_id',$params['app_id']])
                             ->asArray()->one();
-            //分类
+            $detail['business_img_array'] = !empty($detail['business_img'])?explode(',',$detail['business_img']):[];
+            $detail['merchant_img_array'] = !empty($detail['merchant_img'])?explode(',',$detail['merchant_img']):[];
+            $detail['category_first_msg'] = !empty($detail['category_first'])?$cateModel->getNameByCode($detail['category_first']):'';
+            $detail['category_second_msg'] = !empty($detail['category_second'])?$cateModel->getNameByCode($detail['category_second']):'';
+            $detail['check_at_msg'] = !empty($detail['check_at'])?date('Y-m-d',$detail['check_at']):'';
+            return $this->success($detail);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
