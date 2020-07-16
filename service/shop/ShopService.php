@@ -254,7 +254,12 @@ class ShopService extends BaseService
         if (!empty($r)) {
             $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
             $r['img'] = $merchant->business_img;
-            $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+
+            $category_name = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+            if (empty($category_name)) {
+                $category_name = PsShopCategory::find()->where(['code' => $merchant->category_first])->one()->name;
+            }
+            $r['category_name'] = $category_name;
             $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
 
             return $r;
