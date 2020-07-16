@@ -24,14 +24,52 @@ use service\property_basic\JavaOfCService;
 
 class ShopService extends BaseService
 {
+    // 商城首页
+    public function communityIndex($p)
+    {
+        $m = PsShopCommunity::find()->alias('A')
+            ->select('B.id shop_id, B.shop_name, A.distance, B.status')
+            ->leftJoin('ps_shop B', 'B.id = A.shop_id')
+            ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->offset(($p['page'] - 1) * $p['rows'])
+            ->limit($p['rows'])
+            ->orderBy('A.distance asc')->asArray()->all();
+
+        if (!empty($m)) {
+            foreach ($m as $k => &$v) {
+                $goods = PsShopGoods::find()->where(['shop_id' => $v['shop_id']])->orderBy('id desc')->limit(2)->asArray()->all();
+                if ($goods) {
+                    $array1 = $array2 = [];
+                    foreach ($goods as $key => $val) {
+                        if ($key == 0) {
+                            $array1 = explode(',', $val['img']);
+                        } else if ($key == 1) {
+                            $array2 = explode(',', $val['img']);
+                        }
+                    }
+
+                    $v['goodsImg'] = array_merge($array1, $array2);
+                }
+
+                $v['goodsType'] = self::_goodsTypeName($goods[0]['id']);
+                $v['distance'] = round($v['distance'] / 1000, 2);
+                $v['statusMsg'] = $v['status'] == 1 ? '营业中' : '打烊';
+            }
+        }
+
+        return $m;
+    }
+
     public function smallIndex($p)
     {
-        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id']])->one();
+        $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id'], 'check_status' => 2])->one();
         
-        $type = 2;
-        if ($merchant->check_status == 2) {
+        if (!empty($merchant)) {
             $shop = PsShop::find()->where(['merchant_code' => $merchant->merchant_code])->one();
             $type = 1;
+        } else {
+            $merchant = PsShopMerchant::find()->where(['member_id' => $p['member_id']])->one();
+            $type = 2;
         }
 
         $r['type'] = $type;
@@ -216,7 +254,12 @@ class ShopService extends BaseService
         if (!empty($r)) {
             $merchant = PsShopMerchant::find()->where(['merchant_code' => $r['merchant_code']])->one();
             $r['img'] = $merchant->business_img;
-            $r['category_name'] = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+
+            $category_name = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+            if (empty($category_name)) {
+                $category_name = PsShopCategory::find()->where(['code' => $merchant->category_first])->one()->name;
+            }
+            $r['category_name'] = $category_name;
             $r['statusMsg'] = $r['status'] == 1 ? '营业中' : '打烊';
 
             return $r;
