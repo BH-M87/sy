@@ -2,6 +2,7 @@
 namespace app\models;
 
 use Yii;
+use common\core\Regular;
 
 class PsShop extends BaseModel
 {
@@ -19,6 +20,7 @@ class PsShop extends BaseModel
             [['shop_name', 'link_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
             [['shopImg'], 'string', 'max' => 255],
+            ['link_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add', 'edit']],
             [['app_id'], 'appDataInfo','on' => ['getDetail']], //信息是否存在
             ['status', 'default', 'value' => 1, 'on' => 'add'],
             ['update_at', 'default', 'value' => 0, 'on' => 'add'],
