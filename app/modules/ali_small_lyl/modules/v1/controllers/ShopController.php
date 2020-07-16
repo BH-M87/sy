@@ -9,6 +9,14 @@ use service\shop\ShopService;
 
 class ShopController extends BaseController
 {
+    // 商城首页
+    public function actionCommunityIndex()
+    {
+        $r = ShopService::service()->communityIndex($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 社区掌柜首页
     public function actionSmallIndex()
     {
