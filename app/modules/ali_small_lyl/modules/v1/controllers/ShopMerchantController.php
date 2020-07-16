@@ -104,4 +104,22 @@ class ShopMerchantController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    /*
+     * 店铺商品列表
+     */
+    public function actionShopGoodsList(){
+        try{
+            $this->params['page'] = $this->page;
+            $this->params['rows'] = $this->rows;
+            $result = MerchantService::service()->shopGoodsList($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }

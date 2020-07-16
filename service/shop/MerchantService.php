@@ -10,7 +10,9 @@ namespace service\shop;
 
 use app\models\PsShop;
 use app\models\PsShopCategory;
+use app\models\PsShopGoods;
 use app\models\PsShopGoodsType;
+use app\models\PsShopGoodsTypeRela;
 use app\models\PsShopMerchant;
 use app\models\PsShopMerchantCommunity;
 use app\models\PsShopMerchantPromote;
@@ -389,11 +391,57 @@ Class MerchantService extends BaseService {
             $detail = $model::find()->select(['id','shop_code','shop_name','shopImg'])->where(['=','app_id',$params['app_id']])->asArray()->one();
             //分类
             $cate = PsShopGoodsType::find()->select(['id','type_name'])->where(['=','shop_id',$detail['id']])->orderBy(['id'=>SORT_ASC])->asArray()->all();
-            unset($detail['id']);
             return $this->success(['shop'=>$detail,'cate'=>$cate]);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    /*
+     * 商品商品列表
+     */
+    public function shopGoodsList($params){
+        if(empty($params['shop_id'])){
+            return $this->failed('店铺id必填！');
+        }
+
+        $fields = ['g.id','g.img','g.goods_name'];
+
+        $model = PsShopGoods::find()
+                        ->select($fields)
+                        ->alias('g')
+                        ->leftJoin(['r'=>PsShopGoodsTypeRela::tableName()],'g.id=r.goods_id')
+                        ->where(['=','g.shop_id',$params['shop_id']])
+                        ->andWhere(['=','g.status',1]);
+        if(!empty($params['type_id'])){
+            $model->andWhere(['=','r.type_id',$params['type_id']]);
+        }
+        $count = $model->count();
+
+        if(!empty($params['page'])&&!empty($params['rows'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['rows'])?intval($params['rows']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+
+        $model->orderBy(["g.id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+
+        $odd = $even = [];
+        if(!empty($result)){
+            foreach($result as $key=>$value){
+                $value['img'] = !empty($value['img'])?explode(',',$value['img']):[];
+
+                if ($key % 2 == 0) {
+                    $odd[] = $value;
+                } else {
+                    $even[] = $value;
+                }
+            }
+        }
+
+        return $this->success(['odd' => $odd, 'even' => $even, 'total' => $count]);
     }
 }
