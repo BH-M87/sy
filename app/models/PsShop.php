@@ -19,7 +19,7 @@ class PsShop extends BaseModel
             [['status'], 'integer', 'message'=> '{attribute}格式错误!'],
             [['shop_name', 'link_name'], 'string', 'max' => 20],
             [['app_name', 'app_id'], 'string', 'max' => 20],
-            [['shopImg'], 'string', 'max' => 255],
+            [['shopImg', 'location'], 'string', 'max' => 255],
             ['link_mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add', 'edit']],
             [['app_id'], 'appDataInfo','on' => ['getDetail']], //信息是否存在
             ['status', 'default', 'value' => 1, 'on' => 'add'],
@@ -35,6 +35,7 @@ class PsShop extends BaseModel
             'merchant_code' => '商家编号',
             'shop_code' => '店铺编号',
             'shop_name' => '店铺名称',
+            'location' => '位置名称',
             'address' => '店铺地址',
             'lon' => '经度',
             'lat' => '纬度',
