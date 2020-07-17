@@ -24,6 +24,15 @@ Class StatisticService extends BaseService {
             return $this->failed("结束时间必填");
         }
 
+        if(empty($params['type'])){
+            return $this->failed("类型必填");
+        }
+
+        if(empty($params['data_code'])){
+            return $this->failed("code必填");
+        }
+
+
         //查询有多少天
         $dateAll = self::getDate($params);
         $dataInfo = [];
@@ -35,6 +44,12 @@ Class StatisticService extends BaseService {
             }
             if(!empty($params['end_time'])){
                 $model->andWhere(['<=','day',$params['end_time']]);
+            }
+            if(!empty($params['type'])){
+                $model->andWhere(['=','type',$params['type']]);
+            }
+            if(!empty($params['data_code'])){
+                $model->andWhere(['=','data_code',$params['data_code']]);
             }
             $result = $model->groupBy(['day'])->orderBy(['day'=>SORT_ASC])->asArray()->all();
             foreach($dateAll as $value){
