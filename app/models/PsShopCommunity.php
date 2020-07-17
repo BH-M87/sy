@@ -13,8 +13,9 @@ class PsShopCommunity extends BaseModel
     public function rules()
     {
         return [
-            [['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['shop_id', 'distance', 'community_id', 'community_name'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             [['shop_id'], 'integer', 'message'=> '{attribute}格式错误!'],
+            [['society_id', 'society_name'], 'string', 'max' => 30],
         ];
     }
 
