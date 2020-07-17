@@ -326,8 +326,8 @@ class ShopService extends BaseService
     // 店铺 列表
     public function shopList($p)
     {
-        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
-        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+        $p['page'] = !empty($p['page']) ? $p['page'] : $p['pageNum'];
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : $p['pageSize'];
 
         $totals = self::shopSearch($p)->count();
         if ($totals == 0) {
@@ -665,8 +665,8 @@ class ShopService extends BaseService
     // 商品 列表
     public function goodsList($p)
     {
-        $p['page'] = !empty($p['page']) ? $p['page'] : '1';
-        $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
+        $p['page'] = !empty($p['page']) ? $p['page'] : $p['pageNum'];
+        $p['rows'] = !empty($p['rows']) ? $p['rows'] : $p['pageSize'];
 
         $totals = self::goodsSearch($p)->groupBy('A.id')->count();
         if ($totals == 0) {
