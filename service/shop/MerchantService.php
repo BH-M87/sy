@@ -408,7 +408,7 @@ Class MerchantService extends BaseService {
         if($model->load($params,'')&&$model->validate()){
             $cateModel = new PsShopCategory();
             $fields = [
-                        's.shop_name','shopImg','s.merchant_code','m.check_at','s.address','s.lon','s.lat','s.start','s.end','s.link_name',
+                        's.shop_name','shopImg','s.merchant_code','m.check_at','s.address','s.location','s.lon','s.lat','s.start','s.end','s.link_name',
                         's.link_mobile','m.category_first','m.category_second','m.business_img','m.merchant_img'
             ];
             $detail = $model::find()->alias('s')
