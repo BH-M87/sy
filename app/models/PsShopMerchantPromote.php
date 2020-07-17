@@ -30,6 +30,7 @@ class PsShopMerchantPromote extends BaseModel {
             [['merchant_code','merchant_name'],'merchantVerification','on'=>['add','edit']],      //商户验证
             [['merchant_code','shop_code','shop_name'],'shopVerification','on'=>['add','edit']],      //商铺验证
             [['id'],'infoData','on'=>['edit','detail']],
+            [['id','shop_code'],'shopCodeUnique','on'=>['add','edit']],     //店铺唯一
             ['status', 'in', 'range' => [1, 2]],
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["sort",'status'],"default",'value' => 1,'on'=>['add']],
@@ -84,6 +85,21 @@ class PsShopMerchantPromote extends BaseModel {
         }
     }
 
+    /*
+     * 商铺唯一
+     */
+    public function shopCodeUnique($attribute){
+        if(!empty($this->shop_code)){
+            $model = self::find()->select(['id'])->where(['=','shop_code',$this->shop_code]);
+            if(!empty($this->id)){
+                $model->andWhere(['!=','id',$this->id]);
+            }
+            $res = $model->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "该店铺已存在");
+            }
+        }
+    }
 
     /*
      * 商户验证
