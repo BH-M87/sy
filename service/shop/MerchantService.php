@@ -289,10 +289,14 @@ Class MerchantService extends BaseService {
         $addParams['merchant_name'] = !empty($params['merchant_name'])?$params['merchant_name']:'';
         $addParams['shop_code'] = !empty($params['shop_code'])?$params['shop_code']:'';
         $addParams['shop_name'] = !empty($params['shop_name'])?$params['shop_name']:'';
-        $addParams['name'] = !empty($params['name'])?$params['name']:'';
+        if(is_numeric($params['name'])){
+            $addParams['name'] = $params['name'];
+        }else{
+            $addParams['name'] = !empty($params['name'])?$params['name']:'';
+        }
         $addParams['img'] = !empty($params['img'])?$params['img']:'';
         $addParams['sort'] = !empty($params['sort'])?$params['sort']:'';
-
+        
         $model = new PsShopMerchantPromote(['scenario'=>'add']);
         if($model->load($addParams,'')&&$model->validate()){
             if(!$model->save()){
