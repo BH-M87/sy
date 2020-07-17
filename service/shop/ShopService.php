@@ -30,12 +30,13 @@ class ShopService extends BaseService
     public function communityIndex($p)
     {
         $m = PsShopCommunity::find()->alias('A')
-            ->select('B.id shop_id, B.shop_name, A.distance, B.status')
+            ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
+            ->where(['<=', 'A.distance', '1'])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->orderBy('A.distance desc')->asArray()->all();
+            ->orderBy('B.status asc, A.distance asc')->asArray()->all();
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
@@ -54,7 +55,7 @@ class ShopService extends BaseService
                 }
 
                 $v['goodsType'] = self::_goodsTypeName($goods[0]['id']);
-                $v['distance'] = round($v['distance'] / 1000, 2);
+                //$v['distance'] = round($v['distance'] / 1000, 2);
                 $v['statusMsg'] = $v['status'] == 1 ? '营业中' : '打烊';
             }
         }
@@ -634,23 +635,21 @@ class ShopService extends BaseService
 
             $id = $scenario == 'add' ? $model->attributes['id'] : $p['id'];
 
-            if (!empty($p['type_id']) && is_array($p['type_id'])) {
-                PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
+            PsShopGoodsTypeRela::deleteAll(['goods_id' => $id]);
+            if (!empty($p['type_id']) && is_array($p['type_id']) && count($p['type_id']) > 0) {
 
-                if (count($p['type_id']) > 0) {
-                    foreach ($p['type_id'] as $type_id) {
-                        if (!empty($type_id)) {
-                            $goodsType = PsShopGoodsType::findOne($type_id);
-                            if (empty($goodsType)) {
-                                throw new MyException('商品分类不存在');
-                            }
+                foreach ($p['type_id'] as $type_id) {
+                    if (!empty($type_id)) {
+                        $goodsType = PsShopGoodsType::findOne($type_id);
+                        if (empty($goodsType)) {
+                            throw new MyException('商品分类不存在');
+                        }
 
-                            $rela = new PsShopGoodsTypeRela();
-                            $rela->goods_id = $id;
-                            $rela->type_id = $type_id;
-                            $rela->save();
-                        }   
-                    }
+                        $rela = new PsShopGoodsTypeRela();
+                        $rela->goods_id = $id;
+                        $rela->type_id = $type_id;
+                        $rela->save();
+                    }   
                 }
             }
 
