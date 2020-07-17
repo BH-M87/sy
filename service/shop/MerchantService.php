@@ -315,7 +315,11 @@ Class MerchantService extends BaseService {
         $updateParams['merchant_name'] = !empty($params['merchant_name'])?$params['merchant_name']:'';
         $updateParams['shop_code'] = !empty($params['shop_code'])?$params['shop_code']:'';
         $updateParams['shop_name'] = !empty($params['shop_name'])?$params['shop_name']:'';
-        $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+        if(is_numeric($params['name'])){
+            $updateParams['name'] = $params['name'];
+        }else{
+            $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+        }
         $updateParams['img'] = !empty($params['img'])?$params['img']:'';
         $updateParams['id'] = !empty($params['id'])?$params['id']:'';
         $updateParams['sort'] = !empty($params['sort'])?$params['sort']:'';
