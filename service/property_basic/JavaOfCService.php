@@ -170,4 +170,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/home/selectCommunityById';
         return self::returnCData($query);
     }
+
+    //获取会员信息
+    public function selectMemberInfo($query){
+        $query['route'] = '/member/api/selectMemberInfo';
+        return self::returnCData($query);
+    }
 }

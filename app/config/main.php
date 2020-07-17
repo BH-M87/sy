@@ -107,6 +107,10 @@ $config =  [
         'property' => [
             'class' => 'app\modules\property\Module'
         ],
+        //运营后台
+        'operation' => [
+            'class' => 'app\modules\operation\Module'
+        ],
         //钉钉B端应用
         'ding_property_app' => [
             'class' => 'app\modules\ding_property_app\Module'
