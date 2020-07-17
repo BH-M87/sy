@@ -20,6 +20,7 @@ use app\models\PsShopMerchant;
 use app\models\PsShopCategory;
 use app\models\PsShopMerchantCommunity;
 use app\models\PsShopStatistic;
+use app\models\PsShopMerchantPromote;
 
 use service\property_basic\JavaOfCService;
 
@@ -34,7 +35,7 @@ class ShopService extends BaseService
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->orderBy('A.distance asc')->asArray()->all();
+            ->orderBy('A.distance desc')->asArray()->all();
 
         if (!empty($m)) {
             foreach ($m as $k => &$v) {
@@ -265,7 +266,7 @@ class ShopService extends BaseService
                     $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
                     $commParam[] = [
                         'shop_id' => $shop_id, 
-                        'distance' => $distance, 
+                        'distance' => round($distance / 1000, 2), 
                         'community_id' => $v['community_id'],
                         'community_name' => $v['community_name'],
                         'society_id' => $v['society_id'],
