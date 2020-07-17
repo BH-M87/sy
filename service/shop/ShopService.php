@@ -86,16 +86,22 @@ class ShopService extends BaseService
 
     public function shopStatisticAdd($p)
     {
-        $shop = PsShop::findOne($p['shop_id']);
-        if (empty($shop)) {
-            throw new MyException('店铺不存在');
+        if ($p['type'] == 2) { // 商品
+            $data = PsShopGoods::find()->where(['goods_code' => $p['data_code']])->one();
+        } else { // 店铺
+            $data = PsShop::find()->where(['shop_code' => $p['data_code']])->one();
+        }
+        
+        if (empty($data)) {
+            throw new MyException('数据不存在');
         }
 
         $param['year'] = date('Y', time());
         $param['month'] = date('m', time());
         $param['day'] = date('Y-m-d', time());
 
-        $stat = PsShopStatistic::find()->where(['shop_id' => $p['shop_id'], 'day' => $param['day']])->one();
+        $stat = PsShopStatistic::find()
+            ->where(['data_code' => $p['data_code'], 'type' => $p['type'], 'day' => $param['day']])->one();
         if (!empty($stat)) {
             $scenario = 'edit';
             $param['id'] = $stat->id;
@@ -104,7 +110,8 @@ class ShopService extends BaseService
             $scenario = 'add';
         }
 
-        $param['shop_id'] = $p['shop_id'];
+        $param['data_code'] = $p['data_code'];
+        $param['type'] = $p['type'];
 
         $trans = Yii::$app->getDb()->beginTransaction();
 

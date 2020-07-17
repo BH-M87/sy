@@ -13,7 +13,7 @@ class PsShopStatistic extends BaseModel
     public function rules()
     {
         return [
-            [['shop_id', 'year', 'month', 'day'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['data_code', 'year', 'month', 'day', 'type'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             ['click_num', 'default', 'value' => 1, 'on' => 'add'],
         ];
     }
@@ -22,7 +22,8 @@ class PsShopStatistic extends BaseModel
     {
         return [
             'id' => 'ID',
-            'shop_id' => '店铺ID',
+            'type' => '类型',
+            'data_code' => '编码',
             'year' => '年',
             'month' => '月',
             'day' => '日',
