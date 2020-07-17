@@ -329,7 +329,7 @@ class ShopService extends BaseService
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        $totals = self::shopSearch($p)->count();
+        $totals = self::shopSearch($p)->groupBy('A.id')->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
@@ -337,7 +337,7 @@ class ShopService extends BaseService
         $list = self::shopSearch($p)
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->orderBy('A.id desc')->asArray()->all();
+            ->groupBy('A.id')->orderBy('A.id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
