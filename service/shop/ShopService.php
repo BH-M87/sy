@@ -250,34 +250,35 @@ class ShopService extends BaseService
         }
 
         if (empty($p['community'])) {
-            throw new MyException('请选择小区');
+            //throw new MyException('请选择小区');
         }
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
         try {
-
             PsShopCommunity::deleteAll(['shop_id' => $shop_id]);
+            
+            if (!empty($p['community'])) {
+                foreach ($p['community'] as $k => $v) {
+                    $javaParam['token'] = $p['token'];
+                    $javaParam['id'] = $v['community_id'];
+                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
 
-            foreach ($p['community'] as $k => $v) {
-                $javaParam['token'] = $p['token'];
-                $javaParam['id'] = $v['community_id'];
-                $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
+                    if (!empty($javaResult)) {
+                        $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
+                        $commParam[] = [
+                            'shop_id' => $shop_id, 
+                            'distance' => round($distance / 1000, 2), 
+                            'community_id' => $v['community_id'],
+                            'community_name' => $v['community_name'],
+                            'society_id' => $v['society_id'],
+                            'society_name' => $v['society_name'],
+                        ];
+                    }       
+                }
 
-                if (!empty($javaResult)) {
-                    $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
-                    $commParam[] = [
-                        'shop_id' => $shop_id, 
-                        'distance' => round($distance / 1000, 2), 
-                        'community_id' => $v['community_id'],
-                        'community_name' => $v['community_name'],
-                        'society_id' => $v['society_id'],
-                        'society_name' => $v['society_name'],
-                    ];
-                }       
+                Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();
             }
-
-            Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();
 
             $trans->commit();
             return ['id' => $shop_id];
