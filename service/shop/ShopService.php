@@ -329,7 +329,7 @@ class ShopService extends BaseService
         $p['page'] = !empty($p['page']) ? $p['page'] : '1';
         $p['rows'] = !empty($p['rows']) ? $p['rows'] : '10';
 
-        $totals = self::shopSearch($p)->groupBy('A.id')->count();
+        $totals = self::shopSearch($p)->count();
         if ($totals == 0) {
             return ['list' => [], 'totals' => 0];
         }
@@ -337,7 +337,7 @@ class ShopService extends BaseService
         $list = self::shopSearch($p)
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
-            ->groupBy('A.id')->orderBy('A.id desc')->asArray()->all();
+            ->orderBy('A.id desc')->asArray()->all();
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
                 $v['goodsNum'] =  PsShopGoods::find()->where(['shop_id' => $v['id']])->count();
@@ -364,7 +364,8 @@ class ShopService extends BaseService
             ->andFilterWhere(['<=', 'A.create_at', $end_at])
             ->andFilterWhere(['=', 'B.society_id', $p['society_id']])
             ->andFilterWhere(['=', 'B.community_id', $p['community_id']])
-            ->andFilterWhere(['like', 'B.community_name', $p['community_name']]);
+            ->andFilterWhere(['like', 'B.community_name', $p['community_name']])
+            ->groupBy('A.id');
         return $m;
     }
     
