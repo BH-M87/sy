@@ -182,6 +182,7 @@ class ShopService extends BaseService
         $param['merchant_code'] = $merchant->merchant_code;
         $param['shop_name'] = $p['shop_name'];
         $param['address'] = $p['address'];
+        $param['location'] = $p['location'];
         $param['lon'] = $p['lon'];
         $param['lat'] = $p['lat'];
         $param['link_name'] = $p['link_name'];
