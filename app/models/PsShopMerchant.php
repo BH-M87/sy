@@ -32,8 +32,8 @@ class PsShopMerchant extends BaseModel {
     {
         return [
 
-            [['name','type','category_first', 'merchant_img','lon','lat','location','start','end','link_name','link_mobile','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
-            [['name','type','category_first', 'business_img','merchant_img','lon','lat','location','start','end','link_name','link_mobile','scale','area','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
+            [['name','type','category_first', 'merchant_img','lon','lat','location','address','start','end','link_name','link_mobile','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['micro_add']],
+            [['name','type','category_first', 'business_img','merchant_img','lon','lat','location','address','start','end','link_name','link_mobile','scale','area','communityInfo','member_id','ali_user_id','ali_form_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['individual_add']],
             [['check_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['checkDetail']],
             [['merchant_code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['merchantDetail']],
             [['check_code','check_status','check_id','check_name','check_at'],'required','message'=>'{attribute}不能为空！','on'=>['checked']],
@@ -41,14 +41,14 @@ class PsShopMerchant extends BaseModel {
             [['member_id'],'required','message'=>'{attribute}不能为空！','on'=>['merchantDetailOfc','judgmentExist']],
             [["id",'type', 'check_status','scale','area','status','create_at','update_at','check_at'], 'integer'],
             [["lon",'lat'], 'number'],
-            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','check_content'], 'trim'],
+            [['name','merchant_code','check_code','member_id','check_id','start','end','link_name','link_mobile','check_name','ali_form_id','ali_user_id','category_first','category_second','merchant_img','business_img','location','address','check_content'], 'trim'],
             [['merchant_code','check_code','member_id','check_id'], 'string',"max"=>30],
             [['start','end','link_name','check_name'], 'string',"max"=>10],
             [['name','link_mobile'], 'string',"max"=>20],
             [['ali_form_id','ali_user_id'], 'string',"max"=>100],
             [['category_first','category_second'], 'string',"max"=>64],
             [['merchant_img','business_img'], 'string',"max"=>500],
-            [['location','check_content'], 'string',"max"=>255],
+            [['location','address','check_content'], 'string',"max"=>255],
             ['area', 'in', 'range' => [1, 2, 3,4],'on'=>['individual_add']],
             ['scale', 'in', 'range' => [1, 2, 3,4,5],'on'=>['individual_add']],
             [['type','status'], 'in', 'range' => [1,2]],
@@ -82,7 +82,8 @@ class PsShopMerchant extends BaseModel {
               'business_img'            => '营业执照',
               'lon'                     => '经度',
               'lat'                     => '纬度',
-              'location'                => '详细地址',
+              'location'                => '位置名称',
+              'address'                 => '详细地址',
               'start'                   => '营业开始时间',
               'end'                     => '营业结束时间',
               'link_name'               => '联系人/法人',
@@ -306,7 +307,7 @@ class PsShopMerchant extends BaseModel {
     //商户详情
     public function getDetail($params){
         $fields = [
-                    'name','type','category_first','category_second','merchant_img','business_img','lon','lat','location','start',
+                    'name','type','category_first','category_second','merchant_img','business_img','lon','lat','location','address','start',
                     'end','link_name','link_mobile','scale','area','merchant_code','check_code','ali_user_id','create_at','check_status',
                     'status','check_at'
         ];

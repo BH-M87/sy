@@ -36,6 +36,7 @@ Class MerchantService extends BaseService {
             $addParams['lon'] = !empty($params['lon'])?$params['lon']:'';
             $addParams['lat'] = !empty($params['lat'])?$params['lat']:'';
             $addParams['location'] = !empty($params['location'])?$params['location']:'';
+            $addParams['address'] = !empty($params['address'])?$params['address']:'';
             $addParams['start'] = !empty($params['start'])?$params['start']:'';
             $addParams['end'] = !empty($params['end'])?$params['end']:'';
             $addParams['link_name'] = !empty($params['link_name'])?$params['link_name']:'';
