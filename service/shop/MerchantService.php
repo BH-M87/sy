@@ -400,8 +400,14 @@ Class MerchantService extends BaseService {
         if($model->load($params,'')&&$model->validate()){
             $detail = $model::find()->select(['id','shop_code','shop_name','shopImg'])->where(['=','app_id',$params['app_id']])->asArray()->one();
             //分类
+            $cateAll = [
+                [
+                    'id'=>0,
+                    'type_name'=>'全部',
+                ],
+            ];
             $cate = PsShopGoodsType::find()->select(['id','type_name'])->where(['=','shop_id',$detail['id']])->orderBy(['id'=>SORT_ASC])->asArray()->all();
-            return $this->success(['shop'=>$detail,'cate'=>$cate]);
+            return $this->success(['shop'=>$detail,'cate'=>array_merge($cateAll,$cate)]);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
