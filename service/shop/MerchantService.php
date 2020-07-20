@@ -453,6 +453,7 @@ Class MerchantService extends BaseService {
         $fields = ['g.id','g.img','g.goods_name'];
 
         $model = PsShopGoods::find()
+                        ->distinct()
                         ->select($fields)
                         ->alias('g')
                         ->leftJoin(['r'=>PsShopGoodsTypeRela::tableName()],'g.id=r.goods_id')

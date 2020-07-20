@@ -29,8 +29,8 @@ class ShopService extends BaseService
     // 商城首页
     public function communityIndex($p)
     {
-        $m = PsShopCommunity::find()->alias('A')
-            ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status')
+        $list = PsShopCommunity::find()->alias('A')
+            ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status, B.merchant_code')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
             ->where(['<=', 'A.distance', '1'])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
@@ -38,8 +38,8 @@ class ShopService extends BaseService
             ->limit($p['rows'])
             ->orderBy('B.status asc, A.distance asc')->asArray()->all();
 
-        if (!empty($m)) {
-            foreach ($m as $k => &$v) {
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
                 $goods = PsShopGoods::find()->where(['shop_id' => $v['shop_id']])->orderBy('id desc')->limit(2)->asArray()->all();
                 if ($goods) {
                     $array1 = $array2 = [];
@@ -55,12 +55,26 @@ class ShopService extends BaseService
                 }
 
                 $v['goodsType'] = self::_goodsTypeName($goods[0]['id']);
-                //$v['distance'] = round($v['distance'] / 1000, 2);
+
+                $merchant = PsShopMerchant::find()->where(['merchant_code' => $v['merchant_code']])->one();
+                $category_name = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+                if (empty($category_name)) {
+                    $category_name = PsShopCategory::find()->where(['code' => $merchant->category_first])->one()->name;
+                }
+                $v['category_name'] = $category_name;
+
                 $v['statusMsg'] = $v['status'] == 1 ? '营业中' : '打烊';
             }
         }
 
-        return $m;
+        $top = PsShopMerchantPromote::find()->alias('A')
+            ->select('A.img, B.shop_code, B.id shop_id')
+            ->leftJoin('ps_shop B', 'A.shop_code = B.shop_code')
+            ->where(['=', 'A.status', 1])
+            ->groupBy('B.shop_code')
+            ->orderBy('A.sort asc')->asArray()->all();
+
+        return ['top' => $top ?? [], 'list' => $list ?? []];
     }
 
     public function smallIndex($p)
@@ -220,7 +234,7 @@ class ShopService extends BaseService
                         $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
                         $commParam[] = [
                             'shop_id' => $shopId, 
-                            'distance' => $distance, 
+                            'distance' => round($distance / 1000, 2), 
                             'community_id' => $javaResult['id'],
                             'community_name' => $javaResult['communityName'],
                             'society_id' => $v['society_id'],
@@ -351,7 +365,7 @@ class ShopService extends BaseService
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
-
+    
     // 列表参数过滤
     private static function shopSearch($p)
     {
