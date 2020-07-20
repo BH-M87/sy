@@ -30,7 +30,7 @@ class ShopService extends BaseService
     public function communityIndex($p)
     {
         $m = PsShopCommunity::find()->alias('A')
-            ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status')
+            ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status, B.merchant_code')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
             ->where(['<=', 'A.distance', '1'])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
@@ -55,7 +55,14 @@ class ShopService extends BaseService
                 }
 
                 $v['goodsType'] = self::_goodsTypeName($goods[0]['id']);
-                //$v['distance'] = round($v['distance'] / 1000, 2);
+
+                $merchant = PsShopMerchant::find()->where(['merchant_code' => $v['merchant_code']])->one();
+                $category_name = PsShopCategory::find()->where(['code' => $merchant->category_second])->one()->name;
+                if (empty($category_name)) {
+                    $category_name = PsShopCategory::find()->where(['code' => $merchant->category_first])->one()->name;
+                }
+                $v['category_name'] = $category_name;
+
                 $v['statusMsg'] = $v['status'] == 1 ? '营业中' : '打烊';
             }
         }
@@ -351,7 +358,7 @@ class ShopService extends BaseService
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
-
+    
     // 列表参数过滤
     private static function shopSearch($p)
     {
