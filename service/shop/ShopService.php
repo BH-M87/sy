@@ -29,7 +29,7 @@ class ShopService extends BaseService
     // 商城首页
     public function communityIndex($p)
     {
-        $m = PsShopCommunity::find()->alias('A')
+        $list = PsShopCommunity::find()->alias('A')
             ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status, B.merchant_code')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
             ->where(['<=', 'A.distance', '1'])
@@ -38,8 +38,8 @@ class ShopService extends BaseService
             ->limit($p['rows'])
             ->orderBy('B.status asc, A.distance asc')->asArray()->all();
 
-        if (!empty($m)) {
-            foreach ($m as $k => &$v) {
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
                 $goods = PsShopGoods::find()->where(['shop_id' => $v['shop_id']])->orderBy('id desc')->limit(2)->asArray()->all();
                 if ($goods) {
                     $array1 = $array2 = [];
@@ -67,7 +67,14 @@ class ShopService extends BaseService
             }
         }
 
-        return $m;
+        $top = PsShopMerchantPromote::find()->alias('A')
+            ->select('A.img, B.shop_code, B.id shop_id')
+            ->leftJoin('ps_shop B', 'A.shop_code = B.shop_code')
+            ->where(['=', 'A.status', 1])
+            ->groupBy('B.shop_code')
+            ->orderBy('A.sort asc')->asArray()->all();
+
+        return ['top' => $top ?? [], 'list' => $list ?? []];
     }
 
     public function smallIndex($p)
@@ -227,7 +234,7 @@ class ShopService extends BaseService
                         $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
                         $commParam[] = [
                             'shop_id' => $shopId, 
-                            'distance' => $distance, 
+                            'distance' => round($distance / 1000, 2), 
                             'community_id' => $javaResult['id'],
                             'community_name' => $javaResult['communityName'],
                             'society_id' => $v['society_id'],
