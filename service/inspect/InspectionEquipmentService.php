@@ -213,7 +213,7 @@ class InspectionEquipmentService extends BaseService {
                 return [];
             }
             $userListArray = array_column($userResult['list'],'ddUserId');
-            if(count($userListArray)){
+            if(count($userListArray)>20){
                 $userListArray = array_slice($userListArray,0,20);
             }
             $params['dd_user_list'] = implode($userListArray,',');
