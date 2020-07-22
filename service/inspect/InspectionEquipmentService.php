@@ -203,7 +203,7 @@ class InspectionEquipmentService extends BaseService {
             return PsCommon::responseFailed("corp_id不能为空");
         }
         //获得所有已同步b1设备
-        $fields = ['id','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url'];
+        $fields = ['id','name','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url','start_time','end_time'];
         $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->andWhere(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
         if(!empty($deviceAll)){
             //获得所所有钉钉人员
@@ -286,6 +286,21 @@ class InspectionEquipmentService extends BaseService {
                 $userAddResult = self::taskInstanceEditUser($userAddParams);
                 if($userAddResult->errcode != 0){
                     return PsCommon::responseFailed($userAddResult->errmsg);
+                }
+
+                //打卡事件同步 (小闹钟)
+                $syncAddParams['biz_inst_id'] = $biz_inst_id;
+                $syncAddParams['punch_group_id'] = $punch_group_id;
+                $syncAddParams['userArr'] = $userArr;
+                $syncAddParams['event_name'] = $deviceInfo['name'];
+                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
+                $syncAddParams['end_time'] = $deviceInfo['end_time']*1000;
+                $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
+                $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
+                $syncAddParams['event_id'] = $deviceInfo['id'];
+                $syncAddResult = self::eventSyncOfUser($syncAddParams);
+                if($syncAddResult->errcode != 0){
+                    return PsCommon::responseFailed($syncAddResult->errmsg);
                 }
 
                 $instanceUpdate['biz_inst_id'] = $biz_inst_id;
@@ -611,6 +626,45 @@ class InspectionEquipmentService extends BaseService {
         $resp = $c->execute($req, $access_token);
         return $resp;
     }
+
+
+    //设置新增、变更打卡事件（小闹钟）
+    public function eventSyncOfUser($params){
+
+        date_default_timezone_set('Asia/Shanghai');
+
+        $biz_inst_id = $params['biz_inst_id'];
+        $punch_group_id = $params['punch_group_id'];
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
+
+        $c = new \DingTalkClient("", "", "json");
+        $req = new \OapiPbpEventSyncRequest;
+        $param = new \UserEventOapiRequestVo;
+        $param->biz_code = $punch_group_id;
+
+        foreach($params['userArr'] as $value){
+            $user_event_list = new \UserEventOapiVo;
+            $user_event_list->userid = $value;
+            $user_event_list->event_name = $params['event_name'];
+            $user_event_list->start_time = $params['start_time'];
+            $user_event_list->end_time = $params['end_time'];
+            $user_event_list->event_time_stamp = $params['event_time_stamp'];
+            $position_list = new \PositionOapiVo;
+            $position_list->position_id = $params['position_id'];
+            $position_list->position_type = "101";
+            $user_event_list->position_list = array($position_list);
+            $user_event_list->biz_inst_id = $biz_inst_id;
+            $user_event_list->event_id = $params['event_id'];
+            $param->user_event_list = array($user_event_list);
+        }
+        $req->setParam($param);
+        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        print_r($resp);die;
+        return $resp;
+    }
+
+
 
     //停用实例
     public function instanceDisable($params){

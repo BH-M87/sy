@@ -40,7 +40,8 @@ class ShopService extends BaseService
 
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $goods = PsShopGoods::find()->where(['shop_id' => $v['shop_id']])->orderBy('id desc')->limit(2)->asArray()->all();
+                $goods = PsShopGoods::find()->where(['shop_id' => $v['shop_id']])
+                    ->andWhere(['status' => 1])->orderBy('id desc')->limit(2)->asArray()->all();
                 if ($goods) {
                     $array1 = $array2 = [];
                     foreach ($goods as $key => $val) {
