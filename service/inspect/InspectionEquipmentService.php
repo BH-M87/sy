@@ -662,7 +662,6 @@ class InspectionEquipmentService extends BaseService {
         }
         $req->setParam($param);
         $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
-        print_r($resp);die;
         return $resp;
     }
 
