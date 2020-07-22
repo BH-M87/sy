@@ -273,20 +273,20 @@ class InspectionEquipmentService extends BaseService {
                 }
                 //添加人员
                 $userArr = explode(',',$params['dd_user_list']);
-                $userData = [];
-                foreach($userArr as $value){
-                    $element['member_id'] = $value;
-                    $element['type'] = 0;
-                    $userData[] = $element;
-                }
-                $userAddParams['biz_inst_id'] = $biz_inst_id;
-                $userAddParams['punch_group_id'] = $punch_group_id;
-                $userAddParams['token'] = $params['token'];
-                $userAddParams['add_member_list'] = $userData;
-                $userAddResult = self::taskInstanceEditUser($userAddParams);
-                if($userAddResult->errcode != 0){
-                    return PsCommon::responseFailed($userAddResult->errmsg);
-                }
+//                $userData = [];
+//                foreach($userArr as $value){
+//                    $element['member_id'] = $value;
+//                    $element['type'] = 0;
+//                    $userData[] = $element;
+//                }
+//                $userAddParams['biz_inst_id'] = $biz_inst_id;
+//                $userAddParams['punch_group_id'] = $punch_group_id;
+//                $userAddParams['token'] = $params['token'];
+//                $userAddParams['add_member_list'] = $userData;
+//                $userAddResult = self::taskInstanceEditUser($userAddParams);
+//                if($userAddResult->errcode != 0){
+//                    return PsCommon::responseFailed($userAddResult->errmsg);
+//                }
 
                 //打卡事件同步 (小闹钟)
                 $syncAddParams['biz_inst_id'] = $biz_inst_id;
