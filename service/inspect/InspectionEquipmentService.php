@@ -298,6 +298,7 @@ class InspectionEquipmentService extends BaseService {
                 $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
                 $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
                 $syncAddParams['event_id'] = $deviceInfo['id'];
+                $syncAddParams['token'] = $params['token'];
                 $syncAddResult = self::eventSyncOfUser($syncAddParams);
                 if($syncAddResult->errcode != 0){
                     return PsCommon::responseFailed($syncAddResult->errmsg);
