@@ -87,7 +87,8 @@ class InspectionEquipmentService extends BaseService {
 
                     Yii::$app->db->createCommand()->insert('ps_b1_instance', $data)->execute();
                     $id=Yii::$app->db->getLastInsertID();
-                    return PsCommon::responseSuccess(['id'=>$id]);
+//                    return PsCommon::responseSuccess(['id'=>$id]);
+                    return ['id'=>$id];
                 }else{
                     return PsCommon::responseFailed($groupResult->errmsg);
                 }
@@ -188,10 +189,8 @@ class InspectionEquipmentService extends BaseService {
                 //数据判断
                 $fields = ['companyId','name','deviceType','deviceNo','createAt'];
                 Yii::$app->db->createCommand()->batchInsert('ps_inspect_device',$fields,$dataAll)->execute();
-                return PsCommon::responseSuccess();
-            }else{
-                return PsCommon::responseSuccess();
             }
+            return [];
         }else{
             return PsCommon::responseFailed("公司实例不存在");
         }
@@ -210,7 +209,8 @@ class InspectionEquipmentService extends BaseService {
             $userService = new JavaService();
             $userResult = $userService->bindUserList($params);
             if(empty($userResult['list'])){
-                return PsCommon::responseSuccess();
+//                return PsCommon::responseSuccess();
+                return [];
             }
             $params['dd_user_list'] = implode(array_column($userResult['list'],'ddUserId'),',');
             foreach($deviceAll as $key => $deviceInfo){
@@ -318,7 +318,8 @@ class InspectionEquipmentService extends BaseService {
                 }
             }
         }
-        return PsCommon::responseSuccess();
+//        return PsCommon::responseSuccess();
+        return [];
     }
 
 
