@@ -293,20 +293,20 @@ class InspectionEquipmentService extends BaseService {
                 }
 
                 //打卡事件同步 (小闹钟)
-                $syncAddParams['biz_inst_id'] = $biz_inst_id;
-                $syncAddParams['punch_group_id'] = $punch_group_id;
-                $syncAddParams['userArr'] = $userArr;
-                $syncAddParams['event_name'] = $deviceInfo['name'];
-                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
-                $syncAddParams['end_time'] = $deviceInfo['end_time']*1000;
-                $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
-                $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
-                $syncAddParams['event_id'] = $deviceInfo['id'];
-                $syncAddParams['token'] = $params['token'];
-                $syncAddResult = self::eventSyncOfUser($syncAddParams);
-                if($syncAddResult->errcode != 0){
-                    return PsCommon::responseFailed($syncAddResult->errmsg);
-                }
+//                $syncAddParams['biz_inst_id'] = $biz_inst_id;
+//                $syncAddParams['punch_group_id'] = $punch_group_id;
+//                $syncAddParams['userArr'] = $userArr;
+//                $syncAddParams['event_name'] = $deviceInfo['name'];
+//                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
+//                $syncAddParams['end_time'] = $deviceInfo['end_time']*1000;
+//                $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
+//                $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
+//                $syncAddParams['event_id'] = $deviceInfo['id'];
+//                $syncAddParams['token'] = $params['token'];
+//                $syncAddResult = self::eventSyncOfUser($syncAddParams);
+//                if($syncAddResult->errcode != 0){
+//                    return PsCommon::responseFailed($syncAddResult->errmsg);
+//                }
 
                 $instanceUpdate['biz_inst_id'] = $biz_inst_id;
                 $instanceUpdate['punch_group_id'] = $punch_group_id;
