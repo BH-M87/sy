@@ -212,10 +212,11 @@ class InspectionEquipmentService extends BaseService {
 //                return PsCommon::responseSuccess();
                 return [];
             }
-            $params['dd_user_list'] = implode(array_column($userResult['list'],'ddUserId'),',');
-            if(count($params['dd_user_list'])>20){
-                $params['dd_user_list'] = array_slice($params['dd_user_list'],0,20);
+            $userListArray = array_column($userResult['list'],'ddUserId');
+            if(count($userListArray)){
+                $userListArray = array_slice($userListArray,0,20);
             }
+            $params['dd_user_list'] = implode($userListArray,',');
             foreach($deviceAll as $key => $deviceInfo){
                 $biz_inst_id = !empty($deviceInfo['biz_inst_id'])?$deviceInfo['biz_inst_id']:'';
                 $punch_group_id = !empty($deviceInfo['punch_group_id'])?$deviceInfo['punch_group_id']:'';
