@@ -111,7 +111,7 @@ class InspectionEquipmentController extends BaseController{
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
-            $result = $service->groupMemberList($params);
+            $result = $service->eventSyncOfUser($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
