@@ -616,23 +616,23 @@ class InspectionEquipmentService extends BaseService {
     //设置新增、变更打卡事件（小闹钟）
     public function eventSyncOfUser($params){
 
-//        $user_event_list = [
-//            [
-//                'userid'=>"014455261629645085",
-//                'event_name'=>"余杭门店巡查",
-//                'start_time'=>"1590138915000",
-//                'end_time'=>"1590166923000",
-//                'event_time_stamp'=>"1590138915000",
-//                'position_list'=>[
-//                    [
-//                        'position_id'=>'8749809',
-//                        'position_type'=>'101',
-//                    ],
-//                ],
-//                'biz_inst_id'=>"85c2a93f151b4410a78a8d7480bd41b0",
-//                'event_id'=>"5c2f4657eb6378f",
-//            ],
-//        ];
+        $user_event_list = [
+            [
+                'userid'=>"014455261629645085",
+                'event_name'=>"余杭门店巡查",
+                'start_time'=>"1590138915000",
+                'end_time'=>"1590166923000",
+                'event_time_stamp'=>"1590138915000",
+                'position_list'=>[
+                    [
+                        'position_id'=>'8749809',
+                        'position_type'=>'101',
+                    ],
+                ],
+                'biz_inst_id'=>"85c2a93f151b4410a78a8d7480bd41b0",
+                'event_id'=>"5c2f4657eb6378f",
+            ],
+        ];
 
         date_default_timezone_set('Asia/Shanghai');
 
@@ -646,19 +646,20 @@ class InspectionEquipmentService extends BaseService {
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = "meeting_check_in_dt_calendar";
 
-        $user_event_list = new \UserEventOapiVo;
-        $user_event_list->userid="014455261629645085";
-        $user_event_list->event_name="余杭门店巡查";
-        $user_event_list->start_time="1590138915000";
-        $user_event_list->end_time="1590166923000";
-        $user_event_list->event_time_stamp="1590138915000";
-        $position_list = new \PositionOapiVo;
-        $position_list->position_id="1973979835";
-        $position_list->position_type="101";
-        $user_event_list->position_list = array($position_list);
-        $user_event_list->biz_inst_id= "85c2a93f151b4410a78a8d7480bd41b0";
-        $user_event_list->event_id="873439897343";
-        $param->user_event_list = array($user_event_list);
+//        $user_event_list = new \UserEventOapiVo;
+//        $user_event_list->userid="014455261629645085";
+//        $user_event_list->event_name="余杭门店巡查";
+//        $user_event_list->start_time="1590138915000";
+//        $user_event_list->end_time="1590166923000";
+//        $user_event_list->event_time_stamp="1590138915000";
+//        $position_list = new \PositionOapiVo;
+//        $position_list->position_id="1973979835";
+//        $position_list->position_type="101";
+//        $user_event_list->position_list = array($position_list);
+//        $user_event_list->biz_inst_id= "85c2a93f151b4410a78a8d7480bd41b0";
+//        $user_event_list->event_id="873439897343";
+//        $param->user_event_list = array($user_event_list);
+        $param->user_event_list = !empty($user_event_list)?$user_event_list:[];
         $req->setParam($param);
         $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
         print_r($resp);die;
