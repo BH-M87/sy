@@ -10,6 +10,30 @@ use Yii;
 
 class VoteH5Controller extends BaseController
 {
+    // 获取短信 验证码
+    public function actionGetSmsCode()
+    {
+        if (empty($this->params['mobile'])) {
+            return PsCommon::responseFailed('手机号不能为空');
+        }
+
+        $r = VoteService::service()->getSmsCode($this->params);
+
+        return PsCommon::responseSuccess($r); 
+    }
+
+    // 验证短信验证码
+    public function actionValidateSmsCode()
+    {
+        if (empty($this->params['mobile'])) {
+            return PsCommon::responseFailed('手机号不能为空');
+        }
+
+        $r = VoteService::service()->validateSmsCode($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 首页
     public function actionIndex()
     {

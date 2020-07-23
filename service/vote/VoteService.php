@@ -12,6 +12,7 @@ use common\core\F;
 use service\BaseService;
 
 use app\models\VtVote;
+use app\models\VtMember;
 use app\models\VtFeedback;
 use app\models\VtComment;
 use app\models\VtActivity;
@@ -21,6 +22,58 @@ use app\models\VtPlayer;
 
 class VoteService extends BaseService
 {
+	// 获取短信验证码
+	public function getSmsCode($p)
+	{
+		$member = VtMember::find()->where(['mobile' => $p['mobile']])->asArray()->one();
+		$scenario = 'add';
+		if (!empty($member)) {
+			$scenario = 'edit';
+		}
+
+        $verify_code = mt_rand(100000, 999999);
+        $url = "http://test.louzhanggui.com/index.php?r=SendSms"; // 测试环境
+        //$url = "http://jjt.louzhanggui.com/index.php?r=SendSms";//正式环境 
+
+        $curl_data['template'] = 411; // 短信内容模板
+        $curl_data['mobile'] = $p['mobile']; // 接收者手机号
+        $curl_data['content'] = "您好，您的验证码为".$verify_code; // 发送内容
+        $curl_data['source'] = 'louzhanggui'; // 来源平台 经纪通：general  官网：zhujia  分销crm：crm
+        $curl_data['operat_name'] = '系统通知'; // 发送人名称
+
+        $r = json_decode(Curl::getInstance()->post($url, $curl_data), true);
+
+		if ($r == 600) {
+			$param['verify_code'] = $verify_code;
+			$param['mobile'] = $p['mobile'];
+
+            $model = new VtMember(['scenario' => $scenario]);
+
+        	if (!$model->load($param, '') || !$model->validate()) {
+            	throw new MyException($this->getError($model));
+        	}
+
+        	if (!$model->saveData($scenario, $param)) {
+            	throw new MyException($this->getError($model));
+        	}
+
+        	return ['mobile' => $p['mobile']];
+        } else {
+        	throw new MyException('短信发送失败');
+        }
+	}
+
+	// 验证短信验证码
+	public function validateSmsCode($p)
+	{
+		$member = VtMember::find()->where(['mobile' => $p['mobile']])->one();
+        if ($member->verify_code == $p['verify_code']) {
+        	return ['member_id' => $member->id];
+        } else {
+        	throw new MyException('验证码不正确');
+        }
+	}
+
     // 首页
     public function index($p)
     {
@@ -75,13 +128,17 @@ class VoteService extends BaseService
 	// 反馈新增
 	public function feedbackAdd($p) 
 	{
+		$member = VtMember::findOne($p['member_id']);
+		if (empty($activity)) {
+            throw new MyException('会员不存在');
+        }
+
         $activity = VtActivity::findOne($p['activity_id']);
-        
         if (empty($activity)) {
             throw new MyException('活动不存在');
         }
 
-        $feedback = VtFeedback::find()->where(['activity_id' => $p['activity_id'], 'mobile' => $p['mobile']])->one();
+        $feedback = VtFeedback::find()->where(['activity_id' => $p['activity_id'], 'mobile' => $member->mobile]])->one();
         if (!empty($feedback)) {
         	throw new MyException('同一活动只能反馈一次');
         }
@@ -102,8 +159,12 @@ class VoteService extends BaseService
     // 评论新增
 	public function commentAdd($p) 
 	{
+		$member = VtMember::findOne($p['member_id']);
+		if (empty($activity)) {
+            throw new MyException('会员不存在');
+        }
+
         $activity = VtActivity::findOne($p['activity_id']);
-        
         if (empty($activity)) {
             throw new MyException('活动不存在');
         }
@@ -114,7 +175,7 @@ class VoteService extends BaseService
             //throw new MyException('选手不存在');
         }
 
-        $comment = VtComment::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $p['mobile']])->one();
+        $comment = VtComment::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
         	throw new MyException('已经评论过了');
         }
@@ -135,8 +196,12 @@ class VoteService extends BaseService
     // 投票新增
 	public function voteAdd($p) 
 	{
+		$member = VtMember::findOne($p['member_id']);
+		if (empty($activity)) {
+            throw new MyException('会员不存在');
+        }
+
         $activity = VtActivity::findOne($p['activity_id']);
-        
         if (empty($activity)) {
             throw new MyException('活动不存在');
         }
@@ -147,7 +212,7 @@ class VoteService extends BaseService
             //throw new MyException('选手不存在');
         }
 
-        $comment = VtVote::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $p['mobile']])->one();
+        $comment = VtVote::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
         	throw new MyException('一个选手只能投一票');
         }
