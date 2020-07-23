@@ -91,8 +91,6 @@ class VtActivity extends BaseModel
     public function timeVerification($attribute){
         if(!empty($this->start_at)&&!empty($this->end_at)){
             $nowTime = time();
-            $this->start_at = strtotime($this->start_at);
-            $this->end_at = strtotime($this->end_at);
             if($this->start_at<$nowTime){
                 return $this->addError($attribute, "投票活动开始时间应大于当前时间");
             }
