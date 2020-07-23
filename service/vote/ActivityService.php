@@ -220,4 +220,11 @@ Class ActivityService extends BaseService {
             throw new Exception($msg);
         }
     }
+
+    //活动下拉
+    public function dropOfActivity(){
+        $model = new VtActivity();
+        $result = $model->getDropList();
+        return $this->success($result);
+    }
 }

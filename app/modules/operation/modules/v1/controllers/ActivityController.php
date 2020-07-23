@@ -84,4 +84,20 @@ class ActivityController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //活动下拉
+    public function actionDropOfActivity(){
+        try{
+            $service = new ActivityService();
+            $result = $service->dropOfActivity();
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

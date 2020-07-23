@@ -160,4 +160,11 @@ class VtActivity extends BaseModel
 
         return $model->asArray()->one();
     }
+
+    //活动下拉
+    public function getDropList(){
+        $fields = ['id','name'];
+        $model = self::find()->select($fields)->where(['>','start_at',time()])->orderBy(['id'=>SORT_DESC]);
+        return $model->asArray()->all();
+    }
 }
