@@ -56,7 +56,7 @@ class BaseController extends \yii\web\Controller
     {
         if (parent::beforeAction($action)) {
             $this->down_request_params = !empty(F::request('data')) ? json_decode(F::request('data'), true) : [];
-            if (!in_array($action->controller->id, ['download'])) {//下载文件不走签名
+            if (!in_array($action->controller->id, ['download', 'screen'])) {//下载文件不走签名
                 //请求方式，post检测
                 $this->_validateMethod();
                 $this->_validateBody();
