@@ -21,19 +21,16 @@ class VtPlayer extends BaseModel
     {
         return [
 
-            [['name', 'code', 'start_at', 'end_at', 'group_status'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
-            [['id','name', 'start_at', 'end_at', 'group_status'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
+            [['name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['id','name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
-            [["id",  'start_at', 'end_at', 'group_status', 'create_at', 'update_at'], 'integer'],
-            [['name', 'code', 'start_at', 'end_at', 'group_status','content'], 'trim'],
+            [["id",  'activity_id', 'group_id', 'view_num', 'vote_num','create_at', 'update_at'], 'integer'],
+            [['id', 'code', 'activity_id', 'group_id', 'name','img','content'], 'trim'],
             [['content'], 'string'],
-            [['code'], 'string', "max" => 20],
-            [['name'], 'string', "max" => 50],
-            [['link_url', 'qrcode'], 'string', "max" => 255],
-            ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
-            [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
-            [['id'], 'dataInfo', 'on' => ["edit","detail"]], //活动是否存在
-            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动code唯一
+            [['code','name'], 'string', "max" => 20],
+            [['img'], 'string', "max" => 255],
+//            [['name'], 'nameInfo', 'on' => ["add"]], //选手名称唯一
+            [['id'], 'dataInfo', 'on' => ["edit","detail"]], //选手是否存在
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
     }
@@ -74,4 +71,15 @@ class VtPlayer extends BaseModel
         return self::updateAll($param, ['id' => $param['id']]);
     }
 
+    /*
+     * 选手是否存在
+     */
+    public function dataInfo($attribute){
+        if(!empty($this->id)){
+            $res = self::find()->select(['id'])->where(['=','id',$this->id])->asArray()->one();
+            if(empty($res)){
+                return $this->addError($attribute, "该选手不存在");
+            }
+        }
+    }
 }
