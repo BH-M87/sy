@@ -32,6 +32,7 @@ class VtActivity extends BaseModel
             [['link_url', 'qrcode'], 'string', "max" => 255],
             ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
             [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
+            [['id'], 'dataInfo', 'on' => ["edit"]], //活动是否存在
             [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动code唯一
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
@@ -97,6 +98,18 @@ class VtActivity extends BaseModel
 
             if($this->start_at>$this->end_at){
                 return $this->addError($attribute, "投票活动开始时间应小于投票结束时间");
+            }
+        }
+    }
+
+    /*
+     * 验证数据是否存在
+     */
+    public function dataInfo($attribute){
+        if(!empty($this->id)){
+            $res = self::find()->select(['id'])->where(['=','id',$this->id])->asArray()->one();
+            if(empty($res)){
+                return $this->addError($attribute, "该投票活动不存在");
             }
         }
     }
