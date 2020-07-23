@@ -242,7 +242,7 @@ class PsShopMerchant extends BaseModel {
 
 
         $count = $model->count();
-        if(!empty($params['page'])||!empty($param['$params'])){
+        if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
             $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
             $offset = ($page-1)*$pageSize;

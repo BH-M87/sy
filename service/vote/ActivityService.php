@@ -47,9 +47,9 @@ Class ActivityService extends BaseService {
                     throw new Exception('活动新建失败！');
                 }
                 if($model->attributes['group_status']==1){
-                    foreach($params['group_name'] as $value){
+                    foreach($params['group_name'] as $key=>$value){
                         $groupModel = new VtActivityGroup(['scenario'=>'add']);
-                        $groupParams['name'] = !empty($value)?$value:'';
+                        $groupParams['name'] = !empty($value['name'])?$value['name']:'';
                         $groupParams['activity_id'] = $model->attributes['id'];
                         if($groupModel->load($groupParams,'')&&$groupModel->validate()){
                             if(!$groupModel->saveData()){
@@ -128,9 +128,9 @@ Class ActivityService extends BaseService {
                     throw new Exception('删除banner失败！');
                 }
                 if($model->attributes['group_status']==1){
-                    foreach($params['group_name'] as $value){
+                    foreach($params['group_name'] as $key=>$value){
                         $groupModel = new VtActivityGroup(['scenario'=>'add']);
-                        $groupParams['name'] = !empty($value)?$value:'';
+                        $groupParams['name'] = !empty($value['name'])?$value['name']:'';
                         $groupParams['activity_id'] = $model->attributes['id'];
                         if($groupModel->load($groupParams,'')&&$groupModel->validate()){
                             if(!$groupModel->saveData()){
@@ -171,4 +171,36 @@ Class ActivityService extends BaseService {
         }
     }
 
+    //活动列表
+    public function getList($params){
+        $model = new VtActivity();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            $nowTime = time();
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['status_msg'] = '进行中';
+                if($nowTime<$value['start_at']){
+                    $result['list'][$key]['status_msg'] = '未开始';
+                }elseif($nowTime>$value['end_at']){
+                    $result['list'][$key]['status_msg'] = '已结束';
+                }
+            }
+        }
+        return $this->success($result);
+    }
+
+    //活动详情
+    public function getDetail($params){
+        $model = new VtActivity(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model->getDetail($params);
+            $detail['start_at_msg'] = !empty($detail['start_at'])?date('Y-m-d H:i:s',$detail['start_at']):'';
+            $detail['end_at_msg'] = !empty($detail['end_at'])?date('Y-m-d H:i:s',$detail['end_at']):'';
+            return $this->success($detail);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
 }

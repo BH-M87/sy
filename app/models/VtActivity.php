@@ -32,7 +32,7 @@ class VtActivity extends BaseModel
             [['link_url', 'qrcode'], 'string', "max" => 255],
             ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
             [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
-            [['id'], 'dataInfo', 'on' => ["edit"]], //活动是否存在
+            [['id'], 'dataInfo', 'on' => ["edit","detail"]], //活动是否存在
             [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动code唯一
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
@@ -112,5 +112,52 @@ class VtActivity extends BaseModel
                 return $this->addError($attribute, "该投票活动不存在");
             }
         }
+    }
+
+    /*
+     * 活动列表
+     */
+    public function getList($params){
+        $fields = ['id','code','name','create_at','start_at','end_at'];
+        $model = self::find()->select($fields)->where(1);
+
+        if(!empty($params['code'])){
+            $model->andWhere(['like','code',$params['code']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like','name',$params['name']]);
+        }
+
+        $count = $model->count();
+        if(!empty($params['page'])||!empty($params['pageSize'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
+    }
+
+    //关联分组
+    public function getGroup(){
+        return $this->hasMany(VtActivityGroup::className(),['activity_id'=>'id']);
+    }
+
+    //关联banner
+    public function getBanner(){
+        return $this->hasMany(VtActivityBanner::className(),['activity_id'=>'id']);
+    }
+
+    //活动详情
+    public function getDetail($params){
+        $fields = ['id','code','name','content','start_at','end_at','group_status','link_url','qrcode'];
+        $model = self::find()->select($fields)->with('group')->with('banner')->where(['=','id',$params['id']]);
+
+        return $model->asArray()->one();
     }
 }
