@@ -11,6 +11,7 @@ namespace service\vote;
 use app\models\VtActivity;
 use app\models\VtActivityBanner;
 use app\models\VtActivityGroup;
+use app\models\VtPlayer;
 use service\BaseService;
 use Yii;
 use yii\db\Exception;
@@ -119,28 +120,44 @@ Class ActivityService extends BaseService {
                 if(!$model->edit($updateParams)){
                     throw new Exception('活动新建失败！');
                 }
-                //删除分组
-                if(!VtActivityGroup::deleteAll(['activity_id'=>$model->attributes['id']])){
-                    throw new Exception('删除分组失败！');
-                }
                 //删除banner
                 if(!VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']])){
                     throw new Exception('删除banner失败！');
                 }
                 if($model->attributes['group_status']==1){
                     foreach($params['group_name'] as $key=>$value){
-                        $groupModel = new VtActivityGroup(['scenario'=>'add']);
-                        $groupParams['name'] = !empty($value['name'])?$value['name']:'';
-                        $groupParams['activity_id'] = $model->attributes['id'];
-                        if($groupModel->load($groupParams,'')&&$groupModel->validate()){
-                            if(!$groupModel->saveData()){
-                                throw new Exception('新增分组失败！');
+                        if($value['id']){
+                            //修改分组
+                            $groupModel = new VtActivityGroup(['scenario'=>'edit']);
+                            $groupParams['id'] = !empty($value['id'])?$value['id']:'';
+                            $groupParams['name'] = !empty($value['name'])?$value['name']:'';
+                            $groupParams['activity_id'] = $model->attributes['id'];
+                            if($groupModel->load($groupParams,'')&&$groupModel->validate()){
+                                if(!$groupModel->edit($groupParams)){
+                                    throw new Exception('修改分组失败！');
+                                }
+                            }else{
+                                $msg = array_values($groupModel->errors)[0][0];
+                                throw new Exception($msg);
                             }
                         }else{
-                            $msg = array_values($groupModel->errors)[0][0];
-                            throw new Exception($msg);
+                            //新增分组
+                            $groupModel = new VtActivityGroup(['scenario'=>'add']);
+                            $groupParams['name'] = !empty($value['name'])?$value['name']:'';
+                            $groupParams['activity_id'] = $model->attributes['id'];
+                            if($groupModel->load($groupParams,'')&&$groupModel->validate()){
+                                if(!$groupModel->saveData()){
+                                    throw new Exception('新增分组失败！');
+                                }
+                            }else{
+                                $msg = array_values($groupModel->errors)[0][0];
+                                throw new Exception($msg);
+                            }
                         }
                     }
+                }else{
+                    //关联的选手分组设置空
+                    VtPlayer::updateAll(['group_id'=>0],'activity_id=:activity_id and group_id>:group_id',[":activity_id"=>$model->attributes['id'],":group_id"=>0]);
                 }
                 if(!empty($params['banner'])){
                     foreach($params['banner'] as $key=>$value){
