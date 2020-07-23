@@ -14,23 +14,22 @@ class VtFeedback extends BaseModel
     public function rules()
     {
         return [
+            [['activity_id', 'mobile', 'content', 'type'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add']],
+            [['content'], 'string', 'max' => 140],
+            ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add']],
+            ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
+            'id' => 'ID',
+            'activity_id' => '活动ID',
+            'mobile' => '手机号',
+            'content' => '反馈内容',
+            'type' => '来源',
+            'create_at' => '新增时间',
         ];
-    }
-
-     // 新增 编辑
-    public function saveData($scenario, $p)
-    {
-        if ($scenario == 'edit') {
-            $p['update_at'] = time();
-            self::updateAll($p, ['id' => $p['id']]);
-            return true;
-        }
-        return $this->save();
     }
 }
