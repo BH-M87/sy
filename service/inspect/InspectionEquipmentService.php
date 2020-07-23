@@ -218,6 +218,9 @@ class InspectionEquipmentService extends BaseService {
             }
             $params['dd_user_list'] = implode($userListArray,',');
             foreach($deviceAll as $key => $deviceInfo){
+                if(!empty($deviceInfo['dd_user_list'])){
+                    continue;
+                }
                 $biz_inst_id = !empty($deviceInfo['biz_inst_id'])?$deviceInfo['biz_inst_id']:'';
                 $punch_group_id = !empty($deviceInfo['punch_group_id'])?$deviceInfo['punch_group_id']:'';
                 if(empty($deviceInfo['biz_inst_id'])){
