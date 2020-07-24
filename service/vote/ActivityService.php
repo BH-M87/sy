@@ -102,11 +102,9 @@ Class ActivityService extends BaseService {
                 if(!$model->edit($updateParams)){
                     throw new Exception('活动修改失败！');
                 }
-
                 //删除banner
-                if(!VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']])){
-                    throw new Exception('删除banner失败！');
-                }
+                VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']]);
+
                 if(!empty($params['banner'])){
                     foreach($params['banner'] as $key=>$value){
                         $bannerModel = new VtActivityBanner(['scenario'=>'add']);
