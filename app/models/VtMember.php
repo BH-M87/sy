@@ -14,21 +14,29 @@ class VtMember extends BaseModel
     public function rules()
     {
         return [
+            [['mobile', 'verify_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add', 'edit']],
+            ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
     }
 
     public function attributeLabels()
     {
         return [
+            'id' => 'ID',
+            'mobile' => '手机号',
+            'verify_code' => '选手ID',
+            'update_at' => '修改时间',
+            'create_at' => '新增时间',
         ];
     }
 
-     // 新增 编辑
+    // 新增 编辑
     public function saveData($scenario, $p)
     {
         if ($scenario == 'edit') {
             $p['update_at'] = time();
-            self::updateAll($p, ['id' => $p['id']]);
+            self::updateAll($p, ['mobile' => $p['mobile']]);
             return true;
         }
         return $this->save();
