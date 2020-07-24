@@ -32,8 +32,9 @@ class ShopService extends BaseService
         $list = PsShopCommunity::find()->alias('A')
             ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status, B.merchant_code')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
-            ->where(['<=', 'A.distance', '1'])
+            //->where(['<=', 'A.distance', '1'])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['>', 'B.app_id', 0])
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('B.status asc, A.distance asc')->asArray()->all();
@@ -69,9 +70,10 @@ class ShopService extends BaseService
         }
 
         $top = PsShopMerchantPromote::find()->alias('A')
-            ->select('A.img, B.shop_code, B.id shop_id')
+            ->select('A.img, B.shop_code, B.id shop_id, B.app_id')
             ->leftJoin('ps_shop B', 'A.shop_code = B.shop_code')
             ->where(['=', 'A.status', 1])
+            ->andFilterWhere(['>', 'B.app_id', 0])
             ->groupBy('B.shop_code')
             ->orderBy('A.sort asc')->asArray()->all();
 
