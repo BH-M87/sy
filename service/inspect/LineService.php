@@ -196,14 +196,15 @@ class LineService extends BaseService
     // 巡检线路 搜索
     private static function lineSearch($p)
     {
-        $model = PsInspectLine::find()->alias("A")->distinct()
+        $m = PsInspectLine::find()->alias("A")->distinct()
             ->leftJoin("ps_inspect_line_point B", "A.id = B.lineId")
             ->andFilterWhere(['=', 'B.pointId', PsCommon::get($p, 'pointId')])
             ->andFilterWhere(['=', 'A.communityId', PsCommon::get($p, 'communityId')])
             ->andFilterWhere(['in', 'A.communityId', PsCommon::get($p, 'communityList')])
-            ->andFilterWhere(['like', 'A.name', PsCommon::get($p, 'name')])
+            ->andFilterWhere(['like', 'A.name', $p['name']])
             ->andFilterWhere(['=', 'A.id', PsCommon::get($p, 'lineId')]);
-        return $model;
+
+        return $m;
     }
 
     public static function lineOne($id, $select = "")

@@ -1,6 +1,7 @@
 <?php
 namespace app\modules\property\modules\v1\controllers;
 
+use service\common\ExcelService;
 use Yii;
 use common\core\F;
 use common\core\PsCommon;
@@ -75,6 +76,59 @@ Class BillIncomeController extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
+
+    //物业缴费导出
+    public function actionExportCheckList(){
+
+        $this->request_params['communityIds'] = $this->request_params['communityList'];
+        $getTotals = BillIncomeService::service()->billIncomeCount($this->request_params);
+        if ($getTotals > 0) {
+
+            $cycle = ceil($getTotals / 1000);
+//            $cycle = ceil($getTotals / 10);
+            $config["sheet_config"] = [
+
+                'A' => ['title' => '交易流水号', 'width' => 25, 'data_type' => 'str', 'field' => 'trade_no'],
+                'B' => ['title' => '小区', 'width' => 15, 'data_type' => 'str', 'field' => 'community_name'],
+                'C' => ['title' => '房屋信息', 'width' => 35, 'data_type' => 'str', 'field' => 'room_address'],
+                'D' => ['title' => '缴费方式', 'width' => 10, 'data_type' => 'str', 'field' => 'pay_channel_msg'],
+                'E' => ['title' => '收款方式', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_type_msg'],
+                'F' => ['title' => '交易金额', 'width' => 10, 'data_type' => 'str', 'field' => 'pay_money'],
+                'G' => ['title' => '交易类型', 'width' => 16, 'data_type' => 'str', 'field' => 'trade_type_msg'],
+                'H' => ['title' => '交易时间', 'width' => 20, 'data_type' => 'str', 'field' => 'income_time'],
+            ];
+            $config["save"] = true;
+            $community_id = !empty($this->request_params["community_id"])?$this->request_params["community_id"]:'all';
+            $savePath = Yii::$app->basePath . '/web/store/zip/jiaofeijilu/' . $community_id . '/';
+            $config["save_path"] = $savePath;
+            //房屋数量查过一千则导出压缩文件
+            if ($cycle == 1) {//下载单个文件
+                $config["file_name"] = "MuBan1.xlsx";
+                $this->request_params['page'] = 1;
+                $this->request_params['rows'] = 1000;
+                $result = BillIncomeService::service()->billIncomeList($this->request_params);
+                $file_name = ExcelService::service()->recordDown($result, $config);
+                $downUrl = F::downloadUrl('jiaofeijilu/' . $community_id . '/'. $file_name, 'zip');
+                return PsCommon::responseSuccess(['down_url' => $downUrl]);
+            } else {//下载zip压缩包
+                for ($i = 1; $i <= $cycle; $i++) {
+                    $config["file_name"] = "MuBan" . $i . ".xlsx";
+                    $this->request_params['page'] = $i;
+                    $this->request_params['rows'] = 1000;
+                    $result = BillIncomeService::service()->billIncomeList($this->request_params);
+                    $config["file_name"] = "MuBan" . $i . ".xlsx";
+                    ExcelService::service()->recordDown($result, $config);
+                }
+                $path = $savePath . 'jiaofei.zip';
+                ExcelService::service()->addZip($savePath, $path);
+                $downUrl = F::downloadUrl('jiaofeijilu/'.$community_id.'/jiaofei.zip', 'zip');
+                return PsCommon::responseSuccess(['down_url' => $downUrl]);
+            }
+        } else {
+            return PsCommon::responseFailed("暂无数据！");
+        }
+    }
+
     // 财务核销 列表
     public function actionReviewList()
     {
@@ -105,6 +159,62 @@ Class BillIncomeController extends BaseController
         $data['money'] = sprintf('%.2f',$data['money']);
         return PsCommon::responseSuccess($data);
     }
+
+    /*
+     * 财务核销导出
+     */
+    public function actionExportReviewList(){
+        $this->request_params['communityIds'] = $this->request_params['communityList'];
+        $getTotals = BillIncomeService::service()->billIncomeCount($this->request_params);
+        if ($getTotals > 0) {
+
+            $cycle = ceil($getTotals / 1000);
+//            $cycle = ceil($getTotals / 10);
+            $config["sheet_config"] = [
+
+                'A' => ['title' => '交易流水号', 'width' => 25, 'data_type' => 'str', 'field' => 'trade_no'],
+                'B' => ['title' => '小区', 'width' => 15, 'data_type' => 'str', 'field' => 'community_name'],
+                'C' => ['title' => '房屋信息', 'width' => 35, 'data_type' => 'str', 'field' => 'room_address'],
+                'D' => ['title' => '收款方式', 'width' => 15, 'data_type' => 'str', 'field' => 'pay_type_msg'],
+                'E' => ['title' => '交易类型', 'width' => 10, 'data_type' => 'str', 'field' => 'trade_type_msg'],
+                'F' => ['title' => '金额', 'width' => 10, 'data_type' => 'str', 'field' => 'pay_money'],
+                'G' => ['title' => '入账月份', 'width' => 10, 'data_type' => 'str', 'field' => 'entry_at_msg'],
+                'H' => ['title' => '核销状态', 'width' => 10, 'data_type' => 'str', 'field' => 'check_status_msg'],
+                'i' => ['title' => '核销日期', 'width' => 10, 'data_type' => 'str', 'field' => 'review_at_msg'],
+                'j' => ['title' => '核销人', 'width' => 10, 'data_type' => 'str', 'field' => 'review_name'],
+            ];
+            $config["save"] = true;
+            $community_id = !empty($this->request_params["community_id"])?$this->request_params["community_id"]:'all';
+            $savePath = Yii::$app->basePath . '/web/store/zip/hexiaojilu/' . $community_id . '/';
+            $config["save_path"] = $savePath;
+            //房屋数量查过一千则导出压缩文件
+            if ($cycle == 1) {//下载单个文件
+                $config["file_name"] = "MuBan1.xlsx";
+                $this->request_params['page'] = 1;
+                $this->request_params['rows'] = 1000;
+                $result = BillIncomeService::service()->billIncomeList($this->request_params);
+                $file_name = ExcelService::service()->recordDown($result, $config);
+                $downUrl = F::downloadUrl('hexiaojilu/' . $community_id . '/'. $file_name, 'zip');
+                return PsCommon::responseSuccess(['down_url' => $downUrl]);
+            } else {//下载zip压缩包
+                for ($i = 1; $i <= $cycle; $i++) {
+                    $config["file_name"] = "MuBan" . $i . ".xlsx";
+                    $this->request_params['page'] = $i;
+                    $this->request_params['rows'] = 1000;
+                    $result = BillIncomeService::service()->billIncomeList($this->request_params);
+                    $config["file_name"] = "MuBan" . $i . ".xlsx";
+                    ExcelService::service()->recordDown($result, $config);
+                }
+                $path = $savePath . 'hexiao.zip';
+                ExcelService::service()->addZip($savePath, $path);
+                $downUrl = F::downloadUrl('hexiaojilu/'.$community_id.'/hexiao.zip', 'zip');
+                return PsCommon::responseSuccess(['down_url' => $downUrl]);
+            }
+        } else {
+            return PsCommon::responseFailed("暂无数据！");
+        }
+    }
+
 //    public function actionReviewList()
 //    {
 //        if (empty($this->request_params['check_status'])) {

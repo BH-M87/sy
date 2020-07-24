@@ -156,7 +156,7 @@ class JavaCurl {
         if (!$response['code'] || !in_array($response['code'], [0,1,200])) {
 //            self::pullLog($url . PHP_EOL . $postData."getParams:".json_encode($getData) . PHP_EOL . json_encode($response) . PHP_EOL);
             if ($route != '/member/integral/grant') {
-                self::errorResult($response);
+                return self::errorResult($response);
             }
         }
 

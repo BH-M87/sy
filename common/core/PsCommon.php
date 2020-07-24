@@ -236,7 +236,7 @@ class PsCommon {
             'error' => $error,
         ], JSON_UNESCAPED_UNICODE);
         Yii::$app->response->send();
-        return null;
+        exit();
     }
 
     /**
