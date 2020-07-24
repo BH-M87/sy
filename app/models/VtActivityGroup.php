@@ -19,6 +19,7 @@ class VtActivityGroup extends BaseModel{
         return [
 
             [['activity_id', 'name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['activity_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['drop']],
             [['id','activity_id', 'name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [["id",  'activity_id',"create_at","update_at"], 'integer'],
             [['name'], 'trim'],
@@ -66,5 +67,12 @@ class VtActivityGroup extends BaseModel{
                 return $this->addError($attribute, "该分组不存在");
             }
         }
+    }
+
+    //分组下拉
+    public function getDropList($params){
+        $fields = ['id','name'];
+        $model = self::find()->select($fields)->where(['=','activity_id',$params['activity_id']])->orderBy(['id'=>SORT_ASC]);
+        return $model->asArray()->all();
     }
 }

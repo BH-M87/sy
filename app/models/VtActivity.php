@@ -33,7 +33,8 @@ class VtActivity extends BaseModel
             ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
             [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
             [['id'], 'dataInfo', 'on' => ["edit","detail"]], //活动是否存在
-            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动code唯一
+            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add"]], //活动code唯一
+            [["id",'start_at', 'end_at','group_status'], 'editVerification', 'on' => ["edit"]], //判断活动是否开始 开始不能编辑时间和分组
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
     }
@@ -110,6 +111,25 @@ class VtActivity extends BaseModel
             $res = self::find()->select(['id'])->where(['=','id',$this->id])->asArray()->one();
             if(empty($res)){
                 return $this->addError($attribute, "该投票活动不存在");
+            }
+        }
+    }
+
+    //活动是一开始 验证
+    public function editVerification($attribute){
+        if(!empty($this->id)){
+            $nowTime = time();
+            $res = self::find()->select(['id','start_at','end_at','group_status'])->where(['=','id',$this->id])->asArray()->one();
+            if($res['start_at']<$nowTime){  //活动已开始
+                if($res['start_at']!=$this->start_at){
+                    return $this->addError($attribute, "投票活动开始时间不能修改");
+                }
+                if($res['end_at']!=$this->end_at){
+                    return $this->addError($attribute, "投票活动结束时间不能修改");
+                }
+                if($res['group_status']!=$this->group_status){
+                    return $this->addError($attribute, "投票活动选手分组不能修改");
+                }
             }
         }
     }

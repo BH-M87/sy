@@ -117,4 +117,21 @@ class ActivityController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //添加选手
+    public function actionAddPlayer(){
+        try{
+            $params = $this->request_params;
+            $service = new ActivityService();
+            $result = $service->addPlayer($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

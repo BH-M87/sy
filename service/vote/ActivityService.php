@@ -97,8 +97,9 @@ Class ActivityService extends BaseService {
 
             $model = new VtActivity(['scenario'=>'edit']);
             if($model->load($updateParams,'')&&$model->validate()){
+
                 if(!$model->edit($updateParams)){
-                    throw new Exception('活动新建失败！');
+                    throw new Exception('活动修改失败！');
                 }
 
                 //删除banner
@@ -113,7 +114,7 @@ Class ActivityService extends BaseService {
                         $bannerParams['link_url'] = !empty($value['link_url'])?$value['link_url']:'';
                         if($bannerModel->load($bannerParams,'')&&$bannerModel->validate()){
                             if(!$bannerModel->saveData()){
-                                throw new Exception('新增分组失败！');
+                                throw new Exception('新增banner失败！');
                             }
                         }else{
                             $msg = array_values($bannerModel->errors)[0][0];
@@ -176,8 +177,18 @@ Class ActivityService extends BaseService {
 
     //分组下拉
     public function dropOfGroup($params){
-        if(empty($params['id'])){
-
+        $model = new VtActivityGroup(['scenario'=>'drop']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getDropList($params);
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
         }
+    }
+
+    //新增活动选手
+    public function addPlayer($params){
+
     }
 }
