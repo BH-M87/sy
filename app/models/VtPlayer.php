@@ -23,7 +23,7 @@ class VtPlayer extends BaseModel
 
             [['activity_id','name','code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','activity_id','name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
-            [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
+            [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail','del']],
             [["id",  'activity_id', 'group_id', 'view_num', 'vote_num','create_at', 'update_at'], 'integer'],
             [['id', 'code', 'activity_id', 'group_id', 'name','img','content'], 'trim'],
             [['content'], 'string'],
@@ -32,7 +32,7 @@ class VtPlayer extends BaseModel
             [["activity_id","group_id"], 'activityVerification', 'on' => ["add","edit"]], //活动验证
             [["id","activity_id","name"], 'nameVerification', 'on' => ["add","edit"]], //选手名称唯一
             [["id","activity_id","code"], 'codeVerification', 'on' => ["add","edit"]], //选手名称唯一
-            [['id'], 'dataInfo', 'on' => ["edit","detail"]], //选手是否存在
+            [['id'], 'dataInfo', 'on' => ["edit","detail",'del']], //选手是否存在
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
             [["group_id"], "default", 'value' => 0, 'on' => ['add']],
         ];
@@ -73,6 +73,14 @@ class VtPlayer extends BaseModel
         $param['update_at'] = time();
         return self::updateAll($param, ['id' => $param['id']]);
     }
+
+    /*
+     * 修改
+     */
+    public function delAll($param){
+        return self::deleteAll(['id'=>$param['id']]);
+    }
+
 
     /*
      * 选手是否存在

@@ -239,4 +239,18 @@ Class ActivityService extends BaseService {
             throw new Exception($msg);
         }
     }
+
+    //删除选手
+    public function delPlay($params){
+        $model = new VtPlayer(['scenario'=>'del']);
+        if($model->load($params,'')&&$model->validate()){
+            if(!$model->delAll($params)){
+                return $this->failed("选手删除失败");
+            }
+            return $this->success();
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
 }
