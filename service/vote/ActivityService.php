@@ -253,4 +253,16 @@ Class ActivityService extends BaseService {
             throw new Exception($msg);
         }
     }
+
+    //选手列表 数据列表
+    public function playerList($params){
+        $model = new VtPlayer();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):"";
+            }
+        }
+        return $this->success($result);
+    }
 }

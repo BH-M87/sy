@@ -15,6 +15,8 @@ use common\core\PsCommon;
 
 class ActivityController extends BaseController {
 
+    public $repeatAction = ['add','edit','add-player','edit-player'];
+
     //新建活动
     public function actionAdd(){
         try{
@@ -175,6 +177,44 @@ class ActivityController extends BaseController {
             $params = $this->request_params;
             $service = new ActivityService();
             $result = $service->delPlay($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //选手列表
+    public function actionPlayerList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new ActivityService();
+            $result = $service->playerList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //数据列表
+    public function actionPlayerDataList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new ActivityService();
+            $result = $service->playerList($params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             } else {

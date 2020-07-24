@@ -153,4 +153,43 @@ class VtPlayer extends BaseModel
                         ->where(['=','p.id',$params['id']]);
         return $model->asArray()->one();
     }
+
+    //选手列表
+    public function getList($params){
+        $fields = [
+                    'p.id','p.code','p.activity_id','p.group_id','p.name','p.img','p.view_num','p.vote_num','v.name as activity_name',
+                    'IFNULL(g.name,"") as group_name','p.img','p.create_at'
+        ];
+        $model = self::find()->alias("p")->select($fields)
+            ->leftJoin(['v'=>VtActivity::tableName()],'v.id=p.activity_id')
+            ->leftJoin(['g'=>VtActivityGroup::tableName()],'g.id=p.group_id')
+            ->where(1);
+
+        if(!empty($params['activity_id'])){
+            $model->andWhere(['=','p.activity_id',$params['activity_id']]);
+        }
+        if(!empty($params['group_id'])){
+            $model->andWhere(['=','p.group_id',$params['group_id']]);
+        }
+        if(!empty($params['code'])){
+            $model->andWhere(['like','p.code',$params['code']]);
+        }
+        if(!empty($params['name'])){
+            $model->andWhere(['like','p.name',$params['name']]);
+        }
+
+        $count = $model->count();
+        if(!empty($params['page'])||!empty($params['pageSize'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["p.id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
+    }
 }
