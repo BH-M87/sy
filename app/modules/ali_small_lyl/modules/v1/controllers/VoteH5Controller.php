@@ -10,6 +10,30 @@ use Yii;
 
 class VoteH5Controller extends BaseController
 {
+    // 排行
+    public function actionOrderList()
+    {
+        $r = VoteService::service()->orderList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 首页 选手列表
+    public function actionPlayerList()
+    {
+        $r = VoteService::service()->playerList($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 选手详情
+    public function actionPlayerShow()
+    {
+        $r = VoteService::service()->playerShow($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 获取短信 验证码
     public function actionGetSmsCode()
     {
