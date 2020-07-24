@@ -72,6 +72,9 @@ class VoteService extends BaseService
             throw new MyException('选手id不能为空');
         }
 
+        // 更新选手浏览量
+        VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
+
         $r = VtPlayer::find()->select('id player_id, name, code, img, vote_num, content')->where(['id' => $p['player_id']])->asArray()->one();
         
         $member = VtMember::findOne($p['member_id']);
