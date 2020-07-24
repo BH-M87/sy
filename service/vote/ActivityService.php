@@ -12,6 +12,7 @@ use app\models\VtActivity;
 use app\models\VtActivityBanner;
 use app\models\VtActivityGroup;
 use app\models\VtPlayer;
+use app\models\VtVote;
 use service\BaseService;
 use Yii;
 use yii\db\Exception;
@@ -101,11 +102,9 @@ Class ActivityService extends BaseService {
                 if(!$model->edit($updateParams)){
                     throw new Exception('活动修改失败！');
                 }
-
                 //删除banner
-                if(!VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']])){
-                    throw new Exception('删除banner失败！');
-                }
+                VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']]);
+
                 if(!empty($params['banner'])){
                     foreach($params['banner'] as $key=>$value){
                         $bannerModel = new VtActivityBanner(['scenario'=>'add']);
@@ -264,5 +263,17 @@ Class ActivityService extends BaseService {
             }
         }
         return $this->success($result);
+    }
+
+    //投票记录
+    public function voteRecord($params){
+        $model = new VtVote(['scenario'=>'record']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getRecord($params);
+            return $this->success();
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
     }
 }
