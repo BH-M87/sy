@@ -189,6 +189,54 @@ Class ActivityService extends BaseService {
 
     //新增活动选手
     public function addPlayer($params){
+        $addParams['code'] = !empty($params['code'])?$params['code']:'';
+        $addParams['activity_id'] = !empty($params['activity_id'])?$params['activity_id']:'';
+        $addParams['group_id'] = !empty($params['group_id'])?$params['group_id']:'';
+        $addParams['name'] = !empty($params['name'])?$params['name']:'';
+        $addParams['img'] = !empty($params['img'])?$params['img']:'';
+        $addParams['content'] = !empty($params['content'])?$params['content']:'';
+        $model = new VtPlayer(['scenario'=>'add']);
+        if($model->load($addParams,'')&&$model->validate()){
+            if(!$model->saveData()){
+                return $this->failed("添加选手失败");
+            }
+            return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
 
+    //修改活动选手
+    public function editPlayer($params){
+        $updateParams['id'] = !empty($params['id'])?$params['id']:'';
+        $updateParams['code'] = !empty($params['code'])?$params['code']:'';
+        $updateParams['activity_id'] = !empty($params['activity_id'])?$params['activity_id']:'';
+        $updateParams['group_id'] = !empty($params['group_id'])?$params['group_id']:'';
+        $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+        $updateParams['img'] = !empty($params['img'])?$params['img']:'';
+        $updateParams['content'] = !empty($params['content'])?$params['content']:'';
+        $model = new VtPlayer(['scenario'=>'add']);
+        if($model->load($updateParams,'')&&$model->validate()){
+            if(!$model->edit($updateParams)){
+                return $this->failed("修改选手失败");
+            }
+            return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
+
+    //选手详情
+    public function playerDetail($params){
+        $model = new VtPlayer(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()){
+            $detail = $model->getDetail($params);
+            return $this->success($detail);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
     }
 }

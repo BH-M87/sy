@@ -21,17 +21,20 @@ class VtPlayer extends BaseModel
     {
         return [
 
-            [['name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
-            [['id','name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
+            [['activity_id','name','code'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['id','activity_id','name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
             [["id",  'activity_id', 'group_id', 'view_num', 'vote_num','create_at', 'update_at'], 'integer'],
             [['id', 'code', 'activity_id', 'group_id', 'name','img','content'], 'trim'],
             [['content'], 'string'],
             [['code','name'], 'string', "max" => 20],
             [['img'], 'string', "max" => 255],
-//            [['name'], 'nameInfo', 'on' => ["add"]], //选手名称唯一
+            [["activity_id","group_id"], 'activityVerification', 'on' => ["add","edit"]], //活动验证
+            [["id","activity_id","name"], 'nameVerification', 'on' => ["add","edit"]], //选手名称唯一
+            [["id","activity_id","code"], 'codeVerification', 'on' => ["add","edit"]], //选手名称唯一
             [['id'], 'dataInfo', 'on' => ["edit","detail"]], //选手是否存在
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
+            [["group_id"], "default", 'value' => 0, 'on' => ['add']],
         ];
     }
 
@@ -81,5 +84,65 @@ class VtPlayer extends BaseModel
                 return $this->addError($attribute, "该选手不存在");
             }
         }
+    }
+
+    //选手名称是否存在
+    public function nameVerification($attribute){
+        if(!empty($this->name)&&!empty($this->activity_id)){
+            $model = self::find()->select(['id'])->where(['=','name',$this->name])->andWhere(['=','activity_id',$this->activity_id]);
+            if(!empty($this->id)){
+                $model->andWhere(['!=','id',$this->id]);
+            }
+            $res = $model->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "该选手已存在");
+            }
+        }
+    }
+
+    /*
+     * code 唯一
+     */
+    public function codeVerification($attribute){
+        if(!empty($this->code)&&!empty($this->activity_id)){
+            $model = self::find()->select(['id'])->where(['=','code',$this->code])->andWhere(['=','activity_id',$this->activity_id]);
+            if(!empty($this->id)){
+                $model->andWhere(["!=","id",$this->id]);
+            }
+            $res = $model->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "该选手编号已存在");
+            }
+        }
+    }
+
+    //活动验证
+    public function activityVerification($attribute){
+        if(!empty($this->activity_id)){
+//            $nowTime = time();
+            $activityRes = VtActivity::find()->select(['id','start_at'])->where(['=','id',$this->activity_id])->asArray()->one();
+            if(empty($activityRes)){
+                return $this->addError($attribute, "活动不存在");
+            }
+//            if($activityRes['start_at']<$nowTime){
+//                return $this->addError($attribute, "该活动已开始或结束，不能编辑选手");
+//            }
+            if(!empty($this->group_id)){
+                $groupRes = VtActivityGroup::find()->select(['id'])->where(['=','id',$this->group_id])->andWhere(['=','activity_id',$this->activity_id])->asArray()->one();
+                if(empty($groupRes)){
+                    return $this->addError($attribute, "活动对应分组不存在");
+                }
+            }
+        }
+    }
+
+    //选手详情
+    public function getDetail($params){
+        $fields = ['p.id','p.code','p.activity_id','p.group_id','p.name','p.img','p.content','v.name as activity_name','IFNULL(g.name,"") as group_name'];
+        $model = self::find()->alias("p")->select($fields)
+                        ->leftJoin(['v'=>VtActivity::tableName()],'v.id=p.activity_id')
+                        ->leftJoin(['g'=>VtActivityGroup::tableName()],'g.id=p.group_id')
+                        ->where(['=','p.id',$params['id']]);
+        return $model->asArray()->one();
     }
 }

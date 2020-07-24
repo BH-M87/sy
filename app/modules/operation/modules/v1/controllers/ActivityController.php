@@ -134,4 +134,38 @@ class ActivityController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //编辑选手
+    public function actionEditPlayer(){
+        try{
+            $params = $this->request_params;
+            $service = new ActivityService();
+            $result = $service->editPlayer($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //选手详情
+    public function actionPlayerDetail(){
+        try{
+            $params = $this->request_params;
+            $service = new ActivityService();
+            $result = $service->playerDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
