@@ -12,6 +12,7 @@ use app\models\VtActivity;
 use app\models\VtActivityBanner;
 use app\models\VtActivityGroup;
 use app\models\VtPlayer;
+use app\models\VtVote;
 use service\BaseService;
 use Yii;
 use yii\db\Exception;
@@ -264,5 +265,17 @@ Class ActivityService extends BaseService {
             }
         }
         return $this->success($result);
+    }
+
+    //投票记录
+    public function voteRecord($params){
+        $model = new VtVote(['scenario'=>'record']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getRecord($params);
+            return $this->success();
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
     }
 }
