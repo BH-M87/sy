@@ -28,16 +28,9 @@ Class ActivityService extends BaseService {
             $addParams['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']):'';
             $addParams['content'] = !empty($params['content'])?$params['content']:'';
             $addParams['group_status'] = !empty($params['group_status'])?$params['group_status']:'';
-            if($addParams['group_status']==1){
-                if(empty($params['group_name'])){
-                    return $this->failed("分组名称不能为空");
-                }
-                if(!is_array($params['group_name'])){
-                    return $this->failed("分组名称是数组格式");
-                }
-            }
+
             if(!empty($params['banner'])){
-                if(!is_array($params['group_name'])){
+                if(!is_array($params['banner'])){
                     return $this->failed("活动banner是数组格式");
                 }
             }
@@ -47,21 +40,15 @@ Class ActivityService extends BaseService {
                 if(!$model->saveData()){
                     throw new Exception('活动新建失败！');
                 }
-                if($model->attributes['group_status']==1){
-                    foreach($params['group_name'] as $key=>$value){
-                        $groupModel = new VtActivityGroup(['scenario'=>'add']);
-                        $groupParams['name'] = !empty($value['name'])?$value['name']:'';
-                        $groupParams['activity_id'] = $model->attributes['id'];
-                        if($groupModel->load($groupParams,'')&&$groupModel->validate()){
-                            if(!$groupModel->saveData()){
-                                throw new Exception('新增分组失败！');
-                            }
-                        }else{
-                            $msg = array_values($groupModel->errors)[0][0];
-                            throw new Exception($msg);
-                        }
-                    }
-                }
+                $nowTime = time();
+                //默认生成分组
+                $insertFields = ['activity_id','name','create_at','update_at'];
+                $insertValue = [
+                    ['activity_id'=>$model->attributes['id'],'name'=>'专业组','create_at'=>$nowTime,'update_at'=>$nowTime],
+                    ['activity_id'=>$model->attributes['id'],'name'=>'公众组','create_at'=>$nowTime,'update_at'=>$nowTime],
+                ];
+                Yii::$app->db->createCommand()->batchInsert(VtActivityGroup::tableName(),$insertFields,$insertValue)->execute();
+                //banner
                 if(!empty($params['banner'])){
                     foreach($params['banner'] as $key=>$value){
                         $bannerModel = new VtActivityBanner(['scenario'=>'add']);
@@ -70,7 +57,7 @@ Class ActivityService extends BaseService {
                         $bannerParams['link_url'] = !empty($value['link_url'])?$value['link_url']:'';
                         if($bannerModel->load($bannerParams,'')&&$bannerModel->validate()){
                             if(!$bannerModel->saveData()){
-                                throw new Exception('新增分组失败！');
+                                throw new Exception('新增banner失败！');
                             }
                         }else{
                             $msg = array_values($bannerModel->errors)[0][0];
@@ -101,16 +88,9 @@ Class ActivityService extends BaseService {
             $updateParams['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']):'';
             $updateParams['content'] = !empty($params['content'])?$params['content']:'';
             $updateParams['group_status'] = !empty($params['group_status'])?$params['group_status']:'';
-            if($updateParams['group_status']==1){
-                if(empty($params['group_name'])){
-                    return $this->failed("分组名称不能为空");
-                }
-                if(!is_array($params['group_name'])){
-                    return $this->failed("分组名称是数组格式");
-                }
-            }
+
             if(!empty($params['banner'])){
-                if(!is_array($params['group_name'])){
+                if(!is_array($params['banner'])){
                     return $this->failed("活动banner是数组格式");
                 }
             }
@@ -120,44 +100,10 @@ Class ActivityService extends BaseService {
                 if(!$model->edit($updateParams)){
                     throw new Exception('活动新建失败！');
                 }
+
                 //删除banner
                 if(!VtActivityBanner::deleteAll(['activity_id'=>$model->attributes['id']])){
                     throw new Exception('删除banner失败！');
-                }
-                if($model->attributes['group_status']==1){
-                    foreach($params['group_name'] as $key=>$value){
-                        if($value['id']){
-                            //修改分组
-                            $groupModel = new VtActivityGroup(['scenario'=>'edit']);
-                            $groupParams['id'] = !empty($value['id'])?$value['id']:'';
-                            $groupParams['name'] = !empty($value['name'])?$value['name']:'';
-                            $groupParams['activity_id'] = $model->attributes['id'];
-                            if($groupModel->load($groupParams,'')&&$groupModel->validate()){
-                                if(!$groupModel->edit($groupParams)){
-                                    throw new Exception('修改分组失败！');
-                                }
-                            }else{
-                                $msg = array_values($groupModel->errors)[0][0];
-                                throw new Exception($msg);
-                            }
-                        }else{
-                            //新增分组
-                            $groupModel = new VtActivityGroup(['scenario'=>'add']);
-                            $groupParams['name'] = !empty($value['name'])?$value['name']:'';
-                            $groupParams['activity_id'] = $model->attributes['id'];
-                            if($groupModel->load($groupParams,'')&&$groupModel->validate()){
-                                if(!$groupModel->saveData()){
-                                    throw new Exception('新增分组失败！');
-                                }
-                            }else{
-                                $msg = array_values($groupModel->errors)[0][0];
-                                throw new Exception($msg);
-                            }
-                        }
-                    }
-                }else{
-                    //关联的选手分组设置空
-                    VtPlayer::updateAll(['group_id'=>0],'activity_id=:activity_id and group_id>:group_id',[":activity_id"=>$model->attributes['id'],":group_id"=>0]);
                 }
                 if(!empty($params['banner'])){
                     foreach($params['banner'] as $key=>$value){
@@ -226,5 +172,12 @@ Class ActivityService extends BaseService {
         $model = new VtActivity();
         $result = $model->getDropList();
         return $this->success($result);
+    }
+
+    //分组下拉
+    public function dropOfGroup($params){
+        if(empty($params['id'])){
+
+        }
     }
 }

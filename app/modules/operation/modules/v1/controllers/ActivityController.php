@@ -100,4 +100,21 @@ class ActivityController extends BaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //活动中组下拉
+    public function actionDropOfGroup(){
+        try{
+            $params = $this->request_params;
+            $service = new ActivityService();
+            $result = $service->dropOfGroup($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
