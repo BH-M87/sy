@@ -77,7 +77,7 @@ class VoteService extends BaseService
 
         $r = VtPlayer::find()->select('id player_id, name, code, img, vote_num, content')->where(['id' => $p['player_id']])->asArray()->one();
         
-        $member = VtMember::findOne($p['member_id']);
+        $member = VtMember::find()->where(['member_id' => $p['member_id']])->one();
 
         $vote = VtVote::find()->where(['player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         $r['if_vote'] = !empty($vote) ? 1 : 2;
@@ -114,6 +114,7 @@ class VoteService extends BaseService
 		if ($r == 600) {
 			$param['verify_code'] = $verify_code;
 			$param['mobile'] = $p['mobile'];
+            $param['member_id'] = date('YmdHis', time()).mt_rand(1000,9999);
 
             $model = new VtMember(['scenario' => $scenario]);
 
@@ -136,7 +137,7 @@ class VoteService extends BaseService
 	{
 		$member = VtMember::find()->where(['mobile' => $p['mobile']])->one();
         if ($member->verify_code == $p['verify_code']) {
-        	return ['member_id' => $member->id];
+        	return ['member_id' => $member->member_id];
         } else {
         	throw new MyException('验证码不正确');
         }
@@ -206,7 +207,7 @@ class VoteService extends BaseService
 	// 反馈新增
 	public function feedbackAdd($p) 
 	{
-		$member = VtMember::findOne($p['member_id']);
+		$member = VtMember::find()->where(['member_id' => $p['member_id']])->one();
 		if (empty($member)) {
             throw new MyException('会员不存在');
         }
@@ -237,7 +238,7 @@ class VoteService extends BaseService
     // 评论新增
 	public function commentAdd($p) 
 	{
-		$member = VtMember::findOne($p['member_id']);
+		$member = VtMember::find()->where(['member_id' => $p['member_id']])->one();
 		if (empty($member)) {
             throw new MyException('会员不存在');
         }
@@ -274,7 +275,7 @@ class VoteService extends BaseService
     // 投票新增
 	public function voteAdd($p) 
 	{
-		$member = VtMember::findOne($p['member_id']);
+		$member = VtMember::find()->where(['member_id' => $p['member_id']])->one();
 		if (empty($member)) {
             throw new MyException('会员不存在');
         }

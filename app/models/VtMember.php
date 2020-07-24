@@ -14,7 +14,7 @@ class VtMember extends BaseModel
     public function rules()
     {
         return [
-            [['mobile', 'verify_code'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
+            [['mobile', 'verify_code', 'member_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add', 'edit']],
             ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add', 'edit']],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
         ];
@@ -24,6 +24,7 @@ class VtMember extends BaseModel
     {
         return [
             'id' => 'ID',
+            'member_id' => '会员ID',
             'mobile' => '手机号',
             'verify_code' => '选手ID',
             'update_at' => '修改时间',
