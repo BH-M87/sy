@@ -15,7 +15,9 @@ use app\models\VtComment;
 use app\models\VtFeedback;
 use app\models\VtPlayer;
 use app\models\VtVote;
+use common\core\F;
 use service\BaseService;
+use service\common\QrcodeService;
 use Yii;
 use yii\db\Exception;
 
@@ -71,6 +73,9 @@ Class ActivityService extends BaseService {
                     }
                 }
 
+                //生成二维码
+                self::createQrcode($model->attributes['id']);
+
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
             }else{
@@ -81,6 +86,14 @@ Class ActivityService extends BaseService {
             $trans->rollBack();
             return $this->failed($e->getMessage());
         }
+    }
+
+    //生成活动二维码 和地址
+    private static function createQrcode($id){
+        $savePath = F::imagePath('vote');
+        $url = Yii::$app->getModule('operation')->params['vote_host'] . '#/indexPage?id=' . $id;
+        $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $id, ''); // 生成二维码图片
+        VtActivity::updateAll(['qrcode' => $imgUrl,'link_url'=>$url], ['id' => $id]);
     }
 
     //新建活动编辑
