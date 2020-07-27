@@ -6,9 +6,6 @@ use common\core\Regular;
 
 class VtVote extends BaseModel
 {
-
-    public $typeMsg = ['1'=>'内部系统','2'=>'独立H5'];
-
     public static function tableName()
     {
         return 'vt_vote';

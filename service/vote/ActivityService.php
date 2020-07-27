@@ -11,6 +11,8 @@ namespace service\vote;
 use app\models\VtActivity;
 use app\models\VtActivityBanner;
 use app\models\VtActivityGroup;
+use app\models\VtComment;
+use app\models\VtFeedback;
 use app\models\VtPlayer;
 use app\models\VtVote;
 use service\BaseService;
@@ -18,6 +20,8 @@ use Yii;
 use yii\db\Exception;
 
 Class ActivityService extends BaseService {
+
+    public $typeMsg = ['1'=>'内部系统','2'=>'独立H5'];
 
     //新建活动
     public function add($params){
@@ -272,8 +276,44 @@ Class ActivityService extends BaseService {
             $result = $model->getRecord($params);
             if(!empty($result['list'])){
                 foreach($result['list'] as $key=>$value){
-                    $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
+                    $result['list'][$key]['type_msg'] = !empty($value['type'])?$this->typeMsg[$value['type']]:'';
                     $result['list'][$key]['num'] = 1;
+                }
+            }
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
+
+    //评论记录
+    public function commentRecord($params){
+        $model = new VtComment(['scenario'=>'record']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getRecord($params);
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['type_msg'] = !empty($value['type'])?$this->typeMsg[$value['type']]:'';
+                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                }
+            }
+            return $this->success($result);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            throw new Exception($msg);
+        }
+    }
+
+    //活动反馈记录
+    public function feedbackRecord($params){
+        $model = new VtFeedback(['scenario'=>'record']);
+        if($model->load($params,'')&&$model->validate()){
+            $result = $model->getRecord($params);
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['type_msg'] = !empty($value['type'])?$this->typeMsg[$value['type']]:'';
+                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
                 }
             }
             return $this->success($result);
