@@ -222,6 +222,8 @@ class VoteService extends BaseService
         	throw new MyException('同一活动只能反馈一次');
         }
 
+        $p['mobile'] = $member->mobile;
+
         $model = new VtFeedback(['scenario' => 'add']);
 
         if (!$model->load($p, '') || !$model->validate()) {
@@ -258,6 +260,8 @@ class VoteService extends BaseService
         if (!empty($comment)) {
         	throw new MyException('已经评论过了');
         }
+
+        $p['mobile'] = $member->mobile;
 
         $model = new VtComment(['scenario' => 'add']);
 
