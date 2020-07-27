@@ -322,4 +322,9 @@ Class ActivityService extends BaseService {
             throw new Exception($msg);
         }
     }
+
+    //数据导出
+    public function action(){
+
+    }
 }

@@ -18,7 +18,7 @@ class VtActivityBanner extends BaseModel{
     {
         return [
 
-            [['activity_id', 'img','link_url'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['activity_id', 'img'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [["id",  'activity_id'], 'integer'],
             [['img','link_url'], 'trim'],
             [['img','link_url'], 'string', "max" => 255],
