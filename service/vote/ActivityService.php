@@ -118,7 +118,7 @@ Class ActivityService extends BaseService {
             if(count($params['banner'])>5){
                 return $this->failed("活动banner最多5张");
             }
-            
+
             $model = new VtActivity(['scenario'=>'edit']);
             if($model->load($updateParams,'')&&$model->validate()){
 
@@ -245,7 +245,7 @@ Class ActivityService extends BaseService {
         $updateParams['name'] = !empty($params['name'])?$params['name']:'';
         $updateParams['img'] = !empty($params['img'])?$params['img']:'';
         $updateParams['content'] = !empty($params['content'])?$params['content']:'';
-        $model = new VtPlayer(['scenario'=>'add']);
+        $model = new VtPlayer(['scenario'=>'edit']);
         if($model->load($updateParams,'')&&$model->validate()){
             if(!$model->edit($updateParams)){
                 return $this->failed("修改选手失败");
