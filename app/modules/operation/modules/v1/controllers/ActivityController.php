@@ -9,13 +9,16 @@
 namespace app\modules\operation\modules\v1\controllers;
 
 use app\modules\operation\controllers\BaseController;
+use common\core\F;
+use service\common\ExcelService;
 use service\vote\ActivityService;
 use yii\base\Exception;
 use common\core\PsCommon;
+use Yii;
 
 class ActivityController extends BaseController {
 
-    public $repeatAction = ['add','edit','add-player','edit-player'];
+    public $repeatAction = ['add','edit','add-player','edit-player','export-player-data'];
 
     //新建活动
     public function actionAdd(){
@@ -278,6 +281,62 @@ class ActivityController extends BaseController {
                 return PsCommon::responseFailed($result['msg']);
             }
 
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //数据导出
+    public function actionExportPlayerData(){
+        try{
+            $params = $this->request_params;
+            $service = new ActivityService();
+            $result = $service->playerList($params);
+            if ($result['code']) {
+                $getTotals = $result['data']['totals'];
+                if ($getTotals > 0) {
+
+                    $cycle = ceil($getTotals / 1000);
+                    $config["sheet_config"] = [
+                        'A' => ['title' => '选手编号', 'width' => 20, 'data_type' => 'str', 'field' => 'code'],
+                        'B' => ['title' => '选手名称', 'width' => 25, 'data_type' => 'str', 'field' => 'name'],
+                        'C' => ['title' => '分组', 'width' => 15, 'data_type' => 'str', 'field' => 'group_name'],
+                        'D' => ['title' => '浏览量', 'width' => 10, 'data_type' => 'str', 'field' => 'view_num'],
+                        'E' => ['title' => '投票量', 'width' => 10, 'data_type' => 'str', 'field' => 'vote_num'],
+                    ];
+                    $config["save"] = true;
+                    $date = date('Y-m-d',time());
+                    $savePath = Yii::$app->basePath . '/web/store/zip/vote/' . $date . '/';
+                    $config["save_path"] = $savePath;
+                    //房屋数量查过一千则导出压缩文件
+                    if ($cycle == 1) {//下载单个文件
+                        $config["file_name"] = "MuBan1.xlsx";
+                        $params['page'] = 1;
+                        $params['pageSize'] = 1000;
+                        $result = $service->playerList($params);
+                        $file_name = ExcelService::service()->recordDown($result['data']['list'], $config);
+                        $downUrl = F::downloadUrl('vote/' . $date . '/'. $file_name, 'zip');
+                        return PsCommon::responseSuccess(['down_url' => $downUrl]);
+                    } else {//下载zip压缩包
+                        for ($i = 1; $i <= $cycle; $i++) {
+                            $config["file_name"] = "MuBan" . $i . ".xlsx";
+                            $params['page'] = $i;
+                            $params['pageSize'] = 1000;
+                            $result = $service->playerList($params);
+                            $config["file_name"] = "MuBan" . $i . ".xlsx";
+                            ExcelService::service()->recordDown($result['data']['list'], $config);
+                        }
+                        $path = $savePath . 'vote.zip';
+                        ExcelService::service()->addZip($savePath, $path);
+                        $downUrl = F::downloadUrl('vote/'.$date.'/vote.zip', 'zip');
+                        return PsCommon::responseSuccess(['down_url' => $downUrl]);
+                    }
+                } else {
+                    return PsCommon::responseFailed("暂无数据！");
+                }
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
         }
