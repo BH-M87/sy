@@ -41,6 +41,9 @@ Class ActivityService extends BaseService {
                     return $this->failed("活动banner是数组格式");
                 }
             }
+            if(count($params['banner'])>5){
+                return $this->failed("活动banner最多5张");
+            }
 
             $model = new VtActivity(['scenario'=>'add']);
             if($model->load($addParams,'')&&$model->validate()){
@@ -112,7 +115,10 @@ Class ActivityService extends BaseService {
                     return $this->failed("活动banner是数组格式");
                 }
             }
-
+            if(count($params['banner'])>5){
+                return $this->failed("活动banner最多5张");
+            }
+            
             $model = new VtActivity(['scenario'=>'edit']);
             if($model->load($updateParams,'')&&$model->validate()){
 
