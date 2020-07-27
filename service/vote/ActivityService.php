@@ -161,9 +161,16 @@ Class ActivityService extends BaseService {
     public function getDetail($params){
         $model = new VtActivity(['scenario'=>'detail']);
         if($model->load($params,'')&&$model->validate()){
+            $nowTime = time();
             $detail = $model->getDetail($params);
             $detail['start_at_msg'] = !empty($detail['start_at'])?date('Y-m-d H:i:s',$detail['start_at']):'';
             $detail['end_at_msg'] = !empty($detail['end_at'])?date('Y-m-d H:i:s',$detail['end_at']):'';
+            $detail['status_msg'] = '进行中';
+            if($nowTime<$detail['start_at']){
+                $detail['status_msg'] = '未开始';
+            }elseif($nowTime>$detail['end_at']){
+                $detail['status_msg'] = '已结束';
+            }
             return $this->success($detail);
         }else{
             $msg = array_values($model->errors)[0][0];
