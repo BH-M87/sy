@@ -270,7 +270,13 @@ Class ActivityService extends BaseService {
         $model = new VtVote(['scenario'=>'record']);
         if($model->load($params,'')&&$model->validate()){
             $result = $model->getRecord($params);
-            return $this->success();
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
+                    $result['list'][$key]['num'] = 1;
+                }
+            }
+            return $this->success($result);
         }else{
             $msg = array_values($model->errors)[0][0];
             throw new Exception($msg);

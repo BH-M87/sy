@@ -6,6 +6,9 @@ use common\core\Regular;
 
 class VtVote extends BaseModel
 {
+
+    public $typeMsg = ['1'=>'内部系统','2'=>'独立H5'];
+
     public static function tableName()
     {
         return 'vt_vote';
@@ -15,7 +18,7 @@ class VtVote extends BaseModel
     {
         return [
             [['activity_id', 'mobile', 'type', 'player_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['add']],
-            [['player_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['record']],
+            [['activity_id','player_id'], 'required', 'message'=>'{attribute}不能为空!', 'on' => ['record']],
             [['player_id'], 'playerVerification', 'on' => ['record']],
             ['mobile', 'match', 'pattern' => Regular::phone(), 'message' => '{attribute}格式出错', 'on' => ['add']],
             ['create_at', 'default', 'value' => time(), 'on' => 'add'],
@@ -46,11 +49,12 @@ class VtVote extends BaseModel
 
     //选手被投票记录列表
     public function getRecord($params){
-        $fields = [''];
+        $fields = ['m.member_id','v.mobile','v.type'];
         $model = self::find()->alias('v')
                         ->leftJoin(['m'=>VtMember::tableName()],'m.mobile=v.mobile')
                         ->select($fields)
                         ->where(['=','v.player_id',$params['player_id']]);
+        $model->andWhere(['=','v.activity_id',$params['activity_id']]);
         $count = $model->count();
         if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
@@ -58,7 +62,7 @@ class VtVote extends BaseModel
             $offset = ($page-1)*$pageSize;
             $model->offset($offset)->limit($pageSize);
         }
-        $model->orderBy(["id"=>SORT_DESC]);
+        $model->orderBy(["v.id"=>SORT_DESC]);
         $result = $model->asArray()->all();
         return [
             'list'=>$result,
