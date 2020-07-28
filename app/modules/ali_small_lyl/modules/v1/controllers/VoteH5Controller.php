@@ -58,6 +58,14 @@ class VoteH5Controller extends BaseController
         return PsCommon::responseSuccess($r);
     }
 
+    // 规则
+    public function actionRule()
+    {
+        $r = VoteService::service()->rule($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 首页
     public function actionIndex()
     {

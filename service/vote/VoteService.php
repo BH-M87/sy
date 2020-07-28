@@ -143,6 +143,14 @@ class VoteService extends BaseService
         }
 	}
 
+    // 规则
+    public function rule($p)
+    {
+        $m = VtActivity::find()->select('content')->where(['id' => $p['activity_id']])->asArray()->one();
+
+        return $m;
+    }
+
     // 首页
     public function index($p)
     {
