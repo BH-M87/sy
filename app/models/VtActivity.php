@@ -33,7 +33,7 @@ class VtActivity extends BaseModel
             ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
             [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
             [['id'], 'dataInfo', 'on' => ["edit","detail"]], //活动是否存在
-            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动时间验证
+            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add"]], //活动时间验证
             [["id",'start_at', 'end_at','group_status'], 'editVerification', 'on' => ["edit"]], //判断活动是否开始 开始不能编辑时间和分组
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
@@ -129,6 +129,14 @@ class VtActivity extends BaseModel
                 }
                 if($res['group_status']!=$this->group_status){
                     return $this->addError($attribute, "投票活动选手分组不能修改");
+                }
+            }else{
+                if($this->start_at<$nowTime){
+                    return $this->addError($attribute, "投票活动开始时间应大于当前时间");
+                }
+
+                if($this->start_at>=$this->end_at){
+                    return $this->addError($attribute, "投票活动开始时间应小于投票结束时间");
                 }
             }
         }

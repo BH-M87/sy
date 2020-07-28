@@ -182,7 +182,10 @@ class VtPlayer extends BaseModel
         if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
             $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
-            $offset = ($page-1)*$pageSize;
+            $allPage = ceil($count%$pageSize);
+            $page1 = $allPage>$page?$page:$allPage;
+//            $offset = ($page-1)*$pageSize;
+            $offset = ($page1-1)*$pageSize;
             $model->offset($offset)->limit($pageSize);
         }
         $model->orderBy(["p.id"=>SORT_DESC]);
