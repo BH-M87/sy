@@ -48,7 +48,7 @@ class VtActivity extends BaseModel
               'start_at'        => '开始时间',
               'end_at'          => '结束时间',
               'content'         => '活动规则',
-              'group_status'    => '选手分组 1启用 2禁用',
+              'group_status'    => '选手分组',
               'link_url'        => '页面链接',
               'qrcode'          => '二维码',
               'create_at'       => '创建时间',
