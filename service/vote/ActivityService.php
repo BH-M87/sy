@@ -30,7 +30,7 @@ Class ActivityService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try{
             $addParams['code'] = !empty($params['code'])?$params['code']:'';
-            $addParams['name'] = !empty($params['name'])?$params['name']:'';
+            $addParams['name'] = $params['name'];
             $addParams['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
             $addParams['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']):'';
             $addParams['content'] = !empty($params['content'])?$params['content']:'';
@@ -104,7 +104,7 @@ Class ActivityService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try{
             $updateParams['id'] = !empty($params['id'])?$params['id']:'';
-            $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+            $updateParams['name'] = $params['name'];
             $updateParams['start_at'] = !empty($params['start_at'])?strtotime($params['start_at']):'';
             $updateParams['end_at'] = !empty($params['end_at'])?strtotime($params['end_at']):'';
             $updateParams['content'] = !empty($params['content'])?$params['content']:'';
@@ -221,7 +221,7 @@ Class ActivityService extends BaseService {
         $addParams['code'] = !empty($params['code'])?$params['code']:'';
         $addParams['activity_id'] = !empty($params['activity_id'])?$params['activity_id']:'';
         $addParams['group_id'] = !empty($params['group_id'])?$params['group_id']:'';
-        $addParams['name'] = !empty($params['name'])?$params['name']:'';
+        $addParams['name'] = $params['name'];
         $addParams['img'] = !empty($params['img'])?$params['img']:'';
         $addParams['content'] = !empty($params['content'])?$params['content']:'';
         $model = new VtPlayer(['scenario'=>'add']);
@@ -242,7 +242,7 @@ Class ActivityService extends BaseService {
         $updateParams['code'] = !empty($params['code'])?$params['code']:'';
         $updateParams['activity_id'] = !empty($params['activity_id'])?$params['activity_id']:'';
         $updateParams['group_id'] = !empty($params['group_id'])?$params['group_id']:'';
-        $updateParams['name'] = !empty($params['name'])?$params['name']:'';
+        $updateParams['name'] = $params['name'];
         $updateParams['img'] = !empty($params['img'])?$params['img']:'';
         $updateParams['content'] = !empty($params['content'])?$params['content']:'';
         $model = new VtPlayer(['scenario'=>'edit']);
