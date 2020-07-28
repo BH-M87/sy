@@ -182,7 +182,7 @@ class VtPlayer extends BaseModel
         if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
             $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
-            $allPage = ceil($count%$pageSize);
+            $allPage = ceil($count/$pageSize);
             $page1 = $allPage>$page?$page:$allPage;
 //            $offset = ($page-1)*$pageSize;
             $offset = ($page1-1)*$pageSize;
