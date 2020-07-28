@@ -15,7 +15,7 @@ class VoteH5Controller extends BaseController
     {
         $r = VoteService::service()->orderList($this->params);
 
-        return PsCommon::responseSuccess($r);
+        return PsCommon::responseSuccess($r, false);
     }
 
     // 首页 选手列表
