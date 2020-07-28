@@ -33,7 +33,7 @@ class VtActivity extends BaseModel
             ['group_status', 'in', 'range' => [1, 2], 'on' => ['add','edit']],
             [['code'], 'codeInfo', 'on' => ["add"]], //活动code唯一
             [['id'], 'dataInfo', 'on' => ["edit","detail"]], //活动是否存在
-            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add"]], //活动code唯一
+            [['start_at', 'end_at'], 'timeVerification', 'on' => ["add","edit"]], //活动时间验证
             [["id",'start_at', 'end_at','group_status'], 'editVerification', 'on' => ["edit"]], //判断活动是否开始 开始不能编辑时间和分组
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
