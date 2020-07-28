@@ -198,9 +198,9 @@ Class ActivityService extends BaseService {
     }
 
     //活动下拉
-    public function dropOfActivity(){
+    public function dropOfActivity($params){
         $model = new VtActivity();
-        $result = $model->getDropList();
+        $result = $model->getDropList($params);
         return $this->success($result);
     }
 
