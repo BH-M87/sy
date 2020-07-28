@@ -13,6 +13,7 @@ use service\BaseService;
 use service\property_basic\JavaService;
 use service\common\QrcodeService;
 use service\common\ExcelService;
+use service\inspect\InspectionEquipmentService;
 
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
@@ -923,7 +924,11 @@ class PointService extends BaseService
         $device = PsInspectDevice::find()->where(['deviceNo' => $p['deviceNo'], 'is_del' => 1])->one();
 
         if (empty($device)) {
-            throw new MyException('巡检设备不存在！');
+            $service = new InspectionEquipmentService();
+            $service->addCompanyInstance([]);
+            $service->synchronizeB1([]);
+            $r = $service->synchronizeB1InstanceUser([]);
+            //throw new MyException('巡检设备不存在！');
         }
 
         if (empty($point->deviceNo)) { // 之前没有关联设备的 增加设备类型
@@ -953,7 +958,11 @@ class PointService extends BaseService
         $device = PsInspectDevice::find()->where(['deviceNo' => $p['deviceNo'], 'is_del' => 1])->one();
 
         if (empty($device)) {
-            throw new MyException('巡检设备不存在！');
+            $service = new InspectionEquipmentService();
+            $service->addCompanyInstance($p);
+            $service->synchronizeB1($p);
+            $service->synchronizeB1InstanceUser($p);
+            //throw new MyException('巡检设备不存在！');
         }
 
         $trans = \Yii::$app->getDb()->beginTransaction();
