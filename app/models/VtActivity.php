@@ -97,7 +97,7 @@ class VtActivity extends BaseModel
                 return $this->addError($attribute, "投票活动开始时间应大于当前时间");
             }
 
-            if($this->start_at>$this->end_at){
+            if($this->start_at>=$this->end_at){
                 return $this->addError($attribute, "投票活动开始时间应小于投票结束时间");
             }
         }
