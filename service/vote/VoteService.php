@@ -32,7 +32,7 @@ class VoteService extends BaseService
             ->where(['=', 'activity_id', $activity_id])
             ->limit(10)->orderBy('vote_num desc, vote_at asc')->asArray()->all();
 
-        for ($i=0; $i <10 ; $i++) { 
+        for ($i=0; $i <3 ; $i++) { 
             if (empty($m[$i]['player_id'])) {
                 $m[$i]['player_id'] = '';
                 $m[$i]['name'] = '';
