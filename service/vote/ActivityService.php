@@ -77,7 +77,7 @@ Class ActivityService extends BaseService {
                 }
 
                 //生成二维码
-                self::createQrcode($model->attributes['id']);
+                self::createQrcode($model->attributes['id'],$model->attributes['code']);
 
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);
@@ -92,9 +92,9 @@ Class ActivityService extends BaseService {
     }
 
     //生成活动二维码 和地址
-    private static function createQrcode($id){
+    private static function createQrcode($id,$code){
         $savePath = F::imagePath('vote');
-        $url = Yii::$app->getModule('operation')->params['vote_host'] . '#/indexPage?id=' . $id;
+        $url = Yii::$app->getModule('operation')->params['vote_host'] . '/index.html?activityCode' . $code;
         $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $id, ''); // 生成二维码图片
         VtActivity::updateAll(['qrcode' => $imgUrl,'link_url'=>$url], ['id' => $id]);
     }
