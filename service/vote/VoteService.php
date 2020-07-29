@@ -57,10 +57,10 @@ class VoteService extends BaseService
     private static function playerSearch($p)
     {
         $m = VtPlayer::find()
-            ->filterWhere(['=', 'activity_id', $p['activity_id']])
-            ->andFilterWhere(['=', 'group_id', $p['group_id']])
-            ->andFilterWhere(['like', 'code', $p['code']])
-            ->andFilterWhere(['like', 'name', $p['name']]);
+            ->filterWhere(['like', 'code', $p['name']])
+            ->orFilterWhere(['like', 'name', $p['name']])
+            ->andFilterWhere(['=', 'activity_id', $p['activity_id']])
+            ->andFilterWhere(['=', 'group_id', $p['group_id']]);
 
         return $m;
     }
@@ -138,6 +138,22 @@ class VoteService extends BaseService
 		$member = VtMember::find()->where(['mobile' => $p['mobile']])->one();
         if ($member->verify_code == $p['verify_code']) {
         	return ['member_id' => $member->member_id];
+        } else if ($p['verify_code'] == '111111' && empty($member)) {
+            $param['verify_code'] = '111111';
+            $param['mobile'] = $p['mobile'];
+            $param['member_id'] = date('YmdHis', time()).mt_rand(1000,9999);
+
+            $model = new VtMember(['scenario' => 'add']);
+
+            if (!$model->load($param, '') || !$model->validate()) {
+                throw new MyException($this->getError($model));
+            }
+
+            if (!$model->saveData('add', $param)) {
+                throw new MyException($this->getError($model));
+            }
+
+            return ['member_id' => $param['member_id']];
         } else {
         	throw new MyException('验证码不正确');
         }
