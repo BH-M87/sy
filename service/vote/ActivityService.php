@@ -262,6 +262,7 @@ Class ActivityService extends BaseService {
         $model = new VtPlayer(['scenario'=>'detail']);
         if($model->load($params,'')&&$model->validate()){
             $detail = $model->getDetail($params);
+            $detail['group_id'] = !empty($detail['group_id'])?$detail['group_id']:'';
             return $this->success($detail);
         }else{
             $msg = array_values($model->errors)[0][0];
