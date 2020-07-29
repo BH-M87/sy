@@ -263,6 +263,7 @@ class VoteService extends BaseService
         }
 
         $p['mobile'] = $member->mobile;
+        $p['activity_id'] = $activity_id;
 
         $model = new VtFeedback(['scenario' => 'add']);
 
@@ -302,6 +303,7 @@ class VoteService extends BaseService
         }
 
         $p['mobile'] = $member->mobile;
+        $p['activity_id'] = $activity_id;
 
         $model = new VtComment(['scenario' => 'add']);
 
@@ -343,6 +345,7 @@ class VoteService extends BaseService
         // 每个用户在活动周期内，对专业组最多投5个，公众组最多投3个
 
         $p['mobile'] = $member->mobile;
+        $p['activity_id'] = $activity_id;
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
