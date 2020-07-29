@@ -93,8 +93,9 @@ class ActivityController extends BaseController {
     //活动下拉
     public function actionDropOfActivity(){
         try{
+            $params = $this->request_params;
             $service = new ActivityService();
-            $result = $service->dropOfActivity();
+            $result = $service->dropOfActivity($params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             } else {

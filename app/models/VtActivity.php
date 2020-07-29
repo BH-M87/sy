@@ -127,9 +127,9 @@ class VtActivity extends BaseModel
                 if($res['end_at']!=$this->end_at){
                     return $this->addError($attribute, "投票活动结束时间不能修改");
                 }
-                if($res['group_status']!=$this->group_status){
-                    return $this->addError($attribute, "投票活动选手分组不能修改");
-                }
+//                if($res['group_status']!=$this->group_status){
+//                    return $this->addError($attribute, "投票活动选手分组不能修改");
+//                }
             }else{
                 if($this->start_at<$nowTime){
                     return $this->addError($attribute, "投票活动开始时间应大于当前时间");
@@ -190,9 +190,13 @@ class VtActivity extends BaseModel
     }
 
     //活动下拉
-    public function getDropList(){
+    public function getDropList($params){
         $fields = ['id','name'];
-        $model = self::find()->select($fields)->where(['>','start_at',time()])->orderBy(['id'=>SORT_DESC]);
+        $model = self::find()->select($fields)->where(1);
+        if(!empty($params['status'])&&$params['status']==1){    // 未开始活动
+            $model->andWhere(['>','start_at',time()]);
+        }
+        $model->orderBy(['id'=>SORT_DESC]);
         return $model->asArray()->all();
     }
 }
