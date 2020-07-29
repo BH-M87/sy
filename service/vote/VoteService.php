@@ -25,9 +25,11 @@ class VoteService extends BaseService
 	// 排名
     public function orderList($p)
     {
+        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
+
     	$m = VtPlayer::find()
     	    ->select('id player_id, name, code, img, vote_num')
-            ->where(['=', 'activity_id', $p['activity_id']])
+            ->where(['=', 'activity_id', $activity_id])
             ->limit(10)->orderBy('vote_num desc, vote_at asc')->asArray()->all();
 
         return $m;
@@ -56,10 +58,12 @@ class VoteService extends BaseService
     // 列表参数过滤
     private static function playerSearch($p)
     {
+        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
+
         $m = VtPlayer::find()
             ->filterWhere(['like', 'code', $p['name']])
             ->orFilterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['=', 'activity_id', $p['activity_id']])
+            ->andFilterWhere(['=', 'activity_id', $activity_id])
             ->andFilterWhere(['=', 'group_id', $p['group_id']]);
 
         return $m;
@@ -162,7 +166,7 @@ class VoteService extends BaseService
     // 规则
     public function rule($p)
     {
-        $m = VtActivity::find()->select('content')->where(['id' => $p['activity_id']])->asArray()->one();
+        $m = VtActivity::find()->select('content')->where(['code' => $p['activity_code']])->asArray()->one();
 
         return $m;
     }
@@ -170,25 +174,27 @@ class VoteService extends BaseService
     // 首页
     public function index($p)
     {
-    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['id' => $p['activity_id']])->asArray()->one();
+    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
     	if (empty($m)) {
             throw new MyException('活动不存在');
         }
 
+        $activity_id = $m['activity_id'];
+
         // 更新活动访问量
-        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $p['activity_id']]);
+        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
         
         if ($m['group_status'] == 1) {
-        	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $p['activity_id']])->asArray()->all();
+        	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
         }
 
-        $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $p['activity_id']])->asArray()->all();
+        $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
 
         $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
-        $m['vote_num'] = VtVote::find()->where(['activity_id' => $p['activity_id']])->count();
-        $m['join_num'] = VtVote::find()->where(['activity_id' => $p['activity_id']])->groupBy('mobile')->count();
+        $m['vote_num'] = VtVote::find()->where(['activity_id' => $activity_id])->count();
+        $m['join_num'] = VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
         $m['view_num'] += 1;
-        $feedback = VtFeedback::find()->where(['activity_id' => $p['activity_id'], 'mobile' => $p['mobile']])->one();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $p['mobile']])->one();
         $m['if_feedback'] = !empty($feedback) ? 1 : 2;
 
         return $m;
@@ -236,12 +242,12 @@ class VoteService extends BaseService
             throw new MyException('会员不存在');
         }
 
-        $activity = VtActivity::findOne($p['activity_id']);
-        if (empty($activity)) {
+        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
+        if (empty($activity_id)) {
             throw new MyException('活动不存在');
         }
 
-        $feedback = VtFeedback::find()->where(['activity_id' => $p['activity_id'], 'mobile' => $member->mobile])->one();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $member->mobile])->one();
         if (!empty($feedback)) {
         	throw new MyException('同一活动只能反馈一次');
         }
@@ -268,9 +274,9 @@ class VoteService extends BaseService
 		if (empty($member)) {
             throw new MyException('会员不存在');
         }
-
-        $activity = VtActivity::findOne($p['activity_id']);
-        if (empty($activity)) {
+        
+        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
+        if (empty($activity_id)) {
             throw new MyException('活动不存在');
         }
 
@@ -280,7 +286,7 @@ class VoteService extends BaseService
             throw new MyException('选手不存在');
         }
 
-        $comment = VtComment::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
+        $comment = VtComment::find()->where(['activity_id' => $activity_id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
         	throw new MyException('已经评论过了');
         }
@@ -308,8 +314,8 @@ class VoteService extends BaseService
             throw new MyException('会员不存在');
         }
 
-        $activity = VtActivity::findOne($p['activity_id']);
-        if (empty($activity)) {
+        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
+        if (empty($activity_id)) {
             throw new MyException('活动不存在');
         }
 
@@ -319,7 +325,7 @@ class VoteService extends BaseService
             throw new MyException('选手不存在');
         }
 
-        $comment = VtVote::find()->where(['activity_id' => $p['activity_id'], 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
+        $comment = VtVote::find()->where(['activity_id' => $activity_id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
         	throw new MyException('一个选手只能投一票');
         }
