@@ -232,21 +232,15 @@ class ShopService extends BaseService
             if (!empty($community)) {
                 PsShopCommunity::deleteAll(['shop_id' => $shopId]);
                 foreach ($community as $k => $v) {
-                    $javaParam['token'] = $p['token'];
-                    $javaParam['id'] = $v['community_id'];
-                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
-
-                    if (!empty($javaResult)) {
-                        $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
-                        $commParam[] = [
-                            'shop_id' => $shopId, 
-                            'distance' => round($distance / 1000, 2), 
-                            'community_id' => $javaResult['id'],
-                            'community_name' => $javaResult['communityName'],
-                            'society_id' => $v['society_id'],
-                            'society_name' => $v['society_name'],
-                        ];
-                    }
+                    $distance = F::getDistance($p['lat'], $p['lon'], $v['lat'], $v['lon']);
+                    $commParam[] = [
+                        'shop_id' => $shopId, 
+                        'distance' => round($distance / 1000, 2), 
+                        'community_id' => $v['community_id'],
+                        'community_name' => $v['community_name'],
+                        'society_id' => $v['society_id'],
+                        'society_name' => $v['society_name'],
+                    ];
                 }
                 Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();       
             }
@@ -280,21 +274,15 @@ class ShopService extends BaseService
             
             if (!empty($p['community'])) {
                 foreach ($p['community'] as $k => $v) {
-                    $javaParam['token'] = $p['token'];
-                    $javaParam['id'] = $v['community_id'];
-                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
-
-                    if (!empty($javaResult)) {
-                        $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
-                        $commParam[] = [
-                            'shop_id' => $shop_id, 
-                            'distance' => round($distance / 1000, 2), 
-                            'community_id' => $v['community_id'],
-                            'community_name' => $v['community_name'],
-                            'society_id' => $v['society_id'],
-                            'society_name' => $v['society_name'],
-                        ];
-                    }       
+                    $distance = F::getDistance($m->lat, $m->lon, $v['lat'], $v['lon']);
+                    $commParam[] = [
+                        'shop_id' => $shop_id, 
+                        'distance' => round($distance / 1000, 2), 
+                        'community_id' => $v['community_id'],
+                        'community_name' => $v['community_name'],
+                        'society_id' => $v['society_id'],
+                        'society_name' => $v['society_name'],
+                    ];    
                 }
 
                 Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();
