@@ -171,7 +171,7 @@ class VoteService extends BaseService
                 throw new MyException($this->getError($model));
             }
 
-            return ['member_id' => $param['member_id']];
+            return ['member_id' => $model->member_id];
         } else {
         	throw new MyException('验证码不正确');
         }
