@@ -151,18 +151,23 @@ class VoteService extends BaseService
 		$member = VtMember::find()->where(['mobile' => $p['mobile']])->one();
         if ($member->verify_code == $p['verify_code']) {
         	return ['member_id' => $member->member_id];
-        } else if ($p['verify_code'] == '111111' && empty($member)) {
+        } else if ($p['verify_code'] == '111111') {
             $param['verify_code'] = '111111';
             $param['mobile'] = $p['mobile'];
             $param['member_id'] = date('YmdHis', time()).mt_rand(1000,9999);
 
-            $model = new VtMember(['scenario' => 'add']);
+            $scenario = 'add';
+            if (!empty($member)) {
+                $scenario = 'edit';
+            }
+
+            $model = new VtMember(['scenario' => $scenario]);
 
             if (!$model->load($param, '') || !$model->validate()) {
                 throw new MyException($this->getError($model));
             }
 
-            if (!$model->saveData('add', $param)) {
+            if (!$model->saveData($scenario, $param)) {
                 throw new MyException($this->getError($model));
             }
 
