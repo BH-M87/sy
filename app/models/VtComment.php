@@ -29,7 +29,7 @@ class VtComment extends BaseModel
             'activity_id' => '活动ID',
             'player_id' => '选手ID',
             'mobile' => '手机号',
-            'content' => '反馈内容',
+            'content' => '评论内容',
             'type' => '来源',
             'create_at' => '新增时间',
         ];

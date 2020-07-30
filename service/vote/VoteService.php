@@ -58,8 +58,8 @@ class VoteService extends BaseService
 
         $list = self::playerSearch($p)
             ->select('id player_id, name, code, img, vote_num')
-            ->offset(($p['page'] - 1) * $p['rows'])
-            ->limit($p['rows'])
+            //->offset(($p['page'] - 1) * $p['rows'])
+            //->limit($p['rows'])
             ->orderBy('code asc')->asArray()->all();
 
         return ['list' => $list, 'totals' => (int)$totals];
@@ -114,13 +114,12 @@ class VoteService extends BaseService
 		}
 
         $verify_code = mt_rand(100000, 999999);
-        $url = "http://test.louzhanggui.com/index.php?r=SendSms"; // 测试环境
-        //$url = "http://jjt.louzhanggui.com/index.php?r=SendSms";//正式环境 
+        $url = Yii::$app->modules['ali_small_lyl']->params['sms_code_url'];
 
         $curl_data['template'] = 411; // 短信内容模板
         $curl_data['mobile'] = $p['mobile']; // 接收者手机号
         $curl_data['content'] = "您好，您的验证码为".$verify_code; // 发送内容
-        $curl_data['source'] = 'louzhanggui'; // 来源平台 经纪通：general  官网：zhujia  分销crm：crm
+        $curl_data['source'] = 'vote'; // 来源平台 经纪通：general  官网：zhujia  分销crm：crm
         $curl_data['operat_name'] = '系统通知'; // 发送人名称
 
         $r = json_decode(Curl::getInstance()->post($url, $curl_data), true);
