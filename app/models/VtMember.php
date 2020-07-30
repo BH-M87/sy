@@ -36,6 +36,7 @@ class VtMember extends BaseModel
     public function saveData($scenario, $p)
     {
         if ($scenario == 'edit') {
+            unset($p['member_id']);
             $p['update_at'] = time();
             self::updateAll($p, ['mobile' => $p['mobile']]);
             return true;

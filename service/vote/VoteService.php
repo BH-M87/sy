@@ -203,7 +203,8 @@ class VoteService extends BaseService
         $m['vote_num'] = VtVote::find()->where(['activity_id' => $activity_id])->count();
         $m['join_num'] = VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
         $m['view_num'] += 1;
-        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $p['mobile']])->one();
+        $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
         $m['if_feedback'] = !empty($feedback) ? 1 : 2;
 
         return $m;
