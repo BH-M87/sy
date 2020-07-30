@@ -325,9 +325,17 @@ class VoteService extends BaseService
             throw new MyException('会员不存在');
         }
 
-        $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
-        if (empty($activity_id)) {
+        $activity = VtActivity::find()->where(['code' => $p['activity_code']])->one();
+        if (empty($activity)) {
             throw new MyException('活动不存在');
+        }
+
+        if ($activity->start_at > time()) {
+            throw new MyException('活动未开始');
+        }
+
+        if ($activity->end_at < time()) {
+            throw new MyException('活动已结束');
         }
 
         $player = VtPlayer::findOne($p['player_id']);
@@ -336,7 +344,7 @@ class VoteService extends BaseService
             throw new MyException('选手不存在');
         }
 
-        $comment = VtVote::find()->where(['activity_id' => $activity_id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
+        $comment = VtVote::find()->where(['activity_id' => $activity->id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
         	throw new MyException('一个选手只能投一票');
         }
@@ -344,7 +352,7 @@ class VoteService extends BaseService
         // 每个用户在活动周期内，对专业组最多投5个，公众组最多投3个
 
         $p['mobile'] = $member->mobile;
-        $p['activity_id'] = $activity_id;
+        $p['activity_id'] = $activity->id;
 
         $trans = Yii::$app->getDb()->beginTransaction();
 
