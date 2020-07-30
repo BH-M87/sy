@@ -31,7 +31,7 @@ class BaseController extends \yii\web\Controller
     //分页条数，后台默认10条数据
     public $rows = 10;
 
-    public $repeatAction = [];//验证重复请求的方法数组
+    public $repeatAction = ['get-sms-code'];//验证重复请求的方法数组
 
     public function init(){
         //跨域
