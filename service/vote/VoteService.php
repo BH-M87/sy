@@ -351,6 +351,27 @@ class VoteService extends BaseService
         }
 
         // 每个用户在活动周期内，对专业组最多投5个，公众组最多投3个
+        $zyCount = VtVote::find()->alias('A')
+            ->leftJoin('vt_player B', 'A.player_id = B.id')
+            ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
+            ->where(['=', 'C.name', '专业组'])
+            ->andFilterWhere(['=', 'A.mobile', $member->mobile])
+            ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
+
+        if ($zyCount >= 5) {
+            throw new MyException('专业组最多投5票');
+        }
+
+        $gzCount = VtVote::find()->alias('A')
+            ->leftJoin('vt_player B', 'A.player_id = B.id')
+            ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
+            ->where(['=', 'C.name', '公众组'])
+            ->andFilterWhere(['=', 'A.mobile', $member->mobile])
+            ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
+
+        if ($gzCount >= 3) {
+            throw new MyException('公众组最多投3票');
+        }
 
         $p['mobile'] = $member->mobile;
         $p['activity_id'] = $activity->id;
