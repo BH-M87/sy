@@ -177,3 +177,7 @@ CREATE TABLE `ps_shop_statistic` (
   `click_num` int(10) NOT NULL DEFAULT '0' COMMENT '今天的点击数',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='店铺点击统计表';
+
+/***********2020-07-30***********/
+ALTER TABLE  `ps_shop_merchant_community` ADD  `lon` varchar(100) NOT NULL COMMENT '经度' AFTER `society_name`;
+ALTER TABLE  `ps_shop_merchant_community` ADD  `lat` varchar(100) NOT NULL COMMENT '纬度' AFTER `society_name`;
