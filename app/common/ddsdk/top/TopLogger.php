@@ -4,7 +4,7 @@ class TopLogger
 {
 	public $conf = array(
 		"separator" => "\t",
-		"log_file" => "alipay.log"
+		"log_file" => ""
 	);
 
 	private $fileHandle;
