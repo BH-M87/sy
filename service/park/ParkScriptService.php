@@ -8,6 +8,7 @@ use app\models\PsParkSpace;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
 use service\property_basic\JavaOfCService;
+use service\property_basic\JavaService;
 use Yii;
 use yii\db\Exception;
 
@@ -98,9 +99,15 @@ class ParkScriptService extends BaseService {
                 $data = [];
                 $spaceIds = [];
                 $recordIds = [];
+                $javaService = new JavaOfCService();
                 foreach($result as $key=>$value){
                     //判断业主车辆是否在车库
-                    $judge = true;
+                    $javaParams['communityId'] = $value['community_id'];
+                    $javaParams['residentId'] = $value['publish_id'];
+//                    $javaParams['lotId'] = '';
+                    $javaResult = $javaService->parkingParkingCarPortExistence($javaParams);
+                    $judge = $javaResult['isParkingCarPort'];
+//                    $judge = true;
                     if($judge){
                         $element['community_id'] = $value['community_id'];
                         $element['community_name'] = $value['community_name'];
@@ -126,7 +133,6 @@ class ParkScriptService extends BaseService {
                             array_push($recordIds,$value['record_id']);
                             //调用java接口 删除车牌信息 （java接口）
                             if(!empty($value['parking_car_id'])){
-                                $javaService = new JavaOfCService();
                                 $javaCar['id'] = $value['parking_car_id'];
                                 $javaService->parkingDeleteParkingCar($javaCar);
                             }
@@ -184,6 +190,7 @@ class ParkScriptService extends BaseService {
                 $recordIds = [];
                 $fields = ['community_id','community_name','user_id','type','content','create_at','update_at'];
                 $data = [];
+                $javaService = new JavaOfCService();
                 foreach($result as $key=>$value){
                     $setInfo = PsParkSet::find()->select(['late_at'])->where(['=','corp_id',$value['corp_id']])->asArray()->one();
                     if(!empty($setInfo)){
@@ -205,7 +212,6 @@ class ParkScriptService extends BaseService {
                             $data[] = $msgParams;
                             //删除车牌信息java接口
                             if(!empty($value['parking_car_id'])){
-                                $javaService = new JavaOfCService();
                                 $javaCar['id'] = $value['parking_car_id'];
                                 $javaService->parkingDeleteParkingCar($javaCar);
                             }

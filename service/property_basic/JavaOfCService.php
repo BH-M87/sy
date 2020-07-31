@@ -188,4 +188,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/parking/deleteParkingCar';
         return self::returnCData($query);
     }
+
+    //判断当前业主车辆是否存在
+    public function parkingParkingCarPortExistence($query){
+        $query['route'] = '/parking/parkingCarPortExistence';
+        return self::returnCData($query);
+    }
 }
