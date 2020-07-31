@@ -176,4 +176,10 @@ class JavaOfCService extends BaseService{
         $query['route'] = '/member/api/selectMemberInfo';
         return self::returnCData($query);
     }
+
+    //新增车辆 车牌下放
+    public function parkingAddParkingCar($query){
+        $query['route'] = '/parking/addParkingCar';
+        return self::returnCData($query);
+    }
 }

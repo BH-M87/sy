@@ -162,6 +162,18 @@ class SharedService extends BaseService{
      * 9.添加消息记录
      */
     public function spaceReservation($params){
+
+//        $javaCar['token'] = $params['token'];
+//        $javaCar['roomId'] = '1285087563838926849';
+//        $javaCar['residentId'] = $model->attributes['appointment_id'];
+//        $javaCar['contactsName'] = $model->attributes['appointment_name'];
+//        $javaCar['licenseNumber'] = $model->attributes['car_number'];
+//        $javaCar['contactsPhone'] = $model->attributes['appointment_mobile'];
+//        $javaCar['startTime'] = date('Y-m-d H:i:s',$model->attributes['start_at']);
+//        $javaCar['carType'] = 1;
+//        $javaCarResult = $javaService->parkingAddParkingCar($javaCar);
+
+
         $trans = Yii::$app->db->beginTransaction();
         try{
             if(empty($params['community_id'])){
@@ -180,6 +192,15 @@ class SharedService extends BaseService{
                     return $this->failed('新增失败！');
                 }
                 //车牌下放 待定
+                $javaCar['token'] = $params['token'];
+                $javaCar['roomId'] = $model->attributes['room_id'];
+                $javaCar['residentId'] = $model->attributes['appointment_id'];
+                $javaCar['contactsName'] = $model->attributes['appointment_name'];
+                $javaCar['licenseNumber'] = $model->attributes['car_number'];
+                $javaCar['contactsPhone'] = $model->attributes['appointment_mobile'];
+                $javaCar['startTime'] = date('Y-m-d H:i:s',$model->attributes['start_at']);
+                $javaCar['carType'] = 1;
+                $javaCarResult = $javaService->parkingAddParkingCar($javaCar);
 
                 //修改共享车位信息
                 $spaceModel = new PsParkSpace(['scenario'=>'info']);
