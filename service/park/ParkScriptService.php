@@ -7,6 +7,7 @@ use app\models\PsParkSet;
 use app\models\PsParkSpace;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
+use service\property_basic\JavaOfCService;
 use Yii;
 use yii\db\Exception;
 
@@ -78,7 +79,7 @@ class ParkScriptService extends BaseService {
         try{
             $fields = [
                         'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at',"space.park_space",'record.ali_form_id',
-                        'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number'
+                        'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number','record.parking_car_id'
             ];
             $nowTime = time();
 //            $nowTime = "1592898480";
@@ -124,6 +125,11 @@ class ParkScriptService extends BaseService {
                             $data[] = $ele;
                             array_push($recordIds,$value['record_id']);
                             //调用java接口 删除车牌信息 （java接口）
+                            if(!empty($value['parking_car_id'])){
+                                $javaService = new JavaOfCService();
+                                $javaCar['id'] = $value['parking_car_id'];
+                                $javaService->parkingDeleteParkingCar($javaCar);
+                            }
 
                         }
                         array_push($spaceIds,$value['id']);
@@ -161,7 +167,8 @@ class ParkScriptService extends BaseService {
         try{
             $fields = [
                 'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at','record.ali_form_id',
-                'record.ali_user_id','record.appointment_id','record.id as record_id','record.corp_id','record.start_at','record.car_number'
+                'record.ali_user_id','record.appointment_id','record.id as record_id','record.corp_id','record.start_at','record.car_number',
+                'record.parking_car_id'
             ];
             $nowTime = time();
             //获得数据
@@ -197,6 +204,11 @@ class ParkScriptService extends BaseService {
                             $msgParams['update_at'] = $nowTime;
                             $data[] = $msgParams;
                             //删除车牌信息java接口
+                            if(!empty($value['parking_car_id'])){
+                                $javaService = new JavaOfCService();
+                                $javaCar['id'] = $value['parking_car_id'];
+                                $javaService->parkingDeleteParkingCar($javaCar);
+                            }
                         }
                     }
                 }
