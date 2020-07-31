@@ -354,7 +354,7 @@ class VoteService extends BaseService
 
         $comment = VtVote::find()->where(['activity_id' => $activity->id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
-        	//throw new MyException('一个选手只能投一票');
+        	throw new MyException('一个选手只能投一票');
         }
 
         // 每个用户在活动周期内，对专业组最多投5个，公众组最多投3个
