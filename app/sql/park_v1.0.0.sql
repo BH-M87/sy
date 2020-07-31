@@ -142,3 +142,5 @@ CREATE TABLE `ps_park_message` (
   `update_at` int(11) NOT NULL DEFAULT 0 COMMENT '修改时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB CHARSET=utf8 COMMENT='消息';
+
+ALTER TABLE `ps_park_reservation` ADD `parking_car_id` varchar(30) NOT NULL DEFAULT '' COMMENT '车牌下放id';
