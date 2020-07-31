@@ -10,6 +10,7 @@ use app\models\PsParkSet;
 use app\models\PsParkSpace;
 use service\BaseService;
 use service\common\AliPayQrCodeService;
+use service\property_basic\JavaOfCService;
 use Yii;
 use yii\db\Exception;
 
@@ -122,7 +123,7 @@ class CallBackService extends BaseService  {
             //获得预约记录
             $fields = [
                         'id','space_id','start_at','end_at','community_id','community_name','room_id','room_name',
-                        'appointment_id','appointment_name','appointment_mobile','corp_id','car_number'
+                        'appointment_id','appointment_name','appointment_mobile','corp_id','car_number','parking_car_id'
             ];
             $info = PsParkReservation::find()->select($fields)
                 ->where(['=','car_number',$params['car_number']])
@@ -196,7 +197,14 @@ class CallBackService extends BaseService  {
 
             }
             //删除车辆信息
-
+            if(!empty($info['parking_car_id'])){
+                $javaService = new JavaOfCService();
+                $javaCar['id'] = $info['parking_car_id'];
+                $javaCarResult = $javaService->parkingDeleteParkingCar($javaCar);
+                if(!empty($javaCarResult['message'])){
+                    return $this->failed($javaCarResult['message']);
+                }
+            }
 
             //修改预约记录信息
             $reservationUpdate['status'] = $timeOut?3:6;    //已超时or 已完成
