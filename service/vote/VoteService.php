@@ -350,32 +350,38 @@ class VoteService extends BaseService
             throw new MyException('选手不存在');
         }
 
+        $groupName = VtActivityGroup::findOne($player->group_id)->name;
+
         $comment = VtVote::find()->where(['activity_id' => $activity->id, 'player_id' => $p['player_id'], 'mobile' => $member->mobile])->one();
         if (!empty($comment)) {
-        	throw new MyException('一个选手只能投一票');
+        	//throw new MyException('一个选手只能投一票');
         }
 
         // 每个用户在活动周期内，对专业组最多投5个，公众组最多投3个
-        $zyCount = VtVote::find()->alias('A')
-            ->leftJoin('vt_player B', 'A.player_id = B.id')
-            ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
-            ->where(['=', 'C.name', '专业组'])
-            ->andFilterWhere(['=', 'A.mobile', $member->mobile])
-            ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
+        if ($groupName == '专业组') {
+            $zyCount = VtVote::find()->alias('A')
+                ->leftJoin('vt_player B', 'A.player_id = B.id')
+                ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
+                ->where(['=', 'C.name', '专业组'])
+                ->andFilterWhere(['=', 'A.mobile', $member->mobile])
+                ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
 
-        if ($zyCount >= 5) {
-            throw new MyException('专业组最多投5票');
+            if ($zyCount >= 5) {
+                throw new MyException('专业组最多投5票');
+            }
         }
+        
+        if ($groupName == '公众组') {
+            $gzCount = VtVote::find()->alias('A')
+                ->leftJoin('vt_player B', 'A.player_id = B.id')
+                ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
+                ->where(['=', 'C.name', '公众组'])
+                ->andFilterWhere(['=', 'A.mobile', $member->mobile])
+                ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
 
-        $gzCount = VtVote::find()->alias('A')
-            ->leftJoin('vt_player B', 'A.player_id = B.id')
-            ->leftJoin('vt_activity_group C', 'B.group_id = C.id')
-            ->where(['=', 'C.name', '公众组'])
-            ->andFilterWhere(['=', 'A.mobile', $member->mobile])
-            ->andFilterWhere(['=', 'A.activity_id', $activity->id])->count();
-
-        if ($gzCount >= 3) {
-            throw new MyException('公众组最多投3票');
+            if ($gzCount >= 3) {
+                throw new MyException('公众组最多投3票');
+            }
         }
 
         $p['mobile'] = $member->mobile;
