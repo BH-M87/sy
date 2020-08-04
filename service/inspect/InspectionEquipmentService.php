@@ -56,7 +56,7 @@ class InspectionEquipmentService extends BaseService {
             $params['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
             $tokenResult = $this->getDdAccessToken($params);
             $access_token = $tokenResult['accessToken'];
-            $c = new \DingTalkClient("", "", "json");
+            $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
 
             $req = new \OapiPbpInstanceCreateRequest;
             $req->setStartTime($params['start_time']);
@@ -67,7 +67,7 @@ class InspectionEquipmentService extends BaseService {
             $resp = $c->execute($req, $access_token);
             if($resp->errcode == 0){
                 //生成组
-                $group = new \DingTalkClient("", "", "json");
+                $group = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
                 $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
                 $group_param = new \PunchGroupCreateParam;
                 $group_param->biz_inst_id = $resp->biz_inst_id;
@@ -109,7 +109,7 @@ class InspectionEquipmentService extends BaseService {
 
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime($params['start_time']);
         $req->setOuterId($params['task_id']);
@@ -119,7 +119,7 @@ class InspectionEquipmentService extends BaseService {
         $resp = $c->execute($req, $access_token);
         if($resp->errcode == 0){
             //生成组
-            $group = new \DingTalkClient("", "", "json");
+            $group = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
             $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
             $group_param = new \PunchGroupCreateParam;
             $group_param->biz_inst_id = $resp->biz_inst_id;
@@ -333,7 +333,7 @@ class InspectionEquipmentService extends BaseService {
 
     //获得b1分页
     public function getB1List($params){
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstancePositionListRequest;
         $req->setBizId($this->bizId);
         $req->setBizInstId($params['biz_inst_id']);
@@ -421,7 +421,7 @@ class InspectionEquipmentService extends BaseService {
             }
         }
         //添加人员
-//        $userArr = explode(',',$params['dd_user_list']);
+        $userArr = explode(',',$params['dd_user_list']);
         $userData = [];
         foreach($userArr as $value){
             $element['member_id'] = $value;
@@ -623,7 +623,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
@@ -644,7 +644,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
         $sync_param = new \PunchGroupSyncMemberParam;
 
@@ -668,7 +668,8 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = $punch_group_id;
@@ -686,7 +687,7 @@ class InspectionEquipmentService extends BaseService {
             $user_event_list->position_list = array($position_list);
             $user_event_list->biz_inst_id = $biz_inst_id;
             $user_event_list->event_id = $params['event_id'];
-            $param->user_event_list = array($user_event_list);
+            $param->user_event_list[] = array($user_event_list);
         }
         $req->setParam($param);
         $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
@@ -700,7 +701,7 @@ class InspectionEquipmentService extends BaseService {
         $biz_inst_id = $params['biz_inst_id'];
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceDisableRequest;
         $req->setBizInstId($biz_inst_id);
         $resp = $c->execute($req, $access_token);
@@ -721,7 +722,7 @@ class InspectionEquipmentService extends BaseService {
         $agentId = $tokenResult['agentId'];
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiMessageCorpconversationAsyncsendV2Request;
         $req->setAgentId($agentId);
         $req->setUseridList($params['userIdList']);
@@ -737,7 +738,7 @@ class InspectionEquipmentService extends BaseService {
 //        return 'e3baa1d29bae4d4a8958f70cd3844cda'; //1010实例id
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
 
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime("1577808000");
@@ -760,7 +761,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupCreateRequest;
         $group_param = new \PunchGroupCreateParam;
         $group_param->biz_inst_id = $biz_inst_id;
@@ -780,7 +781,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstancePositionListRequest;
         $req->setBizId($this->bizId);
         $req->setBizInstId($biz_inst_id);
@@ -807,7 +808,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
@@ -858,7 +859,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
         $sync_param = new \PunchGroupSyncMemberParam;
 //        $delete_member_list = new \PunchGroupMemberParam;
@@ -886,7 +887,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionListRequest;
         $req->setPunchGroupId($groupId);
         $req->setCursor("0");
@@ -903,7 +904,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberListRequest;
         $req->setPunchGroupId($groupId);
         $req->setCursor("0");
