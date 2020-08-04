@@ -150,7 +150,7 @@ class HomeService extends BaseService
             'icon' => "http://static.zje.com/2020041509563541640.png",
             'name' => "事件中心",
             'icon_type' => '2',
-            'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657"
+            'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
             ]
         ];
         if($javaResult){
@@ -198,7 +198,7 @@ class HomeService extends BaseService
                         'icon' => "http://static.zje.com/2020041509563541640.png",
                         'name' => "事件中心",
                         'icon_type' => '2',
-                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657"
+                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
                     ]
                 ];
             }
