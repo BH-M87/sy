@@ -32,13 +32,13 @@ class ScreenService extends BaseService
             'score' => '5.0', 'eventNum' => '100'
         ];
         // 人员信息
-        $r['visit']['total'] = 1750;
+        $r['visit']['visittotal'] = 1750;
         $r['visit']['visitlist'] = [ // 访客信息
             ['name' => '访客人次', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '进入人次', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
             ['name' => '出去人次', 'type' => 'bar', 'data' => [150, 232, 201, 154, 190, 334, 390]],
         ];
-        $r['visit']['time'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        $r['visit']['visittime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
         $r['visit']['member'] = [ 
             ['name' => '流动人口', 'value' => '335'],
@@ -47,10 +47,10 @@ class ScreenService extends BaseService
             ['name' => '临时人口', 'value' => '115'],
         ];
         // 车辆信息
-        $r['car']['total'] = 432;
-        $r['car']['public'] = 132;
-        $r['car']['free'] = 100;
-        $r['car']['time'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        $r['car']['cartotal'] = 432;
+        $r['car']['carpublic'] = 132;
+        $r['car']['carfree'] = 100;
+        $r['car']['cartime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
         $r['car']['carlist'] = [ 
             ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
