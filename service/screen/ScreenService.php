@@ -18,11 +18,41 @@ class ScreenService extends BaseService
     // 大屏
     public function index($p)
     {
+        $get_url = "116.62.92.115:106/v1/weather/geo";
+        $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
+        $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
+
         $r['base'] = [ // 基础信息
             'buildingNum' => '1500', 'roomNum' => '3240', 'rentOut' => '500', 'self' => '2740', 
             'memberNum' => '6462', 'register' => '5000', 'flow' => '1462',
             'parkingNUm' => '300', 'underground' => '200', 'ground' => '100',
             'score' => '5.0', 'eventNum' => '100'
+        ];
+       
+        $r['visit'] = [ // 人员信息 访客信息
+            ['name' => '访客人次', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
+            ['name' => '进入人次', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+            ['name' => '出去人次', 'type' => 'bar', 'data' => [150, 232, 201, 154, 190, 334, 390]],
+        ];
+
+        $r['member'] = [ // 人员信息
+            ['name' => '流动人口', 'value' => '335'],
+            ['name' => '户籍人口', 'value' => '310'],
+            ['name' => '境外人口', 'value' => '234'],
+            ['name' => '临时人口', 'value' => '115'],
+        ];
+
+        $r['car'] = [ // 车辆信息
+            ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
+            ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+        ];
+
+        $r['room'] = [ // 房屋信息
+            ['name' => '出租房', 'value' => '335'],
+            ['name' => '营业房', 'value' => '310'],
+            ['name' => '网约房', 'value' => '234'],
+            ['name' => '自住房', 'value' => '115'],
+            ['name' => '自定义', 'value' => '115'],
         ];
 
         return $r;
