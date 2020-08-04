@@ -11,10 +11,13 @@ use common\core\F;
 
 use service\BaseService;
 
+use app\models\PsRepair;
+
 use service\property_basic\JavaOfCService;
 
 class ScreenService extends BaseService
 {
+    public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
     // 大屏
     public function index($p)
     {
@@ -30,7 +33,7 @@ class ScreenService extends BaseService
         ];
         // 人员信息
         $r['visit']['total'] = 1750;
-        $r['visit']['list'] = [ // 访客信息
+        $r['visit']['visitlist'] = [ // 访客信息
             ['name' => '访客人次', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '进入人次', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
             ['name' => '出去人次', 'type' => 'bar', 'data' => [150, 232, 201, 154, 190, 334, 390]],
@@ -48,12 +51,12 @@ class ScreenService extends BaseService
         $r['car']['public'] = 132;
         $r['car']['free'] = 100;
         $r['car']['time'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-        $r['car']['list'] = [ 
+        $r['car']['carlist'] = [ 
             ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
         // 房屋信息
-        $r['room']['list'] = [ 
+        $r['room']['roomlist'] = [ 
             ['name' => '出租房', 'value' => '335'],
             ['name' => '营业房', 'value' => '310'],
             ['name' => '网约房', 'value' => '234'],
@@ -67,6 +70,7 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
+        $community_id = '1200020193290747905';
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
@@ -94,18 +98,19 @@ class ScreenService extends BaseService
                 ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三']
             ]
         ];
-
-        $r['repair'] = [ // 报事报修
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ],
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ],
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ]
-        ];
+        
+        // 报事报修
+        $r['repair'] = PsRepair::find()->alias('A')
+            ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
+            ->leftJoin('ps_repair_type B', 'A.repair_type_id = B.id')
+            ->where(['A.community_id' => $community_id])
+            ->orderBy('A.create_at desc')->limit(10)->asArray()->all();
+        if (!empty($r['repair'])) {
+            foreach ($r['repair'] as $k => &$v) {
+                $v['statusMsg'] = self::$repairStatus[$v['status']];
+                $v['create_at'] = date('Y/m/d H:i:s', $v['create_at']);
+            }
+        }
 
         return $r;
     }
