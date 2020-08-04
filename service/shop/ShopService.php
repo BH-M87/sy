@@ -32,8 +32,10 @@ class ShopService extends BaseService
         $list = PsShopCommunity::find()->alias('A')
             ->select('B.id shop_id, B.shop_code, B.shop_name, B.app_id, A.distance, B.status, B.merchant_code')
             ->leftJoin('ps_shop B', 'B.id = A.shop_id')
-            ->where(['<=', 'A.distance', '1'])
+            ->leftJoin('ps_shop_merchant C', 'C.merchant_code = B.merchant_code')
+            ->where(['=', 'C.status', '1'])
             ->andFilterWhere(['=', 'A.community_id', $p['community_id']])
+            ->andFilterWhere(['>', 'B.app_id', 0])
             ->offset(($p['page'] - 1) * $p['rows'])
             ->limit($p['rows'])
             ->orderBy('B.status asc, A.distance asc')->asArray()->all();
@@ -69,9 +71,12 @@ class ShopService extends BaseService
         }
 
         $top = PsShopMerchantPromote::find()->alias('A')
-            ->select('A.img, B.shop_code, B.id shop_id')
+            ->select('A.img, B.shop_code, B.id shop_id, B.app_id')
             ->leftJoin('ps_shop B', 'A.shop_code = B.shop_code')
-            ->where(['=', 'A.status', 1])
+            ->leftJoin('ps_shop_merchant C', 'C.merchant_code = B.merchant_code')
+            ->where(['=', 'C.status', 1])
+            ->andWhere(['=', 'A.status', 1])
+            ->andFilterWhere(['>', 'B.app_id', 0])
             ->groupBy('B.shop_code')
             ->orderBy('A.sort asc')->asArray()->all();
 
@@ -227,21 +232,15 @@ class ShopService extends BaseService
             if (!empty($community)) {
                 PsShopCommunity::deleteAll(['shop_id' => $shopId]);
                 foreach ($community as $k => $v) {
-                    $javaParam['token'] = $p['token'];
-                    $javaParam['id'] = $v['community_id'];
-                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
-
-                    if (!empty($javaResult)) {
-                        $distance = F::getDistance($p['lat'], $p['lon'], $javaResult['lat'], $javaResult['lon']);
-                        $commParam[] = [
-                            'shop_id' => $shopId, 
-                            'distance' => round($distance / 1000, 2), 
-                            'community_id' => $javaResult['id'],
-                            'community_name' => $javaResult['communityName'],
-                            'society_id' => $v['society_id'],
-                            'society_name' => $v['society_name'],
-                        ];
-                    }
+                    $distance = F::getDistance($p['lat'], $p['lon'], $v['lat'], $v['lon']);
+                    $commParam[] = [
+                        'shop_id' => $shopId, 
+                        'distance' => round($distance / 1000, 2), 
+                        'community_id' => $v['community_id'],
+                        'community_name' => $v['community_name'],
+                        'society_id' => $v['society_id'],
+                        'society_name' => $v['society_name'],
+                    ];
                 }
                 Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();       
             }
@@ -275,21 +274,15 @@ class ShopService extends BaseService
             
             if (!empty($p['community'])) {
                 foreach ($p['community'] as $k => $v) {
-                    $javaParam['token'] = $p['token'];
-                    $javaParam['id'] = $v['community_id'];
-                    $javaResult = JavaOfCService::service()->selectCommunityById($javaParam);
-
-                    if (!empty($javaResult)) {
-                        $distance = F::getDistance($m->lat, $m->lon, $javaResult['lat'], $javaResult['lon']);
-                        $commParam[] = [
-                            'shop_id' => $shop_id, 
-                            'distance' => round($distance / 1000, 2), 
-                            'community_id' => $v['community_id'],
-                            'community_name' => $v['community_name'],
-                            'society_id' => $v['society_id'],
-                            'society_name' => $v['society_name'],
-                        ];
-                    }       
+                    $distance = F::getDistance($m->lat, $m->lon, $v['lat'], $v['lon']);
+                    $commParam[] = [
+                        'shop_id' => $shop_id, 
+                        'distance' => round($distance / 1000, 2), 
+                        'community_id' => $v['community_id'],
+                        'community_name' => $v['community_name'],
+                        'society_id' => $v['society_id'],
+                        'society_name' => $v['society_name'],
+                    ];    
                 }
 
                 Yii::$app->db->createCommand()->batchInsert('ps_shop_community', ['shop_id', 'distance', 'community_id', 'community_name', 'society_id', 'society_name'], $commParam)->execute();

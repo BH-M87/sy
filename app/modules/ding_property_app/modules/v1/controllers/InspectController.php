@@ -89,7 +89,8 @@ class InspectController extends UserBaseController
         if(!$this->downgrade['inspect_device_list']){
             return PsCommon::responseFailed($this->downgrade['msg'],50003);
         }
-        $this->params['communityList'] = $this->params['communityId'];
+        $this->params['communityId'] = '';
+        //$this->params['communityList'] = $this->params['communityId'];
         $r = PointService::service()->listDevice($this->params);
 
         return PsCommon::responseSuccess($r);

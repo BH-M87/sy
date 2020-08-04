@@ -56,7 +56,7 @@ class InspectionEquipmentService extends BaseService {
             $params['end_time'] = strtotime(date('Y-m-d',strtotime('+10year'))." 23:59:59");
             $tokenResult = $this->getDdAccessToken($params);
             $access_token = $tokenResult['accessToken'];
-            $c = new \DingTalkClient("", "", "json");
+            $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
 
             $req = new \OapiPbpInstanceCreateRequest;
             $req->setStartTime($params['start_time']);
@@ -67,7 +67,7 @@ class InspectionEquipmentService extends BaseService {
             $resp = $c->execute($req, $access_token);
             if($resp->errcode == 0){
                 //生成组
-                $group = new \DingTalkClient("", "", "json");
+                $group = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
                 $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
                 $group_param = new \PunchGroupCreateParam;
                 $group_param->biz_inst_id = $resp->biz_inst_id;
@@ -87,7 +87,8 @@ class InspectionEquipmentService extends BaseService {
 
                     Yii::$app->db->createCommand()->insert('ps_b1_instance', $data)->execute();
                     $id=Yii::$app->db->getLastInsertID();
-                    return PsCommon::responseSuccess(['id'=>$id]);
+//                    return PsCommon::responseSuccess(['id'=>$id]);
+                    return ['id'=>$id];
                 }else{
                     return PsCommon::responseFailed($groupResult->errmsg);
                 }
@@ -108,7 +109,7 @@ class InspectionEquipmentService extends BaseService {
 
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime($params['start_time']);
         $req->setOuterId($params['task_id']);
@@ -118,7 +119,7 @@ class InspectionEquipmentService extends BaseService {
         $resp = $c->execute($req, $access_token);
         if($resp->errcode == 0){
             //生成组
-            $group = new \DingTalkClient("", "", "json");
+            $group = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
             $reqGroup = new \OapiPbpInstanceGroupCreateRequest;
             $group_param = new \PunchGroupCreateParam;
             $group_param->biz_inst_id = $resp->biz_inst_id;
@@ -188,10 +189,8 @@ class InspectionEquipmentService extends BaseService {
                 //数据判断
                 $fields = ['companyId','name','deviceType','deviceNo','createAt'];
                 Yii::$app->db->createCommand()->batchInsert('ps_inspect_device',$fields,$dataAll)->execute();
-                return PsCommon::responseSuccess();
-            }else{
-                return PsCommon::responseSuccess();
             }
+            return [];
         }else{
             return PsCommon::responseFailed("公司实例不存在");
         }
@@ -203,17 +202,25 @@ class InspectionEquipmentService extends BaseService {
             return PsCommon::responseFailed("corp_id不能为空");
         }
         //获得所有已同步b1设备
-        $fields = ['id','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url'];
+        $fields = ['id','name','biz_inst_id','punch_group_id','deviceNo','dd_user_list','dd_mid_url','start_time','end_time'];
         $deviceAll = PsInspectDevice::find()->select($fields)->where(['is_del'=>1])->andWhere(['=','deviceType','钉钉b1智点'])->andWhere(['=','companyId',$params['corp_id']])->asArray()->all();
         if(!empty($deviceAll)){
             //获得所所有钉钉人员
             $userService = new JavaService();
             $userResult = $userService->bindUserList($params);
             if(empty($userResult['list'])){
-                return PsCommon::responseSuccess();
+//                return PsCommon::responseSuccess();
+                return [];
             }
-            $params['dd_user_list'] = implode(array_column($userResult['list'],'ddUserId'),',');
+            $userListArray = array_column($userResult['list'],'ddUserId');
+            if(count($userListArray)>20){
+                $userListArray = array_slice($userListArray,0,20);
+            }
+            $params['dd_user_list'] = implode($userListArray,',');
             foreach($deviceAll as $key => $deviceInfo){
+                if(!empty($deviceInfo['dd_user_list'])){
+                    continue;
+                }
                 $biz_inst_id = !empty($deviceInfo['biz_inst_id'])?$deviceInfo['biz_inst_id']:'';
                 $punch_group_id = !empty($deviceInfo['punch_group_id'])?$deviceInfo['punch_group_id']:'';
                 if(empty($deviceInfo['biz_inst_id'])){
@@ -288,6 +295,22 @@ class InspectionEquipmentService extends BaseService {
                     return PsCommon::responseFailed($userAddResult->errmsg);
                 }
 
+                //打卡事件同步 (小闹钟)
+//                $syncAddParams['biz_inst_id'] = $biz_inst_id;
+//                $syncAddParams['punch_group_id'] = $punch_group_id;
+//                $syncAddParams['userArr'] = $userArr;
+//                $syncAddParams['event_name'] = $deviceInfo['name'];
+//                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
+//                $syncAddParams['end_time'] = $deviceInfo['end_time']*1000;
+//                $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
+//                $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
+//                $syncAddParams['event_id'] = $deviceInfo['id'];
+//                $syncAddParams['token'] = $params['token'];
+//                $syncAddResult = self::eventSyncOfUser($syncAddParams);
+//                if($syncAddResult->errcode != 0){
+//                    return PsCommon::responseFailed($syncAddResult->errmsg);
+//                }
+
                 $instanceUpdate['biz_inst_id'] = $biz_inst_id;
                 $instanceUpdate['punch_group_id'] = $punch_group_id;
                 $instanceUpdate['dd_user_list'] = $params['dd_user_list'];
@@ -303,13 +326,14 @@ class InspectionEquipmentService extends BaseService {
                 }
             }
         }
-        return PsCommon::responseSuccess();
+//        return PsCommon::responseSuccess();
+        return [];
     }
 
 
     //获得b1分页
     public function getB1List($params){
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstancePositionListRequest;
         $req->setBizId($this->bizId);
         $req->setBizInstId($params['biz_inst_id']);
@@ -328,6 +352,10 @@ class InspectionEquipmentService extends BaseService {
         }
         if(empty($params['dd_user_list'])){
             return PsCommon::responseFailed("人员不能为空");
+        }
+        $userArr = explode(',',$params['dd_user_list']);
+        if(count($userArr)>20){
+            return PsCommon::responseFailed("人员至多20个");
         }
         $deviceInfo = PsInspectDevice::findOne($params['id']);
         if(empty($deviceInfo)){
@@ -407,6 +435,23 @@ class InspectionEquipmentService extends BaseService {
         $userAddResult = self::taskInstanceEditUser($userAddParams);
         if($userAddResult->errcode != 0){
             return PsCommon::responseFailed($userAddResult->errmsg);
+        }
+
+
+        //打卡事件同步 (小闹钟)
+        $syncAddParams['biz_inst_id'] = $biz_inst_id;
+        $syncAddParams['punch_group_id'] = $punch_group_id;
+        $syncAddParams['userArr'] = $userArr;
+        $syncAddParams['event_name'] = $deviceInfo->name;
+        $syncAddParams['start_time'] = $deviceInfo->start_time*1000;
+        $syncAddParams['end_time'] = $deviceInfo->end_time*1000;
+        $syncAddParams['event_time_stamp'] = $deviceInfo->createAt*1000;
+        $syncAddParams['position_id'] = $deviceInfo->deviceNo;
+        $syncAddParams['event_id'] = $deviceInfo->id;
+        $syncAddParams['token'] = $params['token'];
+        $syncAddResult = self::eventSyncOfUser($syncAddParams);
+        if($syncAddResult->errcode != 0){
+            return PsCommon::responseFailed($syncAddResult->errmsg);
         }
 
         $instanceUpdate['biz_inst_id'] = $biz_inst_id;
@@ -578,7 +623,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
@@ -599,7 +644,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
         $sync_param = new \PunchGroupSyncMemberParam;
 
@@ -612,12 +657,51 @@ class InspectionEquipmentService extends BaseService {
         return $resp;
     }
 
+
+    //设置新增、变更打卡事件（小闹钟）
+    public function eventSyncOfUser($params){
+
+        date_default_timezone_set('Asia/Shanghai');
+
+        $biz_inst_id = $params['biz_inst_id'];
+        $punch_group_id = $params['punch_group_id'];
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
+
+
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
+        $req = new \OapiPbpEventSyncRequest;
+        $param = new \UserEventOapiRequestVo;
+        $param->biz_code = $punch_group_id;
+
+        foreach($params['userArr'] as $value){
+            $user_event_list = new \UserEventOapiVo;
+            $user_event_list->userid = $value;
+            $user_event_list->event_name = $params['event_name'];
+            $user_event_list->start_time = $params['start_time'];
+            $user_event_list->end_time = $params['end_time'];
+            $user_event_list->event_time_stamp = $params['event_time_stamp'];
+            $position_list = new \PositionOapiVo;
+            $position_list->position_id = $params['position_id'];
+            $position_list->position_type = "101";
+            $user_event_list->position_list = array($position_list);
+            $user_event_list->biz_inst_id = $biz_inst_id;
+            $user_event_list->event_id = $params['event_id'];
+            $param->user_event_list[] = array($user_event_list);
+        }
+        $req->setParam($param);
+        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        return $resp;
+    }
+
+
+
     //停用实例
     public function instanceDisable($params){
         $biz_inst_id = $params['biz_inst_id'];
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceDisableRequest;
         $req->setBizInstId($biz_inst_id);
         $resp = $c->execute($req, $access_token);
@@ -638,7 +722,7 @@ class InspectionEquipmentService extends BaseService {
         $agentId = $tokenResult['agentId'];
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiMessageCorpconversationAsyncsendV2Request;
         $req->setAgentId($agentId);
         $req->setUseridList($params['userIdList']);
@@ -654,7 +738,7 @@ class InspectionEquipmentService extends BaseService {
 //        return 'e3baa1d29bae4d4a8958f70cd3844cda'; //1010实例id
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
 
         $req = new \OapiPbpInstanceCreateRequest;
         $req->setStartTime("1577808000");
@@ -677,7 +761,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupCreateRequest;
         $group_param = new \PunchGroupCreateParam;
         $group_param->biz_inst_id = $biz_inst_id;
@@ -697,7 +781,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstancePositionListRequest;
         $req->setBizId($this->bizId);
         $req->setBizInstId($biz_inst_id);
@@ -724,7 +808,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionUpdateRequest;
         $sync_param = new \PunchGroupSyncPositionParam;
 
@@ -775,7 +859,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
         $sync_param = new \PunchGroupSyncMemberParam;
 //        $delete_member_list = new \PunchGroupMemberParam;
@@ -803,7 +887,7 @@ class InspectionEquipmentService extends BaseService {
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupPositionListRequest;
         $req->setPunchGroupId($groupId);
         $req->setCursor("0");
@@ -820,7 +904,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient("", "", "json");
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpInstanceGroupMemberListRequest;
         $req->setPunchGroupId($groupId);
         $req->setCursor("0");
