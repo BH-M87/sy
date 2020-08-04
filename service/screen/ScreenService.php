@@ -44,6 +44,9 @@ class ScreenService extends BaseService
             ['name' => '临时人口', 'value' => '115'],
         ];
         // 车辆信息
+        $r['car']['total'] = 432;
+        $r['car']['public'] = 132;
+        $r['car']['free'] = 100;
         $r['car']['time'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
         $r['car']['list'] = [ 
             ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
