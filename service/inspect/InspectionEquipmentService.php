@@ -297,7 +297,6 @@ class InspectionEquipmentService extends BaseService {
 
                 //打卡事件同步 (小闹钟)
 //                $syncAddParams['biz_inst_id'] = $biz_inst_id;
-//                $syncAddParams['punch_group_id'] = $punch_group_id;
 //                $syncAddParams['userArr'] = $userArr;
 //                $syncAddParams['event_name'] = $deviceInfo['name'];
 //                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
@@ -440,7 +439,6 @@ class InspectionEquipmentService extends BaseService {
 
         //打卡事件同步 (小闹钟)
         $syncAddParams['biz_inst_id'] = $biz_inst_id;
-        $syncAddParams['punch_group_id'] = $punch_group_id;
         $syncAddParams['userArr'] = $userArr;
         $syncAddParams['event_name'] = $deviceInfo->name;
         $syncAddParams['start_time'] = $deviceInfo->start_time*1000;
@@ -664,7 +662,6 @@ class InspectionEquipmentService extends BaseService {
         date_default_timezone_set('Asia/Shanghai');
 
         $biz_inst_id = $params['biz_inst_id'];
-        $punch_group_id = $params['punch_group_id'];
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
 
@@ -672,8 +669,8 @@ class InspectionEquipmentService extends BaseService {
         $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
-        $param->biz_code = $punch_group_id;
-
+        $param->biz_code = $this->bizId;
+        $eventList = [];
         foreach($params['userArr'] as $value){
             $user_event_list = new \UserEventOapiVo;
             $user_event_list->userid = $value;
@@ -687,8 +684,10 @@ class InspectionEquipmentService extends BaseService {
             $user_event_list->position_list = array($position_list);
             $user_event_list->biz_inst_id = $biz_inst_id;
             $user_event_list->event_id = $params['event_id'];
-            $param->user_event_list[] = array($user_event_list);
+            $eventList[] = $user_event_list;
         }
+//        $param->user_event_list = array($user_event_list);
+        $param->user_event_list = $eventList;
         $req->setParam($param);
         $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
         return $resp;
