@@ -24,4 +24,12 @@ class ScreenController extends BaseController
 
         PsCommon::responseSuccess($result);
     }
+
+    // 大屏 中间 告警
+    public function actionCenter()
+    {
+        $result = ScreenService::service()->center($this->request_params);
+
+        PsCommon::responseSuccess($result);
+    }
 }

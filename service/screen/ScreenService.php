@@ -14,7 +14,7 @@ use service\inspect\RecordService;
 
 use app\models\PsRepair;
 
-use service\property_basic\JavaService;
+use service\property_basic\JavaNewService;
 
 class ScreenService extends BaseService
 {
@@ -25,14 +25,24 @@ class ScreenService extends BaseService
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
-        $board = JavaService::service()->corpBoard(['token' => $p['token'], 'communityId' => $community_id]);
-        print_r($board);die;
+        
+        $base = JavaNewService::service()->javaPost('/sy/board/statistics/corpBoard',['communityId' => $community_id])['data'];
         $r['base'] = [ // 基础信息
-            'buildingNum' => '1500', 'roomNum' => '3240', 'rentOut' => '500', 'self' => '2740', 
-            'memberNum' => '6462', 'register' => '5000', 'flow' => '1462',
-            'parkingNUm' => '300', 'underground' => '200', 'ground' => '100',
-            'score' => '5.0', 'eventNum' => '100'
+            'buildingNum' => $base['buildingCount'], 
+            'roomNum' => $base['roomInfoVO']['roomCount'] ?? 0, 
+            'rentOut' => $base['roomInfoVO']['leaseCount'] ?? 0, 
+            'self' => $base['roomInfoVO']['localCount'] ?? 0, 
+            'memberNum' => $base['residentInfoVO']['residentCount'] ?? 0, 
+            'register' => $base['residentInfoVO']['householdCount'] ?? 0, 
+            'flow' => $base['residentInfoVO']['floatingCount'] ?? 0,
+            'parkingNUm' => '300', 
+            'underground' => '200', 
+            'ground' => '100',
+            'score' => '5.0', 
+            'eventNum' => $base['eventCount'] ?? 0
         ];
+        
+        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
         // 人员信息
         $r['visit']['visittotal'] = 1750;
         $r['visit']['visitlist'] = [ // 访客信息
@@ -42,12 +52,7 @@ class ScreenService extends BaseService
         ];
         $r['visit']['visittime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-        $r['visit']['member'] = [ 
-            ['name' => '流动人口', 'value' => '335'],
-            ['name' => '户籍人口', 'value' => '310'],
-            ['name' => '境外人口', 'value' => '234'],
-            ['name' => '临时人口', 'value' => '115'],
-        ];
+        $r['visit']['member'] = $person;
         // 车辆信息
         $r['car']['cartotal'] = 432;
         $r['car']['carpublic'] = 132;
@@ -58,13 +63,8 @@ class ScreenService extends BaseService
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
         // 房屋信息
-        $r['room']['roomlist'] = [ 
-            ['name' => '出租房', 'value' => '335'],
-            ['name' => '营业房', 'value' => '310'],
-            ['name' => '网约房', 'value' => '234'],
-            ['name' => '自住房', 'value' => '115'],
-            ['name' => '自定义', 'value' => '115'],
-        ];
+        $room = JavaNewService::service()->javaPost('/sy/board/statistics/roomTagBoard',['communityId' => $community_id])['data'];
+        $r['room']['roomlist'] = $room;
 
         return $r;
     }
@@ -72,14 +72,13 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1200020193290747905';
+        $community_id = '1267284118264422401';
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
-
-        $r['activity'] = [ // 社区活动
-            ['name' => '业主大会', 'total' => '200', 'createAt' => '2020/7/20', 'rate' => '99%']
-        ];
+          
+        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
+        $r['activity'] = $activity['list'] ?? []; // 社区活动
         
         $r['inspect'] = [ // 巡检任务
             ['taskName' => '任务名称', 'lineName' => '线路名称', 'createAt' => '2020/7/20', 'statusMsg' => '未处理', 'content' => '已处理']
@@ -115,6 +114,16 @@ class ScreenService extends BaseService
                 $v['create_at'] = date('Y/m/d H:i:s', $v['create_at']);
             }
         }
+
+        return $r;
+    }
+
+    // 大屏 中间 告警
+    public function center($p)
+    {
+        $r['list'] = [ // 实时告警
+            ['title' => '禁烟时段燃放烟花爆竹']
+        ];
 
         return $r;
     }
