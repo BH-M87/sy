@@ -57,6 +57,7 @@ class RecordService extends BaseService {
                 $element['community_id'] = !empty($value['community_id'])?$value['community_id']:'';
                 $element['community_name'] = !empty($value['community_id'])?$communityInfo['communityResult'][$value['community_id']]:'';
                 $element['task_name'] = !empty($value['task_name'])?$value['task_name']:'';
+                $element['line_name'] = !empty($value['line_name'])?$value['line_name']:'';
                 $element['head_name'] = !empty($value['head_name'])?$value['head_name']:'';
                 $element['task_time_msg'] = '';
                 if(!empty($value['check_start_at'])&&!empty($value['check_end_at'])){

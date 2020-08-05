@@ -10,21 +10,23 @@ use common\core\Curl;
 use common\core\F;
 
 use service\BaseService;
+use service\inspect\RecordService;
 
 use app\models\PsRepair;
 
-use service\property_basic\JavaOfCService;
+use service\property_basic\JavaService;
 
 class ScreenService extends BaseService
 {
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
     // 大屏
     public function index($p)
-    {
+    {   $community_id = '1200020193290747905';
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
-
+        $board = JavaService::service()->corpBoard(['token' => $p['token'], 'communityId' => $community_id]);
+        print_r($board);die;
         $r['base'] = [ // 基础信息
             'buildingNum' => '1500', 'roomNum' => '3240', 'rentOut' => '500', 'self' => '2740', 
             'memberNum' => '6462', 'register' => '5000', 'flow' => '1462',
@@ -78,7 +80,7 @@ class ScreenService extends BaseService
         $r['activity'] = [ // 社区活动
             ['name' => '业主大会', 'total' => '200', 'createAt' => '2020/7/20', 'rate' => '99%']
         ];
-
+        
         $r['inspect'] = [ // 巡检任务
             ['taskName' => '任务名称', 'lineName' => '线路名称', 'createAt' => '2020/7/20', 'statusMsg' => '未处理', 'content' => '已处理']
         ];
@@ -98,7 +100,9 @@ class ScreenService extends BaseService
                 ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三']
             ]
         ];
-        
+
+        $r['inspect'] = RecordService::service()->recordList(['page' => 1, 'pageSize' => 10, 'community_id' => $community_id]);
+
         // 报事报修
         $r['repair'] = PsRepair::find()->alias('A')
             ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
