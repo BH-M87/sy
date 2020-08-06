@@ -110,7 +110,7 @@ class PsInspectRecord extends BaseModel
 
     //列表
     public function getList($params){
-        $fields = ['id','community_id','task_name','check_start_at','check_end_at','user_id','head_name','status','run_status','result_status'];
+        $fields = ['id','community_id','task_name','check_start_at','check_end_at','user_id','head_name','status','run_status','result_status', 'line_name'];
         $model = self::find()->select($fields)
             ->andFilterWhere(['in', 'community_id', $params['communityIds']])
             ->andFilterWhere(['=', 'community_id', $params['community_id']])

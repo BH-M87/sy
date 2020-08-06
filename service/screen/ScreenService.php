@@ -10,50 +10,91 @@ use common\core\Curl;
 use common\core\F;
 
 use service\BaseService;
+use service\inspect\RecordService;
 
-use service\property_basic\JavaOfCService;
+use app\models\PsRepair;
+
+use service\property_basic\JavaNewService;
 
 class ScreenService extends BaseService
 {
+    public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
     // 大屏
     public function index($p)
-    {
+    {   $community_id = '1200020193290747905';
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
-
+        
+        $base = JavaNewService::service()->javaPost('/sy/board/statistics/corpBoard',['communityId' => $community_id])['data'];
         $r['base'] = [ // 基础信息
-            'buildingNum' => '1500', 'roomNum' => '3240', 'rentOut' => '500', 'self' => '2740', 
-            'memberNum' => '6462', 'register' => '5000', 'flow' => '1462',
-            'parkingNUm' => '300', 'underground' => '200', 'ground' => '100',
-            'score' => '5.0', 'eventNum' => '100'
+            'buildingNum' => $base['buildingCount'], 
+            'roomNum' => $base['roomInfoVO']['roomCount'] ?? 0, 
+            'rentOut' => $base['roomInfoVO']['leaseCount'] ?? 0, 
+            'self' => $base['roomInfoVO']['localCount'] ?? 0, 
+            'memberNum' => $base['residentInfoVO']['residentCount'] ?? 0, 
+            'register' => $base['residentInfoVO']['householdCount'] ?? 0, 
+            'flow' => $base['residentInfoVO']['floatingCount'] ?? 0,
+            'parkingNUm' => '300', 
+            'underground' => '200', 
+            'ground' => '100',
+            'score' => '5.0', 
+            'eventNum' => $base['eventCount'] ?? 0
         ];
-       
-        $r['visit'] = [ // 人员信息 访客信息
+
+        // 健康码
+        $r['healthy']['healthyTotalMobile'] = 457; // 手机扫码进入人次
+        $r['healthy']['healthyTotal'] = 345; // 手环扫码进入人次
+
+        // 共享积分 小区积分排名、积分总数、积分参与人数、积分参与人数比例
+        $r['integral']['integralRank'] = 1;
+        $r['integral']['integralTotal'] = 21309;
+        $r['integral']['integralUser'] = 3657;
+        $r['integral']['integralRate'] = '78%';
+
+        // 设备
+        $r['device']['deviceTotal_1'] = 5;
+        $r['device']['deviceTotal_2'] = 4;
+        //$r['device'] = [['deviceType' => 1, 'deviceTotal' => 5], ['deviceType' => 2, 'deviceTotal' => 4]];
+        
+        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+        // 人员信息
+        $r['visit']['visittotal'] = 1750;
+        $r['visit']['visitlist'] = [ // 访客信息
             ['name' => '访客人次', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '进入人次', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
             ['name' => '出去人次', 'type' => 'bar', 'data' => [150, 232, 201, 154, 190, 334, 390]],
         ];
+        $r['visit']['visittime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-        $r['member'] = [ // 人员信息
-            ['name' => '流动人口', 'value' => '335'],
-            ['name' => '户籍人口', 'value' => '310'],
-            ['name' => '境外人口', 'value' => '234'],
-            ['name' => '临时人口', 'value' => '115'],
-        ];
-
-        $r['car'] = [ // 车辆信息
+        $r['visit']['member'] = $person;
+        // 车辆信息
+        $r['car']['cartotal'] = 432;
+        $r['car']['carpublic'] = 132;
+        $r['car']['carfree'] = 100;
+        $r['car']['cartime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        $r['car']['carlist'] = [ 
             ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
-
-        $r['room'] = [ // 房屋信息
-            ['name' => '出租房', 'value' => '335'],
-            ['name' => '营业房', 'value' => '310'],
-            ['name' => '网约房', 'value' => '234'],
-            ['name' => '自住房', 'value' => '115'],
-            ['name' => '自定义', 'value' => '115'],
+        $r['car']['carInOut'] = [ 
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
         ];
+        /*$r['car']['carIn'] = [ 
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+        ];
+        $r['car']['carOut'] = [ 
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
+        ];*/
+        // 房屋信息
+        $room = JavaNewService::service()->javaPost('/sy/board/statistics/roomTagBoard',['communityId' => $community_id])['data'];
+        $r['room']['roomlist'] = $room;
 
         return $r;
     }
@@ -61,14 +102,14 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
+        $community_id = '1267284118264422401';
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
-
-        $r['activity'] = [ // 社区活动
-            ['name' => '业主大会', 'total' => '200', 'createAt' => '2020/7/20', 'rate' => '99%']
-        ];
-
+          
+        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
+        $r['activity'] = $activity['list'] ?? []; // 社区活动
+        
         $r['inspect'] = [ // 巡检任务
             ['taskName' => '任务名称', 'lineName' => '线路名称', 'createAt' => '2020/7/20', 'statusMsg' => '未处理', 'content' => '已处理']
         ];
@@ -89,16 +130,29 @@ class ScreenService extends BaseService
             ]
         ];
 
-        $r['repair'] = [ // 报事报修
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ],
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ],
-            [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三', 'address' => '南区8-2-101']
-            ]
+        $r['inspect'] = RecordService::service()->recordList(['page' => 1, 'pageSize' => 10, 'community_id' => $community_id]);
+
+        // 报事报修
+        $r['repair'] = PsRepair::find()->alias('A')
+            ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
+            ->leftJoin('ps_repair_type B', 'A.repair_type_id = B.id')
+            ->where(['A.community_id' => $community_id])
+            ->orderBy('A.create_at desc')->limit(10)->asArray()->all();
+        if (!empty($r['repair'])) {
+            foreach ($r['repair'] as $k => &$v) {
+                $v['statusMsg'] = self::$repairStatus[$v['status']];
+                $v['create_at'] = date('Y/m/d H:i:s', $v['create_at']);
+            }
+        }
+
+        return $r;
+    }
+
+    // 大屏 中间 告警
+    public function center($p)
+    {
+        $r['list'] = [ // 实时告警
+            ['title' => '禁烟时段燃放烟花爆竹']
         ];
 
         return $r;
