@@ -352,10 +352,10 @@ class InspectionEquipmentService extends BaseService {
         if(empty($params['dd_user_list'])){
             return PsCommon::responseFailed("人员不能为空");
         }
-        $userArr = explode(',',$params['dd_user_list']);
-        if(count($userArr)>20){
-            return PsCommon::responseFailed("人员至多20个");
-        }
+//        $userArr = explode(',',$params['dd_user_list']);
+//        if(count($userArr)>20){
+//            return PsCommon::responseFailed("人员至多20个");
+//        }
         $deviceInfo = PsInspectDevice::findOne($params['id']);
         if(empty($deviceInfo)){
             return PsCommon::responseFailed("该设备不存在");
@@ -686,7 +686,7 @@ class InspectionEquipmentService extends BaseService {
             $param->user_event_list[] = array($user_event_list);
         }
         $req->setParam($param);
-        $resp = $c->execute($req, $access_token);
+        $resp = $c->execute($req, $access_token,"https://oapi.dingtalk.com/topapi/pbp/event/sync");
         return $resp;
     }
 
