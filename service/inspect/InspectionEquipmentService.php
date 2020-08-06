@@ -237,7 +237,7 @@ class InspectionEquipmentService extends BaseService {
                         $positionParams['add_position_list'] = [
                             [
                                 'position_id'=>$deviceInfo['deviceNo'],
-                                'position_type'=>100
+                                'position_type'=>101
                             ],
                         ];
                         $positionParams['token'] = $params['token'];
@@ -378,7 +378,7 @@ class InspectionEquipmentService extends BaseService {
                 $positionParams['add_position_list'] = [
                     [
                         'position_id'=>$deviceInfo->deviceNo,
-                        'position_type'=>100
+                        'position_type'=>101
                     ],
                 ];
                 $positionParams['token'] = $params['token'];
@@ -486,7 +486,7 @@ class InspectionEquipmentService extends BaseService {
             $positionParams['del_position_list'] = [
                 [
                     'position_id'=>$deviceInfo->deviceNo,
-                    'position_type'=>100
+                    'position_type'=>101
                 ],
             ];
             $positionParams['token'] = $params['token'];
@@ -666,7 +666,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient('','' ,'json');
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = $this->bizId;
@@ -679,14 +679,14 @@ class InspectionEquipmentService extends BaseService {
             $user_event_list->event_time_stamp = $params['event_time_stamp'];
             $position_list = new \PositionOapiVo;
             $position_list->position_id = $params['position_id'];
-            $position_list->position_type = "101";
+            $position_list->position_type = 101;
             $user_event_list->position_list = array($position_list);
             $user_event_list->biz_inst_id = $biz_inst_id;
             $user_event_list->event_id = $params['event_id'];
             $param->user_event_list[] = array($user_event_list);
         }
         $req->setParam($param);
-        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        $resp = $c->execute($req, $access_token);
         return $resp;
     }
 
