@@ -138,7 +138,7 @@ class ScreenService extends BaseService
             ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
             ->leftJoin('ps_repair_type B', 'A.repair_type_id = B.id')
             ->where(['A.community_id' => $community_id])
-            ->orderBy('A.create_at desc')->limit(12)->asArray()->all();
+            ->orderBy('A.create_at desc')->limit(9)->asArray()->all();
         if (!empty($repair)) {
             foreach ($repair as $k => &$v) {
                 $v['statusMsg'] = self::$repairStatus[$v['status']];
@@ -147,9 +147,9 @@ class ScreenService extends BaseService
         }
 
         $r['repair'] = [
-            [$repair[0], $repair[1], $repair[2], $repair[3]],
-            [$repair[4], $repair[5], $repair[6], $repair[7]],
-            [$repair[8], $repair[9], $repair[10], $repair[11]]
+            [$repair[0], $repair[1], $repair[2]],
+            [$repair[3], $repair[4], $repair[5]],
+            [$repair[6], $repair[7], $repair[8]]
         ];
 
         return $r;
