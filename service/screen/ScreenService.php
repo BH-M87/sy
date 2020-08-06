@@ -62,7 +62,12 @@ class ScreenService extends BaseService
             ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
-        $r['car']['carIn'] = [ 
+        $r['car']['carInOut'] = [ 
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+        ];
+        /*$r['car']['carIn'] = [ 
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
@@ -71,7 +76,7 @@ class ScreenService extends BaseService
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
             ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-        ];
+        ];*/
         // 房屋信息
         $room = JavaNewService::service()->javaPost('/sy/board/statistics/roomTagBoard',['communityId' => $community_id])['data'];
         $r['room']['roomlist'] = $room;
