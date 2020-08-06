@@ -108,7 +108,7 @@ class ScreenService extends BaseService
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
           
-        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10, 'corpId' => "330110012004"])['data'];
+        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
         $r['activity'] = $activity['list'] ?? []; // 社区活动
         
         $r['inspect'] = [ // 巡检任务
