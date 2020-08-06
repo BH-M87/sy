@@ -53,7 +53,9 @@ class ScreenService extends BaseService
         $r['integral']['integralRate'] = '78%';
 
         // 设备
-        $r['device'] = [['deviceType' => 1, 'deviceTotal' => 5], ['deviceType' => 2, 'deviceTotal' => 4]];
+        $r['device']['deviceTotal_1'] = 5;
+        $r['device']['deviceTotal_2'] = 4;
+        //$r['device'] = [['deviceType' => 1, 'deviceTotal' => 5], ['deviceType' => 2, 'deviceTotal' => 4]];
         
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
         // 人员信息
