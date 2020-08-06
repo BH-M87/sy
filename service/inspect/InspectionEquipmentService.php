@@ -666,7 +666,7 @@ class InspectionEquipmentService extends BaseService {
         $access_token = $tokenResult['accessToken'];
 
 
-        $c = new \DingTalkClient('','' ,'json');
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = $this->bizId;
@@ -686,7 +686,7 @@ class InspectionEquipmentService extends BaseService {
             $param->user_event_list[] = array($user_event_list);
         }
         $req->setParam($param);
-        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        $resp = $c->execute($req, $access_token);
         return $resp;
     }
 
