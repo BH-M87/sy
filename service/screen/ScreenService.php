@@ -102,7 +102,7 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1267284118264422401';
+        $community_id = '1205001291334717441';
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
