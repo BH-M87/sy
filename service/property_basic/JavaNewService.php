@@ -66,10 +66,10 @@ class JavaNewService extends BaseService
         $res = $model->post($postUrl, $this->dealPostData($postData));
         if ($res) {
             $result = json_decode($res,true);
+            error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$postUrl . "请求参数：".$this->dealPostData($postData) . PHP_EOL . '返回结果：' . json_encode($res).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java_error.log');
             if($result['code'] == 1){
                 return $this->success($result['data']);
             } else {
-                error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "请求url：".$postUrl . "请求参数：".$this->dealPostData($postData) . PHP_EOL . '返回结果：' . json_encode($res).PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/java_error.log');
                 return $this->failed($result['message']);
             }
         } else {

@@ -102,12 +102,13 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1205001291334717441';
+        $community_id = '1196672399213649921';
+
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
         ];
           
-        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
+        $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10, 'corpId' => "330110012004"])['data'];
         $r['activity'] = $activity['list'] ?? []; // 社区活动
         
         $r['inspect'] = [ // 巡检任务
@@ -133,17 +134,23 @@ class ScreenService extends BaseService
         $r['inspect'] = RecordService::service()->recordList(['page' => 1, 'pageSize' => 10, 'community_id' => $community_id]);
 
         // 报事报修
-        $r['repair'] = PsRepair::find()->alias('A')
+        $repair = PsRepair::find()->alias('A')
             ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
             ->leftJoin('ps_repair_type B', 'A.repair_type_id = B.id')
             ->where(['A.community_id' => $community_id])
-            ->orderBy('A.create_at desc')->limit(10)->asArray()->all();
-        if (!empty($r['repair'])) {
-            foreach ($r['repair'] as $k => &$v) {
+            ->orderBy('A.create_at desc')->limit(12)->asArray()->all();
+        if (!empty($repair)) {
+            foreach ($repair as $k => &$v) {
                 $v['statusMsg'] = self::$repairStatus[$v['status']];
                 $v['create_at'] = date('Y/m/d H:i:s', $v['create_at']);
             }
         }
+
+        $r['repair'] = [
+            [$repair[0], $repair[1], $repair[2], $repair[3]],
+            [$repair[4], $repair[5], $repair[6], $repair[7]],
+            [$repair[8], $repair[9], $repair[10], $repair[11]]
+        ];
 
         return $r;
     }
