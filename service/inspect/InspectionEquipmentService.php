@@ -628,23 +628,64 @@ class InspectionEquipmentService extends BaseService {
         return $resp;
     }
 
-    //设置任务实例人员
+    //设置任务实例人员 循环设置人员
     public function taskInstanceEditUser($params){
         $biz_inst_id = $params['biz_inst_id'];
         $punch_group_id = $params['punch_group_id'];
         $tokenResult = $this->getDdAccessToken($params);
         $access_token = $tokenResult['accessToken'];
+        $resp = [];
+        if(!empty($params['add_member_list'])){
+            $addParams = [];
+            for($i=0;$i<ceil(count($params['add_member_list']));$i++){
+                $addParams[] = array_slice($params['add_member_list'], $i * 20 ,20);
+            }
+            foreach($addParams as $value){
+                if(!empty($value)){
+                    $c = new \DingTalkClient('','' ,'json');
+                    $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
+                    $sync_param = new \PunchGroupSyncMemberParam;
 
-        $c = new \DingTalkClient('','' ,'json');
-        $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
-        $sync_param = new \PunchGroupSyncMemberParam;
+                    $sync_param->add_member_list = $value;
+                    $sync_param->punch_group_id = $punch_group_id;
+                    $sync_param->biz_inst_id = $biz_inst_id;
+                    $req->setSyncParam(json_encode($sync_param));
+                    $resp = $c->execute($req, $access_token);
+                }
+            }
+        }
 
-        $sync_param->add_member_list = !empty($params['add_member_list'])?$params['add_member_list']:[];
-        $sync_param->delete_member_list = !empty($params['del_member_list'])?$params['del_member_list']:[];
-        $sync_param->punch_group_id = $punch_group_id;
-        $sync_param->biz_inst_id = $biz_inst_id;
-        $req->setSyncParam(json_encode($sync_param));
-        $resp = $c->execute($req, $access_token);
+        if(!empty($params['del_member_list'])){
+            $delParams = [];
+            for($i=0;$i<ceil(count($params['del_member_list']));$i++){
+                $delParams[] = array_slice($params['del_member_list'], $i * 20 ,20);
+            }
+            foreach($delParams as $value){
+                if(!empty($value)){
+                    $c = new \DingTalkClient('','' ,'json');
+                    $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
+                    $sync_param = new \PunchGroupSyncMemberParam;
+
+                    $sync_param->delete_member_list = $value;
+                    $sync_param->punch_group_id = $punch_group_id;
+                    $sync_param->biz_inst_id = $biz_inst_id;
+                    $req->setSyncParam(json_encode($sync_param));
+                    $resp = $c->execute($req, $access_token);
+                }
+            }
+        }
+
+
+//        $c = new \DingTalkClient('','' ,'json');
+//        $req = new \OapiPbpInstanceGroupMemberUpdateRequest;
+//        $sync_param = new \PunchGroupSyncMemberParam;
+//
+//        $sync_param->add_member_list = !empty($params['add_member_list'])?$params['add_member_list']:[];
+//        $sync_param->delete_member_list = !empty($params['del_member_list'])?$params['del_member_list']:[];
+//        $sync_param->punch_group_id = $punch_group_id;
+//        $sync_param->biz_inst_id = $biz_inst_id;
+//        $req->setSyncParam(json_encode($sync_param));
+//        $resp = $c->execute($req, $access_token);
         return $resp;
     }
 
