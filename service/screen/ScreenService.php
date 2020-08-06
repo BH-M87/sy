@@ -41,6 +41,19 @@ class ScreenService extends BaseService
             'score' => '5.0', 
             'eventNum' => $base['eventCount'] ?? 0
         ];
+
+        // 健康码
+        $r['healthy']['healthyTotalMobile'] = 457; // 手机扫码进入人次
+        $r['healthy']['healthyTotal'] = 345; // 手环扫码进入人次
+
+        // 共享积分 小区积分排名、积分总数、积分参与人数、积分参与人数比例
+        $r['integral']['integralRank'] = 1;
+        $r['integral']['integralTotal'] = 21309;
+        $r['integral']['integralUser'] = 3657;
+        $r['integral']['integralRate'] = '78%';
+
+        // 设备
+        $r['device'] = [['deviceType' => 1, 'deviceTotal' => 5], ['deviceType' => 2, 'deviceTotal' => 4]];
         
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
         // 人员信息
