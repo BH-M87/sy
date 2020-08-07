@@ -120,6 +120,17 @@ class InspectionEquipmentController extends BaseController{
             $params['event_time_stamp'] = '1596785253000';
             $params['position_id'] = ['1375393880','2039255554'];
 //            $params['event_id'] = '';
+            $result = $service->eventSyncOfUser($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    public function actionEventDelete(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
             $result = $service->eventDelete($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
