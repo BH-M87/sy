@@ -440,10 +440,10 @@ class InspectionEquipmentService extends BaseService {
         $syncAddParams['position_id'] = $deviceInfo->deviceNo;
         $syncAddParams['event_id'] = $deviceInfo->id;
         $syncAddParams['token'] = $params['token'];
-        $syncAddResult = self::eventSyncOfUser($syncAddParams);
+        /*$syncAddResult = self::eventSyncOfUser($syncAddParams);
         if($syncAddResult->errcode != 0){
             return PsCommon::responseFailed($syncAddResult->errmsg);
-        }
+        }*/
 
         $instanceUpdate['biz_inst_id'] = $biz_inst_id;
         $instanceUpdate['punch_group_id'] = $punch_group_id;
@@ -717,10 +717,34 @@ class InspectionEquipmentService extends BaseService {
             $user_event_list->position_list = array($position_list);
             $user_event_list->biz_inst_id = $biz_inst_id;
             $user_event_list->event_id = $params['event_id'];
-            $param->user_event_list[] = array($user_event_list);
+            $param->user_event_list = array($user_event_list);
         }
         $req->setParam($param);
         $resp = $c->execute($req, $access_token,"https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        return $resp;
+    }
+
+    //删除打卡事件 （小闹钟）
+    public function eventDelete($params){
+        date_default_timezone_set('Asia/Shanghai');
+
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
+
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
+        $req = new \OapiPbpEventSyncRequest;
+        $param = new \UserEventOapiRequestVo;
+
+        $user_event_list = new \UserEventOapiVo;
+        $user_event_list->event_name="运营西门";
+        $user_event_list->userid="163559593422058370";
+        $user_event_list->biz_inst_id="80412b26aa9d456ea9355315276315a4";
+        $user_event_list->event_id="42";
+        $param->user_event_list = array($user_event_list);
+        $param->biz_code=$this->bizId;
+        $req->setParam($param);
+        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/delete");
+        print_r($resp);die;
         return $resp;
     }
 
