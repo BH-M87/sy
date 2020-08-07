@@ -113,7 +113,7 @@ class InspectionEquipmentController extends BaseController{
             $service = new InspectionEquipmentService();
             $params['biz_inst_id'] = '671351a130be4feaa70842ad19129b14';
 //            $params['userArr'] = ['123623046837966337','15390472958862200','163559593422058370'];
-            $params['userArr'] = ['123623046837966337'];
+            $params['userArr'] = '123623046837966337';
             $params['event_name'] = '运营西门';
             $params['start_time'] = '1596988800000';
             $params['end_time'] = '1596850423000';
