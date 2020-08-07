@@ -689,6 +689,7 @@ class InspectionEquipmentService extends BaseService {
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = $this->bizId;
+        $userList = [];
         foreach($params['userArr'] as $value){
             $user_event_list = new \UserEventOapiVo;
             $user_event_list->userid = $value;
@@ -701,11 +702,13 @@ class InspectionEquipmentService extends BaseService {
             $position_list->position_type = 101;
             $user_event_list->position_list = array($position_list);
             $user_event_list->biz_inst_id = $biz_inst_id;
-            $user_event_list->event_id = $params['event_id'];
-            $param->user_event_list = array($user_event_list);
+            $user_event_list->event_id = $value;
+            $userList[] = $user_event_list;
         }
+        $param->user_event_list = $userList;
         $req->setParam($param);
         $resp = $c->execute($req, $access_token,"https://oapi.dingtalk.com/topapi/pbp/event/sync");
+        print_r($resp);die;
         return $resp;
     }
 
