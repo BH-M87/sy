@@ -104,8 +104,10 @@ class ScreenService extends BaseService
 
         $r['alarm'] = [ // 实时告警
             ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
-            ['typeMsg' => '社区风险', 'address' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'title' => '未处理'],
-            ['typeMsg' => '社区风险', 'address' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'title' => '未处理'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
         ];
 
         $r['report'] = [ // 一键上报
