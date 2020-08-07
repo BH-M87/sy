@@ -56,7 +56,6 @@ class ScreenService extends BaseService
         // 设备
         $r['device']['deviceTotal_1'] = 5;
         $r['device']['deviceTotal_2'] = 4;
-        //$r['device'] = [['deviceType' => 1, 'deviceTotal' => 5], ['deviceType' => 2, 'deviceTotal' => 4]];
         
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
         // 人员信息
@@ -84,16 +83,6 @@ class ScreenService extends BaseService
             ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
             ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
         ];
-        /*$r['car']['carIn'] = [ 
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-        ];
-        $r['car']['carOut'] = [ 
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-            ['car' => '浙S12344', 'time' => '5-23 19:12:12'],
-        ];*/
         // 房屋信息
         $room = JavaNewService::service()->javaPost('/sy/board/statistics/roomTagBoard',['communityId' => $community_id])['data'];
         $r['room']['roomlist'] = $room;
