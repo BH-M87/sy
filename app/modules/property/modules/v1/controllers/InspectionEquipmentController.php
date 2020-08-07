@@ -127,6 +127,17 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    public function actionEventDelete(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->eventDelete($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     //消息测试
     public function actionSendMsg(){
         $params = $this->request_params;
