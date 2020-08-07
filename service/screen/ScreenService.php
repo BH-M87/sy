@@ -21,7 +21,8 @@ class ScreenService extends BaseService
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
     // 大屏
     public function index($p)
-    {   $community_id = '1200020193290747905';
+    {   
+        $community_id = '1200020193290747905';
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
@@ -67,6 +68,7 @@ class ScreenService extends BaseService
         ];
         $r['visit']['visittime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
+        $person[1]['name'] = '户籍人口';
         $r['visit']['member'] = $person;
         // 车辆信息
         $r['car']['cartotal'] = 432;
@@ -102,7 +104,7 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1196672399213649921';
+        $community_id = '1200020193290747905';
 
         $r['record'] = [ // 出入记录
             ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1']
