@@ -146,11 +146,7 @@ class ScreenService extends BaseService
             }
         }
 
-        $r['repair'] = [
-            [$repair[0], $repair[1], $repair[2]],
-            [$repair[3], $repair[4], $repair[5]],
-            [$repair[6], $repair[7], $repair[8]]
-        ];
+        $r['repair'] = self::partition($repair, 3);
 
         return $r;
     }
@@ -163,5 +159,21 @@ class ScreenService extends BaseService
         ];
 
         return $r;
+    }
+
+    // 把一个数组分成几个数组 $arr 是数组 $num 是数组的个数
+    function partition($arr, $num)
+    {
+        $listcount = count($arr); // 数组的个数
+        $parem = floor($listcount / $num); // 分成$num 个数组每个数组是多少个元素
+     
+        $paremm = $listcount % $num; // 分成$num 个数组还余多少个元素
+        $start = 0;
+        for ($i = 0; $i < $num; $i++) {
+            $end = $i < $paremm ? $parem + 1 : $parem;
+            $newarray[$i] = array_slice($arr, $start, $end);
+            $start = $start + $end;
+        }
+        return $newarray;
     }
 }
