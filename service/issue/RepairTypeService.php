@@ -32,7 +32,7 @@ class RepairTypeService extends BaseService
         foreach ($arr as $k => $v) {
             $m = PsRepairType::find()->where(['name' => $v['name']])->andWhere(['community_id' => $community_id])->one();
             if (empty($m)) {
-                $mod = new PsRepairType();
+                /*$mod = new PsRepairType();
                 $mod->community_id = $community_id;
                 $mod->name = $v['name'];
                 $mod->level = 1;
@@ -41,9 +41,12 @@ class RepairTypeService extends BaseService
                 $mod->created_at = time();
                 $mod->icon_url = $v['icon_url'];
                 $mod->is_relate_room = 2;
-                $mod->save();
+                $mod->save();*/
+                $commParam[] = ['community_id' => $community_id, 'name' => $v['name'], 'level' => 1, 'status' => 1, 'type' => 2, 'created_at' => time(), 'icon_url' => $v['icon_url'], 'is_relate_room' => 2];
             }
         }
+
+        Yii::$app->db->createCommand()->batchInsert('ps_repair_type', ['community_id', 'name', 'level', 'status', 'type', 'created_at', 'icon_url', 'is_relate_room'], $commParam)->execute();
     }
 
     //获取报修类目列表
@@ -57,7 +60,7 @@ class RepairTypeService extends BaseService
 
         if (!empty($communityIds)) { // 同步报修类目
             foreach ($communityIds as $c_id) {
-                self::addType($c_id);
+                //self::addType($c_id);
             }
         }
 
