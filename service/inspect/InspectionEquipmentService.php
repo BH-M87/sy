@@ -696,15 +696,20 @@ class InspectionEquipmentService extends BaseService {
         $user_event_list->start_time = $params['start_time'];
         $user_event_list->end_time = $params['end_time'];
         $user_event_list->event_time_stamp = $params['event_time_stamp'];
-        $position_list = new \PositionOapiVo;
-        $position_list->position_id = $params['position_id'];
-        $position_list->position_type = 101;
-        $user_event_list->position_list = array($position_list);
+        $positionList = [];
+        foreach($params['position_id'] as $value){
+            $position_list = new \PositionOapiVo;
+            $position_list->position_id = $value;
+            $position_list->position_type = 101;
+            $positionList[] = $position_list;
+        }
+        $user_event_list->position_list = $positionList;
         $user_event_list->biz_inst_id = $biz_inst_id;
         $user_event_list->event_id = $params['userArr'];
         $param->user_event_list = array($user_event_list);
 
         $req->setParam($param);
+        print_r($req->getParam());die;
         $resp = $c->execute($req, $access_token,"https://oapi.dingtalk.com/topapi/pbp/event/sync");
         print_r($resp);die;
         return $resp;
@@ -723,9 +728,9 @@ class InspectionEquipmentService extends BaseService {
 
         $user_event_list = new \UserEventOapiVo;
         $user_event_list->event_name="运营西门";
-        $user_event_list->userid="163559593422058370";
-        $user_event_list->biz_inst_id="80412b26aa9d456ea9355315276315a4";
-        $user_event_list->event_id="42";
+        $user_event_list->userid="123623046837966337";
+        $user_event_list->biz_inst_id="671351a130be4feaa70842ad19129b14";
+        $user_event_list->event_id="123623046837966337";
         $param->user_event_list = array($user_event_list);
         $param->biz_code=$this->bizId;
         $req->setParam($param);

@@ -115,12 +115,12 @@ class InspectionEquipmentController extends BaseController{
 //            $params['userArr'] = ['123623046837966337','15390472958862200','163559593422058370'];
             $params['userArr'] = '123623046837966337';
             $params['event_name'] = '运营西门';
-            $params['start_time'] = '1596988800000';
-            $params['end_time'] = '1596850423000';
-            $params['event_time_stamp'] = '1596988800000';
-            $params['position_id'] = '1375393880';
+            $params['start_time'] = '1596785253000';
+            $params['end_time'] = '1596871653000';
+            $params['event_time_stamp'] = '1596785253000';
+            $params['position_id'] = ['1375393880','2039255554'];
 //            $params['event_id'] = '';
-            $result = $service->eventSyncOfUser($params);
+            $result = $service->eventDelete($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
