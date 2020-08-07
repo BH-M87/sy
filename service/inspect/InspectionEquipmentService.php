@@ -291,21 +291,6 @@ class InspectionEquipmentService extends BaseService {
                     return PsCommon::responseFailed($userAddResult->errmsg);
                 }
 
-                //打卡事件同步 (小闹钟)
-//                $syncAddParams['biz_inst_id'] = $biz_inst_id;
-//                $syncAddParams['userArr'] = $userArr;
-//                $syncAddParams['event_name'] = $deviceInfo['name'];
-//                $syncAddParams['start_time'] = $deviceInfo['start_time']*1000;
-//                $syncAddParams['end_time'] = $deviceInfo['end_time']*1000;
-//                $syncAddParams['event_time_stamp'] = $deviceInfo['createAt']*1000;
-//                $syncAddParams['position_id'] = $deviceInfo['deviceNo'];
-//                $syncAddParams['event_id'] = $deviceInfo['id'];
-//                $syncAddParams['token'] = $params['token'];
-//                $syncAddResult = self::eventSyncOfUser($syncAddParams);
-//                if($syncAddResult->errcode != 0){
-//                    return PsCommon::responseFailed($syncAddResult->errmsg);
-//                }
-
                 $instanceUpdate['biz_inst_id'] = $biz_inst_id;
                 $instanceUpdate['punch_group_id'] = $punch_group_id;
                 $instanceUpdate['dd_user_list'] = $params['dd_user_list'];
@@ -431,15 +416,15 @@ class InspectionEquipmentService extends BaseService {
 
 
         //打卡事件同步 (小闹钟)
-        $syncAddParams['biz_inst_id'] = $biz_inst_id;
-        $syncAddParams['userArr'] = $userArr;
-        $syncAddParams['event_name'] = $deviceInfo->name;
-        $syncAddParams['start_time'] = $deviceInfo->start_time*1000;
-        $syncAddParams['end_time'] = $deviceInfo->end_time*1000;
-        $syncAddParams['event_time_stamp'] = $deviceInfo->createAt*1000;
-        $syncAddParams['position_id'] = $deviceInfo->deviceNo;
-        $syncAddParams['event_id'] = $deviceInfo->id;
-        $syncAddParams['token'] = $params['token'];
+//        $syncAddParams['biz_inst_id'] = $biz_inst_id;
+//        $syncAddParams['userArr'] = $userArr;
+//        $syncAddParams['event_name'] = $deviceInfo->name;
+//        $syncAddParams['start_time'] = $deviceInfo->start_time*1000;
+//        $syncAddParams['end_time'] = $deviceInfo->end_time*1000;
+//        $syncAddParams['event_time_stamp'] = $deviceInfo->createAt*1000;
+//        $syncAddParams['position_id'] = $deviceInfo->deviceNo;
+//        $syncAddParams['event_id'] = $deviceInfo->id;
+//        $syncAddParams['token'] = $params['token'];
         /*$syncAddResult = self::eventSyncOfUser($syncAddParams);
         if($syncAddResult->errcode != 0){
             return PsCommon::responseFailed($syncAddResult->errmsg);
@@ -744,7 +729,6 @@ class InspectionEquipmentService extends BaseService {
         $param->biz_code=$this->bizId;
         $req->setParam($param);
         $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/delete");
-        print_r($resp);die;
         return $resp;
     }
 
