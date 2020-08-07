@@ -127,11 +127,24 @@ class InspectionEquipmentController extends BaseController{
         }
     }
 
+    //小闹钟删除测试
     public function actionEventDelete(){
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
             $result = $service->eventDelete($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //小闹钟同步测试
+    public function actionEventResultSync(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->eventResultSync($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());

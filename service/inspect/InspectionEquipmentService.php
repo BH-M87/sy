@@ -741,6 +741,33 @@ class InspectionEquipmentService extends BaseService {
         return $resp;
     }
 
+    //打卡事件结果同步 (小闹钟)
+    public function eventResultSync($params){
+        date_default_timezone_set('Asia/Shanghai');
+
+        $tokenResult = $this->getDdAccessToken($params);
+        $access_token = $tokenResult['accessToken'];
+
+        $c = new \DingTalkClient(\DingTalkConstant::$CALL_TYPE_OAPI, \DingTalkConstant::$METHOD_POST , \DingTalkConstant::$FORMAT_JSON);
+        $req = new \OapiPbpEventSyncRequest;
+        $param = new \UserEventOapiRequestVo;
+
+        $param->biz_code = $this->bizId;
+        $param->userid = "163559593422058370";
+        $param->result = "2";
+        $param->invalid_event="true";
+        $punch_position = new \PositionOapiVo;
+        $punch_position->position_id="1375393880";
+        $punch_position->position_type="101";
+        $param->punch_position = $punch_position;
+        $param->event_id="163559593422058370";
+        $param->biz_inst_id="671351a130be4feaa70842ad19129b14";
+        $req->setParam($param);
+        $resp = $c->execute($req, $access_token, "https://oapi.dingtalk.com/topapi/pbp/event/result/sync");
+        print_r($resp);die;
+        return $resp;
+    }
+
 
 
     //停用实例
