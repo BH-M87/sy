@@ -156,7 +156,7 @@ class ScreenService extends BaseService
     public function center($p)
     {
         $r['list'] = [ // 实时告警
-            ['title' => '禁烟时段燃放烟花爆竹']
+            ['id' => time(), 'title' => '禁烟时段燃放烟花爆竹']
         ];
 
         return $r;
