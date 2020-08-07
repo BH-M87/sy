@@ -689,7 +689,7 @@ class InspectionEquipmentService extends BaseService {
         $req = new \OapiPbpEventSyncRequest;
         $param = new \UserEventOapiRequestVo;
         $param->biz_code = $this->bizId;
-        $userList = [];
+//        $userList = [];
         foreach($params['userArr'] as $value){
             $user_event_list = new \UserEventOapiVo;
             $user_event_list->userid = $value;
@@ -697,15 +697,21 @@ class InspectionEquipmentService extends BaseService {
             $user_event_list->start_time = $params['start_time'];
             $user_event_list->end_time = $params['end_time'];
             $user_event_list->event_time_stamp = $params['event_time_stamp'];
-            $position_list = new \PositionOapiVo;
-            $position_list->position_id = $params['position_id'];
-            $position_list->position_type = 101;
-            $user_event_list->position_list = array($position_list);
+            $positionList = [];
+            foreach($params['position_id'] as $v){
+                $position_list = new \PositionOapiVo;
+                $position_list->position_id = $v;
+                $position_list->position_type = 101;
+                $positionList[] = $position_list;
+            }
+//            $user_event_list->position_list = array($position_list);
+            $user_event_list->position_list = $positionList;
             $user_event_list->biz_inst_id = $biz_inst_id;
             $user_event_list->event_id = $value;
-            $userList[] = $user_event_list;
+//            $userList[] = $user_event_list;
+            $param->user_event_list = $user_event_list;
         }
-        $param->user_event_list = $userList;
+//        $param->user_event_list = $userList;
         $req->setParam($param);
         $resp = $c->execute($req, $access_token,"https://oapi.dingtalk.com/topapi/pbp/event/sync");
         print_r($resp);die;
