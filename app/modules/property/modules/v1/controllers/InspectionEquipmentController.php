@@ -118,7 +118,7 @@ class InspectionEquipmentController extends BaseController{
             $params['start_time'] = '1596988800000';
             $params['end_time'] = '1596850423000';
             $params['event_time_stamp'] = '1596988800000';
-            $params['position_id'] = ['1375393880','2039255554'];
+            $params['position_id'] = '1375393880';
 //            $params['event_id'] = '';
             $result = $service->eventSyncOfUser($params);
             return PsCommon::responseSuccess($result);
