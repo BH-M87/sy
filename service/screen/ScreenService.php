@@ -101,13 +101,11 @@ class ScreenService extends BaseService
           
         $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
         $r['activity'] = $activity['list'] ?? []; // 社区活动
-        
-        $r['inspect'] = [ // 巡检任务
-            ['taskName' => '任务名称', 'lineName' => '线路名称', 'createAt' => '2020/7/20', 'statusMsg' => '未处理', 'content' => '已处理']
-        ];
 
         $r['alarm'] = [ // 实时告警
-            ['typeMsg' => '社区风险', 'address' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'title' => '未处理']
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '社区风险', 'address' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'title' => '未处理'],
+            ['typeMsg' => '社区风险', 'address' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'title' => '未处理'],
         ];
 
         $r['report'] = [ // 一键上报
