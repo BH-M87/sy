@@ -97,7 +97,7 @@ class VoteService extends BaseService
         }
 
         // 更新选手浏览量
-        VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
+        //VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
 
         $r = VtPlayer::find()->select('id player_id, activity_id, name, code, img, vote_num, content, group_id')->where(['id' => $p['player_id']])->asArray()->one();
         
@@ -218,10 +218,40 @@ class VoteService extends BaseService
         $activity_id = $m['activity_id'];
 
         // 更新活动访问量
-        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
+        //VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
         
         if ($m['group_status'] == 1) {
         	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
+        }
+
+        $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
+
+        $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
+        $m['vote_num'] = VtVote::find()->where(['activity_id' => $activity_id])->count();
+        $m['join_num'] = VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
+        $m['view_num'] += 1;
+        $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
+        $m['if_feedback'] = !empty($feedback) ? 1 : 2;
+
+        return $m;
+    }
+
+    // 首页
+    public function test($p)
+    {
+        $m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+        if (empty($m)) {
+            throw new MyException('活动不存在');
+        }
+
+        $activity_id = $m['activity_id'];
+
+        // 更新活动访问量
+        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
+        
+        if ($m['group_status'] == 1) {
+            $m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
         }
 
         $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
