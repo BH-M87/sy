@@ -230,8 +230,8 @@ class VoteService extends BaseService
         $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
 
         $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
-        $m['vote_num'] = VtVote::find()->where(['activity_id' => $activity_id])->count();
-        $m['join_num'] = VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
+        $m['vote_num'] = '35100';//VtVote::find()->where(['activity_id' => $activity_id])->count();
+        $m['join_num'] = '32010';//VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
         $m['view_num'] += 1;
         $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
         $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
