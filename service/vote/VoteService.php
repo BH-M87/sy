@@ -100,7 +100,7 @@ class VoteService extends BaseService
         }
 
         // 更新选手浏览量
-        VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
+        //VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
 
         $r = VtPlayer::find()->select('id player_id, activity_id, name, code, img, vote_num, content, group_id')->where(['id' => $p['player_id']])->asArray()->one();
         
@@ -221,7 +221,7 @@ class VoteService extends BaseService
         $activity_id = $m['activity_id'];
 
         // 更新活动访问量
-        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
+        //VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
         
         if ($m['group_status'] == 1) {
         	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
