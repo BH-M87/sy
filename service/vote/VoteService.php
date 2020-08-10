@@ -27,10 +27,12 @@ class VoteService extends BaseService
     {
         $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
 
-    	$m = VtPlayer::find()
-    	    ->select('id player_id, name, code, img, vote_num')
-            ->where(['=', 'activity_id', $activity_id])
-            ->limit(10)->orderBy('vote_num desc, vote_at asc')->asArray()->all();
+    	$m = VtPlayer::find()->alias('A')
+            ->leftJoin('vt_activity_group B', 'A.group_id = B.id')
+    	    ->select('A.id player_id, A.name, A.code, A.img, A.vote_num, B.name groupName')
+            ->where(['=', 'A.activity_id', $activity_id])
+            ->andFilterWhere(['=', 'B.name', $p['groupName']])
+            ->limit(10)->orderBy('A.vote_num desc, A.vote_at asc')->asArray()->all();
 
         for ($i=0; $i <3 ; $i++) { 
             if (empty($m[$i]['player_id'])) {
@@ -69,6 +71,7 @@ class VoteService extends BaseService
                 } else if ($groupName == '专业组') {
                     $v['groupType'] = 2;
                 }
+                $v['img'] .=  '?imageView2/1/w/328/h/280';
             }
         }
 
@@ -222,6 +225,36 @@ class VoteService extends BaseService
         
         if ($m['group_status'] == 1) {
         	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
+        }
+
+        $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
+
+        $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
+        $m['vote_num'] = VtVote::find()->where(['activity_id' => $activity_id])->count();
+        $m['join_num'] = VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
+        $m['view_num'] += 1;
+        $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
+        $m['if_feedback'] = !empty($feedback) ? 1 : 2;
+
+        return $m;
+    }
+
+    // 首页
+    public function test($p)
+    {
+        $m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+        if (empty($m)) {
+            throw new MyException('活动不存在');
+        }
+
+        $activity_id = $m['activity_id'];
+
+        // 更新活动访问量
+        VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
+        
+        if ($m['group_status'] == 1) {
+            $m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
         }
 
         $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
