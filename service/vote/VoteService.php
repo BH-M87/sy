@@ -57,10 +57,20 @@ class VoteService extends BaseService
         }
 
         $list = self::playerSearch($p)
-            ->select('id player_id, name, code, img, vote_num')
+            ->select('id player_id, name, code, img, vote_num, group_id')
             //->offset(($p['page'] - 1) * $p['rows'])
             //->limit($p['rows'])
             ->orderBy('code asc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $groupName = VtActivityGroup::findOne($v['group_id'])->name;
+                if ($groupName == '公众组') {
+                    $v['groupType'] = 1;
+                } else if ($groupName == '专业组') {
+                    $v['groupType'] = 2;
+                }
+            }
+        }
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
