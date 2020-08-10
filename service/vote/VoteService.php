@@ -19,6 +19,7 @@ use app\models\VtActivity;
 use app\models\VtActivityGroup;
 use app\models\VtActivityBanner;
 use app\models\VtPlayer;
+use app\models\VtActivityView;
 
 class VoteService extends BaseService
 {
@@ -213,7 +214,7 @@ class VoteService extends BaseService
     // 首页
     public function index($p)
     {
-    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num, vote_num, join_num')->where(['code' => $p['activity_code']])->asArray()->one();
     	if (empty($m)) {
             throw new MyException('活动不存在');
         }
@@ -230,12 +231,18 @@ class VoteService extends BaseService
         $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
 
         $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
-        $m['vote_num'] = '35100';//VtVote::find()->where(['activity_id' => $activity_id])->count();
-        $m['join_num'] = '32010';//VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
-        $m['view_num'] += 1;
+        //$m['vote_num'] = '35100';//VtVote::find()->where(['activity_id' => $activity_id])->count();
+        //$m['join_num'] = '32010';//VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
+        //$m['view_num'] += 1;
         $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
         $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
         $m['if_feedback'] = !empty($feedback) ? 1 : 2;
+
+        $view = new VtActivityView();
+        $view->activity_code = $p['activity_code'];
+        $view->member_id = $p['member_id'];
+        $view->create_at = date('Y-m-d H:i:s', time());
+        $view->save();
 
         return $m;
     }
