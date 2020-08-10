@@ -49,10 +49,12 @@ class BaseController extends \yii\web\Controller
     public function beforeAction($action)
     {
         if (parent::beforeAction($action)) {
+            //请求方式，post检测
+            $this->_validateMethod();
+            $this->_validateBody();
+            
             if (!in_array($action->controller->id, ['vote-h5'])) {
-                //请求方式，post检测
-                $this->_validateMethod();
-                $this->_validateBody();
+                
                 $this->_validateToken($action); // token验证
             }
             
