@@ -27,10 +27,12 @@ class VoteService extends BaseService
     {
         $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
 
-    	$m = VtPlayer::find()
-    	    ->select('id player_id, name, code, img, vote_num')
-            ->where(['=', 'activity_id', $activity_id])
-            ->limit(10)->orderBy('vote_num desc, vote_at asc')->asArray()->all();
+    	$m = VtPlayer::find()->alias('A')
+            ->leftJoin('vt_activity_group B', 'A.group_id = B.id')
+    	    ->select('A.id player_id, A.name, A.code, A.img, A.vote_num, B.name groupName')
+            ->where(['=', 'A.activity_id', $activity_id])
+            ->andFilterWhere(['=', 'B.name', $p['groupName']])
+            ->limit(10)->orderBy('A.vote_num desc, A.vote_at asc')->asArray()->all();
 
         for ($i=0; $i <3 ; $i++) { 
             if (empty($m[$i]['player_id'])) {
