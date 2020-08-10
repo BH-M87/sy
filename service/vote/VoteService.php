@@ -210,7 +210,7 @@ class VoteService extends BaseService
     // 首页
     public function index($p)
     {
-    	$m = VtActivity::find()->select('id activity_id, name1, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
     	if (empty($m)) {
             throw new MyException('活动不存在');
         }
