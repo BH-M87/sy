@@ -82,7 +82,10 @@ class VoteService extends BaseService
                 } else if ($groupName == '专业组') {
                     $v['groupType'] = 2;
                 }
-                $v['img'] .=  '?imageView2/1/w/328/h/280';
+
+                if (!empty($v['img'])) {
+                    $v['img'] .=  '?imageView2/1/w/328/h/280';
+                }
             }
         }
 
