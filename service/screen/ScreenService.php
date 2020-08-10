@@ -13,6 +13,7 @@ use service\BaseService;
 use service\inspect\RecordService;
 
 use app\models\PsRepair;
+use app\models\PsInspectRecord;
 
 use service\property_basic\JavaNewService;
 
@@ -27,6 +28,14 @@ class ScreenService extends BaseService
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
         
+        $repairCount = PsRepair::find()
+            ->where(['>=', 'create_at', strtotime(date('Y-m-d', time()))])
+            ->andWhere(['<', 'create_at', strtotime(date('Y-m-d', time()))+86400])->count();
+
+        $inspectCount = PsInspectRecord::find()
+            ->where(['>=', 'create_at', strtotime(date('Y-m-d', time()))])
+            ->andWhere(['<', 'create_at', strtotime(date('Y-m-d', time()))+86400])->count();
+
         $base = JavaNewService::service()->javaPost('/sy/board/statistics/corpBoard',['communityId' => $community_id])['data'];
         $r['base'] = [ // 基础信息
             'buildingNum' => $base['buildingCount'], 
@@ -40,7 +49,7 @@ class ScreenService extends BaseService
             'underground' => '200', 
             'ground' => '100',
             'score' => '5.0', 
-            'eventNum' => $base['eventCount'] ?? 0
+            'eventNum' => $base['eventCount']+$repairCount+$inspectCount ?? 0
         ];
 
         // 健康码
