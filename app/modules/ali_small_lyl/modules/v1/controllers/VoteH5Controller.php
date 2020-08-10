@@ -10,6 +10,14 @@ use Yii;
 
 class VoteH5Controller extends BaseController
 {
+    // 统计脚本
+    public function actionCrontab()
+    {
+        $r = VoteService::service()->crontab();
+
+        return PsCommon::responseSuccess($r, false);
+    }
+
     // 排行
     public function actionOrderList()
     {

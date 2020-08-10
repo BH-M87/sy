@@ -23,6 +23,16 @@ use app\models\VtActivityView;
 
 class VoteService extends BaseService
 {
+    // 统计脚本
+    public function crontab()
+    {
+        $view_num = VtActivityView::find()->where(['activity_code' => 'Block'])->count() + 100000;
+        $vote_num = VtVote::find()->where(['activity_id' => 2])->count();
+        $join_num = VtVote::find()->where(['activity_id' => 2])->groupBy('mobile')->count();
+
+        VtActivity::updateAll(['view_num' => $view_num, 'vote_num' => $vote_num, 'join_num' => $join_num], ['id' => 2]);
+    }
+
 	// 排名
     public function orderList($p)
     {
