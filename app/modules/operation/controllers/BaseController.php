@@ -173,7 +173,7 @@ class BaseController extends \yii\web\Controller
         }
 
         if (empty($userInfo['id'])) {
-            exit($this->ajaxReturn('authorization已过期'));
+            //exit($this->ajaxReturn('authorization已过期'));
         }
 
         $this->user_info = $userInfo;
