@@ -114,7 +114,7 @@ class VoteService extends BaseService
         }
 
         // 更新选手浏览量
-        //VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
+        VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
 
         $r = VtPlayer::find()->select('id player_id, activity_id, name, code, img, vote_num, content, group_id')->where(['id' => $p['player_id']])->asArray()->one();
         
