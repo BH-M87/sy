@@ -157,6 +157,12 @@ class HomeService extends BaseService
             'name' => "事件中心",
             'icon_type' => '2',
             'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
+            ],
+            [
+                'icon' => "http://static.zje.com/2020081117513559255.png",
+                'name' => "临时登记",
+                'icon_type' => '2',
+                'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/register/index/index"
             ]
         ];
         if($javaResult){
@@ -211,6 +217,12 @@ class HomeService extends BaseService
                         'name' => "事件中心",
                         'icon_type' => '2',
                         'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
+                    ],
+                    [
+                        'icon' => "http://static.zje.com/2020081117513559255.png",
+                        'name' => "临时登记",
+                        'icon_type' => '2',
+                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/register/index/index"
                     ]
                 ];
             }
