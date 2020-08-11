@@ -165,6 +165,7 @@ class SharedService extends BaseService{
 
         $trans = Yii::$app->db->beginTransaction();
         try{
+
             if(empty($params['community_id'])){
                 return $this->failed('小区id不能为空！');
             }
@@ -174,20 +175,28 @@ class SharedService extends BaseService{
             $javaParam['id'] = $params['community_id'];
             $javaRes = $javaService->selectCommunityById($javaParam);
             $params['corp_id'] = !empty($javaRes['propertyCorpId'])?$javaRes['propertyCorpId']:$javaRes['corpId'];
-
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
                 if(!$model->saveData()){
                     throw new Exception('新增失败！');
 //                    return $this->failed('新增失败！');
                 }
+                //根据member roomId 获得住户id（residentId）
+                $javaResident['memberId'] = $model->attributes['appointment_id'];
+                $javaResident['roomId'] = $model->attributes['room_id'];
+                $javaResidentRes = $javaService->parkingSelectResidentInfo($javaResident);
+                if(empty($javaResidentRes['residentId'])){
+                    throw new Exception("JAVA 住户id不存在");
+                }
+
                 //车牌下放 待定
                 $javaCar['token'] = $params['token'];
                 $javaCar['roomId'] = $model->attributes['room_id'];
-                $javaCar['residentId'] = $model->attributes['appointment_id'];
+                $javaCar['residentId'] = $javaResidentRes['residentId'];
                 $javaCar['contactsName'] = $model->attributes['appointment_name'];
                 $javaCar['licenseNumber'] = $model->attributes['car_number'];
                 $javaCar['contactsPhone'] = $model->attributes['appointment_mobile'];
+                $javaCar['communityId'] = $model->attributes['community_id'];
                 $javaCar['startTime'] = date('Y-m-d H:i:s',$model->attributes['start_at']);
                 $javaCar['carType'] = 1;
                 $javaCarResult = $javaService->parkingAddParkingCar($javaCar);

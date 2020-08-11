@@ -309,4 +309,11 @@ class JavaService extends BaseService
         $query['route'] = '/appletTemplate/template-gateway';
         return self::returnCData($query);
     }
+    
+    // 小区楼栋房屋住户大屏数据
+    public function corpBoard($query)
+    {
+        $query['route'] = '/sy/board/statistics/corpBoard';
+        return self::returnCData($query);
+    }
 }

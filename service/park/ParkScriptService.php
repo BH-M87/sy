@@ -79,8 +79,9 @@ class ParkScriptService extends BaseService {
         $trans = Yii::$app->db->beginTransaction();
         try{
             $fields = [
-                        'space.id','space.publish_id','space.community_id','space.community_name','space.shared_at',"space.park_space",'record.ali_form_id',
-                        'record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number','record.parking_car_id'
+                        'space.id','space.publish_id','space.room_id','space.community_id','space.community_name','space.shared_at',"space.park_space",
+                        'record.ali_form_id','record.ali_user_id','record.appointment_id','record.id as record_id','record.car_number',
+                        'record.parking_car_id'
             ];
             $nowTime = time();
 //            $nowTime = "1592898480";
@@ -100,9 +101,21 @@ class ParkScriptService extends BaseService {
                 $spaceIds = [];
                 $recordIds = [];
                 $javaService = new JavaOfCService();
+
                 foreach($result as $key=>$value){
+
+                    //根据member roomId 获得住户id（residentId）
+                    $javaResident['memberId'] = $value['publish_id'];
+                    $javaResident['roomId'] = $value['room_id'];
+                    $javaResidentRes = $javaService->parkingSelectResidentInfo($javaResident);
+                    if(empty($javaResidentRes['residentId'])){
+                        throw new Exception("JAVA 住户id不存在");
+                    }
+
+
                     //判断业主车辆是否在车库
-                    $javaParams['communityId'] = $value['community_id'];
+//                    $javaParams['communityId'] = $value['community_id'];
+                    $javaParams['communityId'] = $javaResidentRes['residentId'];
                     $javaParams['residentId'] = $value['publish_id'];
 //                    $javaParams['lotId'] = '';
                     $javaResult = $javaService->parkingParkingCarPortExistence($javaParams);
