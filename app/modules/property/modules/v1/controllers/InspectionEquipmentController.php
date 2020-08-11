@@ -111,7 +111,40 @@ class InspectionEquipmentController extends BaseController{
         try{
             $params = $this->request_params;
             $service = new InspectionEquipmentService();
+            $params['biz_inst_id'] = '671351a130be4feaa70842ad19129b14';
+            $params['userArr'] = ['123623046837966337','15390472958862200','163559593422058370'];
+//            $params['userArr'] = '123623046837966337';
+            $params['event_name'] = '运营西门';
+            $params['start_time'] = '1596785253000';
+            $params['end_time'] = '1596871653000';
+            $params['event_time_stamp'] = '1596785253000';
+            $params['position_id'] = ['1375393880','2039255554'];
+//            $params['event_id'] = '';
             $result = $service->eventSyncOfUser($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //小闹钟删除测试
+    public function actionEventDelete(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->eventDelete($params);
+            return PsCommon::responseSuccess($result);
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //小闹钟同步测试
+    public function actionEventResultSync(){
+        try{
+            $params = $this->request_params;
+            $service = new InspectionEquipmentService();
+            $result = $service->eventResultSync($params);
             return PsCommon::responseSuccess($result);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());

@@ -19,18 +19,31 @@ use app\models\VtActivity;
 use app\models\VtActivityGroup;
 use app\models\VtActivityBanner;
 use app\models\VtPlayer;
+use app\models\VtActivityView;
 
 class VoteService extends BaseService
 {
+    // 统计脚本
+    public function crontab()
+    {
+        $view_num = VtActivityView::find()->where(['activity_code' => 'Block'])->count() + 100000;
+        $vote_num = VtVote::find()->where(['activity_id' => 2])->count();
+        $join_num = VtVote::find()->where(['activity_id' => 2])->groupBy('mobile')->count();
+
+        VtActivity::updateAll(['view_num' => $view_num, 'vote_num' => $vote_num, 'join_num' => $join_num], ['id' => 2]);
+    }
+
 	// 排名
     public function orderList($p)
     {
         $activity_id = VtActivity::find()->select('id')->where(['code' => $p['activity_code']])->scalar();
 
-    	$m = VtPlayer::find()
-    	    ->select('id player_id, name, code, img, vote_num')
-            ->where(['=', 'activity_id', $activity_id])
-            ->limit(10)->orderBy('vote_num desc, vote_at asc')->asArray()->all();
+    	$m = VtPlayer::find()->alias('A')
+            ->leftJoin('vt_activity_group B', 'A.group_id = B.id')
+    	    ->select('A.id player_id, A.name, A.code, A.img, A.vote_num, B.name groupName')
+            ->where(['=', 'A.activity_id', $activity_id])
+            ->andFilterWhere(['=', 'B.name', $p['groupName']])
+            ->limit(10)->orderBy('A.vote_num desc, A.vote_at asc')->asArray()->all();
 
         for ($i=0; $i <3 ; $i++) { 
             if (empty($m[$i]['player_id'])) {
@@ -57,10 +70,24 @@ class VoteService extends BaseService
         }
 
         $list = self::playerSearch($p)
-            ->select('id player_id, name, code, img, vote_num')
+            ->select('id player_id, name, code, img, vote_num, group_id')
             //->offset(($p['page'] - 1) * $p['rows'])
             //->limit($p['rows'])
             ->orderBy('code asc')->asArray()->all();
+        if (!empty($list)) {
+            foreach ($list as $k => &$v) {
+                $groupName = VtActivityGroup::findOne($v['group_id'])->name;
+                if ($groupName == '公众组') {
+                    $v['groupType'] = 1;
+                } else if ($groupName == '专业组') {
+                    $v['groupType'] = 2;
+                }
+
+                if (!empty($v['img'])) {
+                    $v['img'] .=  '?imageView2/1/w/328/h/280';
+                }
+            }
+        }
 
         return ['list' => $list, 'totals' => (int)$totals];
     }
@@ -87,9 +114,9 @@ class VoteService extends BaseService
         }
 
         // 更新选手浏览量
-        VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
+        //VtPlayer::updateAllCounters(['view_num' => 1], ['id' => $p['player_id']]);
 
-        $r = VtPlayer::find()->select('id player_id, activity_id, name, code, img, vote_num, content')->where(['id' => $p['player_id']])->asArray()->one();
+        $r = VtPlayer::find()->select('id player_id, activity_id, name, code, img, vote_num, content, group_id')->where(['id' => $p['player_id']])->asArray()->one();
         
         $member = VtMember::find()->where(['member_id' => $p['member_id']])->one();
 
@@ -104,6 +131,13 @@ class VoteService extends BaseService
         $r['if_time'] = 2;
         if ($activity->start_at <= time() && time() <= $activity->end_at) {
             $r['if_time'] = 1;
+        }
+
+        $groupName = VtActivityGroup::findOne($r['group_id'])->name;
+        if ($groupName == '公众组') {
+            $r['groupType'] = 1;
+        } else if ($groupName == '专业组') {
+            $r['groupType'] = 2;
         }
 
         return $r;
@@ -193,8 +227,44 @@ class VoteService extends BaseService
     // 首页
     public function index($p)
     {
-    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+    	$m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num, vote_num, join_num')->where(['code' => $p['activity_code']])->asArray()->one();
     	if (empty($m)) {
+            throw new MyException('活动不存在');
+        }
+
+        $activity_id = $m['activity_id'];
+
+        // 更新活动访问量
+        //VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
+        
+        if ($m['group_status'] == 1) {
+        	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
+        }
+
+        $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
+
+        $m['endAt'] = self::ShengYu_Tian_Shi_Fen($m['start_at'], $m['end_at']);
+        //$m['vote_num'] = '35100';//VtVote::find()->where(['activity_id' => $activity_id])->count();
+        //$m['join_num'] = '32010';//VtVote::find()->where(['activity_id' => $activity_id])->groupBy('mobile')->count();
+        //$m['view_num'] += 1;
+        $mobile = VtMember::find()->select('mobile')->where(['member_id' => $p['member_id']])->scalar();
+        $feedback = VtFeedback::find()->where(['activity_id' => $activity_id, 'mobile' => $mobile])->one();
+        $m['if_feedback'] = !empty($feedback) ? 1 : 2;
+
+        $view = new VtActivityView();
+        $view->activity_code = $p['activity_code'];
+        $view->member_id = $p['member_id'];
+        $view->create_at = date('Y-m-d H:i:s', time());
+        $view->save();
+
+        return $m;
+    }
+
+    // 首页
+    public function test($p)
+    {
+        $m = VtActivity::find()->select('id activity_id, name, content, group_status, start_at, end_at, view_num')->where(['code' => $p['activity_code']])->asArray()->one();
+        if (empty($m)) {
             throw new MyException('活动不存在');
         }
 
@@ -204,7 +274,7 @@ class VoteService extends BaseService
         VtActivity::updateAllCounters(['view_num' => 1], ['id' => $activity_id]);
         
         if ($m['group_status'] == 1) {
-        	$m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
+            $m['group'] = VtActivityGroup::find()->select('id group_id, name')->where(['activity_id' => $activity_id])->asArray()->all();
         }
 
         $m['banner'] = VtActivityBanner::find()->select('img, link_url')->where(['activity_id' => $activity_id])->asArray()->all();
