@@ -117,7 +117,7 @@ class HomeService extends BaseService
         $javaParams['token'] = $reqArr['token'];
         $javaParams['id'] = $reqArr['corpId'];
         $javaResult = $javaService->authJudgeAuth($javaParams);
-        $corpId = $reqArr['corpId'];
+        $corpId = $reqArr['ddCorpId'];
         $menu = [
             [
                 'icon'=>"http://static.zje.com/2020040710054928444.png",
