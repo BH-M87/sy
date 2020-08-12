@@ -477,8 +477,14 @@ class VoteService extends BaseService
 
             Yii::$app->db->createCommand("update vt_player set vote_num = vote_num + 1, vote_at = ".time()." where id = " . $p['player_id'])->execute();
 
+            $voteCount = VtVote::find()->alias('A')
+                ->leftJoin('vt_player B', 'A.player_id = B.id')
+                ->andFilterWhere(['=', 'A.mobile', $member->mobile])
+                ->andFilterWhere(['=', 'A.activity_id', $activity->id])->groupBy("B.group_id")->count();
+            $msg = $voteCount>1?"投票成功":"投票成功，同时完成两个组的投票才算有效投票";
+            $msg_type = $voteCount>1?"1":"2";
             $trans->commit();
-            return ['id' => $model->attributes['id']];
+            return ['id' => $model->attributes['id'],'vote_type'=>$msg_type,'msg'=>$msg];
         } catch (Exception $e) {
             $trans->rollBack();
             throw new MyException($e->getMessage());
