@@ -54,7 +54,7 @@ class PsShopMerchant extends BaseModel {
             [['type','status'], 'in', 'range' => [1,2]],
             ['check_status', 'in', 'range' => [1, 2, 3]],
             [['start','end'],'date', 'format'=>'HH:mm','message' => '{attribute}格式错误'],
-            [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
+//            [['start','end'],'planTimeVerification','on'=>['micro_add','individual_add']],
             [['type','link_mobile'],'mobileVerification','on'=>['micro_add','individual_add']],      //手机号唯一性验证
             [['type','name'],'nameVerification','on'=>['micro_add','individual_add']],      //名称唯一性验证
             [['name'],'customizeValue','on'=>['micro_add','individual_add']],   //设置商店的默认值
@@ -242,7 +242,7 @@ class PsShopMerchant extends BaseModel {
 
 
         $count = $model->count();
-        if(!empty($params['page'])||!empty($param['$params'])){
+        if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
             $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
             $offset = ($page-1)*$pageSize;

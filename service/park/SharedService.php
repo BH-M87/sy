@@ -162,8 +162,10 @@ class SharedService extends BaseService{
      * 9.添加消息记录
      */
     public function spaceReservation($params){
+
         $trans = Yii::$app->db->beginTransaction();
         try{
+
             if(empty($params['community_id'])){
                 return $this->failed('小区id不能为空！');
             }
@@ -173,13 +175,47 @@ class SharedService extends BaseService{
             $javaParam['id'] = $params['community_id'];
             $javaRes = $javaService->selectCommunityById($javaParam);
             $params['corp_id'] = !empty($javaRes['propertyCorpId'])?$javaRes['propertyCorpId']:$javaRes['corpId'];
-
             $model = new PsParkReservation(['scenario'=>'add']);
             if($model->load($params,'')&&$model->validate()){
                 if(!$model->saveData()){
-                    return $this->failed('新增失败！');
+                    throw new Exception('新增失败！');
+//                    return $this->failed('新增失败！');
                 }
+                //根据member roomId 获得住户id（residentId）
+                $javaResident['memberId'] = $model->attributes['appointment_id'];
+                $javaResident['roomId'] = $model->attributes['room_id'];
+                $javaResidentRes = $javaService->parkingSelectResidentInfo($javaResident);
+                if(empty($javaResidentRes['residentId'])){
+                    throw new Exception("JAVA 住户id不存在");
+                }
+
                 //车牌下放 待定
+                $javaCar['token'] = $params['token'];
+                $javaCar['roomId'] = $model->attributes['room_id'];
+                $javaCar['residentId'] = $javaResidentRes['residentId'];
+                $javaCar['contactsName'] = $model->attributes['appointment_name'];
+                $javaCar['licenseNumber'] = $model->attributes['car_number'];
+                $javaCar['contactsPhone'] = $model->attributes['appointment_mobile'];
+                $javaCar['communityId'] = $model->attributes['community_id'];
+                $javaCar['startTime'] = date('Y-m-d H:i:s',$model->attributes['start_at']);
+                $javaCar['carType'] = 1;
+                $javaCarResult = $javaService->parkingAddParkingCar($javaCar);
+
+//                $javaCar['token'] = $params['token'];
+//                $javaCar['roomId'] = '1285087563838926849';
+//                $javaCar['residentId'] = '1289022459804430337';
+//                $javaCar['contactsName'] = '汪伟仕';
+//                $javaCar['licenseNumber'] = '苏E05EV7';
+//                $javaCar['contactsPhone'] = '15957197874';
+//                $javaCar['startTime'] = '2020-07-08 09:00:00';
+//                $javaCar['carType'] = 1;
+//                $javaCarResult = $javaService->parkingAddParkingCar($javaCar);
+
+                if(empty($javaCarResult['id'])){
+                    throw new Exception($javaCarResult['message']);
+                }
+
+                PsParkReservation::updateAll(['parking_car_id'=>$javaCarResult['id']],['id'=>$model->attributes['id']]);
 
                 //修改共享车位信息
                 $spaceModel = new PsParkSpace(['scenario'=>'info']);
@@ -190,7 +226,8 @@ class SharedService extends BaseService{
                     $spaceParams['update_at'] = time();
                     $spaceParams['id'] = $params['space_id'];
                     if(!$spaceModel->edit($spaceParams)){
-                        return $this->failed('共享车位信息修改失败！');
+//                        return $this->failed('共享车位信息修改失败！');
+                        throw new Exception('共享车位信息修改失败！');
                     }
                     $spaceDetail = $spaceModel->getDetail(['id'=>$params['space_id']]);
                     //发送支付宝消息 通知发布者
@@ -205,15 +242,18 @@ class SharedService extends BaseService{
                     $msgModel = new PsParkMessage(['scenario'=>'add']);
                     if($msgModel->load($msgParams,'')&&$msgModel->validate()){
                         if(!$msgModel->saveData()){
-                            return $this->failed('消息新增失败！');
+                            throw new Exception('消息新增失败！');
+//                            return $this->failed('消息新增失败！');
                         }
                     }else{
                         $msg = array_values($msgModel->errors)[0][0];
-                        return $this->failed($msg);
+                        throw new Exception($msg);
+//                        return $this->failed($msg);
                     }
                 }else{
                     $msg = array_values($spaceModel->errors)[0][0];
-                    return $this->failed($msg);
+                    throw new Exception($msg);
+//                    return $this->failed($msg);
                 }
                 $trans->commit();
                 return $this->success(['id'=>$model->attributes['id']]);

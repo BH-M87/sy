@@ -31,7 +31,7 @@ class BaseController extends \yii\web\Controller
     //分页条数，后台默认10条数据
     public $rows = 10;
 
-    public $repeatAction = [];//验证重复请求的方法数组
+    public $repeatAction = ['get-sms-code'];//验证重复请求的方法数组
 
     public function init(){
         //跨域
@@ -49,11 +49,14 @@ class BaseController extends \yii\web\Controller
     public function beforeAction($action)
     {
         if (parent::beforeAction($action)) {
-            //请求方式，post检测
-            $this->_validateMethod();
             $this->_validateBody();
-            //token验证
-            $this->_validateToken($action);
+
+            if (!in_array($action->controller->id, ['vote-h5'])) {
+                //请求方式，post检测
+                $this->_validateMethod();
+                $this->_validateToken($action); // token验证
+            }
+            
             $this->page = !empty($this->params['page']) ? intval($this->params['page']) : 1;
             $this->rows = !empty($this->params['rows']) ? intval($this->params['rows']) : $this->rows;
 
