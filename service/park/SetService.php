@@ -120,7 +120,8 @@ class SetService extends BaseService
     {
         $m = PsParkBlack::find()
             ->filterWhere(['like', 'name', $p['name']])
-            ->andFilterWhere(['like', 'room_name', $p['room_name']]);
+            ->andFilterWhere(['like', 'room_name', $p['room_name']])
+        ->andFilterWhere(['in', 'community_id', $p['communityList']]);
         return $m;
     }
 
@@ -175,6 +176,7 @@ class SetService extends BaseService
         $m = PsParkBreakPromise::find()
             ->filterWhere(['like', 'name', $p['name']])
             ->andFilterWhere(['like', 'mobile', $p['mobile']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']]);
         return $m;
     }
@@ -233,6 +235,7 @@ class SetService extends BaseService
         $m = PsParkReservation::find()
             ->filterWhere(['like', 'appointment_name', $p['appointment_name']])
             ->andFilterWhere(['like', 'car_number', $p['car_number']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']]);
         return $m;
     }
@@ -273,6 +276,7 @@ class SetService extends BaseService
         $m = PsParkSpace::find()
             ->filterWhere(['=', 'status', $p['status']])
             ->andFilterWhere(['like', 'park_space', $p['park_space']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']]);
         return $m;
     }
