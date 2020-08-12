@@ -117,6 +117,7 @@ class HomeService extends BaseService
         $javaParams['token'] = $reqArr['token'];
         $javaParams['id'] = $reqArr['corpId'];
         $javaResult = $javaService->authJudgeAuth($javaParams);
+        $corpId = $reqArr['ddCorpId'];
         $menu = [
             [
                 'icon'=>"http://static.zje.com/2020040710054928444.png",
@@ -156,13 +157,13 @@ class HomeService extends BaseService
 //            'icon' => "http://static.zje.com/2020041509563541640.png",
 //            'name' => "事件中心",
 //            'icon_type' => '2',
-//            'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
+//            'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
 //            ],
 //            [
 //                'icon' => "http://static.zje.com/2020081117513559255.png",
 //                'name' => "临时登记",
 //                'icon_type' => '2',
-//                'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/register/index/index"
+//                'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
 //            ]
         ];
         if($javaResult){
@@ -216,13 +217,13 @@ class HomeService extends BaseService
 //                        'icon' => "http://static.zje.com/2020041509563541640.png",
 //                        'name' => "事件中心",
 //                        'icon_type' => '2',
-//                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/eventCenterList/eventCenterList"
+//                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
 //                    ],
 //                    [
 //                        'icon' => "http://static.zje.com/2020081117513559255.png",
 //                        'name' => "临时登记",
 //                        'icon_type' => '2',
-//                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&page=pages/register/index/index"
+//                        'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
 //                    ]
                 ];
             }
