@@ -19,6 +19,7 @@ class ParkCallBackController extends Controller {
         $get = Yii::$app->request->get();
         $post = Yii::$app->request->post();
         $this->params = array_merge($get, $post);
+        error_log('[' . date('Y-m-d H:i:s', time()) . ']' . PHP_EOL . "前端请求参数前===:".$this->params . PHP_EOL, 3, \Yii::$app->getRuntimePath().'/logs/shared.log');
         return true;
     }
 
