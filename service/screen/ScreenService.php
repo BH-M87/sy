@@ -23,7 +23,8 @@ class ScreenService extends BaseService
     // 大屏
     public function index($p)
     {   
-        $community_id = '1200020193290747905';
+        $community_id = '1290165028708810753';
+
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
         $r['weather'] = json_decode(Curl::getInstance()->post($get_url, $curl_data), true)['data']['weather'];
@@ -49,8 +50,8 @@ class ScreenService extends BaseService
             'underground' => '200', 
             'ground' => '100',
             'score' => '5.0', 
-            'eventNum' => $base['eventCount']+$repairCount+$inspectCount ?? 0
-        ];
+            'eventNum' => $repairCount+$inspectCount ?? 0
+        ]; // $base['eventCount']
 
         // 健康码
         $r['healthy']['healthyTotalMobile'] = 457; // 手机扫码进入人次
@@ -88,9 +89,9 @@ class ScreenService extends BaseService
             ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
         $r['car']['carInOut'] = [ 
-            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
-            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
-            ['carIn' => '浙S12344', 'timeIn' => '5-23 19:12:12', 'carOut' => '浙S12344', 'timeOut' => '5-23 19:12:12'],
+            ['carIn' => '浙A780C8', 'timeIn' => '8-13 19:22:12', 'carOut' => '浙B12CC4', 'timeOut' => '8-13 19:23:18'],
+            ['carIn' => '浙A123BB', 'timeIn' => '8-13 19:14:13', 'carOut' => '沪C1SE14', 'timeOut' => '8-13 19:22:42'],
+            ['carIn' => '浙K344D3', 'timeIn' => '8-13 19:13:14', 'carOut' => '浙A12SB4', 'timeOut' => '8-13 19:12:32'],
         ];
         // 房屋信息
         $room = JavaNewService::service()->javaPost('/sy/board/statistics/roomTagBoard',['communityId' => $community_id])['data'];
@@ -102,42 +103,42 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1200020193290747905';
+        $community_id = '1290165028708810753';
 
         $r['record'] = [ // 出入记录
-            ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1'],
-            ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '2'],
-            ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1'],
-            ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '2'],
-            ['time' => '19:00:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '2'],
+            ['time' => '19:20:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1'],
+            ['time' => '19:19:12', 'address' => '公寓大门门禁', 'name' => '吴**', 'type' => '2'],
+            ['time' => '19:17:32', 'address' => '公寓大门门禁', 'name' => '张**', 'type' => '1'],
+            ['time' => '19:14:28', 'address' => '公寓大门门禁', 'name' => '李**', 'type' => '2'],
+            ['time' => '19:07:29', 'address' => '公寓大门门禁', 'name' => '王**', 'type' => '2'],
         ];
           
         $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
         $r['activity'] = $activity['list'] ?? []; // 社区活动
 
         $r['alarm'] = [ // 实时告警
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/7/20 18:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '烟雾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/13 18:34:45', 'title' => '烟雾报警'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '5幢1单元1楼', 'createAt' => '2020/08/10 19:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '门禁报警', 'address' => '3幢3单元12楼', 'createAt' => '2020/08/09 18:54:45', 'title' => '门禁报警'],
+            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/08/01 16:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '烟雾报警', 'address' => '7幢1单元', 'createAt' => '2020/7/20 18:34:45', 'title' => '烟雾报警'],
         ];
 
         $r['report'] = [ // 一键上报
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/13 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/12 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/11 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/10 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/09 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/08 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/07 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/06 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/01 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
             ]
         ];
 
@@ -167,8 +168,10 @@ class ScreenService extends BaseService
     // 大屏 中间 告警
     public function center($p)
     {
+        $arr = ['烟雾报警', '监控点人数聚集报警', '门禁报警', '禁烟时段燃放烟花爆竹', '车辆占用消费通道'];
+
         $r['list'] = [ // 实时告警
-            ['id' => time(), 'title' => '禁烟时段燃放烟花爆竹']
+            ['id' => time(), 'title' => $arr[array_rand($arr)]]
         ];
 
         return $r;
@@ -177,16 +180,19 @@ class ScreenService extends BaseService
     // 把一个数组分成几个数组 $arr 是数组 $num 是数组的个数
     function partition($arr, $num)
     {
-        $listcount = count($arr); // 数组的个数
-        $parem = floor($listcount / $num); // 分成$num 个数组每个数组是多少个元素
+        if (!empty($arr)) {
+            $listcount = count($arr); // 数组的个数
+            $parem = floor($listcount / $num); // 分成$num 个数组每个数组是多少个元素
      
-        $paremm = $listcount % $num; // 分成$num 个数组还余多少个元素
-        $start = 0;
-        for ($i = 0; $i < $num; $i++) {
-            $end = $i < $paremm ? $parem + 1 : $parem;
-            $newarray[$i] = array_slice($arr, $start, $end);
-            $start = $start + $end;
+            $paremm = $listcount % $num; // 分成$num 个数组还余多少个元素
+            $start = 0;
+            for ($i = 0; $i < $num; $i++) {
+                $end = $i < $paremm ? $parem + 1 : $parem;
+                $newarray[$i] = array_slice($arr, $start, $end);
+                $start = $start + $end;
+            }
+            return $newarray;
         }
-        return $newarray;
+        return [];
     }
 }
