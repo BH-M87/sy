@@ -23,7 +23,7 @@ class ScreenService extends BaseService
     // 大屏
     public function index($p)
     {   
-        $community_id = '1200020193290747905';
+        $community_id = '1290165028708810753';
 
         $get_url = "116.62.92.115:106/v1/weather/geo";
         $curl_data = ["tenant_id" => 1, 'lat' => '30.266705', 'lon' => '119.965092'];
@@ -103,7 +103,7 @@ class ScreenService extends BaseService
     // 大屏 实时
     public function list($p)
     {
-        $community_id = '1200020193290747905';
+        $community_id = '1290165028708810753';
 
         $r['record'] = [ // 出入记录
             ['time' => '19:20:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1'],
