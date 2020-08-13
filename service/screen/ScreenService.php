@@ -182,6 +182,22 @@ class ScreenService extends BaseService
     {
         if (!empty($arr)) {
             $listcount = count($arr); // 数组的个数
+            
+            switch ($listcount / 3) {
+                case '0':
+                    $num = 1;
+                    break;
+                case '1':
+                    $num = 2;
+                    break;
+                case '2':
+                    $num = 3;
+                    break;
+                default:
+                    $num = 1;
+                    break;
+            }
+
             $parem = floor($listcount / $num); // 分成$num 个数组每个数组是多少个元素
      
             $paremm = $listcount % $num; // 分成$num 个数组还余多少个元素
