@@ -168,8 +168,10 @@ class ScreenService extends BaseService
     // 大屏 中间 告警
     public function center($p)
     {
+        $arr = ['烟雾报警', '监控点人数聚集报警', '门禁报警', '禁烟时段燃放烟花爆竹', '车辆占用消费通道'];
+
         $r['list'] = [ // 实时告警
-            ['id' => time(), 'title' => '禁烟时段燃放烟花爆竹']
+            ['id' => time(), 'title' => $arr[array_rand($arr)]]
         ];
 
         return $r;
