@@ -50,8 +50,8 @@ class ScreenService extends BaseService
             'underground' => '200', 
             'ground' => '100',
             'score' => '5.0', 
-            'eventNum' => $base['eventCount']+$repairCount+$inspectCount ?? 0
-        ];
+            'eventNum' => $repairCount+$inspectCount ?? 0
+        ]; // $base['eventCount']
 
         // 健康码
         $r['healthy']['healthyTotalMobile'] = 457; // 手机扫码进入人次
