@@ -175,7 +175,7 @@ class PointService extends BaseService
                         ->where(['A.pointId' => $v])->asArray()->all();
                     if (!empty($lineAll)) {
                         $lineList = implode(',', array_column($lineAll, 'name'));
-                        throw new MyException('以下线路包含该巡检点，请先修改巡检线路。线路：'.$lineList);
+                        throw new MyException('以下线路包含该巡检点，请先修改巡检线路。线路名称：'.$lineList);
                     }
 
                     PsInspectPoint::deleteAll(['id' => $v]);
