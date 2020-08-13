@@ -145,12 +145,15 @@ class ScreenService extends BaseService
 
         // 报事报修
         $repair = PsRepair::find()->alias('A')
-            ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address')
+            ->select('B.name typeMsg, A.repair_content, A.create_at, A.status, A.operator_name, A.room_address, A.status')
             ->leftJoin('ps_repair_type B', 'A.repair_type_id = B.id')
             ->where(['A.community_id' => $community_id])
             ->orderBy('A.create_at desc')->limit(9)->asArray()->all();
         if (!empty($repair)) {
             foreach ($repair as $k => &$v) {
+                if ($v['status'] == 7) {
+                    $v['operator_name'] = '';
+                }
                 $v['statusMsg'] = self::$repairStatus[$v['status']];
                 $v['create_at'] = date('Y/m/d H:i:s', $v['create_at']);
             }
