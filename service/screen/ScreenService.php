@@ -126,19 +126,19 @@ class ScreenService extends BaseService
 
         $r['report'] = [ // 一键上报
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/13 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/12 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/11 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/10 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/09 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/08 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '张三'],
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/7/20 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张三'],
+                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/07 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/06 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/01 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
             ]
         ];
 
