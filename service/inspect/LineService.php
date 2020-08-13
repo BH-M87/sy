@@ -12,6 +12,7 @@ use service\property_basic\JavaService;
 use app\models\PsInspectLine;
 use app\models\PsInspectLinePoint;
 use app\models\PsInspectPoint;
+use app\models\PsInspectPlan;
 
 class LineService extends BaseService
 {
@@ -169,10 +170,11 @@ class LineService extends BaseService
                         throw new MyException('巡检线路不存在');
                     }
 
-                    // 查询线路是否有配置巡检点
-                    $planPoint = PlanService::planOne('','','','id',$v);
-                    if (!empty($planPoint)) {
-                        throw new MyException('请先修改对应计划！');
+                    $plan = PsInspectPlan::find()->select("name")
+                        ->where(['line_id' => $v])->asArray()->all();
+                    if (!empty($plan)) {
+                        $planList = implode(',', array_column($plan, 'name'));
+                        throw new MyException('以下计划包含该巡检线路，请先修改巡检计划。计划名称：'.$planList);
                     }
 
                     $r = PsInspectLine::deleteAll(['id' => $v]);

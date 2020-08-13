@@ -170,8 +170,12 @@ class PointService extends BaseService
                         throw new MyException('巡检点不存在');
                     }
 
-                    if (PsInspectLinePoint::find()->where(['pointId' => $v])->exists()) {
-                        throw new MyException('请先修改巡检线路');
+                    $lineAll = PsInspectLinePoint::find()->alias('A')->select("B.name")
+                        ->leftJoin('ps_inspect_line B', 'A.lineId = B.id')
+                        ->where(['A.pointId' => $v])->asArray()->all();
+                    if (!empty($lineAll)) {
+                        $lineList = implode(',', array_column($lineAll, 'name'));
+                        throw new MyException('以下线路包含该巡检点，请先修改巡检线路。线路名称：'.$lineList);
                     }
 
                     PsInspectPoint::deleteAll(['id' => $v]);
