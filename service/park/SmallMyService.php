@@ -208,72 +208,52 @@ class SmallMyService extends BaseService
         $id = substr($user_id, -1);
         $list[0] = [
             'lotList' => [
-                ['park_id'=>'00' . $id,'park_space'=>'00' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'10' . $id,'park_space'=>'10' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12450" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'20' . $id,'park_space'=>'20' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A123456" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'12' . $id,'park_space'=>'12' . $id,'park_img'=>["http://static.zje.com/2020081410361189228.png"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id]],
             ]
         ];
         $list[1] = [
             'lotList' => [
-                ['park_id'=>'01' . $id,'park_space'=>'01' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'11' . $id,'park_space'=>'11' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'21' . $id,'park_space'=>'21' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'005' . $id,'park_space'=>'005' . $id,'park_img'=>["http://static.zje.com/2020081410363333193.jpg"],'carNum' => ["浙A78900" . $id]],
             ]
         ];
         $list[2] = [
             'lotList' => [
-                ['park_id'=>'02' . $id,'park_space'=>'02' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'12' . $id,'park_space'=>'12' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'22' . $id,'park_space'=>'22' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'269' . $id,'park_space'=>'269' . $id,'park_img'=>["http://static.zje.com/2020081410365125845.jpg"],'carNum' => ["浙A1250" . $id]],
             ]
         ];
         $list[3] = [
             'lotList' => [
-                ['park_id'=>'03' . $id,'park_space'=>'03' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'13' . $id,'park_space'=>'13' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'23' . $id,'park_space'=>'23' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'269' . $id,'park_space'=>'269' . $id,'park_img'=>["http://static.zje.com/2020081410365125845.jpg"],'carNum' => ["浙A1250" . $id]],
             ],
         ];
         $list[4] = [
             'lotList' => [
-                ['park_id'=>'04' . $id,'park_space'=>'04' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'14' . $id,'park_space'=>'14' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'24' . $id,'park_space'=>'24' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'005' . $id,'park_space'=>'005' . $id,'park_img'=>["http://static.zje.com/2020081410363333193.jpg"],'carNum' => ["浙A78900" . $id]],
             ]
         ];
         $list[5] = [
             'lotList' => [
-                ['park_id'=>'05' . $id,'park_space'=>'05' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'15' . $id,'park_space'=>'15' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'25' . $id,'park_space'=>'25' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'12' . $id,'park_space'=>'12' . $id,'park_img'=>["http://static.zje.com/2020081410361189228.png"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id]],
             ]
         ];
         $list[6] = [
             'lotList' => [
-                ['park_id'=>'06' . $id,'park_space'=>'06' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'16' . $id,'park_space'=>'16' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'26' . $id,'park_space'=>'26' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'12' . $id,'park_space'=>'12' . $id,'park_img'=>["http://static.zje.com/2020081410361189228.png"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id]],
             ]
         ];
         $list[7] = [
             'lotList' => [
-                ['park_id'=>'07' . $id,'park_space'=>'07' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'17' . $id,'park_space'=>'17' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'27' . $id,'park_space'=>'27' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'269' . $id,'park_space'=>'269' . $id,'park_img'=>["http://static.zje.com/2020081410365125845.jpg"],'carNum' => ["浙A1250" . $id]],
             ]
         ];
         $list[8] = [
             'lotList' => [
-                ['park_id'=>'08' . $id,'park_space'=>'08' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'18' . $id,'park_space'=>'18' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'28' . $id,'park_space'=>'28' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'269' . $id,'park_space'=>'269' . $id,'park_img'=>["http://static.zje.com/2020081410365125845.jpg"],'carNum' => ["浙A1250" . $id]],
             ]
         ];
         $list[9] = [
             'lotList' => [
-                ['park_id'=>'09' . $id,'park_space'=>'09' . $id,'park_img'=>["http://static.zje.com/2020061813505654774.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'19' . $id,'park_space'=>'19' . $id,'park_img'=>["http://static.zje.com/20200618135132759100.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]],
-                ['park_id'=>'29' . $id,'park_space'=>'29' . $id,'park_img'=>["http://static.zje.com/202006181352007256.jpg"],'carNum' => ["浙A12300" . $id, "浙A45600" . $id, "浙A78900" . $id]]
+                ['park_id'=>'005' . $id,'park_space'=>'005' . $id,'park_img'=>["http://static.zje.com/2020081410363333193.jpg"],'carNum' => ["浙A78900" . $id]],
             ]
         ];
         return $list[$id];
