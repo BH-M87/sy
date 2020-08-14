@@ -228,7 +228,7 @@ class HomeService extends BaseService
                 ];
             }
         }
-        if($corpId=="dinga53e17c86dc37f48f5bf40eda33b7ba0"){
+        if($corpId=="dinga53e17c86dc37f48f5bf40eda33b7ba0" || $corpId=='dingd040f876f6a46bdcacaaa37764f94726'){
             $menu[] =    [
                 'icon' => "http://static.zje.com/2020041509563541640.png",
                 'name' => "事件中心",
