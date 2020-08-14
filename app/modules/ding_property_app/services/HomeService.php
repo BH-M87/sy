@@ -153,18 +153,18 @@ class HomeService extends BaseService
             //      'icon_type' => '1',
             //     'url'=>"/pages/alarm/index/index",
             //   ],
-            // [
-            // 'icon' => "http://static.zje.com/2020041509563541640.png",
-            // 'name' => "事件中心",
-            // 'icon_type' => '2',
-            // 'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
-            // ],
-            // [
-            //     'icon' => "http://static.zje.com/2020081117513559255.png",
-            //     'name' => "临时登记",
-            //     'icon_type' => '2',
-            //     'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
-            // ]
+//             [
+//             'icon' => "http://static.zje.com/2020041509563541640.png",
+//             'name' => "事件中心",
+//             'icon_type' => '2',
+//             'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
+//             ],
+//             [
+//                 'icon' => "http://static.zje.com/2020081117513559255.png",
+//                 'name' => "临时登记",
+//                 'icon_type' => '2',
+//                 'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
+//             ]
         ];
         if($javaResult){
             //判断小区是否有账单
@@ -227,6 +227,20 @@ class HomeService extends BaseService
                     // ]
                 ];
             }
+        }
+        if($corpId=="dinga53e17c86dc37f48f5bf40eda33b7ba0"){
+            $menu[] =    [
+                'icon' => "http://static.zje.com/2020041509563541640.png",
+                'name' => "事件中心",
+                'icon_type' => '2',
+                'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
+            ];
+            $menu[] =      [
+                'icon' => "http://static.zje.com/2020081117513559255.png",
+                'name' => "临时登记",
+                'icon_type' => '2',
+                'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
+            ];
         }
         return $menu;
     }
