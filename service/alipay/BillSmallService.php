@@ -162,18 +162,18 @@ class BillSmallService extends BaseService
         $dataList = [];
         foreach ($bill_cost as $cost) {
             $data = $cost;
-            $costBill = PsBill::find()->select('id,bill_entry_amount,acct_period_start,acct_period_end')
+            $costBill = PsBill::find()->select('id,bill_entry_amount,acct_period_start,acct_period_end,content')
                 ->where(['community_id' => $communityId, 'room_id' => $room_id, 'is_del' => 1, 'status' => 1, 'cost_id' => $cost['cost_id']])
                 ->andFilterWhere(['not in', 'id', $payBill])
                 ->asArray()->all();
-            $billDataList = [];
-            foreach ($costBill as $bill) {
-                $billData['id'] = $bill['id'];
-                $billData['bill_entry_amount'] = $bill['bill_entry_amount'];
-                $billData['acct_period'] = date("Ymd", $bill['acct_period_start']) . '-' . date("Ymd", $bill['acct_period_end']);
-                $billDataList[] = $billData;
+            
+            if (!empty($costBill)) {
+                foreach ($costBill as &$bill) {
+                    $bill['acct_period'] = date("Ymd", $bill['acct_period_start']) . '-' . date("Ymd", $bill['acct_period_end']);
+                }
             }
-            $data['bill_list'] = !empty($billDataList) ? $billDataList : [];
+            
+            $data['bill_list'] = !empty($costBill) ? $costBill : [];
             $dataList[] = $data;
         }
 

@@ -2014,6 +2014,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "cost_type" => $cost["cost_type"],
                     "cost_name" => $cost["name"],
                     "bill_entry_amount" => $v["bill_entry_amount"],
+                    "content" => $v["content"],
                     "release_day" => date("Ymd", strtotime("-1 day")),
                     "deadline" => "20991231",
 //                    "status" => "3",
