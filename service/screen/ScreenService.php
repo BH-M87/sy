@@ -46,7 +46,7 @@ class ScreenService extends BaseService
             'memberNum' => $base['residentInfoVO']['residentCount'] ?? 0, 
             'register' => $base['residentInfoVO']['householdCount'] ?? 0, 
             'flow' => $base['residentInfoVO']['floatingCount'] ?? 0,
-            'parkingNUm' => '300', 
+            'parkingNUm' => '1592', 
             'underground' => '1479', 
             'ground' => '113',
             'score' => '5.0', 
@@ -174,7 +174,7 @@ class ScreenService extends BaseService
             
         $start = 1;
         if ($key == 0 || $key == 2) {
-            $start = 3;
+            $start = 5;
         }
 
         $r['list'] = [ // 实时告警
