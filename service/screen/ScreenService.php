@@ -170,8 +170,15 @@ class ScreenService extends BaseService
     {
         $arr = ['楼道堆物垃圾未能及时处理', '监控点人数聚集报警', '楼道堆物垃圾未能及时处理', '禁烟时段燃放烟花爆竹', '车辆占用消防通道'];
 
+        $key = array_rand($arr);
+            
+        $start = 1;
+        if ($key == 0 || $key == 2) {
+            $start = 3;
+        }
+
         $r['list'] = [ // 实时告警
-            ['id' => time(), 'title' => $arr[array_rand($arr)]]
+            ['id' => time(), 'title' => $arr[$key], 'start' => $start]
         ];
 
         return $r;
