@@ -283,6 +283,7 @@ Class AlipayCostController extends BaseController
                 'G' => ['title' => '账单结束日期', 'width' => 16, 'data_type' => 'no_data', 'field' => 'acct_period_end'],
                 'H' => ['title' => '缴费项目', 'width' => 20, 'data_type' => 'protect', 'field' => 'cost_name', "protect" => $str],
                 'I' => ['title' => '缴费金额', 'width' => 20, 'data_type' => 'no_data', 'field' => 'amount'],
+                'J' => ['title' => '备注', 'width' => 20, 'data_type' => 'no_data', 'field' => 'content'],
             ];
             $config["save"] = true;
             $savePath = Yii::$app->basePath . '/web/store/zip/moban/' . $data["community_id"] . '/';

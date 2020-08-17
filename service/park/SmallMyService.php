@@ -7,6 +7,7 @@ use app\models\PsParkSpace;
 use app\models\PsParkReservation;
 use app\models\PsParkMessage;
 use service\BaseService;
+use service\property_basic\JavaOfCService;
 use Yii;
 use yii\db\Exception;
 
@@ -172,6 +173,12 @@ class SmallMyService extends BaseService
                 PsParkReservation::updateAll(['status' => 5], ['id' => $params['id']]);
                 //将车位状态重置
                 PsParkSpace::updateAll(['status' => 1], ['id' => $params['space_id']]);
+                //调用java接口 删除车牌信息 （java接口）
+                if(!empty($result['parking_car_id'])){
+                    $javaService = new JavaOfCService();
+                    $javaCar['id'] = $result['parking_car_id'];
+                    $javaService->parkingDeleteParkingCar($javaCar);
+                }
                 return $this->success(['id'=>$result['id']]);
             }else{
                 return $this->failed("预约记录不存在");
