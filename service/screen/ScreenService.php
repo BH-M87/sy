@@ -174,7 +174,7 @@ class ScreenService extends BaseService
             
         $start = 1;
         if ($key == 0 || $key == 2) {
-            $start = 8;
+            $start = 3;
         }
 
         $r['list'] = [ // 实时告警
