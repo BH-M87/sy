@@ -168,7 +168,7 @@ class ScreenService extends BaseService
     // 大屏 中间 告警
     public function center($p)
     {
-        $arr = ['楼道堆物垃圾未能及时处理', '监控点人数聚集报警', '楼道堆物垃圾未能及时处理', '禁烟时段燃放烟花爆竹', '车辆占用消防通道'];
+        $arr = ['监测到垃圾堆放', '监控点人数聚集报警', '监测到垃圾堆放', '监测到垃圾堆放', '车辆占用消防通道'];
 
         $key = array_rand($arr);
             
