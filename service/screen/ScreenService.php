@@ -40,8 +40,8 @@ class ScreenService extends BaseService
         $base = JavaNewService::service()->javaPost('/sy/board/statistics/corpBoard',['communityId' => $community_id])['data'];
         $r['base'] = [ // 基础信息
             'buildingNum' => '11',//$base['buildingCount'], 
-            'roomNum' => '1541',//$base['roomInfoVO']['roomCount'] ?? 0, 
-            'rentOut' => '308',//$base['roomInfoVO']['leaseCount'] ?? 0, 
+            'roomNum' => '1540',//$base['roomInfoVO']['roomCount'] ?? 0, 
+            'rentOut' => '307',//$base['roomInfoVO']['leaseCount'] ?? 0, 
             'self' => '1233',//$base['roomInfoVO']['localCount'] ?? 0, 
             'memberNum' => $base['residentInfoVO']['residentCount'] ?? 0, 
             'register' => $base['residentInfoVO']['householdCount'] ?? 0, 
