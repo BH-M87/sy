@@ -117,7 +117,7 @@ class ScreenService extends BaseService
         $r['activity'] = $activity['list'] ?? []; // 社区活动
 
         $r['alarm'] = [ // 实时告警
-            ['typeMsg' => '烟雾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/13 18:34:45', 'title' => '烟雾报警'],
+            ['typeMsg' => '垃圾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/17 15:34:45', 'title' => '监测到垃圾堆放'],
             ['typeMsg' => '监控点人数聚集报警', 'address' => '5幢1单元1楼', 'createAt' => '2020/08/10 19:34:45', 'title' => '聚集报警'],
             ['typeMsg' => '门禁报警', 'address' => '3幢3单元12楼', 'createAt' => '2020/08/09 18:54:45', 'title' => '门禁报警'],
             ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/08/01 16:34:45', 'title' => '聚集报警'],
