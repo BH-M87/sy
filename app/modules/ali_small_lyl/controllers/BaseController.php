@@ -19,7 +19,7 @@ use yii\base\Exception;
 class BaseController extends \yii\web\Controller
 {
     //全局关闭csrf防御，接口无需csrf防御
-    public $enableCsrfValidation = false;
+    public $enableCsrfValidation = true;
     //存储request请求体
     public $body = [];
     //存储data
