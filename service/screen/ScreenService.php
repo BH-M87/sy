@@ -39,16 +39,16 @@ class ScreenService extends BaseService
 
         $base = JavaNewService::service()->javaPost('/sy/board/statistics/corpBoard',['communityId' => $community_id])['data'];
         $r['base'] = [ // 基础信息
-            'buildingNum' => $base['buildingCount'], 
-            'roomNum' => $base['roomInfoVO']['roomCount'] ?? 0, 
+            'buildingNum' => '11',//$base['buildingCount'], 
+            'roomNum' => '1541',//$base['roomInfoVO']['roomCount'] ?? 0, 
             'rentOut' => $base['roomInfoVO']['leaseCount'] ?? 0, 
             'self' => $base['roomInfoVO']['localCount'] ?? 0, 
             'memberNum' => $base['residentInfoVO']['residentCount'] ?? 0, 
             'register' => $base['residentInfoVO']['householdCount'] ?? 0, 
             'flow' => $base['residentInfoVO']['floatingCount'] ?? 0,
             'parkingNUm' => '300', 
-            'underground' => '200', 
-            'ground' => '100',
+            'underground' => '1479', 
+            'ground' => '113',
             'score' => '5.0', 
             'eventNum' => $repairCount+$inspectCount ?? 0
         ]; // $base['eventCount']
@@ -126,19 +126,19 @@ class ScreenService extends BaseService
 
         $r['report'] = [ // 一键上报
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/13 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
-                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/12 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '李大致'],
-                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/11 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/13 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
+                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/12 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/11 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/10 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/09 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/08 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/10 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/09 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/08 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
             ],
             [
-                ['typeMsg' => '社区风险', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/07 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
-                ['typeMsg' => '消费风险', 'title' => '车辆占用消费通道', 'createAt' => '2020/08/06 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '安全风险', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/01 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
+                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/07 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
+                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/06 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
+                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/01 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
             ]
         ];
 
@@ -168,10 +168,17 @@ class ScreenService extends BaseService
     // 大屏 中间 告警
     public function center($p)
     {
-        $arr = ['烟雾报警', '监控点人数聚集报警', '门禁报警', '禁烟时段燃放烟花爆竹', '车辆占用消费通道'];
+        $arr = ['楼道堆物垃圾未能及时处理', '监控点人数聚集报警', '楼道堆物垃圾未能及时处理', '禁烟时段燃放烟花爆竹', '车辆占用消防通道'];
+
+        $key = array_rand($arr);
+            
+        $start = 1;
+        if ($key == 0 || $key == 2) {
+            $start = 3;
+        }
 
         $r['list'] = [ // 实时告警
-            ['id' => time(), 'title' => $arr[array_rand($arr)]]
+            ['id' => time(), 'title' => $arr[$key], 'start' => $start]
         ];
 
         return $r;
