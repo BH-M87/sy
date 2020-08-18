@@ -117,10 +117,10 @@ class ScreenService extends BaseService
         $r['activity'] = $activity['list'] ?? []; // 社区活动
 
         $r['alarm'] = [ // 实时告警
-            ['typeMsg' => '烟雾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/13 18:34:45', 'title' => '烟雾报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '5幢1单元1楼', 'createAt' => '2020/08/10 19:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '垃圾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/17 15:34:45', 'title' => '检测到垃圾堆放'],
+            ['typeMsg' => '人脸报警', 'address' => '5幢1单元1楼', 'createAt' => '2020/08/10 19:34:45', 'title' => '重点区域有人非法入侵'],
             ['typeMsg' => '门禁报警', 'address' => '3幢3单元12楼', 'createAt' => '2020/08/09 18:54:45', 'title' => '门禁报警'],
-            ['typeMsg' => '监控点人数聚集报警', 'address' => '展厅二楼', 'createAt' => '2020/08/01 16:34:45', 'title' => '聚集报警'],
+            ['typeMsg' => '人脸报警', 'address' => '展厅二楼', 'createAt' => '2020/08/01 16:34:45', 'title' => '重点区域有人非法入侵'],
             ['typeMsg' => '烟雾报警', 'address' => '7幢1单元', 'createAt' => '2020/7/20 18:34:45', 'title' => '烟雾报警'],
         ];
 
@@ -168,11 +168,11 @@ class ScreenService extends BaseService
     // 大屏 中间 告警
     public function center($p)
     {
-        $arr = ['监测到垃圾堆放', '监控点人数聚集报警', '监测到垃圾堆放', '监测到垃圾堆放', '车辆占用消防通道'];
+        $arr = ['检测到垃圾堆放', '检测到垃圾堆放', '检测到垃圾堆放', '车辆占用消防通道'];
 
         $key = array_rand($arr);
             
-        $start = 1;
+        $start = 5;
         if ($key == 0 || $key == 2) {
             $start = 5;
         }
