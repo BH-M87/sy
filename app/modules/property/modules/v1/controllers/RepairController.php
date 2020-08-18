@@ -183,9 +183,16 @@ class RepairController extends BaseController {
         if (empty($this->request_params)) {
             return PsCommon::responseFailed("未接受到有效数据");
         }
+
         $repairId = !empty($this->request_params['repair_id']) ? $this->request_params['repair_id'] : 0;
         if (!$repairId) {
             return PsCommon::responseFailed("报事报修id不能为空");
+        }
+        if (empty($this->request_params['group_id'])) {
+            return PsCommon::responseFailed("部门不能为空");
+        }
+        if (empty($this->request_params['user_id'])) {
+            return PsCommon::responseFailed("员工不能为空");
         }
         if (empty($this->request_params['hard_remark'])) {
             return PsCommon::responseFailed("疑难说明不能为空");

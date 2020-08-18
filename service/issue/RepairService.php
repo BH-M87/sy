@@ -618,8 +618,10 @@ class RepairService extends BaseService
     // 工单分配
     public function assign($p, $u = [])
     {
-        if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
-            return "期望完成时间只能输入1-24的正整数";
+        if(!empty($p['finish_time'])){
+            if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
+                return "期望完成时间只能输入1-24的正整数";
+            }
         }
 
         $model = $this->getRepairInfoById($p['repair_id']);
@@ -672,13 +674,13 @@ class RepairService extends BaseService
             // 增加工单操作记录
             $repair_record = [
                 'repair_id' => $p["repair_id"],
-                'content' => '',
-                'repair_imgs' => '',
+                'content' => !empty($p['content'])?$p['content']:'',
                 'status' => '2',
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
-                'mobile' => $user['mobile']
+                'mobile' => $user['mobile'],
+                'repair_imgs'=> !empty($p['repair_imgs'])?$p['repair_imgs']:'',
             ];
             $connection->createCommand()->insert('ps_repair_record', $repair_record)->execute();
 
@@ -852,6 +854,7 @@ class RepairService extends BaseService
     // 工单标记为疑难功能
     public function markHard($p, $u = [])
     {
+        $p['content'] = '标记疑难';
         $m = $this->getRepairInfoById($p['repair_id']);
         if (!$m) {
             return "工单不存在";
@@ -872,19 +875,27 @@ class RepairService extends BaseService
         ];
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $p["repair_id"]])->execute();
         if ($re) {
-            Yii::$app->db->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $p["repair_id"],
-                'status' => $m['status'],
-                'content' => '标记疑难',
-                'create_at' => time(),
-                'operator_id' => $u["id"],
-                'operator_name' => $u["truename"],
-                'mobile' => $u["mobile"],
-            ])->execute();
-            
-            if (!empty($u['propertyMark'])) { // 添加操作日志
-                self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+
+            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'assign-repair-hard');
+            if (!$valid["status"]) {
+                return PsCommon::responseFailed($valid["errorMsg"]);
             }
+            RepairService::service()->assign($valid['data'], $u);
+
+//            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+//                'repair_id' => $p["repair_id"],
+//                'status' => $m['status'],
+//                'content' => '标记疑难',
+//                'create_at' => time(),
+//                'operator_id' => $u["id"],
+//                'operator_name' => $u["truename"],
+//                'mobile' => $u["mobile"],
+//                'repair_imgs'=> !empty($p['repair_imgs'])?$p['repair_imgs']:'',
+//            ])->execute();
+            
+//            if (!empty($u['propertyMark'])) { // 添加操作日志
+//                self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+//            }
 
             return true;
         }
