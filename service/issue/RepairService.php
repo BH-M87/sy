@@ -1288,6 +1288,11 @@ class RepairService extends BaseService
             //->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
             ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id');
 
+        if ($p['status'] == 99) { // 疑难
+            $p['status'] = '';
+            $p['hard_type'] = 2;
+        } 
+
         if ($p['top_status'] == 1) { // 我报修 我提交的报事报修工单
             $query->andWhere(['pr.created_id' => $userInfo['id']]);
         } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
@@ -1310,6 +1315,7 @@ class RepairService extends BaseService
         
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pr.hard_type', $p['hard_type']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
             ->andFilterWhere(['or', 
                 ['and', 
