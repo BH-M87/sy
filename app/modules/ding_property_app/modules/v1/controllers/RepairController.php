@@ -351,6 +351,7 @@ class RepairController extends UserBaseController
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['hard_remark'] = F::value($this->params, 'reason', '');
         $p['token'] = F::value($this->params, 'token', 0);
+        $p['repair_imgs'] = is_array(var)
 
         if (!$p['repair_id']) {
             return F::apiFailed('请输入工单id！');
@@ -358,6 +359,12 @@ class RepairController extends UserBaseController
 
         if (!$p['hard_remark']) {
             return F::apiFailed('请输入标记说明！');
+        }
+
+        if (is_array($p['repair_imgs']) && !empty($p['repair_imgs'])) {
+            $p['repair_imgs'] = implode(',', $p['repair_imgs']);
+        } else {
+            $p['repair_imgs'] = '';
         }
 
         $r = RepairService::service()->markHard($p, $this->userInfo);
