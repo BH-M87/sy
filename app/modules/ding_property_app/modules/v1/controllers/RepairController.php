@@ -350,6 +350,7 @@ class RepairController extends UserBaseController
     {
         $p['repair_id'] = F::value($this->params, 'issue_id', 0);
         $p['hard_remark'] = F::value($this->params, 'reason', '');
+        $p['repair_imgs'] = F::value($this->params, 'repair_imgs', '');
         $p['user_id'] = F::value($this->params, 'user_id', '');
         $p['token'] = F::value($this->params, 'token', 0);
 
