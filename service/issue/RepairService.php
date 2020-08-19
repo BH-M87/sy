@@ -1386,11 +1386,18 @@ class RepairService extends BaseService
                 'key' => 'markInvalid',
                 'status' => ["1","2","8"],
             ],
+            'gov-sy-repair-hard' => [
+                'name' => '标记疑难',
+                'img' => '../../../images/repairDetails_icon4.png',
+                'url' => '/pages/myDetails/makeDifficult/makeDifficult',
+                'key' => '2',
+                'status' => ["1","2","8"],
+            ],
         ];
 
         // 钉钉报事报修权限
         $repair_role = [
-            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel'
+            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel', 'gov-sy-repair-hard'
         ];
         /**
          * 2020-4-13 陈科浪注释；暂时不查权限
