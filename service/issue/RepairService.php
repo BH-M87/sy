@@ -1116,6 +1116,9 @@ class RepairService extends BaseService
             foreach ($m as $key => $model) {
                 if ($p['use_as'] == "dingding") {
                     $m[$key]['status_label'] = self::$_repair_status[$model['status']];
+                    if($model['hard_type']==2){
+                        $m[$key]['status_label'].=" (疑难)";
+                    }
                 } else {
                     $m[$key]["status_name"] = self::getStatusName($model['status']);
                     $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
