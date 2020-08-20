@@ -15,6 +15,7 @@ class OutOrderService extends BaseService{
     //新建出门单
     public function addOfC($params){
         $recordsParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $recordsParams['community_name'] = !empty($params['community_name'])?$params['community_name']:'';
         $recordsParams['groupId'] = !empty($params['groupId'])?$params['groupId']:'';
         $recordsParams['buildingId'] = !empty($params['buildingId'])?$params['buildingId']:'';
         $recordsParams['unitId'] = !empty($params['unitId'])?$params['unitId']:'';
@@ -72,9 +73,9 @@ class OutOrderService extends BaseService{
 
     //出门单列表
     public function orderListOfC($params){
-        $model = new PsOutOrder(['scenario'=>'detail']);
+        $model = new PsOutOrder(['scenario'=>'listOfC']);
         if($model->load($params,'')&&$model->validate()) {
-
+            $list = $model->listOfC($params);
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);

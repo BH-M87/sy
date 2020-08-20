@@ -22,15 +22,17 @@ class PsOutOrder extends BaseModel
     {
         return [
 
-            [['community_id', 'groupId', 'buildingId', 'unitId', 'roomId','application_name','application_mobile','member_type','room_address','application_id','application_at','content','ali_form_id','ali_user_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['community_id', 'community_name','groupId', 'buildingId', 'unitId', 'roomId','application_name','application_mobile','member_type','room_address','application_id','application_at','content','ali_form_id','ali_user_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
+            [['application_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['listOfC']],
             [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
             [["id", 'status', 'member_type', 'application_at', 'release_at', 'check_at','create_at', 'update_at'], 'integer'],
-            [['community_id','groupId','buildingId','unitId','roomId','application_name','application_mobile','room_address','application_id','code','qr_url','content','content_img','car_number','release_id','release_name','check_id','check_name','ali_form_id','ali_user_id'], 'trim'],
+            [['community_id','community_name','groupId','buildingId','unitId','roomId','application_name','application_mobile','room_address','application_id','code','qr_url','content','content_img','car_number','release_id','release_name','check_id','check_name','ali_form_id','ali_user_id'], 'trim'],
             [['car_number','content_img'], 'string'],
             [['application_mobile'], 'string', "max" => 12],
             [['application_name','code','car_number','release_name','check_name'], 'string', "max" => 10],
             [['community_id','groupId','buildingId','unitId','roomId','application_id','release_id','check_id'], 'string', "max" => 30],
+            [['community_name'], 'string', "max" => 50],
             [['ali_form_id','ali_user_id'], 'string', "max" => 100],
             [['room_address', 'application_id'], 'string', "max" => 255],
             [['application_mobile'],'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机号码格式有误'],
@@ -47,6 +49,7 @@ class PsOutOrder extends BaseModel
               'id'                  => '出门单id',
               'status'              => '状态 ',
               'community_id'        => '小区',
+              'community_name'      => '小区名称',
               'groupId'             => '苑期区',
               'buildingId'          => '幢',
               'unitId'              => '单元',
@@ -130,5 +133,11 @@ class PsOutOrder extends BaseModel
         $fields = ['id','room_address','application_at','application_name','status','car_number','content','content_img'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         return $model->asArray()->one();
+    }
+
+    //出门单列表c端
+    public function listOfC($params){
+        $fields = [];
+
     }
 }
