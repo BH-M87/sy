@@ -917,7 +917,7 @@ class RepairService extends BaseService
         if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
-        
+
 //        $r = Yii::$app->db->createCommand()->update('ps_repair',
 //            ["status" => 6, 'hard_type' => 1], ["id" => $p['repair_id']])->execute();
         $r = Yii::$app->db->createCommand()->update('ps_repair',
