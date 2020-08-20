@@ -56,4 +56,18 @@ class OutOrderController extends BaseController {
             exit($e->getMessage());
         }
     }
+
+    //出门单列表
+    public function actionOrderList(){
+        try{
+            $result = OutOrderService::service()->orderListOfC($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }

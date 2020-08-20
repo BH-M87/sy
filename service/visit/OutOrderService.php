@@ -69,4 +69,15 @@ class OutOrderService extends BaseService{
             return $this->failed($msg);
         }
     }
+
+    //出门单列表
+    public function orderListOfC($params){
+        $model = new PsOutOrder(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()) {
+
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }
