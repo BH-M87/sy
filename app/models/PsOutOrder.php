@@ -116,4 +116,11 @@ class PsOutOrder extends BaseModel
             }
         }
     }
+
+    //出门单二维码
+    public function getOrderQrCode($params){
+        $fields = ['id','qr_url','room_address','application_at','code','application_name','status'];
+        $model = self::find()->select($fields)->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
+    }
 }

@@ -28,4 +28,32 @@ class OutOrderController extends BaseController {
             exit($e->getMessage());
         }
     }
+
+    //出门单二维码
+    public function actionOrderQrCode(){
+        try{
+            $result = OutOrderService::service()->orderQrCode($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
+
+    //出门单详情
+    public function actionOrderDetail(){
+        try{
+            $result = OutOrderService::service()->orderDetail($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
