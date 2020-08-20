@@ -137,7 +137,17 @@ class PsOutOrder extends BaseModel
 
     //出门单列表c端
     public function listOfC($params){
-        $fields = [];
-
+        $fields = ['id'];
+        $model = self::find()->select($fields)->where(['=','application_id',$params['application_id']]);
+        $count = $model->count();
+        if(!empty($params['page'])||!empty($params['pageSize'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return ['count'=>$count,'data'=>$result];
     }
 }

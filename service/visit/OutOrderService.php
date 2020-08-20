@@ -49,6 +49,7 @@ class OutOrderService extends BaseService{
         if($model->load($params,'')&&$model->validate()) {
             $detail = $model->getOrderQrCode($params);
             $detail['application_at_msg'] = !empty($detail['application_at'])?date('Y-m-d',$detail['application_at']):'';
+            $detail['status_msg'] = !empty($detail['status'])?$model->statusMsg[$detail['status']]:'';
             return $this->success($detail);
         }else{
             $msg = array_values($model->errors)[0][0];
