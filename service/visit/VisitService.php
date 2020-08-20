@@ -15,6 +15,7 @@ use service\common\QrcodeService;
 use service\common\CsvService;
 
 use app\models\PsRoomVisitor;
+use app\models\PsOutOrder;
 
 class VisitService extends BaseService
 { 
@@ -154,6 +155,7 @@ class VisitService extends BaseService
     }
 
     // ----------------------------------     访客通行     ----------------------------
+
 	// 访客 列表
     public function list($p)
     {
