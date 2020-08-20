@@ -60,11 +60,11 @@ class VisitService extends BaseService
 
         $filter = $filter ?? "*";
         $m = PsOutOrder::find()
-            ->select($filter);
-            ->filterWhere(['in', 'community_id', PsCommon::get($p, 'communityList')]);
+            ->select($filter)
+            ->filterWhere(['in', 'community_id', PsCommon::get($p, 'communityList')])
             ->andFilterWhere(['=', 'community_id', PsCommon::get($p, 'community_id')])
             ->andFilterWhere(['>=', 'release_at', $release_start])
-            ->andFilterWhere(['<=', 'release_at', $release_end]);
+            ->andFilterWhere(['<=', 'release_at', $release_end])
             ->andFilterWhere(['=', 'status', PsCommon::get($p, 'status')])
             ->andFilterWhere(['>=', 'application_at', $application_start])
             ->andFilterWhere(['<=', 'application_at', $application_end]);
