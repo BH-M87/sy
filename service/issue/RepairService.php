@@ -440,7 +440,7 @@ class RepairService extends BaseService
                 $val['contact_mobile'] = PsCommon::hideMobile($val['contact_mobile']);
             }
 
-            $val['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
+            $val['hard_type_desc'] = $val['hard_type']==1 ? "一般" : '疑难';
             $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
             $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
