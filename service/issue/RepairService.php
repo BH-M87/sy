@@ -74,10 +74,11 @@ class RepairService extends BaseService
         '2' => '开始处理',
         '3' => '已完成',
         '6' => '已关闭',
-        '11' => '待付款',
+//        '11' => '待付款',
     ];
 
     public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
+    public static $_repair_type = ['1' => '一般', '2' => '疑难'];
     public static $_pay_type = ['1' => '线上支付', '2' => '线下支付'];
     //工单已完成状态组 （无法再分配）
     public static $_issue_complete_status = [self::STATUS_DONE,self::STATUS_COMPLETE,self::STATUS_CHECKED,self::STATUS_CANCEL,self::STATUS_CHECKED_FALSE];
@@ -89,7 +90,8 @@ class RepairService extends BaseService
         $comm = [
             'repair_from' => PsCommon::returnKeyValue(self::$_repair_from),
             'repair_status' => PsCommon::returnKeyValue(self::$_repair_status),
-            'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status)
+            'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status),
+            'repair_type' => PsCommon::returnKeyValue(self::$_repair_type)
         ];
         return $comm;
     }
