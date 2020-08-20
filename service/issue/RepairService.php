@@ -914,8 +914,11 @@ class RepairService extends BaseService
             return "工单不存在";
         }
 
-        if (in_array($m['status'], self::$_issue_complete_status)) {
+        if ($m['status']==3) {
             return "工单已完成";
+        }
+        if ($m['status']==6) {
+            return "工单已关闭";
         }
 
 //        $r = Yii::$app->db->createCommand()->update('ps_repair',
