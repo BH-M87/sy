@@ -18,7 +18,7 @@ use service\issue\RepairTypeService;
 
 class RepairController extends BaseController {
 
-    public $repeatAction = ['add', 'mark-done', 'assign'];
+    public $repeatAction = ['add', 'mark-done', 'assign','mark-invalid'];
 
     //工单列表
     public function actionList()
