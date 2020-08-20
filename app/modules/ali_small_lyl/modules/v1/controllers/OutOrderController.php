@@ -9,7 +9,7 @@ namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
 use app\modules\ali_small_lyl\controllers\BaseController;
 use common\core\PsCommon;
-use service\property_basic\OutOrderService;
+use service\visit\OutOrderService;
 use yii\base\Exception;
 
 

@@ -32,6 +32,7 @@ class PsOutOrder extends BaseModel
             [['community_id','groupId','buildingId','unitId','roomId','application_id','release_id','check_id'], 'string', "max" => 30],
             [['ali_form_id','ali_user_id'], 'string', "max" => 100],
             [['room_address', 'application_id'], 'string', "max" => 255],
+            [['application_mobile'],'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机号码格式有误'],
             ['status', 'in', 'range' => [1, 2, 3, 4], 'on' => ['add', 'edit']],
             [['id'], 'dataInfo', 'on' => ["edit", "detail"]], //活动是否存在
             [['application_at'], 'timeVerification', 'on' => ["add"]], //申请时间验证
@@ -111,7 +112,7 @@ class PsOutOrder extends BaseModel
         if(!empty($this->application_at)){
             $nowTime = time();
             if(date('Y-m-d',$this->application_at)<date('Y-m-d',$nowTime)){
-                return $this->addError($attribute, "申请日期应大于当前时间");
+                return $this->addError($attribute, "申请日期应大于当前日期");
             }
         }
     }

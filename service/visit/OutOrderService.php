@@ -5,7 +5,7 @@
  * Date: 2020/8/20
  * Time: 9:04
  */
-namespace service\property_basic;
+namespace service\visit;
 
 use app\models\PsOutOrder;
 use service\BaseService;
