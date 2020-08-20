@@ -36,10 +36,15 @@ class VisitController extends UserBaseController
     // 出门单号确认
     public function actionPassOut()
     {
+        $this->params['user_id'] = $this->userInfo['id'];
+        $this->params['user_name'] = $this->userInfo['trueName'];
+
         $r = VisitService::service()->passOut($this->params);
 
         return PsCommon::responseSuccess($r);
     }
+
+    // ----------------------------------     访客通行     ----------------------------
 
     // 访客列表
     public function actionList()
@@ -48,8 +53,6 @@ class VisitController extends UserBaseController
         
         return PsCommon::responseSuccess($r);
     }
-    
-    // ----------------------------------     访客通行     ----------------------------
 
     // 访客详情
     public function actionShow()

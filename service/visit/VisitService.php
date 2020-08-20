@@ -96,37 +96,39 @@ class VisitService extends BaseService
         $r = PsOutOrder::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             if ($r['status'] == 1) {
-                throw new MyException('验证失败，出门单待确认!');
+                throw new MyException('出门单待确认!');
             } 
 
             if ($r['status'] == 3) {
-                throw new MyException('验证失败，出门单已放行!');
+                throw new MyException('出门单已放行!');
             }
 
             if ($r['status'] == 4) {
-                throw new MyException('验证失败，出门单已作废!');
+                throw new MyException('出门单已作废!');
             } 
 
             if (date('Y-m-d', $r['application_at']) != date('Y-m-d', time())) {
                 throw new MyException('未到申请日期!');
             }
 
-            PsOutOrder::updateAll(['release_at' => time(), 'status' => 3, 'release_id' => '', 'release_name' => ''], ['id' => $p['id']]);
+            PsOutOrder::updateAll(['release_at' => time(), 'status' => 3, 'release_id' => $p['user_id'], 'release_name' => $p['user_name']], ['id' => $p['id']]);
             return ['id' => $p['id']];
         }
 
-        throw new MyException('验证失败，出门单不存在!');
+        throw new MyException('出门单不存在!');
     }
 
     // 作废/确认
-    public function status($p)
+    public function statusOut($p)
     {
         $r = PsOutOrder::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
             if ($p['status'] == 2) {
-                PsOutOrder::updateAll(['check_at' => time(), 'status' => 2, 'check_id' => '', 'check_name' => ''], ['id' => $p['id']]);
+                PsOutOrder::updateAll(['check_at' => time(), 'status' => 2, 'check_id' => $p['create_id'], 'check_name' => $p['create_name']], ['id' => $p['id']]);
             } else if ($p['status'] == 4) {
                 PsOutOrder::updateAll(['status' => 4], ['id' => $p['id']]);
+            } else {
+                throw new MyException('状态错误!');
             }
             
             return ['id' => $p['id']];
