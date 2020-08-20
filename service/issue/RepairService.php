@@ -338,10 +338,10 @@ class RepairService extends BaseService
         if ($status) {
             if ($status == self::STATUS_DONE) {
                 $query->andWhere(['A.status' => $status]);
-                $query->andWhere(['A.is_pay' => self::BILL_WAIT_PAY]);
+//                $query->andWhere(['A.is_pay' => self::BILL_WAIT_PAY]);
             } elseif ($status == self::STATUS_UN_APPRAISE) {
                 $query->andWhere(['A.status' => self::STATUS_DONE]);
-                $query->andWhere(['>' ,'A.is_pay',self::BILL_WAIT_PAY]);
+//                $query->andWhere(['>' ,'A.is_pay',self::BILL_WAIT_PAY]);
             } else {
                 $query->andWhere(['A.status' => $status]);
             }
