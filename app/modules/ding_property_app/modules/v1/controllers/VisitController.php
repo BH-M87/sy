@@ -15,14 +15,6 @@ use service\property_basic\JavaOfCService;
 
 class VisitController extends UserBaseController
 {
-    // 访客列表
-    public function actionList()
-    {
-        $r = VisitService::service()->list($this->params, $this->userInfo);
-        
-        return PsCommon::responseSuccess($r);
-    }
-
     // 访客详情
     public function actionShow()
     {
