@@ -26,6 +26,7 @@ class PsOutOrder extends BaseModel
             [['id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
             [["id", 'status', 'member_type', 'application_at', 'release_at', 'check_at','create_at', 'update_at'], 'integer'],
             [['community_id','groupId','buildingId','unitId','roomId','application_name','application_mobile','room_address','application_id','code','qr_url','content','content_img','car_number','release_id','release_name','check_id','check_name','ali_form_id','ali_user_id'], 'trim'],
+            [['car_number','content_img'], 'string'],
             [['application_mobile'], 'string', "max" => 12],
             [['application_name','code','car_number','release_name','check_name'], 'string', "max" => 10],
             [['community_id','groupId','buildingId','unitId','roomId','application_id','release_id','check_id'], 'string', "max" => 30],
