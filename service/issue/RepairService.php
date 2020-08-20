@@ -829,7 +829,7 @@ class RepairService extends BaseService
             // 更新报修表
             $r["status"] = 3;
             $r["is_pay"] = $p["is_pay"] ? $p["is_pay"] : 1;
-            $r["hard_type"] = 1;
+//            $r["hard_type"] = 1;
             $r["operator_id"] = $p["user_id"];
             $r["operator_name"] = $user["trueName"];
             $r["amount"] = !empty($p['amount']) ? $p['amount'] : 0;
@@ -917,9 +917,11 @@ class RepairService extends BaseService
         if (in_array($m['status'], self::$_issue_complete_status)) {
             return "工单已完成";
         }
-
+        
+//        $r = Yii::$app->db->createCommand()->update('ps_repair',
+//            ["status" => 6, 'hard_type' => 1], ["id" => $p['repair_id']])->execute();
         $r = Yii::$app->db->createCommand()->update('ps_repair',
-            ["status" => 6, 'hard_type' => 1], ["id" => $p['repair_id']])->execute();
+            ["status" => 6, 'operator_name' => $u["truename"],'operator_id'=>$u["id"]], ["id" => $p['repair_id']])->execute();
         if ($r) {
             Yii::$app->db->createCommand()->insert('ps_repair_record', [
                 'repair_id' => $p["repair_id"],
