@@ -54,4 +54,30 @@ class OutOrderService extends BaseService{
             return $this->failed($msg);
         }
     }
+
+    //出门单详情
+    public function orderDetail($params){
+        $model = new PsOutOrder(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()) {
+            $detail = $model->getDetail($params);
+            $detail['application_at_msg'] = !empty($detail['application_at'])?date('Y-m-d',$detail['application_at']):'';
+            $detail['content_img_array'] = !empty($detail['content_img'])?explode(',',$detail['content_img']):'';
+            $detail['status_msg'] = !empty($detail['status'])?$model->statusMsg[$detail['status']]:'';
+            return $this->success($detail);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    //出门单列表
+    public function orderListOfC($params){
+        $model = new PsOutOrder(['scenario'=>'detail']);
+        if($model->load($params,'')&&$model->validate()) {
+
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }

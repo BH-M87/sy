@@ -11,6 +11,7 @@ namespace app\models;
 class PsOutOrder extends BaseModel
 {
 
+    public $statusMsg = ['1'=>'待确认','2'=>'已确认','3'=>'已放行','4'=>'已作废'];
 
     public static function tableName()
     {
@@ -120,6 +121,13 @@ class PsOutOrder extends BaseModel
     //出门单二维码
     public function getOrderQrCode($params){
         $fields = ['id','qr_url','room_address','application_at','code','application_name','status'];
+        $model = self::find()->select($fields)->where(['=','id',$params['id']]);
+        return $model->asArray()->one();
+    }
+
+    //出门单详情
+    public function getDetail($params){
+        $fields = ['id','room_address','application_at','application_name','status','car_number','content','content_img'];
         $model = self::find()->select($fields)->where(['=','id',$params['id']]);
         return $model->asArray()->one();
     }
