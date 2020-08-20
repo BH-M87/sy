@@ -154,6 +154,6 @@ class PsOutOrder extends BaseModel
         }
         $model->orderBy(["id"=>SORT_DESC]);
         $result = $model->asArray()->all();
-        return ['count'=>$count,'data'=>$result];
+        return ['count'=>$count,'list'=>$result];
     }
 }

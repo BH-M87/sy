@@ -77,10 +77,10 @@ class OutOrderService extends BaseService{
         $model = new PsOutOrder(['scenario'=>'listOfC']);
         if($model->load($params,'')&&$model->validate()) {
             $result = $model->listOfC($params);
-            if(!empty($result['data'])){
-                foreach($result['data'] as $key=>$value){
-                    $result['data'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
-                    $result['data'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
+                    $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
                 }
             }
             return $this->success($result);
