@@ -678,7 +678,7 @@ class RepairService extends BaseService
                 'repair_id' => $p["repair_id"],
                 'content' => !empty($p['content'])?$p['content']:'',
                 'status' => '2',
-                'hard_type' => $model['hard_type'],
+                'hard_type' => !empty($p['hard_type'])?$p['hard_type']:1,
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
@@ -876,6 +876,7 @@ class RepairService extends BaseService
             "hard_check_at" => time(),
         ];
         $p['content'] = $p["hard_remark"] ? $p["hard_remark"] : '';
+        $p['hard_type'] = 2;
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $p["repair_id"]])->execute();
         if ($re) {
 
