@@ -57,7 +57,7 @@ class PsRepairRecord extends BaseModel
     public function rules()
     {
         return [
-            [['repair_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['create','assign-repair']],
+            [['repair_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['create','assign-repair','assign-repair-hard']],
             ['content', 'string', 'max' => '200','message' => '{attribute}最多200个字符!', 'on' => 'create'],
 
             [['community_id'], 'required','message' => '小区id必填!', 'on' => ['add-material']],
@@ -84,7 +84,7 @@ class PsRepairRecord extends BaseModel
             [['group','unit',"building","room"], 'required','message' => '{attribute}必填!', 'on' => ['add-repair2','add-repair3']],
 
             [['group_id'], 'required','message' => '用户组必填!', 'on' => ['get-group-users']],
-            [['user_id'], 'required','message' => '用户必填!', 'on' => ['assign-repair']],
+            [['user_id'], 'required','message' => '用户必填!', 'on' => ['assign-repair','assign-repair-hard']],
             [['finish_time'], 'required','message' => '期望完成時間不能为空!', 'on' => ['assign-repair']],
             ['finish_time', 'compare', 'compareValue' => 0, 'message'=>'期望完成時間只能是正数','operator' => '>','on'=>'assign-repair'],
             ['finish_time', 'integer', 'message' => '期望完成時間只能是正数!', 'on' => 'assign-repair'],

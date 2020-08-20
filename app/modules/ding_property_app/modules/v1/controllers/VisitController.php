@@ -15,6 +15,32 @@ use service\property_basic\JavaOfCService;
 
 class VisitController extends UserBaseController
 {
+    // ----------------------------------     出门单     ----------------------------
+
+    // 出门单详情
+    public function actionShowOut()
+    {
+        $r = VisitService::service()->showOut($this->params, $this->userInfo);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 出门单号验证
+    public function actionCodeOut()
+    {
+        $r = VisitService::service()->codeOut($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 出门单号确认
+    public function actionPassOut()
+    {
+        $r = VisitService::service()->passOut($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // 访客列表
     public function actionList()
     {
@@ -22,6 +48,8 @@ class VisitController extends UserBaseController
         
         return PsCommon::responseSuccess($r);
     }
+    
+    // ----------------------------------     访客通行     ----------------------------
 
     // 访客详情
     public function actionShow()

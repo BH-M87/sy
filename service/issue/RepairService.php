@@ -74,10 +74,11 @@ class RepairService extends BaseService
         '2' => '开始处理',
         '3' => '已完成',
         '6' => '已关闭',
-        '11' => '待付款',
+//        '11' => '待付款',
     ];
 
     public static $_hard_repair_status = ['1' => '待处理', '2' => '待完成', '7' => '待确认', '8' => '已驳回'];
+    public static $_repair_type = ['1' => '一般', '2' => '疑难'];
     public static $_pay_type = ['1' => '线上支付', '2' => '线下支付'];
     //工单已完成状态组 （无法再分配）
     public static $_issue_complete_status = [self::STATUS_DONE,self::STATUS_COMPLETE,self::STATUS_CHECKED,self::STATUS_CANCEL,self::STATUS_CHECKED_FALSE];
@@ -89,7 +90,8 @@ class RepairService extends BaseService
         $comm = [
             'repair_from' => PsCommon::returnKeyValue(self::$_repair_from),
             'repair_status' => PsCommon::returnKeyValue(self::$_repair_status),
-            'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status)
+            'hard_repair_status' => PsCommon::returnKeyValue(self::$_hard_repair_status),
+            'repair_type' => PsCommon::returnKeyValue(self::$_repair_type)
         ];
         return $comm;
     }
@@ -438,7 +440,7 @@ class RepairService extends BaseService
                 $val['contact_mobile'] = PsCommon::hideMobile($val['contact_mobile']);
             }
 
-            $val['hard_type_desc'] = $val['hard_type']==1 ? "否" : '是';
+            $val['hard_type_desc'] = $val['hard_type']==1 ? "一般" : '疑难';
             $val['create_at'] = $val['create_at'] ? date("Y-m-d H:i", $val['create_at']) : '';
             $val['repair_time'] = $val['repair_time'] ? date("Y-m-d H:i", $val['repair_time']) : '';
             $val['hard_check_at'] = $val['hard_check_at'] ? date("Y-m-d H:i", $val['hard_check_at']) : '';
@@ -618,8 +620,10 @@ class RepairService extends BaseService
     // 工单分配
     public function assign($p, $u = [])
     {
-        if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
-            return "期望完成时间只能输入1-24的正整数";
+        if(!empty($p['finish_time'])){
+            if ($p['finish_time'] < 0 || $p['finish_time'] > 24) {
+                return "期望完成时间只能输入1-24的正整数";
+            }
         }
 
         $model = $this->getRepairInfoById($p['repair_id']);
@@ -672,13 +676,14 @@ class RepairService extends BaseService
             // 增加工单操作记录
             $repair_record = [
                 'repair_id' => $p["repair_id"],
-                'content' => '',
-                'repair_imgs' => '',
+                'content' => !empty($p['content'])?$p['content']:'',
                 'status' => '2',
+                'hard_type' => $model['hard_type'],
                 'create_at' => $now_time,
                 'operator_id' => $p["user_id"],
                 'operator_name' => $user['trueName'],
-                'mobile' => $user['mobile']
+                'mobile' => $user['mobile'],
+                'repair_imgs'=> !empty($p['repair_imgs'])?$p['repair_imgs']:'',
             ];
             $connection->createCommand()->insert('ps_repair_record', $repair_record)->execute();
 
@@ -870,21 +875,30 @@ class RepairService extends BaseService
             "hard_remark" => $p["hard_remark"] ? $p["hard_remark"] : '',
             "hard_check_at" => time(),
         ];
+        $p['content'] = $p["hard_remark"] ? $p["hard_remark"] : '';
         $re = Yii::$app->db->createCommand()->update('ps_repair', $updateArr, ["id" => $p["repair_id"]])->execute();
         if ($re) {
-            Yii::$app->db->createCommand()->insert('ps_repair_record', [
-                'repair_id' => $p["repair_id"],
-                'status' => $m['status'],
-                'content' => '标记疑难',
-                'create_at' => time(),
-                'operator_id' => $u["id"],
-                'operator_name' => $u["truename"],
-                'mobile' => $u["mobile"],
-            ])->execute();
-            
-            if (!empty($u['propertyMark'])) { // 添加操作日志
-                self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+
+            $valid = PsCommon::validParamArr(new PsRepairRecord(), $p, 'assign-repair-hard');
+            if (!$valid["status"]) {
+                return PsCommon::responseFailed($valid["errorMsg"]);
             }
+            RepairService::service()->assign($valid['data'], $u);
+
+//            Yii::$app->db->createCommand()->insert('ps_repair_record', [
+//                'repair_id' => $p["repair_id"],
+//                'status' => $m['status'],
+//                'content' => '标记疑难',
+//                'create_at' => time(),
+//                'operator_id' => $u["id"],
+//                'operator_name' => $u["truename"],
+//                'mobile' => $u["mobile"],
+//                'repair_imgs'=> !empty($p['repair_imgs'])?$p['repair_imgs']:'',
+//            ])->execute();
+            
+//            if (!empty($u['propertyMark'])) { // 添加操作日志
+//                self::_logAdd($p['token'], "标记疑难工单，工单号" . $m['repair_no']);
+//            }
 
             return true;
         }
@@ -1104,9 +1118,15 @@ class RepairService extends BaseService
             foreach ($m as $key => $model) {
                 if ($p['use_as'] == "dingding") {
                     $m[$key]['status_label'] = self::$_repair_status[$model['status']];
+                    if($model['hard_type']==2){
+                        $m[$key]['status_label'].=" (疑难)";
+                    }
                 } else {
                     $m[$key]["status_name"] = self::getStatusName($model['status']);
                     $m[$key]['status_desc'] = isset(self::$_repair_status[$model['status']]) ? self::$_repair_status[$model['status']] : '';
+                    if($model['hard_type']==2){
+                        $m[$key]['status_desc'].=" (疑难)";
+                    }
                 }
                 $m[$key]["create_at"] = date("Y年m月d日 H:i", $model["create_at"]);
                 $m[$key]["repair_imgs"] = $model['repair_imgs'] ? explode(',', $model['repair_imgs']) : [];
@@ -1273,6 +1293,11 @@ class RepairService extends BaseService
             //->leftJoin('ps_repair_type prt', 'pr.repair_type_id = prt.id')
             ->leftJoin('ps_repair_assign pra', 'pra.repair_id = pr.id');
 
+        if ($p['status'] == 99) { // 疑难
+            $p['status'] = '';
+            $p['hard_type'] = 2;
+        } 
+
         if ($p['top_status'] == 1) { // 我报修 我提交的报事报修工单
             $query->andWhere(['pr.created_id' => $userInfo['id']]);
         } else if ($p['top_status'] == 3) { // 我处理 我处理过的全部工单
@@ -1295,6 +1320,7 @@ class RepairService extends BaseService
         
         $query->andFilterWhere(['pr.status' => $p['status']])
             ->andFilterWhere(['=', 'pr.community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'pr.hard_type', $p['hard_type']])
             ->andFilterWhere(['like', 'pr.repair_content', $p['content']])
             ->andFilterWhere(['or', 
                 ['and', 
@@ -1371,11 +1397,18 @@ class RepairService extends BaseService
                 'key' => 'markInvalid',
                 'status' => ["1","2","8"],
             ],
+            'gov-sy-repair-hard' => [
+                'name' => '标记疑难',
+                'img' => '../../../images/repairDetails_icon4.png',
+                'url' => '/pages/myDetails/makeDifficult/makeDifficult',
+                'key' => '2',
+                'status' => ["1","2","8"],
+            ],
         ];
 
         // 钉钉报事报修权限
         $repair_role = [
-            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel'
+            'gov-sy-repair-assign','gov-sy-repair-markSuccess', 'gov-sy-repair-addRecord', 'gov-sy-repair-cancel', 'gov-sy-repair-hard'
         ];
         /**
          * 2020-4-13 陈科浪注释；暂时不查权限
