@@ -18,7 +18,10 @@ use app\models\PsRoomVisitor;
 use app\models\PsOutOrder;
 
 class VisitService extends BaseService
-{
+{ 
+    public static $outStatus = ['1' => '待确认', '2' => '已确认', '3' => '已放行', '4' => '已作废'];
+    public static $outMemberType = ['1' => '业主', '2' => '家人', '3' => '租客'];
+
     // ----------------------------------     出门单     ----------------------------
 
     // 访客 列表
@@ -41,9 +44,11 @@ class VisitService extends BaseService
             foreach ($list as $k => &$v) {
                 $v['release_at'] = !empty($v['release_at']) ? date('Y-m-d H:i', $v['release_at']) : '';
                 $v['application_at'] = !empty($v['application_at']) ? date('Y-m-d H:i', $v['application_at']) : '';
-                $v['statusMsg'] = '';
-                $v['member_type_msg'] = '';
-                $v['community_name'] = '';
+                $v['statusMsg'] = self::$outStatus[$v['status']];
+                $v['member_type_msg'] = self::$outMemberType[$v['member_type']];
+                // 小区名称调Java
+                $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $v['community_id']]);
+                $v['community_name'] = $community['communityName'];
             }
         }
 
@@ -76,10 +81,11 @@ class VisitService extends BaseService
     {
         $r = PsOutOrder::find()->where(['id' => $p['id']])->asArray()->one();
         if (!empty($r)) {
-            $r['community_name'] = '';
-            $r['roomNo'] = '';
-            $r['member_type_msg'] = '';
-            $r['statusMsg'] = '';
+            $r['statusMsg'] = self::$outStatus[$r['status']];
+            $r['member_type_msg'] = self::$outMemberType[$r['member_type']];
+            // 小区名称调Java
+            $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $r['community_id']]);
+            $r['community_name'] = $community['communityName'];
             $r['release_at'] = !empty($r['release_at']) ? date('Y-m-d H:i', $r['release_at']) : '';
             $r['application_at'] = !empty($r['application_at']) ? date('Y-m-d H:i', $r['application_at']) : '';
             $r['content_img'] = !empty($r['content_img']) ? explode(',', $r['content_img']) : '';
