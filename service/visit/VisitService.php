@@ -184,6 +184,10 @@ class VisitService extends BaseService
         $application_start = strtotime(date('Y-m-d', time()));
         $application_end = strtotime(date('Y-m-d', time()) . '23:59:59');
 
+        if (empty($p['code'])) {
+            throw new MyException('出门单号不能为空!');
+        }
+
         $r = PsOutOrder::find()->select('id')
             ->where(['code' => $p['code'], 'community_id' => $p['community_id']])
             ->andWhere(['>=', 'application_at', $application_start])
@@ -193,7 +197,7 @@ class VisitService extends BaseService
             return $r;
         }
 
-        throw new MyException('出发单号不存在!');
+        throw new MyException('出门单号不存在!');
     }
 
     // ----------------------------------     访客通行     ----------------------------
