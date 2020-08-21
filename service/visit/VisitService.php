@@ -180,12 +180,19 @@ class VisitService extends BaseService
     // 出门单 密码验证
     public function codeOut($p)
     {
-        $r = PsOutOrder::find()->select('id')->where(['code' => $p['code'], 'community_id' => $p['community_id']])->asArray()->one();
+        $application_start = strtotime(date('Y-m-d', time()));
+        $application_end = strtotime(date('Y-m-d', time()) . '23:59:59');
+
+        $r = PsOutOrder::find()->select('id')
+            ->where(['code' => $p['code'], 'community_id' => $p['community_id']])
+            ->andWhere(['>=', 'application_at', $application_start])
+            ->andWhere(['<=', 'application_at', $application_end])
+            ->asArray()->one();
         if (!empty($r)) {
             return $r;
         }
 
-        throw new MyException('验证失败，出发单号不存在!');
+        throw new MyException('出发单号不存在!');
     }
 
     // ----------------------------------     访客通行     ----------------------------
