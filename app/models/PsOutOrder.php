@@ -35,11 +35,13 @@ class PsOutOrder extends BaseModel
             [['community_name'], 'string', "max" => 50],
             [['ali_form_id','ali_user_id'], 'string', "max" => 100],
             [['room_address', 'application_id'], 'string', "max" => 255],
+            [['content'], 'string', "max" => 200],
             [['application_mobile'],'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机号码格式有误'],
             ['status', 'in', 'range' => [1, 2, 3, 4], 'on' => ['add', 'edit']],
             [['id'], 'dataInfo', 'on' => ["edit", "detail"]], //活动是否存在
             [['application_at'], 'timeVerification', 'on' => ["add"]], //申请时间验证
             [['application_id','room_id'], 'addVerification', 'on' => ["add"]], //新增验证
+            [['content_img'], 'imgVerification', 'on' => ["add"]], //图片验证
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
     }
@@ -133,6 +135,18 @@ class PsOutOrder extends BaseModel
             $nowTime = time();
             if(date('Y-m-d',$this->application_at)<date('Y-m-d',$nowTime)){
                 return $this->addError($attribute, "申请日期应大于当前日期");
+            }
+        }
+    }
+
+    /*
+     * 图片验证
+     */
+    public function imgVerification($attribute){
+        if(!empty($this->content_img)){
+            $imgArr = explode(',',$this->content_img);
+            if(count($imgArr)>5){
+                return $this->addError($attribute, "最多上传5张图片");
             }
         }
     }
