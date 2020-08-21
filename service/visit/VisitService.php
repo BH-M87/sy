@@ -127,12 +127,46 @@ class VisitService extends BaseService
     // 作废/确认
     public function statusOut($p)
     {
-        $r = PsOutOrder::find()->where(['id' => $p['id']])->asArray()->one();
+        $id = $p['id'];
+        $r = PsOutOrder::find()->where(['id' => $id])->asArray()->one();
         if (!empty($r)) {
-            if ($p['status'] == 2) {
-                PsOutOrder::updateAll(['check_at' => time(), 'status' => 2, 'check_id' => $p['create_id'], 'check_name' => $p['create_name']], ['id' => $p['id']]);
+            if ($p['status'] == 2) { // 确认生成二维码和出门单号
+                if ($r['status'] == 2) {
+                    throw new MyException('出门单已确认，不要重复操作');
+                }
+
+                $savePath = F::imagePath('visit');
+                $logo = Yii::$app->basePath . '/web/img/lyllogo.png'; // 二维码中间的logo
+                $url = Yii::$app->getModule('property')->params['ding_web_host'] . '#/scanList?type=outOrder&id=' . $id;
+
+                $imgUrl = QrcodeService::service()->generateCommCodeImage($savePath, $url, $id, $logo); // 生成二维码图片
+        
+                PsOutOrder::updateAll([
+                    'check_at' => time(), 
+                    'status' => 2, 
+                    'check_id' => $p['create_id'], 
+                    'check_name' => $p['create_name'],
+                    'qr_url' => $imgUrl,
+                    'code' => rand(100,999).rand(100,999),
+                ], ['id' => $id]);
+
+                $data['keyword1'] = ['value'=>'审核状态:'];
+                $data['keyword2'] = ['value'=>'标题:'];
+                $data['keyword3'] = ['value'=>'温馨提示:'];
+                $data['keyword4'] = ['value'=>'申请人:'.$r['application_name']];
+                $params['to_user_id'] = $r['ali_user_id'];
+                $params['form_id'] = $r['ali_form_id'];
+                $params['page'] = '1';
+                $params['data'] = json_encode($data);
+
+                $service = new AlipaysTemplateService();
+                $result = $service->sendMessage($params);
             } else if ($p['status'] == 4) {
-                PsOutOrder::updateAll(['status' => 4], ['id' => $p['id']]);
+                if ($r['status'] == 4) {
+                    throw new MyException('出门单已作废，不要重复操作');
+                }
+
+                PsOutOrder::updateAll(['status' => 4], ['id' => $id]);
             } else {
                 throw new MyException('状态错误!');
             }
