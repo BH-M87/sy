@@ -89,4 +89,19 @@ class OutOrderService extends BaseService{
             return $this->failed($msg);
         }
     }
+
+    //模板消息测试
+    public function templateSend($params,$data){
+        $data['keyword1'] = ['value'=>'审核状态'];
+        $data['keyword2'] = ['value'=>'标题'];
+        $data['keyword3'] = ['value'=>'温馨提示'];
+        $data['keyword4'] = ['value'=>'申请人'];
+        $params['to_user_id'] = '';
+        $params['form_id'] = '';
+        $params['page'] = '';
+        $params['data'] = json_encode($data);
+        print_r($params);die;
+        $service = new AlipaysTemplateService();
+        $result = $service->sendMessage($params);
+    }
 }

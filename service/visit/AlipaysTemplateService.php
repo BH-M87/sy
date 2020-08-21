@@ -52,6 +52,10 @@ class AlipaysTemplateService extends BaseService{
             return $alipayLifeService;
         }
         $result = $alipayLifeService->smallPushMsg($params);
-        return $result;
+        if ($result['code'] = '10000') {
+            return true;
+        } else {
+            return "";
+        }
     }
 }
