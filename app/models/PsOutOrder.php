@@ -137,7 +137,7 @@ class PsOutOrder extends BaseModel
 
     //出门单列表c端
     public function listOfC($params){
-        $fields = ['id','status','code','qr_url','application_at','create_at'];
+        $fields = ['id','status','code','qr_url','application_at','create_at','room_address'];
         $model = self::find()->select($fields)->where(['=','application_id',$params['application_id']]);
         if(!empty($params['community_id'])){
             $model->andWhere(['=','community_id',$params['community_id']]);
