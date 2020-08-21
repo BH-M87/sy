@@ -86,8 +86,9 @@ class VisitService extends BaseService
             // 小区名称调Java
             $community = JavaService::service()->communityDetail(['token' => $p['token'], 'id' => $r['community_id']]);
             $r['community_name'] = $community['communityName'];
-            $r['release_at'] = !empty($r['release_at']) ? date('Y-m-d H:i', $r['release_at']) : '';
-            $r['application_at'] = !empty($r['application_at']) ? date('Y-m-d H:i', $r['application_at']) : '';
+            $r['release_at'] = !empty($r['release_at']) ? date('Y-m-d', $r['release_at']) : '';
+            $r['application_at'] = !empty($r['application_at']) ? date('Y-m-d', $r['application_at']) : '';
+            $r['create_at'] = !empty($r['create_at']) ? date('Y-m-d', $r['create_at']) : '';
             $r['content_img'] = !empty($r['content_img']) ? explode(',', $r['content_img']) : '';
 
             return $r;
