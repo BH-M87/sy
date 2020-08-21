@@ -57,6 +57,12 @@ $data['park_aes_secret'] = '1eFxQLfz/EUhcFiS3Ws0/A==';
 $data['park_alipay_public_key_file'] = $basePath."/common/rsa_files/park/alipay_public.txt";
 $data['park_rsa_private_key_file'] = $basePath."/common/rsa_files/park/rsa_private.txt";
 
+//物品登记小程序配置
+$data['out_app_id'] = '2021001188670456';
+$data['out_aes_secret'] = '1eFxQLfz/EUhcFiS3Ws0/A==';
+$data['out_alipay_public_key_file'] = $basePath."/common/rsa_files/outOrder/alipay_public.txt";
+$data['out_rsa_private_key_file'] = $basePath."/common/rsa_files/outOrder/rsa_private.txt";
+
 //oss文件上传配置
 $data['oss_access_key_id'] = 'LTAIG9QWK20XYpp1';
 $data['oss_secret_key_id'] = 'yWQNFSfw2Yxo3AeKiHYAlS5UH6MOOF';
