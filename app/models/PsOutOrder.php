@@ -39,6 +39,7 @@ class PsOutOrder extends BaseModel
             ['status', 'in', 'range' => [1, 2, 3, 4], 'on' => ['add', 'edit']],
             [['id'], 'dataInfo', 'on' => ["edit", "detail"]], //活动是否存在
             [['application_at'], 'timeVerification', 'on' => ["add"]], //申请时间验证
+            [['application_id','room_id'], 'addVerification', 'on' => ["add"]], //新增验证
             [["create_at", 'update_at'], "default", 'value' => time(), 'on' => ['add']],
         ];
     }
@@ -105,6 +106,21 @@ class PsOutOrder extends BaseModel
             $res = self::find()->select(['id'])->where(['=','id',$this->id])->asArray()->one();
             if(empty($res)){
                 return $this->addError($attribute, "该出门单不存在");
+            }
+        }
+    }
+
+    /*
+     * 新增验证
+     */
+    public function addVerification($attribute){
+        if(!empty($this->application_id)&&!empty($this->room_id)){
+            $res = self::find()->select(['id'])->where(['=','application_id',$this->application_id])
+                                    ->andWhere(['=','room_id',$this->room_id])
+                                    ->andWhere(['in','status',[1,2]])
+                                    ->asArray()->one();
+            if(!empty($res)){
+                return $this->addError($attribute, "您已有出门单存在，不能新增");
             }
         }
     }
