@@ -60,6 +60,8 @@ class OutOrderController extends BaseController {
     //出门单列表
     public function actionOrderList(){
         try{
+            $this->params['page'] = $this->page;
+            $this->params['pageSize'] = $this->rows;
             $result = OutOrderService::service()->orderListOfC($this->params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
