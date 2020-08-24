@@ -22,14 +22,14 @@ class OutOrderService extends BaseService{
         $recordsParams['room_id'] = !empty($params['room_id'])?$params['room_id']:'';
         $recordsParams['application_name'] = !empty($params['application_name'])?$params['application_name']:'';
         $recordsParams['application_mobile'] = !empty($params['application_mobile'])?$params['application_mobile']:'';
-        $recordsParams['member_type'] = !empty($params['member_type'])?$params['member_type']:'1';
+        $recordsParams['member_type'] = !empty($params['member_type'])?$params['member_type']:'';
         $recordsParams['room_address'] = !empty($params['room_address'])?$params['room_address']:'';
         $recordsParams['application_id'] = !empty($params['application_id'])?$params['application_id']:''; //会员member
         $recordsParams['application_at'] = !empty($params['application_at'])?strtotime($params['application_at']." 23:59:59"):'';
         $recordsParams['content'] = !empty($params['content'])?$params['content']:'';
         $recordsParams['car_number'] = !empty($params['car_number'])?$params['car_number']:'';
         $recordsParams['content_img'] = !empty($params['content_img'])?$params['content_img']:'';
-        $recordsParams['ali_form_id'] = !empty($params['ali_form_id'])?$params['ali_form_id']:'456';
+        $recordsParams['ali_form_id'] = !empty($params['ali_form_id'])?$params['ali_form_id']:'';
         $recordsParams['ali_user_id'] = !empty($params['ali_user_id'])?$params['ali_user_id']:'';
         $model = new PsOutOrder(['scenario'=>'add']);
         if($model->load($recordsParams,'')&&$model->validate()) {
