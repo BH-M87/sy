@@ -94,7 +94,7 @@ class StewardService extends BaseService
         $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex')->distinct()
             ->filterWhere(['or', ['like', 'name', $params['name'] ?? null], ['like', 'mobile', $params['name'] ?? null]])
             ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')
-            ->filterWhere(['data_id' => $params['building_id'] ?? []])->andWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+            ->filterWhere(['building_id' => $params['building_id'] ?? []])->andWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
         $count = $stewatd->count();
         if ($count > 0) {
             $list = $stewatd->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
@@ -108,10 +108,9 @@ class StewardService extends BaseService
     public function getGroupBuildingInfo(&$data, $building_id = null)
     {
         foreach ($data as $k => &$v) {
-            $building = PsSteWardRelat::find()->alias('s')->select('b.name,b.id,b.group_name,b.group_id')
-                ->innerJoin(['b' => PsCommunityBuilding::tableName()], 'b.id = s.data_id')
-                ->where(['s.steward_id' => $v['id'], 's.data_type' => 1])
-                ->filterWhere(['data_id' => $building_id])->asArray()->all();
+            $building = PsSteWardRelat::find()->select(['group_id','group_name','building_name','building_id',"concat(group_name,'',building_name) as merge_name"])
+                ->where(['steward_id' => $v['id']])
+                ->filterWhere(['building_id' => $building_id])->asArray()->all();
             $v['building_info'] = $building;
             $v['sex_desc'] = PsSteWard::$sex_info[$v['sex']];
             $v['praise_rate'] = $this->getPraiseRate($v['evaluate'], $v['praise']);
