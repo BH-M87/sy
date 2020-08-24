@@ -62,7 +62,7 @@ class PsSteWard extends BaseModel
      */
     public function infoData($attribute){
         if(!empty($this->id)&&!empty($this->community_id)){
-            $res = self::find()->where(['id'=>$this->id,'community_id'=>$this->community_id])->asArray()->one();
+            $res = self::find()->where(['id'=>$this->id,'community_id'=>$this->community_id,'is_del'=>1])->asArray()->one();
             if(empty($res)){
                 $this->addError($attribute, "该管家不存在!");
             }
