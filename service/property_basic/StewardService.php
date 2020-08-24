@@ -148,10 +148,12 @@ class StewardService extends BaseService
         
         try {
             $steward->save();
-            foreach ($params['building_id'] as $v) {
-                $info[] = [$steward->id, 1, $v];
+            foreach ($params['groups'] as $key=>$value) {
+                foreach($value['buildings'] as $k=>$v){
+                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+                }
             }
-            $steward_relat->yiiBatchInsert(['steward_id', 'data_type', 'data_id'], $info);
+            $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
                 "community_id" =>$params['community_id'],
                 "operate_menu" => "管家管理",
@@ -280,24 +282,29 @@ class StewardService extends BaseService
     // 楼幢信息检查
     public function checkBuilding($params)
     {
-        if (empty($params['building_id']) || !is_array($params['building_id'])) {
-            throw new MyException('楼幢ID格式错误');
+        if (empty($params['groups']) || !is_array($params['groups'])) {
+            throw new MyException('苑期区格式错误');
         }
-        foreach ($params['building_id'] as $v) {
-            $building = PsCommunityBuilding::find()->where(['community_id' => $params['community_id'],'id' => $v])->limit(1)->one();
-            if (empty($building)) {
-                throw new MyException('楼幢非法ID');
-            } else {
-                $steward = PsSteWard::find()->alias('s')->select('s.id')
-                    ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.data_type' => 1,'r.data_id' => $v])->limit(1)->one();
-                if (!empty($steward)) {
-                    if (isset($params['id'])) { //新增场景
-                        if ($steward->id != $params['id']) {
-                            throw new MyException($building->group_name.$building->name.'已存在管家');
+//        $javaService = new JavaService();
+        foreach ($params['groups'] as $key=>$value) {
+            foreach($value['buildings'] as $k=>$v){
+//                $javaParams['token'] = $params['token'];
+//                $javaParams['id'] = $v;
+//                $building = $javaService->buildingDetail($javaParams);
+//                if (empty($building)) {
+//                    throw new MyException('楼幢非法ID');
+//                } else {
+                    $steward = PsSteWard::find()->alias('s')->select('s.id')
+                        ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.group_id' => $value['group_id'],'r.building_id' => $v['building_id']])->limit(1)->one();
+                    if (!empty($steward)) {
+                        if (isset($params['id'])) { //新增场景
+                            if ($steward->id != $params['id']) {
+                                throw new MyException($value['group_name'].$v['building_name'].'已存在管家');
+                            }
+                        } else { //编辑场景
+                            throw new MyException($value['group_name'].$v['building_name'].'已存在管家');
                         }
-                    } else { //编辑场景
-                        throw new MyException($building->group_name.$building->name.'已存在管家');
-                    }
+//                    }
                 }
             }
         }

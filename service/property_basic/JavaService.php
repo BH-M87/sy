@@ -316,4 +316,10 @@ class JavaService extends BaseService
         $query['route'] = '/sy/board/statistics/corpBoard';
         return self::returnCData($query);
     }
+
+    // 楼幢详情
+    public function buildingDetail($query){
+        $query['route'] = '/building/detail';
+        return self::returnCData($query);
+    }
 }
