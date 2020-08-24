@@ -42,8 +42,8 @@ class VisitService extends BaseService
 
         if (!empty($list)) {
             foreach ($list as $k => &$v) {
-                $v['release_at'] = !empty($v['release_at']) ? date('Y-m-d H:i', $v['release_at']) : '';
-                $v['application_at'] = !empty($v['application_at']) ? date('Y-m-d H:i', $v['application_at']) : '';
+                $v['release_at'] = !empty($v['release_at']) ? date('Y-m-d', $v['release_at']) : '';
+                $v['application_at'] = !empty($v['application_at']) ? date('Y-m-d', $v['application_at']) : '';
                 $v['statusMsg'] = self::$outStatus[$v['status']];
                 $v['member_type_msg'] = self::$outMemberType[$v['member_type']];
                 // 小区名称调Java
@@ -130,10 +130,15 @@ class VisitService extends BaseService
     {
         $id = $p['id'];
         $r = PsOutOrder::find()->where(['id' => $id])->asArray()->one();
+
         if (!empty($r)) {
             if ($p['status'] == 2) { // 确认生成二维码和出门单号
                 if ($r['status'] == 2) {
                     throw new MyException('出门单已确认，不要重复操作');
+                }
+
+                if ($r['status'] == 4) {
+                    throw new MyException('出门单已作废');
                 }
 
                 $savePath = F::imagePath('visit');
