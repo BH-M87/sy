@@ -97,7 +97,11 @@ class StewardService extends BaseService
         }
         $count = $stewatd->count();
         if ($count > 0) {
-            $list = $stewatd->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
+            $allPage = ceil($count/$pageSize);
+            $page1 = $allPage>$page?$page:$allPage;
+//            $offset = ($page-1)*$pageSize;
+            $offset = ($page1-1)*$pageSize;
+            $list = $stewatd->orderBy('id desc')->offset($offset)->limit($pageSize)->asArray()->all();
             $this->getGroupBuildingInfo($list, []);
         }
 
