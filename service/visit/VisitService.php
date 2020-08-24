@@ -234,11 +234,8 @@ class VisitService extends BaseService
             ->andWhere(['>=', 'application_at', $application_start])
             ->andWhere(['<=', 'application_at', $application_end])
             ->asArray()->one();
-        if (!empty($r)) {
-            return $r;
-        }
-
-        throw new MyException('出门单号不存在!');
+        
+        return $r;
     }
 
     // ----------------------------------     访客通行     ----------------------------
