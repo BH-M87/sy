@@ -90,6 +90,21 @@ class VisitService extends BaseService
             $r['application_at'] = !empty($r['application_at']) ? date('Y-m-d', $r['application_at']) : '';
             $r['create_at'] = !empty($r['create_at']) ? date('Y-m-d', $r['create_at']) : '';
             $r['content_img'] = !empty($r['content_img']) ? explode(',', $r['content_img']) : '';
+            
+            $params["token"] = $p['token'];
+            $params["memberType"] = 1;
+            $params["roomId"] = $r['room_id'];
+            $resident = JavaService::service()->residentList($params)['list'];
+
+            $name = $mobile = "";
+            if(!empty($resident)){
+                foreach($resident as $v){
+                    $name .= $v['name'].",";
+                    $mobile .= $v['mobile'].",";
+                }
+                $r['name'] = mb_substr($name, 0, -1);
+                $r['mobile'] = mb_substr($mobile, 0, -1);
+            }
 
             return $r;
         }
