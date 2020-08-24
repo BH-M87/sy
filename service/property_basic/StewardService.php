@@ -20,9 +20,9 @@ class StewardService extends BaseService
     // 参数验证
     public function _checkBackendList($params)
     {
-        if (empty($params['community_id'])) {
-            throw new MyException('小区ID不能为空');
-        }
+//        if (empty($params['community_id'])) {
+//            throw new MyException('小区ID不能为空');
+//        }
 
         if (!empty($params['building_id'])) {
             if (is_array($params['building_id'])) {
@@ -95,6 +95,9 @@ class StewardService extends BaseService
             ->filterWhere(['or', ['like', 'name', $params['name'] ?? null], ['like', 'mobile', $params['name'] ?? null]])
             ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')
             ->filterWhere(['building_id' => $params['building_id'] ?? []])->andWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+        if(!empty($params['communityList'])){
+            $stewatd->andWhere(['in','s.community_id',$params['communityList']]);
+        }
         $count = $stewatd->count();
         if ($count > 0) {
             $list = $stewatd->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
