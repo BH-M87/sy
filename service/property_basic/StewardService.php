@@ -67,21 +67,18 @@ class StewardService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $stewardEvaluate = PsSteWardEvaluate::find()->alias('s')->select('s.*,r.group,r.building,r.unit,r.room,r.address')
-            ->innerJoin(['r' => PsCommunityRoominfo::tableName()], 's.room_id = r.id')
+        $stewardEvaluate = PsSteWardEvaluate::find()->select()
             ->where(['steward_id' => $p['id']])
-            ->andFilterWhere(['=', 's.community_id', $p['community_id']])
-            ->andFilterWhere(['=', 's.steward_type', $p['steward_type']]);
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'steward_type', $p['steward_type']]);
 
         $totals = $stewardEvaluate->count();
         $list = $stewardEvaluate->orderBy('create_at desc')
             ->offset(($page - 1) * $rows)
             ->limit($rows)
-            ->asArray()->all();;
+            ->asArray()->all();
         foreach ($list as &$v){
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
-            $v['user_mobile'] = F::processMobile(PsMember::userinfo($v['user_id'])['mobile']);
-            $v['user_name'] = PsMember::userinfo($v['user_id'])['name'];
         }
 
         return ['list' => $list, 'totals' => $totals];
@@ -91,10 +88,10 @@ class StewardService extends BaseService
     public function getBackendStewardList($params, $pageSize, $page)
     {
         $this->_checkBackendList($params);
-        $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex')->distinct()
+        $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex,s.community_id,s.community_name')->distinct()
             ->filterWhere(['or', ['like', 'name', $params['name'] ?? null], ['like', 'mobile', $params['name'] ?? null]])
             ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')
-            ->filterWhere(['building_id' => $params['building_id'] ?? []])->andWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+            ->filterWhere(['building_id' => $params['building_id'] ?? []])->filterWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
         if(!empty($params['communityList'])){
             $stewatd->andWhere(['in','s.community_id',$params['communityList']]);
         }
