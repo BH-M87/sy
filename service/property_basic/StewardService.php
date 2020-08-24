@@ -176,17 +176,18 @@ class StewardService extends BaseService
         $steward = $this->checkSteward($params);
         $trans = \Yii::$app->getDb()->beginTransaction();
         $info = null;
-        
         try {
             $steward->name = $params['name'];
             $steward->mobile = $params['mobile'];
             $steward->sex = $params['sex'];
             $steward->save();
-            foreach ($params['building_id'] as $v) {
-                $info[] = [$steward->id, 1, $v];
+            foreach ($params['groups'] as $key=>$value) {
+                foreach($value['buildings'] as $k=>$v){
+                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+                }
             }
-            PsSteWardRelat::deleteAll(['data_type'=>1,'steward_id' => $steward->id]);
-            $steward_relat->yiiBatchInsert(['steward_id', 'data_type', 'data_id'], $info);
+            PsSteWardRelat::deleteAll(['steward_id' => $steward->id]);
+            $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
                 "community_id" =>$params['community_id'],
                 "operate_menu" => "管家管理",

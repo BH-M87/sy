@@ -25,6 +25,7 @@ class PsSteWard extends BaseModel
             [['community_id','community_name'],'string','max'=>30],
             [['name'],'string','max'=>10],
             [['mobile'], 'match', 'pattern'=>self::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
+            [['community_id','id'],'infoData','on'=>['delete','edit','detail']],
         ];
     }
 
@@ -54,5 +55,17 @@ class PsSteWard extends BaseModel
                 'value' => time()
             ],
         ];
+    }
+
+    /*
+     * 验证数据是否存在
+     */
+    public function infoData($attribute){
+        if(!empty($this->id)&&!empty($this->community_id)){
+            $res = self::find()->where(['id'=>$this->id,'community_id'=>$this->community_id])->asArray()->one();
+            if(empty($res)){
+                $this->addError($attribute, "该管家不存在!");
+            }
+        }
     }
 }
