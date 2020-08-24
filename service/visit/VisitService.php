@@ -105,11 +105,32 @@ class VisitService extends BaseService
                 $r['name'] = mb_substr($name, 0, -1);
                 $r['mobile'] = mb_substr($mobile, 0, -1);
             }
-
-            return $r;
         }
 
-        throw new MyException('数据不存在!');
+        return $r;
+    }
+
+    // 出门单详情 钉钉详情
+    public function showOutDing($p)
+    {
+        $application_start = strtotime(date('Y-m-d', time()));
+        $application_end = strtotime(date('Y-m-d', time()) . '23:59:59');
+
+        $r = PsOutOrder::find()->where(['id' => $p['id']])
+            ->andWhere(['in', 'status', [2,3]])
+            ->andWhere(['>=', 'application_at', $application_start])
+            ->andWhere(['<=', 'application_at', $application_end])
+            ->asArray()->one();
+        if (!empty($r)) {
+            $r['statusMsg'] = self::$outStatus[$r['status']];
+            $r['member_type_msg'] = self::$outMemberType[$r['member_type']];
+            $r['release_at'] = !empty($r['release_at']) ? date('Y-m-d', $r['release_at']) : '';
+            $r['application_at'] = !empty($r['application_at']) ? date('Y-m-d', $r['application_at']) : '';
+            $r['create_at'] = !empty($r['create_at']) ? date('Y-m-d', $r['create_at']) : '';
+            $r['content_img'] = !empty($r['content_img']) ? explode(',', $r['content_img']) : '';
+        }
+
+        return $r;
     }
 
     // 确认放行
@@ -171,10 +192,10 @@ class VisitService extends BaseService
                     'code' => rand(100,999).rand(100,999),
                 ], ['id' => $id]);
 
-                $data['keyword1'] = ['value'=>'审核状态:'];
-                $data['keyword2'] = ['value'=>'标题:'];
-                $data['keyword3'] = ['value'=>'温馨提示:'];
-                $data['keyword4'] = ['value'=>'申请人:'.$r['application_name']];
+                $data['keyword1'] = ['value'=>''];
+                $data['keyword2'] = ['value'=>''];
+                $data['keyword3'] = ['value'=>''];
+                $data['keyword4'] = ['value'=>$r['application_name']];
                 $params['to_user_id'] = $r['ali_user_id'];
                 $params['form_id'] = $r['ali_form_id'];
                 $params['page'] = '1';

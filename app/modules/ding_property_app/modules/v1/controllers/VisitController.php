@@ -20,7 +20,7 @@ class VisitController extends UserBaseController
     // 出门单详情
     public function actionShowOut()
     {
-        $r = VisitService::service()->showOut($this->params, $this->userInfo);
+        $r = VisitService::service()->showOutDing($this->params, $this->userInfo);
         
         return PsCommon::responseSuccess($r);
     }
