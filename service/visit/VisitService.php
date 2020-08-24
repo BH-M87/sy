@@ -192,9 +192,6 @@ class VisitService extends BaseService
                     'code' => rand(100,999).rand(100,999),
                 ], ['id' => $id]);
 
-                $data['keyword1'] = ['value'=>''];
-                $data['keyword2'] = ['value'=>''];
-                $data['keyword3'] = ['value'=>''];
                 $data['keyword4'] = ['value'=>$r['application_name']];
                 $params['to_user_id'] = $r['ali_user_id'];
                 $params['form_id'] = $r['ali_form_id'];
