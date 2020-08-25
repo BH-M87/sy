@@ -200,6 +200,10 @@ class VisitService extends BaseService
                     throw new MyException('出门单已作废，不要重复操作');
                 }
 
+                if ($r['status'] == 3) {
+                    throw new MyException('已放行，不能作废');
+                }
+
                 $data['keyword1'] = ['value'=>'已作废'];
                 $data['keyword2'] = ['value'=>'出门单申请'];
                 $data['keyword3'] = ['value'=>'出门单已作废'];
