@@ -6,7 +6,7 @@ use app\modules\property\controllers\BaseController;
 
 use common\core\PsCommon;
 
-use app\models\PsCommunityRoominfo;
+use app\models\PsCommunityComment;
 
 use service\basic_data\JavaService;
 use service\small\CommunityService as SmallCommunityService;
@@ -15,6 +15,58 @@ use service\manage\CommunityService;
 class CommunityController extends BaseController
 {
     public $communityNoCheck = ['change'];
+
+    // 社区评价详情
+    public function actionCommentShow()
+    {
+        $result = SmallCommunityService::service()->commentList($this->request_params);
+
+        $arr = [];
+        if (!empty($result)) {
+            foreach ($result as $k => $v) {
+                $arr[$k]['community_name'] =  $v['community_name'];
+                $arr[$k]['room'] =  $v['fullName'];
+                $arr[$k]['name'] =  $v['name'];
+                $arr[$k]['mobile'] =  $v['mobile'];
+                $arr[$k]['year_month'] = date('Y年m月', $v['created_at']);
+                $arr[$k]['score'] = $v['score'];
+                $arr[$k]['create_at'] = date('Y-m-d H:i', $v['created_at']);
+                $arr[$k]['content'] = $v['content'];
+                $arr[$k]['id'] = $v['id'];
+            }
+        }
+
+        $total = SmallCommunityService::service()->commentTotal($this->request_params);
+
+        return PsCommon::responseSuccess(['total' => $total, 'list' => $arr]);
+    }
+
+    // 社区评价列表
+    public function actionCommentList()
+    {
+        $p = $this->request_params;
+        $page = !empty($p['page']) ? $p['page'] : 1;
+        $rows = !empty($p['rows']) ? $p['rows'] : 10;
+
+        $model = PsCommunityComment::find()
+            ->filterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $p['comment_year']])
+            ->andFilterWhere(['=', 'comment_month', $p['comment_month']])
+            ->andFilterWhere(['in', 'community_id', $p['communityList']]);
+        $total = $model->count();
+
+        $model = $model->orderBy('id desc')->offset(($page - 1) * $rows)->limit($rows)->asArray()->all();   
+
+        if (!empty($model)) {
+            foreach ($model as $k => &$v) {
+                $v['year_month'] = $v['comment_year'].'年'.$v['comment_month'].'月';
+            }
+        }
+
+        $total = SmallCommunityService::service()->commentTotal($this->request_params);
+
+        return PsCommon::responseSuccess(['total' => $total, 'list' => $model]);
+    }
 
     public function actionGuideImage()
     {
@@ -37,34 +89,6 @@ class CommunityController extends BaseController
         $result = CommunityService::service()->getUserCommunitys($this->userId);
 
         return PsCommon::responseSuccess($result);
-    }
-
-    // 社区评价列表
-    public function actionCommentList()
-    {
-        $result = SmallCommunityService::service()->commentList($this->request_params);
-
-        $arr = [];
-        if (!empty($result)) {
-            foreach ($result as $k => $v) {
-                $room = PsCommunityRoominfo::find()->alias('A')->select('B.name, A.address')
-                    ->leftJoin('ps_community B', 'B.id = A.community_id')
-                    ->where(['A.id' => $v['room_id']])->asArray()->one();
-
-                $arr[$k]['name'] =  $v['name'];
-                $arr[$k]['mobile'] =  $v['mobile'];
-                $arr[$k]['room_info'] = $room['name'].$room['address'];
-                $arr[$k]['month'] = date('Y年m月', $v['created_at']);
-                $arr[$k]['score'] = $v['score'];
-                $arr[$k]['create_at'] = date('Y-m-d H:i:s', $v['created_at']);
-                $arr[$k]['content'] = $v['content'];
-                $arr[$k]['id'] = $v['id'];
-            }
-        }
-
-        $total = SmallCommunityService::service()->commentTotal($this->request_params);
-
-        return PsCommon::responseSuccess(['total' => $total, 'list' => $arr]);
     }
 
     // 小区话题列表
