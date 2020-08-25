@@ -1,6 +1,7 @@
 <?php
 namespace service\property_basic;
 
+use app\models\PsSteWardTag;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -9,11 +10,11 @@ use service\BaseService;
 use service\rbac\OperateService;
 
 use app\models\PsCommunityBuilding;
-use app\models\PsCommunityRoominfo;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
-use app\models\PsMember;
+use yii\db\Exception;
+use Yii;
 
 class StewardService extends BaseService
 {
@@ -322,6 +323,178 @@ class StewardService extends BaseService
             return $number.'%';
         } else {
             return '0%';
+        }
+    }
+
+    //获取管家评价列表
+    public function stewardListOfC($params){
+        $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
+        $id = !empty($params['id']) ? $params['id'] : '';
+        $page = !empty($params['page']) ? $params['page'] : 1;
+        $rows = !empty($params['rows']) ? $params['rows'] : 10;
+        if (!$community_id || !$id) {
+            return $this->failed('参数错误！');
+        }
+        $list = [];
+        $sel = $this->_search($params);
+        $total = $this->_search($params)->count();
+        $resultAll = $sel->orderBy('create_at desc')
+            ->offset(($page - 1) * $rows)
+            ->limit($rows)
+            ->asArray()->all();
+        foreach ($resultAll as $result){
+            $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
+            $result['user_name'] = $this->substr_cut($result['user_name']);
+            $result['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $result['user_id']])->scalar();
+            $list[] = $result;
+        }
+
+        return $this->success(['list'=>$list,'total'=>$total]);
+    }
+
+    //管家公用的搜索
+    public function _search($params){
+        return PsSteWardEvaluate::find()
+            ->where(['steward_id' => $params['id']])
+            ->andFilterWhere(['=', 'community_id', $params['community_id']])
+            ->andFilterWhere(['=', 'steward_type', $params['steward_type']]);
+    }
+
+    //获取管家详情
+    public function stewardInfoOfC($params){
+        $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
+        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $id = !empty($params['id']) ? $params['id'] : '';
+        $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
+        if (!$community_id || !$id || !$app_user_id) {
+            return $this->failed('参数错误！');
+        }
+        //获取管家信息
+        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise')->where(['community_id' => $community_id,'is_del'=>'1','id'=>$id])->asArray()->one();
+        $steward['praise_rate'] = !empty($steward['evaluate'])?floor($steward['praise'] / $steward['evaluate'] * 100):'0';
+        //获取管家评价的标签排行榜,取前六条数据
+        $result =  PsSteWardEvaluate::find()->alias('eval')
+            ->select(['rela.data_id as label_id,count(rela.data_id) as total'])
+            ->leftJoin("ps_steward_relat rela", "eval.id=rela.evaluate_id")
+            ->where(['eval.steward_id' => $params['id'], 'rela.data_type' => 2])
+            ->andFilterWhere(['=', 'eval.community_id', $community_id])
+            ->groupBy("rela.data_id")
+            ->orderBy("total desc")
+            ->limit("6")->asArray()->all();
+        $label_list = [];
+        if(!empty($result)){
+            foreach ($result as $label){
+                $label['name'] = $this->getStewardLabel($label['label_id']);
+                $label_list[] = $label;
+            }
+        }
+        $member_id = $this->getMemberByUser($app_user_id);
+        $roomUser = PsRoomUser::find()->select('status')->where(['room_id' => $room_id, 'member_id' => $member_id])->orderBy('status asc')->asArray()->one();
+        $steward['is_auth'] = $roomUser['status']==2 ? 1 : 2; // 当前房屋是否认证 1已认证 2未认证
+        $steward['label'] = $label_list;
+        //获取好评差评参数
+        $steward['label_params'] = $this->getStewardLabel();
+        //获取用户当天有没有评价-好评
+        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $steward['praise_status'] = !empty($praise_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
+        //获取用户当天有没有评价-差评
+        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $steward['review_status'] = !empty($review_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
+        $steward['params'] = ['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
+        return $this->success($steward);
+    }
+
+    //添加管家评价
+    public function addStewardOfC($params){
+
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $addParams['community_id'] = !empty($params['community_id']) ? $params['community_id'] : '';
+            $addParams['user_id'] = !empty($params['user_id']) ? $params['user_id'] : '';
+            $addParams['user_name'] = !empty($params['user_name']) ? $params['user_name'] : '';
+            $addParams['user_mobile'] = !empty($params['user_mobile']) ? $params['user_mobile'] : '';
+            $addParams['room_id'] = !empty($params['room_id']) ? $params['room_id'] : '';
+            $addParams['room_address'] = !empty($params['room_address']) ? $params['room_address'] : '';
+            $addParams['label_id'] = !empty($params['label_id']) ? $params['label_id'] : '';
+            $addParams['steward_id'] = !empty($params['steward_id']) ? $params['steward_id'] : '';
+            $addParams['steward_type'] = !empty($params['steward_type']) ? $params['steward_type'] : '';     //1表扬 2批评
+            $addParams['content'] = !empty($params['content']) ? $params['content'] : '';
+
+            $model = new PsSteWardEvaluate(['scenario'=>'add']);
+            if($model->load($addParams,'')&&$model->validate()){
+                $info = '';
+                foreach ($addParams['label_id'] as $label){
+                    $info.=$this->getStewardLabel($label).',';
+                }
+                $info = substr($info, 0, -1);
+                if(!$model->save()){
+                    return $this->failed('新增失败！');
+                }
+                $content = !empty($content)?$info.','.$content:$info;
+                PsSteWardEvaluate::updateAll(['content'=>$content],['id'=>$model->id]);
+                //更新管家的评价数量
+                $ward = PsSteWard::model()->find()->where(['id'=>$model->steward_id])->one();
+                $ward->evaluate=$ward->evaluate+1;
+                if($addParams['steward_type']==1){
+                    $ward->praise=$ward->praise+1;
+                }
+                $ward->save();
+
+                //保存标签
+                $stewardTag = new PsSteWardTag();
+                $tagInfo = [];
+                foreach($addParams['label_id'] as $value){
+                    $tagInfo[] = [$model->steward_id, $model->id,$value];
+                }
+                $stewardTag->yiiBatchInsert(['steward_id', 'evaluate_id', 'tag_type'], $tagInfo);
+                $trans->commit();
+                return $this->success(['id'=>$model->attributes['id']]);
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
+    }
+
+
+    public static function getStewardLabel($index = 0)
+    {
+        //好评
+        $praise =  [
+            ["key" => "1", "name" => "态度好服务棒"],
+            ["key" => "2", "name" => "神准时"],
+            ["key" => "3", "name" => "服务规范"],
+            ["key" => "4", "name" => "诚恳心善"],
+            ["key" => "5", "name" => "专业细心"],
+            ["key" => "6", "name" => "文明礼貌"],
+            ["key" => "7", "name" => "全程跟进"],
+
+        ];
+        //差评
+        $negative =  [
+            ["key" => "50", "name" => "态度恶劣"],
+            ["key" => "51", "name" => "响应速度慢"],
+            ["key" => "52", "name" => "敷衍马虎"],
+            ["key" => "53", "name" => "没有责任心"],
+            ["key" => "54", "name" => "有待提高"],
+            ["key" => "55", "name" => "服务不规范"],
+        ];
+        if(!empty($index)){
+            //合并两个数组-数据查不到就设置为空   '-'
+            $label_list = array_merge($praise,$negative);
+            foreach ($label_list as $list){
+                if($list['key']==$index){
+                    return $list['name'];break;
+                }
+            }
+            return '-';
+        }else{
+            $label['praise'] = $praise;
+            $label['negative'] = $negative;
+            return $label;
         }
     }
 }
