@@ -90,9 +90,9 @@ class StewardService extends BaseService
     {
         $this->_checkBackendList($params);
         $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex,s.community_id,s.community_name')->distinct()
-            ->filterWhere(['or', ['like', 'name', $params['name'] ?? null], ['like', 'mobile', $params['name'] ?? null]])
+            ->filterWhere(['or', ['like', 's.name', $params['name'] ?? null], ['like', 's.mobile', $params['name'] ?? null]])
             ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')
-            ->filterWhere(['building_id' => $params['building_id'] ?? []])->filterWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+            ->andFilterWhere(['r.building_id' => $params['building_id']])->andFilterWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
         if(!empty($params['communityList'])){
             $stewatd->andWhere(['in','s.community_id',$params['communityList']]);
         }
