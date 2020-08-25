@@ -63,8 +63,6 @@ class CommunityController extends BaseController
             }
         }
 
-        $total = SmallCommunityService::service()->commentTotal($this->request_params);
-
         return PsCommon::responseSuccess(['total' => $total, 'list' => $model]);
     }
 
