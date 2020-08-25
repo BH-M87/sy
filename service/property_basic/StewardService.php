@@ -363,22 +363,24 @@ class StewardService extends BaseService
     //获取管家详情
     public function stewardInfoOfC($params){
         $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
-        $app_user_id = !empty($params['app_user_id']) ? $params['app_user_id'] : '';
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
         $id = !empty($params['id']) ? $params['id'] : '';
-        $room_id = !empty($params['room_id']) ? $params['room_id'] : '';
-        if (!$community_id || !$id || !$app_user_id) {
+        if (!$community_id || !$id || !$user_id) {
             return $this->failed('参数错误！');
         }
         //获取管家信息
         $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise')->where(['community_id' => $community_id,'is_del'=>'1','id'=>$id])->asArray()->one();
+        if(empty($steward)){
+            return $this->failed('管家不存在！');
+        }
         $steward['praise_rate'] = !empty($steward['evaluate'])?floor($steward['praise'] / $steward['evaluate'] * 100):'0';
         //获取管家评价的标签排行榜,取前六条数据
         $result =  PsSteWardEvaluate::find()->alias('eval')
-            ->select(['rela.data_id as label_id,count(rela.data_id) as total'])
-            ->leftJoin("ps_steward_relat rela", "eval.id=rela.evaluate_id")
-            ->where(['eval.steward_id' => $params['id'], 'rela.data_type' => 2])
+            ->select(['rela.tag_type as label_id,count(rela.id) as total'])
+            ->leftJoin(["rela"=>PsSteWardTag::tableName()], "eval.id=rela.evaluate_id")
+            ->where(['eval.steward_id' => $params['id']])
             ->andFilterWhere(['=', 'eval.community_id', $community_id])
-            ->groupBy("rela.data_id")
+            ->groupBy("rela.id")
             ->orderBy("total desc")
             ->limit("6")->asArray()->all();
         $label_list = [];
@@ -388,19 +390,16 @@ class StewardService extends BaseService
                 $label_list[] = $label;
             }
         }
-        $member_id = $this->getMemberByUser($app_user_id);
-        $roomUser = PsRoomUser::find()->select('status')->where(['room_id' => $room_id, 'member_id' => $member_id])->orderBy('status asc')->asArray()->one();
-        $steward['is_auth'] = $roomUser['status']==2 ? 1 : 2; // 当前房屋是否认证 1已认证 2未认证
         $steward['label'] = $label_list;
         //获取好评差评参数
         $steward['label_params'] = $this->getStewardLabel();
         //获取用户当天有没有评价-好评
-        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
         $steward['praise_status'] = !empty($praise_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
         //获取用户当天有没有评价-差评
-        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
         $steward['review_status'] = !empty($review_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
-        $steward['params'] = ['user_id'=>$app_user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
+        $steward['params'] = ['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
         return $this->success($steward);
     }
 
