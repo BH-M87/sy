@@ -1,8 +1,6 @@
 <?php
 namespace app\models;
 
-use Yii;
-
 
 class PsSteWardEvaluate extends BaseModel
 {
@@ -22,8 +20,9 @@ class PsSteWardEvaluate extends BaseModel
             [['community_id','room_id','user_id'], 'string', 'max' => 30],
             [['room_address','user_name','user_mobile','content'], 'string', 'max' => 50],
             [['user_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机号码格式有误'],
-            [['steward_type'],  'in', 'range' => [1, 2], 'on' => ['add']],   //标签格式验证
+            [['steward_type'],  'in', 'range' => [1, 2], 'on' => ['add']],
             [['label_id','steward_type'], 'labelVerification', 'on' => ['add']],   //标签格式验证
+            [['steward_id'], 'stewardVerification', 'on' => ['add']],   //验证管家
             [['user_id','community_id','steward_type','steward_id'], 'addVerification', 'on' => ['add']],   //新增验证
             [["create_at"],"default",'value' => time(),'on'=>['add']],
         ];
@@ -40,9 +39,10 @@ class PsSteWardEvaluate extends BaseModel
             'user_name'     => '用户姓名',
             'user_mobile'   => '用户手机号',
             'steward_id'    => '管家ID',
-            'steward_type'  => '评价类型e',
+            'steward_type'  => '评价类型',
             'content'       => '评价内容',
             'create_at'     => '评价时间',
+            'label_id'      => '评价标签',
         ];
     }
 
@@ -93,6 +93,18 @@ class PsSteWardEvaluate extends BaseModel
             if(!empty($res)) {
                 $msg = $this->steward_type == 1 ? '表扬' : '批评';
                 $this->addError($attribute, "您当天已".$msg);
+            }
+        }
+    }
+
+    /*
+     * 管家验证
+     */
+    public function stewardVerification($attribute){
+        if(!empty($this->steward_id)){
+            $res = PsSteWard::find()->where(['id'=>$this->steward_id,'is_del'=>1])->asArray()->one();
+            if(empty($res)) {
+                $this->addError($attribute, "管家不存在");
             }
         }
     }
