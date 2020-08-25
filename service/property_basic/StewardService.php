@@ -163,6 +163,7 @@ class StewardService extends BaseService
                         foreach($value['children'] as $k=>$v){
                             if($v['id'] == $communityValue){
                                 $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                                continue;
                             }
                         }
                     }
@@ -214,6 +215,7 @@ class StewardService extends BaseService
                         foreach($value['children'] as $k=>$v){
                             if($v['id'] == $communityValue){
                                 $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                                continue;
                             }
                         }
                     }
