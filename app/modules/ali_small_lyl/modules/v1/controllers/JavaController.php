@@ -22,6 +22,9 @@ class JavaController extends BaseController{
         try{
             $data = $this->params;
             $result = JavaOfCService::service()->loginAuth($data);
+            if(!empty($result['message'])){
+                return PsCommon::responseAppFailed($result['message']);
+            }
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());
