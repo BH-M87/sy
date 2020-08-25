@@ -126,6 +126,13 @@ class SmallMyService extends BaseService
                                 $msg = array_values($msgModel->errors)[0][0];
                                 return $this->failed($msg);
                             }
+                            //调用java接口 删除车牌信息 （java接口）
+                            if(!empty($reservation['parking_car_id'])){
+                                $javaService = new JavaOfCService();
+                                $javaCar['id'] = $reservation['parking_car_id'];
+                                $javaService->parkingDeleteParkingCar($javaCar);
+                            }
+
                         }else{
                             return $this->failed("您的共享车位已有车辆正在使用");
                         }

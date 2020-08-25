@@ -338,13 +338,11 @@ class AlipayCostService extends BaseService
             $where .= " AND bill.acct_period_start >= :acct_period_start and bill.acct_period_end <= :acct_period_end ";
             $params = array_merge($params, [':acct_period_start' => strtotime($acct_period_start), ':acct_period_end' => strtotime($acct_period_end . ' 23:59:59')]);
         }
-        if (!empty($pay_time_start) && $source != 5) {
+        if (!empty($pay_time_start)) {
             $where .= " AND der.pay_time >= :pay_time_start and der.pay_time <= :pay_time_end ";
             $params = array_merge($params, [':pay_time_start' => strtotime($pay_time_start), ':pay_time_end' => strtotime($pay_time_end . ' 23:59:59')]);
-        } else {//待生成页面查的是账单生成日期-页面展示位上传日期
-            $where .= " AND bill.create_at >= :pay_time_start and bill.create_at <= :pay_time_end ";
-            $params = array_merge($params, [':pay_time_start' => strtotime($pay_time_start), ':pay_time_end' => strtotime($pay_time_end . ' 23:59:59')]);
         }
+        
         if (!empty($costList)) {
             if (!is_array($costList)) {
                 return $this->failed("缴费项目参数错误");
