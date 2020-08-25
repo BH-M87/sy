@@ -9,6 +9,9 @@ use service\property_basic\StewardService;
 
 class StewardController extends BaseController
 {
+
+    public $repeatAction = ['add','edit','delete'];
+
     // 获取后台专属管家列表
     public function actionGetList()
     {
