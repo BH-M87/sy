@@ -148,7 +148,7 @@ class HomeService extends BaseService
                  'url' => "/pages/visitor/index/index"
             ],
             [
-                'icon' => "http://static.zje.com/2020041509563541640.png",
+                'icon' => "http://static.zje.com/2020082510062048478.png",
                 'name' => "出门单",
                 'port' => '/digit-property-visitorpass',
                 'icon_type' => '1',
@@ -215,7 +215,7 @@ class HomeService extends BaseService
                         'url' => "/pages/visitor/index/index"
                     ],
                     [
-                        'icon' => "http://static.zje.com/2020041509563541640.png",
+                        'icon' => "http://static.zje.com/2020082510062048478.png",
                         'name' => "出门单",
                         'port' => '/digit-property-visitorpass',
                         'icon_type' => '1',
