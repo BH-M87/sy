@@ -223,8 +223,12 @@ class JavaService extends BaseService
         $result = self::returnCData($query);
         if(!empty($result['list'])){
             foreach($result['list'] as $key=>$value){
+                $value['title'] = $value['name'];
+                $value['value'] = $value['id'];
                 if(!empty($value['children'])){
                     foreach($value['children'] as $ck=>$cv){
+                        $cv['title'] = $cv['name'];
+                        $cv['value'] = $cv['id'];
                         if(!empty($cv['children'])){
                             unset($result['list'][$key]['children'][$ck]['children']);
                         }
