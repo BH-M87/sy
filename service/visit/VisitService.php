@@ -195,23 +195,28 @@ class VisitService extends BaseService
                 $data['keyword1'] = ['value'=>'已确认'];
                 $data['keyword2'] = ['value'=>'出门单申请'];
                 $data['keyword3'] = ['value'=>'出小区时保安需核销出门单，请妥善保管'];
-                $data['keyword4'] = ['value'=>$r['application_name']];
-                $params['to_user_id'] = $r['ali_user_id'];
-                $params['form_id'] = $r['ali_form_id'];
-                $params['page'] = '1';
-                $params['data'] = json_encode($data);
-
-                $service = new AlipaysTemplateService();
-                $result = $service->sendMessage($params);
             } else if ($p['status'] == 4) {
                 if ($r['status'] == 4) {
                     throw new MyException('出门单已作废，不要重复操作');
                 }
 
+                $data['keyword1'] = ['value'=>'已作废'];
+                $data['keyword2'] = ['value'=>'出门单申请'];
+                $data['keyword3'] = ['value'=>'出门单已作废'];
+
                 PsOutOrder::updateAll(['status' => 4], ['id' => $id]);
             } else {
                 throw new MyException('状态错误!');
             }
+
+            $data['keyword4'] = ['value'=>$r['application_name']];
+            $params['to_user_id'] = $r['ali_user_id'];
+            $params['form_id'] = $r['ali_form_id'];
+            $params['page'] = '1';
+            $params['data'] = json_encode($data);
+
+            $service = new AlipaysTemplateService();
+            $result = $service->sendMessage($params);
             
             return ['id' => $p['id']];
         }
