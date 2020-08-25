@@ -203,11 +203,30 @@ class StewardService extends BaseService
             $steward->mobile = $params['mobile'];
             $steward->sex = $params['sex'];
             $steward->save();
-            foreach ($params['groups'] as $key=>$value) {
-                foreach($value['buildings'] as $k=>$v){
-                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+
+            $javaService = new JavaService();
+            $javaParams['token'] = $params['token'];
+            $javaParams['id'] = $params['community_id'];
+            $javaResult = $javaService->unitTree_($javaParams);
+            if(!empty($javaResult['list'])){
+                foreach($params['buildings'] as $communityValue){
+                    foreach($javaResult['list'] as $key=>$value){
+                        foreach($value['children'] as $k=>$v){
+                            if($v['id'] == $communityValue){
+                                $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                            }
+                        }
+                    }
                 }
+            }else{
+                $this->failed("小区下不存在苑期区幢");
             }
+
+//            foreach ($params['groups'] as $key=>$value) {
+//                foreach($value['buildings'] as $k=>$v){
+//                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+//                }
+//            }
             PsSteWardRelat::deleteAll(['steward_id' => $steward->id]);
             $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
