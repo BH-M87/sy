@@ -149,14 +149,32 @@ class StewardService extends BaseService
         $steward = $this->checkStewardBaseInfo($params);
         $trans = \Yii::$app->getDb()->beginTransaction();
         $info = null;
-        
+
         try {
             $steward->save();
-            foreach ($params['groups'] as $key=>$value) {
-                foreach($value['buildings'] as $k=>$v){
-                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+
+            $javaService = new JavaService();
+            $javaParams['token'] = $params['token'];
+            $javaParams['id'] = $params['community_id'];
+            $javaResult = $javaService->unitTree_($javaParams);
+            if(!empty($javaResult['list'])){
+                foreach($params['buildings'] as $communityValue){
+                    foreach($javaResult['list'] as $key=>$value){
+                        foreach($value['children'] as $k=>$v){
+                            if($v['id'] == $communityValue){
+                                $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                            }
+                        }
+                    }
                 }
+            }else{
+                $this->failed("小区下不存在苑期区幢");
             }
+//            foreach ($params['groups'] as $key=>$value) {
+//                foreach($value['buildings'] as $k=>$v){
+//                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+//                }
+//            }
             $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
                 "community_id" =>$params['community_id'],
@@ -287,29 +305,20 @@ class StewardService extends BaseService
     // 楼幢信息检查
     public function checkBuilding($params)
     {
-        if (empty($params['groups']) || !is_array($params['groups'])) {
-            throw new MyException('苑期区格式错误');
+        if (empty($params['buildings']) || !is_array($params['buildings'])) {
+            throw new MyException('楼幢格式错误');
         }
-//        $javaService = new JavaService();
-        foreach ($params['groups'] as $key=>$value) {
-            foreach($value['buildings'] as $k=>$v){
-//                $javaParams['token'] = $params['token'];
-//                $javaParams['id'] = $v;
-//                $building = $javaService->buildingDetail($javaParams);
-//                if (empty($building)) {
-//                    throw new MyException('楼幢非法ID');
-//                } else {
-                    $steward = PsSteWard::find()->alias('s')->select('s.id')
-                        ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.group_id' => $value['group_id'],'r.building_id' => $v['building_id']])->limit(1)->one();
-                    if (!empty($steward)) {
-                        if (isset($params['id'])) { //新增场景
-                            if ($steward->id != $params['id']) {
-                                throw new MyException($value['group_name'].$v['building_name'].'已存在管家');
-                            }
-                        } else { //编辑场景
-                            throw new MyException($value['group_name'].$v['building_name'].'已存在管家');
-                        }
-//                    }
+
+        foreach($params['buildings'] as $value){
+            $steward = PsSteWard::find()->alias('s')->select('s.id,r.group_name,r.building_name')
+                ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.building_id' => $value])->asArray()->one();
+            if (!empty($steward)) {
+                if (isset($params['id'])) { //新增场景
+                    if ($steward->id != $params['id']) {
+                        throw new MyException($steward['group_name'].$steward['building_name'].'已存在管家');
+                    }
+                } else { //编辑场景
+                    throw new MyException($steward['group_name'].$steward['building_name'].'已存在管家');
                 }
             }
         }

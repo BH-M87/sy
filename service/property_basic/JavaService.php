@@ -239,6 +239,13 @@ class JavaService extends BaseService
         return $result;
     }
 
+    // 获得单元树
+    public function unitTree_($query){
+        $query['route'] = '/unit/unitTree';
+        $result = self::returnCData($query);
+        return $result;
+    }
+
     //根据条件查询房屋列表
     public function roomQueryList($query){
         $query['route'] = '/room/query/list';

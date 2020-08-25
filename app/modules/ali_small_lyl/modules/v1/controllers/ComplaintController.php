@@ -15,6 +15,8 @@ use yii\base\Exception;
 
 class ComplaintController extends BaseController
 {
+    public $repeatAction = ['add-steward'];
+
 //    //投诉建议列表
 //    public function actionList()
 //    {
