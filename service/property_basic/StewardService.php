@@ -344,8 +344,6 @@ class StewardService extends BaseService
             ->asArray()->all();
         foreach ($resultAll as $result){
             $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
-            $result['user_name'] = $this->substr_cut($result['user_name']);
-            $result['avatar'] = PsAppUser::find()->select('avatar')->where(['id' => $result['user_id']])->scalar();
             $list[] = $result;
         }
 
@@ -421,6 +419,12 @@ class StewardService extends BaseService
 
             $model = new PsSteWardEvaluate(['scenario'=>'add']);
             if($model->load($addParams,'')&&$model->validate()){
+                //获得java会员信息
+                $javaService = new JavaOfCService();
+                $javaParams['token'] = $params['token'];
+                $result = $javaService->memberBase($javaParams);
+                $avatar = !empty($result['avatar'])?$result['avatar']:'';
+
                 $info = '';
                 foreach ($addParams['label_id'] as $label){
                     $info.=$this->getStewardLabel($label).',';
@@ -430,7 +434,7 @@ class StewardService extends BaseService
                     return $this->failed('新增失败！');
                 }
                 $content = !empty($content)?$info.','.$content:$info;
-                PsSteWardEvaluate::updateAll(['content'=>$content],['id'=>$model->id]);
+                PsSteWardEvaluate::updateAll(['content'=>$content,'avatar'=>$avatar],['id'=>$model->id]);
                 //更新管家的评价数量
                 $ward = PsSteWard::model()->find()->where(['id'=>$model->steward_id])->one();
                 $ward->evaluate=$ward->evaluate+1;
