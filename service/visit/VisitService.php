@@ -118,6 +118,7 @@ class VisitService extends BaseService
 
         $r = PsOutOrder::find()->where(['id' => $p['id']])
             ->andWhere(['in', 'status', [2,3]])
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andWhere(['>=', 'application_at', $application_start])
             ->andWhere(['<=', 'application_at', $application_end])
             ->asArray()->one();
