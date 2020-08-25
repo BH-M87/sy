@@ -147,6 +147,13 @@ class HomeService extends BaseService
                 'icon_type' => '1',
                  'url' => "/pages/visitor/index/index"
             ],
+            [
+                'icon' => "http://static.zje.com/2020082510062048478.png",
+                'name' => "出门单",
+                'port' => '/digit-property-visitorpass',
+                'icon_type' => '1',
+                'url' => "/pages/goOut/outType/outType"
+            ],
             //  [
             //      'icon'=>"http://zje-health-static.zje.com/pension/bjgl2.png",
             //     'name'=>"报警管理",
@@ -206,6 +213,13 @@ class HomeService extends BaseService
                         'port' => '/digit-property-visitorpass',
                         'icon_type' => '1',
                         'url' => "/pages/visitor/index/index"
+                    ],
+                    [
+                        'icon' => "http://static.zje.com/2020082510062048478.png",
+                        'name' => "出门单",
+                        'port' => '/digit-property-visitorpass',
+                        'icon_type' => '1',
+                        'url' => "/pages/goOut/outType/outType"
                     ],
                     // [
                     //     'icon'=>"http://zje-health-static.zje.com/pension/bjgl2.png",

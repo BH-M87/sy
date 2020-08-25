@@ -142,13 +142,16 @@ class RepairStatisticService extends BaseService
 
         $query = new Query();
         $query->from('ps_repair')->where(["community_id" => $p['community_id']]);
+        $hardModel = PsRepair::find()->where(['=','community_id',$p['community_id']])->andWhere(['=','hard_type',2]);
 
         if (!empty($start)) {
             $query->andWhere(['>=', 'create_at', $start]);
+            $hardModel->andWhere(['>=', 'create_at', $start]);
         }
 
         if (!empty($end)) {
             $query->andWhere(['<=', 'create_at', $end]);
+            $hardModel->andWhere(['<=', 'create_at', $end]);
         }
 
         $list = $query->createCommand()->queryAll();
@@ -163,6 +166,8 @@ class RepairStatisticService extends BaseService
         $front = 0; // 物业前台报修
         $phone = 0; // 电话报修
         $other = 0; // 其他
+
+        $hard = $hardModel->count('id');    //疑难报事保修
 
         if ($list) {
             foreach ($list as $v) {
@@ -210,7 +215,7 @@ class RepairStatisticService extends BaseService
 
         $r = [];
         if ($type == 'order') {
-            $r = compact('process', 'confirm', 'completed', 'nullify', 'other');
+            $r = compact('process', 'confirm', 'completed', 'nullify', 'other','hard');
         }
 
         if ($type == 'channel') {
@@ -218,7 +223,7 @@ class RepairStatisticService extends BaseService
         }
 
         $r['total_num'] = count($list);
-
+        
         return $r;
     }
 
