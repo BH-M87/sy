@@ -544,14 +544,30 @@ class StewardService extends BaseService
         $javaService = new JavaOfCService();
         $javaParams['token'] = $params['token'];
         $javaResult = $javaService->myRoomList($javaParams);
-        print_r($javaResult);die;
         $builds = [];
         if(!empty($javaResult['certifiedList'])){
             foreach($javaResult['certifiedList'] as $key=>$value){
                 if($value['communityId'] == $params['community_id']){
-
+                    array_push($builds,$value['buildingId']);
                 }
             }
         }
+        if(!empty($builds)){
+            //获得管家列表
+            $fields = ['s.id','s.name','s.mobile','s.evaluate','s.praise','b.group_name','b.building_name'];
+            $model = PsSteWard::find()->alias('s')->select($fields)
+                        ->leftJoin(['b'=>PsSteWardRelat::tableName()],'b.steward_id=s.id')
+                        ->where(['s.community_id' => $params['community_id'],'s.is_del'=>'1'])
+                        ->andWhere(['in','b.building_id',$builds])->asArray()->all();
+            if(!empty($model)){
+                foreach($model as $key=>$value){
+                    $model[$key]['praise_rate'] = !empty($value['evaluate'])?floor($value['praise'] / $value['evaluate'] * 100):'0';
+                    $model[$key]['merge_build'] = $value['group_name'].$value['building_name'];
+                }
+                return $this->success($model);
+            }
+            return $this->success();
+        }
+        return $this->success();
     }
 }
