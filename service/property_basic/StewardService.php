@@ -552,6 +552,7 @@ class StewardService extends BaseService
                 }
             }
         }
+        $data  = [];
         if(!empty($builds)){
             //获得管家列表
             $fields = ['s.id','s.name','s.mobile','s.evaluate','s.praise','b.group_name','b.building_name'];
@@ -563,11 +564,10 @@ class StewardService extends BaseService
                 foreach($model as $key=>$value){
                     $model[$key]['praise_rate'] = !empty($value['evaluate'])?floor($value['praise'] / $value['evaluate'] * 100):'0';
                     $model[$key]['merge_build'] = $value['group_name'].$value['building_name'];
+                    $data[] = $model[$key];
                 }
-                return $this->success($model);
             }
-            return $this->success();
         }
-        return $this->success();
+        return $this->success(['steward'=>$data]);
     }
 }
