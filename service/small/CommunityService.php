@@ -330,10 +330,20 @@ Class CommunityService extends BaseService
     // -----------------------------------     小区评分     ------------------------------
 
 	// 小区评分 首页
-    public function commentIndex($param)
+    public function commentIndex($p)
     {
+        $beginThismonth = mktime(0,0,0,date('m'),1,date('Y'));
+        $endThismonth = mktime(23,59,59,date('m'),date('t'),date('Y'));
+
+        $detail = PsCommunityCommentDetail::find()
+            ->where(['>=', 'created_at', $beginThismonth])
+            ->andWhere(['=', 'member_id', $p['user_id']])
+            ->andWhere(['=', 'community_id', $p['community_id']])
+            ->andWhere(['<=', 'created_at', $endThismonth])->asArray()->one();
+
         $r['month'] = date('m',time());
         $r['score'] = self::_score($p['community_id']);
+        $r['type'] = !empty($detail) ? '1' : '2';
 
         return $this->success($r);
     }
@@ -341,11 +351,11 @@ Class CommunityService extends BaseService
     // 小区评分 平均值
     private function _score($community_id)
     {
-        $comment = PsCommunityComment::find()->select('score')->where(['community_id' => $community_id])->asArray()->all();
+        $comment = PsCommunityCommentDetail::find()->select('score')->where(['community_id' => $community_id])->asArray()->all();
         if (!empty($comment)) {
             return (string)round(array_sum(array_map(function($val){return $val['score'];}, $comment)) / count($comment), 1);
         } else {
-            return '5.0';
+            return '';
         }
     }
     
