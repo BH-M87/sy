@@ -15,7 +15,7 @@ class PsSteWardEvaluate extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','room_id','room_address', 'user_id','user_name','user_mobile','avatar','steward_id','steward_type','label_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['community_id','user_id','user_name','user_mobile','avatar','steward_id','steward_type','label_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['steward_id', 'steward_type', 'create_at'], 'integer'],
             [['community_id','room_id','user_id'], 'string', 'max' => 30],
             [['room_address','user_name','user_mobile','content'], 'string', 'max' => 50],
