@@ -465,8 +465,8 @@ Class CommunityService extends BaseService
                     ->andWhere(['comment_year' => $comment_year, 'comment_month' => $comment_month])
                     ->asArray()->one();
 
-                $score = round($detail['sum_score'] + $p['starIdx'], 1);
                 $total = $detail['count'] + 1;
+                $score = round(($detail['sum_score'] + $p['starIdx']) / $total, 1);
                 PsCommunityComment::updateAll(['score' => $score, 'total' => $total], ['id' => $comment_id]);
             } else {
                 $comment = new PsCommunityComment();
