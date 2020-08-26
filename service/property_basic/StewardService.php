@@ -68,7 +68,7 @@ class StewardService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $stewardEvaluate = PsSteWardEvaluate::find()->select()
+        $stewardEvaluate = PsSteWardEvaluate::find()
             ->where(['steward_id' => $p['id']])
             ->andFilterWhere(['=', 'community_id', $p['community_id']])
             ->andFilterWhere(['=', 'steward_type', $p['steward_type']]);
