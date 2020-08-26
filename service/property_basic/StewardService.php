@@ -335,7 +335,7 @@ class StewardService extends BaseService
                 ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.building_id' => $value])->asArray()->one();
             if (!empty($steward)) {
                 if (isset($params['id'])) { //新增场景
-                    if ($steward->id != $params['id']) {
+                    if ($steward['id'] != $params['id']) {
                         throw new MyException($steward['group_name'].$steward['building_name'].'已存在管家');
                     }
                 } else { //编辑场景
