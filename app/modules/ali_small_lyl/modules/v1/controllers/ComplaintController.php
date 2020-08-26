@@ -88,7 +88,16 @@ class ComplaintController extends BaseController
     }
 
     //用户管家列表
-    public function action(){
-
+    public function actionUserStewardList(){
+        try{
+            $result = StewardService::service()->userStewardListOfC($this->params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
     }
 }

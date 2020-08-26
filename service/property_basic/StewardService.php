@@ -531,4 +531,13 @@ class StewardService extends BaseService
             return $label;
         }
     }
+
+    /*
+     * 用户管家列表
+     */
+    public function userStewardListOfC($params){
+        if(empty($params['user_id'])){
+            return $this->failed("会员id必填");
+        }
+    }
 }
