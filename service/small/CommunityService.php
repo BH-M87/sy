@@ -362,7 +362,7 @@ Class CommunityService extends BaseService
     // 小区评分 比例
     public function _scoreRate($community_id)
     {
-        $model = PsCommunityComment::find()
+        $model = PsCommunityCommentDetail::find()
             ->select("count(id) as c, score")
             ->where(['=', 'community_id', $community_id])
             ->groupBy('score')->orderBy('score desc')->asArray()->all();
@@ -428,7 +428,7 @@ Class CommunityService extends BaseService
             $model['info']['create_at'] = self::_time($model['info']['created_at']);
             $model['info']['name'] = self::_hideName($model['info']['name']);
         }
-        
+      
         return $this->success($model);
     }
 
