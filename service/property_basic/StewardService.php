@@ -536,8 +536,22 @@ class StewardService extends BaseService
      * 用户管家列表
      */
     public function userStewardListOfC($params){
-        if(empty($params['user_id'])){
-            return $this->failed("会员id必填");
+
+        if(empty($params['community_id'])){
+            return $this->failed("小区id必填");
+        }
+
+        $javaService = new JavaOfCService();
+        $javaParams['token'] = $params['token'];
+        $javaResult = $javaService->myRoomList($javaParams);
+        print_r($javaResult);die;
+        $builds = [];
+        if(!empty($javaResult['certifiedList'])){
+            foreach($javaResult['certifiedList'] as $key=>$value){
+                if($value['communityId'] == $params['community_id']){
+
+                }
+            }
         }
     }
 }

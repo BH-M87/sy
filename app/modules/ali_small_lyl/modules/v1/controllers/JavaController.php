@@ -99,4 +99,16 @@ class JavaController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    // 我的房屋
+    public function actionMyRoom()
+    {
+        try {
+            $data = $this->params;
+            $result = JavaOfCService::service()->myRoomList($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
 }
