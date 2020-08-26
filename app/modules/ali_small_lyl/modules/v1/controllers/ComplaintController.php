@@ -86,4 +86,9 @@ class ComplaintController extends BaseController
             exit($e->getMessage());
         }
     }
+
+    //用户管家列表
+    public function action(){
+
+    }
 }

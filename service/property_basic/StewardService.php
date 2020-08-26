@@ -446,6 +446,7 @@ class StewardService extends BaseService
             $addParams['steward_id'] = !empty($params['steward_id']) ? $params['steward_id'] : '';
             $addParams['steward_type'] = !empty($params['steward_type']) ? $params['steward_type'] : '';     //1表扬 2批评
             $addParams['content'] = !empty($params['content']) ? $params['content'] : '';
+            $addParams['avatar'] = !empty($params['avatar']) ? $params['avatar'] : '';
 
             $model = new PsSteWardEvaluate(['scenario'=>'add']);
             if($model->load($addParams,'')&&$model->validate()){

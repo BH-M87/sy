@@ -15,10 +15,11 @@ class PsSteWardEvaluate extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','room_id','room_address', 'user_id','user_name','user_mobile','steward_id','steward_type','label_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['community_id','room_id','room_address', 'user_id','user_name','user_mobile','avatar','steward_id','steward_type','label_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['steward_id', 'steward_type', 'create_at'], 'integer'],
             [['community_id','room_id','user_id'], 'string', 'max' => 30],
             [['room_address','user_name','user_mobile','content'], 'string', 'max' => 50],
+            [['avatar'], 'string', 'max' => 200],
             [['user_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'手机号码格式有误'],
             [['steward_type'],  'in', 'range' => [1, 2], 'on' => ['add']],
             [['label_id','steward_type'], 'labelVerification', 'on' => ['add']],   //标签格式验证
@@ -38,6 +39,7 @@ class PsSteWardEvaluate extends BaseModel
             'user_id'       => '用户id',
             'user_name'     => '用户姓名',
             'user_mobile'   => '用户手机号',
+            'avatar'        => '用户头像',
             'steward_id'    => '管家ID',
             'steward_type'  => '评价类型',
             'content'       => '评价内容',
