@@ -355,7 +355,7 @@ Class CommunityService extends BaseService
         if (!empty($comment)) {
             return (string)round(array_sum(array_map(function($val){return $val['score'];}, $comment)) / count($comment), 1);
         } else {
-            return '';
+            return '5.0';
         }
     }
     
