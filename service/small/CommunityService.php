@@ -533,7 +533,7 @@ Class CommunityService extends BaseService
             ->andFilterWhere(['like', 'mobile', PsCommon::get($param, 'mobile')])
             ->andFilterWhere(['=', 'member_id', $param['user_id']])
             ->andFilterWhere(['=', 'room_id', $param['room_id']])
-            ->andFilterWhere(['=', 'comment_id', $param['comment_id']])
+            ->andFilterWhere(['=', 'comment_id', $param['id']])
             ->andFilterWhere(['>=', 'created_at', $start_at])
             ->andFilterWhere(['<=', 'created_at', $end_at])
             ->andFilterWhere(['>=', 'created_at', $start_month])
