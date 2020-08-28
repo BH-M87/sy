@@ -408,7 +408,7 @@ class StewardService extends BaseService
             ->leftJoin(["rela"=>PsSteWardTag::tableName()], "eval.id=rela.evaluate_id")
             ->where(['eval.steward_id' => $params['id']])
             ->andFilterWhere(['=', 'eval.community_id', $community_id])
-            ->groupBy("rela.id")
+            ->groupBy("rela.tag_type")
             ->orderBy("total desc")
             ->limit("6")->asArray()->all();
         $label_list = [];
