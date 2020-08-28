@@ -48,7 +48,7 @@ class StewardService extends BaseService
 
         $this->checkSteward($params);
         // 获取管家信息
-        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise,sex')->where(['community_id' => $params['community_id'],'is_del'=>'1','id'=>$params['id']])->asArray()->one();
+        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise,sex,community_name')->where(['community_id' => $params['community_id'],'is_del'=>'1','id'=>$params['id']])->asArray()->one();
         $steward['negative'] = $steward['evaluate']-$steward['praise']; // 差评数量
         $steward_r[0] = $steward; // 方便遍历
         
