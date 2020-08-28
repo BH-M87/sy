@@ -18,15 +18,10 @@ use service\BaseService;
 use service\rbac\OperateService;
 use service\common\AreaService;
 use service\message\MessageService;
-
-use app\models\PsMember;
-use app\models\PsAppUser;
-use app\models\PsRoomUser;
-use app\models\PsAppMember;
-use app\models\PsCommunityModel;
-use app\models\PsCommunityRoominfo;
+use service\property_basic\JavaOfCService;
 
 use app\models\PsCommunityComment;
+use app\models\PsCommunityCommentDetail;
 use app\models\PsCommunityCircle;
 use app\models\PsCommunityCircleImage;
 use app\models\PsCommunityCirclePraise;
@@ -335,49 +330,28 @@ Class CommunityService extends BaseService
     // -----------------------------------     小区评分     ------------------------------
 
 	// 小区评分 首页
-    public function commentIndex($param)
+    public function commentIndex($p)
     {
-        // 查询业主
-        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
-            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
-        if (!$member) {
-            return $this->failed('业主不存在！');
-        }
-
-        $model = PsCommunityModel::find()->alias('A')
-            ->select('A.id as community_id, A.name as community_name, A.address, B.property_name, A.phone as property_tel, A.province_code, A.city_id')
-            ->leftJoin('ps_property_company B', 'B.id = A.pro_company_id')
-            ->where(['A.id' => $param['community_id']])->asArray()->one();
-
-        $community_id = $model['community_id'];
-
-        $model['house_total'] = PsCommunityRoominfo::find()->select('count(id)')->where(['community_id' => $community_id])->scalar();
-        $model['room_total'] = PsRoomUser::find()->select('count(id)')->where(['community_id' => $community_id, 'status' => [1,2]])->scalar();
-        $model['park_total'] = ParkingCarport::find()->select('count(id)')->where(['community_id' => $community_id])->scalar();
-        $model['total'] = PsRoomUser::find()->select('count(id)')->where(['community_id' => $community_id, 'status' => 2])->scalar();
-        $model['score'] = self::_score($community_id);
         $beginThismonth = mktime(0,0,0,date('m'),1,date('Y'));
         $endThismonth = mktime(23,59,59,date('m'),date('t'),date('Y'));
-        $score = PsCommunityComment::find()->select("score")
-            ->where(['>=', 'created_at', $beginThismonth])
-            ->andWhere(['=', 'app_user_id', $param['user_id']])
-            ->andWhere(['=', 'community_id', $community_id])
-            ->andWhere(['<=', 'created_at', $endThismonth])->scalar();
-        $model['score_msg'] = !empty($score) ? PsCommunityComment::scoreMsg($model['score']) : '去评分';
-        
-        $city = AreaService::service()->getNameByCode($model['city_id']);
-        $province = AreaService::service()->getNameByCode($model['province_code']);
-        $model['city_name'] = $province . $city;
-        $model['address'] = preg_replace("/$city/", "", $model['address']);
-        $model['address'] = preg_replace("/$province/", "", $model['address']);
 
-        return $this->success($model);
+        $detail = PsCommunityCommentDetail::find()
+            ->where(['>=', 'created_at', $beginThismonth])
+            ->andWhere(['=', 'member_id', $p['user_id']])
+            ->andWhere(['=', 'community_id', $p['community_id']])
+            ->andWhere(['<=', 'created_at', $endThismonth])->asArray()->one();
+
+        $r['month'] = date('m',time());
+        $r['score'] = self::_score($p['community_id']);
+        $r['type'] = !empty($detail) ? '1' : '2';
+
+        return $this->success($r);
     }
 
     // 小区评分 平均值
     private function _score($community_id)
     {
-        $comment = PsCommunityComment::find()->select('score')->where(['community_id' => $community_id])->asArray()->all();
+        $comment = PsCommunityCommentDetail::find()->select('score')->where(['community_id' => $community_id])->asArray()->all();
         if (!empty($comment)) {
             return (string)round(array_sum(array_map(function($val){return $val['score'];}, $comment)) / count($comment), 1);
         } else {
@@ -388,7 +362,7 @@ Class CommunityService extends BaseService
     // 小区评分 比例
     public function _scoreRate($community_id)
     {
-        $model = PsCommunityComment::find()
+        $model = PsCommunityCommentDetail::find()
             ->select("count(id) as c, score")
             ->where(['=', 'community_id', $community_id])
             ->groupBy('score')->orderBy('score desc')->asArray()->all();
@@ -427,37 +401,26 @@ Class CommunityService extends BaseService
     }
 
     // 小区评分 评价页面
-    public function commentShow($param)
+    public function commentShow($p)
     {
-        // 查询业主
-        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
-            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
-        if (!$member) {
-            return $this->failed('业主不存在！');
+        $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $p['room_id']]);
+        if (empty($roomInfo['id'])) {
+            return F::apiSuccess('房屋不存在');
         }
 
-        $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.id, A.community_id, B.name')
-            ->where(['A.id' => $param['room_id']])->asArray()->one();
-        if (!$roomInfo) {
-            return $this->failed('房屋不存在！');
-        }
-
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->asArray()->one();
-        
         $beginThismonth = mktime(0,0,0,date('m'),1,date('Y'));
         $endThismonth = mktime(23,59,59,date('m'),date('t'),date('Y'));
-        $community_id = $roomInfo['community_id'];
+
+        $community_id = $roomInfo['communityId'];
         $model['community_id'] = $community_id;
-        $model['community_name'] = $roomInfo['name'];
+        $model['community_name'] = $roomInfo['communityName'];
         $model['score'] = self::_score($community_id);
         $model['score_msg'] = PsCommunityComment::scoreMsg($model['score']);
-        $model['status'] = $roomUser['status'] == 2 ? 2 : 1;
         $model['month'] = (int)date('m', time());
         $model['score_rate'] = self::_scoreRate($community_id);
-        $info = PsCommunityComment::find()->select("avatar, name, score, created_at, content")
+        $info = PsCommunityCommentDetail::find()->select("avatar, name, score, created_at, content")
             ->where(['>=', 'created_at', $beginThismonth])
-            ->andWhere(['=', 'app_user_id', $param['user_id']])
+            ->andWhere(['=', 'member_id', $p['user_id']])
             ->andWhere(['=', 'community_id', $community_id])
             ->andWhere(['<=', 'created_at', $endThismonth])->asArray()->one();
         $model['info'] = !empty($info) ? $info : '';
@@ -465,91 +428,91 @@ Class CommunityService extends BaseService
             $model['info']['create_at'] = self::_time($model['info']['created_at']);
             $model['info']['name'] = self::_hideName($model['info']['name']);
         }
-        
+      
         return $this->success($model);
     }
 
     // 小区评分 评价 提交
-    public function commentAdd($param)
+    public function commentAdd($p)
     {
-        // 敏感词检测
-        $word = self::_sensitiveWord($param['content']);
-        if (!empty($word)) {
-            return $this->failed($word);
+        $roomInfo = JavaOfCService::service()->roomInfo(['token' => $p['token'], 'id' => $p['room_id']]);
+        if (empty($roomInfo['id'])) {
+            return F::apiSuccess('房屋不存在');
         }
 
-        // 查询业主
-        $member = PsAppMember::find()->alias('A')->leftJoin('ps_member B', 'B.id = A.member_id')
-            ->select('B.*')->where(['A.app_user_id' => $param['user_id']])->asArray()->one();
-        if (!$member) {
-            return $this->failed('业主不存在！');
+        // 查找用户的信息
+        $member = JavaOfCService::service()->memberBase(['token' => $p['token']]);
+        if (empty($member['id'])) {
+            return F::apiSuccess('用户不存在');
         }
 
-        $roomUser = PsRoomUser::find()->select('status')->where(['member_id' => $member['id'], 'room_id' => $param['room_id']])->asArray()->one();
+        $trans = Yii::$app->getDb()->beginTransaction();
 
-        if ($roomUser['status'] != 2) {
-            return $this->failed('房屋未认证！');
+        try {
+
+            $comment_year = date('Y', time());
+            $comment_month = date('m', time());
+
+            $comment = PsCommunityComment::find()
+                ->where(['community_id' => $roomInfo['communityId']])
+                ->andWhere(['comment_year' => $comment_year, 'comment_month' => $comment_month])
+                ->one();
+
+            if (!empty($comment)) {
+                $comment_id = $comment->id;
+                $detail = PsCommunityCommentDetail::find()->select('sum(score) sum_score, count(id) count')
+                    ->where(['community_id' => $roomInfo['communityId']])
+                    ->andWhere(['comment_year' => $comment_year, 'comment_month' => $comment_month])
+                    ->asArray()->one();
+
+                $total = $detail['count'] + 1;
+                $score = round(($detail['sum_score'] + $p['starIdx']) / $total, 1);
+                PsCommunityComment::updateAll(['score' => $score, 'total' => $total], ['id' => $comment_id]);
+            } else {
+                $comment = new PsCommunityComment();
+                $comment->community_id = $roomInfo['communityId'];
+                $comment->community_name = $roomInfo['communityName'];
+                $comment->comment_year = $comment_year;
+                $comment->comment_month = $comment_month;
+                $comment->score = $p['starIdx'];
+                $comment->total = 1;
+                $comment->save();
+                $comment_id = $comment->id;
+            }
+
+            $params['comment_id'] = $comment_id;
+            $params['community_id'] = $roomInfo['communityId'];
+            $params['community_name'] = $roomInfo['communityName'];
+            $params['group_id'] = $roomInfo ? $roomInfo['groupId'] : '';
+            $params['building_id'] = $roomInfo ? $roomInfo['buildingId'] : '';
+            $params['unit_id'] = $roomInfo ? $roomInfo['unitId'] : '';
+            $params['fullName'] = $roomInfo ? $roomInfo['fullName'] : '';
+            $params['room_id'] = $p['room_id'];
+            $params['member_id'] = $member['id'];
+            $params['avatar'] = !empty($member['avatar']) ? $member['avatar'] : 'http://static.zje.com/2019041819483665978.png';
+            $params['name'] = $member['trueName'];
+            $params['mobile'] = $member['sensitiveInf'];
+            $params['score'] = $p['starIdx'];
+            $params['content'] = $p['content'];
+            $params['comment_year'] = $comment_year;
+            $params['comment_month'] = $comment_month;
+
+            $model = new PsCommunityCommentDetail(['scenario' => 'add']);
+
+            if (!$model->load($params, '') || !$model->validate()) {
+                return $this->failed($this->getError($model));
+            }
+
+            if (!$model->save()) {
+                return $this->failed($this->getError($model));
+            }
+
+            $trans->commit();
+            return $this->success(['id' => $model->attributes['id']]);
+        } catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
-
-        $roomInfo = PsCommunityRoominfo::find()->alias('A')
-            ->leftJoin('ps_community B', 'B.id = A.community_id')->select('A.*')
-            ->where(['A.id' => $param['room_id']])->asArray()->one();
-        if (!$roomInfo) {
-            return $this->failed('房屋不存在！');
-        }
-
-        $avatar = PsAppUser::findOne($param['user_id'])->avatar;
-
-        $params['community_id'] = $roomInfo['community_id'];
-        $params['room_id'] = $param['room_id'];
-        $params['app_user_id'] = $param['user_id'];
-        $params['avatar'] = !empty($avatar) ? $avatar : 'http://static.zje.com/2019041819483665978.png';
-        $params['name'] = $member['name'];
-        $params['mobile'] = $member['mobile'];
-        $params['score'] = $param['starIdx'];
-        $params['content'] = $param['content'];
-
-        $model = new PsCommunityComment(['scenario' => 'add']);
-
-        if (!$model->load($params, '') || !$model->validate()) {
-            return $this->failed($this->getError($model));
-        }
-
-        // 发送消息
-        $data = [
-            'community_id' => $roomInfo['community_id'],
-            'id' => 0,
-            'member_id' => $member['id'],
-            'user_name' => $member['name'],
-            'create_user_type' => 2,
-
-            'remind_tmpId' => 12,
-            'remind_target_type' => 12,
-            'remind_auth_type' => 12,
-            'msg_type' => 3,
-
-            'msg_tmpId' => 12,
-            'msg_target_type' => 12,
-            'msg_auth_type' => 12,
-            'remind' =>[
-                0 => date("m",time())
-            ],
-            'msg' => [
-                0 => date("m",time()),
-                1 => $params['score'],
-                2 => $params['content'],
-                3 => $member['name'],
-                4 => $roomInfo['group'].''.$roomInfo['building'].''.$roomInfo['unit'].$roomInfo['room'],
-                5 => date("Y-m-d H:i:s",time())
-            ]
-        ];
-        MessageService::service()->addMessageTemplate($data);
-
-        if (!$model->save()) {
-            return $this->failed($this->getError($model));
-        }
-
-        return $this->success(['id' => $model->attributes['id']]);
     }
 
     // 小区评分 搜索
@@ -565,21 +528,20 @@ Class CommunityService extends BaseService
         $start_at = !empty($param['start_at']) ? strtotime($param['start_at']) : '';
         $end_at = !empty($param['end_at']) ? strtotime($param['end_at'].' 23:59:59') : '';
 
-        $model = PsCommunityComment::find()->alias("A")
-            ->leftJoin('ps_community_roominfo B', 'A.room_id = B.id')
-            ->filterWhere(['like', 'A.name', PsCommon::get($param, 'name')])
-            ->orFilterWhere(['like', 'A.mobile', PsCommon::get($param, 'name')])
-            ->andFilterWhere(['=', 'A.app_user_id', $param['user_id']])
-            ->andFilterWhere(['=', 'A.room_id', $param['room_id']])
-            ->andFilterWhere(['>=', 'A.created_at', $start_at])
-            ->andFilterWhere(['<=', 'A.created_at', $end_at])
-            ->andFilterWhere(['>=', 'A.created_at', $start_month])
-            ->andFilterWhere(['<=', 'A.created_at', $end_month])
-            ->andFilterWhere(['=', 'A.community_id', $param['community_id']])
-            ->andFilterWhere(['=', 'B.group', $param['group']])
-            ->andFilterWhere(['=', 'B.building', $param['building']])
-            ->andFilterWhere(['=', 'B.unit', $param['unit']])
-            ->andFilterWhere(['=', 'B.room', $param['room']]);   
+        $model = PsCommunityCommentDetail::find()
+            ->filterWhere(['like', 'name', PsCommon::get($param, 'name')])
+            ->andFilterWhere(['like', 'mobile', PsCommon::get($param, 'mobile')])
+            ->andFilterWhere(['=', 'member_id', $param['user_id']])
+            ->andFilterWhere(['=', 'room_id', $param['room_id']])
+            ->andFilterWhere(['=', 'comment_id', $param['id']])
+            ->andFilterWhere(['>=', 'created_at', $start_at])
+            ->andFilterWhere(['<=', 'created_at', $end_at])
+            ->andFilterWhere(['>=', 'created_at', $start_month])
+            ->andFilterWhere(['<=', 'created_at', $end_month])
+            ->andFilterWhere(['=', 'community_id', $param['community_id']])
+            ->andFilterWhere(['=', 'group_id', $param['group_id']])
+            ->andFilterWhere(['=', 'building_id', $param['building_id']])
+            ->andFilterWhere(['=', 'unit_id', $param['unit_id']]);   
 
         return $model;
     }
@@ -591,7 +553,7 @@ Class CommunityService extends BaseService
         $pageSize = !empty($param['rows']) ? $param['rows'] : 5;
 
         $model = $this->_searchComment($param)
-            ->orderBy('A.created_at desc')
+            ->orderBy('created_at desc')
             ->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
 
         return $model;

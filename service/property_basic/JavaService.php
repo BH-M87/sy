@@ -222,9 +222,13 @@ class JavaService extends BaseService
         $query['route'] = '/unit/unitTree';
         $result = self::returnCData($query);
         if(!empty($result['list'])){
-            foreach($result['list'] as $key=>$value){
+            foreach($result['list'] as $key=>&$value){
+                $value['title'] = $value['name'];
+                $value['value'] = $value['id'];
                 if(!empty($value['children'])){
-                    foreach($value['children'] as $ck=>$cv){
+                    foreach($value['children'] as $ck=>&$cv){
+                        $cv['title'] = $cv['name'];
+                        $cv['value'] = $cv['id'];
                         if(!empty($cv['children'])){
                             unset($result['list'][$key]['children'][$ck]['children']);
                         }
@@ -232,6 +236,13 @@ class JavaService extends BaseService
                 }
             }
         }
+        return $result;
+    }
+
+    // 获得单元树
+    public function unitTree_($query){
+        $query['route'] = '/unit/unitTree';
+        $result = self::returnCData($query);
         return $result;
     }
 
@@ -314,6 +325,12 @@ class JavaService extends BaseService
     public function corpBoard($query)
     {
         $query['route'] = '/sy/board/statistics/corpBoard';
+        return self::returnCData($query);
+    }
+
+    // 楼幢详情
+    public function buildingDetail($query){
+        $query['route'] = '/building/detail';
         return self::returnCData($query);
     }
 }

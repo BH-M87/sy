@@ -1,6 +1,7 @@
 <?php
 namespace service\property_basic;
 
+use app\models\PsSteWardTag;
 use common\core\F;
 use common\core\PsCommon;
 use common\MyException;
@@ -9,20 +10,20 @@ use service\BaseService;
 use service\rbac\OperateService;
 
 use app\models\PsCommunityBuilding;
-use app\models\PsCommunityRoominfo;
 use app\models\PsSteWard;
 use app\models\PsSteWardEvaluate;
 use app\models\PsSteWardRelat;
-use app\models\PsMember;
+use yii\db\Exception;
+use Yii;
 
 class StewardService extends BaseService
 {
     // 参数验证
     public function _checkBackendList($params)
     {
-        if (empty($params['community_id'])) {
-            throw new MyException('小区ID不能为空');
-        }
+//        if (empty($params['community_id'])) {
+//            throw new MyException('小区ID不能为空');
+//        }
 
         if (!empty($params['building_id'])) {
             if (is_array($params['building_id'])) {
@@ -47,7 +48,7 @@ class StewardService extends BaseService
 
         $this->checkSteward($params);
         // 获取管家信息
-        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise,sex')->where(['community_id' => $params['community_id'],'is_del'=>'1','id'=>$params['id']])->asArray()->one();
+        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise,sex,community_name')->where(['community_id' => $params['community_id'],'is_del'=>'1','id'=>$params['id']])->asArray()->one();
         $steward['negative'] = $steward['evaluate']-$steward['praise']; // 差评数量
         $steward_r[0] = $steward; // 方便遍历
         
@@ -67,21 +68,18 @@ class StewardService extends BaseService
         $page = !empty($p['page']) ? $p['page'] : 1;
         $rows = !empty($p['rows']) ? $p['rows'] : 10;
 
-        $stewardEvaluate = PsSteWardEvaluate::find()->alias('s')->select('s.*,r.group,r.building,r.unit,r.room,r.address')
-            ->innerJoin(['r' => PsCommunityRoominfo::tableName()], 's.room_id = r.id')
+        $stewardEvaluate = PsSteWardEvaluate::find()
             ->where(['steward_id' => $p['id']])
-            ->andFilterWhere(['=', 's.community_id', $p['community_id']])
-            ->andFilterWhere(['=', 's.steward_type', $p['steward_type']]);
+            ->andFilterWhere(['=', 'community_id', $p['community_id']])
+            ->andFilterWhere(['=', 'steward_type', $p['steward_type']]);
 
         $totals = $stewardEvaluate->count();
         $list = $stewardEvaluate->orderBy('create_at desc')
             ->offset(($page - 1) * $rows)
             ->limit($rows)
-            ->asArray()->all();;
+            ->asArray()->all();
         foreach ($list as &$v){
             $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
-            $v['user_mobile'] = F::processMobile(PsMember::userinfo($v['user_id'])['mobile']);
-            $v['user_name'] = PsMember::userinfo($v['user_id'])['name'];
         }
 
         return ['list' => $list, 'totals' => $totals];
@@ -91,13 +89,20 @@ class StewardService extends BaseService
     public function getBackendStewardList($params, $pageSize, $page)
     {
         $this->_checkBackendList($params);
-        $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex')->distinct()
-            ->filterWhere(['or', ['like', 'name', $params['name'] ?? null], ['like', 'mobile', $params['name'] ?? null]])
+        $stewatd = PsSteWard::find()->alias('s')->select('s.name,s.mobile,s.id,s.evaluate,s.praise,s.sex,s.community_id,s.community_name')->distinct()
+            ->filterWhere(['or', ['like', 's.name', $params['name'] ?? null], ['like', 's.mobile', $params['name'] ?? null]])
             ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')
-            ->filterWhere(['data_id' => $params['building_id'] ?? []])->andWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+            ->andFilterWhere(['r.building_id' => $params['building_id']])->andFilterWhere(['s.community_id' => $params['community_id']])->andWhere(['s.is_del' => 1]);
+        if(!empty($params['communityList'])){
+            $stewatd->andWhere(['in','s.community_id',$params['communityList']]);
+        }
         $count = $stewatd->count();
         if ($count > 0) {
-            $list = $stewatd->orderBy('id desc')->offset(($page - 1) * $pageSize)->limit($pageSize)->asArray()->all();
+            $allPage = ceil($count/$pageSize);
+            $page1 = $allPage>$page?$page:$allPage;
+//            $offset = ($page-1)*$pageSize;
+            $offset = ($page1-1)*$pageSize;
+            $list = $stewatd->orderBy('id desc')->offset($offset)->limit($pageSize)->asArray()->all();
             $this->getGroupBuildingInfo($list, []);
         }
 
@@ -108,10 +113,9 @@ class StewardService extends BaseService
     public function getGroupBuildingInfo(&$data, $building_id = null)
     {
         foreach ($data as $k => &$v) {
-            $building = PsSteWardRelat::find()->alias('s')->select('b.name,b.id,b.group_name,b.group_id')
-                ->innerJoin(['b' => PsCommunityBuilding::tableName()], 'b.id = s.data_id')
-                ->where(['s.steward_id' => $v['id'], 's.data_type' => 1])
-                ->filterWhere(['data_id' => $building_id])->asArray()->all();
+            $building = PsSteWardRelat::find()->select(['group_id','group_name','building_name','building_id',"concat(group_name,'',building_name) as merge_name"])
+                ->where(['steward_id' => $v['id']])
+                ->filterWhere(['building_id' => $building_id])->asArray()->all();
             $v['building_info'] = $building;
             $v['sex_desc'] = PsSteWard::$sex_info[$v['sex']];
             $v['praise_rate'] = $this->getPraiseRate($v['evaluate'], $v['praise']);
@@ -145,13 +149,34 @@ class StewardService extends BaseService
         $steward = $this->checkStewardBaseInfo($params);
         $trans = \Yii::$app->getDb()->beginTransaction();
         $info = null;
-        
+
         try {
             $steward->save();
-            foreach ($params['building_id'] as $v) {
-                $info[] = [$steward->id, 1, $v];
+
+            $javaService = new JavaService();
+            $javaParams['token'] = $params['token'];
+            $javaParams['id'] = $params['community_id'];
+            $javaResult = $javaService->unitTree_($javaParams);
+            if(!empty($javaResult['list'])){
+                foreach($params['buildings'] as $communityValue){
+                    foreach($javaResult['list'] as $key=>$value){
+                        foreach($value['children'] as $k=>$v){
+                            if($v['id'] == $communityValue){
+                                $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }else{
+                $this->failed("小区下不存在苑期区幢");
             }
-            $steward_relat->yiiBatchInsert(['steward_id', 'data_type', 'data_id'], $info);
+//            foreach ($params['groups'] as $key=>$value) {
+//                foreach($value['buildings'] as $k=>$v){
+//                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+//                }
+//            }
+            $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
                 "community_id" =>$params['community_id'],
                 "operate_menu" => "管家管理",
@@ -174,17 +199,38 @@ class StewardService extends BaseService
         $steward = $this->checkSteward($params);
         $trans = \Yii::$app->getDb()->beginTransaction();
         $info = null;
-        
         try {
             $steward->name = $params['name'];
             $steward->mobile = $params['mobile'];
             $steward->sex = $params['sex'];
             $steward->save();
-            foreach ($params['building_id'] as $v) {
-                $info[] = [$steward->id, 1, $v];
+
+            $javaService = new JavaService();
+            $javaParams['token'] = $params['token'];
+            $javaParams['id'] = $params['community_id'];
+            $javaResult = $javaService->unitTree_($javaParams);
+            if(!empty($javaResult['list'])){
+                foreach($params['buildings'] as $communityValue){
+                    foreach($javaResult['list'] as $key=>$value){
+                        foreach($value['children'] as $k=>$v){
+                            if($v['id'] == $communityValue){
+                                $info[] = [$steward->id, $value['id'],$value['name'],$v['id'],$v['name']];
+                                continue;
+                            }
+                        }
+                    }
+                }
+            }else{
+                $this->failed("小区下不存在苑期区幢");
             }
-            PsSteWardRelat::deleteAll(['data_type'=>1,'steward_id' => $steward->id]);
-            $steward_relat->yiiBatchInsert(['steward_id', 'data_type', 'data_id'], $info);
+
+//            foreach ($params['groups'] as $key=>$value) {
+//                foreach($value['buildings'] as $k=>$v){
+//                    $info[] = [$steward->id, $value['group_id'],$value['group_name'],$v['building_id'],$v['building_name']];
+//                }
+//            }
+            PsSteWardRelat::deleteAll(['steward_id' => $steward->id]);
+            $steward_relat->yiiBatchInsert(['steward_id', 'group_id', 'group_name','building_id','building_name'], $info);
             $operate = [
                 "community_id" =>$params['community_id'],
                 "operate_menu" => "管家管理",
@@ -280,24 +326,20 @@ class StewardService extends BaseService
     // 楼幢信息检查
     public function checkBuilding($params)
     {
-        if (empty($params['building_id']) || !is_array($params['building_id'])) {
-            throw new MyException('楼幢ID格式错误');
+        if (empty($params['buildings']) || !is_array($params['buildings'])) {
+            throw new MyException('楼幢格式错误');
         }
-        foreach ($params['building_id'] as $v) {
-            $building = PsCommunityBuilding::find()->where(['community_id' => $params['community_id'],'id' => $v])->limit(1)->one();
-            if (empty($building)) {
-                throw new MyException('楼幢非法ID');
-            } else {
-                $steward = PsSteWard::find()->alias('s')->select('s.id')
-                    ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.data_type' => 1,'r.data_id' => $v])->limit(1)->one();
-                if (!empty($steward)) {
-                    if (isset($params['id'])) { //新增场景
-                        if ($steward->id != $params['id']) {
-                            throw new MyException($building->group_name.$building->name.'已存在管家');
-                        }
-                    } else { //编辑场景
-                        throw new MyException($building->group_name.$building->name.'已存在管家');
+
+        foreach($params['buildings'] as $value){
+            $steward = PsSteWard::find()->alias('s')->select('s.id,r.group_name,r.building_name')
+                ->leftJoin(['r' => PsSteWardRelat::tableName()], 's.id = r.steward_id')->where(['s.is_del' => 1,'r.building_id' => $value])->asArray()->one();
+            if (!empty($steward)) {
+                if (isset($params['id'])) { //新增场景
+                    if ($steward['id'] != $params['id']) {
+                        throw new MyException($steward['group_name'].$steward['building_name'].'已存在管家');
                     }
+                } else { //编辑场景
+                    throw new MyException($steward['group_name'].$steward['building_name'].'已存在管家');
                 }
             }
         }
@@ -312,5 +354,220 @@ class StewardService extends BaseService
         } else {
             return '0%';
         }
+    }
+
+    //获取管家评价列表
+    public function stewardListOfC($params){
+        $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
+        $id = !empty($params['id']) ? $params['id'] : '';
+        $page = !empty($params['page']) ? $params['page'] : 1;
+        $rows = !empty($params['rows']) ? $params['rows'] : 10;
+        if (!$community_id || !$id) {
+            return $this->failed('参数错误！');
+        }
+        $list = [];
+        $sel = $this->_search($params);
+        $total = $this->_search($params)->count();
+        $resultAll = $sel->orderBy('create_at desc')
+            ->offset(($page - 1) * $rows)
+            ->limit($rows)
+            ->asArray()->all();
+        foreach ($resultAll as $result){
+            $result['create_at'] = date('Y-m-d H:i',$result['create_at']);
+            $list[] = $result;
+        }
+
+        return $this->success(['list'=>$list,'total'=>$total]);
+    }
+
+    //管家公用的搜索
+    public function _search($params){
+        return PsSteWardEvaluate::find()
+            ->where(['steward_id' => $params['id']])
+            ->andFilterWhere(['=', 'community_id', $params['community_id']])
+            ->andFilterWhere(['=', 'steward_type', $params['steward_type']]);
+    }
+
+    //获取管家详情
+    public function stewardInfoOfC($params){
+        $community_id = !empty($params['community_id']) ? $params['community_id'] : '';
+        $user_id = !empty($params['user_id']) ? $params['user_id'] : '';
+        $id = !empty($params['id']) ? $params['id'] : '';
+        if (!$community_id || !$id || !$user_id) {
+            return $this->failed('参数错误！');
+        }
+        //获取管家信息
+        $steward = PsSteWard::find()->select('id,name,mobile,evaluate,praise')->where(['community_id' => $community_id,'is_del'=>'1','id'=>$id])->asArray()->one();
+        if(empty($steward)){
+            return $this->failed('管家不存在！');
+        }
+        $steward['praise_rate'] = !empty($steward['evaluate'])?floor($steward['praise'] / $steward['evaluate'] * 100):'0';
+        //获取管家评价的标签排行榜,取前六条数据
+        $result =  PsSteWardEvaluate::find()->alias('eval')
+            ->select(['rela.tag_type as label_id,count(rela.id) as total'])
+            ->leftJoin(["rela"=>PsSteWardTag::tableName()], "eval.id=rela.evaluate_id")
+            ->where(['eval.steward_id' => $params['id']])
+            ->andFilterWhere(['=', 'eval.community_id', $community_id])
+            ->groupBy("rela.tag_type")
+            ->orderBy("total desc")
+            ->limit("6")->asArray()->all();
+        $label_list = [];
+        if(!empty($result)){
+            foreach ($result as $label){
+                $label['name'] = $this->getStewardLabel($label['label_id']);
+                $label_list[] = $label;
+            }
+        }
+        $steward['label'] = $label_list;
+        //获取好评差评参数
+        $steward['label_params'] = $this->getStewardLabel();
+        //获取用户当天有没有评价-好评
+        $praise_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $steward['praise_status'] = !empty($praise_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
+        //获取用户当天有没有评价-差评
+        $review_status = PsSteWardEvaluate::find()->where(['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>2])->andWhere(['>','create_at',strtotime(date('Y-m-d',time()))])->one();
+        $steward['review_status'] = !empty($review_status)?'1':'2';   //用户当天是否评价：1已评价，2没有
+        $steward['params'] = ['user_id'=>$user_id,'steward_id'=>$id,'community_id'=>$community_id,'steward_type'=>1,'creat'=>strtotime(date('Y-m-d',time()))];
+        return $this->success($steward);
+    }
+
+    //添加管家评价
+    public function addStewardOfC($params){
+
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $addParams['community_id'] = !empty($params['community_id']) ? $params['community_id'] : '';
+            $addParams['user_id'] = !empty($params['user_id']) ? $params['user_id'] : '';
+            $addParams['user_name'] = !empty($params['user_name']) ? $params['user_name'] : '';
+            $addParams['user_mobile'] = !empty($params['user_mobile']) ? $params['user_mobile'] : '';
+            $addParams['room_id'] = !empty($params['room_id']) ? $params['room_id'] : '';
+            $addParams['room_address'] = !empty($params['room_address']) ? $params['room_address'] : '';
+            $addParams['label_id'] = !empty($params['label_id']) ? $params['label_id'] : '';
+            $addParams['steward_id'] = !empty($params['steward_id']) ? $params['steward_id'] : '';
+            $addParams['steward_type'] = !empty($params['steward_type']) ? $params['steward_type'] : '';     //1表扬 2批评
+            $addParams['content'] = !empty($params['content']) ? $params['content'] : '';
+            $addParams['avatar'] = !empty($params['avatar']) ? $params['avatar'] : '';
+
+            $model = new PsSteWardEvaluate(['scenario'=>'add']);
+            if($model->load($addParams,'')&&$model->validate()){
+                //获得java会员信息
+                $javaService = new JavaOfCService();
+                $javaParams['token'] = $params['token'];
+                $result = $javaService->memberBase($javaParams);
+                $avatar = !empty($result['avatar'])?$result['avatar']:'';
+
+                $info = '';
+                foreach ($addParams['label_id'] as $label){
+                    $info.=$this->getStewardLabel($label).',';
+                }
+                $info = substr($info, 0, -1);
+                if(!$model->save()){
+                    return $this->failed('新增失败！');
+                }
+                $content = !empty($addParams['content'])?$info.','.$addParams['content']:$info;
+                PsSteWardEvaluate::updateAll(['content'=>$content,'avatar'=>$avatar],['id'=>$model->id]);
+                //更新管家的评价数量
+                $ward = PsSteWard::model()->find()->where(['id'=>$model->steward_id])->one();
+                $ward->evaluate=$ward->evaluate+1;
+                if($addParams['steward_type']==1){
+                    $ward->praise=$ward->praise+1;
+                }
+                $ward->save();
+
+                //保存标签
+                $stewardTag = new PsSteWardTag();
+                $tagInfo = [];
+                foreach($addParams['label_id'] as $value){
+                    $tagInfo[] = [$model->steward_id, $model->id,$value];
+                }
+                $stewardTag->yiiBatchInsert(['steward_id', 'evaluate_id', 'tag_type'], $tagInfo);
+                $trans->commit();
+                return $this->success(['id'=>$model->attributes['id']]);
+            }else{
+                $msg = array_values($model->errors)[0][0];
+                return $this->failed($msg);
+            }
+        }catch (Exception $e) {
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
+        }
+    }
+
+
+    public static function getStewardLabel($index = 0)
+    {
+        //好评
+        $praise =  [
+            ["key" => "1", "name" => "态度好服务棒"],
+            ["key" => "2", "name" => "神准时"],
+            ["key" => "3", "name" => "服务规范"],
+            ["key" => "4", "name" => "诚恳心善"],
+            ["key" => "5", "name" => "专业细心"],
+            ["key" => "6", "name" => "文明礼貌"],
+            ["key" => "7", "name" => "全程跟进"],
+
+        ];
+        //差评
+        $negative =  [
+            ["key" => "50", "name" => "态度恶劣"],
+            ["key" => "51", "name" => "响应速度慢"],
+            ["key" => "52", "name" => "敷衍马虎"],
+            ["key" => "53", "name" => "没有责任心"],
+            ["key" => "54", "name" => "有待提高"],
+            ["key" => "55", "name" => "服务不规范"],
+        ];
+        if(!empty($index)){
+            //合并两个数组-数据查不到就设置为空   '-'
+            $label_list = array_merge($praise,$negative);
+            foreach ($label_list as $list){
+                if($list['key']==$index){
+                    return $list['name'];break;
+                }
+            }
+            return '-';
+        }else{
+            $label['praise'] = $praise;
+            $label['negative'] = $negative;
+            return $label;
+        }
+    }
+
+    /*
+     * 用户管家列表
+     */
+    public function userStewardListOfC($params){
+
+        if(empty($params['community_id'])){
+            return $this->failed("小区id必填");
+        }
+
+        $javaService = new JavaOfCService();
+        $javaParams['token'] = $params['token'];
+        $javaResult = $javaService->myRoomList($javaParams);
+        $builds = [];
+        if(!empty($javaResult['certifiedList'])){
+            foreach($javaResult['certifiedList'] as $key=>$value){
+                if($value['communityId'] == $params['community_id']){
+                    array_push($builds,$value['buildingId']);
+                }
+            }
+        }
+        $data  = [];
+        if(!empty($builds)){
+            //获得管家列表
+            $fields = ['s.id','s.name','s.mobile','s.evaluate','s.praise','b.group_name','b.building_name'];
+            $model = PsSteWard::find()->alias('s')->select($fields)
+                        ->leftJoin(['b'=>PsSteWardRelat::tableName()],'b.steward_id=s.id')
+                        ->where(['s.community_id' => $params['community_id'],'s.is_del'=>'1'])
+                        ->andWhere(['in','b.building_id',$builds])->asArray()->all();
+            if(!empty($model)){
+                foreach($model as $key=>$value){
+                    $model[$key]['praise_rate'] = !empty($value['evaluate'])?floor($value['praise'] / $value['evaluate'] * 100):'0';
+                    $model[$key]['merge_build'] = $value['group_name'].$value['building_name'];
+                    $data[] = $model[$key];
+                }
+            }
+        }
+        return $this->success(['steward'=>$data]);
     }
 }
