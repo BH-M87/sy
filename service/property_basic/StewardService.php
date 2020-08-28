@@ -464,7 +464,7 @@ class StewardService extends BaseService
                 if(!$model->save()){
                     return $this->failed('新增失败！');
                 }
-                $content = !empty($content)?$info.','.$content:$info;
+                $content = !empty($addParams['content'])?$info.','.$addParams['content']:$info;
                 PsSteWardEvaluate::updateAll(['content'=>$content,'avatar'=>$avatar],['id'=>$model->id]);
                 //更新管家的评价数量
                 $ward = PsSteWard::model()->find()->where(['id'=>$model->steward_id])->one();
