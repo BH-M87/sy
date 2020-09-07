@@ -265,7 +265,10 @@ class PrintController extends BaseController
 //            $filePath = F::originalFile().'temp/'.$fileName;
 //            $day = date('Y-m-d');
 //            $downUrl = F::downloadUrl($fileName, 'temp', 'DunningNote.csv');
-            $downUrl = F::downloadUrl($fileName, 'temp', '催缴单.csv');
+            $newFileName = explode('/',$fileName);
+            $savePath = \Yii::$app->basePath . '/web/store/excel/temp/'.$newFileName[0]."/";
+            $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
+//            $downUrl = F::downloadUrl($fileName, 'temp', '催缴单.csv');
 //            $fileRe = F::uploadFileToOss($filePath);
 //            $url = $fileRe['filepath'];
             //保存日志
@@ -275,6 +278,7 @@ class PrintController extends BaseController
                 "operate_content" => ''
             ];
             OperateService::addComm($this->user_info, $log);
+
 
             return PsCommon::responseSuccess(['down_url' => $downUrl]);
         } else {

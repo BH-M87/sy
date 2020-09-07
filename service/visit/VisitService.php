@@ -332,8 +332,10 @@ class VisitService extends BaseService
         ];
 
         $filename = CsvService::service()->saveTempFile(1, $config, $r['list'], 'visitor');
-        $downUrl = F::downloadUrl($filename, 'temp', 'visitor.csv');
-
+//        $downUrl = F::downloadUrl($filename, 'temp', 'visitor.csv');
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/temp/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
         return ["down_url" => $downUrl];
     }
 

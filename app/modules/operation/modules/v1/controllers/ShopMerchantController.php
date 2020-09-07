@@ -154,12 +154,13 @@ class ShopMerchantController extends BaseController {
                     $config["save_path"] = $savePath;
                     //房屋数量查过一千则导出压缩文件
                     if ($cycle == 1) {//下载单个文件
-                        $config["file_name"] = "MuBan1.xlsx";
+                        $config["file_name"] = "MuBan1".F::generateName("xlsx");
                         $params['page'] = 1;
                         $params['pageSize'] = 1000;
                         $result = $service->merchantList($params);
                         $file_name = ExcelService::service()->recordDown($result['data']['list'], $config);
-                        $downUrl = F::downloadUrl('shop/' . $date . '/'. $file_name, 'zip');
+                        //$downUrl = F::downloadUrl('shop/' . $date . '/'. $file_name, 'zip');
+                        $downUrl = F::uploadExcelToOss($file_name, $savePath);
                         return PsCommon::responseSuccess(['down_url' => $downUrl]);
                     } else {//下载zip压缩包
                         for ($i = 1; $i <= $cycle; $i++) {
@@ -170,9 +171,11 @@ class ShopMerchantController extends BaseController {
                             $config["file_name"] = "MuBan" . $i . ".xlsx";
                             ExcelService::service()->recordDown($result['data']['list'], $config);
                         }
-                        $path = $savePath . 'merchant.zip';
+                        $fileName = "merchant".F::generateName('zip');
+                        $path = $savePath . $fileName;
                         ExcelService::service()->addZip($savePath, $path);
-                        $downUrl = F::downloadUrl('shop/'.$date.'/merchant.zip', 'zip');
+                        //$downUrl = F::downloadUrl('shop/'.$date.'/merchant.zip', 'zip');
+                        $downUrl = F::uploadExcelToOss($fileName, $savePath);
                         return PsCommon::responseSuccess(['down_url' => $downUrl]);
                     }
                 } else {

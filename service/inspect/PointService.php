@@ -281,12 +281,13 @@ class PointService extends BaseService
                     return PsCommon::responseFailed('二维码不存在');
                 }
             }
-
-            $path = $savePath . 'qrcode.zip';
+            $fileName = "qrcode".F::generateName('zip');
+            $path = $savePath . $fileName;
+//            $path = $savePath . 'qrcode.zip';
             ExcelService::service()->addZip($savePath, $path);
 
-            $downUrl = F::downloadUrl('inspect/'.$time.'/qrcode.zip', 'zip');
-
+//            $downUrl = F::downloadUrl('inspect/'.$time.'/qrcode.zip', 'zip');
+            $downUrl = F::uploadExcelToOss($fileName, $savePath);
             return ['down_url' => $downUrl];
         } else {
             return PsCommon::responseFailed("巡检点id必须是数组格式！");

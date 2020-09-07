@@ -296,6 +296,15 @@ class F
         }
     }
 
+    /**
+     * 创建新的文件名称(以时间区分)
+     */
+    public static function generateName($ext)
+    {
+        list($msec, $sec) = explode(' ', microtime());
+        $msec = round($msec, 3) * 1000;//获取毫秒
+        return date('YmdHis') . $msec . rand(100, 999) . '.' . $ext;
+    }
 
     //获取完整链接，不带get参数
     public static function getAbsoluteUrl()
