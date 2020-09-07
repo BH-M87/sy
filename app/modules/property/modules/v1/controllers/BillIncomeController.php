@@ -173,8 +173,8 @@ Class BillIncomeController extends BaseController
         $getTotals = BillIncomeService::service()->billIncomeCount($this->request_params);
         if ($getTotals > 0) {
 
-//            $cycle = ceil($getTotals / 1000);
-            $cycle = ceil($getTotals / 10);
+            $cycle = ceil($getTotals / 1000);
+//            $cycle = ceil($getTotals / 10);
             $config["sheet_config"] = [
 
                 'A' => ['title' => '交易流水号', 'width' => 25, 'data_type' => 'str', 'field' => 'trade_no'],
@@ -207,8 +207,7 @@ Class BillIncomeController extends BaseController
                 for ($i = 1; $i <= $cycle; $i++) {
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     $this->request_params['page'] = $i;
-//                    $this->request_params['rows'] = 1000;
-                    $this->request_params['rows'] = 10;
+                    $this->request_params['rows'] = 1000;
                     $result = BillIncomeService::service()->billIncomeList($this->request_params);
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     ExcelService::service()->recordDown($result, $config);
