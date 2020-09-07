@@ -1891,7 +1891,10 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
 //        $filePath = F::originalFile().'error/'.$filename;
 //        $fileRe = F::uploadFileToOss($filePath);
 //        $downUrl = $fileRe['filepath'];
-        $downUrl = F::downloadUrl($filename, 'error', 'Error.csv');
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/error/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
+//        $downUrl = F::downloadUrl($filename, 'error', 'Error.csv');
         return $downUrl;
     }
     //===============================================End账单列表批量收款功能相关========================================
