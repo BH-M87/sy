@@ -511,7 +511,10 @@ Class AlipayCostController extends BaseController
 //        $filePath = F::originalFile().'temp/'.$filename;
 //        $fileRe = F::uploadFileToOss($filePath);
 //        $downUrl = $fileRe['filepath'];
-        $downUrl = F::downloadUrl($filename, 'temp', 'BillAmount.csv');
+//        $downUrl = F::downloadUrl($filename, 'temp', 'BillAmount.csv');
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/temp/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 

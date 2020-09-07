@@ -274,7 +274,8 @@ class RecordService extends BaseService {
         $config["save_path"] = $savePath;
         //房屋数量查过一千则导出压缩文件
         if ($cycle == 1) {//下载单个文件
-            $config["file_name"] = "Task1.xlsx";
+//            $config["file_name"] = "Task1.xlsx";
+            $config["file_name"] = 'task'.F::generateName("xlsx");
             $params['page'] = 1;
             $params['pageSize'] = 1000;
             $params['sort'] = SORT_DESC;
@@ -294,10 +295,11 @@ class RecordService extends BaseService {
                 $result = self::recordList($params);
                 ExcelService::service()->recordDown($result["list"], $config);
             }
-            $path = $savePath . 'recordTask.zip';
+            $fileName = "recordTask".F::generateName('zip');
+            $path = $savePath . $fileName;
             ExcelService::service()->addZip($savePath, $path);
 //            $downUrl = F::downloadUrl('record/'.'recordTask.zip', 'zip');
-            $downUrl = F::uploadExcelToOss("recordTask.zip", $savePath);
+            $downUrl = F::uploadExcelToOss($fileName, $savePath);
             return PsCommon::responseSuccess(['down_url' => $downUrl]);
         }
     }
