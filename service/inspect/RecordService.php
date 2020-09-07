@@ -280,7 +280,9 @@ class RecordService extends BaseService {
             $params['sort'] = SORT_DESC;
             $result = self::recordList($params);
             $file_name = ExcelService::service()->recordDown($result["list"], $config);
-            $downUrl = F::downloadUrl('record/' .  $file_name, 'zip');
+//            $downUrl = F::downloadUrl('record/' .  $file_name, 'zip');
+            //上传文件到oss
+            $downUrl = F::uploadExcelToOss($file_name, $savePath);
             return PsCommon::responseSuccess(['down_url' => $downUrl]);
         } else {//下载zip压缩包
             self::delDir($savePath);
@@ -294,7 +296,8 @@ class RecordService extends BaseService {
             }
             $path = $savePath . 'recordTask.zip';
             ExcelService::service()->addZip($savePath, $path);
-            $downUrl = F::downloadUrl('record/'.'recordTask.zip', 'zip');
+//            $downUrl = F::downloadUrl('record/'.'recordTask.zip', 'zip');
+            $downUrl = F::uploadExcelToOss("recordTask.zip", $savePath);
             return PsCommon::responseSuccess(['down_url' => $downUrl]);
         }
     }

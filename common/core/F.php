@@ -255,6 +255,48 @@ class F
         return self::getAbsoluteUrl() . '/' . $module . '/download?data=' . json_encode($data);
     }
 
+    /*
+     * 上传文件到oss
+     * input:
+     *  fileName 文件名称
+     *  local     本地地址
+     */
+    public static function uploadExcelToOss($fileName, $local){
+        $accessKeyId = \Yii::$app->params['platForm_oss_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['platForm_oss_secret_key_id'];
+        $endpoint = \Yii::$app->params['platForm_oss_domain'];
+        $bucket = \Yii::$app->params['platForm_oss_bucket'];
+        try{
+            $object = $fileName;
+            $filePath = $local.$fileName;
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            $ossClient->uploadFile($bucket, $object, $filePath);
+            @unlink($filePath);
+//            //下载
+//            $localFile = Yii::$app->basePath . '/web/store/'.$type.'/record/'.$fileName;
+//            $options = array(
+//                OssClient::OSS_FILE_DOWNLOAD => $localFile
+//            );
+//            $downResult = $ossClient->getObject($bucket, $object, $options);
+//            print_r($downResult);die;
+        } catch(OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+
+        // 设置URL的有效期为3600秒。
+        $timeout = 3600;
+        $signedUrl = '';
+        try {
+            $ossClient = new OssClient($accessKeyId, $accessKeySecret, $endpoint);
+            // 生成GetObject的签名URL。
+            $signedUrl = $ossClient->signUrl($bucket, $fileName, $timeout);
+            return $signedUrl;
+        } catch (OssException $e) {
+            throw new MyException($e->getMessage());
+        }
+    }
+
+
     //获取完整链接，不带get参数
     public static function getAbsoluteUrl()
     {
