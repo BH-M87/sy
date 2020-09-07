@@ -477,7 +477,10 @@ class RepairService extends BaseService
             ['title' => '处理人', 'field' => 'operator_name'],
         ];
         $filename = CsvService::service()->saveTempFile(1, $config, $result['list'], 'GongDan');
-        $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');                
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/temp/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
+//        $downUrl = F::downloadUrl($filename, 'temp', 'GongDan.csv');                
         return $downUrl;
     }
 
