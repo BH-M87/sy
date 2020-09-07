@@ -284,7 +284,6 @@ class RecordService extends BaseService {
 //            $downUrl = F::downloadUrl('record/' .  $file_name, 'zip');
             //上传文件到oss
             $downUrl = F::uploadExcelToOss($file_name, $savePath);
-            error_log('['.date('Y-m-d H:i:s').']'.PHP_EOL .' url:'.$downUrl.PHP_EOL,3,Yii::$app->basePath.'/runtime/logs/zhou.log');
             return PsCommon::responseSuccess(['down_url' => $downUrl]);
         } else {//下载zip压缩包
             self::delDir($savePath);

@@ -103,12 +103,15 @@ Class BillIncomeController extends BaseController
             $config["save_path"] = $savePath;
             //房屋数量查过一千则导出压缩文件
             if ($cycle == 1) {//下载单个文件
-                $config["file_name"] = "MuBan1.xlsx";
+//                $config["file_name"] = "MuBan1.xlsx";
+                $config["file_name"] = 'MuBan'.F::generateName("xlsx");
                 $this->request_params['page'] = 1;
                 $this->request_params['rows'] = 1000;
                 $result = BillIncomeService::service()->billIncomeList($this->request_params);
                 $file_name = ExcelService::service()->recordDown($result, $config);
-                $downUrl = F::downloadUrl('jiaofeijilu/' . $community_id . '/'. $file_name, 'zip');
+//                $downUrl = F::downloadUrl('jiaofeijilu/' . $community_id . '/'. $file_name, 'zip');
+                //上传文件到oss
+                $downUrl = F::uploadExcelToOss($file_name, $savePath);
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             } else {//下载zip压缩包
                 for ($i = 1; $i <= $cycle; $i++) {
@@ -119,9 +122,11 @@ Class BillIncomeController extends BaseController
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     ExcelService::service()->recordDown($result, $config);
                 }
+                $fileName = "jiaofei".F::generateName('zip');
                 $path = $savePath . 'jiaofei.zip';
                 ExcelService::service()->addZip($savePath, $path);
-                $downUrl = F::downloadUrl('jiaofeijilu/'.$community_id.'/jiaofei.zip', 'zip');
+//                $downUrl = F::downloadUrl('jiaofeijilu/'.$community_id.'/jiaofei.zip', 'zip');
+                $downUrl = F::uploadExcelToOss($fileName, $savePath);
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             }
         } else {
