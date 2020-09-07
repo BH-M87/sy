@@ -123,7 +123,7 @@ Class BillIncomeController extends BaseController
                     ExcelService::service()->recordDown($result, $config);
                 }
                 $fileName = "jiaofei".F::generateName('zip');
-                $path = $savePath . 'jiaofei.zip';
+                $path = $savePath . $fileName;
                 ExcelService::service()->addZip($savePath, $path);
 //                $downUrl = F::downloadUrl('jiaofeijilu/'.$community_id.'/jiaofei.zip', 'zip');
                 $downUrl = F::uploadExcelToOss($fileName, $savePath);
@@ -173,8 +173,8 @@ Class BillIncomeController extends BaseController
         $getTotals = BillIncomeService::service()->billIncomeCount($this->request_params);
         if ($getTotals > 0) {
 
-            $cycle = ceil($getTotals / 1000);
-//            $cycle = ceil($getTotals / 10);
+//            $cycle = ceil($getTotals / 1000);
+            $cycle = ceil($getTotals / 10);
             $config["sheet_config"] = [
 
                 'A' => ['title' => '交易流水号', 'width' => 25, 'data_type' => 'str', 'field' => 'trade_no'],
@@ -194,25 +194,30 @@ Class BillIncomeController extends BaseController
             $config["save_path"] = $savePath;
             //房屋数量查过一千则导出压缩文件
             if ($cycle == 1) {//下载单个文件
-                $config["file_name"] = "MuBan1.xlsx";
+//                $config["file_name"] = "MuBan1.xlsx";
+                $config["file_name"] = 'MuBan'.F::generateName("xlsx");
                 $this->request_params['page'] = 1;
                 $this->request_params['rows'] = 1000;
                 $result = BillIncomeService::service()->billIncomeList($this->request_params);
                 $file_name = ExcelService::service()->recordDown($result, $config);
-                $downUrl = F::downloadUrl('hexiaojilu/' . $community_id . '/'. $file_name, 'zip');
+//                $downUrl = F::downloadUrl('hexiaojilu/' . $community_id . '/'. $file_name, 'zip');
+                $downUrl = F::uploadExcelToOss($file_name, $savePath);
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             } else {//下载zip压缩包
                 for ($i = 1; $i <= $cycle; $i++) {
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     $this->request_params['page'] = $i;
-                    $this->request_params['rows'] = 1000;
+//                    $this->request_params['rows'] = 1000;
+                    $this->request_params['rows'] = 10;
                     $result = BillIncomeService::service()->billIncomeList($this->request_params);
                     $config["file_name"] = "MuBan" . $i . ".xlsx";
                     ExcelService::service()->recordDown($result, $config);
                 }
-                $path = $savePath . 'hexiao.zip';
+                $fileName = "hexiao".F::generateName('zip');
+                $path = $savePath . $fileName;
                 ExcelService::service()->addZip($savePath, $path);
-                $downUrl = F::downloadUrl('hexiaojilu/'.$community_id.'/hexiao.zip', 'zip');
+//                $downUrl = F::downloadUrl('hexiaojilu/'.$community_id.'/hexiao.zip', 'zip');
+                $downUrl = F::uploadExcelToOss($fileName, $savePath);
                 return PsCommon::responseSuccess(['down_url' => $downUrl]);
             }
         } else {
