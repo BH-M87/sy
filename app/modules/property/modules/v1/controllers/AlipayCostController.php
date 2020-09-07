@@ -401,10 +401,11 @@ Class AlipayCostController extends BaseController
         $day = date('Y-m-d');
         $savePath = Yii::$app->basePath . '/web/store/excel/temp/'.$day.'/';
         $config["save_path"] = $savePath;
-        $config["file_name"] = uniqid() . ".xlsx";
+//        $config["file_name"] = uniqid() . ".xlsx";
+        $config["file_name"] = 'MuBan'.F::generateName("xlsx");
         $file_name = ExcelService::service()->payBill($config);
-        $downUrl = F::downloadUrl($day . '/' . $file_name, 'temp', 'MuBan.xlsx');
-
+        $downUrl = F::uploadExcelToOss($file_name, $savePath);
+//        $downUrl = F::downloadUrl($day . '/' . $file_name, 'temp', 'MuBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
