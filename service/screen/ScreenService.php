@@ -20,6 +20,61 @@ use service\property_basic\JavaNewService;
 class ScreenService extends BaseService
 {
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
+    // 统计报表
+    public function report($p)
+    {
+        
+        
+        $r['repair']['repairTotal'] = 100;
+        $r['repair']['finishTotal'] = 90;
+        $r['repair']['hardTotal'] = 10;
+
+        $r['people']['total'] = 12345;
+        $r['people']['visit'] = 4500;
+        $r['people']['peopleList'] = [
+            ['value' => '10', 'name' => '流动人口'],
+            ['value' => '5', 'name' => '户籍人口'],
+            ['value' => '15', 'name' => '境外人员'],
+            ['value' => '25', 'name' => '临时人员'],
+        ];
+        
+        $r['car']['carIn'] = 100;
+        $r['car']['carOut'] = 120;
+        $r['car']['carList'] = [
+            ['name' => '进入车辆', 'type' => 'line', 'stack' => '总量', 'data' => [320, 332, 301, 334, 390, 334, 390]],
+            ['name' => '离开车辆', 'type' => 'line', 'stack' => '总量', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+        ];
+
+        $r['device'] = [
+            'doorTotal' => 99,
+            'stopTotal' => 99,
+            'wellCover' => 99,
+            'environment' => 99,
+            'water' => 99,
+            'charge' => 99,
+            'fire' => 99,
+            'video' => 99,
+            'people' => 99,
+            'stop' => 99,
+            'lift' => 99,
+            'trash' => 99,
+        ];
+
+        return $r;
+    }
+
+    // 服务评价
+    public function comment($p)
+    {
+        $r['total'] = 10;
+        $r['avg'] = 4.0;
+        $r['commentList'] = [ // 服务评价
+            ['name' => '服务评价', 'type' => 'bar', 'barWidth' => 20, 'data' => [10, 52, 200, 334, 390]],
+        ];
+
+        return $r;
+    }
+
     // 大屏
     public function index($p)
     {   

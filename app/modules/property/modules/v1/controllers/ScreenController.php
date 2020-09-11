@@ -9,6 +9,22 @@ use service\screen\ScreenService;
 
 class ScreenController extends BaseController
 {
+    // 统计报表 
+    public function actionReport()
+    {
+        $result = ScreenService::service()->report($this->request_params);
+        
+        PsCommon::responseSuccess($result);
+    }
+
+    // 服务评价 
+    public function actionComment()
+    {
+        $result = ScreenService::service()->comment($this->request_params);
+        
+        PsCommon::responseSuccess($result);
+    }
+
     // 大屏 
     public function actionIndex()
     {
