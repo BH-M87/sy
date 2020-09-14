@@ -40,9 +40,10 @@ class ScreenService extends BaseService
         
         $r['car']['carIn'] = 100;
         $r['car']['carOut'] = 120;
+        $r['car']['carTime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
         $r['car']['carList'] = [
-            ['name' => '进入车辆', 'type' => 'line', 'stack' => '总量', 'data' => [320, 332, 301, 334, 390, 334, 390]],
-            ['name' => '离开车辆', 'type' => 'line', 'stack' => '总量', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => [320, 332, 301, 334, 390, 334, 390]],
+            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => [220, 182, 191, 234, 290, 334, 390]],
         ];
 
         $r['device'] = [
