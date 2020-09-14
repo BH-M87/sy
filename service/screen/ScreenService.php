@@ -14,6 +14,8 @@ use service\inspect\RecordService;
 
 use app\models\PsRepair;
 use app\models\PsInspectRecord;
+use app\models\PsCommunityComment;
+use app\models\PsCommunityCommentDetail;
 
 use service\property_basic\JavaNewService;
 
@@ -67,12 +69,49 @@ class ScreenService extends BaseService
     // 服务评价
     public function comment($p)
     {
-        $r['total'] = 10;
-        $r['avg'] = 4.0;
-        $r['commentList'] = [ // 服务评价
-            ['name' => '服务评价', 'type' => 'bar', 'barWidth' => 20, 'data' => [10, 52, 200, 334, 390]],
-        ];
+        $arr = explode('/', $p['month']);
+        $comment_year = $arr['0'];
+        $comment_month = $arr['1'];
 
+        $detail = PsCommunityCommentDetail::find()->select('count(id) c, score')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $comment_year])
+            ->andFilterWhere(['=', 'comment_month', $comment_month])
+            ->groupBy('score')->asArray()->all();
+        $data = [0,0,0,0,0];
+        if (!empty($detail)) {
+            foreach ($detail as $k => $v) {
+                switch ($v['score']) {
+                    case '1.0':
+                        $data[0] = (int)$v['c'];
+                        break;
+                    case '2.0':
+                        $data[1] = (int)$v['c'];
+                        break;
+                    case '3.0':
+                        $data[2] = (int)$v['c'];
+                        break;
+                    case '4.0':
+                        $data[3] = (int)$v['c'];
+                        break;
+                    case '5.0':
+                        $data[4] = (int)$v['c'];
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        $r = PsCommunityComment::find()->select('score avg, total')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $comment_year])
+            ->andFilterWhere(['=', 'comment_month', $comment_month])->asArray()->one();
+
+        $r['commentList'] = [ // 服务评价
+            ['name' => '服务评价', 'type' => 'bar', 'barWidth' => 20, 'data' => $data],
+        ];
+        
         return $r;
     }
 
