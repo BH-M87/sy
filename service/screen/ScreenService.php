@@ -106,6 +106,9 @@ class ScreenService extends BaseService
             ->andFilterWhere(['=', 'comment_year', $comment_year])
             ->andFilterWhere(['=', 'comment_month', $comment_month])->asArray()->one();
 
+        $r['avg'] = $r['avg'] ?? "0";
+        $r['total'] = $r['total'] ?? "0";
+
         $r['commentList'] = [ // 服务评价
             ['name' => '服务评价', 'type' => 'bar', 'barWidth' => 20, 'data' => $data],
         ];
