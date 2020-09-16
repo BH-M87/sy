@@ -25,40 +25,82 @@ class ScreenService extends BaseService
     // 统计报表
     public function report($p)
     {
+        $community_id = '1284053287097896961';
+        
         $r['repair']['repairTotal'] = PsRepair::find()->where(['community_id' => $p['community_id']])->count();
         $r['repair']['finishTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'status' => 3])->count();
         $r['repair']['hardTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'hard_type' => 2])->count();
 
+        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+
         $r['people']['total'] = 12345;
         $r['people']['visit'] = 4500;
-        $r['people']['peopleList'] = [
-            ['value' => '10', 'name' => '流动人口'],
-            ['value' => '5', 'name' => '户籍人口'],
-            ['value' => '15', 'name' => '境外人员'],
-            ['value' => '25', 'name' => '临时人员'],
-        ];
-        
-        $r['car']['carIn'] = 100;
-        $r['car']['carOut'] = 120;
-        $r['car']['carTime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        $r['people']['peopleList'] = $person;
+
+        $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
+
+        $r['car']['carIn'] = $car['carIn'] ?? 0;
+        $r['car']['carOut'] = $car['carOut'] ?? 0;
+        $r['car']['carTime'] = $car['carTime'];
         $r['car']['carList'] = [
-            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => [320, 332, 301, 334, 390, 334, 390]],
-            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value']],
+            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value']],
         ];
 
+        $device = JavaNewService::service()->javaPost('/sy/board/statistics/deviceBoard',['communityId' => $community_id])['data'];
+    
+        if ($device['deviceList']) {
+            foreach ($device['deviceList'] as $k => $v) {
+                switch ($v['name']) {
+                    case '智能井盖':
+                        $wellCover = $v['value'];
+                        break;
+                    case '环境监测':
+                        $environment = $v['value'];
+                        break;
+                    case '给排水':
+                        $water = $v['value'];
+                        break;
+                    case '充电桩':
+                        $charge = $v['value'];
+                        break;
+                    case '智能电梯':
+                        $lift = $v['value'];
+                        break;
+                    case '智能消防':
+                        $fire = $v['value'];
+                        break;
+                    case '视频监控':
+                        $video = $v['value'];
+                        break;
+                    case '人行门禁':
+                        $people = $v['value'];
+                        break;
+                    case '停车道闸':
+                        $stop = $v['value'];
+                        break;
+                    case '智能垃圾桶':
+                        $trash = $v['value'];
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
         $r['device'] = [
-            'doorTotal' => 99,
-            'stopTotal' => 99,
-            'wellCover' => 99,
-            'environment' => 99,
-            'water' => 99,
-            'charge' => 99,
-            'fire' => 99,
-            'video' => 99,
-            'people' => 99,
-            'stop' => 99,
-            'lift' => 99,
-            'trash' => 99,
+            'doorTotal' => $device['accessControlCount'],
+            'stopTotal' => $device['gateCount'],
+            'wellCover' => $wellCover ?? 0,
+            'environment' => $environment ?? 0,
+            'water' => $water ?? 0,
+            'charge' => $charge ?? 0,
+            'fire' => $fire ?? 0,
+            'video' => $video ?? 0,
+            'people' => $people ?? 0,
+            'stop' => $stop ?? 0,
+            'lift' => $lift ?? 0,
+            'trash' => $trash ?? 0,
         ];
 
         return $r;
