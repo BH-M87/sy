@@ -33,8 +33,10 @@ class ScreenService extends BaseService
 
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
 
-        $r['people']['total'] = 12345;
-        $r['people']['visit'] = 4500;
+        $r['people']['total'] = $person[4]['value'];
+        $r['people']['visit'] = $person[5]['value'];
+        unset($person[4]);
+        unset($person[5]);
         $r['people']['peopleList'] = $person;
 
         $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
