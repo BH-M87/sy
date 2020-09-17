@@ -25,7 +25,7 @@ class ScreenService extends BaseService
     // 统计报表
     public function report($p)
     {
-        $community_id = '1284053287097896961';
+        //$community_id = '1284053287097896961';
         
         $r['repair']['repairTotal'] = PsRepair::find()->where(['community_id' => $p['community_id']])->count();
         $r['repair']['finishTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'status' => 3])->count();
