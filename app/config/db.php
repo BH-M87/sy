@@ -3,9 +3,9 @@ switch (YII_ENV) {
     case  "master":
         return [
             'class' => 'yii\db\Connection',
-            'dsn' => 'mysql:host= jdbc:mysql://10.23.183.227;dbname=property_sy',
-            'username' => 'dbroot',
-            'password' => 'Vl5a7jQFlnbpOPvX',
+            'dsn' => 'mysql:host=rm-bp1up05n7675il875.mysql.rds.aliyuncs.com;dbname=property_sy',
+            'username' => 'shj',
+            'password' => 'SHJ2017zhujia!@#',
             'charset' => 'utf8',
             'attributes' => [
                 PDO::ATTR_EMULATE_PREPARES => true,

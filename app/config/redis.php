@@ -12,10 +12,10 @@ switch (YII_ENV) {
     case "test":
         return [
             'class'=>'yii\redis\Connection',
-            'hostname'=>'10.23.183.226',
+            'hostname'=>'121.196.219.40',
             'port'=>6379,
             'database'=> 0,
-            'password' => '80Odf3+b!4l<'
+            'password' => 'ShenjianCun246'
         ];
         break;
     case "dev":
