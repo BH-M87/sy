@@ -34,16 +34,13 @@ class ScreenService extends BaseService
 
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
 
-        $r['people']['total'] = $person[4]['value'] ?? 0;
-        $r['people']['visit'] = $person[5]['value'] ?? 0;
-        unset($person[4]);
-        unset($person[5]);
-        $r['people']['peopleList'] = $person;
+        $r['people']['total'] = $person['totalPersonCount'] ?? 0;
+        $r['people']['visit'] = $person['visitorCount'] ?? 0;
+        $r['people']['peopleList'] = $person['list'];
 
         $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
 
         $weekarray=array("日","一","二","三","四","五","六"); //先定义一个数组
-        //echo "星期".$weekarray[date("w", time()-24*3600)];die;
         if (empty($car['carTime'])) {
             $car['carTime'] = [
                 "星期".$weekarray[date("w", time())],
