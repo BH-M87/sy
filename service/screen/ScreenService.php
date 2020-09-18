@@ -42,12 +42,26 @@ class ScreenService extends BaseService
 
         $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
 
+        $weekarray=array("日","一","二","三","四","五","六"); //先定义一个数组
+        //echo "星期".$weekarray[date("w", time()-24*3600)];die;
+        if (empty($car['carTime'])) {
+            $car['carTime'] = [
+                "星期".$weekarray[date("w", time())],
+                "星期".$weekarray[date("w", time()-24*3600)],
+                "星期".$weekarray[date("w", time()-2*24*3600)],
+                "星期".$weekarray[date("w", time()-3*24*3600)],
+                "星期".$weekarray[date("w", time()-4*24*3600)],
+                "星期".$weekarray[date("w", time()-5*24*3600)],
+                "星期".$weekarray[date("w", time()-6*24*3600)],
+            ];
+        }
+
         $r['car']['carIn'] = $car['carIn'] ?? 0;
         $r['car']['carOut'] = $car['carOut'] ?? 0;
         $r['car']['carTime'] = $car['carTime'];
         $r['car']['carList'] = [
-            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value']],
-            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value']],
+            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value'] ?? [0,0,0,0,0,0,0]],
+            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value'] ?? [0,0,0,0,0,0,0]],
         ];
 
         $device = JavaNewService::service()->javaPost('/sy/board/statistics/deviceBoard',['communityId' => $community_id])['data'];
