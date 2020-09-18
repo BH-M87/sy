@@ -76,5 +76,9 @@ $data['zjy_oss_bucket'] = 'sqwn-fy';
 $data['zjy_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
 //平台oss配置
+$data['platForm_oss_access_key_id'] = 'LTAIhq79gR42JBo1';
+$data['platForm_oss_secret_key_id'] = 'oZKYe6H6tlanibx3mXVmTKYI6H9nPg';
+$data['platForm_oss_bucket'] = 'sy-property';
+$data['platForm_oss_domain'] = 'http://oss-cn-hangzhou.aliyuncs.com';
 
 return $data;
