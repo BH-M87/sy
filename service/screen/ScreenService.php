@@ -26,15 +26,16 @@ class ScreenService extends BaseService
     public function report($p)
     {
         //$community_id = '1284053287097896961';
-        
+        $community_id = $p['community_id'];
+
         $r['repair']['repairTotal'] = PsRepair::find()->where(['community_id' => $p['community_id']])->count();
         $r['repair']['finishTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'status' => 3])->count();
         $r['repair']['hardTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'hard_type' => 2])->count();
 
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
 
-        $r['people']['total'] = $person[4]['value'];
-        $r['people']['visit'] = $person[5]['value'];
+        $r['people']['total'] = $person[4]['value'] ?? 0;
+        $r['people']['visit'] = $person[5]['value'] ?? 0;
         unset($person[4]);
         unset($person[5]);
         $r['people']['peopleList'] = $person;
@@ -50,7 +51,7 @@ class ScreenService extends BaseService
         ];
 
         $device = JavaNewService::service()->javaPost('/sy/board/statistics/deviceBoard',['communityId' => $community_id])['data'];
-    
+   
         if ($device['deviceList']) {
             foreach ($device['deviceList'] as $k => $v) {
                 switch ($v['name']) {
