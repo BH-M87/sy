@@ -14,12 +14,172 @@ use service\inspect\RecordService;
 
 use app\models\PsRepair;
 use app\models\PsInspectRecord;
+use app\models\PsCommunityComment;
+use app\models\PsCommunityCommentDetail;
 
 use service\property_basic\JavaNewService;
 
 class ScreenService extends BaseService
 {
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
+    // 统计报表
+    public function report($p)
+    {
+        //$community_id = '1284053287097896961';
+        $community_id = $p['community_id'];
+
+        $r['repair']['repairTotal'] = PsRepair::find()->where(['community_id' => $p['community_id']])->count();
+        $r['repair']['finishTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'status' => 3])->count();
+        $r['repair']['hardTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'hard_type' => 2])->count();
+
+        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+        if (empty($person['list'])) {
+            $person['list'] = [
+                ['name' => '流动人口', 'value' => '0'],
+                ['name' => '住户人口', 'value' => '0'],
+                ['name' => '境外人员', 'value' => '0'],
+                ['name' => '临时人员', 'value' => '0'],
+            ];
+        }
+
+        $r['people']['total'] = $person['totalPersonCount'] ?? 0;
+        $r['people']['visit'] = $person['visitorCount'] ?? 0;
+        $r['people']['peopleList'] = $person['list'];
+
+        $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
+
+        $weekarray=array("日","一","二","三","四","五","六"); //先定义一个数组
+        if (empty($car['carTime'])) {
+            $car['carTime'] = [
+                "星期".$weekarray[date("w", time())],
+                "星期".$weekarray[date("w", time()-24*3600)],
+                "星期".$weekarray[date("w", time()-2*24*3600)],
+                "星期".$weekarray[date("w", time()-3*24*3600)],
+                "星期".$weekarray[date("w", time()-4*24*3600)],
+                "星期".$weekarray[date("w", time()-5*24*3600)],
+                "星期".$weekarray[date("w", time()-6*24*3600)],
+            ];
+        }
+
+        $r['car']['carIn'] = $car['carIn'] ?? 0;
+        $r['car']['carOut'] = $car['carOut'] ?? 0;
+        $r['car']['carTime'] = $car['carTime'];
+        $r['car']['carList'] = [
+            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value'] ?? [0,0,0,0,0,0,0]],
+            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value'] ?? [0,0,0,0,0,0,0]],
+        ];
+
+        $device = JavaNewService::service()->javaPost('/sy/board/statistics/deviceBoard',['communityId' => $community_id])['data'];
+   
+        if ($device['deviceList']) {
+            foreach ($device['deviceList'] as $k => $v) {
+                switch ($v['name']) {
+                    case '智能井盖':
+                        $wellCover = $v['value'];
+                        break;
+                    case '环境监测':
+                        $environment = $v['value'];
+                        break;
+                    case '给排水':
+                        $water = $v['value'];
+                        break;
+                    case '充电桩':
+                        $charge = $v['value'];
+                        break;
+                    case '智能电梯':
+                        $lift = $v['value'];
+                        break;
+                    case '智能消防':
+                        $fire = $v['value'];
+                        break;
+                    case '视频监控':
+                        $video = $v['value'];
+                        break;
+                    case '人行门禁':
+                        $people = $v['value'];
+                        break;
+                    case '停车道闸':
+                        $stop = $v['value'];
+                        break;
+                    case '智能垃圾桶':
+                        $trash = $v['value'];
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        $r['device'] = [
+            'doorTotal' => $device['accessControlCount'],
+            'stopTotal' => $device['gateCount'],
+            'wellCover' => $wellCover ?? 0,
+            'environment' => $environment ?? 0,
+            'water' => $water ?? 0,
+            'charge' => $charge ?? 0,
+            'fire' => $fire ?? 0,
+            'video' => $video ?? 0,
+            'people' => $people ?? 0,
+            'stop' => $stop ?? 0,
+            'lift' => $lift ?? 0,
+            'trash' => $trash ?? 0,
+        ];
+
+        return $r;
+    }
+
+    // 服务评价
+    public function comment($p)
+    {
+        $arr = explode('/', $p['month']);
+        $comment_year = $arr['0'];
+        $comment_month = $arr['1'];
+
+        $detail = PsCommunityCommentDetail::find()->select('count(id) c, score')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $comment_year])
+            ->andFilterWhere(['=', 'comment_month', $comment_month])
+            ->groupBy('score')->asArray()->all();
+        $data = [0,0,0,0,0];
+        if (!empty($detail)) {
+            foreach ($detail as $k => $v) {
+                switch ($v['score']) {
+                    case '1.0':
+                        $data[0] = (int)$v['c'];
+                        break;
+                    case '2.0':
+                        $data[1] = (int)$v['c'];
+                        break;
+                    case '3.0':
+                        $data[2] = (int)$v['c'];
+                        break;
+                    case '4.0':
+                        $data[3] = (int)$v['c'];
+                        break;
+                    case '5.0':
+                        $data[4] = (int)$v['c'];
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        $r = PsCommunityComment::find()->select('score avg, total')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $comment_year])
+            ->andFilterWhere(['=', 'comment_month', $comment_month])->asArray()->one();
+
+        $r['avg'] = $r['avg'] ?? "0";
+        $r['total'] = $r['total'] ?? "0";
+
+        $r['commentList'] = [ // 服务评价
+            ['name' => '服务评价', 'type' => 'bar', 'barWidth' => 20, 'data' => $data],
+        ];
+        
+        return $r;
+    }
+
     // 大屏
     public function index($p)
     {   
