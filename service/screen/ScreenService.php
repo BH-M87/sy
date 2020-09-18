@@ -33,6 +33,14 @@ class ScreenService extends BaseService
         $r['repair']['hardTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'hard_type' => 2])->count();
 
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+        if (empty($person['list'])) {
+            $person['list'] = [
+                ['name' => '流动人口', 'value' => '0'],
+                ['name' => '住户人口', 'value' => '0'],
+                ['name' => '境外人员', 'value' => '0'],
+                ['name' => '临时人员', 'value' => '0'],
+            ];
+        }
 
         $r['people']['total'] = $person['totalPersonCount'] ?? 0;
         $r['people']['visit'] = $person['visitorCount'] ?? 0;
