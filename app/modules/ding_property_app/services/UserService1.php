@@ -295,10 +295,9 @@ class UserService1 extends BaseService
         } elseif ($msgType == 3) {
             $appHrefUrl = "com.mob.linyl.module.home.notice.noticedetail.NoticeDetailActivity";
         }
-
-        $accessKeyId = "LTAIjSucDnxVcGIQ";
-        $accessKeySecret = "EWowVxxmYYOBqIvc7zMRVO66508m4E";
-        $appKey = "24515847";
+        $appKey = \Yii::$app->params['ali_access_key'];
+        $accessKeyId = \Yii::$app->params['ali_access_key_id'];
+        $accessKeySecret = \Yii::$app->params['ali_access_key_secret'];
 
         $iClientProfile = \DefaultProfile::getProfile("cn-hangzhou", $accessKeyId, $accessKeySecret);
         $client = new \DefaultAcsClient($iClientProfile);
