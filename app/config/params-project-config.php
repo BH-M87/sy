@@ -16,8 +16,8 @@ $paramsConfig['test'] = [
 ];
 //线上生产配置
 $paramsConfig['master'] = [
-    'host_name' => 'https://sy-wy.zje.com/',       //物业自己的接口域名
-    'javaUrl' => ' ',    //java的接口域名
+    'host_name' => 'https://live.csdn.shangyu.gov.cn/',       //物业自己的接口域名
+    'javaUrl' => 'https://communityb.csdn.shangyu.gov.cn/',    //java的接口域名
     'javaAppKey' => 'community-property',                   //java的appKey
     'javaAppSecret' => 'cMchTBCquBl3IWnHmt07i4pVSTXB18rqWR',//java的appSecret
 ];
