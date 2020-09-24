@@ -22,7 +22,7 @@ use service\property_basic\JavaNewService;
 class ScreenService extends BaseService
 {
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
-    // 统计报表
+    // 统计报表1
     public function report($p)
     {
         //$community_id = '1284053287097896961';
