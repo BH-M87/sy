@@ -26,31 +26,51 @@ class ScreenService extends BaseService
     public function report($p)
     {
         //$community_id = '1284053287097896961';
-        
+        $community_id = $p['community_id'];
+
         $r['repair']['repairTotal'] = PsRepair::find()->where(['community_id' => $p['community_id']])->count();
         $r['repair']['finishTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'status' => 3])->count();
         $r['repair']['hardTotal'] = PsRepair::find()->where(['community_id' => $p['community_id'], 'hard_type' => 2])->count();
 
         $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+        if (empty($person['list'])) {
+            $person['list'] = [
+                ['name' => '流动人口', 'value' => '0'],
+                ['name' => '住户人口', 'value' => '0'],
+                ['name' => '境外人员', 'value' => '0'],
+                ['name' => '临时人员', 'value' => '0'],
+            ];
+        }
 
-        $r['people']['total'] = $person[4]['value'];
-        $r['people']['visit'] = $person[5]['value'];
-        unset($person[4]);
-        unset($person[5]);
-        $r['people']['peopleList'] = $person;
+        $r['people']['total'] = $person['totalPersonCount'] ?? 0;
+        $r['people']['visit'] = $person['visitorCount'] ?? 0;
+        $r['people']['peopleList'] = $person['list'];
 
         $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
+
+        $weekarray=array("日","一","二","三","四","五","六"); //先定义一个数组
+        if (empty($car['carTime'])) {
+            $car['carTime'] = [
+                "星期".$weekarray[date("w", time())],
+                "星期".$weekarray[date("w", time()-24*3600)],
+                "星期".$weekarray[date("w", time()-2*24*3600)],
+                "星期".$weekarray[date("w", time()-3*24*3600)],
+                "星期".$weekarray[date("w", time()-4*24*3600)],
+                "星期".$weekarray[date("w", time()-5*24*3600)],
+                "星期".$weekarray[date("w", time()-6*24*3600)],
+            ];
+        }
 
         $r['car']['carIn'] = $car['carIn'] ?? 0;
         $r['car']['carOut'] = $car['carOut'] ?? 0;
         $r['car']['carTime'] = $car['carTime'];
         $r['car']['carList'] = [
-            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value']],
-            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value']],
+            ['name' => '入场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][0]['value'] ?? [0,0,0,0,0,0,0]],
+            ['name' => '出场', 'type' => 'line', 'stack' => '总量', 'data' => $car['carList'][1]['value'] ?? [0,0,0,0,0,0,0]],
         ];
 
         $device = JavaNewService::service()->javaPost('/sy/board/statistics/deviceBoard',['communityId' => $community_id])['data'];
-    
+   
         if ($device['deviceList']) {
             foreach ($device['deviceList'] as $k => $v) {
                 switch ($v['name']) {
@@ -207,9 +227,20 @@ class ScreenService extends BaseService
         $r['device']['deviceTotal_1'] = 5;
         $r['device']['deviceTotal_2'] = 4;
         
-        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
         // 人员信息
-        $r['visit']['visittotal'] = 1750;
+        $person = JavaNewService::service()->javaPost('/sy/board/statistics/personBoard',['communityId' => $community_id])['data'];
+        if (empty($person['list'])) {
+            $person['list'] = [
+                ['name' => '流动人口', 'value' => '0'],
+                ['name' => '住户人口', 'value' => '0'],
+                ['name' => '境外人员', 'value' => '0'],
+                ['name' => '临时人员', 'value' => '0'],
+            ];
+        }
+
+        $r['visit']['visittotal'] = $person['visitorCount'] ?? 0;
+        $r['visit']['member'] = $person['list'];
+        
         $r['visit']['visitlist'] = [ // 访客信息
             ['name' => '访客人次', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
             ['name' => '进入人次', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
@@ -217,17 +248,18 @@ class ScreenService extends BaseService
         ];
         $r['visit']['visittime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-        $person[1]['name'] = '户籍人口';
-        $r['visit']['member'] = $person;
         // 车辆信息
-        $r['car']['cartotal'] = 432;
-        $r['car']['carpublic'] = 132;
-        $r['car']['carfree'] = 100;
-        $r['car']['cartime'] = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+        $car = JavaNewService::service()->javaPost('/sy/board/statistics/carShopBoard',['communityId' => $community_id])['data'];
+        $r['car']['cartotal'] = $car['parkingCarCount'];
+        $r['car']['carpublic'] = $car['carPortCount'];
+        $r['car']['carfree'] = $car['parkingCarCount'] - $car['carPortCount'];
+        $r['car']['cartime'] = $car['carTime'];
         $r['car']['carlist'] = [ 
-            ['name' => '进入车辆', 'type' => 'bar', 'data' => [320, 332, 301, 334, 390, 334, 390]],
-            ['name' => '离开车辆', 'type' => 'bar', 'data' => [220, 182, 191, 234, 290, 334, 390]],
+            ['name' => '进入车辆', 'type' => 'bar', 'data' => $car['carList'][0]['value']],
+            ['name' => '离开车辆', 'type' => 'bar', 'data' => $car['carList'][1]['value']],
         ];
+
+        $carRecord = JavaNewService::service()->javaPost('/sy/board/statistics/parkingAcrossRecordBoard',['communityId' => $community_id])['data'];
         $r['car']['carInOut'] = [ 
             ['carIn' => '浙A780C8', 'timeIn' => '8-13 19:22:12', 'carOut' => '浙B12CC4', 'timeOut' => '8-13 19:23:18'],
             ['carIn' => '浙A123BB', 'timeIn' => '8-13 19:14:13', 'carOut' => '沪C1SE14', 'timeOut' => '8-13 19:22:42'],
@@ -244,43 +276,62 @@ class ScreenService extends BaseService
     public function list($p)
     {
         $community_id = '1290165028708810753';
-
-        $r['record'] = [ // 出入记录
-            ['time' => '19:20:22', 'address' => '公寓大门门禁', 'name' => '刘**', 'type' => '1'],
-            ['time' => '19:19:12', 'address' => '公寓大门门禁', 'name' => '吴**', 'type' => '2'],
-            ['time' => '19:17:32', 'address' => '公寓大门门禁', 'name' => '张**', 'type' => '1'],
-            ['time' => '19:14:28', 'address' => '公寓大门门禁', 'name' => '李**', 'type' => '2'],
-            ['time' => '19:07:29', 'address' => '公寓大门门禁', 'name' => '王**', 'type' => '2'],
-        ];
+        // 出入记录
+        $record = JavaNewService::service()->javaPost('/sy/board/statistics/doorRecordBoard',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 5])['data'];
+        $recordArr = [];
+        if (!empty($record['list'])) {
+            foreach ($record['list'] as $k => $v) {
+                $recordArr[$k]['time'] = $v['createTime'];
+                $recordArr[$k]['address'] = $v['deviceName'];
+                $recordArr[$k]['name'] = $v['name'];
+                $recordArr[$k]['type'] = $v['deviceType'];
+            }
+        }
+        $r['record'] = $recordArr;
           
         $activity = JavaNewService::service()->javaPost('/sy/board/statistics/activityPage',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 10])['data'];
         $r['activity'] = $activity['list'] ?? []; // 社区活动
-
-        $r['alarm'] = [ // 实时告警
-            ['typeMsg' => '垃圾报警', 'address' => '8幢2单元1楼', 'createAt' => '2020/08/17 15:34:45', 'title' => '检测到垃圾堆放'],
-            ['typeMsg' => '人脸报警', 'address' => '5幢1单元1楼', 'createAt' => '2020/08/10 19:34:45', 'title' => '重点区域有人非法入侵'],
-            ['typeMsg' => '门禁报警', 'address' => '3幢3单元12楼', 'createAt' => '2020/08/09 18:54:45', 'title' => '门禁报警'],
-            ['typeMsg' => '人脸报警', 'address' => '展厅二楼', 'createAt' => '2020/08/01 16:34:45', 'title' => '重点区域有人非法入侵'],
-            ['typeMsg' => '烟雾报警', 'address' => '7幢1单元', 'createAt' => '2020/7/20 18:34:45', 'title' => '烟雾报警'],
-        ];
-
-        $r['report'] = [ // 一键上报
-            [
-                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/13 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
-                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/12 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '李大致'],
-                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/11 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
-            ],
-            [
-                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/10 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/09 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/08 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
-            ],
-            [
-                ['typeMsg' => '消防安全', 'title' => '禁烟时段燃放烟花爆竹', 'createAt' => '2020/08/07 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '李大致'],
-                ['typeMsg' => '消防安全', 'title' => '车辆占用消防通道', 'createAt' => '2020/08/06 18:34:45', 'statusMsg' => '已处理', 'operatorName' => '王麻子'],
-                ['typeMsg' => '消防安全', 'title' => '8幢2单元入口玻璃破裂', 'createAt' => '2020/08/01 18:34:45', 'statusMsg' => '未处理', 'operatorName' => '张一三'],
-            ]
-        ];
+        
+        // 实时告警
+        $alarm = JavaNewService::service()->javaPost('/sy/board/statistics/incidentIntelligenceBoard',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 5])['data'];
+        $alarmArr = [];
+        if (!empty($alarm['list'])) {
+            foreach ($alarm['list'] as $k => $v) {
+                $alarmArr[$k]['typeMsg'] = $v['controlName'];
+                $alarmArr[$k]['address'] = $v['regionName'];
+                $alarmArr[$k]['createAt'] = $v['createTime'];
+                $alarmArr[$k]['title'] = $v['title'];
+            }
+        }
+        $r['alarm'] = $alarmArr;
+        
+        // 一键上报
+        $report = JavaNewService::service()->javaPost('/sy/board/statistics/incidentBoard',['communityId' => $community_id, 'pageNum' => 1, 'pageSize' => 12])['data'];
+        $reportArr = [];
+        if (!empty($report['list'])) {
+            foreach ($report['list'] as $k => $v) {
+                $reportArr[$k]['typeMsg'] = $v['classifyName'];
+                $reportArr[$k]['createAt'] = $v['createTime'];
+                $reportArr[$k]['title'] = $v['title'];
+                $reportArr[$k]['operatorName'] = $v['operatorName'];
+                switch ($v['incidentStatus']) {
+                    case 'pending':
+                        $statusMsg = '待处理';
+                        break;
+                    case 'processing':
+                        $statusMsg = '处理中';
+                        break;
+                    case 'solved':
+                        $statusMsg = '已处理';
+                        break;
+                    default:
+                        $statusMsg = '';
+                        break;
+                }
+                $reportArr[$k]['statusMsg'] = $statusMsg;
+            }
+        }
+        $r['report'] = self::partition($reportArr, 3);
 
         $r['inspect'] = RecordService::service()->recordList(['page' => 1, 'pageSize' => 10, 'community_id' => $community_id]);
 
