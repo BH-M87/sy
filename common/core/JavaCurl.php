@@ -191,15 +191,15 @@ class JavaCurl {
     {
         switch (YII_ENV) {
             case "master":
-                $api_host = "http://communityb.csdn.shangyu.gov.cn";
+                $api_host = "https://communityb.csdn.shangyu.gov.cn";
                 $c_api_host = "https://communityc.csdn.shangyu.gov.cn";
                 break;
             case "test":
-                $api_host = "http://communityb.csdn.shangyu.gov.cn";
+                $api_host = "https://communityb.csdn.shangyu.gov.cn";
                 $c_api_host = "https://communityc.csdn.shangyu.gov.cn";
                 break;
             default :
-                $api_host = "http://communityb.csdn.shangyu.gov.cn";
+                $api_host = "https://communityb.csdn.shangyu.gov.cn";
                 $c_api_host = "https://communityc.csdn.shangyu.gov.cn";
                 break;
         }
