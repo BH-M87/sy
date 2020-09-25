@@ -22,6 +22,42 @@ use service\property_basic\JavaNewService;
 class ScreenService extends BaseService
 {
     public static $repairStatus = ['1' => '已接单', '2' => '开始处理', '3' => '已完成', '6' => '已关闭', '7' => '待处理'];
+    // 服务评分 最近三个月
+    public function commentList($p)
+    {
+        $year_1 = date('Y', strtotime('-2 month'));
+        $month_1 = date('m', strtotime('-2 month'));
+       
+        $year_2 = date('Y', strtotime('-1 month'));
+        $month_2 = date('m', strtotime('-1 month'));
+
+        $year_3 = date('Y', time());
+        $month_3 = date('m', time());
+
+        $score_1 = PsCommunityComment::find()->select('score')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $year_1])
+            ->andFilterWhere(['=', 'comment_month', $month_1])->scalar();
+
+        $score_2 = PsCommunityComment::find()->select('score')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $year_2])
+            ->andFilterWhere(['=', 'comment_month', $month_2])->scalar();
+
+        $score_3 = PsCommunityComment::find()->select('score')
+            ->filterWhere(['community_id' => $p['community_id']])
+            ->andFilterWhere(['=', 'comment_year', $year_3])
+            ->andFilterWhere(['=', 'comment_month', $month_3])->scalar();
+
+        $r['list'] = [
+            ['month' => $month_1, 'score' => !empty($score_1) ? $score_1 : '5.0'],
+            ['month' => $month_2, 'score' => !empty($score_2) ? $score_2 : '5.0'],
+            ['month' => $month_3, 'score' => !empty($score_3) ? $score_3 : '5.0'],
+        ];
+  
+        return $r;
+    }
+
     // 统计报表1
     public function report($p)
     {

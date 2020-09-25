@@ -8,7 +8,15 @@ use common\core\PsCommon;
 use service\screen\ScreenService;
 
 class ScreenController extends BaseController
-{
+{   
+    // 服务评分 最近三个月
+    public function actionCommentList()
+    {
+        $result = ScreenService::service()->commentList($this->request_params);
+        
+        PsCommon::responseSuccess($result);
+    }
+
     // 统计报表 
     public function actionReport()
     {
