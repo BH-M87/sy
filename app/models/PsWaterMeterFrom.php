@@ -25,13 +25,12 @@ class PsWaterMeterFrom extends Model
     public $meter_id;
     public $water_meter_id;
     public $remark;
-    public $address;
 
     public function rules()
     {
         return [
             [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list','add','import']],
-            [['meter_no','meter_status','group_id','unit_id','building_id','room_id','start_ton','latest_record_time','address'], 'required',
+            [['meter_no','meter_status','group_id','unit_id','building_id','room_id','start_ton','latest_record_time'], 'required',
                 'message' => '{attribute}不能为空!', 'on' => ['add','edit','import-post']],
 
             ['meter_no', 'match', 'pattern' => Regular::letterOrNumber(1, 15),
@@ -67,7 +66,6 @@ class PsWaterMeterFrom extends Model
             "latest_record_time"   => "上次抄表时间",
             "water_meter_id"  =>"水表",
             "remark"  =>"备注",
-            "address" => "房屋地址",
         ];
     }
 
