@@ -60,12 +60,22 @@ class WaterMeterService extends  BaseService {
     public function checkWater($data,$type = 1)
     {
         //鉴定房屋是否只有一个电表
-        $room = $this->checkRoom($data);
-        if ($room['code'] == 0) {
-            return $this->failed($room['msg']);
+//        $room = $this->checkRoom($data);
+//        if ($room['code'] == 0) {
+//            return $this->failed($room['msg']);
+//        }
+//        $room = $room['data'];
+//        $data['room_id'] = $room['id'];
+        //java 获得房屋信息
+        $batchParams['token'] = $data['token'];
+        $batchParams['community_id'] = $data['community_id'];
+        $batchParams['roomId'] = $data['room_id'];
+        $alipayService = new AlipayCostService();
+        $roomInfoResult = $alipayService->getBatchRoomData($batchParams);
+        if(empty($roomInfoResult[0])){
+            return $this->failed("未找到房屋");
         }
-        $room = $room['data'];
-        $data['room_id'] = $room['id'];
+        $roomInfo = $roomInfoResult[0];
         // 验证房屋id是否存在
         $is_meter = $this->checkMeter($data);
         if ($is_meter['code'] !== 0 && $type == 1) {
@@ -73,7 +83,7 @@ class WaterMeterService extends  BaseService {
         } else if($is_meter['code'] == 0 && $type == 2) {
             return $this->failed($is_meter['msg']);
         }
-        return $this->success(['room'=>$room]);
+        return $this->success(['room'=>$roomInfo]);
     }
 
 
@@ -129,12 +139,11 @@ class WaterMeterService extends  BaseService {
             "community_id" => $data["community_id"],
             "meter_no" => $data["meter_no"],
             "meter_status" => $data["meter_status"],
-            "room_id"  => $room["id"],
-            "group" =>     $room["group"],
-            "building" =>  $room["building"],
-            "unit" =>     $room["unit"],
-            "room" =>      $room["room"],
-            "address"=>   $room["address"],
+            "room_id"  => $data["room_id"],
+            "group_id" =>     $room["groupId"],
+            "building_id" =>  $room["buildingId"],
+            "unit_id" =>     $room["unitId"],
+            "address"=>   $room["home"],
             "start_ton" => $data["start_ton"],
             "latest_record_time" => strtotime($data["latest_record_time"]),
             "remark"=>!empty($data["remark"]) ? $data["remark"] : '',
