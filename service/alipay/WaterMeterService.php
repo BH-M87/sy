@@ -28,7 +28,7 @@ class WaterMeterService extends  BaseService {
      * @return array
      */
     public function lists( $data){
-        $field = 'id,latest_record_time,meter_no,meter_type,meter_status,`group`,building,unit,address,room,start_ton,latest_record_time,cycle_time,payment_time,remark';
+        $field = 'id,latest_record_time,meter_no,meter_type,meter_status,`group_id`,building_id,unit_id,address,room_id,start_ton,latest_record_time,cycle_time,payment_time,remark';
         $data = $this->getWaterData($data,$field,true);
         return $this->success($data);
     }
@@ -439,10 +439,10 @@ class WaterMeterService extends  BaseService {
     {
         //条件处理
         $where['community_id'] = $data['community_id'];
-        $where['room'] = !empty($data['room']) ? $data['room'] : null ;
-        $where['group'] = !empty($data['group']) ? $data['group'] : null ;
-        $where['building'] = !empty($data['building']) ? $data['building'] : null ;
-        $where['unit'] = !empty($data['unit']) ? $data['unit'] : null ;
+        $where['room_id'] = !empty($data['room_id']) ? $data['room_id'] : null ;
+        $where['group_id'] = !empty($data['group_id']) ? $data['group_id'] : null ;
+        $where['building_id'] = !empty($data['building_id']) ? $data['building_id'] : null ;
+        $where['unit_id'] = !empty($data['unit_id']) ? $data['unit_id'] : null ;
         $where['meter_status'] = !empty($data['meter_status']) ? $data['meter_status'] : null ;
         $where['meter_type'] = !empty($data['meter_type']) ? $data['meter_type'] : null ;
         $where = F::searchFilter($where);
