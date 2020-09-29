@@ -389,7 +389,7 @@ class WaterMeterService extends  BaseService {
      */
     public function export($where)
     {
-        $field = 'id,latest_record_time,meter_no,meter_type,meter_status,`group`,building,unit,room,address,start_ton,latest_record_time,cycle_time,payment_time,remark';
+        $field = 'id,latest_record_time,meter_no,meter_type,meter_status,address,start_ton,latest_record_time,cycle_time,payment_time,remark';
         $result = $this->getWaterData($where,$field);
         if(!empty($result['list'])){
             foreach ($result['list'] as $key => $model) {
@@ -411,11 +411,7 @@ class WaterMeterService extends  BaseService {
     public function exportConfig()
     {
         $config["sheet_config"] = [
-            'group' => ['title' => '苑期区', 'width' => 16],
-            'building' => ['title' => '幢', 'width' => 16],
-            'unit' => ['title' => '单元', 'width' => 16],
-            'room' => ['title' => '室', 'width' => 16],
-            'type' => ['title' => '表具类型', 'width' => 16],
+            'address' => ['title' => '房屋地址', 'width' => 30],
             'meter_no' => ['title' => '表具编号', 'width' => 16],
             'latest_record_time' => ['title' => '上次抄表时间', 'width' => 18],
             'start_ton' => ['title' => '上次抄表读数', 'width' => 16],

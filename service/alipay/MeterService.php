@@ -6,6 +6,7 @@ use app\models\PsWaterMeterFrom;
 use service\BaseService;
 use service\common\CsvService;
 use service\common\ExcelService;
+use service\rbac\OperateService;
 use Yii;
 
 class MeterService extends  BaseService
