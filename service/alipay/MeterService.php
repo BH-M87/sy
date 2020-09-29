@@ -90,6 +90,6 @@ class MeterService extends  BaseService
             default:
                 return $this->failed('类型错误');
         }
-        return $this->success($result);
+        return $this->success(['downUrl'=>$result]);
     }
 }
