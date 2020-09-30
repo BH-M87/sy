@@ -126,16 +126,19 @@ class WaterController extends BaseController
         if (empty($sheetData)) {
             return PsCommon::responseAppFailed('表格里面为空');
         }
-
-        $result = WaterMeterService::service()->import($sheetData, $community_id, $this->user_info);
-        $operate = [
-            "community_id" => $community_id,
-            "operate_menu" => "水表管理",
-            "operate_type" => "水表导入",
-            "operate_content" => "",
-        ];
-        OperateService::addComm($this->user_info, $operate);
-        return PsCommon::responseSuccess($result);
+        $result = WaterMeterService::service()->import($sheetData, $community_id, $this->user_info,$this->request_params);
+        if ($result['code']) {
+            $operate = [
+                "community_id" => $community_id,
+                "operate_menu" => "水表管理",
+                "operate_type" => "水表导入",
+                "operate_content" => "",
+            ];
+            OperateService::addComm($this->user_info, $operate);
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
+        }
     }
 
     public function actionGetMeterStatus()
