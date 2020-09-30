@@ -8,6 +8,7 @@ use app\models\PsWaterMeterFrom;
 use service\common\CsvService;
 use service\common\ExcelService;
 use service\BaseService;
+use service\property_basic\CommonService;
 use service\rbac\OperateService;
 use service\room\RoomService;
 use Yii;
@@ -237,9 +238,27 @@ class ElectrictMeterService extends  BaseService {
     }
 
 
-    public function import($data,$community_id,$user_info){
+    public function import($data,$community_id,$user_info,$params){
         $uniqueDataValArr = $MeterArrInfo = $recordArrInfo =  [];
         $defeat_count = $error_count= $success_count = 0;
+
+        //java 验证小区
+        $commonService = new CommonService();
+        $javaCommunityParams['community_id'] = $community_id;
+        $javaCommunityParams['token'] = $params['token'];
+        $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+        if(empty($communityName)){
+            return $this->failed("未找到小区信息");
+        }
+
+        //查询java 所有房屋数据
+        $alipayService = new AlipayCostService();
+        $javaParams['token'] = $params['token'];
+        $javaParams['community_id'] = $community_id;
+        $javaRoomResult = $alipayService->getJavaRoomAll($javaParams);
+        if(empty($javaRoomResult)){
+            return $this->failed("该小区下，没有房屋信息");
+        }
 
         for ($i = 3; $i <= count($data); $i++) {
             $val = $data[$i];
@@ -247,13 +266,24 @@ class ElectrictMeterService extends  BaseService {
                 continue;
             }
             $val["G"]=$g = \PHPExcel_Shared_Date::ExcelToPHP($val["G"]);
+
+            $roomKey = $communityName.trim($val["B"]).trim($val["C"]).trim($val["D"]).trim($val["E"]);
+            $roomInfo = $javaRoomResult[$roomKey];
+            if (empty($roomInfo)) {
+                $error_count++;
+                $defeat_count++;
+                $errorCsv[$defeat_count] = $val;
+                $errorCsv[$defeat_count]["error"] = "房屋未找到";
+                continue;
+            }
+
             $meter_arr = [
                 "community_id" => $community_id,
                 "meter_no" => $val["A"],
-                "group" => $val["B"],
-                "building" => $val["C"],
-                "unit" => $val["D"],
-                "room" => $val["E"],
+                "group_id" => $roomInfo['groupId'],
+                "building_id" => $roomInfo["buildingId"],
+                "unit_id" => $roomInfo["unitId"],
+                "room_id" => $roomInfo["roomId"],
                 "meter_status" => (string)$val["F"],
                 "latest_record_time" => ($g > 0 ? gmdate("Y-m-d", $g) : ''),
                 "start_ton" => (string)$val["H"],
@@ -269,7 +299,7 @@ class ElectrictMeterService extends  BaseService {
                 continue;
             }
 
-            $uniqueDataVal = $meter_arr["group"] . "_" . $meter_arr["building"] . "_" . $meter_arr["unit"] . "_" . $meter_arr["room"];
+            $uniqueDataVal = $meter_arr["room_id"];
             //excel表数据去重
             if (in_array($uniqueDataVal, $uniqueDataValArr)) {
                 $error_count++;
@@ -280,18 +310,18 @@ class ElectrictMeterService extends  BaseService {
             } else {
                 array_push($uniqueDataValArr, $uniqueDataVal);
             }
-            //查找房屋信息是否存在
-            $ps_room = RoomService::service()->getRoom($meter_arr);
-            if (empty($ps_room)) {
-                $error_count++;
-                $defeat_count++;
-                $errorCsv[$defeat_count] = $meter_arr;
-                $errorCsv[$defeat_count]["error"] = "未找到系统内对应得小区的房屋信息";
-                continue;
-            }
+//            //查找房屋信息是否存在
+//            $ps_room = RoomService::service()->getRoom($meter_arr);
+//            if (empty($ps_room)) {
+//                $error_count++;
+//                $defeat_count++;
+//                $errorCsv[$defeat_count] = $meter_arr;
+//                $errorCsv[$defeat_count]["error"] = "未找到系统内对应得小区的房屋信息";
+//                continue;
+//            }
 
             /*验证数据库中是否已存在*/
-            $is_meter = Yii::$app->db->createCommand("select count(id) from ps_electric_meter where community_id=:community_id and room_id=:room_id", [":community_id" => $community_id, ":room_id" => $ps_room["id"]])->queryScalar();
+            $is_meter = Yii::$app->db->createCommand("select count(id) from ps_electric_meter where community_id=:community_id and room_id=:room_id", [":community_id" => $community_id, ":room_id" => $meter_arr["room_id"]])->queryScalar();
             if ($is_meter >= 1) {
                 $error_count++;
                 $defeat_count++;
@@ -311,12 +341,11 @@ class ElectrictMeterService extends  BaseService {
                 "community_id" => $community_id,
                 "meter_no" => $meter_arr["meter_no"],
                 "meter_status" => array_search($meter_arr["meter_status"], Self::$meter_status),
-                "room_id" => $ps_room["id"],
-                "group" => $ps_room["group"],
-                "building" => $ps_room["building"],
-                "unit" => $ps_room["unit"],
-                "room" => $ps_room["room"],
-                "address" => $ps_room["address"],
+                "group_id" => $roomInfo['groupId'],
+                "building_id" => $roomInfo["buildingId"],
+                "unit_id" => $roomInfo["unitId"],
+                "room_id" => $roomInfo["roomId"],
+                "address" => $roomInfo["home"],
                 "start_ton" => $meter_arr["start_ton"],
                 "latest_record_time" => $latest_record_time,
                 "remark" => $meter_arr["remark"],
@@ -324,7 +353,7 @@ class ElectrictMeterService extends  BaseService {
             ];
 
             $recordArr = [
-                "room_id"      => $ps_room["id"],
+                "room_id"      => $roomInfo["roomId"],
                 "status"      => $meterArr["meter_status"],
                 "latest_ton"  => $meterArr["start_ton"],
                 "use_ton"     => 0,
@@ -348,7 +377,7 @@ class ElectrictMeterService extends  BaseService {
                 [
                     "community_id" ,
                     "meter_no" , "meter_status",
-                    "room_id","group","building","unit","room","address",
+                    "group_id","building_id","unit_id","room_id","address",
                     "start_ton", "latest_record_time", "remark","create_at",
                 ],
                 $MeterArrInfo
@@ -366,7 +395,7 @@ class ElectrictMeterService extends  BaseService {
         if ($error_count > 0) {
             $error_url = $this->saveError($errorCsv);
         }
-        return ['totals' => $success_count + $error_count, 'success' => $success_count, 'error_url' => $error_url];
+        return $this->success(['totals' => $success_count + $error_count, 'success' => $success_count, 'error_url' => $error_url]);
     }
     private  function saveError($data) {
         $config = [
@@ -382,9 +411,14 @@ class ElectrictMeterService extends  BaseService {
             'j'=> ['title'=>'错误原因','width'=>10,'data_type'=>'str','field'=>'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, 'Electric', 'error');
-        $filePath = F::originalFile().'error/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'error/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+
+
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/error/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
         return $downUrl;
     }
 
