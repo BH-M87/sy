@@ -76,3 +76,25 @@ CREATE TABLE `ps_shared_lift_rules` (
   `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='分摊规则表';
+
+CREATE TABLE `ps_meter_cycle` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `period` int(11) NOT NULL DEFAULT '0' COMMENT '抄表周期',
+  `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
+  `meter_time` int(11) NOT NULL DEFAULT '0' COMMENT '本次抄表时间',
+  `type` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1:水表 2:电表 3:公共表',
+  `status` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1:未发布账单 2:发布账单',
+  `created_at` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='抄表周期表';
+
+CREATE TABLE `ps_shared_periods` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` varchar(30) NOT NULL COMMENT '小区ID',
+  `period_start` int(11) NOT NULL COMMENT '账期开始时间戳',
+  `period_end` int(11) NOT NULL COMMENT '账期结束时间戳',
+  `period_format` varchar(30) NOT NULL COMMENT '账期时间格式户:2018-01-01~2018-02-01',
+  `status` tinyint(1) NOT NULL COMMENT '账单状态:1未发布账单，2已发布账单',
+  `create_at` int(11) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='分摊账期表';

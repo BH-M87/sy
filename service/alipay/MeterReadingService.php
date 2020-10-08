@@ -10,6 +10,7 @@ use service\BaseService;
 use Yii;
 use yii\base\Model;
 use service\rbac\OperateService;
+use yii\db\Exception;
 
 class MeterReadingService extends BaseService
 {
@@ -23,28 +24,35 @@ class MeterReadingService extends BaseService
      */
     public function add($data,$user)
     {
-        $callback = $this->addRelationMeter($user);
-        $cycle_model = new PsMeterCycle();
-        $valid = PsCommon::validParamArr($cycle_model, $data, 'add');
-        if (!$valid["status"]) {
-            return $this->failed($valid["errorMsg"]);
-        }
-        $cycle_model->period = strtotime($cycle_model->period);
-        $cycle_model->meter_time = strtotime($cycle_model->meter_time);
-        $cycle_model->created_at = time();
-        $result = $callback($cycle_model);
-        if ($result['code']) {
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $callback = $this->addRelationMeter($user);
+            $cycle_model = new PsMeterCycle();
+            $valid = PsCommon::validParamArr($cycle_model, $data, 'add');
+            if (!$valid["status"]) {
+                return $this->failed($valid["errorMsg"]);
+            }
+            $cycle_model->period = strtotime($cycle_model->period);
+            $cycle_model->meter_time = strtotime($cycle_model->meter_time);
+            $cycle_model->created_at = time();
             $cycle_model->save();
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "抄表管理",
-                "operate_type" => "新增抄表",
-                "operate_content" => "抄表周期：".$data['period']
-            ];
-            OperateService::addComm($user, $operate);
-            return $this->success();
-        } else {
-            return $this->failed($result['msg']);
+            $result = $callback($cycle_model);
+            if ($result['code']) {
+                $operate = [
+                    "community_id" =>$data['community_id'],
+                    "operate_menu" => "抄表管理",
+                    "operate_type" => "新增抄表",
+                    "operate_content" => "抄表周期：".$data['period']
+                ];
+                OperateService::addComm($user, $operate);
+                $trans->commit();
+                return $this->success();
+            } else {
+                return $this->failed($result['msg']);
+            }
+        }catch (Exception $e){
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
     }
 
@@ -114,6 +122,8 @@ class MeterReadingService extends BaseService
      */
     public function getList($param)
     {
+        unset($param['token'],$param['create_id'],$param['create_name'],$param['corp_id']);
+
         $cycle_model = new PsMeterCycle();
         $valid = PsCommon::validParamArr($cycle_model, $param, 'list');
         if (!$valid["status"]) {
@@ -123,6 +133,10 @@ class MeterReadingService extends BaseService
         $where['row'] = $param['rows'] ?? 10;
         unset($param['page']);
         unset($param['rows']);
+        if(!empty($param['communityList'])){
+            $where['community_id'] = $param['communityList'];
+            unset($param['communityList']);
+        }
         $where['where'] = $param;
         $result = PsMeterCycle::getList($where);
         return $this->success($result);
