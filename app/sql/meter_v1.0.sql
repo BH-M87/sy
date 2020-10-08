@@ -98,3 +98,8 @@ CREATE TABLE `ps_shared_periods` (
   `create_at` int(11) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='分摊账期表';
+
+ALTER TABLE ps_water_record add `group_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋苑/期/区' AFTER room_id;
+ALTER TABLE ps_water_record add `building_id` varchar(30) NOT NULL DEFAULT '' COMMENT '幢' AFTER room_id;
+ALTER TABLE ps_water_record add `unit_id` varchar(30) NOT NULL DEFAULT '' COMMENT '室号' AFTER room_id;
+ALTER TABLE ps_water_record add `address` varchar(255) NOT NULL DEFAULT '' COMMENT '房屋地址' AFTER room_id;

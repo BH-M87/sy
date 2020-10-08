@@ -31,6 +31,10 @@ class WaterRecordService extends BaseService
                 foreach ($data as $k => $v) {
                     $insert[$k]['cycle_id'] = $cycle->id;
                     $insert[$k]['room_id'] = $v['room_id'];
+                    $insert[$k]['group_id'] = $v['group_id'];
+                    $insert[$k]['building_id'] = $v['building_id'];
+                    $insert[$k]['unit_id'] = $v['unit_id'];
+                    $insert[$k]['address'] = $v['address'];
                     $insert[$k]['status'] = $v['meter_status'];
                     $insert[$k]['latest_ton'] = $v['start_ton'];
                     $insert[$k]['use_ton'] = 0;
@@ -138,9 +142,9 @@ class WaterRecordService extends BaseService
     {
         //条件处理
         $data['page'] = $param['page'] ?? 1;
-        $data['row'] = $param['row'] ?? 10;
+        $data['row'] = $param['rows'] ?? 10;
         unset($param['page']);
-        unset($param['row']);
+        unset($param['rows']);
         $where['room'] = !empty($param['room']) ? $param['room'] : null ;
         $where['group'] = !empty($param['group']) ? $param['group'] : null ;
         $where['building'] = !empty($param['building']) ? $param['building'] : null ;
