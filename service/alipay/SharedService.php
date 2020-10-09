@@ -7,6 +7,7 @@
  */
 namespace service\alipay;
 
+use app\models\PsWaterMeterFrom;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsElectricMeter;
@@ -640,6 +641,28 @@ class SharedService extends BaseService
                return $this->failed('类型错误');
         }
         return $this->success();
+    }
+
+    /*
+     * 仪表数据详情
+     */
+    public function show($data){
+        if (empty($data['id']) || empty($data['type'])) {
+            return $this->failed('参数错误');
+        }
+        switch ($data['type']) {
+            //水表
+            case 1:
+                $result = WaterMeterService::service()->show($data["id"]);
+                break;
+            //电表
+            case 2:
+                $result = ElectrictMeterService::service()->show($data["id"]);
+                break;
+            default:
+                return $this->failed('类型错误');
+        }
+        return $result;
     }
 
     /**

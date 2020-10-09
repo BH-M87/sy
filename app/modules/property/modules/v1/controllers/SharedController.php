@@ -190,4 +190,18 @@ class SharedController extends BaseController
             return PsCommon::responseFailed($result['msg']);
         }
     }
+
+    /**
+     * 删除仪表数据
+     * @author yjh
+     */
+    public function actionMeterShow()
+    {
+        $result = SharedService::service()->show($this->request_params);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
+        }
+    }
 }

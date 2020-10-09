@@ -10,12 +10,19 @@ switch (YII_ENV) {
         ];
         break;
     case "test":
+//        return [
+//            'class'=>'yii\redis\Connection',
+//            'hostname'=>'121.196.219.40',
+//            'port'=>6379,
+//            'database'=> 0,
+//            'password' => 'ShenjianCun246'
+//        ];
         return [
             'class'=>'yii\redis\Connection',
-            'hostname'=>'121.196.219.40',
+//            'hostname'=>'192.168.1.201',
+            'hostname'=>'192.168.1.112',
             'port'=>6379,
-            'database'=> 0,
-            'password' => 'ShenjianCun246'
+            'database'=>0,
         ];
         break;
     case "dev":

@@ -40,7 +40,7 @@ class ElectrictMeterService extends  BaseService {
      * @return array|null
      */
     public function show($id){
-        $meter = PsElectricMeter::find()->select('id,community_id,meter_no,meter_status,room_id,`group`,building,unit,room,address,start_ton,latest_record_time,cycle_time,payment_time,remark')->where(["id"=>$id])->asArray()->one();
+        $meter = PsElectricMeter::find()->select('id,community_id,meter_no,meter_status,room_id,`group_id`,building_id,unit_id,address,start_ton,latest_record_time,cycle_time,payment_time,remark')->where(["id"=>$id])->asArray()->one();
         if (!empty($meter)) {
             $meter["meter_status_desc"] = $meter["meter_status"] ? ElectrictMeterService::$meter_status[$meter["meter_status"]]:"";
             $meter["latest_record_time"] =  $meter["latest_record_time"]>0 ? date("Y-m-d",$meter["latest_record_time"]): "";
