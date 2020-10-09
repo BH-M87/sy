@@ -3562,10 +3562,17 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         if (!$communityId) {
             return $this->failed("请选择小区");
         }
-        $communityInfo = CommunityService::service()->getInfoById($communityId);
-        if (empty($communityInfo)) {
+        if(!in_array($params['community_id'],$params['communityList'])){
             return $this->failed("请选择有效小区");
         }
+        $comService = new CommonService();
+        $comParams['community_id'] = $communityId;
+        $comParams['token'] = $params['token'];
+        $communityName = $comService->communityVerificationReturnName($comParams);
+        if(empty($communityName)){
+            return $this->failed("请选择有效小区");
+        }
+
         if (!$cycleId) {
             return $this->failed("抄表周期id不能为空");
         }
@@ -3576,6 +3583,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         }
         //获取抄表周期下的已超标并且没有发布账单的数据
         $recordAll = PsWaterRecord::find()->where(['cycle_id' => $cycleId, 'has_reading' => 1])->asArray()->all();
+
         if (empty($recordAll)) {
             return $this->failed("已抄表数据不能为空");
         }
@@ -3583,14 +3591,26 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
         $cost = BillCostService::service()->getById($cost_id);
         //================================================正式开始操作==================================================
         //第一步，将本次的新增加入到任务表。获取任务id
-        $task_arr = ["community_id" => $communityId, "type" => "4", "community_no" => $communityInfo["community_no"], 'file_name' => '抄表周期id：' . $cycleId];
+//        $task_arr = ["community_id" => $communityId, "type" => "4", "community_no" => $communityInfo["community_no"], 'file_name' => '抄表周期id：' . $cycleId];
+        $task_arr = ["community_id" => $communityId, "type" => "4", "community_no" => $communityId, 'file_name' => '抄表周期id：' . $cycleId];
         $task_id = $this->addTask($task_arr);
         $default_count = $success_count = $error_count = 0;
         $error_list = $success_list = [];
         foreach ($recordAll as $record) {
             $default_count++;
             //获取房屋信息
-            $roomInfo = RoomService::service()->getRoomById($record['room_id']);
+//            $roomInfo = RoomService::service()->getRoomById($record['room_id']);
+            //java 获得房屋信息
+            $batchParams['token'] = $params['token'];
+            $batchParams['community_id'] = $communityId;
+            $batchParams['roomId'] = $record['room_id'];
+            $roomInfoResult = self::getBatchRoomData($batchParams);
+            if(empty($roomInfoResult[0])){
+                return $this->failed("未找到房屋");
+            }
+            $roomInfo = $roomInfoResult[0];
+
+
             if ($record["latest_ton"] >= $record["current_ton"]) {
                 $roomInfo['error_info'] = "本次抄表读数错误";
                 $error_list[] = $roomInfo;
@@ -3623,21 +3643,22 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
             $acctPeriodId = $this->addBillPeriod($periodData);
             //物业账单id
             $bill_entry_id = date('YmdHis', time()) . '2' . rand(1000, 9999) . $success_count;
+            $msg = "抄表用量:".$record['use_ton']."，上次抄表读数:".$record['latest_ton']."，本次抄表读数:".$record['current_ton']."。";
             $billData = [
-                "company_id" => $communityInfo["company_id"],
-                "community_id" => $communityInfo["id"],
-                "community_name" => $communityInfo["name"],
-                "room_id" => !empty($roomInfo["id"]) ? $roomInfo["id"] : 0,
+                "company_id" => $params['corp_id'],
+                "community_id" => $record["community_id"],
+                "community_name" => $communityName,
+                "room_id" => !empty($record["room_id"]) ? $record["room_id"] : 0,
                 "task_id" => $task_id,
                 "bill_entry_id" => $bill_entry_id,
                 "out_room_id" => !empty($roomInfo["out_room_id"]) ? $roomInfo["out_room_id"] : '',
-                "group" => !empty($roomInfo["group"]) ? $roomInfo["group"] : '',
-                "building" => !empty($roomInfo["building"]) ? $roomInfo["building"] : '',
-                "unit" => !empty($roomInfo["unit"]) ? $roomInfo["unit"] : '',
-                "room" => !empty($roomInfo["room"]) ? $roomInfo["room"] : '',
-                "charge_area" => !empty($roomInfo["charge_area"]) ? $roomInfo["charge_area"] : '',
-                "room_status" => $roomInfo["status"],
-                "property_type" => !empty($roomInfo["property_type"]) ? $roomInfo["property_type"] : 0,
+                "group_id" => !empty($record["group_id"]) ? $record["group_id"] : '',
+                "building_id" => !empty($record["building_id"]) ? $record["building_id"] : '',
+                "unit_id" => !empty($record["unit_id"]) ? $record["unit_id"] : '',
+                "room_address" => !empty($record["address"]) ? $record["address"] : '',
+                "charge_area" => !empty($roomInfo["areaSize"]) ? $roomInfo["areaSize"] : '',
+                "room_status" => $roomInfo["houseStatus"],
+                "property_type" => !empty($roomInfo["propertyType"]) ? $roomInfo["propertyType"] : 0,
                 "acct_period_id" => $acctPeriodId,
                 "acct_period_start" => $record["period_start"],
                 "acct_period_end" => $record["period_end"],
@@ -3649,6 +3670,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 "deadline" => "20991231",
                 "status" => "3",
                 "create_at" => time(),
+                "content" => $msg,
             ];
             //新增账单
             $billResult = $this->addBill($billData);
@@ -3657,8 +3679,8 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 $product_id = !empty($record["id"]) ? $record["id"] : 0;  //商品id对应抄表记录id
                 $orderData = [
                     "bill_id" => $billResult['data'],
-                    "company_id" => $communityInfo["company_id"],
-                    "community_id" => $communityInfo["id"],
+                    "company_id" => $params['corp_id'],
+                    "community_id" => $record["community_id"],
                     "order_no" => F::generateOrderNo(),
                     "product_id" => $product_id,
                     "product_type" => $cost["cost_type"],
@@ -3677,15 +3699,15 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     //更新抄表记录的账单id字段
                     Yii::$app->db->createCommand("update ps_water_record set bill_id={$billResult['data']},has_reading=3 where id={$product_id}")->execute();
                     //添加系统日志
-                    $content = "小区名称:" . $communityInfo["name"] . ',';
-                    $content .= "房屋id:" . $roomInfo["id"] . ',';
+                    $content = "小区名称:" . $communityName . ',';
+                    $content .= "房屋id:" . $record["room_id"] . ',';
                     $content .= "缴费项目:" . $cost["name"] . ',';
                     $content .= "缴费金额:" . $record["price"] . ',';
                     $operate = [
                         "operate_menu" => "账单管理",
                         "operate_type" => "新增账单",
                         "operate_content" => $content,
-                        "community_id" => $communityInfo['id']
+                        "community_id" => $record["community_id"]
                     ];
                     OperateService::addComm($userinfo, $operate);
                     $success_count++;

@@ -110,10 +110,7 @@ class WaterRecordService extends BaseService
     public function exportConfig()
     {
         $config["sheet_config"] = [
-            'group' => ['title' => '苑期区', 'width' => 16],
-            'building' => ['title' => '幢', 'width' => 16],
-            'unit' => ['title' => '单元', 'width' => 16],
-            'room' => ['title' => '室', 'width' => 16],
+            'address' => ['title' => '房屋地址', 'width' => 30],
             'bill_type' => ['title' => '表具类型', 'width' => 16],
             'meter_no' => ['title' => '表具编号', 'width' => 16],
             'formula' => ['title' => '单价', 'width' => 16],
