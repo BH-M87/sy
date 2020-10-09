@@ -70,7 +70,7 @@ class SharedPeriodController extends BaseController
             $result = SharedPeriodService::service()->edit($data, $this->user_info);
         }
         if ($result['code']) {
-            return PsCommon::responseSuccess($result);
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
