@@ -35,6 +35,7 @@ class WaterRecordService extends BaseService
                     $insert[$k]['building_id'] = $v['building_id'];
                     $insert[$k]['unit_id'] = $v['unit_id'];
                     $insert[$k]['address'] = $v['address'];
+                    $insert[$k]['community_id'] = $v['community_id'];
                     $insert[$k]['status'] = $v['meter_status'];
                     $insert[$k]['latest_ton'] = $v['start_ton'];
                     $insert[$k]['use_ton'] = 0;
@@ -145,19 +146,21 @@ class WaterRecordService extends BaseService
         $data['row'] = $param['rows'] ?? 10;
         unset($param['page']);
         unset($param['rows']);
-        $where['room'] = !empty($param['room']) ? $param['room'] : null ;
-        $where['group'] = !empty($param['group']) ? $param['group'] : null ;
-        $where['building'] = !empty($param['building']) ? $param['building'] : null ;
-        $where['unit'] = !empty($param['unit']) ? $param['unit'] : null ;
+        $where['community_id'] = !empty($param['community_id']) ? $param['community_id'] : null ;
+        $where['room_id'] = !empty($param['room_id']) ? $param['room_id'] : null ;
+        $where['group_id'] = !empty($param['group_id']) ? $param['group_id'] : null ;
+        $where['building_id'] = !empty($param['building_id']) ? $param['building_id'] : null ;
+        $where['unit_id'] = !empty($param['unit_id']) ? $param['unit_id'] : null ;
         $where['cycle_id'] = !empty($param['cycle_id']) ? $param['cycle_id'] : null ;
         $where['bill_type'] = !empty($param['bill_type']) ? $param['bill_type'] : null ;
+
         $where = F::searchFilter($where);
         $like = !empty($param['meter_no']) ? ['like' , 'meter_no' , $param['meter_no']] : '1=1' ;
         //查询
         $data['where'] = $where;
         $data['like'] = $like;
-        $field = 'ps_water_record.id,ps_water_record.room_id,bill_type,current_ton,formula,group,has_reading,latest_ton,meter_no,period_end,period_start,price,room,unit,use_ton';
-        $result = PsWaterRecord::getData($data,$field,$page);
+        $field = 'id,room_id,bill_type,current_ton,formula,address,has_reading,latest_ton,meter_no,period_end,period_start,price,use_ton';
+        $result = PsWaterRecord::getData($data,$field,$page,$param['communityList']);
         return $this->success($result);
     }
 
@@ -177,8 +180,8 @@ class WaterRecordService extends BaseService
         if ($param['current_ton'] < $param['latest_ton']) {
             return $this->failed('本期读数不能小于上期读数');
         }
-        if (empty($param['community_id']) && !is_numeric($param['community_id'])) {
-            return $this->failed('小区ID错误');
+        if (empty($param['community_id'])) {
+            return $this->failed('小区ID不能为空');
         }
         $model = $model->findOne($param['id']);
         if (!empty($model)) {

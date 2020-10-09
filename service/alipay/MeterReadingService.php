@@ -70,7 +70,7 @@ class MeterReadingService extends BaseService
             switch ($cycle->type) {
                 //水表
                 case 1:
-                    $result = WaterMeterService::service()->getWaterData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,group_id,building_id,unit_id,address,latest_record_time,start_ton,meter_no,meter_status');
+                    $result = WaterMeterService::service()->getWaterData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,group_id,building_id,unit_id,address,community_id,latest_record_time,start_ton,meter_no,meter_status');
                     if (!empty($result['list'])) {
                         $callback($result['list']);
                     } else {
@@ -79,7 +79,7 @@ class MeterReadingService extends BaseService
                     break;
                 //电表
                 case 2:
-                    $result = ElectrictMeterService::service()->getElectrictData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,group_id,building_id,unit_id,address,latest_record_time,start_ton,meter_no,meter_status');
+                    $result = ElectrictMeterService::service()->getElectrictData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,group_id,building_id,unit_id,address,community_id,latest_record_time,start_ton,meter_no,meter_status');
                     if (!empty($result['list'])) {
                         $callback($result['list']);
                     } else {
@@ -133,12 +133,13 @@ class MeterReadingService extends BaseService
         $where['row'] = $param['rows'] ?? 10;
         unset($param['page']);
         unset($param['rows']);
+        $communityList = [];
         if(!empty($param['communityList'])){
-            $where['community_id'] = $param['communityList'];
+            $communityList = $param['communityList'];
             unset($param['communityList']);
         }
         $where['where'] = $param;
-        $result = PsMeterCycle::getList($where);
+        $result = PsMeterCycle::getList($where,true,$communityList);
         return $this->success($result);
     }
 

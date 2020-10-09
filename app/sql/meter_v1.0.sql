@@ -103,3 +103,4 @@ ALTER TABLE ps_water_record add `group_id` varchar(30) NOT NULL DEFAULT '' COMME
 ALTER TABLE ps_water_record add `building_id` varchar(30) NOT NULL DEFAULT '' COMMENT '幢' AFTER room_id;
 ALTER TABLE ps_water_record add `unit_id` varchar(30) NOT NULL DEFAULT '' COMMENT '室号' AFTER room_id;
 ALTER TABLE ps_water_record add `address` varchar(255) NOT NULL DEFAULT '' COMMENT '房屋地址' AFTER room_id;
+ALTER TABLE ps_water_record add `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id' AFTER room_id;
