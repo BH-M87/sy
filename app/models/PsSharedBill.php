@@ -38,7 +38,8 @@ class PsSharedBill extends BaseModel
     public function rules()
     {
         return [
-            [['community_id', 'shared_id', 'period_id', 'room_id', 'bill_status', 'create_at'], 'integer'],
+            [['shared_id', 'period_id', 'room_id', 'bill_status', 'create_at'], 'integer'],
+            [['community_id'],'string','max'=>30],
             [['elevator_total', 'elevator_shared', 'corridor_total', 'corridor_shared', 'water_electricity_total', 'water_electricity_shared', 'shared_total'], 'number'],
         ];
     }

@@ -150,8 +150,12 @@ class SharedPeriodService extends BaseService
     //删除账期
     public function del($params,$userinfo)
     {
+
         if (empty($params['id'])) {
             return $this->failed("账期id不能为空");
+        }
+        if (empty($params['community_id'])) {
+            return $this->failed("小区id不能为空");
         }
         $shared = PsSharedPeriods::findOne($params['id']);
         if (empty($shared)) {

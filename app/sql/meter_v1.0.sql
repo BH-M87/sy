@@ -104,3 +104,22 @@ ALTER TABLE ps_water_record add `building_id` varchar(30) NOT NULL DEFAULT '' CO
 ALTER TABLE ps_water_record add `unit_id` varchar(30) NOT NULL DEFAULT '' COMMENT '室号' AFTER room_id;
 ALTER TABLE ps_water_record add `address` varchar(255) NOT NULL DEFAULT '' COMMENT '房屋地址' AFTER room_id;
 ALTER TABLE ps_water_record add `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id' AFTER room_id;
+
+
+CREATE TABLE `ps_shared_bill` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `community_id` varchar(11) NOT NULL DEFAULT '' COMMENT '小区id',
+  `period_id` int(11) NOT NULL DEFAULT '0' COMMENT '公摊账期id',
+  `room_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋id',
+  `elevator_total` decimal(16,2) DEFAULT '0.00' COMMENT '电梯用电总金额\n',
+  `elevator_shared` decimal(16,2) DEFAULT '0.00' COMMENT '电梯应分摊金额\n',
+  `corridor_total` decimal(16,2) DEFAULT '0.00' COMMENT '本楼道用电总金额',
+  `corridor_shared` decimal(16,2) DEFAULT '0.00' COMMENT '本楼道分摊金额\n',
+  `water_electricity_total` decimal(16,2) DEFAULT '0.00' COMMENT '小区整体用水用电总金额\n',
+  `water_electricity_shared` decimal(16,2) DEFAULT '0.00' COMMENT '小区整体用水用电分摊金额\n',
+  `shared_total` decimal(16,2) NOT NULL DEFAULT '0.00' COMMENT '应分摊总金额\n',
+  `bill_status` tinyint(1) DEFAULT '1' COMMENT '1账单未发布2已发布',
+  `create_at` int(11) DEFAULT '0' COMMENT '录入时间',
+  PRIMARY KEY (`id`),
+  KEY `period_id` (`period_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

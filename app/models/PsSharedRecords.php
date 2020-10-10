@@ -35,7 +35,8 @@ class PsSharedRecords extends BaseModel
             [['community_id', 'period_id', 'shared_type', 'shared_id', 'latest_num', 'current_num', 'amount', 'create_at'], 'required','on'=>'add'],
             [['id','community_id', 'period_id', 'shared_type', 'shared_id', 'latest_num', 'current_num', 'amount', 'create_at'], 'required','on'=>'edit'],
             [['shared_type', 'shared_id', 'latest_num', 'current_num'], 'required','on'=>'get-money'],
-            [['community_id', 'period_id', 'shared_type', 'shared_id', 'create_at'], 'integer'],
+            [['period_id', 'shared_type', 'shared_id', 'create_at'], 'integer'],
+            [['community_id'],'string','max'=>30],
             [['amount','latest_num', 'current_num'], 'number'],
             ['amount', 'compare', 'compareValue' => 0.005, 'message'=>'金额数值不能低于0.01','operator' => '>','on'=>['add','edit']],
 

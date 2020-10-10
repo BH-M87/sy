@@ -33,7 +33,8 @@ class PsSharedPeriods extends BaseModel
         return [
             [['community_id', 'period_start', 'period_end', 'period_format', 'status', 'create_at'], 'required','message'=>'{attribute}不能为空!','on'=>'add'],
             [['id','community_id', 'period_start', 'period_end', 'period_format', 'create_at'], 'required','message'=>'{attribute}不能为空!','on'=>'edit'],
-            [['id','community_id', 'period_start', 'period_end', 'status', 'create_at'], 'integer'],
+            [['id','period_start', 'period_end', 'status', 'create_at'], 'integer'],
+            [['community_id'],'string','max'=>30],
             [['status'], 'in', 'range' => [1, 2, 3], 'message' => '{attribute}取值范围错误', 'on' => ['add']],
             [['period_format'], 'safe'],
         ];
