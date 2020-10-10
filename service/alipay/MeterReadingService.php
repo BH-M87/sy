@@ -7,6 +7,7 @@ use app\models\PsMeterCycle;
 use app\models\PsWaterMeter;
 use app\models\PsWaterRecord;
 use service\BaseService;
+use service\property_basic\CommonService;
 use Yii;
 use yii\base\Model;
 use service\rbac\OperateService;
@@ -32,9 +33,19 @@ class MeterReadingService extends BaseService
             if (!$valid["status"]) {
                 return $this->failed($valid["errorMsg"]);
             }
+            //java 验证小区
+            $commonService = new CommonService();
+            $javaCommunityParams['community_id'] = $data['community_id'];
+            $javaCommunityParams['token'] = $data['token'];
+            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+            if(empty($communityName)){
+                return $this->failed("未找到小区信息");
+            }
+
             $cycle_model->period = strtotime($cycle_model->period);
             $cycle_model->meter_time = strtotime($cycle_model->meter_time);
             $cycle_model->created_at = time();
+            $cycle_model->community_name = $communityName;
             $cycle_model->save();
             $result = $callback($cycle_model);
             if ($result['code']) {

@@ -81,6 +81,7 @@ CREATE TABLE `ps_meter_cycle` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `period` int(11) NOT NULL DEFAULT '0' COMMENT '抄表周期',
   `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
+  `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `meter_time` int(11) NOT NULL DEFAULT '0' COMMENT '本次抄表时间',
   `type` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1:水表 2:电表 3:公共表',
   `status` tinyint(3) NOT NULL DEFAULT '1' COMMENT '1:未发布账单 2:发布账单',

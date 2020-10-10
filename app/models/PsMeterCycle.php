@@ -36,7 +36,7 @@ class PsMeterCycle extends BaseModel
 //            [['type','community_id'],'required','on'=>['list']],
             [['type'],'required','on'=>['list']],
             [['type', 'status', 'created_at'], 'integer'],
-            [['community_id'], 'string', 'max' => 30],
+            [['community_id','community_name'], 'string', 'max' => 30],
             ['type','in','range'=>[1,2]],
         ];
     }
@@ -50,6 +50,7 @@ class PsMeterCycle extends BaseModel
             'id' => 'ID',
             'period' => '抄表周期',
             'community_id' => '小区id',
+            'community_name' => '小区名称',
             'meter_time' => '本次抄表时间',
             'type' => '1:水表 2:电表',
             'status' => '1:发布账单 2:未发布账单',
