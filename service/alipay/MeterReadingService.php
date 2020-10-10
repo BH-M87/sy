@@ -122,7 +122,7 @@ class MeterReadingService extends BaseService
      */
     public function getList($param)
     {
-        unset($param['token'],$param['create_id'],$param['create_name'],$param['corp_id']);
+        unset($param['token'],$param['create_id'],$param['create_name'],$param['corp_id'],$param['appKey'],$param['timestamp']);
 
         $cycle_model = new PsMeterCycle();
         $valid = PsCommon::validParamArr($cycle_model, $param, 'list');
