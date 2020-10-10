@@ -33,7 +33,8 @@ class PsMeterCycle extends BaseModel
         return [
             [['period',"meter_time",'community_id','type',],'required','on'=>['add']],
             [['id',],'required','on'=>['delete']],
-            [['type','community_id'],'required','on'=>['list']],
+//            [['type','community_id'],'required','on'=>['list']],
+            [['type'],'required','on'=>['list']],
             [['type', 'status', 'created_at'], 'integer'],
             [['community_id'], 'string', 'max' => 30],
             ['type','in','range'=>[1,2]],

@@ -181,7 +181,7 @@ class SharedPeriodController extends BaseController
     //获取数据模板的链接
     public function actionGetExcel()
     {
-        $downUrl = F::downloadUrl($this->systemType, 'import_shared_record.xlsx', 'template', 'MuBan.xlsx');
+        $downUrl = F::downloadUrl('import_shared_record.xlsx', 'template', 'MuBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
