@@ -48,14 +48,14 @@ class WaterRoomService extends BaseService
     //获取小区下的周期列表
     public function getCycleAll($reqArr)
     {
-        $userId = $reqArr['id'];
-        $communitys = CommunityService::service()->getUserCommunityIds($userId);
+//        $userId = $reqArr['id'];
+//        $communitys = CommunityService::service()->getUserCommunityIds($userId);
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;   //小区id
         $cycle_type = !empty($reqArr['cycle_type']) ? $reqArr['cycle_type'] : 0;   //小区id
         if (!$communityId || !$cycle_type) {
             return $this->failed('请求参数不完整！');
         }
-        if (!in_array($communityId, $communitys)) {
+        if (!in_array($communityId, $reqArr['communityList'])) {
             return $this->failed('无此小区权限！');
         }
         $listAll = [];
@@ -84,6 +84,23 @@ class WaterRoomService extends BaseService
             $model->andFilterWhere(['=', 'record.has_reading', 2]);
         } else {//已抄
             $model->andFilterWhere(['in', 'record.has_reading', [1, 3]]);
+        }
+        return $model;
+    }
+
+    //查询房屋
+    public function inquireRoom($reqArr)
+    {
+        $model = PsWaterRecord::find()
+            ->andFilterWhere(['=', 'community_id', PsCommon::get($reqArr, 'community_id')])
+            ->andFilterWhere(['=', 'cycle_id', PsCommon::get($reqArr, 'cycle_id')])
+            ->andFilterWhere(['=', 'group_id', PsCommon::get($reqArr, 'group_id')])
+            ->andFilterWhere(['=', 'building_id', PsCommon::get($reqArr, 'building_id')])
+            ->andFilterWhere(['=', 'unit_id', PsCommon::get($reqArr, 'unit_id')]);
+        if ($reqArr['is_record'] == 1) {//未抄
+            $model->andFilterWhere(['=', 'has_reading', 2]);
+        } else {//已抄
+            $model->andFilterWhere(['in', 'has_reading', [1, 3]]);
         }
         return $model;
     }
@@ -232,18 +249,18 @@ class WaterRoomService extends BaseService
     public function getRoomList($reqArr)
     {
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;
-        $groupName = !empty($reqArr['group_name']) ? $reqArr['group_name'] : '';
-        $buildingName = !empty($reqArr['building_name']) ? $reqArr['building_name'] : '';
-        $unitName = !empty($reqArr['unit_name']) ? $reqArr['unit_name'] : '';
+        $groupName = !empty($reqArr['group_id']) ? $reqArr['group_id'] : '';
+        $buildingName = !empty($reqArr['building_id']) ? $reqArr['building_id'] : '';
+        $unitName = !empty($reqArr['unit_id']) ? $reqArr['unit_id'] : '';
         $cycle_id = !empty($reqArr['cycle_id']) ? $reqArr['cycle_id'] : 0;              //周期id
         $is_record = !empty($reqArr['is_record']) ? $reqArr['is_record'] : 0;           //是否抄表：1未抄，2已抄
         if (!$communityId || !$cycle_id || !$is_record || !$groupName || !$buildingName || !$unitName) {
             return $this->failed('请求参数不完整！');
         }
-        $room = $this->_seatch($reqArr)
-            ->select(['room.room as room_name', 'room.id as room_id', 'record.current_ton', 'record.latest_ton', 'record.use_ton', 'record.id as record_id'])
-            ->groupBy('room.room')
-            ->orderBy('(`room`+0) asc, `room` asc')
+        $room = $this->inquireRoom($reqArr)
+            ->select(['room_id', 'current_ton', 'latest_ton', 'use_ton', 'id as record_id',"address"])
+            ->groupBy('room_id')
+            ->orderBy('(`room_id`+0) asc, `room_id` asc')
             ->asArray()
             ->all();
         //根据苑期区查找幢列表
@@ -260,9 +277,12 @@ class WaterRoomService extends BaseService
         if (!$communityId || !$record_id || !$last_ton || !$current_ton) {
             return $this->failed("请求参数不完整！");
         }
-        if (!CommunityService::service()->communityAuth($user['id'], $communityId)) {
+        if (!in_array($communityId,$params['communityList'])) {
             return $this->failed("无此小区权限！");
         }
+//        if (!CommunityService::service()->communityAuth($user['id'], $communityId)) {
+//            return $this->failed("无此小区权限！");
+//        }
         if ($last_ton >= $current_ton) {
             return $this->failed("本次读数错误！");
         }
