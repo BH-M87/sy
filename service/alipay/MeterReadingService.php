@@ -149,6 +149,9 @@ class MeterReadingService extends BaseService
             $communityList = $param['communityList'];
             unset($param['communityList']);
         }
+        if(empty($param['community_id'])){
+            unset($param['community_id']);
+        }
         $where['where'] = $param;
         $result = PsMeterCycle::getList($where,true,$communityList);
         return $this->success($result);
