@@ -156,7 +156,7 @@ class WaterRecordService extends BaseService
         //查询
         $data['where'] = $where;
         $data['like'] = $like;
-        $field = 'id,room_id,bill_type,current_ton,formula,address,has_reading,latest_ton,meter_no,period_end,period_start,price,use_ton';
+        $field = 'id,room_id,bill_type,current_ton,formula,address,has_reading,latest_ton,meter_no,period_end,period_start,price,use_ton,community_id';
         $result = PsWaterRecord::getData($data,$field,$page,$param['communityList']);
         return $this->success($result);
     }
