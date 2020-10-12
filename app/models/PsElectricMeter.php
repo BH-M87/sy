@@ -47,10 +47,10 @@ class PsElectricMeter extends BaseModel
     public function rules()
     {
         return [
-            [['community_id',"meter_no",'meter_status','room_id','group_id','building_id','unit_id','address','start_ton','latest_record_time','create_at',],'required','on'=>['add']],
+            [['community_id','community_name',"meter_no",'meter_status','room_id','group_id','building_id','unit_id','address','start_ton','latest_record_time','create_at',],'required','on'=>['add']],
             [['meter_type', 'meter_status', 'start_time', 'cycle_time', 'payment_time', 'has_reading', 'create_at','latest_record_time'], 'integer'],
             [['meter_no'], 'string', 'max' => 20],
-            [['community_id', 'room_id', 'group_id','building_id','unit_id'], 'string', 'max' => 30],
+            [['community_id','community_name', 'room_id', 'group_id','building_id','unit_id'], 'string', 'max' => 30],
             [['address'], 'string', 'max' => 255],
             [['remark'], 'string', 'max' => 150],
         ];
@@ -64,6 +64,7 @@ class PsElectricMeter extends BaseModel
         return [
             'id' => 'ID',
             'community_id' => 'Community ID',
+            'community_name' => 'community_name',
             'meter_no' => 'Meter No',
             'meter_type' => 'Meter Type',
             'meter_status' => 'Meter Status',

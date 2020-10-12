@@ -1,6 +1,7 @@
 CREATE TABLE `ps_water_meter` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
+  `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `meter_no` varchar(20) NOT NULL DEFAULT '0' COMMENT '表身号',
   `meter_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '缴费类型',
   `meter_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '水表状态 1启用 2禁用',
@@ -24,6 +25,7 @@ CREATE TABLE `ps_water_meter` (
 CREATE TABLE `ps_electric_meter` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `community_id` varchar(30) NOT NULL DEFAULT '' COMMENT '小区id',
+  `community_name` varchar(30) NOT NULL DEFAULT '' COMMENT '小区名称',
   `meter_no` varchar(20) NOT NULL DEFAULT '0' COMMENT '表身号',
   `meter_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '缴费类型',
   `meter_status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '电表状态 1启用 2禁用',

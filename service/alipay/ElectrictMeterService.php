@@ -28,7 +28,7 @@ class ElectrictMeterService extends  BaseService {
      * @return array
      */
     public function lists($data){
-        $field = 'id,meter_no,meter_status,latest_record_time,`group_id`,building_id,unit_id,address,room_id,start_ton,latest_record_time,cycle_time,payment_time,remark';
+        $field = 'id,meter_no,meter_status,latest_record_time,`group_id`,building_id,unit_id,address,community_name,room_id,start_ton,latest_record_time,cycle_time,payment_time,remark';
         $data = $this->getElectrictData($data,$field,true);
         return $this->success($data);
     }
@@ -138,6 +138,7 @@ class ElectrictMeterService extends  BaseService {
         $room = $check['data']['room'];
         $meter_arr = [
             "community_id" => $data["community_id"],
+            "community_name" => $room["communityName"],
             "meter_no" => $data["meter_no"],
             "meter_status" => $data["meter_status"],
             "room_id"  => $data["room_id"],
