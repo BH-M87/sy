@@ -8,6 +8,7 @@
 namespace app\modules\property\modules\v1\controllers;
 
 use app\modules\property\controllers\BaseController;
+use common\core\F;
 use common\core\PsCommon;
 use service\alipay\MeterService;
 use Yii;
@@ -43,6 +44,24 @@ class MeterController extends BaseController
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
+    }
+
+    /*
+     * 模板下载 水表电表
+     */
+    public function actionGetDown(){
+        $type = $this->request_params['type'];
+        if(empty($type)){
+            return PsCommon::responseFailed('下载类型必填');
+        }
+        if($type==1){
+            //水表
+            $downUrl = F::downloadUrl('import_water_meter_templates.xlsx', 'template', 'MoBan.xlsx');
+        }else{
+            //电表
+            $downUrl = F::downloadUrl('import_electrict_meter_templates.xlsx', 'template', 'MuBan.xlsx');
+        }
+        return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 
 
