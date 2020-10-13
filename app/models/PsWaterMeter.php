@@ -101,7 +101,7 @@ class PsWaterMeter extends BaseModel
         $water_meter = self::find()->select($field)->where($data['where'])->andWhere($data['like'])->orderBy([ 'id' => SORT_DESC]);
         if ($page) {
             $page = !empty($data['page']) ? $data['page'] : 1;
-            $row = !empty($data['row']) ? $data['row'] : 10;
+            $row = !empty($data['rows']) ? $data['rows'] : 10;
             $page = ($page-1)*$row;
             $countQuery = clone $water_meter;
             $count = $countQuery->count();

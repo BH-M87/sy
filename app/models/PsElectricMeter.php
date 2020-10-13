@@ -98,7 +98,7 @@ class PsElectricMeter extends BaseModel
         $electric_meter = PsElectricMeter::find()->select($field)->where($data['where'])->andWhere($data['like'])->orderBy([ 'id' => SORT_DESC]);
         if ($page) {
             $page = !empty($data['page']) ? $data['page'] : 1;
-            $row = !empty($data['row']) ? $data['row'] : 10;
+            $row = !empty($data['rows']) ? $data['rows'] : 10;
             $page = ($page-1)*$row;
             $countQuery = clone $electric_meter;
             $count = $countQuery->count();
