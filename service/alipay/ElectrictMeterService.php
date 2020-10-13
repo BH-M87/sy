@@ -292,6 +292,10 @@ class ElectrictMeterService extends  BaseService {
             ];
 
             $valid = PsCommon::validParamArr(new PsWaterMeterFrom(), $meter_arr, 'import-post');
+            $meter_arr['group'] = $val["B"];
+            $meter_arr['building'] = $val["C"];
+            $meter_arr['unit'] = $val["D"];
+            $meter_arr['room'] = $val["E"];
             if (!$valid["status"]) {
                 $error_count++;
                 $defeat_count++;

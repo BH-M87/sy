@@ -280,6 +280,10 @@ class WaterMeterService extends  BaseService {
             ];
 
             $valid = PsCommon::validParamArr(new PsWaterMeterFrom(), $meter_arr, 'import-post');
+            $meter_arr['group'] = $val["B"];
+            $meter_arr['building'] = $val["C"];
+            $meter_arr['unit'] = $val["D"];
+            $meter_arr['room'] = $val["E"];
             if (!$valid["status"]) {
                 $defeat_count++;
                 $errorCsv[$defeat_count] = $meter_arr;
