@@ -353,6 +353,7 @@ class ElectrictMeterService extends  BaseService {
             }
             $meterArr = [
                 "community_id" => $community_id,
+                "community_name"=>$communityName,
                 "meter_no" => $meter_arr["meter_no"],
                 "meter_status" => array_search($meter_arr["meter_status"], Self::$meter_status),
                 "group_id" => $roomInfo['groupId'],
@@ -389,7 +390,7 @@ class ElectrictMeterService extends  BaseService {
             //批量存入 ps_bill 表
             Yii::$app->db->createCommand()->batchInsert('ps_electric_meter',
                 [
-                    "community_id" ,
+                    "community_id" ,"community_name",
                     "meter_no" , "meter_status",
                     "group_id","building_id","unit_id","room_id","address",
                     "start_ton", "latest_record_time", "remark","create_at",
