@@ -3668,7 +3668,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                 "bill_entry_amount" => $record["price"],
                 "release_day" => date("Ymd", strtotime("-1 day")),
                 "deadline" => "20991231",
-                "status" => "3",
+                "status" => "1",
                 "create_at" => time(),
                 "content" => $msg,
             ];
@@ -3687,7 +3687,7 @@ from ps_bill as bill,ps_order  as der where {$where}  order by bill.create_at de
                     "product_subject" => $cost["name"],
                     "bill_amount" => $record["price"],
                     "pay_amount" => $record["price"],
-                    "status" => "3",
+                    "status" => "1",
                     "pay_status" => "0",
                     "create_at" => time(),
                 ];
