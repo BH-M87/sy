@@ -260,7 +260,16 @@ class WaterMeterService extends  BaseService {
             $roomInfo = $javaRoomResult[$roomKey];
             if (empty($roomInfo)) {
                 $defeat_count++;
-                $errorCsv[$defeat_count] = $val;
+                $errorCsv[$defeat_count] = [
+                    "meter_no" => $val["A"],
+                    "group" => $val["B"],
+                    "building" => $val["C"],
+                    "unit" => $val["D"],
+                    "room" => $val["E"],
+                    "meter_status" => $val["F"],
+                    "start_ton" => $val["H"],
+                    "remark" => (string) $val["I"],
+                ];
                 $errorCsv[$defeat_count]["error"] = "房屋未找到";
                 continue;
             }
