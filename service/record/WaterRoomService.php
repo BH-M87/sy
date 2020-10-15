@@ -178,12 +178,12 @@ class WaterRoomService extends BaseService
 //            ->asArray()
 //            ->all();
         $number=$reqArr;
-        $number['is_record']=1;
+        $number['is_record']=1; //未抄
         $not_record = $this->_seatch($number)->select(['record.id'])->count();
-        $number['is_record']=2;
+        $number['is_record']=2; //已抄
         $have_record = $this->_seatch($number)->select(['record.id'])->count();
 
-        return $this->success(['not_record'=>$not_record,'have_record'=>$have_record]);
+        return $this->success([['name'=>"未抄",'count'=>$not_record],['name'=>'已抄','count'=>$have_record]]);
     }
 
     /**
