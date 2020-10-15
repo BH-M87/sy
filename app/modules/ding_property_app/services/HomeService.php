@@ -154,24 +154,13 @@ class HomeService extends BaseService
                 'icon_type' => '1',
                 'url' => "/pages/goOut/outType/outType"
             ],
-            //  [
-            //      'icon'=>"http://zje-health-static.zje.com/pension/bjgl2.png",
-            //     'name'=>"报警管理",
-            //      'icon_type' => '1',
-            //     'url'=>"/pages/alarm/index/index",
-            //   ],
-//             [
-//             'icon' => "http://static.zje.com/2020041509563541640.png",
-//             'name' => "事件中心",
-//             'icon_type' => '2',
-//             'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
-//             ],
-//             [
-//                 'icon' => "http://static.zje.com/2020081117513559255.png",
-//                 'name' => "临时登记",
-//                 'icon_type' => '2',
-//                 'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
-//             ]
+            [
+                'icon' => "http://static.zje.com/202008251506149257.png",
+                'name' => "抄水电表",
+                'port' => '/digit-property-visitorpass',
+                'icon_type' => '1',
+                'url' => "/pages/waterMeter/index/index"
+            ],
         ];
         if($javaResult){
             //判断小区是否有账单
@@ -221,24 +210,13 @@ class HomeService extends BaseService
                         'icon_type' => '1',
                         'url' => "/pages/goOut/outType/outType"
                     ],
-                    // [
-                    //     'icon'=>"http://zje-health-static.zje.com/pension/bjgl2.png",
-                    //     'name'=>"报警管理",
-                    //     'icon_type' => '1',
-                    //     'url'=>"/pages/alarm/index/index",
-                    // ],
-                    // [
-                    //     'icon' => "http://static.zje.com/2020041509563541640.png",
-                    //     'name' => "事件中心",
-                    //     'icon_type' => '2',
-                    //     'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/eventCenterList/eventCenterList"
-                    // ],
-                    // [
-                    //     'icon' => "http://static.zje.com/2020081117513559255.png",
-                    //     'name' => "临时登记",
-                    //     'icon_type' => '2',
-                    //     'url' => "dingtalk://dingtalkclient/action/open_micro_app?appId=47657&corpId={$corpId}&page=pages/register/index/index"
-                    // ]
+                    [
+                        'icon' => "http://static.zje.com/202008251506149257.png",
+                        'name' => "抄水电表",
+                        'port' => '/digit-property-visitorpass',
+                        'icon_type' => '1',
+                        'url' => "/pages/waterMeter/index/index"
+                    ],
                 ];
             }
         }
