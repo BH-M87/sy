@@ -54,4 +54,20 @@ class RecordMeterController extends UserBaseController {
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //返回 已抄数量 未抄数量
+    public function actionGroupList()
+    {
+        try{
+            $reqArr  = array_merge($this->userInfo, $this->request_params);
+            $data = WaterRoomService::service()->getNumber($reqArr);
+            if ($data['code']) {
+                return PsCommon::responseSuccess($data['data']);
+            } else {
+                return PsCommon::responseFailed($data);
+            }
+        }catch(Exception $e){
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

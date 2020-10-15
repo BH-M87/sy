@@ -73,17 +73,18 @@ class WaterRoomService extends BaseService
     //查询房屋
     public function _seatch($reqArr)
     {
-        $model = PsWaterRecord::find()->alias('record')
-            ->leftJoin('ps_community_roominfo room', 'room.id=record.room_id')
-            ->andFilterWhere(['=', 'room.community_id', PsCommon::get($reqArr, 'community_id')])
-            ->andFilterWhere(['=', 'record.cycle_id', PsCommon::get($reqArr, 'cycle_id')])
-            ->andFilterWhere(['=', 'room.group', PsCommon::get($reqArr, 'group_name')])
-            ->andFilterWhere(['=', 'room.building', PsCommon::get($reqArr, 'building_name')])
-            ->andFilterWhere(['=', 'room.unit', PsCommon::get($reqArr, 'unit_name')]);
+        $model = PsWaterRecord::find()
+//            ->alias('record')
+//            ->leftJoin('ps_community_roominfo room', 'room.id=record.room_id')
+            ->andFilterWhere(['=', 'community_id', PsCommon::get($reqArr, 'community_id')])
+            ->andFilterWhere(['=', 'cycle_id', PsCommon::get($reqArr, 'cycle_id')])
+            ->andFilterWhere(['=', 'group_id', PsCommon::get($reqArr, 'group_id')])
+            ->andFilterWhere(['=', 'building_id', PsCommon::get($reqArr, 'building_id')])
+            ->andFilterWhere(['=', 'unit_id', PsCommon::get($reqArr, 'unit_id')]);
         if ($reqArr['is_record'] == 1) {//未抄
-            $model->andFilterWhere(['=', 'record.has_reading', 2]);
+            $model->andFilterWhere(['=', 'has_reading', 2]);
         } else {//已抄
-            $model->andFilterWhere(['in', 'record.has_reading', [1, 3]]);
+            $model->andFilterWhere(['in', 'has_reading', [1, 3]]);
         }
         return $model;
     }
@@ -154,6 +155,35 @@ class WaterRoomService extends BaseService
                 $params['unit_name'] = $unitName;
                 return F::paramsSuccess($params);
         }
+    }
+
+    /*
+     * 返回已抄数量 未抄数量
+     */
+    public function getNumber($reqArr){
+        $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;   //小区id
+        $cycle_id = !empty($reqArr['cycle_id']) ? $reqArr['cycle_id'] : 0;              //周期id
+        $is_record = !empty($reqArr['is_record']) ? $reqArr['is_record'] : 0;           //是否抄表：1未抄，2已抄
+
+        if (!$communityId || !$cycle_id || !$is_record) {
+            return $this->failed('请求参数不完整！');
+        }
+        if (!in_array($communityId, $reqArr['communityList'])) {
+            return $this->failed('无此小区权限！');
+        }
+//        $groups = $this->_seatch($reqArr)
+//            ->select(['room.group as group_name'])
+//            ->groupBy('group')
+//            ->orderBy('(`group`+0) asc, `group` asc')
+//            ->asArray()
+//            ->all();
+        $number=$reqArr;
+        $number['is_record']=1;
+        $not_record = $this->_seatch($number)->select(['record.id'])->count();
+        $number['is_record']=2;
+        $have_record = $this->_seatch($number)->select(['record.id'])->count();
+
+        return $this->success(['not_record'=>$not_record,'have_record'=>$have_record]);
     }
 
     /**
