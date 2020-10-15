@@ -226,6 +226,11 @@ class ElectrictMeterService extends  BaseService {
             "latest_record_time" => strtotime($data["latest_record_time"]),
             "remark"=>PsCommon::get($data,'remark'),
         ];
+        $model = new PsElectricMeter();
+        $valid = PsCommon::validParamArr($model, $meter_arr, 'edit');
+        if (!$valid["status"]) {
+            return $this->failed($valid["errorMsg"]);
+        }
         $where['id'] = $data["meter_id"];
         PsElectricMeter::editData($meter_arr,$where);
         $operate=[
