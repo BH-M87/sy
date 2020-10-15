@@ -97,7 +97,7 @@ class PsWaterRecord extends BaseModel
     public static function batchInserts($data)
     {
         self::model()->yiiBatchInsert([
-            'cycle_id', 'room_id','group_id','building_id','unit_id','address','community_id', 'status', 'latest_ton', 'use_ton', 'current_ton', 'period_start',
+            'cycle_id', 'room_id','room_name','group_id','building_id','unit_id','address','community_id', 'status', 'latest_ton', 'use_ton', 'current_ton', 'period_start',
             'period_end', 'price', 'meter_no', 'create_time', 'operator_id', 'operator_name', 'bill_type',
             'formula','formula_price', 'has_reading','created_at'
         ],$data);

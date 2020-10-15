@@ -288,7 +288,7 @@ class WaterRoomService extends BaseService
             return $this->failed('请求参数不完整！');
         }
         $room = $this->inquireRoom($reqArr)
-            ->select(['room_id', 'current_ton', 'latest_ton', 'use_ton', 'id as record_id',"address"])
+            ->select(['room_id', 'room_name','current_ton', 'latest_ton', 'use_ton', 'id as record_id',"address"])
             ->groupBy('room_id')
             ->orderBy('(`room_id`+0) asc, `room_id` asc')
             ->asArray()

@@ -31,6 +31,7 @@ class WaterRecordService extends BaseService
                 foreach ($data as $k => $v) {
                     $insert[$k]['cycle_id'] = $cycle->id;
                     $insert[$k]['room_id'] = $v['room_id'];
+                    $insert[$k]['room_name'] = $v['room_name'];
                     $insert[$k]['group_id'] = $v['group_id'];
                     $insert[$k]['building_id'] = $v['building_id'];
                     $insert[$k]['unit_id'] = $v['unit_id'];
