@@ -209,6 +209,11 @@ class WaterMeterService extends  BaseService {
             "remark"=>PsCommon::get($data,'remark'),
         ];
         $where['id'] = $data["water_meter_id"];
+        $model = new PsWaterMeter();
+        $valid = PsCommon::validParamArr($model, $meter_arr, 'edit');
+        if (!$valid["status"]) {
+            return $this->failed($valid["errorMsg"]);
+        }
         PsWaterMeter::editData($meter_arr,$where);
         $operate=[
             "community_id"=>$data["community_id"],
