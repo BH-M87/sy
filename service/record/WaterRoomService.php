@@ -163,9 +163,9 @@ class WaterRoomService extends BaseService
     public function getNumber($reqArr){
         $communityId = !empty($reqArr['community_id']) ? $reqArr['community_id'] : 0;   //小区id
         $cycle_id = !empty($reqArr['cycle_id']) ? $reqArr['cycle_id'] : 0;              //周期id
-        $is_record = !empty($reqArr['is_record']) ? $reqArr['is_record'] : 0;           //是否抄表：1未抄，2已抄
+//        $is_record = !empty($reqArr['is_record']) ? $reqArr['is_record'] : 0;           //是否抄表：1未抄，2已抄
 
-        if (!$communityId || !$cycle_id || !$is_record) {
+        if (!$communityId || !$cycle_id ) {
             return $this->failed('请求参数不完整！');
         }
         if (!in_array($communityId, $reqArr['communityList'])) {
