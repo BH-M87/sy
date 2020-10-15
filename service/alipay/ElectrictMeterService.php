@@ -465,7 +465,7 @@ class ElectrictMeterService extends  BaseService {
     public function exportConfig()
     {
         $config["sheet_config"] = [
-            'address' => ['title' => '表具类型', 'width' => 30],
+            'address' => ['title' => '房屋地址', 'width' => 30],
             'meter_no' => ['title' => '表具编号', 'width' => 16],
             'latest_record_time' => ['title' => '上次抄表时间', 'width' => 18],
             'start_ton' => ['title' => '上次抄表读数', 'width' => 16],
