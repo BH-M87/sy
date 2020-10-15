@@ -48,12 +48,12 @@ class PsWaterMeter extends BaseModel
     public function rules()
     {
         return [
-            [['community_id','community_name',"meter_no",'meter_status','room_id','group_id','building_id','unit_id','address','start_ton','latest_record_time','create_at',],'required','on'=>['add']],
+            [['community_id','community_name',"meter_no",'meter_status','room_id','room_name','group_id','building_id','unit_id','address','start_ton','latest_record_time','create_at',],'required','on'=>['add']],
             [["meter_no",'meter_status','start_ton','latest_record_time'],'required','on'=>['edit']],
             [['meter_type', 'meter_status', 'start_time', 'cycle_time', 'payment_time', 'has_reading', 'create_at'], 'integer'],
             [['start_ton'], 'number'],
             [['meter_no'], 'string', 'max' => 20],
-            [['community_id','community_name','room_id', 'group_id','building_id','unit_id'], 'string', 'max' => 30],
+            [['community_id','community_name','room_id', 'room_name','group_id','building_id','unit_id'], 'string', 'max' => 30],
             [['address'], 'string', 'max' => 255],
             [['remark'], 'string', 'max' => 150],
             ['latest_record_time', 'default', 'value'=>0],
@@ -73,6 +73,7 @@ class PsWaterMeter extends BaseModel
             'meter_type' => 'Meter Type',
             'meter_status' => 'Meter Status',
             'room_id' => 'Out Room ID',
+            'room_name' => '房屋号',
             'group_id' => 'Group',
             'building_id' => 'Building',
             'unit_id' => 'Unit',

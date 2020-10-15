@@ -142,6 +142,7 @@ class WaterMeterService extends  BaseService {
             "meter_no" => $data["meter_no"],
             "meter_status" => $data["meter_status"],
             "room_id"  => $data["room_id"],
+            "room_name"  => $room["roomName"],
             "group_id" =>     $room["groupId"],
             "building_id" =>  $room["buildingId"],
             "unit_id" =>     $room["unitId"],
@@ -286,6 +287,7 @@ class WaterMeterService extends  BaseService {
                 "building_id" => $roomInfo["buildingId"],
                 "unit_id" => $roomInfo["unitId"],
                 "room_id" => $roomInfo["roomId"],
+                "room_name"  => $roomInfo["roomName"],
 //                "address" => $roomInfo["home"],
                 "meter_status" => $val["F"],
                 "latest_record_time" => ($g > 0 ? gmdate("Y-m-d", $g) : ''),
@@ -348,6 +350,7 @@ class WaterMeterService extends  BaseService {
                 "building_id" => $roomInfo["buildingId"],
                 "unit_id" => $roomInfo["unitId"],
                 "room_id" => $roomInfo["roomId"],
+                "room_name" => $roomInfo["roomName"],
                 "address" => $roomInfo["home"],
                 "start_ton" => $meter_arr["start_ton"],
                 "latest_record_time" => $latest_record_time,
@@ -379,7 +382,7 @@ class WaterMeterService extends  BaseService {
                 [
                     "community_id" ,"community_name",
                     "meter_no" , "meter_status",
-                    "group_id","building_id","unit_id","room_id","address",
+                    "group_id","building_id","unit_id","room_id","room_name","address",
                     "start_ton", "latest_record_time","remark","create_at",
                 ],
                 $MeterArrInfo
