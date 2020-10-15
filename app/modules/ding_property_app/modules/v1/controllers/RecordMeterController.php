@@ -16,9 +16,9 @@ class RecordMeterController extends UserBaseController {
             $reqArr  = array_merge($this->userInfo, $this->request_params);
             $data = WaterRoomService::service()->getCycleAll($reqArr);
             if ($data['code']) {
-                return PsCommon::responseAppSuccess($data['data']);
+                return PsCommon::responseSuccess($data['data']);
             } else {
-                return PsCommon::responseAppFailed($data);
+                return PsCommon::responseFailed($data);
             }
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
@@ -31,9 +31,9 @@ class RecordMeterController extends UserBaseController {
         try{
             $result = WaterRoomService::service()->saveMeterRecord($this->request_params, $this->userInfo);
             if($result['code']) {
-                return PsCommon::responseAppSuccess($result['data']);
+                return PsCommon::responseSuccess($result['data']);
             }
-            return PsCommon::responseAppFailed($result['msg']);
+            return PsCommon::responseFailed($result['msg']);
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
         }
@@ -46,9 +46,9 @@ class RecordMeterController extends UserBaseController {
             $reqArr  = array_merge($this->userInfo, $this->request_params);
             $data = WaterRoomService::service()->getRoomList($reqArr);
             if ($data['code']) {
-                return PsCommon::responseAppSuccess($data['data']);
+                return PsCommon::responseSuccess($data['data']);
             } else {
-                return PsCommon::responseAppFailed($data);
+                return PsCommon::responseFailed($data);
             }
         }catch(Exception $e){
             return PsCommon::responseFailed($e->getMessage());
