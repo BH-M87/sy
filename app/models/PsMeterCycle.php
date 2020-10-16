@@ -67,6 +67,9 @@ class PsMeterCycle extends BaseModel
     public static function getList($param,$page = true,$communityList)
     {
         $query = self::find()->where($param['where'])->orderBy('created_at desc');
+        if(!empty($communityList)){
+            $query->andWhere(['in','community_id',$communityList]);
+        }
         if ($page) {
             $page = !empty($param['page']) ? $param['page'] : 1;
             $row = !empty($param['row']) ? $param['row'] : 10;
@@ -74,9 +77,6 @@ class PsMeterCycle extends BaseModel
             $countQuery = clone $query;
             $count = $countQuery->count();
             $query->offset($page)->limit($row);
-        }
-        if(!empty($communityList)){
-            $query->andWhere(['in','community_id',$communityList]);
         }
         $models = $query->asArray()->all();
         if ($models) {
