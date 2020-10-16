@@ -155,7 +155,7 @@ class HomeService extends BaseService
                 'url' => "/pages/goOut/outType/outType"
             ],
             [
-                'icon' => "http://static.zje.com/202008251506149257.png",
+                'icon' => "http://static.zje.com/2020101613462586527.png",
                 'name' => "抄水电表",
                 'port' => '/digit-property-visitorpass',
                 'icon_type' => '1',
@@ -211,7 +211,7 @@ class HomeService extends BaseService
                         'url' => "/pages/goOut/outType/outType"
                     ],
                     [
-                        'icon' => "http://static.zje.com/202008251506149257.png",
+                        'icon' => "http://static.zje.com/2020101613462586527.png",
                         'name' => "抄水电表",
                         'port' => '/digit-property-visitorpass',
                         'icon_type' => '1',
