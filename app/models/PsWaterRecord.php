@@ -136,6 +136,9 @@ class PsWaterRecord extends BaseModel
     {
         $return = [];
         $meter_record = self::find()->select($field)->where($data['where'])->andWhere($data['like'])->orderBy([ 'id' => SORT_DESC]);
+        if(!empty($communityList)){
+            $meter_record->andWhere(['in','community_id',$communityList]);
+        }
         if ($page) {
             $page = !empty($data['page']) ? $data['page'] : 1;
             $row = !empty($data['row']) ? $data['row'] : 10;
@@ -143,9 +146,6 @@ class PsWaterRecord extends BaseModel
             $count = $meter_record->count();
             $return['totals'] = $count;
             $meter_record->offset($page)->limit($row);
-        }
-        if(!empty($communityList)){
-            $meter_record->andWhere(['in','community_id',$communityList]);
         }
         $models = $meter_record->asArray()->all();
         if ($models) {
