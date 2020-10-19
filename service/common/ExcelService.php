@@ -352,6 +352,7 @@ class ExcelService extends BaseService
         }
     }
 
+
     //保存到文件
     public function saveExcel($objPHPExcel, $config)
     {
@@ -359,6 +360,7 @@ class ExcelService extends BaseService
         $baseUrl = F::getAbsoluteUrl() . '/store/excel/';
         $path = isset($config['path']) ? $basePath . $config['path'] . '/' : $basePath;
         $url = isset($config['path']) ? $baseUrl . $config['path'] . '/' : $baseUrl;
+
         //固定保存的save_path为web/store
         if (!is_dir($path)) {
             FileHelper::createDirectory($path, 0755, true);
@@ -371,7 +373,10 @@ class ExcelService extends BaseService
         }
         $objWriter->save($path . $file_name);
         chmod($path . $file_name, 0755);
-        return $url . $file_name;
+        //上传oss
+        $downUrl = F::uploadExcelToOss($file_name, $path);
+//        return $url . $file_name;
+        return $downUrl;
     }
 
     //不保存文件，直接下载

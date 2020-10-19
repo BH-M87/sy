@@ -150,8 +150,12 @@ class SharedPeriodService extends BaseService
     //删除账期
     public function del($params,$userinfo)
     {
+
         if (empty($params['id'])) {
             return $this->failed("账期id不能为空");
+        }
+        if (empty($params['community_id'])) {
+            return $this->failed("小区id不能为空");
         }
         $shared = PsSharedPeriods::findOne($params['id']);
         if (empty($shared)) {
@@ -454,10 +458,18 @@ class SharedPeriodService extends BaseService
         //================================================数据验证操作==================================================
         if ($params && !empty($params)) {
             //验证小区
-            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
-            if (empty($community_info)) {
+//            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
+//            if (empty($community_info)) {
+//                return $this->failed("未找到小区信息");
+//            }
+            if(!in_array($params['community_id'],$params['communityList'])){
                 return $this->failed("未找到小区信息");
             }
+
+            if(empty($params['period_id'])){
+                return $this->failed("分摊账期表id不能为空");
+            }
+
             //验证任务
             $task = ReceiptService::getReceiptTask($params["task_id"]);
             if (empty($task)) {

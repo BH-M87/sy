@@ -159,16 +159,16 @@ Class TemplateService extends BaseService
 //                $arr['pay_amount'] = $v['paid_entry_amount']; // 实收金额
 
     //                // 如果是水费和电费则还需要查询使用量跟起始度数1
-    //                if ($v['cost_type'] == 2 || $v['cost_type'] == 3) {
-    //                    $water = Yii::$app->db->createCommand("SELECT use_ton, latest_ton, formula
-    //                        from ps_water_record where bill_id = {$v['bill_id']} ")->queryOne();
-    //                    if (!empty($water)) {
-    //                        $arr['start'] = $water['latest_ton']; // 起度
-    //                        $arr['end'] = $water['latest_ton'] + $water['use_ton']; // 止度
-    //                        $arr['use'] = $water['use_ton']; // 使用量
-    //                        $arr['formula'] = $water['formula']; // 收费标准
-    //                    }
-    //                }
+                    if ($v['cost_type'] == 2 || $v['cost_type'] == 3) {
+                        $water = Yii::$app->db->createCommand("SELECT use_ton, latest_ton, formula
+                            from ps_water_record where bill_id = {$v['bill_id']} ")->queryOne();
+                        if (!empty($water)) {
+                            $arr['start'] = $water['latest_ton']; // 起度
+                            $arr['end'] = $water['latest_ton'] + $water['use_ton']; // 止度
+                            $arr['use'] = $water['use_ton']; // 使用量
+                            $arr['formula'] = $water['formula']; // 收费标准
+                        }
+                    }
                 $total_money += $v['bill_entry_amount'];
                 $arrList[] = $arr;
 

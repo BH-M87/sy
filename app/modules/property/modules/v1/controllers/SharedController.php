@@ -69,7 +69,7 @@ class SharedController extends BaseController
         $data['create_at'] = time();
         $result = SharedService::service()->add($data, $this->user_info);
         if ($result['code']) {
-            return PsCommon::responseSuccess($result);
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
@@ -80,7 +80,7 @@ class SharedController extends BaseController
     {
         $result = SharedService::service()->edit($this->request_params, $this->user_info);
         if ($result['code']) {
-            return PsCommon::responseSuccess($result);
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
@@ -184,6 +184,20 @@ class SharedController extends BaseController
     public function actionDeleteMeter()
     {
         $result = SharedService::service()->delete($this->request_params,$this->user_info);
+        if ($result['code']) {
+            return PsCommon::responseSuccess($result['data']);
+        } else {
+            return PsCommon::responseFailed($result['msg']);
+        }
+    }
+
+    /**
+     * 删除仪表数据
+     * @author yjh
+     */
+    public function actionMeterShow()
+    {
+        $result = SharedService::service()->show($this->request_params);
         if ($result['code']) {
             return PsCommon::responseSuccess($result['data']);
         } else {

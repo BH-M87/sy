@@ -50,7 +50,7 @@ class SharedPeriodController extends BaseController
             $result = SharedPeriodService::service()->add($data, $this->user_info);
         }
         if ($result['code']) {
-            return PsCommon::responseSuccess($result);
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
@@ -70,7 +70,7 @@ class SharedPeriodController extends BaseController
             $result = SharedPeriodService::service()->edit($data, $this->user_info);
         }
         if ($result['code']) {
-            return PsCommon::responseSuccess($result);
+            return PsCommon::responseSuccess($result['data']);
         } else {
             return PsCommon::responseFailed($result['msg']);
         }
@@ -181,7 +181,7 @@ class SharedPeriodController extends BaseController
     //获取数据模板的链接
     public function actionGetExcel()
     {
-        $downUrl = F::downloadUrl($this->systemType, 'import_shared_record.xlsx', 'template', 'MuBan.xlsx');
+        $downUrl = F::downloadUrl('import_shared_record.xlsx', 'template', 'MuBan.xlsx');
         return PsCommon::responseSuccess(['down_url' => $downUrl]);
     }
 

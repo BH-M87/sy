@@ -7,6 +7,7 @@
  */
 namespace service\alipay;
 
+use app\models\PsWaterMeterFrom;
 use common\core\F;
 use common\core\PsCommon;
 use app\models\PsElectricMeter;
@@ -18,6 +19,7 @@ use app\models\PsWaterMeter;
 use service\BaseService;
 use service\common\CsvService;
 use service\common\ExcelService;
+use service\property_basic\CommonService;
 use Yii;
 use service\manage\CommunityService;
 use service\rbac\OperateService;
@@ -415,10 +417,26 @@ class SharedService extends BaseService
         //================================================数据验证操作==================================================
         if ($params && !empty($params)) {
             //验证小区
-            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
-            if (empty($community_info)) {
+//            $community_info = CommunityService::service()->getCommunityInfo($params['community_id']);
+//            if (empty($community_info)) {
+//                return $this->failed("未找到小区信息");
+//            }
+
+            if(!empty($params['communityList'])){
+                if(!in_array($params['community_id'],$params['communityList'])){
+                    return $this->failed("没有该小区权限");
+                }
+            }
+
+            //java 验证小区
+            $commonService = new CommonService();
+            $javaCommunityParams['community_id'] = $params['community_id'];
+            $javaCommunityParams['token'] = $params['token'];
+            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+            if(empty($communityName)){
                 return $this->failed("未找到小区信息");
             }
+
             //验证任务
             $task = ReceiptService::getReceiptTask($params["task_id"]);
             if (empty($task)) {
@@ -565,9 +583,12 @@ class SharedService extends BaseService
             'G' => ['title' => '错误原因', 'width' => 10, 'data_type' => 'str', 'field' => 'error'],
         ];
         $filename = CsvService::service()->saveTempFile(1, array_values($config), $data, '', 'error');
-        $filePath = F::originalFile().'error/'.$filename;
-        $fileRe = F::uploadFileToOss($filePath);
-        $downUrl = $fileRe['filepath'];
+//        $filePath = F::originalFile().'error/'.$filename;
+//        $fileRe = F::uploadFileToOss($filePath);
+//        $downUrl = $fileRe['filepath'];
+        $newFileName = explode('/',$filename);
+        $savePath = Yii::$app->basePath . '/web/store/excel/error/'.$newFileName[0]."/";
+        $downUrl = F::uploadExcelToOss($newFileName[1], $savePath);
         return $downUrl;
     }
 
@@ -620,6 +641,28 @@ class SharedService extends BaseService
                return $this->failed('类型错误');
         }
         return $this->success();
+    }
+
+    /*
+     * 仪表数据详情
+     */
+    public function show($data){
+        if (empty($data['id']) || empty($data['type'])) {
+            return $this->failed('参数错误');
+        }
+        switch ($data['type']) {
+            //水表
+            case 1:
+                $result = WaterMeterService::service()->show($data["id"]);
+                break;
+            //电表
+            case 2:
+                $result = ElectrictMeterService::service()->show($data["id"]);
+                break;
+            default:
+                return $this->failed('类型错误');
+        }
+        return $result;
     }
 
     /**

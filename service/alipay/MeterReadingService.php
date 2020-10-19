@@ -7,9 +7,11 @@ use app\models\PsMeterCycle;
 use app\models\PsWaterMeter;
 use app\models\PsWaterRecord;
 use service\BaseService;
+use service\property_basic\CommonService;
 use Yii;
 use yii\base\Model;
 use service\rbac\OperateService;
+use yii\db\Exception;
 
 class MeterReadingService extends BaseService
 {
@@ -23,28 +25,45 @@ class MeterReadingService extends BaseService
      */
     public function add($data,$user)
     {
-        $callback = $this->addRelationMeter($user);
-        $cycle_model = new PsMeterCycle();
-        $valid = PsCommon::validParamArr($cycle_model, $data, 'add');
-        if (!$valid["status"]) {
-            return $this->failed($valid["errorMsg"]);
-        }
-        $cycle_model->period = strtotime($cycle_model->period);
-        $cycle_model->meter_time = strtotime($cycle_model->meter_time);
-        $cycle_model->created_at = time();
-        $result = $callback($cycle_model);
-        if ($result['code']) {
+        $trans = Yii::$app->db->beginTransaction();
+        try{
+            $callback = $this->addRelationMeter($user);
+            $cycle_model = new PsMeterCycle();
+            $valid = PsCommon::validParamArr($cycle_model, $data, 'add');
+            if (!$valid["status"]) {
+                return $this->failed($valid["errorMsg"]);
+            }
+            //java 验证小区
+            $commonService = new CommonService();
+            $javaCommunityParams['community_id'] = $data['community_id'];
+            $javaCommunityParams['token'] = $data['token'];
+            $communityName = $commonService->communityVerificationReturnName($javaCommunityParams);
+            if(empty($communityName)){
+                return $this->failed("未找到小区信息");
+            }
+
+            $cycle_model->period = strtotime($cycle_model->period);
+            $cycle_model->meter_time = strtotime($cycle_model->meter_time);
+            $cycle_model->created_at = time();
+            $cycle_model->community_name = $communityName;
             $cycle_model->save();
-            $operate = [
-                "community_id" =>$data['community_id'],
-                "operate_menu" => "抄表管理",
-                "operate_type" => "新增抄表",
-                "operate_content" => "抄表周期：".$data['period']
-            ];
-            OperateService::addComm($user, $operate);
-            return $this->success();
-        } else {
-            return $this->failed($result['msg']);
+            $result = $callback($cycle_model);
+            if ($result['code']) {
+                $operate = [
+                    "community_id" =>$data['community_id'],
+                    "operate_menu" => "抄表管理",
+                    "operate_type" => "新增抄表",
+                    "operate_content" => "抄表周期：".$data['period']
+                ];
+                OperateService::addComm($user, $operate);
+                $trans->commit();
+                return $this->success();
+            } else {
+                return $this->failed($result['msg']);
+            }
+        }catch (Exception $e){
+            $trans->rollBack();
+            return $this->failed($e->getMessage());
         }
     }
 
@@ -62,7 +81,7 @@ class MeterReadingService extends BaseService
             switch ($cycle->type) {
                 //水表
                 case 1:
-                    $result = WaterMeterService::service()->getWaterData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,latest_record_time,start_ton,meter_no,meter_status');
+                    $result = WaterMeterService::service()->getWaterData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,room_name,group_id,building_id,unit_id,address,community_id,latest_record_time,start_ton,meter_no,meter_status');
                     if (!empty($result['list'])) {
                         $callback($result['list']);
                     } else {
@@ -71,7 +90,7 @@ class MeterReadingService extends BaseService
                     break;
                 //电表
                 case 2:
-                    $result = ElectrictMeterService::service()->getElectrictData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,latest_record_time,start_ton,meter_no,meter_status');
+                    $result = ElectrictMeterService::service()->getElectrictData(['community_id'=>$cycle->community_id,'meter_status'=>1],'room_id,room_name,group_id,building_id,unit_id,address,community_id,latest_record_time,start_ton,meter_no,meter_status');
                     if (!empty($result['list'])) {
                         $callback($result['list']);
                     } else {
@@ -114,6 +133,8 @@ class MeterReadingService extends BaseService
      */
     public function getList($param)
     {
+        unset($param['token'],$param['create_id'],$param['create_name'],$param['corp_id'],$param['appKey'],$param['timestamp']);
+
         $cycle_model = new PsMeterCycle();
         $valid = PsCommon::validParamArr($cycle_model, $param, 'list');
         if (!$valid["status"]) {
@@ -123,8 +144,16 @@ class MeterReadingService extends BaseService
         $where['row'] = $param['rows'] ?? 10;
         unset($param['page']);
         unset($param['rows']);
+        $communityList = [];
+        if(!empty($param['communityList'])){
+            $communityList = $param['communityList'];
+            unset($param['communityList']);
+        }
+        if(empty($param['community_id'])){
+            unset($param['community_id']);
+        }
         $where['where'] = $param;
-        $result = PsMeterCycle::getList($where);
+        $result = PsMeterCycle::getList($where,true,$communityList);
         return $this->success($result);
     }
 

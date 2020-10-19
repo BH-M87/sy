@@ -97,7 +97,7 @@ class PsWaterRecord extends BaseModel
     public static function batchInserts($data)
     {
         self::model()->yiiBatchInsert([
-            'cycle_id', 'room_id', 'status', 'latest_ton', 'use_ton', 'current_ton', 'period_start',
+            'cycle_id', 'room_id','room_name','group_id','building_id','unit_id','address','community_id', 'status', 'latest_ton', 'use_ton', 'current_ton', 'period_start',
             'period_end', 'price', 'meter_no', 'create_time', 'operator_id', 'operator_name', 'bill_type',
             'formula','formula_price', 'has_reading','created_at'
         ],$data);
@@ -132,10 +132,13 @@ class PsWaterRecord extends BaseModel
      * @param bool $page
      * @return array
      */
-    public static function getData($data,$field = '*',$page=true)
+    public static function getData($data,$field = '*',$page=true,$communityList)
     {
         $return = [];
-        $meter_record = self::find()->select($field)->joinWith('room as a')->where($data['where'])->andWhere($data['like'])->orderBy([ 'a.id' => SORT_DESC]);
+        $meter_record = self::find()->select($field)->where($data['where'])->andWhere($data['like'])->orderBy([ 'id' => SORT_DESC]);
+        if(!empty($communityList)){
+            $meter_record->andWhere(['in','community_id',$communityList]);
+        }
         if ($page) {
             $page = !empty($data['page']) ? $data['page'] : 1;
             $row = !empty($data['row']) ? $data['row'] : 10;

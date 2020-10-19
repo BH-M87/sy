@@ -13,10 +13,10 @@ class PsWaterMeterFrom extends Model
     public $meter_no;
     public $meter_status;
     public $meter_type;
-    public $group;
-    public $unit;
-    public $building;
-    public $room;
+    public $group_id;
+    public $unit_id;
+    public $building_id;
+    public $room_id;
     public $start_ton;
     public $cycle_time;
     public $payment_time;
@@ -30,7 +30,7 @@ class PsWaterMeterFrom extends Model
     {
         return [
             [['community_id'], 'required','message' => '{attribute}不能为空!', 'on' => ['list','add','import']],
-            [['meter_no','meter_status','group','unit','building','room','start_ton','latest_record_time'], 'required',
+            [['meter_no','meter_status','group_id','unit_id','building_id','room_id','start_ton','latest_record_time'], 'required',
                 'message' => '{attribute}不能为空!', 'on' => ['add','edit','import-post']],
 
             ['meter_no', 'match', 'pattern' => Regular::letterOrNumber(1, 15),
@@ -57,10 +57,10 @@ class PsWaterMeterFrom extends Model
             'community_id'     => '小区',
             'meter_no'           => '表身号',
             'meter_status'            => '状态',
-            'group'          => '苑/期/区',
-            'building'       => '幢',
-            'room'           => '房号',
-            'unit'           => '单元号',
+            'group_id'          => '苑/期/区',
+            'building_id'       => '幢',
+            'room_id'           => '房号',
+            'unit_id'           => '单元号',
             'start_ton'      => '起始读数',
             "start_time"   => "上次抄表时间",
             "latest_record_time"   => "上次抄表时间",

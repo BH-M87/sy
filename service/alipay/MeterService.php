@@ -6,6 +6,7 @@ use app\models\PsWaterMeterFrom;
 use service\BaseService;
 use service\common\CsvService;
 use service\common\ExcelService;
+use service\rbac\OperateService;
 use Yii;
 
 class MeterService extends  BaseService
@@ -89,6 +90,6 @@ class MeterService extends  BaseService
             default:
                 return $this->failed('类型错误');
         }
-        return $this->success($result);
+        return $this->success(['downUrl'=>$result]);
     }
 }
