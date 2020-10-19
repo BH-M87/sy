@@ -48,7 +48,7 @@ class PsElectricMeter extends BaseModel
     {
         return [
             [['community_id','community_name',"meter_no",'meter_status','room_id','room_name','group_id','building_id','unit_id','address','start_ton','latest_record_time','create_at',],'required','on'=>['add']],
-            [["meter_no",'meter_status','start_ton','latest_record_time','create_at',],'required','on'=>['edit']],
+            [["meter_no",'meter_status','start_ton','latest_record_time'],'required','on'=>['edit']],
             [['meter_type', 'meter_status', 'start_time', 'cycle_time', 'payment_time', 'has_reading', 'create_at','latest_record_time'], 'integer'],
             [['meter_no'], 'string', 'max' => 20],
             [['community_id','community_name', 'room_id', 'room_name','group_id','building_id','unit_id'], 'string', 'max' => 30],
