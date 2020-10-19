@@ -46,8 +46,15 @@ Class PhoneService extends BaseService
      */
     public function edit($params,$userInfo){
         $model = new PsPhone(['scenario'=>'edit']);
-        if($model->load($params,'')&&$model->validate()){
-            if(!$model->edit($params)){
+
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $editParams['community_name'] = !empty($params['community_name'])?$params['community_name']:'';
+        $editParams['contact_name'] = !empty($params['contact_name'])?$params['contact_name']:'';
+        $editParams['contact_phone'] = !empty($params['contact_phone'])?$params['contact_phone']:'';
+        $editParams['type'] = !empty($params['type'])?$params['type']:'';
+        if($model->load($editParams,'')&&$model->validate()){
+            if(!$model->edit($editParams)){
                 return $this->failed('修改失败！');
             }
             //添加日志
@@ -60,6 +67,39 @@ Class PhoneService extends BaseService
             ];
             OperateService::addComm($userInfo, $operate);
             return $this->success(['id'=>$model->attributes['id']]);
+        }else{
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 列表
+     */
+    public function getList($params){
+        $model = new PsPhone();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['type_msg'] = !empty($value['type'])?$model->typeMsg[$value['type']]:'';
+                $result['list'][$key]['create_msg'] = !empty($value['create_at'])?date('Y-m-d',$value['create_at']):'';
+            }
+        }
+        return $this->success($result);
+    }
+
+    /*
+     * 删除
+     */
+    public function del($params){
+        $model = new PsPhone(['scenario'=>'del']);
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        if($model->load($editParams,'')&&$model->validate()){
+            if(!$model::deleteAll($editParams)){
+                return $this->failed("删除失败");
+            }
+            return $this->success();
         }else{
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);

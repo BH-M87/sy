@@ -30,12 +30,14 @@ class PsPhone extends BaseModel
             [['community_id','community_name', 'contact_name', 'contact_phone', 'type'], 'required', 'on' => 'add'],
             [['id','community_id', 'community_name','contact_name', 'contact_phone', 'type'], 'required', 'on' => 'edit'],
             [['id', 'community_id'], 'required', 'on' => ['detail']],
-            [['id', 'community_id'], 'infoData', 'on' => ["detail"]],
+            [['id','community_id'], 'required', 'on' => 'del'],
+            [['id', 'community_id'], 'infoData', 'on' => ["edit","detail","del"]],
             [['id','community_id', 'contact_name'], 'nameUnique', 'on' => ['add','edit']],   //联系人名称唯一
             [['id', 'type', 'create_at', 'update_at'], 'integer'],
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
+            [['contact_name'], 'string', 'max' => 10],
+            [['contact_phone'], 'string', 'max' => 20],
             [['community_id', 'community_name'], 'string', 'max' => 30],
-            [['contact_name', 'contact_phone'], 'string', 'max' => 20],
             [['contact_phone'], 'match', 'pattern' => parent::MOBILE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
             [['create_at', 'update_at'], 'default', 'value' => time(), 'on' => ['add']],
         ];
@@ -104,5 +106,38 @@ class PsPhone extends BaseModel
                 $this->addError($attribute, "该联系人已存在！");
             }
         }
+    }
+
+    /*
+     * 联系人列表
+     */
+    public function getList($params){
+        $fields = ['id','community_id','community_name','contact_name','contact_phone','type','create_at'];
+        $model = self::find()->select($fields)->where(1);
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+        }
+        if(!empty($params['type'])){
+            $model->andWhere(['=','type',$params['type']]);
+        }
+        if(!empty($params['contact_name'])){
+            $model->andWhere(['like','contact_name',$params['contact_name']]);
+        }
+        $count = $model->count();
+        if(!empty($params['page'])||!empty($params['pageSize'])){
+            $page = !empty($params['page'])?intval($params['page']):1;
+            $pageSize = !empty($params['pageSize'])?intval($params['pageSize']):10;
+            $allPage = ceil($count/$pageSize);
+            $page1 = $allPage>$page?$page:$allPage;
+            $offset = ($page1-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
+
     }
 }

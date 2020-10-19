@@ -17,7 +17,7 @@ use yii\base\Exception;
 class PhoneController extends BaseController
 {
 
-    public $repeatAction = ['synchronize-b1', 'device-user-edit', 'del-device'];
+    public $repeatAction = ['add', 'edit'];
 
     //新增常用电话
     public function actionAdd()
@@ -43,6 +43,40 @@ class PhoneController extends BaseController
             $params = $this->request_params;
             $service = new PhoneService();
             $result = $service->edit($params,$this->user_info);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //列表
+    public function actionList(){
+        try {
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new PhoneService();
+            $result = $service->getList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //删除
+    public function actionDel(){
+        try {
+            $params = $this->request_params;
+            $service = new PhoneService();
+            $result = $service->del($params);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             } else {
