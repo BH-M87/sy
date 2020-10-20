@@ -105,4 +105,33 @@ Class PhoneService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    /*
+     * 钉钉端列表
+     */
+    public function getListOfDing($params){
+        $data = [];
+        $model = new PsPhone();
+        //小区服务
+        $communityCondition = $params;
+        $communityCondition['type'] = 1;
+        $communityResult = $model->getList($communityCondition);
+        if(!empty($communityResult['list'])){
+            $data[] = [
+                'msg' => '小区服务',
+                'list' => $communityResult['list'],
+            ];
+        }
+        //公共服务
+        $commonCondition = $params;
+        $commonCondition['type'] = 2;
+        $commonResult = $model->getList($commonCondition);
+        if(!empty($commonResult['list'])){
+            $data[] = [
+                'msg' => '公共服务',
+                'list' => $commonResult['list'],
+            ];
+        }
+        return $this->success($data);
+    }
 }

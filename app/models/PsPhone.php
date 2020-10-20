@@ -32,7 +32,7 @@ class PsPhone extends BaseModel
             [['id', 'community_id'], 'required', 'on' => ['detail']],
             [['id','community_id'], 'required', 'on' => 'del'],
             [['id', 'community_id'], 'infoData', 'on' => ["edit","detail","del"]],
-            [['id','community_id', 'contact_name'], 'nameUnique', 'on' => ['add','edit']],   //联系人名称唯一
+            [['id','community_id', 'contact_name','type'], 'nameUnique', 'on' => ['add','edit']],   //联系人名称唯一
             [['id', 'type', 'create_at', 'update_at'], 'integer'],
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
             [['contact_name'], 'string', 'max' => 10],
@@ -96,8 +96,8 @@ class PsPhone extends BaseModel
      * 联系人名称唯一
      */
     public function nameUnique($attribute){
-        if(!empty($this->contact_name)&&!empty($this->community_id)){
-            $model = static::find()->select(['id'])->where('contact_name=:contact_name and community_id=:community_id',[':contact_name'=>$this->contact_name,':community_id'=>$this->community_id]);
+        if(!empty($this->contact_name)&&!empty($this->community_id)&&!empty($this->type)){
+            $model = static::find()->select(['id'])->where('contact_name=:contact_name and community_id=:community_id and type=:type',[':contact_name'=>$this->contact_name,':community_id'=>$this->community_id,":type"=>$this->type]);
             if(!empty($this->id)){
                 $model->andWhere(['!=','id',$this->id]);
             }
