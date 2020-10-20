@@ -19,7 +19,7 @@ CREATE TABLE `ps_decoration_registration` (
   `room_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋号id',
   `group_id` varchar(30) NOT NULL DEFAULT '' COMMENT '房屋苑/期/区',
   `building_id` varchar(30) NOT NULL DEFAULT '' COMMENT '幢',
-  `unit_id` varchar(30) NOT NULL DEFAULT '' COMMENT '室号',
+  `unit_id` varchar(30) NOT NULL DEFAULT '' COMMENT '单元',
   `address` varchar(255) NOT NULL DEFAULT '' COMMENT '房屋地址',
   `owner_name` varchar(20) NOT NULL DEFAULT '' COMMENT '业主',
   `owner_phone` varchar(20) NOT NULL DEFAULT '' COMMENT '业主电话',

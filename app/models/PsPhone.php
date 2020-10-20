@@ -38,6 +38,7 @@ class PsPhone extends BaseModel
             [['contact_name'], 'string', 'max' => 10],
             [['contact_phone'], 'string', 'max' => 20],
             [['community_id', 'community_name'], 'string', 'max' => 30],
+            [['contact_name','contact_phone','community_id', 'community_name'], 'trim'],
             [['contact_phone'], 'match', 'pattern' => parent::MOBILE_RULE, 'message'=>'联系电话必须是区号-电话格式或者手机号码格式'],
             [['create_at', 'update_at'], 'default', 'value' => time(), 'on' => ['add']],
         ];
