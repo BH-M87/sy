@@ -24,13 +24,14 @@ class PsDecorationPatrol extends BaseModel {
         return [
             // 所有场景
             [['decoration_id','community_id','is_licensed','is_safe', 'is_violation','is_env','patrol_name','patrol_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['decoration_id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['list']],
             [["id",'decoration_id', 'is_licensed','is_safe', 'is_violation','is_env', 'problem_num','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content'], 'string',"max"=>30],
             [['address','remarks'], 'string',"max"=>200],
             [['patrol_name'], 'string',"max"=>20],
             ['problem_num','integer', 'min'=>0, 'max'=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content','address','remarks','patrol_name'], 'trim'],
-            [['decoration_id','community_id'], 'recordExist', 'on' => ["add"]],    //该户装修登记是否存在
+            [['decoration_id','community_id'], 'recordExist', 'on' => ["add","list"]],    //该户装修登记是否存在
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["problem_num"],"default",'value' => 0,'on'=>['add']],
         ];
@@ -120,32 +121,19 @@ class PsDecorationPatrol extends BaseModel {
      */
     public function getList($param){
 
-        $field = ['id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','community_name'];
+        $field = [
+                    'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','patrol_name','content','create_at','remarks','address'
+        ];
         $model = self::find()->select($field)->where(1);
-        if(!empty($param['communityList'])){
-            $model->andWhere(['in','community_id',$param['communityList']]);
-        }
+
         if(!empty($param['community_id'])){
             $model->andWhere(['=','community_id',$param['community_id']]);
         }
 
-        if(!empty($param['group_id'])){
-            $model->andWhere(['=','group_id',$param['group_id']]);
-        }
-        if(!empty($param['building_id'])){
-            $model->andWhere(['=','building_id',$param['building_id']]);
-        }
-        if(!empty($param['unit_id'])){
-            $model->andWhere(['=','unit_id',$param['unit_id']]);
+        if(!empty($param['decoration_id'])){
+            $model->andWhere(['=','decoration_id',$param['decoration_id']]);
         }
 
-        if(!empty($param['status'])){
-            $model->andWhere(['=','status',$param['status']]);
-        }
-
-        if(!empty($param['owner_name'])){
-            $model->andWhere(['like','owner_name',$param['owner_name']]);
-        }
 
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){

@@ -15,6 +15,8 @@ use service\rbac\OperateService;
 Class DecorationService extends BaseService
 {
 
+    public $contentMsg = ['1'=>'工作','2'=>'水电','3'=>'泥工','4'=>'木工','5'=>'油漆工','6'=>'保洁'];
+
     /*
      * 装修登记-新增
      */
@@ -97,7 +99,6 @@ Class DecorationService extends BaseService
     public function getDetail($params){
         $model = new PsDecorationRegistration(['scenario' => 'detail']);
         if ($model->load($params, '') && $model->validate()) {
-            $contentMsg = ['1'=>'工作','2'=>'水电','3'=>'泥工','4'=>'木工','5'=>'油漆工','6'=>'保洁'];
             $detail = $model->detail($params);
             $detail['create_at_msg'] = !empty($detail['create_at'])?date('Y-m-d H:i:s',$detail['create_at']):"";
             $detail['img_arr'] = !empty($detail['img'])?explode(',',$detail['img']):'';
@@ -113,7 +114,7 @@ Class DecorationService extends BaseService
                     if(!empty($value['content'])){
                         $content = explode(',',$value['content']);
                         foreach($content as $v){
-                            array_push($detail['patrol'][$key]['content_msg'],$contentMsg[$v]);
+                            array_push($detail['patrol'][$key]['content_msg'],$this->contentMsg[$v]);
                         }
                     }
                 }
@@ -147,6 +148,36 @@ Class DecorationService extends BaseService
             ];
             OperateService::addComm($userInfo, $operate);
             return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
+     * 装修登记-巡查列表
+     */
+    public function patrolList($params){
+        $model = new PsDecorationPatrol(['scenario' => 'list']);
+        if ($model->load($params, '') && $model->validate()) {
+            $result = $model->getList($params);
+            if(!empty($result['list'])){
+                foreach($result['list'] as $key=>$value){
+                    $result['list'][$key]['content_msg'] = [];
+                    $result['list'][$key]['create_at_msg'] = date('Y-m-d H:i:s',$value['create_at']);
+                    if(!empty($value['content'])){
+                        $content = explode(',',$value['content']);
+                        foreach($content as $v){
+                            array_push($result['list'][$key]['content_msg'],$this->contentMsg[$v]);
+                        }
+                    }
+                    $result['list'][$key]['is_question'] = 2;  //是否有问题
+                    if($value['is_licensed']==1||$value['is_safe']==1||$value['is_violation']==1||$value['is_env']==1){
+                        $result['list'][$key]['is_question'] = 1;
+                    }
+                }
+            }
+            return $this->success($result);
         } else {
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
