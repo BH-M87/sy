@@ -37,6 +37,9 @@ class UserBaseController extends BaseController
             //设置半小时有效期
             $redis->expire($token,1800);
         }
+        if (empty($userInfo['id'])) {
+            exit($this->ajaxReturn('openAuthorization已过期'));
+        }
         //$userInfo['id'] = '1205020963543236609';
         //$userInfo['trueName'] = '周文斌';
         //$userInfo['sensitiveInf'] = '15067035302';

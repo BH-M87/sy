@@ -28,9 +28,11 @@ class PsDecorationPatrol extends BaseModel {
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content'], 'string',"max"=>30],
             [['address','remarks'], 'string',"max"=>200],
             [['patrol_name'], 'string',"max"=>20],
+            ['problem_num','integer', 'min'=>0, 'max'=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content','address','remarks','patrol_name'], 'trim'],
             [['decoration_id','community_id'], 'recordExist', 'on' => ["add"]],    //该户装修登记是否存在
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
+            [["problem_num"],"default",'value' => 0,'on'=>['add']],
         ];
     }
 

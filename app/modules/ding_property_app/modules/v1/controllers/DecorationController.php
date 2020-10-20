@@ -32,7 +32,7 @@ class DecorationController extends UserBaseController
         }
     }
 
-    //装修登记列表
+    //装修登记-列表
     public function actionList(){
         try {
             $params = $this->request_params;
@@ -40,6 +40,39 @@ class DecorationController extends UserBaseController
             $params['pageSize'] = $this->pageSize;
             $service = new DecorationService();
             $result = $service->getList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+
+    //装修登记-详情
+    public function actionDetail(){
+        try {
+            $params = $this->request_params;
+            $service = new DecorationService();
+            $result = $service->getDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //装修登记-确认完成
+    public function actionComplete(){
+        try {
+            $params = $this->request_params;
+            $service = new DecorationService();
+            $result = $service->complete($params,$this->userInfo);
             if ($result['code']) {
                 return PsCommon::responseSuccess($result['data']);
             }else {
