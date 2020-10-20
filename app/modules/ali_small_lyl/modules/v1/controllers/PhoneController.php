@@ -5,14 +5,14 @@
  * Date: 2020/10/20
  * Time: 9:17
  */
-namespace app\modules\ding_property_app\modules\v1\controllers;
+namespace app\modules\ali_small_lyl\modules\v1\controllers;
 
-use app\modules\ding_property_app\controllers\UserBaseController;
+use app\modules\ali_small_lyl\controllers\BaseController;
 use common\core\PsCommon;
 use service\property_basic\PhoneService;
 use yii\base\Exception;
 
-class PhoneController extends UserBaseController
+class PhoneController extends BaseController
 {
 
     //常用电话-列表
@@ -20,7 +20,7 @@ class PhoneController extends UserBaseController
     {
         try {
 
-            $params = $this->request_params;
+            $params = $this->params;
             $service = new PhoneService();
             $result = $service->getListOfDing($params);
             if ($result['code']) {
