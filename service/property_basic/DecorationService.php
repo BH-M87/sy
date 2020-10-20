@@ -8,6 +8,7 @@
 namespace service\property_basic;
 
 use app\models\PsDecorationPatrol;
+use app\models\PsDecorationProblem;
 use app\models\PsDecorationRegistration;
 use service\BaseService;
 use service\rbac\OperateService;
@@ -163,6 +164,8 @@ Class DecorationService extends BaseService
             $result = $model->getList($params);
             if(!empty($result['list'])){
                 foreach($result['list'] as $key=>$value){
+                    $problem = $value['problem'];
+                    unset($result['list'][$key]['problem']);
                     $result['list'][$key]['content_msg'] = [];
                     $result['list'][$key]['create_at_msg'] = date('Y-m-d H:i:s',$value['create_at']);
                     if(!empty($value['content'])){
@@ -171,13 +174,42 @@ Class DecorationService extends BaseService
                             array_push($result['list'][$key]['content_msg'],$this->contentMsg[$v]);
                         }
                     }
-                    $result['list'][$key]['is_question'] = 2;  //是否有问题
+                    //新增问题按钮
+                    $result['list'][$key]['is_question'] = 2;  //无
                     if($value['is_licensed']==1||$value['is_safe']==1||$value['is_violation']==1||$value['is_env']==1){
-                        $result['list'][$key]['is_question'] = 1;
+                        $result['list'][$key]['is_question'] = 1; //有
+                        if(!empty($problem)){
+                            $result['list'][$key]['is_question'] = 2;  //存在
+                        }
                     }
                 }
             }
             return $this->success($result);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    //违规问题-新增
+    public function problemAdd($params,$userInfo){
+        $model = new PsDecorationProblem(['scenario' => 'add']);
+        $params['assign_name'] = $userInfo['truename'];
+        $params['assign_id'] = $userInfo['id'];
+        if ($model->load($params, '') && $model->validate()) {
+            if (!$model->save()) {
+                return $this->failed('新增失败！');
+            }
+            //添加日志
+            $content = "小区：".$model->community_name.",房屋地址：" . $model->address.",被指派人：".$model->assigned_name;
+            $operate = [
+                "community_id" => $params['community_id'],
+                "operate_menu" => "装修登记",
+                "operate_type" => "违规新增",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return $this->success(['id' => $model->attributes['id']]);
         } else {
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);

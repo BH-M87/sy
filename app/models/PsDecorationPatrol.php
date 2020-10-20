@@ -116,6 +116,11 @@ class PsDecorationPatrol extends BaseModel {
         return $model->asArray()->one();
     }
 
+    //关联问题
+    public function getProblem(){
+        return $this->hasOne(PsDecorationProblem::className(),['patrol_id'=>'id']);
+    }
+
     /*
      * 列表
      */
@@ -124,7 +129,7 @@ class PsDecorationPatrol extends BaseModel {
         $field = [
                     'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','patrol_name','content','create_at','remarks','address'
         ];
-        $model = self::find()->select($field)->where(1);
+        $model = self::find()->select($field)->with('problem')->where(1);
 
         if(!empty($param['community_id'])){
             $model->andWhere(['=','community_id',$param['community_id']]);

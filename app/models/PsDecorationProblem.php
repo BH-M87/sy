@@ -23,7 +23,8 @@ class PsDecorationProblem extends BaseModel {
     {
         return [
             // 所有场景
-            [['patrol_id','type_msg','content','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+//            [['community_id','patrol_id','type_msg','content','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['community_id','patrol_id','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail"]],
             [["id",'patrol_id','decoration_id','status','deal_at','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','assign_id','assigned_id'], 'string',"max"=>30],
@@ -34,6 +35,7 @@ class PsDecorationProblem extends BaseModel {
             [['community_id','community_name','room_id','group_id','building_id','unit_id','assign_id','assigned_id','address','content','deal_content','problem_img','deal_img','type_msg','assign_name','assigned_name'], 'trim'],
             [['id','community_id'], 'infoData', 'on' => ["detail"]],
             [['patrol_id','community_id'], 'recordExist', 'on' => ["add"]],    //装修登记是否存在
+            [['patrol_id','community_id'], 'problemExist', 'on' => ["add"]],    //验证问题是否存在
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["status"],"default",'value' => 1,'on'=>['add']],
         ];
@@ -118,6 +120,18 @@ class PsDecorationProblem extends BaseModel {
             $this->unit_id = $res['unit_id'];
             $this->address = $res['address'];
             $this->decoration_id = $res['decoration_id'];
+        }
+    }
+
+    /*
+     * 验证该巡检记录是否已存在问题
+     */
+    public function problemExist($attribute){
+        if(!empty($this->patrol_id)&&!empty($this->community_id)){
+            $res = self::find()->select(['id'])->where('patrol_id=:patrol_id and community_id=:community_id',[':patrol_id'=>$this->patrol_id,':community_id'=>$this->community_id])->asArray()->one();
+            if(!empty($res)){
+                $this->addError($attribute, "该巡检记录问题已记录！");
+            }
         }
     }
 
