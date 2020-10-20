@@ -15,7 +15,7 @@ Class DecorationService extends BaseService
 {
 
     /*
-     * 新增电话
+     * 装修登记新增
      */
     public function add($params, $userInfo)
     {
@@ -38,5 +38,20 @@ Class DecorationService extends BaseService
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);
         }
+    }
+
+    /*
+     * 装修登记列表
+     */
+    public function getList($params){
+        $model = new PsDecorationRegistration();
+        $result = $model->getList($params);
+        if(!empty($result['list'])) {
+            foreach ($result['list'] as $key => $value) {
+                $result['list'][$key]['status_msg'] = !empty($value['status']) ? $model->statusMsg[$value['status']] : "";
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at']) ? date('Y-m-d H:i:s', $value['status']) : "";
+            }
+        }
+        return $this->success($result);
     }
 }

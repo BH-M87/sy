@@ -127,61 +127,37 @@ class PsDecorationRegistration extends BaseModel {
     }
 
     /*
-     * 小程序列表
-     */
-    public function getListOfC($param){
-        $field = ['id','product_name','create_at','product_num','product_img','verification_qr_code','confirm_type','product_id'];
-        $model = self::find()->select($field)->where(['=','community_id',$param['community_id']])->andWhere(['=','user_id',$param['user_id']]);
-//            ->andWhere(['=','room_id',$param['room_id']]);
-        $count = $model->count();
-        if(!empty($param['page'])||!empty($param['pageSize'])){
-            $page = !empty($param['page'])?intval($param['page']):1;
-            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
-            $offset = ($page-1)*$pageSize;
-            $model->offset($offset)->limit($pageSize);
-        }
-        $model->orderBy(["id"=>SORT_DESC]);
-        $result = $model->asArray()->all();
-        return [
-            'list'=>$result,
-            'totals'=>$count
-        ];
-    }
-
-    /*
      * 列表
      */
     public function getList($param){
 
-        $field = ['id','product_name','create_at','cust_name','cust_mobile','product_num','address','delivery_type','status','courier_company','order_num'];
+        $field = ['id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','community_name'];
         $model = self::find()->select($field)->where(1);
         if(!empty($param['communityList'])){
             $model->andWhere(['in','community_id',$param['communityList']]);
         }
-        if(!empty($param['cust_name'])){
-            $model->andWhere(['like','cust_name',$param['cust_name']]);
+        if(!empty($param['community_id'])){
+            $model->andWhere(['=','community_id',$param['community_id']]);
         }
-        if(!empty($param['cust_mobile'])){
-            $model->andWhere(['like','cust_mobile',$param['cust_mobile']]);
+
+        if(!empty($param['group_id'])){
+            $model->andWhere(['=','group_id',$param['group_id']]);
         }
-        if(!empty($param['delivery_type'])){
-            $model->andWhere(['=','delivery_type',$param['delivery_type']]);
+        if(!empty($param['building_id'])){
+            $model->andWhere(['=','building_id',$param['building_id']]);
         }
+        if(!empty($param['unit_id'])){
+            $model->andWhere(['=','unit_id',$param['unit_id']]);
+        }
+
         if(!empty($param['status'])){
             $model->andWhere(['=','status',$param['status']]);
         }
-        if(!empty($param['courier_company'])){
-            $model->andWhere(['like','courier_company',$param['courier_company']]);
+
+        if(!empty($param['owner_name'])){
+            $model->andWhere(['like','owner_name',$param['owner_name']]);
         }
-        if(!empty($param['order_num'])){
-            $model->andWhere(['like','order_num',$param['order_num']]);
-        }
-        if(!empty($param['start_time'])){
-            $model->andWhere(['>=','create_at',strtotime($param['start_time'])]);
-        }
-        if(!empty($param['end_time'])){
-            $model->andWhere(['<=','create_at',strtotime($param['end_time']." 23:59:59")]);
-        }
+
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
             $page = !empty($param['page'])?intval($param['page']):1;

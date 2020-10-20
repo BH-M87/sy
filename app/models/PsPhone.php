@@ -124,6 +124,9 @@ class PsPhone extends BaseModel
         if(!empty($params['contact_name'])){
             $model->andWhere(['like','contact_name',$params['contact_name']]);
         }
+        if(!empty($params['communityList'])){
+            $model->andWhere(['in','community_id',$params['communityList']]);
+        }
         $count = $model->count();
         if(!empty($params['page'])||!empty($params['pageSize'])){
             $page = !empty($params['page'])?intval($params['page']):1;
