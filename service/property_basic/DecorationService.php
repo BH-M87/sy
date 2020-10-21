@@ -179,7 +179,7 @@ Class DecorationService extends BaseService
                     if($value['is_licensed']==1||$value['is_safe']==1||$value['is_violation']==1||$value['is_env']==1){
                         $result['list'][$key]['is_question'] = 1; //有
                         if(!empty($problem)){
-                            $result['list'][$key]['is_question'] = 2;  //存在
+                            $result['list'][$key]['is_question'] = 2;  //无
                         }
                     }
                 }
@@ -210,6 +210,35 @@ Class DecorationService extends BaseService
             ];
             OperateService::addComm($userInfo, $operate);
             return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    //巡查记录-详情
+    public function patrolDetail($params){
+        $model = new PsDecorationPatrol(['scenario' => 'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->detail($params);
+            $problem = $detail['problem'];
+            unset($detail['problem']);
+            $detail['content_msg'] = [];
+            if(!empty($detail['content'])){
+                $content = explode(',',$detail['content']);
+                foreach($content as $v){
+                    array_push($detail['content_msg'],$this->contentMsg[$v]);
+                }
+            }
+            //新增问题按钮
+            $detail['is_question'] = 2;  //无
+            if($detail['is_licensed']==1||$detail['is_safe']==1||$detail['is_violation']==1||$detail['is_env']==1){
+                $detail['is_question'] = 1; //有
+                if(!empty($problem)){
+                    $detail['is_question'] = 2;  //无
+                }
+            }
+            return $this->success($detail);
         } else {
             $msg = array_values($model->errors)[0][0];
             return $this->failed($msg);

@@ -25,6 +25,7 @@ class PsDecorationPatrol extends BaseModel {
             // 所有场景
             [['decoration_id','community_id','is_licensed','is_safe', 'is_violation','is_env','patrol_name','patrol_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['decoration_id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['list']],
+            [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['detail']],
             [["id",'decoration_id', 'is_licensed','is_safe', 'is_violation','is_env', 'problem_num','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content'], 'string',"max"=>30],
             [['address','remarks'], 'string',"max"=>200],
@@ -32,6 +33,7 @@ class PsDecorationPatrol extends BaseModel {
             ['problem_num','integer', 'min'=>0, 'max'=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content','address','remarks','patrol_name'], 'trim'],
             [['decoration_id','community_id'], 'recordExist', 'on' => ["add","list"]],    //该户装修登记是否存在
+            [['id','community_id'], 'infoData', 'on' => ["detail"]],    //该巡查记录是否存在
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["problem_num"],"default",'value' => 0,'on'=>['add']],
         ];
@@ -82,6 +84,19 @@ class PsDecorationPatrol extends BaseModel {
         return self::updateAll($param, ['id' => $param['id']]);
     }
 
+    /***
+     * 自定义验证该记录是否存在
+     * @param $attribute
+     */
+    public function infoData($attribute){
+        if(!empty($this->id)&&!empty($this->community_id)){
+            $res = static::find()->select(['id'])->where('id=:id and community_id=:community_id',[':id'=>$this->id,':community_id'=>$this->community_id])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该数据不存在！");
+            }
+        }
+    }
+
     /*
      * 验证装修登记是否存在
      */
@@ -107,9 +122,9 @@ class PsDecorationPatrol extends BaseModel {
      */
     public function detail($param){
         $field = [
-            'id','product_name','cust_name','cust_mobile','address'
+            'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','content','remarks','address'
         ];
-        $model = static::find()->select($field);
+        $model = static::find()->with('problem')->select($field);
         if(!empty($param['id'])){
             $model->andWhere(['=','id',$param['id']]);
         }
