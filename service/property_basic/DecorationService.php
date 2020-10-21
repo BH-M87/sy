@@ -357,4 +357,33 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    //装修押金-收款
+    public function depositReceive($params,$userInfo){
+        $model = new PsDecorationRegistration(['scenario' => 'receive']);
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $editParams['money'] = !empty($params['money'])?$params['money']:'';
+        $editParams['is_receive'] = 2;
+        $editParams['receive_at'] = time();
+        if ($model->load($editParams, '') && $model->validate()) {
+            if (!$model->edit($editParams)) {
+                return $this->failed('收款失败！');
+            }
+            $detail = $model->roomDetail($params);
+            //添加日志
+            $content = "小区：".$detail['community_name'].",房屋地址：" . $detail['address'].",保证金：".$model->money;
+            $operate = [
+                "community_id" => $params['community_id'],
+                "operate_menu" => "装修登记",
+                "operate_type" => "保证金收款",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }

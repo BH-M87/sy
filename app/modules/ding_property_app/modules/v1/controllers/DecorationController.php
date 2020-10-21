@@ -233,4 +233,20 @@ class DecorationController extends UserBaseController
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //装修押金-收款
+    public function actionDepositReceive(){
+        try {
+            $params = $this->request_params;
+            $service = new DecorationService();
+            $result = $service->depositReceive($params,$this->userInfo);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

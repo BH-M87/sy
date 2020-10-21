@@ -24,6 +24,7 @@ class PsDecorationRegistration extends BaseModel {
         return [
             // 所有场景
             [['community_id','community_name','room_id', 'group_id','building_id','unit_id','address','owner_name','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['id','community_id','money'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['receive']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail","complete"]],
             [["id",'status', 'is_refund','refund_at','is_receive','receive_at','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id'], 'string',"max"=>30],
@@ -33,8 +34,9 @@ class PsDecorationRegistration extends BaseModel {
             [['owner_name','owner_phone','project_name','project_phone'], 'string',"max"=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','address','img','project_unit','owner_name','owner_phone','project_name','project_phone'], 'trim'],
             [['owner_phone','project_phone'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须手机号码格式'],
-            [['id','community_id'], 'infoData', 'on' => ["detail","complete"]],
+            [['id','community_id'], 'infoData', 'on' => ["detail","complete","receive"]],
             [['room_id','community_id'], 'recordExist', 'on' => ["add"]],    //该户装修登记已存在
+            [['id','community_id'], 'receiveVerification', 'on' => ["receive"]],    //是否收过保证金
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
             [["status","is_refund","is_receive"],"default",'value' => 1,'on'=>['add']],
         ];
@@ -113,6 +115,21 @@ class PsDecorationRegistration extends BaseModel {
     }
 
     /*
+     * 保证金验证
+     */
+    public function receiveVerification($attribute){
+        if(!empty($this->id)&&!empty($this->community_id)){
+            $res = static::find()->select(['id','is_receive'])->where('id=:id and community_id=:community_id',[':id'=>$this->id,':community_id'=>$this->community_id])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该数据不存在！");
+            }
+            if($res['is_receive']==2){
+                $this->addError($attribute, "已交过保证金！");
+            }
+        }
+    }
+
+    /*
      * 详情
      */
     public function detail($param){
@@ -120,6 +137,20 @@ class PsDecorationRegistration extends BaseModel {
             'id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','img','community_name'
         ];
         $model = static::find()->select($field)->with('patrol');
+        if(!empty($param['id'])){
+            $model->andWhere(['=','id',$param['id']]);
+        }
+        return $model->asArray()->one();
+    }
+
+    /*
+     * 房屋详情
+     */
+    public function roomDetail($param){
+        $field = [
+            'address','community_name'
+        ];
+        $model = static::find()->select($field);
         if(!empty($param['id'])){
             $model->andWhere(['=','id',$param['id']]);
         }
