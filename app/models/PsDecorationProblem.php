@@ -140,11 +140,15 @@ class PsDecorationProblem extends BaseModel {
      */
     public function detail($param){
         $field = [
-            'id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','img','community_name'
+            'problem.id','problem.address','reg.project_unit','reg.project_name','reg.project_phone','reg.owner_name','reg.owner_phone',
+            'problem.type_msg','problem.status','problem.content','problem.problem_img',
+            'patrol.create_at','patrol.patrol_name'
         ];
-        $model = static::find()->select($field)->with('patrol');
+        $model = static::find()->select($field)->alias('problem')
+                ->leftJoin(['patrol'=>PsDecorationPatrol::tableName()],'patrol.id=problem.patrol_id')
+                ->leftJoin(['reg'=>PsDecorationRegistration::tableName()],'reg.id=problem.decoration_id');
         if(!empty($param['id'])){
-            $model->andWhere(['=','id',$param['id']]);
+            $model->andWhere(['=','problem.id',$param['id']]);
         }
         return $model->asArray()->one();
     }
@@ -156,7 +160,7 @@ class PsDecorationProblem extends BaseModel {
 
         $field = [
             'problem.id','problem.address','problem.community_name','patrol.create_at','patrol.patrol_name','problem.deal_at',
-            'problem.assigned_name','problem.type_msg','problem.status',
+            'problem.assigned_name','problem.type_msg','problem.status'
         ];
         $model = self::find()->alias('problem')
             ->leftJoin(['patrol'=>PsDecorationPatrol::tableName()],'patrol.id=problem.patrol_id')->select($field)->where(1);

@@ -102,7 +102,7 @@ Class DecorationService extends BaseService
         if ($model->load($params, '') && $model->validate()) {
             $detail = $model->detail($params);
             $detail['create_at_msg'] = !empty($detail['create_at'])?date('Y-m-d H:i:s',$detail['create_at']):"";
-            $detail['img_arr'] = !empty($detail['img'])?explode(',',$detail['img']):'';
+            $detail['img_arr'] = !empty($detail['img'])?explode(',',$detail['img']):[];
             $detail['status_msg'] = !empty($detail['status']) ? $model->statusMsg[$detail['status']] : "";
             $detail['patrol_time_msg'] = '';
             $detail['patrol_count'] = 0;
@@ -264,5 +264,27 @@ Class DecorationService extends BaseService
             }
         }
         return $this->success($result);
+    }
+
+    //巡检违规-详情
+    public function problemDetail($params){
+        $model = new PsDecorationProblem(['scenario' => 'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->detail($params);
+            $detail['type_msg_desc'] = [];
+            if(!empty($detail['type_msg'])){
+                $type_msg = explode(',',$detail['type_msg']);
+                foreach($type_msg as $v){
+                    array_push($detail['type_msg_desc'],$model->typeMsg[$v]);
+                }
+            }
+            $detail['status_msg'] = $model->statusMsg[$detail['status']];
+            $detail['create_at_msg'] = !empty($detail['create_at'])?date('Y-m-d H:i:s',$detail['create_at']):'';
+            $detail['problem_img_arr'] = !empty($detail['problem_img'])?explode(',',$detail['problem_img']):[];
+            return $this->success($detail);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
     }
 }
