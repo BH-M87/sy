@@ -150,42 +150,43 @@ class PsDecorationProblem extends BaseModel {
     }
 
     /*
-     * 关联巡检记录
-     */
-    public function getPatrol(){
-        return $this->hasMany(PsDecorationPatrol::className(),['decoration_id'=>'id'])->orderBy(['id'=>SORT_DESC]);
-    }
-
-    /*
      * 列表
      */
     public function getList($param){
 
-        $field = ['id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','community_name'];
-        $model = self::find()->select($field)->with('patrol')->where(1);
+        $field = [
+            'problem.id','problem.address','problem.community_name','patrol.create_at','patrol.patrol_name','problem.deal_at',
+            'problem.assigned_name','problem.type_msg','problem.status',
+        ];
+        $model = self::find()->alias('problem')
+            ->leftJoin(['patrol'=>PsDecorationPatrol::tableName()],'patrol.id=problem.patrol_id')->select($field)->where(1);
         if(!empty($param['communityList'])){
-            $model->andWhere(['in','community_id',$param['communityList']]);
+            $model->andWhere(['in','problem.community_id',$param['communityList']]);
         }
         if(!empty($param['community_id'])){
-            $model->andWhere(['=','community_id',$param['community_id']]);
+            $model->andWhere(['=','problem.community_id',$param['community_id']]);
         }
 
         if(!empty($param['group_id'])){
-            $model->andWhere(['=','group_id',$param['group_id']]);
+            $model->andWhere(['=','problem.group_id',$param['group_id']]);
         }
         if(!empty($param['building_id'])){
-            $model->andWhere(['=','building_id',$param['building_id']]);
+            $model->andWhere(['=','problem.building_id',$param['building_id']]);
         }
         if(!empty($param['unit_id'])){
-            $model->andWhere(['=','unit_id',$param['unit_id']]);
+            $model->andWhere(['=','problem.unit_id',$param['unit_id']]);
         }
 
         if(!empty($param['status'])){
-            $model->andWhere(['=','status',$param['status']]);
+            $model->andWhere(['=','problem.status',$param['status']]);
         }
 
-        if(!empty($param['owner_name'])){
-            $model->andWhere(['like','owner_name',$param['owner_name']]);
+        if(!empty($param['assigned_name'])){    //处理人
+            $model->andWhere(['like','problem.assigned_name',$param['assigned_name']]);
+        }
+
+        if(!empty($param['patrol_name'])){    //巡查人
+            $model->andWhere(['like','patrol.patrol_name',$param['patrol_name']]);
         }
 
         $count = $model->count();

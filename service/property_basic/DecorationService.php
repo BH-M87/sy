@@ -244,4 +244,25 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    //巡检违规-列表
+    public function problemList($params){
+        $model = new PsDecorationProblem();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['type_msg_desc'] = [];
+                if(!empty($value['type_msg'])){
+                    $type_msg = explode(',',$value['type_msg']);
+                    foreach($type_msg as $v){
+                        array_push($result['list'][$key]['type_msg_desc'],$model->typeMsg[$v]);
+                    }
+                }
+                $result['list'][$key]['status_msg'] = $model->statusMsg[$value['status']];
+                $result['list'][$key]['create_at_msg'] = !empty($value['create_at'])?date('Y-m-d H:i:s',$value['create_at']):'';
+                $result['list'][$key]['deal_at_msg'] = !empty($value['deal_at'])?date('Y-m-d H:i:s',$value['deal_at']):'';
+            }
+        }
+        return $this->success($result);
+    }
 }

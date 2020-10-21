@@ -148,4 +148,22 @@ class DecorationController extends UserBaseController
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //装修违规-列表
+    public function actionProblemList(){
+        try {
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new DecorationService();
+            $result = $service->problemList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
