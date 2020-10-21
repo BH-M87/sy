@@ -414,4 +414,163 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    //装修统计
+    public function statistics($params){
+        $data = [];
+        $temp_year = '';        //年
+        $temp_month = '';       //月
+        if(!empty($params['year'])&&!empty($params['month'])){
+            $temp_year = $params['year'];
+            $temp_month = $params['month'];
+        }
+        if(!empty($params['year'])){
+            $temp_year = $params['year'];
+        }
+        $params['temp_year'] = $temp_year;
+        $params['temp_month'] = $temp_month;
+        $regResult = $this->regStatistics($params);     //装修登记统计
+        $data = array_merge($data,$regResult);
+        $patrolResult = $this->patrolStatistics($params);            //巡查次数统计
+        $data = array_merge($data,$patrolResult);
+        $problemResult = $this->problemStatistics($params);    //违规统计
+        $data = array_merge($data,$problemResult);
+        $moneyResult = $this->moneyStatistics($params);     //装修金统计
+        $data = array_merge($data,$moneyResult);
+        return $this->success($data);
+    }
+
+    //装修登记统计
+    public function regStatistics($params){
+
+        $model = PsDecorationRegistration::find()->select(['status','count(id) as count'])->where(1);
+
+        if(!empty($params['communityList'])){
+            $model->andWhere(['in','community_id',$params['communityList']]);
+        }
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+        }
+        if(!empty($params['temp_year'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%Y')",$params['temp_year']]);
+        }
+        if(!empty($params['temp_month'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%m')",$params['temp_month']]);
+        }
+        $result = $model->groupBy(['status'])->asArray()->all();
+        $reg_count = 0;
+        $processing_count = 0;
+        $completed_count = 0;
+        if(!empty($result)){
+            foreach($result as $key=>$value){
+                $reg_count+=$value['count'];
+                switch($value['status']){
+                    case 1:
+                        $processing_count+=$value['count'];
+                        break;
+                    case 2:
+                        $completed_count+=$value['count'];
+                        break;
+                }
+            }
+        }
+        return [
+            'reg_count'         => $reg_count,
+            'processing_count'  => $processing_count,
+            'completed_count'   => $completed_count,
+        ];
+    }
+
+    //巡查次数统计
+    public function patrolStatistics($params){
+        $model = PsDecorationPatrol::find()->where(1);
+
+        if(!empty($params['communityList'])){
+            $model->andWhere(['in','community_id',$params['communityList']]);
+        }
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+        }
+        if(!empty($params['temp_year'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%Y')",$params['temp_year']]);
+        }
+        if(!empty($params['temp_month'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%m')",$params['temp_month']]);
+        }
+        $count = $model->count('id');
+
+        return [
+            'patrol_count'=>$count
+        ];
+    }
+
+    //违规统计
+    public function problemStatistics($params){
+        $regModel = PsDecorationProblem::find()->select(['status','count(id) as count'])->where(1);
+
+        if(!empty($params['communityList'])){
+            $regModel->andWhere(['in','community_id',$params['communityList']]);
+        }
+
+        if(!empty($params['community_id'])){
+            $regModel->andWhere(['=','community_id',$params['community_id']]);
+        }
+        if(!empty($params['temp_year'])){
+            $regModel->andWhere(['=',"FROM_UNIXTIME(create_at, '%Y')",$params['temp_year']]);
+        }
+        if(!empty($params['temp_month'])){
+            $regModel->andWhere(['=',"FROM_UNIXTIME(create_at, '%m')",$params['temp_month']]);
+        }
+        $result = $regModel->groupBy(['status'])->asArray()->all();
+        $problem_count = 0;
+        $process_count = 0;
+        $processed_count = 0;
+        if(!empty($result)){
+            foreach($result as $key=>$value){
+                $problem_count+=$value['count'];
+                switch($value['status']){
+                    case 1:
+                        $process_count+=$value['count'];
+                        break;
+                    case 2:
+                        $processed_count+=$value['count'];
+                        break;
+                }
+            }
+        }
+        return [
+            'problem_count'     => $problem_count,
+            'process_count'     => $process_count,              //待处理
+            'processed_count'   => $processed_count,            //已处理
+        ];
+    }
+
+    //装修金统计
+    public function moneyStatistics($params){
+        $model = PsDecorationRegistration::find()->where(1);
+
+        if(!empty($params['communityList'])){
+            $model->andWhere(['in','community_id',$params['communityList']]);
+        }
+
+        if(!empty($params['community_id'])){
+            $model->andWhere(['=','community_id',$params['community_id']]);
+        }
+        if(!empty($params['temp_year'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%Y')",$params['temp_year']]);
+        }
+        if(!empty($params['temp_month'])){
+            $model->andWhere(['=',"FROM_UNIXTIME(create_at, '%m')",$params['temp_month']]);
+        }
+        $money = $model->sum('money');//总金额
+        $refunded_money = $model->andWhere(['=','is_refund',2])->sum('money');//已退款
+        $pending_money = $money - $refunded_money;//待退款
+        return [
+            'money'=>$money,
+            'refunded_money'=>$refunded_money,    //已退款
+            'pending_money'=>$pending_money,     //待退款
+        ];
+    }
 }
