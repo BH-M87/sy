@@ -289,4 +289,35 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    /*
+     * 装修违规处理
+     */
+    public function problemDeal($params,$userInfo){
+        $model = new PsDecorationProblem(['scenario' => 'deal']);
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $editParams['deal_content'] = !empty($params['deal_content'])?$params['deal_content']:'';
+        $editParams['deal_img'] = !empty($params['deal_img'])?$params['deal_img']:'';
+        $editParams['deal_at'] = time();
+        if ($model->load($editParams, '') && $model->validate()) {
+            if (!$model->edit($editParams)) {
+                return $this->failed('处理失败！');
+            }
+            $detail = $model->detail($params);
+            //添加日志
+            $content = "小区：".$detail['community_name'].",房屋地址：" . $detail['address'];
+            $operate = [
+                "community_id" => $params['community_id'],
+                "operate_menu" => "装修登记",
+                "operate_type" => "违规处理",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }

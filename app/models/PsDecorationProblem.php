@@ -26,6 +26,7 @@ class PsDecorationProblem extends BaseModel {
 //            [['community_id','patrol_id','type_msg','content','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['community_id','patrol_id','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail"]],
+            [['id','community_id','deal_at','deal_content','deal_img'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["deal"]],
             [["id",'patrol_id','decoration_id','status','deal_at','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','assign_id','assigned_id'], 'string',"max"=>30],
             [['address','content','deal_content'], 'string',"max"=>200],
@@ -33,7 +34,7 @@ class PsDecorationProblem extends BaseModel {
             [['type_msg'], 'string',"max"=>50],
             [['assign_name','assigned_name'], 'string',"max"=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','assign_id','assigned_id','address','content','deal_content','problem_img','deal_img','type_msg','assign_name','assigned_name'], 'trim'],
-            [['id','community_id'], 'infoData', 'on' => ["detail"]],
+            [['id','community_id'], 'infoData', 'on' => ["detail","deal"]],
             [['patrol_id','community_id'], 'recordExist', 'on' => ["add"]],    //装修登记是否存在
             [['patrol_id','community_id'], 'problemExist', 'on' => ["add"]],    //验证问题是否存在
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
@@ -143,7 +144,7 @@ class PsDecorationProblem extends BaseModel {
             'problem.id','problem.address','reg.project_unit','reg.project_name','reg.project_phone','reg.owner_name','reg.owner_phone',
             'problem.type_msg','problem.status','problem.content','problem.problem_img',
             'problem.deal_content','problem.deal_img','problem.assigned_name','problem.deal_at',
-            'patrol.create_at','patrol.patrol_name'
+            'patrol.create_at','patrol.patrol_name','problem.community_name'
         ];
         $model = static::find()->select($field)->alias('problem')
                 ->leftJoin(['patrol'=>PsDecorationPatrol::tableName()],'patrol.id=problem.patrol_id')
