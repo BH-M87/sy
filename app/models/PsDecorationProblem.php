@@ -142,6 +142,7 @@ class PsDecorationProblem extends BaseModel {
         $field = [
             'problem.id','problem.address','reg.project_unit','reg.project_name','reg.project_phone','reg.owner_name','reg.owner_phone',
             'problem.type_msg','problem.status','problem.content','problem.problem_img',
+            'problem.deal_content','problem.deal_img','problem.assigned_name','problem.deal_at',
             'patrol.create_at','patrol.patrol_name'
         ];
         $model = static::find()->select($field)->alias('problem')

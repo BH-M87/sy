@@ -281,6 +281,8 @@ Class DecorationService extends BaseService
             $detail['status_msg'] = $model->statusMsg[$detail['status']];
             $detail['create_at_msg'] = !empty($detail['create_at'])?date('Y-m-d H:i:s',$detail['create_at']):'';
             $detail['problem_img_arr'] = !empty($detail['problem_img'])?explode(',',$detail['problem_img']):[];
+            $detail['deal_at_msg'] = !empty($detail['deal_at'])?date('Y-m-d H:i:s',$detail['deal_at']):'';
+            $detail['deal_img_arr'] = !empty($detail['deal_img'])?explode(',',$detail['deal_img']):[];
             return $this->success($detail);
         } else {
             $msg = array_values($model->errors)[0][0];
