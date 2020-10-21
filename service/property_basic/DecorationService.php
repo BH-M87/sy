@@ -386,4 +386,32 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    //装修押金-退款
+    public function depositRefund($params,$userInfo){
+        $model = new PsDecorationRegistration(['scenario' => 'refund']);
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $editParams['is_refund'] = 2;
+        $editParams['refund_at'] = time();
+        if ($model->load($editParams, '') && $model->validate()) {
+            if (!$model->edit($editParams)) {
+                return $this->failed('退款失败！');
+            }
+            $detail = $model->roomDetail($params);
+            //添加日志
+            $content = "小区：".$detail['community_name'].",房屋地址：" . $detail['address'];
+            $operate = [
+                "community_id" => $params['community_id'],
+                "operate_menu" => "装修登记",
+                "operate_type" => "保证金退款",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }
