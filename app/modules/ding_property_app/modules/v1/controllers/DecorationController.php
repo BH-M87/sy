@@ -155,6 +155,7 @@ class DecorationController extends UserBaseController
             $params = $this->request_params;
             $params['page'] = $this->page;
             $params['pageSize'] = $this->pageSize;
+            $params['assigned_id'] = $this->userInfo['id'];
             $service = new DecorationService();
             $result = $service->problemList($params);
             if ($result['code']) {

@@ -190,6 +190,10 @@ class PsDecorationProblem extends BaseModel {
             $model->andWhere(['like','problem.assigned_name',$param['assigned_name']]);
         }
 
+        if(!empty($param['assigned_id'])){
+            $model->andWhere(['=','problem.assigned_id',$param['assigned_id']]);
+        }
+
         if(!empty($param['patrol_name'])){    //巡查人
             $model->andWhere(['like','patrol.patrol_name',$param['patrol_name']]);
         }
