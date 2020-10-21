@@ -199,4 +199,38 @@ class DecorationController extends UserBaseController
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //装修押金列表
+    public function actionDepositList(){
+        try {
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $service = new DecorationService();
+            $result = $service->depositList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //装修押金详情
+    public function actionDepositDetail(){
+        try {
+            $params = $this->request_params;
+            $service = new DecorationService();
+            $result = $service->depositDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }

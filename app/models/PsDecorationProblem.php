@@ -26,7 +26,7 @@ class PsDecorationProblem extends BaseModel {
 //            [['community_id','patrol_id','type_msg','content','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['community_id','patrol_id','assign_name','assign_id','assigned_name','assigned_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail"]],
-            [['id','community_id','deal_at','deal_content','deal_img'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["deal"]],
+            [['id','community_id','deal_at','deal_content'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["deal"]],
             [["id",'patrol_id','decoration_id','status','deal_at','create_at','update_at'], 'integer'],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','assign_id','assigned_id'], 'string',"max"=>30],
             [['address','content','deal_content'], 'string',"max"=>200],

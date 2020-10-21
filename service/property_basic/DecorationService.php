@@ -320,4 +320,41 @@ Class DecorationService extends BaseService
             return $this->failed($msg);
         }
     }
+
+    /*
+     * 装修押金列表
+     */
+    public function depositList($params){
+        $model = new PsDecorationRegistration();
+        $result = $model->depositList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
+                $result['list'][$key]['is_receive_msg'] = !empty($value['is_receive'])?$model->moneyStatusMsg[$value['is_receive']]:'';
+                $result['list'][$key]['is_refund_msg'] = !empty($value['is_refund'])?$model->moneyStatusMsg[$value['is_refund']]:'';
+                $result['list'][$key]['receive_at_msg'] = !empty($value['receive_at'])?date('Y-m-d H:i:s',$value['receive_at']):'';
+                $result['list'][$key]['refund_at_msg'] = !empty($value['refund_at'])?date('Y-m-d H:i:s',$value['refund_at']):'';
+            }
+        }
+        return $this->success($result);
+    }
+
+    /*
+     * 装修押金详情
+     */
+    public function depositDetail($params){
+        $model = new PsDecorationRegistration(['scenario' => 'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->depositDetail($params);
+            $detail['status_msg'] = !empty($detail['status'])?$model->statusMsg[$detail['status']]:'';
+            $detail['is_receive_msg'] = !empty($detail['is_receive'])?$model->moneyStatusMsg[$detail['is_receive']]:'';
+            $detail['is_refund_msg'] = !empty($detail['is_refund'])?$model->moneyStatusMsg[$detail['is_refund']]:'';
+            $detail['receive_at_msg'] = !empty($detail['receive_at'])?date('Y-m-d H:i:s',$detail['receive_at']):'';
+            $detail['refund_at_msg'] = !empty($detail['refund_at'])?date('Y-m-d H:i:s',$detail['refund_at']):'';
+            return $this->success($detail);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
 }

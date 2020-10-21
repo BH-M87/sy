@@ -179,4 +179,79 @@ class PsDecorationRegistration extends BaseModel {
             'totals'=>$count
         ];
     }
+
+    /*
+     * 押金列表
+     */
+    public function depositList($param){
+
+        $field = [
+                    'id','address','money','status','is_receive','receive_at','is_refund','refund_at','community_name',
+                    'owner_name','owner_phone'
+        ];
+        $model = self::find()->select($field)->where(1);
+        if(!empty($param['communityList'])){
+            $model->andWhere(['in','community_id',$param['communityList']]);
+        }
+        if(!empty($param['community_id'])){
+            $model->andWhere(['=','community_id',$param['community_id']]);
+        }
+
+        if(!empty($param['group_id'])){
+            $model->andWhere(['=','group_id',$param['group_id']]);
+        }
+        if(!empty($param['building_id'])){
+            $model->andWhere(['=','building_id',$param['building_id']]);
+        }
+        if(!empty($param['unit_id'])){
+            $model->andWhere(['=','unit_id',$param['unit_id']]);
+        }
+
+        if(!empty($param['status'])){
+            $model->andWhere(['=','status',$param['status']]);
+        }
+
+        if(!empty($param['is_receive'])){
+            $model->andWhere(['=','is_receive',$param['is_receive']]);
+        }
+
+        if(!empty($param['is_refund'])){
+            $model->andWhere(['=','is_refund',$param['is_refund']]);
+        }
+
+        if(!empty($param['owner_info'])){
+            $model->andWhere([
+                'or',
+                ['like','owner_name',$param['owner_info']],
+                ['like','owner_phone',$param['owner_info']]
+            ]);
+        }
+
+        $count = $model->count();
+        if(!empty($param['page'])||!empty($param['pageSize'])){
+            $page = !empty($param['page'])?intval($param['page']):1;
+            $pageSize = !empty($param['pageSize'])?intval($param['pageSize']):10;
+            $offset = ($page-1)*$pageSize;
+            $model->offset($offset)->limit($pageSize);
+        }
+        $model->orderBy(["id"=>SORT_DESC]);
+        $result = $model->asArray()->all();
+        return [
+            'list'=>$result,
+            'totals'=>$count
+        ];
+    }
+
+    //押金详情
+    public function depositDetail($params){
+        $field = [
+            'id','address','money','status','is_receive','receive_at','is_refund','refund_at','community_name',
+            'owner_name','owner_phone'
+        ];
+        $model = static::find()->select($field);
+        if(!empty($params['id'])){
+            $model->andWhere(['=','id',$params['id']]);
+        }
+        return $model->asArray()->one();
+    }
 }
