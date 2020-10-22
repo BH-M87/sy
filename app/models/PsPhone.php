@@ -11,7 +11,7 @@ namespace app\models;
 class PsPhone extends BaseModel
 {
 
-    public $typeMsg = ['1'=>'小区服务', '2'=>'公共服务'];
+    public $typeMsg = ['1'=>'小区服务电话', '2'=>'公共服务电话'];
 
     /**
      * @inheritdoc

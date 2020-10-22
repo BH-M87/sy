@@ -118,7 +118,7 @@ Class PhoneService extends BaseService
         $communityResult = $model->getList($communityCondition);
         if(!empty($communityResult['list'])){
             $data[] = [
-                'msg' => '小区服务',
+                'msg' => '小区服务电话',
                 'list' => $communityResult['list'],
             ];
         }
@@ -128,7 +128,7 @@ Class PhoneService extends BaseService
         $commonResult = $model->getList($commonCondition);
         if(!empty($commonResult['list'])){
             $data[] = [
-                'msg' => '公共服务',
+                'msg' => '公共服务电话',
                 'list' => $commonResult['list'],
             ];
         }

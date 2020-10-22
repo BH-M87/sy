@@ -236,8 +236,8 @@ class PsDecorationRegistration extends BaseModel {
     public function depositList($param){
 
         $field = [
-                    'id','address','money','status','is_receive','receive_at','is_refund','refund_at','community_name',
-                    'owner_name','owner_phone'
+                    'id','address','money','status','is_receive','receive_at','is_refund','refund_at',
+                    'community_name','community_id','owner_name','owner_phone'
         ];
         $model = self::find()->select($field)->where(1);
         if(!empty($param['communityList'])){
