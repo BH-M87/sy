@@ -24,6 +24,7 @@ class PsDecorationRegistration extends BaseModel {
         return [
             // 所有场景
             [['community_id','community_name','room_id', 'group_id','building_id','unit_id','address','owner_name','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['id','community_id','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [['id','community_id','money'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['receive']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail","complete","refund"]],
             [["id",'status', 'is_refund','refund_at','is_receive','receive_at','create_at','update_at'], 'integer'],
@@ -34,7 +35,7 @@ class PsDecorationRegistration extends BaseModel {
             [['owner_name','owner_phone','project_name','project_phone'], 'string',"max"=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','address','img','project_unit','owner_name','owner_phone','project_name','project_phone'], 'trim'],
             [['owner_phone','project_phone'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须手机号码格式'],
-            [['id','community_id'], 'infoData', 'on' => ["detail","complete"]],
+            [['id','community_id'], 'infoData', 'on' => ["detail","complete","edit"]],
             [['room_id','community_id'], 'recordExist', 'on' => ["add"]],    //该户装修登记已存在
             [['id','community_id'], 'receiveVerification', 'on' => ["receive"]],    //是否收过保证金
             [['id','community_id'], 'refundVerification', 'on' => ["refund"]],    //是否退过保证金

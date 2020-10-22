@@ -22,6 +22,20 @@ class DecorationController extends BaseController{
         }
     }
 
+    //装修登记-新增
+    public function actionEdit(){
+        try{
+            $result = DecorationService::service()->edit($this->request_params,$this->user_info);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
+
     //装修登记-列表
     public function actionList(){
         try{

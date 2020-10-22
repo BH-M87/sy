@@ -45,6 +45,39 @@ Class DecorationService extends BaseService
     }
 
     /*
+     * 装修登记-修改
+     */
+    public function edit($params, $userInfo){
+        $model = new PsDecorationRegistration(['scenario' => 'edit']);
+        $editParams['id'] = !empty($params['id'])?$params['id']:'';
+        $editParams['community_id'] = !empty($params['community_id'])?$params['community_id']:'';
+        $editParams['owner_phone'] = !empty($params['owner_phone'])?$params['owner_phone']:'';
+        $editParams['project_unit'] = !empty($params['project_unit'])?$params['project_unit']:'';
+        $editParams['project_name'] = !empty($params['project_name'])?$params['project_name']:'';
+        $editParams['project_phone'] = !empty($params['project_phone'])?$params['project_phone']:'';
+        $editParams['img'] = !empty($params['img'])?$params['img']:'';
+        if ($model->load($editParams, '') && $model->validate()) {
+            if (!$model->edit($editParams)) {
+                return $this->failed('修改失败！');
+            }
+            $detail = $model->roomDetail($params);
+            //添加日志
+            $content = "小区：".$detail['community_name'].",房屋地址：" . $detail['address'];
+            $operate = [
+                "community_id" => $params['community_id'],
+                "operate_menu" => "装修登记",
+                "operate_type" => "登记修改",
+                "operate_content" => $content,
+            ];
+            OperateService::addComm($userInfo, $operate);
+            return $this->success(['id' => $model->attributes['id']]);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
      * 巡检记录-新增
      */
     public function patrolAdd($params, $userInfo){
