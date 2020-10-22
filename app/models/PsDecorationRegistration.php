@@ -305,4 +305,17 @@ class PsDecorationRegistration extends BaseModel {
         }
         return $model->asArray()->one();
     }
+
+    //编辑详情
+    public function editDetail($params){
+        $field = [
+            'id','community_id','room_id', 'group_id','building_id','unit_id','owner_name','owner_phone',
+            'project_unit','project_name','project_phone','img'
+        ];
+        $model = static::find()->select($field);
+        if(!empty($params['id'])){
+            $model->andWhere(['=','id',$params['id']]);
+        }
+        return $model->asArray()->one();
+    }
 }

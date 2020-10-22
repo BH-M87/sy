@@ -78,6 +78,21 @@ Class DecorationService extends BaseService
     }
 
     /*
+     * 装修登记-编辑详情
+     */
+    public function editDetail($params){
+        $model = new PsDecorationRegistration(['scenario' => 'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->editDetail($params);
+            $detail['img_arr'] = !empty($detail['img'])?explode(',',$detail['img']):[];
+            return $this->success($detail);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
+    /*
      * 巡检记录-新增
      */
     public function patrolAdd($params, $userInfo){
