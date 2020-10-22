@@ -68,4 +68,36 @@ class DecorationController extends BaseController{
             exit($e->getMessage());
         }
     }
+
+    //装修违规-列表
+    public function actionProblemList(){
+        try{
+            $params = $this->request_params;
+            $params['page'] = $this->page;
+            $params['pageSize'] = $this->pageSize;
+            $result = DecorationService::service()->problemList($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
+
+    //装修违规-详情
+    public function actionProblemDetail(){
+        try{
+            $params = $this->request_params;
+            $result = DecorationService::service()->problemDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        }catch (Exception $e){
+            exit($e->getMessage());
+        }
+    }
 }
