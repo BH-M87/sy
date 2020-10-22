@@ -161,7 +161,7 @@ class PsDecorationProblem extends BaseModel {
     public function getList($param){
 
         $field = [
-            'problem.id','problem.address','problem.community_name','patrol.create_at','patrol.patrol_name','problem.deal_at',
+            'problem.id','problem.address','problem.community_name','problem.community_id','patrol.create_at','patrol.patrol_name','problem.deal_at',
             'problem.assigned_name','problem.type_msg','problem.status'
         ];
         $model = self::find()->alias('problem')

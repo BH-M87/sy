@@ -188,7 +188,7 @@ class PsDecorationRegistration extends BaseModel {
      */
     public function getList($param){
 
-        $field = ['id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','community_name'];
+        $field = ['id','address','owner_name','owner_phone','project_unit','project_name','project_phone','status','create_at','community_name','community_id'];
         $model = self::find()->select($field)->with('patrol')->where(1);
         if(!empty($param['communityList'])){
             $model->andWhere(['in','community_id',$param['communityList']]);
