@@ -31,7 +31,7 @@ class PsPhone extends BaseModel
             [['id','community_id', 'community_name','contact_name', 'contact_phone', 'type'], 'required', 'on' => 'edit'],
             [['id', 'community_id'], 'required', 'on' => ['detail']],
             [['id','community_id'], 'required', 'on' => 'del'],
-            [['id', 'community_id'], 'infoData', 'on' => ["edit","detail","del"]],
+            [['id', 'community_id'], 'infoData', 'on' => ["detail","del"]],
             [['id','community_id', 'contact_name','type'], 'nameUnique', 'on' => ['add','edit']],   //联系人名称唯一
             [['id', 'type', 'create_at', 'update_at'], 'integer'],
             [['type'], 'in', 'range' => [1, 2], 'message' => '{attribute}取值范围错误'],
