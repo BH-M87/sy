@@ -161,6 +161,13 @@ class HomeService extends BaseService
                 'icon_type' => '1',
                 'url' => "/pages/waterMeter/index/index"
             ],
+            [
+                'icon' => "http://static.zje.com/2020102317074746043.png",
+                'name' => "装修管理",
+                'port' => '/digit-property-visitorpass',
+                'icon_type' => '1',
+                'url' => "/pages/renovation/index/index"
+            ],
         ];
         if($javaResult){
             //判断小区是否有账单
@@ -216,6 +223,13 @@ class HomeService extends BaseService
                         'port' => '/digit-property-visitorpass',
                         'icon_type' => '1',
                         'url' => "/pages/waterMeter/index/index"
+                    ],
+                    [
+                        'icon' => "http://static.zje.com/2020102317074746043.png",
+                        'name' => "装修管理",
+                        'port' => '/digit-property-visitorpass',
+                        'icon_type' => '1',
+                        'url' => "/pages/renovation/index/index"
                     ],
                 ];
             }

@@ -91,3 +91,5 @@ CREATE TABLE `ps_decoration_problem` (
 
 ALTER TABLE ps_decoration_registration ADD `owner_id` varchar(30) NOT NULL DEFAULT '' COMMENT '业主id' AFTER owner_phone;
 
+ALTER TABLE ps_decoration_patrol ADD `content_show` text NOT NULL DEFAULT '' COMMENT '内容前端展示';
+

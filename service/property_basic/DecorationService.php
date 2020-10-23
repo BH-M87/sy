@@ -97,6 +97,12 @@ Class DecorationService extends BaseService
      */
     public function patrolAdd($params, $userInfo){
         $model = new PsDecorationPatrol(['scenario' => 'add']);
+        if(!empty($params['content_show'])){
+            if(!is_array($params['content_show'])){
+                return $this->failed('装修内容前端展示必须是数组格式！');
+            }
+        }
+        $params['content_show'] = json_encode($params['content_show'],JSON_UNESCAPED_UNICODE);
         $params['patrol_name'] = $userInfo['truename'];
         $params['patrol_id'] = $userInfo['id'];
         if ($model->load($params, '') && $model->validate()) {
@@ -230,6 +236,7 @@ Class DecorationService extends BaseService
                             $result['list'][$key]['is_question'] = 2;  //无
                         }
                     }
+                    $result['list'][$key]['content_show'] = !empty($value['content_show'])?json_decode($value['content_show'],true):[];
                 }
             }
             return $this->success($result);
@@ -286,6 +293,7 @@ Class DecorationService extends BaseService
                     $detail['is_question'] = 2;  //无
                 }
             }
+            $detail['content_show'] = !empty($detail['content_show'])?json_decode($detail['content_show'],true):[];
             return $this->success($detail);
         } else {
             $msg = array_values($model->errors)[0][0];

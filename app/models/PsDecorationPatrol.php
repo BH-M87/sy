@@ -30,6 +30,7 @@ class PsDecorationPatrol extends BaseModel {
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content'], 'string',"max"=>30],
             [['address','remarks'], 'string',"max"=>200],
             [['patrol_name'], 'string',"max"=>20],
+            [['content_show'], 'string'],
             ['problem_num','integer', 'min'=>0, 'max'=>20],
             [['community_id','community_name','room_id','group_id','building_id','unit_id','content','address','remarks','patrol_name'], 'trim'],
             [['decoration_id','community_id'], 'recordExist', 'on' => ["add","list"]],    //该户装修登记是否存在
@@ -57,6 +58,7 @@ class PsDecorationPatrol extends BaseModel {
               'is_env' => '环境情况',
               'problem_num' => '存在问题数',
               'content' => '装修内容',
+              'content_show'=> '装修内容前端展示',
               'remarks' => '备注',
               'patrol_name' => '巡查人',
               'patrol_id' => '巡查人id',
@@ -122,7 +124,7 @@ class PsDecorationPatrol extends BaseModel {
      */
     public function detail($param){
         $field = [
-            'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','content','remarks','address'
+            'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','content','remarks','address','content_show'
         ];
         $model = static::find()->with('problem')->select($field);
         if(!empty($param['id'])){
@@ -142,7 +144,7 @@ class PsDecorationPatrol extends BaseModel {
     public function getList($param){
 
         $field = [
-                    'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','patrol_name','content','create_at','remarks','address'
+                    'id','is_licensed','is_safe', 'is_violation','is_env', 'problem_num','patrol_name','content','create_at','remarks','address','content_show'
         ];
         $model = self::find()->select($field)->with('problem')->where(1);
 
