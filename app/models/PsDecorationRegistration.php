@@ -23,12 +23,12 @@ class PsDecorationRegistration extends BaseModel {
     {
         return [
             // 所有场景
-            [['community_id','community_name','room_id', 'group_id','building_id','unit_id','address','owner_name','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['community_id','community_name','room_id', 'group_id','building_id','unit_id','address','owner_name','owner_id','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
             [['id','community_id','owner_phone','project_unit','project_name','project_phone'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['edit']],
             [['id','community_id','money'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['receive']],
             [['id','community_id'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail","complete","refund"]],
             [["id",'status', 'is_refund','refund_at','is_receive','receive_at','create_at','update_at'], 'integer'],
-            [['community_id','community_name','room_id','group_id','building_id','unit_id'], 'string',"max"=>30],
+            [['community_id','community_name','room_id','group_id','building_id','unit_id','owner_id'], 'string',"max"=>30],
             [['address'], 'string',"max"=>200],
             [['img'], 'string',"max"=>255],
             [['project_unit'], 'string',"max"=>50],
@@ -58,6 +58,7 @@ class PsDecorationRegistration extends BaseModel {
               'address' => '房屋地址',
               'owner_name' => '业主',
               'owner_phone' => '业主电话',
+              'owner_id'    => '业主id',
               'project_unit' => '承包单位',
               'project_name' => '项目经理',
               'project_phone' => '项目经理电话',
@@ -309,7 +310,7 @@ class PsDecorationRegistration extends BaseModel {
     //编辑详情
     public function editDetail($params){
         $field = [
-            'id','community_id','room_id', 'group_id','building_id','unit_id','owner_name','owner_phone',
+            'id','community_id','room_id', 'group_id','building_id','unit_id','owner_name','owner_phone','owner_id',
             'project_unit','project_name','project_phone','img'
         ];
         $model = static::find()->select($field);

@@ -89,5 +89,5 @@ CREATE TABLE `ps_decoration_problem` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='装修巡查问题工单';
 
-
+ALTER TABLE ps_decoration_registration ADD `owner_id` varchar(30) NOT NULL DEFAULT '' COMMENT '业主id' AFTER owner_phone;
 
