@@ -311,6 +311,25 @@ Class DecorationService extends BaseService
         $model = new PsDecorationPatrol(['scenario' => 'detail']);
         if ($model->load($params, '') && $model->validate()) {
             $detail = $model->problemAddDetail($params);
+            $detail['is_licensed_msg'] = $detail['is_licensed']==1?"持证":"";
+            $detail['is_safe_msg'] = $detail['is_safe']==1?"安全":"";
+            $detail['is_violation_msg'] = $detail['is_violation']==1?"违章":"";
+            $detail['is_env_msg'] = $detail['is_env']==1?"环境":"";
+            $detail['type_msg'] = "";   //问题类型 1违章、2安全、3环境、4持证
+            $type_msg = "";
+            if($detail['is_violation']==1){
+                $type_msg .= "1,";
+            }
+            if($detail['is_safe']==1){
+                $type_msg .= "2,";
+            }
+            if($detail['is_env']==1){
+                $type_msg .= "3,";
+            }
+            if($detail['is_licensed']==1){
+                $type_msg .= "4,";
+            }
+            $detail['type_msg'] = !empty($type_msg)?mb_substr($type_msg,0,-1):'';
             return $this->success($detail);
         } else {
             $msg = array_values($model->errors)[0][0];

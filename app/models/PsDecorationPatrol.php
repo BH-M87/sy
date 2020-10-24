@@ -138,7 +138,7 @@ class PsDecorationPatrol extends BaseModel {
      */
     public function problemAddDetail($param){
         $field = [
-            'p.id',
+            'p.id','p.is_licensed','p.is_safe','p.is_violation','p.is_env',
             'reg.address','reg.owner_name','reg.owner_phone','reg.project_unit','reg.project_name','reg.project_phone'
         ];
         $model = static::find()->alias('p')->leftJoin(['reg'=>PsDecorationRegistration::tableName()],"reg.id=p.decoration_id")->select($field);
