@@ -306,6 +306,18 @@ Class DecorationService extends BaseService
         }
     }
 
+    //装修巡检-新增违规详情
+    public function problemAddDetail($params){
+        $model = new PsDecorationPatrol(['scenario' => 'detail']);
+        if ($model->load($params, '') && $model->validate()) {
+            $detail = $model->problemAddDetail($params);
+            return $this->success($detail);
+        } else {
+            $msg = array_values($model->errors)[0][0];
+            return $this->failed($msg);
+        }
+    }
+
     //巡检违规-列表
     public function problemList($params){
         $model = new PsDecorationProblem();

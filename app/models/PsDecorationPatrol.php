@@ -133,6 +133,21 @@ class PsDecorationPatrol extends BaseModel {
         return $model->asArray()->one();
     }
 
+    /*
+     * 新增违规问题详情
+     */
+    public function problemAddDetail($param){
+        $field = [
+            'p.id',
+            'reg.address','reg.owner_name','reg.owner_phone','reg.project_unit','reg.project_name','reg.project_phone'
+        ];
+        $model = static::find()->alias('p')->leftJoin(['reg'=>PsDecorationRegistration::tableName()],"reg.id=p.decoration_id")->select($field);
+        if(!empty($param['id'])){
+            $model->andWhere(['=','p.id',$param['id']]);
+        }
+        return $model->asArray()->one();
+    }
+
     //关联问题
     public function getProblem(){
         return $this->hasOne(PsDecorationProblem::className(),['patrol_id'=>'id']);

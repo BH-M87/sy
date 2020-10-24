@@ -133,6 +133,22 @@ class DecorationController extends UserBaseController
         }
     }
 
+    //装修巡检-新增违规处理详情
+    public function actionProblemAddDetail(){
+        try {
+            $params = $this->request_params;
+            $service = new DecorationService();
+            $result = $service->problemAddDetail($params);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            }else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
     //装修违规-新增
     public function actionProblemAdd(){
         try {
