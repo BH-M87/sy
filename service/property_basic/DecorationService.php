@@ -629,7 +629,7 @@ Class DecorationService extends BaseService
         return [
             'money'=>$money,
             'refunded_money'=>$refunded_money,    //已退款
-            'pending_money'=>$pending_money,     //待退款
+            'pending_money'=>number_format($pending_money,2),     //待退款
         ];
     }
 }
