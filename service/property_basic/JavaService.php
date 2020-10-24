@@ -49,6 +49,15 @@ class JavaService extends BaseService
     }
 
     /*
+     * 业主住户列表
+     */
+    public function residentListByRoomId($query)
+    {
+        $query['route'] = '/parking/residentListByRoomId';
+        return self::returnCData($query);
+    }
+
+    /*
      * 住户详情
      */
     public function residentDetail($query)

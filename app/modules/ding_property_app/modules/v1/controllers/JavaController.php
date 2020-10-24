@@ -112,6 +112,19 @@ class JavaController extends UserBaseController{
     }
 
     /*
+     * 业主住户列表
+     */
+    public function actionResidentListByRoomId(){
+        try{
+            $data = $this->request_params;
+            $result = JavaService::service()->residentListByRoomId($data);
+            return PsCommon::responseSuccess($result);
+        } catch (Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    /*
       * 部门列表
       */
     public function actionTreeList(){
