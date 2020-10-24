@@ -122,7 +122,7 @@ class PsDecorationRegistration extends BaseModel {
      */
     public function receiveVerification($attribute){
         if(!empty($this->id)&&!empty($this->community_id)){
-            $res = static::find()->select(['id','is_receive'])->where('id=:id and community_id=:community_id',[':id'=>$this->id,':community_id'=>$this->community_id])->asArray()->one();
+            $res = static::find()->select(['id','is_receive'])->where('id=:id and community_id=:community_id and status=:status',[':id'=>$this->id,':community_id'=>$this->community_id,":status"=>1])->asArray()->one();
             if (empty($res)) {
                 $this->addError($attribute, "该数据不存在！");
             }
