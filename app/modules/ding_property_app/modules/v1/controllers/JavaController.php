@@ -114,10 +114,10 @@ class JavaController extends UserBaseController{
     /*
      * 业主住户列表
      */
-    public function actionResidentListByRoomId(){
+    public function actionResidentSelectAllByCommunityId(){
         try{
             $data = $this->request_params;
-            $result = JavaService::service()->residentListByRoomId($data);
+            $result = JavaService::service()->residentSelectAllByCommunityId($data);
             return PsCommon::responseSuccess($result);
         } catch (Exception $e) {
             exit($e->getMessage());
