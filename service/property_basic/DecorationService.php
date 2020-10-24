@@ -236,6 +236,11 @@ Class DecorationService extends BaseService
                             $result['list'][$key]['is_question'] = 2;  //无
                         }
                     }
+                    //是否生成过工单
+                    $result['list'][$key]['is_order'] = 1;   //没有生成过
+                    if(!empty($problem)){
+                        $result['list'][$key]['is_order'] = 2;  //有生成过
+                    }
                     $result['list'][$key]['content_show'] = !empty($value['content_show'])?json_decode($value['content_show'],true):[];
                 }
             }
