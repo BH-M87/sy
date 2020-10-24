@@ -624,7 +624,8 @@ Class DecorationService extends BaseService
         }
         $money = $model->sum('money');//总金额
         $refunded_money = $model->andWhere(['=','is_refund',2])->sum('money');//已退款
-        $pending_money = $money - $refunded_money;//待退款
+        $pending_money = bcsub($money,$refunded_money,2); //待退款
+//        $pending_money = $money - $refunded_money;//待退款
         return [
             'money'=>$money,
             'refunded_money'=>$refunded_money,    //已退款
