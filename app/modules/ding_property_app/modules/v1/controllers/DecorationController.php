@@ -103,8 +103,8 @@ class DecorationController extends UserBaseController
     public function actionPatrolList(){
         try {
             $params = $this->request_params;
-            $params['page'] = $this->page;
-            $params['pageSize'] = $this->pageSize;
+//            $params['page'] = $this->page;
+//            $params['pageSize'] = $this->pageSize;
             $service = new DecorationService();
             $result = $service->patrolList($params);
             if ($result['code']) {

@@ -390,6 +390,7 @@ Class DecorationService extends BaseService
                 $result['list'][$key]['is_refund_msg'] = !empty($value['is_refund'])?$model->moneyStatusMsg[$value['is_refund']]:'';
                 $result['list'][$key]['receive_at_msg'] = !empty($value['receive_at'])?date('Y-m-d H:i:s',$value['receive_at']):'';
                 $result['list'][$key]['refund_at_msg'] = !empty($value['refund_at'])?date('Y-m-d H:i:s',$value['refund_at']):'';
+                $result['list'][$key]['money'] = $value['money']>0?$value['money']:'';
             }
         }
         return $this->success($result);
@@ -407,6 +408,7 @@ Class DecorationService extends BaseService
             $detail['is_refund_msg'] = !empty($detail['is_refund'])?$model->moneyStatusMsg[$detail['is_refund']]:'';
             $detail['receive_at_msg'] = !empty($detail['receive_at'])?date('Y-m-d H:i:s',$detail['receive_at']):'';
             $detail['refund_at_msg'] = !empty($detail['refund_at'])?date('Y-m-d H:i:s',$detail['refund_at']):'';
+            $detail['money'] = $detail['money']>0?$detail['money']:'';
             return $this->success($detail);
         } else {
             $msg = array_values($model->errors)[0][0];
