@@ -16,9 +16,146 @@ use app\models\GoodsGroupSelect;
 use app\models\GoodsGroupCommunity;
 use app\models\PsDeliveryRecords;
 use service\property_basic\JavaService;
+use app\models\PsEvent;
+use app\models\PsEventComment;
+use app\models\PsEventProcess;
 
 class GoodsService extends BaseService
 {
+    // 事件详情
+    public function eventShow($p) 
+    {
+        $event = new PsEvent();
+
+        $m = PsEvent::find()->where(['id' => $p['id']])->asArray()->one();
+
+        if (empty($m)) {
+            throw new MyException('数据不存在!');
+        }
+
+        $m['statusMsg'] = $event->statusMsg[$m['status']];
+        $m['event_time'] = date('Y-m-d H:i:s', $m['event_time']);
+        $m['sourceMsg'] = $event->sourceMsg[$m['source']];
+        $m['event_img'] = !empty($m['event_img']) ? explode(',', $m['event_img']) : '';
+
+        $m['comment'] = PsEventComment::find()->select("create_at commentAt, comment commentMsg")
+            ->where(['event_id' => $p['id']])->orderBy('create_at desc')->asArray()->all();
+        if (!empty($m['comment'])) {
+            foreach ($m['comment'] as &$v) {
+                $v['commentAt'] = date('Y-m-d H:i', $v['commentAt']);
+            }
+        }
+
+        $m['process'] = PsEventProcess::find()->where(['event_id' => $p['id']])->orderBy('create_at desc')->asArray()->all();
+        if (!empty($m['process'])) {
+            foreach ($m['process'] as &$v) {
+                $v['create_at'] = date('Y-m-d H:i', $v['create_at']);
+                $v['process_img'] = !empty($v['process_img']) ? explode(',', $v['process_img']) : '';
+            }
+        }
+
+        $m['reject'] = PsEventProcess::find()->select('create_at rejectAt, content rejectMsg')->where(['event_id' => $p['id'], 'status' => 3])->orderBy('create_at desc')->asArray()->all();
+        if (!empty($m['reject'])) {
+            foreach ($m['reject'] as &$v) {
+                $v['rejectAt'] = date('Y-m-d H:i', $v['rejectAt']);
+            }
+        }
+
+        $m['close'] = PsEventProcess::find()->select('create_at closeAt, content closeMsg')->where(['event_id' => $p['id'], 'status' => 4])->orderBy('create_at desc')->asArray()->all();
+        if (!empty($m['close'])) {
+            foreach ($m['close'] as &$v) {
+                $v['closeAt'] = date('Y-m-d H:i', $v['closeAt']);
+            }
+        }
+
+        return $m;
+    }
+
+    // 事件签收
+    public function eventSign($p) 
+    {
+        $model = PsEvent::findOne($p['id']);
+        if (empty($model)) {
+            throw new MyException('数据不存在!');
+        }
+
+        if ($model->status != 1) {
+            throw new MyException('待处理状态才能签收!');
+        }
+
+        $model->status = 2;
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+
+        try {
+            $model->save();
+
+            $process = new PsEventProcess();
+            $process->event_id = $model->id;
+            $process->status = 1;
+            $process->create_at = time();
+            $process->create_id = $p['user_id'];
+            $process->create_name = $p['user_name'];
+            $process->save();
+
+            $trans->commit();
+            return ['id' => $model->id];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
+
+    // 事件办结
+    public function eventFinish($p) 
+    {
+        $model = PsEvent::findOne($p['id']);
+        if (empty($model)) {
+            throw new MyException('数据不存在!');
+        }
+
+        if ($model->status != 2) {
+            throw new MyException('处理中状态才能办结!');
+        }
+
+        if (empty($p['content'])) {
+            throw new Exception("办结描述必填");
+        }
+
+        if (!empty($p['process_img']) && !is_array($p['process_img'])) {
+            throw new Exception("办结图片数组格式");
+        }
+
+        $model->status = 3;
+        $model->is_close = 1;
+
+        $trans = Yii::$app->getDb()->beginTransaction();
+
+        try {
+            $model->save();
+
+            $process = new PsEventProcess();
+            $process->event_id = $model->id;
+            $process->status = 2;
+            $process->create_at = time();
+            $process->create_id = $p['user_id'];
+            $process->create_name = $p['user_name'];
+            $process->content = $p['content'];
+            $process->process_img = implode(',', $p['process_img']);
+            $process->save();
+
+            $trans->commit();
+            return ['id' => $model->id];
+        } catch (Exception $e) {
+            $trans->rollBack();
+            throw new MyException($e->getMessage());
+        }
+    }
+
+    // 事件数据分析
+    public function eventData($p) 
+    {}
+
     // 列表
     public function groupDropDown($p)
     {

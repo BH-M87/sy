@@ -9,6 +9,40 @@ use service\property_basic\GoodsService;
 
 class GoodsController extends BaseController
 {
+    public function actionEventShow()
+    {
+        $r = GoodsService::service()->eventShow($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    public function actionEventSign()
+    {
+        $this->request_params['user_id'] = $this->user_info['id'];
+        $this->request_params['user_name'] = $this->user_info['trueName'];
+
+        $r = GoodsService::service()->eventSign($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    public function actionEventFinish()
+    {
+        $this->request_params['user_id'] = $this->user_info['id'];
+        $this->request_params['user_name'] = $this->user_info['trueName'];
+
+        $r = GoodsService::service()->eventFinish($this->request_params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    public function actionEventData()
+    {
+        $r = GoodsService::service()->eventData($this->request_params, $this->user_info);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     public function actionGroupCommunity()
     {
         $r = GoodsService::service()->groupCommunity($this->request_params, $this->user_info);

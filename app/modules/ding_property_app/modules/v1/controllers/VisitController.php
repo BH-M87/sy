@@ -12,9 +12,42 @@ use service\visit\VisitService;
 
 use service\property_basic\JavaService;
 use service\property_basic\JavaOfCService;
+use service\property_basic\GoodsService;
 
 class VisitController extends UserBaseController
 {
+    // ----------------------------------     事件处置     ----------------------------
+
+    // 事件详情
+    public function actionEventShow()
+    {
+        $r = GoodsService::service()->eventShow($this->params);
+        
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 事件签收
+    public function actionEventSign()
+    {
+        $this->params['user_id'] = $this->userInfo['id'];
+        $this->params['user_name'] = $this->userInfo['trueName'];
+        
+        $r = GoodsService::service()->eventSign($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
+    // 事件办结
+    public function actionEventFinish()
+    {
+        $this->params['user_id'] = $this->userInfo['id'];
+        $this->params['user_name'] = $this->userInfo['trueName'];
+
+        $r = GoodsService::service()->eventFinish($this->params);
+
+        return PsCommon::responseSuccess($r);
+    }
+
     // ----------------------------------     出门单     ----------------------------
 
     // 出门单详情
