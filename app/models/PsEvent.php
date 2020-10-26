@@ -24,6 +24,7 @@ class PsEvent extends BaseModel {
         return [
             // 所有场景
             [['event_time','sq_id','sq_name', 'xq_id','xq_name','wy_id','wy_name','contacts_name','contacts_mobile','event_content','create_id','create_name'], 'required', 'message' => '{attribute}不能为空！', 'on' => ['add']],
+            [['id','is_close'], 'required', 'message' => '{attribute}不能为空！', 'on' => ["close"]],
             ['id', 'required', 'message' => '{attribute}不能为空！', 'on' => ["detail"]],
             [["id",'event_time', 'source','status','is_close','create_at','update_at'], 'integer'],
             [['jd_id','sq_id','xq_id','wy_id','contacts_name','contacts_mobile','create_id','create_name','property_user'], 'string',"max"=>20],
@@ -33,9 +34,10 @@ class PsEvent extends BaseModel {
             [['jd_id','sq_id','xq_id','wy_id','contacts_name','contacts_mobile','create_id','create_name','property_user','jd_name','sq_name','xq_name','wy_name','address','event_content'], 'trim'],
             [['contacts_mobile'], 'match', 'pattern'=>parent::MOBILE_PHONE_RULE, 'message'=>'联系电话必须是手机号码格式'],
             [['id'], 'infoData', 'on' => ["detail"]],
-//            [['product_id'], 'productExist', 'on' => ['volunteer_add']],
+            [['is_close'], 'closeJudgment', 'on' => ['close']],     //结案判断
             [["create_at",'update_at'],"default",'value' => time(),'on'=>['add']],
-            [["source","status","is_close"],"default",'value' => 1,'on'=>['add']],
+            [["source","status"],"default",'value' => 1,'on'=>['add']],
+            [["is_close"],"default",'value' => 0,'on'=>['add']],
         ];
     }
 
@@ -100,6 +102,32 @@ class PsEvent extends BaseModel {
         }
     }
 
+    /*
+     * 结案判断
+     */
+    public function closeJudgment($attribute){
+        if(!empty($this->id)&&!empty($this->is_close)){
+            $res = static::find()->select(['id','status','is_close','xq_id'])->where('id=:id',[':id'=>$this->id])->asArray()->one();
+            if (empty($res)) {
+                $this->addError($attribute, "该数据不存在！");
+            }
+            if($res['status']!=3){
+                $this->addError($attribute, "已办结事件才能结案！");
+            }
+            if($res['is_close']!=1){
+                $this->addError($attribute, "不能办理结案！");
+            }
+            if(intval($this->is_close)==1){ //结案是
+                $this->is_close = 2;
+                $this->status = $res['status'];
+            }else{//否
+                $this->is_close = 0;
+                $this->status = 4; //驳回
+            }
+
+            $this->xq_id = $res['xq_id'];
+        }
+    }
 
     /*
      * 详情

@@ -48,4 +48,36 @@ class StreetEventController extends UserBaseController
             return PsCommon::responseFailed($e->getMessage());
         }
     }
+
+    //事件评价
+    public function actionCommentAdd(){
+        try {
+            $params = $this->request_params;
+            $service = new StreetEventService();
+            $result = $service->commentAdd($params, $this->userInfo);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
+
+    //事件结案
+    public function actionEventClose(){
+        try {
+            $params = $this->request_params;
+            $service = new StreetEventService();
+            $result = $service->eventClose($params, $this->userInfo);
+            if ($result['code']) {
+                return PsCommon::responseSuccess($result['data']);
+            } else {
+                return PsCommon::responseFailed($result['msg']);
+            }
+        } catch (Exception $e) {
+            return PsCommon::responseFailed($e->getMessage());
+        }
+    }
 }
