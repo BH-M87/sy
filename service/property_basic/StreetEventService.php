@@ -38,6 +38,15 @@ class StreetEventService extends BaseService{
 
     //事件-列表
     public function getList($params){
-
+        $model = new PsEvent();
+        $result = $model->getList($params);
+        if(!empty($result['list'])){
+            foreach($result['list'] as $key=>$value){
+                $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
+                $result['list'][$key]['is_close_msg'] = !empty($value['is_close'])?$model->closeMsg[$value['is_close']]:'';
+                $result['list'][$key]['event_time_msg'] = !empty($value['event_time'])?date('Y/m/d H:i:s',$value['event_time']):'';
+            }
+        }
+        return $this->success($result);
     }
 }

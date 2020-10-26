@@ -10,6 +10,9 @@ namespace app\models;
 
 class PsEvent extends BaseModel {
 
+    public $sourceMsg = ['1'=>'街道','2'=>'区数据局'];
+    public $closeMsg = ['1'=>'未结案','2'=>'已结案'];
+    public $statusMsg = ['1'=>'待处理','2'=>'处理中','3'=>'已办结','4'=>'已驳回'];
 
     public static function tableName()
     {
@@ -56,7 +59,7 @@ class PsEvent extends BaseModel {
               'source' => '来源：1街道，2区数据局',
               'event_img' => '事件照片',
               'status' => '状态：1待处理，2处理中，3已办结，4已驳回',
-              'is_colse' => '是否结案：1未结案，2已结案',
+              'is_close' => '是否结案：1未结案，2已结案',
               'create_id' => '新增用户id',
               'create_name' => '新增用户名称',
               'property_user' => '物业钉钉管理员(平台用户id)',
@@ -118,34 +121,23 @@ class PsEvent extends BaseModel {
      */
     public function getList($param){
 
-        $field = ['id','product_name','create_at','cust_name','cust_mobile','product_num','address','delivery_type','status','courier_company','order_num'];
+        $field = [
+                    'id','event_time','source','contacts_name','contacts_mobile','status','event_content'
+        ];
         $model = self::find()->select($field)->where(1);
-        if(!empty($param['communityList'])){
-            $model->andWhere(['in','community_id',$param['communityList']]);
+        if(!empty($param['jd_id'])){
+            $model->andWhere(['in','jd_id',$param['jd_id']]);
         }
-        if(!empty($param['cust_name'])){
-            $model->andWhere(['like','cust_name',$param['cust_name']]);
-        }
-        if(!empty($param['cust_mobile'])){
-            $model->andWhere(['like','cust_mobile',$param['cust_mobile']]);
-        }
-        if(!empty($param['delivery_type'])){
-            $model->andWhere(['=','delivery_type',$param['delivery_type']]);
+
+        if(!empty($param['wy_id'])){
+            $model->andWhere(['=','wy_id',$param['wy_id']]);
         }
         if(!empty($param['status'])){
             $model->andWhere(['=','status',$param['status']]);
         }
-        if(!empty($param['courier_company'])){
-            $model->andWhere(['like','courier_company',$param['courier_company']]);
-        }
-        if(!empty($param['order_num'])){
-            $model->andWhere(['like','order_num',$param['order_num']]);
-        }
-        if(!empty($param['start_time'])){
-            $model->andWhere(['>=','create_at',strtotime($param['start_time'])]);
-        }
-        if(!empty($param['end_time'])){
-            $model->andWhere(['<=','create_at',strtotime($param['end_time']." 23:59:59")]);
+
+        if(!empty($param['is_close'])){
+            $model->andWhere(['=','is_close',$param['is_close']]);
         }
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
