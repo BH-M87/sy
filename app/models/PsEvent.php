@@ -122,11 +122,16 @@ class PsEvent extends BaseModel {
     public function getList($param){
 
         $field = [
-                    'id','event_time','source','contacts_name','contacts_mobile','status','event_content'
+                    'id','event_time','source','contacts_name','contacts_mobile','status','event_content',
+                    'xq_name','wy_name'
         ];
         $model = self::find()->select($field)->where(1);
         if(!empty($param['jd_id'])){
-            $model->andWhere(['in','jd_id',$param['jd_id']]);
+            $model->andWhere(['=','jd_id',$param['jd_id']]);
+        }
+
+        if(!empty($param['xq_id'])){
+            $model->andWhere(['=','xq_id',$param['xq_id']]);
         }
 
         if(!empty($param['wy_id'])){
@@ -139,6 +144,14 @@ class PsEvent extends BaseModel {
         if(!empty($param['is_close'])){
             $model->andWhere(['=','is_close',$param['is_close']]);
         }
+
+        if(!empty($param['start_time'])){
+            $model->andWhere(['>=','event_time',strtotime($param['start_time'])]);
+        }
+        if(!empty($param['end_time'])){
+            $model->andWhere(['<=','event_time',strtotime($param['end_time']." 23:59:59")]);
+        }
+
         $count = $model->count();
         if(!empty($param['page'])||!empty($param['pageSize'])){
             $page = !empty($param['page'])?intval($param['page']):1;

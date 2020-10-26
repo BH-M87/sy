@@ -44,6 +44,7 @@ class StreetEventService extends BaseService{
             foreach($result['list'] as $key=>$value){
                 $result['list'][$key]['status_msg'] = !empty($value['status'])?$model->statusMsg[$value['status']]:'';
                 $result['list'][$key]['is_close_msg'] = !empty($value['is_close'])?$model->closeMsg[$value['is_close']]:'';
+                $result['list'][$key]['source_msg'] = !empty($value['source'])?$model->sourceMsg[$value['source']]:'';
                 $result['list'][$key]['event_time_msg'] = !empty($value['event_time'])?date('Y/m/d H:i:s',$value['event_time']):'';
             }
         }
