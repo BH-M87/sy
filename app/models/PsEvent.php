@@ -162,6 +162,10 @@ class PsEvent extends BaseModel {
             $model->andWhere(['=','xq_id',$param['xq_id']]);
         }
 
+        if(!empty($param['sq_id'])){
+            $model->andWhere(['=','sq_id',$param['sq_id']]);
+        }
+
         if(!empty($param['wy_id'])){
             $model->andWhere(['=','wy_id',$param['wy_id']]);
         }
